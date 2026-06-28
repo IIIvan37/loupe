@@ -10,13 +10,17 @@
   --panel-2: #21242f;
   --panel-3: #262a37;
   --line: #2c3040;
+  --line-soft: #23262f; /* softer divider for inner rules (ruler ticks) */
   --text: #e9e7e1;
   --dim: #8b90a3;
   --faint: #5a5f72;
 
   /* Semantic accents */
   --amber: #e5a53d; /* what plays / is active / the loupe loop */
+  --amber-deep: #b07d23; /* active marker / preset borders */
+  --amber-glow: rgba(229, 165, 61, 0.18); /* the loupe wash */
   --teal: #56b8c9; /* what the AI detected */
+  --teal-deep: #2c6f7a;
 
   /* Stems */
   --stem-vocals: #e2897a;
@@ -41,4 +45,8 @@
   --space-2xl: 3rem;
 
   --radius: 6px;
+
+  /* Timeline layout — shared so the ruler, waveform and zoom pill stay in sync. */
+  --timeline-height: 46px;
+  --waveform-height: 134px;
 }

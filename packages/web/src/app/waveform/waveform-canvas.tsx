@@ -22,6 +22,11 @@ export function WaveformCanvas({ waveform, label }: WaveformCanvasProps) {
       return
     }
     paint(canvas, context, waveform)
+    // Repaint when the canvas resizes — zooming widens it, and so does a window
+    // resize — so the bitmap always matches its CSS box rather than stretching.
+    const observer = new ResizeObserver(() => paint(canvas, context, waveform))
+    observer.observe(canvas)
+    return () => observer.disconnect()
   }, [waveform])
 
   return (

@@ -2,6 +2,41 @@
 
 Jalon 1 · Slice 6 — zoom + scrollable viewport (la « loupe » jusqu'à 6×).
 
+## Revision (post-review, prototype-aligned)
+
+The first cut modelled the viewport as a pure ratio-space window (offset + peak
+slicing + a pan slider). On review against the prototype/maquette this was wrong:
+the product's zoom is a **slider that magnifies** while a **native horizontal
+scrollbar** pans, with the **ruler, markers and waveform sharing one zoom-scaled
+stage** so they stay aligned at any zoom. Reworked to match:
+
+- **Core `Viewport` simplified to a zoom scalar** — `clampZoom` / `zoomIn` /
+  `zoomOut` over `MIN_ZOOM…MAX_ZOOM` in `ZOOM_STEP` (0.5). Offset / `toViewRatio`
+  / `visibleWindow` / `sliceWaveform` removed (panning is the DOM's job).
+- **`ZoomStage`** (new dumb layer): one horizontally-scrollable frame whose inner
+  width is `zoom × 100%`; holds the zoom pill, the playhead spanning all layers,
+  and the auto-scroll that follows the playhead during playback. The ruler +
+  markers and the waveform are its children, so they scale and scroll together.
+- **`MarkerRail`** restyled to the prototype timeline: a mono timecode ruler +
+  pin/tag markers (sections labelled, measures/beats are pins).
+- **Sliders styled** globally (track + round knob, `data-accent` amber/teal).
+- **Canvas** fills its frame (was a fixed 180px → truncated in the 134px box) and
+  repaints on resize via a `ResizeObserver`.
+- Zoom pill is the top-right overlay; the slider zooms (does not pan).
+
+Tokens added: `--amber-deep`, `--amber-glow`, `--teal-deep`, `--line-soft`.
+
+### Header & inspector de-placeholdered
+
+- **Header title/artist** now come from the imported file. New `TrackMetadataReader`
+  port (core) + `createMusicMetadataReader` web adapter (music-metadata) read
+  embedded tags best-effort; the title falls back to the file name (extension
+  stripped), artist to "Artiste inconnu". Read in parallel with decoding from a
+  buffer copy (decode may detach the original). Injected as a port (tests use a
+  silent fake).
+- **Analysis panel** « Repères » tab now lists the real markers (click to seek);
+  Spectre/Notes carry honest copy (no "(Jalon N)" dev labels). Default tab → Repères.
+
 ## Done
 - **Pure `Viewport` domain** (`packages/core/src/domain/viewport.ts`) in
   normalised timeline-ratio space (`[0, 1]`, duration-independent):

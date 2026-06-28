@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { initialViewport, type Track, type Viewport, zoomTo } from '@app/core'
+import type { Track } from '@app/core'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 import { WaveformView } from './waveform-view.tsx'
@@ -19,13 +19,10 @@ function renderLoaded(
   return render(
     <WaveformView
       state={{ status: 'loaded', track }}
-      positionRatio={0}
       loopRegion={undefined}
       durationSeconds={10}
-      viewport={initialViewport()}
       onSeek={noop}
       onSelectRegion={noop}
-      onScrollBy={noop}
       {...overrides}
     />
   )
@@ -43,13 +40,10 @@ describe('WaveformView', () => {
     render(
       <WaveformView
         state={{ status: 'idle' }}
-        positionRatio={0}
         loopRegion={undefined}
         durationSeconds={0}
-        viewport={initialViewport()}
         onSeek={noop}
         onSelectRegion={noop}
-        onScrollBy={noop}
       />
     )
     expect(screen.getByText(/Importe un fichier audio/)).toBeInTheDocument()
@@ -81,33 +75,5 @@ describe('WaveformView', () => {
     expect(
       screen.getByRole('img', { name: "Forme d'onde de la piste" })
     ).toBeInTheDocument()
-  })
-
-  it('maps a click through the zoom/scroll window to a timeline ratio', () => {
-    // Zoom 2× anchored at the left shows [0, 0.5]; a click at the surface centre
-    // is the quarter mark of the whole timeline.
-    const onSeek = vi.fn()
-    const viewport: Viewport = zoomTo(initialViewport(), 2, 0)
-    renderLoaded({ onSeek, viewport })
-    pressDrag(screen.getByRole('button'), 50, 50)
-    expect(onSeek).toHaveBeenCalledWith(0.25)
-  })
-
-  it('pans the window on a horizontal wheel', () => {
-    const onScrollBy = vi.fn()
-    const viewport: Viewport = zoomTo(initialViewport(), 2, 0)
-    renderLoaded({ onScrollBy, viewport })
-    const stage = screen.getByRole('button')
-    stage.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
-    fireEvent.wheel(stage, { deltaX: 50, deltaY: 0 })
-    // 50px over a 100px-wide 2×-zoom surface scrolls 0.25 of the timeline.
-    expect(onScrollBy).toHaveBeenCalledWith(0.25)
-  })
-
-  it('hides the playhead when it sits outside the visible window', () => {
-    // Zoom 2× anchored left shows [0, 0.5]; a playhead at 0.9 is off screen.
-    const viewport: Viewport = zoomTo(initialViewport(), 2, 0)
-    const { container } = renderLoaded({ viewport, positionRatio: 0.9 })
-    expect(container.querySelector('[class*="playhead"]')).toBeNull()
   })
 })

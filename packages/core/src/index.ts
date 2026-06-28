@@ -16,7 +16,9 @@ export type {
   GreetingSink,
   LoopStore,
   NameSource,
-  PlaybackEngine
+  PlaybackEngine,
+  TrackMetadata,
+  TrackMetadataReader
 } from './application/ports.ts'
 export type { Greeting } from './domain/greeting.ts'
 export { buildGreeting } from './domain/greeting.ts'
@@ -57,18 +59,12 @@ export type {
   TransportState
 } from './domain/transport.ts'
 export { initialTransport, transportReducer } from './domain/transport.ts'
-export type { Viewport } from './domain/viewport.ts'
 export {
-  initialViewport,
+  clampZoom,
   MAX_ZOOM,
   MIN_ZOOM,
-  maxOffset,
-  scrollBy,
-  scrollTo,
-  toTimelineRatio,
-  toViewRatio,
-  visibleWindow,
-  zoomTo
+  ZOOM_STEP,
+  zoomIn,
+  zoomOut
 } from './domain/viewport.ts'
 export type { Waveform, WaveformPeak } from './domain/waveform.ts'
-export { sliceWaveform } from './domain/waveform.ts'

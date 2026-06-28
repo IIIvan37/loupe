@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { initialViewport, type Viewport, zoomTo } from '@app/core'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { vi } from 'vitest'
 import { ViewportControls } from './viewport-controls.tsx'
@@ -12,30 +11,31 @@ function renderControls(
 ) {
   return render(
     <ViewportControls
-      viewport={initialViewport()}
+      zoom={1}
       disabled={false}
       onZoomIn={noop}
       onZoomOut={noop}
-      onScroll={noop}
+      onSetZoom={noop}
       {...overrides}
     />
   )
 }
 
 describe('ViewportControls', () => {
-  it('shows the current zoom level', () => {
-    renderControls({ viewport: zoomTo(initialViewport(), 3, 0) })
+  it('shows the current zoom level (integer and half-step)', () => {
+    renderControls({ zoom: 3 })
     expect(screen.getByText('3×')).toBeInTheDocument()
+  })
+
+  it('formats a half-step zoom to one decimal', () => {
+    renderControls({ zoom: 2.5 })
+    expect(screen.getByText('2.5×')).toBeInTheDocument()
   })
 
   it('zooms in and out', () => {
     const onZoomIn = vi.fn()
     const onZoomOut = vi.fn()
-    renderControls({
-      viewport: zoomTo(initialViewport(), 3, 0),
-      onZoomIn,
-      onZoomOut
-    })
+    renderControls({ zoom: 3, onZoomIn, onZoomOut })
     fireEvent.click(screen.getByRole('button', { name: 'Zoomer' }))
     fireEvent.click(screen.getByRole('button', { name: 'Dézoomer' }))
     expect(onZoomIn).toHaveBeenCalled()
@@ -43,34 +43,29 @@ describe('ViewportControls', () => {
   })
 
   it('cannot zoom out past 1×', () => {
-    renderControls({ viewport: initialViewport() })
+    renderControls({ zoom: 1 })
     expect(screen.getByRole('button', { name: 'Dézoomer' })).toBeDisabled()
   })
 
-  it('cannot zoom in past the max', () => {
-    renderControls({ viewport: zoomTo(initialViewport(), 6, 0) })
+  it('cannot zoom in past 6×', () => {
+    renderControls({ zoom: 6 })
     expect(screen.getByRole('button', { name: 'Zoomer' })).toBeDisabled()
   })
 
-  it('disables the scroll slider when nothing is off screen', () => {
-    renderControls({ viewport: initialViewport() })
-    expect(screen.getByRole('slider', { name: 'Défilement horizontal' })).toBeDisabled()
+  it('sets an absolute zoom level from the slider', () => {
+    const onSetZoom = vi.fn()
+    renderControls({ onSetZoom })
+    const slider = screen.getByRole('slider', { name: "Zoom de la forme d'onde" })
+    fireEvent.change(slider, { target: { value: '4' } })
+    expect(onSetZoom).toHaveBeenCalledWith(4)
   })
 
-  it('scrolls to an absolute offset scaled by the max offset', () => {
-    const onScroll = vi.fn()
-    // At 2× the max offset is 0.5; a half-way slider lands at 0.25.
-    const viewport: Viewport = zoomTo(initialViewport(), 2, 0)
-    renderControls({ viewport, onScroll })
-    const slider = screen.getByRole('slider', { name: 'Défilement horizontal' })
-    fireEvent.change(slider, { target: { value: '0.5' } })
-    expect(onScroll).toHaveBeenCalledWith(0.25)
-  })
-
-  it('disables everything until a track is loaded', () => {
-    renderControls({ viewport: zoomTo(initialViewport(), 3, 0), disabled: true })
+  it('disables every control until a track is loaded', () => {
+    renderControls({ zoom: 3, disabled: true })
     expect(screen.getByRole('button', { name: 'Zoomer' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Dézoomer' })).toBeDisabled()
-    expect(screen.getByRole('slider', { name: 'Défilement horizontal' })).toBeDisabled()
+    expect(
+      screen.getByRole('slider', { name: "Zoom de la forme d'onde" })
+    ).toBeDisabled()
   })
 })

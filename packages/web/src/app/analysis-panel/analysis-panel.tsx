@@ -1,39 +1,78 @@
+import { formatTimecode, type MarkerList } from '@app/core'
 import { Tabs } from '@base-ui-components/react/tabs'
 import { cx } from '../../lib/cx.ts'
 import styles from './analysis-panel.module.css'
 
-interface AnalysisTab {
-  readonly id: string
-  readonly label: string
-  readonly hint: string
+interface AnalysisPanelProps {
+  readonly markers: MarkerList
+  /** Jump to a marker's time. */
+  readonly onSeekMarker: (timeSeconds: number) => void
+  readonly onRemoveMarker: (id: string) => void
 }
-
-const TABS: readonly AnalysisTab[] = [
-  { id: 'spectre', label: 'Spectre', hint: 'Analyse spectrale (Jalon 3).' },
-  { id: 'reperes', label: 'Repères', hint: 'Marqueurs cliquables (Jalon 1).' },
-  { id: 'notes', label: 'Notes', hint: 'Annotations textuelles.' }
-]
 
 /**
  * Dumb presentational analysis panel built on Base UI Tabs (headless + a11y).
- * Content is placeholder for Slice 0; real spectrum/markers/notes land later.
+ * « Repères » lists the real markers (click to seek); spectrum and notes are
+ * honest placeholders for later jalons.
  */
-export function AnalysisPanel() {
+export function AnalysisPanel({
+  markers,
+  onSeekMarker,
+  onRemoveMarker
+}: AnalysisPanelProps) {
   return (
     <aside className={styles.panel}>
-      <Tabs.Root defaultValue="spectre">
+      <Tabs.Root defaultValue="reperes">
         <Tabs.List className={cx(styles.list)}>
-          {TABS.map((tab) => (
-            <Tabs.Tab key={tab.id} value={tab.id} className={cx(styles.tab)}>
-              {tab.label}
-            </Tabs.Tab>
-          ))}
+          <Tabs.Tab value="spectre" className={cx(styles.tab)}>
+            Spectre
+          </Tabs.Tab>
+          <Tabs.Tab value="reperes" className={cx(styles.tab)}>
+            Repères
+          </Tabs.Tab>
+          <Tabs.Tab value="notes" className={cx(styles.tab)}>
+            Notes
+          </Tabs.Tab>
         </Tabs.List>
-        {TABS.map((tab) => (
-          <Tabs.Panel key={tab.id} value={tab.id} className={cx(styles.tabPanel)}>
-            {tab.hint}
-          </Tabs.Panel>
-        ))}
+
+        <Tabs.Panel value="spectre" className={cx(styles.tabPanel)}>
+          L'analyse spectrale arrivera avec la détection (jalon ultérieur).
+        </Tabs.Panel>
+
+        <Tabs.Panel value="reperes" className={cx(styles.tabPanel)}>
+          {markers.length === 0 ? (
+            <p>Aucun repère. Ajoute-en depuis la barre de repères.</p>
+          ) : (
+            <ul className={styles.markerList}>
+              {markers.map((marker) => (
+                <li key={marker.id} className={styles.markerItem}>
+                  <button
+                    type="button"
+                    className={styles.markerRow}
+                    onClick={() => onSeekMarker(marker.timeSeconds)}
+                  >
+                    <span className={styles.markerTime}>
+                      {formatTimecode(marker.timeSeconds)}
+                    </span>
+                    <span className={styles.markerName}>{marker.label}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.markerRemove}
+                    aria-label={`Supprimer ${marker.label}`}
+                    onClick={() => onRemoveMarker(marker.id)}
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Tabs.Panel>
+
+        <Tabs.Panel value="notes" className={cx(styles.tabPanel)}>
+          Les annotations textuelles arriveront plus tard.
+        </Tabs.Panel>
       </Tabs.Root>
     </aside>
   )

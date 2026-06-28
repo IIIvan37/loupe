@@ -12,27 +12,18 @@ const markers: MarkerList = [
 const noop = () => {}
 
 describe('MarkerRail', () => {
-  it('seeks to a marker when clicked', () => {
+  it('seeks to a section marker when its tag is clicked', () => {
     const onSeek = vi.fn()
     render(
-      <MarkerRail markers={markers} durationSeconds={10} onSeek={onSeek} onRemove={noop} />
+      <MarkerRail markers={markers} durationSeconds={10} onSeek={onSeek} />
     )
     fireEvent.click(screen.getByRole('button', { name: 'Aller à Section 1' }))
     expect(onSeek).toHaveBeenCalledWith(5)
   })
 
-  it('removes a marker', () => {
-    const onRemove = vi.fn()
-    render(
-      <MarkerRail markers={markers} durationSeconds={10} onSeek={noop} onRemove={onRemove} />
-    )
-    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Section 1' }))
-    expect(onRemove).toHaveBeenCalledWith('a')
-  })
-
   it('renders nothing until a duration is known', () => {
     render(
-      <MarkerRail markers={markers} durationSeconds={0} onSeek={noop} onRemove={noop} />
+      <MarkerRail markers={markers} durationSeconds={0} onSeek={noop} />
     )
     expect(
       screen.queryByRole('button', { name: 'Aller à Section 1' })

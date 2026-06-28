@@ -1,29 +1,23 @@
 .hint {
   color: var(--dim);
+  padding: var(--space-m);
 }
 
 .error {
   color: var(--stem-vocals);
+  padding: var(--space-m);
 }
 
-/* Clickable seek surface that stacks the playhead over the waveform canvas. */
-.stage {
+/* The clickable seek surface; fills the ZoomStage layer, fixed waveform height. */
+.surface {
   position: relative;
   display: block;
   width: 100%;
+  height: var(--waveform-height);
   padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
-}
-
-.playhead {
-  position: absolute;
-  inset-block: 0;
-  width: 2px;
-  margin-inline-start: -1px;
-  background: var(--amber);
-  pointer-events: none;
 }
 
 /* The « loupe »: everything outside the active loop dims. */

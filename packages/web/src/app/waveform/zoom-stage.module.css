@@ -1,0 +1,38 @@
+/* The shared scrollable timeline frame: clips the zoomed inner that scrolls. */
+.stage {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.scroll::-webkit-scrollbar {
+  height: 7px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 9px;
+}
+
+/* Width is the timeline scaled by the zoom; all layers stack inside it. */
+.inner {
+  position: relative;
+  min-width: 100%;
+}
+
+.playhead {
+  position: absolute;
+  inset-block: 0;
+  width: 2px;
+  margin-inline-start: -1px;
+  background: var(--amber);
+  pointer-events: none;
+  z-index: 4;
+}
