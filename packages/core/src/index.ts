@@ -12,9 +12,16 @@ export type {
   AudioFileDecoder,
   DecodedAudio,
   GreetingSink,
-  NameSource
+  NameSource,
+  PlaybackEngine
 } from './application/ports.ts'
 export type { Greeting } from './domain/greeting.ts'
 export { buildGreeting } from './domain/greeting.ts'
+export { formatTimecode } from './domain/timecode.ts'
 export type { Track } from './domain/track.ts'
+export type {
+  TransportAction,
+  TransportState
+} from './domain/transport.ts'
+export { initialTransport, transportReducer } from './domain/transport.ts'
 export type { Waveform, WaveformPeak } from './domain/waveform.ts'
