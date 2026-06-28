@@ -7,8 +7,9 @@ The single place to look before adding a feature, so ports and use-cases get
 
 | Use-case | Signature | Notes |
 |----------|-----------|-------|
-| `loadTrack` | `(input, deps) => Promise<LoadTrackResult>` | Slices 1–2 — decode bytes once via `AudioFileDecoder`, summarise into a `Track` (mono mix → `Waveform` peaks + duration), and load the same PCM into the `PlaybackEngine`. |
+| `loadTrack` | `(input, deps) => Promise<LoadTrackResult>` | Slices 1–2 — decode bytes once via `AudioFileDecoder`, summarise into a `Track` (mono mix → `Waveform` peaks + duration), and load the same PCM into the `PlaybackEngine`. Also returns the decoded PCM so separation reuses the same audio (no second decode). |
 | `loadLoops` / `saveLoop` / `deleteLoop` | `(…, deps) => Promise<LoopLibrary>` | Slice 5 — read/add/remove a saved loop via the `LoopStore` port (persistence best-effort). |
+| `separateTrack` | `(input, deps) => Promise<SeparateTrackResult>` | Slice J2.1 — hand the loaded PCM to the `StemSeparator` port and summarise each isolated stem into a render-ready `StemTrack` (`StemSet`); progress streams to an optional sink. Input is the SAME `DecodedAudio` the player loaded. |
 
 > Pure transport domain (no use-case, driven by the UI): `transportReducer` /
 > `initialTransport` (`TransportState` machine), `formatTimecode` (m:ss), and the
@@ -34,6 +35,13 @@ The single place to look before adding a feature, so ports and use-cases get
 > Matching is exact on code AND every modifier, so bare keys never hijack
 > browser/OS chords. The web's `useKeyboardShortcuts` is the global-listener
 > adapter that dispatches each command onto the smart hooks.
+>
+> Pure separation domain — Slice J2.1: `separationReducer` / `initialSeparation`
+> drive the `SeparationState` machine (`idle → analysing → separating → ready |
+> error`, clamped progress) the import → separation screen renders;
+> `StemSet` / `StemTrack` are the render-ready result (`buildStemTrack` reuses the
+> track mono-mix → waveform reduction). The web's `useSeparation` hook is the
+> adapter that runs `separateTrack` and streams progress into the reducer.
 
 ## Ports
 
@@ -43,3 +51,4 @@ The single place to look before adding a feature, so ports and use-cases get
 | `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode` + SoundTouch worklet for tempo/pitch) |
 | `LoopStore` | driven | `web`: `createLocalStorageLoopStore` (localStorage) |
 | `TrackMetadataReader` | driven | `web`: `createMusicMetadataReader` (music-metadata; best-effort ID3/etc. tags) |
+| `StemSeparator` | driven | `web`: `createStubSeparator` (UI-first stand-in; Demucs WASM in Slice 2, a cloud API later — same port) |

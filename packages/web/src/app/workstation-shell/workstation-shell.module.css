@@ -30,20 +30,6 @@
   border: 0;
 }
 
-.placeholderLabel {
-  color: var(--dim);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.tracksPlaceholder {
-  height: 240px;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
-}
-
 @media (max-width: 900px) {
   .body {
     grid-template-columns: 1fr;

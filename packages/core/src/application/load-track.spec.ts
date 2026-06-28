@@ -69,6 +69,15 @@ describe('loadTrack — when the decoder yields PCM', () => {
     await loadTrack({ bytes, bucketCount: 2 }, { decoder, engine })
     expect(engine.loaded).toBe(decoded)
   })
+
+  it('returns the decoded PCM so separation can reuse the same audio', async () => {
+    const result = await loadTrack(
+      { bytes, bucketCount: 2 },
+      { decoder, engine: capturingEngine() }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.audio).toBe(decoded)
+  })
 })
 
 describe('loadTrack — when decoding or the input is invalid', () => {

@@ -6,6 +6,7 @@ import type {
   LoopLibrary,
   LoopStore,
   PlaybackEngine,
+  StemSeparator,
   TrackMetadataReader
 } from '@app/core'
 import {
@@ -62,6 +63,26 @@ function audioFile(): File {
 /** A tagless reader — keeps tests off the real music-metadata parser. */
 const silentReader: TrackMetadataReader = {
   read: async () => ({ title: undefined, artist: undefined })
+}
+
+/** Immediate fake separator: emits one progress event, returns two stems. */
+function fakeSeparator(): StemSeparator {
+  return {
+    async separate(audio, onProgress) {
+      onProgress({ phase: 'separating', fraction: 1 })
+      return [
+        { id: 'voix', label: 'Voix', audio },
+        { id: 'basse', label: 'Basse', audio }
+      ]
+    }
+  }
+}
+
+/** A separator that always fails, to exercise the error path. */
+const failingSeparator: StemSeparator = {
+  separate: async () => {
+    throw new Error('moteur indisponible')
+  }
 }
 
 /** An in-memory loop store so tests never touch real localStorage. */
@@ -460,5 +481,33 @@ describe('WorkstationShell', () => {
 
     // "take.wav" → "take" (extension stripped), no fake title applied.
     expect(screen.getByText('take')).toBeInTheDocument()
+  })
+
+  it('separates the loaded track on demand and lists the stems', async () => {
+    renderShell({ separator: fakeSeparator() })
+
+    // The action is disabled until a track is loaded.
+    expect(
+      screen.getByRole('button', { name: 'Séparer les pistes' })
+    ).toBeDisabled()
+
+    await importTrack()
+    fireEvent.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
+
+    expect(await screen.findByText('Voix')).toBeInTheDocument()
+    expect(screen.getByText('Basse')).toBeInTheDocument()
+  })
+
+  it('surfaces a separation failure and offers a retry', async () => {
+    renderShell({ separator: failingSeparator })
+    await importTrack()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent('moteur indisponible')
+    expect(
+      screen.getByRole('button', { name: 'Réessayer' })
+    ).toBeInTheDocument()
   })
 })

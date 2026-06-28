@@ -1,0 +1,116 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  color: var(--dim);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.action {
+  padding: var(--space-2xs) var(--space-s);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.action:disabled {
+  opacity: 0.5;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.progressHead {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--dim);
+}
+
+.percent {
+  font-family: var(--font-mono);
+  color: var(--teal);
+}
+
+.bar {
+  width: 100%;
+  height: 6px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--panel-3);
+  appearance: none;
+  overflow: hidden;
+}
+
+.bar::-webkit-progress-bar {
+  background: var(--panel-3);
+}
+
+.bar::-webkit-progress-value {
+  background: var(--teal);
+  border-radius: 999px;
+}
+
+.bar::-moz-progress-bar {
+  background: var(--teal);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--stem-vocals);
+}
+
+.stems {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-2xs);
+}
+
+.stem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-2xs) var(--space-s);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.stemLabel {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.empty {
+  height: 120px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}

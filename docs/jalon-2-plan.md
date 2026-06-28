@@ -14,9 +14,12 @@
   Demucs WASM (ex. *freemusicdemixer*) en premier adapter ; l'**API cloud
   (LALAL / Moises)** restera un **second adapter** branché plus tard sur le même
   port, sans toucher au domaine.
-- **Première slice = l'écran import → séparation → pistes**, câblé d'abord sur un
-  séparateur **stub** (stems factices derrière le port) — UI-first. On dérisque le
-  flux UX et le contrat du port avant de payer le coût du vrai moteur WASM.
+- **Première slice = séparer le morceau déjà chargé → pistes**, câblé d'abord sur
+  un séparateur **stub** (stems factices derrière le port) — UI-first. On dérisque
+  le flux UX et le contrat du port avant de payer le coût du vrai moteur WASM.
+  **Pas de second import** : l'entrée de la séparation est le **même `DecodedAudio`
+  que le lecteur Jalon 1** (on ne re-décode pas) — l'import (J1) retient le PCM
+  décodé pour le re-fournir au séparateur.
 - **Découpe : N pistes adaptatives + regroupement utilisateur** (déjà tranché,
   plan produit §3.4–3.5). Pas de profil fixe « toujours 6 pistes » : on masque les
   pistes dont l'énergie est négligeable, chacune affichée avec sa confiance.
@@ -71,7 +74,7 @@ Identique à Jalon 1 (chaque slice = tranche hexagonale verticale, sa branche, s
 
 | # | Slice | Domaine pur (core) | Adapter (web) |
 |---|---|---|---|
-| **1** | **Écran import → séparation → pistes** *(UI-first, séparateur stub)* | `SeparationState` (reducer), `StemSet`/`StemTrack`, port `StemSeparator` | `StubSeparator` (stems factices + progression), écran d'import dédié, états *analyse / séparation / prêt*, liste de pistes |
+| **1** | **Séparer le morceau chargé → pistes** *(UI-first, séparateur stub)* | `SeparationState` (reducer), `StemSet`/`StemTrack`, port `StemSeparator` | `StubSeparator` (stems factices + progression), action « Séparer » sur l'audio déjà importé (pas de second import), états *analyse / séparation / prêt*, liste de pistes |
 | **2** | **Moteur WASM réel** derrière le port | (contrat `StemSeparator` déjà posé) | adapter **Demucs WASM** dans un worker (off-main-thread), progression réelle, gestion mémoire/erreurs |
 | **3** | **Détection → N pistes adaptatives** | `InstrumentDetection` (énergies → garder/masquer + confiance) | masquage des pistes vides, ligne « non détectés », badge confiance (cyan = détecté machine) |
 | **4** | **Mixer multipiste** solo / mute / volume | `MixerState` (gains effectifs, property-testé) | `StemPlaybackEngine` (graphe gains), faders, waveform qui pâlit selon le niveau |

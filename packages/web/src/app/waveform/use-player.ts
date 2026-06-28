@@ -2,6 +2,7 @@ import {
   type AudioFileDecoder,
   clampPitchSemitones,
   clampPlaybackRate,
+  type DecodedAudio,
   initialTransport,
   type LoopRegion,
   loadTrack,
@@ -31,6 +32,8 @@ export type ImportState =
 
 export interface Player {
   readonly importState: ImportState
+  /** The decoded PCM of the loaded track, for reuse (stem separation). */
+  readonly loadedAudio: DecodedAudio | undefined
   /** Tags read from the imported file (empty fields when the file has none). */
   readonly metadata: TrackMetadata
   readonly transport: TransportState
@@ -77,6 +80,9 @@ export function usePlayer(
   const [importState, setImportState] = useState<ImportState>({
     status: 'idle'
   })
+  const [loadedAudio, setLoadedAudio] = useState<DecodedAudio | undefined>(
+    undefined
+  )
   const [transport, dispatch] = useReducer(transportReducer, initialTransport)
   const [timeRatio, setTimeRatioState] = useState(1)
   const [pitchSemitones, setPitchSemitonesState] = useState(0)
@@ -126,6 +132,7 @@ export function usePlayer(
     const importId = importIdRef.current
     setImportState({ status: 'loading' })
     setMetadata(NO_METADATA)
+    setLoadedAudio(undefined)
     try {
       const bytes = await file.arrayBuffer()
       // Read tags best-effort and in parallel, from a copy — decoding may detach
@@ -145,6 +152,7 @@ export function usePlayer(
       )
       if (result.ok) {
         setImportState({ status: 'loaded', track: result.track })
+        setLoadedAudio(result.audio)
         setLoopRegionState(undefined)
         dispatch({
           type: 'load',
@@ -215,6 +223,7 @@ export function usePlayer(
 
   return {
     importState,
+    loadedAudio,
     metadata,
     transport,
     timeRatio,
