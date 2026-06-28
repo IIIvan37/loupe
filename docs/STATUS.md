@@ -15,8 +15,11 @@
 
 ## Locked decisions (kickoff)
 
-- **Time-stretch engine**: Rubber Band — **CONFIRMED (2026-06-28)**: the product
-  ships under **GPL** (open-source). Decided at the start of Slice 3.
+- **Time-stretch engine**: **SoundTouch** (`@soundtouchjs/audio-worklet`, MPL-2.0)
+  — **REVISED (2026-06-28)**. Rubber Band was confirmed at Slice 3 start, but its
+  only web wrapper (`rubberband-web`) crashes on live pitch change and is
+  unmaintained; in-browser verification surfaced it. SoundTouch fixes the crash
+  **and** lifts the GPL obligation — the product can ship under any licence.
 - **Web stack**: React + Jotai · Base UI (headless) · Every Layout · CSS Modules +
   CSS-variable tokens · smart/dumb components.
 - **Extra gates** (blocking, `packages/web` only): impeccable + react-doctor.

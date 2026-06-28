@@ -22,4 +22,4 @@ The single place to look before adding a feature, so ports and use-cases get
 | `NameSource` | driving | `cli`: `ArgvNameSource` |
 | `GreetingSink` | driven | `cli`: `ConsoleGreetingSink` |
 | `AudioFileDecoder` | driven | `web`: `createWebAudioDecoder` (`decodeAudioData`) |
-| `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode`) |
+| `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode` + SoundTouch worklet for tempo/pitch) |

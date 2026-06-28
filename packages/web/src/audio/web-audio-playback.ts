@@ -1,20 +1,20 @@
 import type { DecodedAudio, PlaybackEngine } from '@app/core'
-import type { RubberBandNode } from 'rubberband-web'
+import type { SoundTouchNode } from '@soundtouchjs/audio-worklet'
 
 type PositionListener = (seconds: number) => void
 
-/** Self-contained Rubber Band worklet (wasm embedded), copied to `public/`. */
-const RUBBERBAND_PROCESSOR_URL = '/rubberband-processor.js'
+/** SoundTouch worklet processor (pure JS), copied to `public/`. */
+const SOUNDTOUCH_PROCESSOR_URL = '/soundtouch-processor.js'
 
 /**
  * Driven adapter for the `PlaybackEngine` port. Plays decoded audio through an
- * `AudioBufferSourceNode`, routed via a Rubber Band worklet so tempo and pitch
+ * `AudioBufferSourceNode`, routed via a SoundTouch worklet so tempo and pitch
  * move independently:
  *
  *  - tempo is the source node's `playbackRate` (keeps the stream real-time, so
  *    the worklet never under-runs) — but `playbackRate` also transposes;
- *  - the Rubber Band node's `setPitch` cancels that transposition and applies the
- *    wanted shift: `pitch = 2^(semitones/12) / ratio`.
+ *  - the SoundTouch node mirrors that rate (`node.playbackRate`) and divides the
+ *    pitch by it automatically, so `node.pitchSemitones` is the net shift.
  *
  * Position is derived from `AudioContext.currentTime` scaled by the tempo ratio.
  * Untested (jsdom has no Web Audio / AudioWorklet) — a humble object verified in
@@ -23,7 +23,7 @@ const RUBBERBAND_PROCESSOR_URL = '/rubberband-processor.js'
 export function createWebAudioPlayback(): PlaybackEngine {
   const listeners = new Set<PositionListener>()
   let context: AudioContext | undefined
-  let rubberBand: RubberBandNode | undefined
+  let stretch: SoundTouchNode | undefined
   let buffer: AudioBuffer | undefined
   let source: AudioBufferSourceNode | undefined
   let frame: number | undefined
@@ -40,34 +40,40 @@ export function createWebAudioPlayback(): PlaybackEngine {
     return context
   }
 
-  /** Lazily create the Rubber Band node; on failure, fall back to plain output. */
-  async function ensureRubberBand(): Promise<void> {
-    if (rubberBand) {
+  /** Lazily create the SoundTouch node; on failure, fall back to plain output. */
+  async function ensureStretch(): Promise<void> {
+    if (stretch) {
       return
     }
     const ctx = audioContext()
     try {
-      // Loaded lazily (browser only): it pulls a wasm/worklet bundle we never
-      // want in the test/node path.
-      const { createRubberBandNode } = await import('rubberband-web')
-      const node = await createRubberBandNode(ctx, RUBBERBAND_PROCESSOR_URL)
+      // Loaded lazily (browser only): the worklet class extends AudioWorkletNode,
+      // which does not exist in the test/node path.
+      const { SoundTouchNode } = await import('@soundtouchjs/audio-worklet')
+      await SoundTouchNode.register(ctx, SOUNDTOUCH_PROCESSOR_URL)
+      const node = new SoundTouchNode({ context: ctx })
       node.connect(ctx.destination)
-      applyPitch(node)
-      rubberBand = node
+      applyParams(node)
+      stretch = node
     } catch {
       // No worklet → basic playback still works (source → destination), only the
       // tempo/pitch controls go inert. Verified/fixed in the browser.
-      rubberBand = undefined
+      stretch = undefined
     }
   }
 
   function outputNode(): AudioNode {
-    return rubberBand ?? audioContext().destination
+    return stretch ?? audioContext().destination
   }
 
-  function applyPitch(node: RubberBandNode | undefined): void {
-    node?.setTempo(1)
-    node?.setPitch(2 ** (pitchSemitones / 12) / timeRatio)
+  function applyParams(node: SoundTouchNode | undefined): void {
+    if (!node) {
+      return
+    }
+    // Mirror the source rate so the processor cancels its pitch effect, then set
+    // the wanted shift in semitones.
+    node.playbackRate.value = timeRatio
+    node.pitchSemitones.value = pitchSemitones
   }
 
   function positionOf(buf: AudioBuffer): number {
@@ -135,7 +141,7 @@ export function createWebAudioPlayback(): PlaybackEngine {
       stopSource()
       isPlaying = false
       startOffset = 0
-      await ensureRubberBand()
+      await ensureStretch()
       const channelCount = Math.max(audio.channels.length, 1)
       const frames = Math.max(audio.channels[0]?.length ?? 0, 1)
       const buf = audioContext().createBuffer(
@@ -199,12 +205,16 @@ export function createWebAudioPlayback(): PlaybackEngine {
       if (source) {
         source.playbackRate.value = ratio
       }
-      applyPitch(rubberBand)
+      if (stretch) {
+        stretch.playbackRate.value = ratio
+      }
     },
 
     setPitchSemitones(semitones: number): void {
       pitchSemitones = semitones
-      applyPitch(rubberBand)
+      if (stretch) {
+        stretch.pitchSemitones.value = semitones
+      }
     },
 
     onPositionChange(listener: PositionListener): () => void {
