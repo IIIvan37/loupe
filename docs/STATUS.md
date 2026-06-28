@@ -49,6 +49,9 @@ waveform peaks. Outside-in via `/new-feature-hexa`.
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-28 — session-wrap](sessions/2026-06-28-session-wrap.md) — Jalon 1
+  Slices 1→5 shipped & merged (PRs #6–#10); engine switched to SoundTouch (MPL);
+  tooling findings (gate enforcement is CI+manual not pre-commit; impeccable scope).
 - [2026-06-28 — jalon1-loops](sessions/2026-06-28-jalon1-loops.md) —
   Slice 5: `LoopRegion`/`LoopLibrary` + `LoopStore` port + loops use-cases (core,
   loops.ts 100% mutation), localStorage adapter, drag-select + loupe dim overlay +
