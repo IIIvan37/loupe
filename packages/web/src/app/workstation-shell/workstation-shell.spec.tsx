@@ -20,6 +20,8 @@ function fakeEngine() {
     play: vi.fn(),
     pause: vi.fn(),
     seekTo: vi.fn(),
+    setTimeRatio: vi.fn(),
+    setPitchSemitones: vi.fn(),
     load: vi.fn(async () => {}),
     onPositionChange(listener: (seconds: number) => void) {
       listeners.add(listener)

@@ -142,6 +142,16 @@ export function createWebAudioPlayback(): PlaybackEngine {
       }
     },
 
+    setTimeRatio(_ratio: number): void {
+      // Independent time-stretch needs the Rubber Band worklet (Slice 3b); a
+      // native AudioBufferSourceNode cannot change tempo without pitch.
+    },
+
+    setPitchSemitones(_semitones: number): void {
+      // Independent pitch-shift needs the Rubber Band worklet (Slice 3b); a
+      // native AudioBufferSourceNode cannot transpose without changing tempo.
+    },
+
     onPositionChange(listener: PositionListener): () => void {
       listeners.add(listener)
       return () => {

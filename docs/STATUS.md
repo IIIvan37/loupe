@@ -15,8 +15,8 @@
 
 ## Locked decisions (kickoff)
 
-- **Time-stretch engine**: Rubber Band → product is **GPL or commercial** (confirm
-  before Slice 3).
+- **Time-stretch engine**: Rubber Band — **CONFIRMED (2026-06-28)**: the product
+  ships under **GPL** (open-source). Decided at the start of Slice 3.
 - **Web stack**: React + Jotai · Base UI (headless) · Every Layout · CSS Modules +
   CSS-variable tokens · smart/dumb components.
 - **Extra gates** (blocking, `packages/web` only): impeccable + react-doctor.
