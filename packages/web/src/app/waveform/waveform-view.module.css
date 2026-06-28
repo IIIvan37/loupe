@@ -1,0 +1,13 @@
+.hint {
+  color: var(--dim);
+}
+
+.error {
+  color: var(--stem-vocals);
+}
+
+.duration {
+  font-family: var(--font-mono);
+  color: var(--amber);
+  font-size: 0.85rem;
+}

@@ -17,18 +17,24 @@
   overflow: auto;
 }
 
+/* The single import control lives in the header; this input is its hidden target. */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .placeholderLabel {
   color: var(--dim);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-}
-
-.waveformPlaceholder {
-  height: 180px;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
 }
 
 .tracksPlaceholder {

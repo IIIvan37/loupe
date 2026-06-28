@@ -9,3 +9,20 @@ export interface NameSource {
 export interface GreetingSink {
   save(greeting: Greeting): Promise<void>
 }
+
+/**
+ * Raw decoded PCM: one array of samples (normalised to [-1, 1]) per channel,
+ * every channel the same length. The shape the Web Audio `AudioBuffer` exposes.
+ */
+export interface DecodedAudio {
+  readonly sampleRate: number
+  readonly channels: ReadonlyArray<ArrayLike<number>>
+}
+
+/**
+ * Driven port: turn encoded audio bytes into PCM. Implemented by an adapter
+ * (web: `decodeAudioData`); the pure core never touches Web Audio itself.
+ */
+export interface AudioFileDecoder {
+  decode(bytes: ArrayBuffer): Promise<DecodedAudio>
+}
