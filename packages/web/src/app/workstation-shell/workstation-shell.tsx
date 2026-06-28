@@ -1,5 +1,6 @@
 import {
   type AudioFileDecoder,
+  defaultKeyBindings,
   formatTimecode,
   type LoopStore,
   makeLoopRegion,
@@ -10,6 +11,8 @@ import { type ChangeEvent, useRef, useState } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { Header } from '../header/header.tsx'
+import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
+import { ShortcutsDialog } from '../keyboard/shortcuts-dialog.tsx'
 import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
 import { LoopBar } from '../loops/loop-bar.tsx'
 import { useLoops } from '../loops/use-loops.ts'
@@ -22,6 +25,9 @@ import { useViewport } from '../waveform/use-viewport.ts'
 import { WaveformView } from '../waveform/waveform-view.tsx'
 import { ZoomStage } from '../waveform/zoom-stage.tsx'
 import styles from './workstation-shell.module.css'
+
+/** Help rows derived once from the shipped layout — never drift from the keys. */
+const SHORTCUT_HINTS = describeKeyBindings(defaultKeyBindings)
 
 const DETECTED = [
   { id: 'key', label: 'Tonalité', value: 'B♭ min' },
@@ -73,6 +79,7 @@ export function WorkstationShell({
   const loops = useLoops(loopStore)
   const viewport = useViewport()
   const [trackName, setTrackName] = useState<string | null>(null)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isLoaded = importState.status === 'loaded'
@@ -118,6 +125,12 @@ export function WorkstationShell({
         }
         detected={DETECTED}
         onImport={() => fileInputRef.current?.click()}
+        onShowShortcuts={() => setShortcutsOpen(true)}
+      />
+      <ShortcutsDialog
+        open={shortcutsOpen}
+        onOpenChange={setShortcutsOpen}
+        hints={SHORTCUT_HINTS}
       />
       <input
         ref={fileInputRef}

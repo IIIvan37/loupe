@@ -174,6 +174,29 @@ describe('WorkstationShell', () => {
     expect(engine.play).toHaveBeenCalledOnce()
   })
 
+  it('still fires shortcuts while a control button holds focus', async () => {
+    const { engine } = renderShell()
+    await importTrack()
+
+    // Importing leaves focus on the "Importer" button; Space must still toggle
+    // playback rather than being swallowed as the button's own activation.
+    const importButton = screen.getByRole('button', { name: 'Importer' })
+    importButton.focus()
+    fireEvent.keyDown(importButton, { code: 'Space' })
+    expect(engine.play).toHaveBeenCalledOnce()
+  })
+
+  it('does not fire shortcuts while typing in a text field', async () => {
+    const { engine } = renderShell()
+    await importTrack()
+
+    const input = document.createElement('input')
+    document.body.appendChild(input)
+    fireEvent.keyDown(input, { code: 'Space' })
+    expect(engine.play).not.toHaveBeenCalled()
+    input.remove()
+  })
+
   it('ignores keyboard shortcuts until a track is loaded', () => {
     const { engine } = renderShell()
     fireEvent.keyDown(document.body, { code: 'Space' })
@@ -199,11 +222,30 @@ describe('WorkstationShell', () => {
     await importTrack()
 
     act(() => engine.emit(5))
-    fireEvent.keyDown(document.body, { code: 'KeyM' })
+    // Bound by character ('m'), not physical position — works on any layout.
+    fireEvent.keyDown(document.body, { key: 'm', code: 'Semicolon' })
 
     const goto = screen.getByRole('button', { name: 'Aller à Section 1' })
     fireEvent.click(goto)
     expect(engine.seekTo).toHaveBeenLastCalledWith(5)
+  })
+
+  it('zooms with the + and - characters, regardless of layout', async () => {
+    renderShell()
+    await importTrack()
+
+    const slider = screen.getByLabelText(
+      "Zoom de la forme d'onde"
+    ) as HTMLInputElement
+    const level = () => Number(slider.value)
+
+    expect(level()).toBe(1)
+    fireEvent.keyDown(document.body, { key: '+', code: 'Equal' })
+    expect(level()).toBeGreaterThan(1)
+
+    const zoomedIn = level()
+    fireEvent.keyDown(document.body, { key: '-', code: 'Minus' })
+    expect(level()).toBeLessThan(zoomedIn)
   })
 
   it('leaves browser/OS chords alone (modified keys are not bound)', async () => {

@@ -54,6 +54,14 @@ plan/kickoff. Optional cleanup: remove the now-redundant `@app/cli` example.
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-28 — jalon1-shortcuts-help-and-layout-fix](sessions/2026-06-28-jalon1-shortcuts-help-and-layout-fix.md) —
+  Slice 7 follow-up (same branch / PR #13): in-app shortcuts help (pure
+  `describeKeyBindings` deriving French rows from the active bindings + Base UI
+  `ShortcutsDialog` behind a header "?"). Two in-browser fixes: shortcuts were
+  swallowed while a control button held focus (guard now blocks only text entry),
+  and layout-wrong keys (`+`/`−` dead, `,` instead of `m`) — `KeyChord` now matches
+  mnemonic keys by typed character, spatial keys by physical code. `key-bindings.ts`
+  100% mutation. Gate green.
 - [2026-06-28 — jalon1-keyboard-shortcuts](sessions/2026-06-28-jalon1-keyboard-shortcuts.md) —
   Slice 7 (closes Jalon 1): pure `KeyBindings` domain (`resolveCommand` /
   `defaultKeyBindings`, exact code+modifier match, 100% mutation) +

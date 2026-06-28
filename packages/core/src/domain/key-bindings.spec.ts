@@ -25,20 +25,43 @@ describe('resolveCommand', () => {
     })
   })
 
-  it('maps Equal / Minus to zoom in / out', () => {
-    expect(resolveCommand(defaultKeyBindings, { code: 'Equal' })).toEqual({
+  it('maps the + / - characters to zoom in / out, whatever the layout', () => {
+    expect(resolveCommand(defaultKeyBindings, { key: '+' })).toEqual({
       type: 'zoomIn'
     })
-    expect(resolveCommand(defaultKeyBindings, { code: 'Minus' })).toEqual({
+    expect(resolveCommand(defaultKeyBindings, { key: '-' })).toEqual({
       type: 'zoomOut'
     })
   })
 
-  it('maps M to adding a section marker', () => {
-    expect(resolveCommand(defaultKeyBindings, { code: 'KeyM' })).toEqual({
+  it('maps the M character to adding a section marker', () => {
+    expect(resolveCommand(defaultKeyBindings, { key: 'm' })).toEqual({
       type: 'addMarker',
       kind: 'section'
     })
+  })
+
+  it('matches character bindings case-insensitively (Shift+M still works)', () => {
+    expect(
+      resolveCommand(defaultKeyBindings, { key: 'M', shift: true })
+    ).toEqual({ type: 'addMarker', kind: 'section' })
+  })
+
+  it('matches a character binding regardless of the physical position', () => {
+    // On AZERTY the physical `KeyM` key types ','; binding by character means
+    // the user's actual `m` key adds the marker, wherever it sits.
+    expect(
+      resolveCommand(defaultKeyBindings, { key: 'm', code: 'Semicolon' })
+    ).toEqual({ type: 'addMarker', kind: 'section' })
+  })
+
+  it('leaves browser zoom (Ctrl/Cmd +) alone', () => {
+    expect(
+      resolveCommand(defaultKeyBindings, { key: '+', meta: true })
+    ).toBeUndefined()
+    expect(
+      resolveCommand(defaultKeyBindings, { key: '+', ctrl: true })
+    ).toBeUndefined()
   })
 
   it('returns undefined for an unbound key', () => {

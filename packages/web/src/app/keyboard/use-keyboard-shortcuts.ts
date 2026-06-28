@@ -7,8 +7,22 @@ import {
 } from '@app/core'
 import { useEffect, useRef } from 'react'
 
-/** Don't hijack keys while the user is typing in / operating a control. */
-const INTERACTIVE_TAGS = ['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT']
+/**
+ * Don't hijack keys while the user is typing into a field. Buttons are
+ * deliberately NOT here: a focused control button (e.g. just-clicked "Importer"
+ * or a zoom/marker button) must not swallow the shortcut. Because a bound key
+ * calls `preventDefault()`, the button's own Space/Enter activation is cancelled,
+ * so there is no double trigger.
+ */
+const TEXT_ENTRY_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT'])
+
+/** True when focus sits in a field where the key is meant as literal input. */
+function isTextEntry(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement &&
+    (TEXT_ENTRY_TAGS.has(target.tagName) || target.isContentEditable)
+  )
+}
 
 /** The app actions a resolved command is dispatched onto. */
 export interface ShortcutActions {
@@ -69,15 +83,12 @@ export function useKeyboardShortcuts(
       return
     }
     function onKeyDown(event: KeyboardEvent): void {
-      const target = event.target
-      if (
-        target instanceof HTMLElement &&
-        INTERACTIVE_TAGS.includes(target.tagName)
-      ) {
+      if (isTextEntry(event.target)) {
         return
       }
       const command = resolveCommand(bindings, {
         code: event.code,
+        key: event.key,
         shift: event.shiftKey,
         ctrl: event.ctrlKey,
         alt: event.altKey,

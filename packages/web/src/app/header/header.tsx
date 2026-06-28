@@ -13,6 +13,8 @@ interface HeaderProps {
   readonly detected: readonly DetectedReadout[]
   /** Open the file picker. The smart shell owns the actual import. */
   readonly onImport: () => void
+  /** Reveal the keyboard-shortcuts help. The shell owns the dialog state. */
+  readonly onShowShortcuts: () => void
 }
 
 /**
@@ -20,7 +22,13 @@ interface HeaderProps {
  * teal + mono per the semantic rule (teal = what the machine detected). The
  * "Importer" button is the single import entry point; the shell wires it.
  */
-export function Header({ title, artist, detected, onImport }: HeaderProps) {
+export function Header({
+  title,
+  artist,
+  detected,
+  onImport,
+  onShowShortcuts
+}: HeaderProps) {
   return (
     <header className={styles.header}>
       <Cluster gap="var(--space-l)" align="center">
@@ -38,6 +46,15 @@ export function Header({ title, artist, detected, onImport }: HeaderProps) {
             <span className={styles.readoutValue}>{item.value}</span>
           </span>
         ))}
+        <button
+          type="button"
+          className={styles.iconAction}
+          aria-label="Afficher les raccourcis clavier"
+          title="Raccourcis clavier"
+          onClick={onShowShortcuts}
+        >
+          ?
+        </button>
         <button
           type="button"
           className={styles.secondaryAction}
