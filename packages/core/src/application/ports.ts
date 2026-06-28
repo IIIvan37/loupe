@@ -38,6 +38,10 @@ export interface PlaybackEngine {
   play(): void
   pause(): void
   seekTo(seconds: number): void
+  /** Set the tempo as a ratio of normal speed, without changing pitch. */
+  setTimeRatio(ratio: number): void
+  /** Transpose by a whole number of semitones, without changing tempo. */
+  setPitchSemitones(semitones: number): void
   /** Subscribe to position updates (seconds). Returns an unsubscribe function. */
   onPositionChange(listener: (seconds: number) => void): () => void
 }

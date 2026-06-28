@@ -11,7 +11,9 @@ The single place to look before adding a feature, so ports and use-cases get
 | `loadTrack` | `(input, deps) => Promise<LoadTrackResult>` | Slices 1–2 — decode bytes once via `AudioFileDecoder`, summarise into a `Track` (mono mix → `Waveform` peaks + duration), and load the same PCM into the `PlaybackEngine`. |
 
 > Pure transport domain (no use-case, driven by the UI): `transportReducer` /
-> `initialTransport` (`TransportState` machine) and `formatTimecode` (m:ss).
+> `initialTransport` (`TransportState` machine), `formatTimecode` (m:ss), and the
+> playback-parameter clamps `clampPlaybackRate` (tempo ratio) / `clampPitchSemitones`
+> (semitones) — Slice 3.
 
 ## Ports
 
@@ -20,4 +22,4 @@ The single place to look before adding a feature, so ports and use-cases get
 | `NameSource` | driving | `cli`: `ArgvNameSource` |
 | `GreetingSink` | driven | `cli`: `ConsoleGreetingSink` |
 | `AudioFileDecoder` | driven | `web`: `createWebAudioDecoder` (`decodeAudioData`) |
-| `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode`) |
+| `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode` + SoundTouch worklet for tempo/pitch) |

@@ -1,34 +1,84 @@
 import type { DecodedAudio, PlaybackEngine } from '@app/core'
+import type { SoundTouchNode } from '@soundtouchjs/audio-worklet'
 
 type PositionListener = (seconds: number) => void
 
+/** SoundTouch worklet processor (pure JS), copied to `public/`. */
+const SOUNDTOUCH_PROCESSOR_URL = '/soundtouch-processor.js'
+
 /**
- * Driven adapter for the `PlaybackEngine` port: plays decoded audio through an
- * `AudioBufferSourceNode` and streams the elapsed position back on every frame.
- * Position is derived from `AudioContext.currentTime` (sample-accurate); the
- * source node is one-shot, so play/seek recreate it. The only place that touches
- * Web Audio playback — the core stays timer-free.
+ * Driven adapter for the `PlaybackEngine` port. Plays decoded audio through an
+ * `AudioBufferSourceNode`, routed via a SoundTouch worklet so tempo and pitch
+ * move independently:
+ *
+ *  - tempo is the source node's `playbackRate` (keeps the stream real-time, so
+ *    the worklet never under-runs) — but `playbackRate` also transposes;
+ *  - the SoundTouch node mirrors that rate (`node.playbackRate`) and divides the
+ *    pitch by it automatically, so `node.pitchSemitones` is the net shift.
+ *
+ * Position is derived from `AudioContext.currentTime` scaled by the tempo ratio.
+ * Untested (jsdom has no Web Audio / AudioWorklet) — a humble object verified in
+ * a real browser.
  */
 export function createWebAudioPlayback(): PlaybackEngine {
   const listeners = new Set<PositionListener>()
   let context: AudioContext | undefined
+  let stretch: SoundTouchNode | undefined
   let buffer: AudioBuffer | undefined
   let source: AudioBufferSourceNode | undefined
   let frame: number | undefined
   let isPlaying = false
-  // Position bookkeeping: where the current run started, and the context clock
-  // reading at that moment. Live position = startOffset + (now - startedAt).
+  // Position bookkeeping: where the current run started, and the context clock at
+  // that moment. Live position = startOffset + ratio * (now - startedAt).
   let startOffset = 0
   let startedAt = 0
+  let timeRatio = 1
+  let pitchSemitones = 0
 
   function audioContext(): AudioContext {
     context ??= new AudioContext()
     return context
   }
 
+  /** Lazily create the SoundTouch node; on failure, fall back to plain output. */
+  async function ensureStretch(): Promise<void> {
+    if (stretch) {
+      return
+    }
+    const ctx = audioContext()
+    try {
+      // Loaded lazily (browser only): the worklet class extends AudioWorkletNode,
+      // which does not exist in the test/node path.
+      const { SoundTouchNode } = await import('@soundtouchjs/audio-worklet')
+      await SoundTouchNode.register(ctx, SOUNDTOUCH_PROCESSOR_URL)
+      const node = new SoundTouchNode({ context: ctx })
+      node.connect(ctx.destination)
+      applyParams(node)
+      stretch = node
+    } catch {
+      // No worklet → basic playback still works (source → destination), only the
+      // tempo/pitch controls go inert. Verified/fixed in the browser.
+      stretch = undefined
+    }
+  }
+
+  function outputNode(): AudioNode {
+    return stretch ?? audioContext().destination
+  }
+
+  function applyParams(node: SoundTouchNode | undefined): void {
+    if (!node) {
+      return
+    }
+    // Mirror the source rate so the processor cancels its pitch effect, then set
+    // the wanted shift in semitones.
+    node.playbackRate.value = timeRatio
+    node.pitchSemitones.value = pitchSemitones
+  }
+
   function positionOf(buf: AudioBuffer): number {
     const raw = isPlaying
-      ? startOffset + (audioContext().currentTime - startedAt)
+      ? startOffset + timeRatio * (audioContext().currentTime - startedAt)
       : startOffset
     return Math.min(Math.max(raw, 0), buf.duration)
   }
@@ -64,10 +114,11 @@ export function createWebAudioPlayback(): PlaybackEngine {
   }
 
   function startSource(buf: AudioBuffer, offset: number): void {
-    const context = audioContext()
-    const node = context.createBufferSource()
+    const ctx = audioContext()
+    const node = ctx.createBufferSource()
     node.buffer = buf
-    node.connect(context.destination)
+    node.playbackRate.value = timeRatio
+    node.connect(outputNode())
     node.onended = () => {
       // Fire only for a natural end, not a stop()/seek that replaced the node.
       if (source === node) {
@@ -78,7 +129,7 @@ export function createWebAudioPlayback(): PlaybackEngine {
       }
     }
     startOffset = offset
-    startedAt = context.currentTime
+    startedAt = ctx.currentTime
     isPlaying = true
     node.start(0, offset)
     source = node
@@ -90,6 +141,7 @@ export function createWebAudioPlayback(): PlaybackEngine {
       stopSource()
       isPlaying = false
       startOffset = 0
+      await ensureStretch()
       const channelCount = Math.max(audio.channels.length, 1)
       const frames = Math.max(audio.channels[0]?.length ?? 0, 1)
       const buf = audioContext().createBuffer(
@@ -139,6 +191,29 @@ export function createWebAudioPlayback(): PlaybackEngine {
       } else {
         startOffset = target
         emit()
+      }
+    },
+
+    setTimeRatio(ratio: number): void {
+      // Re-baseline the position before changing the scale, so the elapsed-time
+      // maths stays continuous across the ratio change.
+      if (buffer && isPlaying) {
+        startOffset = positionOf(buffer)
+        startedAt = audioContext().currentTime
+      }
+      timeRatio = ratio
+      if (source) {
+        source.playbackRate.value = ratio
+      }
+      if (stretch) {
+        stretch.playbackRate.value = ratio
+      }
+    },
+
+    setPitchSemitones(semitones: number): void {
+      pitchSemitones = semitones
+      if (stretch) {
+        stretch.pitchSemitones.value = semitones
       }
     },
 

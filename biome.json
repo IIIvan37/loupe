@@ -39,7 +39,8 @@
       "!**/dist",
       "!**/coverage",
       "!**/reports",
-      "!**/.stryker-tmp"
+      "!**/.stryker-tmp",
+      "!**/public"
     ],
     "ignoreUnknown": true
   },

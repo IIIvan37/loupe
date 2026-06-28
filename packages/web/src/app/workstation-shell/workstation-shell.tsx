@@ -28,8 +28,17 @@ interface WorkstationShellProps {
  * lays the regions out.
  */
 export function WorkstationShell({ decoder, engine }: WorkstationShellProps) {
-  const { importState, transport, importFile, togglePlayback, seekToRatio } =
-    usePlayer(decoder, engine)
+  const {
+    importState,
+    transport,
+    timeRatio,
+    pitchSemitones,
+    importFile,
+    togglePlayback,
+    seekToRatio,
+    setTimeRatio,
+    setPitchSemitones
+  } = usePlayer(decoder, engine)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Keep a stable Space listener pointed at the latest toggle (updated after
@@ -109,6 +118,10 @@ export function WorkstationShell({ decoder, engine }: WorkstationShellProps) {
         isPlaying={transport.isPlaying}
         canPlay={isLoaded}
         onPlayPause={togglePlayback}
+        tempoPercent={Math.round(timeRatio * 100)}
+        pitchSemitones={pitchSemitones}
+        onTempoChange={(percent) => setTimeRatio(percent / 100)}
+        onPitchChange={setPitchSemitones}
       />
     </div>
   )

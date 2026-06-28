@@ -17,6 +17,16 @@ export type {
 } from './application/ports.ts'
 export type { Greeting } from './domain/greeting.ts'
 export { buildGreeting } from './domain/greeting.ts'
+export {
+  clampPitchSemitones,
+  MAX_PITCH_SEMITONES,
+  MIN_PITCH_SEMITONES
+} from './domain/pitch-shift.ts'
+export {
+  clampPlaybackRate,
+  MAX_PLAYBACK_RATE,
+  MIN_PLAYBACK_RATE
+} from './domain/playback-rate.ts'
 export { formatTimecode } from './domain/timecode.ts'
 export type { Track } from './domain/track.ts'
 export type {

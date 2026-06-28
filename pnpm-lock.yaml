@@ -85,6 +85,9 @@ importers:
       '@fontsource/space-grotesk':
         specifier: ^5.2.10
         version: 5.2.10
+      '@soundtouchjs/audio-worklet':
+        specifier: ^2.0.4
+        version: 2.0.4
       react:
         specifier: ^19.2.7
         version: 19.2.7
@@ -1715,6 +1718,18 @@ packages:
     hasBin: true
     peerDependencies:
       typescript: '>=4.8'
+
+  '@soundtouchjs/audio-worklet@2.0.4':
+    resolution: {integrity: sha512-Qfj0wjo3sG5vLsgEeepvs0xo9KjhpicYB1JOMEqnLyy79/DPleNE3x2qwVTdb7ATl0NVFtSyGJggLmY1M40viA==}
+
+  '@soundtouchjs/core@2.0.4':
+    resolution: {integrity: sha512-QVCEtyyVPPFGA4WW9NAXKZb/ujLpUGZeMexkuqJYwh0lVZ5fV+iWQHfI86xLpBSo676E0M+5cskBd6gecV8pUA==}
+
+  '@soundtouchjs/interpolation-strategy-lanczos@2.0.4':
+    resolution: {integrity: sha512-yjmKTFqxcfZbR34gVybaMjrYJETvYk6gKzgRpZ1NQsIdQdLJnbFnvn88H2HH7NUUZgcUTtC+y9fsQWFurw755w==}
+
+  '@soundtouchjs/worklet-base@2.0.4':
+    resolution: {integrity: sha512-2gj49iFxrsvxuecFYIfeJFcgnMp6y5lSHCa5kykBPFOsnmSIfTVJYJCNrFNn4m6hWhobBQbdS/TfHptKehaBLg==}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -4785,6 +4800,22 @@ snapshots:
   '@softarc/sheriff-core@0.19.6(typescript@6.0.3)':
     dependencies:
       typescript: 6.0.3
+
+  '@soundtouchjs/audio-worklet@2.0.4':
+    dependencies:
+      '@soundtouchjs/core': 2.0.4
+      '@soundtouchjs/interpolation-strategy-lanczos': 2.0.4
+      '@soundtouchjs/worklet-base': 2.0.4
+
+  '@soundtouchjs/core@2.0.4':
+    dependencies:
+      '@soundtouchjs/interpolation-strategy-lanczos': 2.0.4
+
+  '@soundtouchjs/interpolation-strategy-lanczos@2.0.4': {}
+
+  '@soundtouchjs/worklet-base@2.0.4':
+    dependencies:
+      '@soundtouchjs/core': 2.0.4
 
   '@standard-schema/spec@1.1.0': {}
 
