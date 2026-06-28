@@ -57,4 +57,18 @@ export type {
   TransportState
 } from './domain/transport.ts'
 export { initialTransport, transportReducer } from './domain/transport.ts'
+export type { Viewport } from './domain/viewport.ts'
+export {
+  initialViewport,
+  MAX_ZOOM,
+  MIN_ZOOM,
+  maxOffset,
+  scrollBy,
+  scrollTo,
+  toTimelineRatio,
+  toViewRatio,
+  visibleWindow,
+  zoomTo
+} from './domain/viewport.ts'
 export type { Waveform, WaveformPeak } from './domain/waveform.ts'
+export { sliceWaveform } from './domain/waveform.ts'

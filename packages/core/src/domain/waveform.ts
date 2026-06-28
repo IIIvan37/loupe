@@ -47,3 +47,32 @@ export function buildWaveform(
   }
   return { peaks }
 }
+
+/**
+ * The sub-envelope visible through a viewport window, given as timeline ratios
+ * `[startRatio, endRatio] ⊆ [0, 1]`. Re-renders the existing peaks (no access to
+ * the raw samples here); always yields at least one peak so the view never
+ * blanks. Pure: a `Waveform` in, a narrower `Waveform` out.
+ */
+export function sliceWaveform(
+  waveform: Waveform,
+  startRatio: number,
+  endRatio: number
+): Waveform {
+  const total = waveform.peaks.length
+  if (total === 0) {
+    return waveform
+  }
+  // Keep `lo` in bounds so a window flush against the right edge (start ratio 1)
+  // still yields its last peak rather than an empty slice.
+  const lo = Math.min(Math.floor(clamp01(startRatio) * total), total - 1)
+  const hi = Math.ceil(clamp01(endRatio) * total)
+  return { peaks: waveform.peaks.slice(lo, Math.max(hi, lo + 1)) }
+}
+
+function clamp01(ratio: number): number {
+  if (Number.isNaN(ratio) || ratio < 0) {
+    return 0
+  }
+  return Math.min(ratio, 1)
+}

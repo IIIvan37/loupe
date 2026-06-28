@@ -4,13 +4,16 @@
 
 ## Where we are
 
-- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 5 (A/B loops,
-  the « loupe ») **done & merged**. See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `main` (no slice in flight; Slice 6 next).
-- **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
-  `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`)
+- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 6 (zoom +
+  scrollable viewport) **done**, PR open on `feat/jalon1-zoom-viewport`. See
+  [docs/jalon-1-plan.md](jalon-1-plan.md).
+- **Branch**: `feat/jalon1-zoom-viewport` (Slice 6 in PR; Slice 7 next).
+- **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track` +
+  `sliceWaveform`, `transportReducer`/`formatTimecode`,
+  `clampPlaybackRate`/`clampPitchSemitones`, `Viewport` zoom/scroll mapping)
   + `@app/cli` (example adapter, to be removed once it's redundant) + `packages/web`
-  (import → waveform → transport → time-stretch/pitch, gate-green).
+  (import → waveform → transport → time-stretch/pitch → markers → loops → zoom,
+  gate-green).
 
 ## Locked decisions (kickoff)
 
@@ -27,9 +30,9 @@
 
 ## Next step
 
-**Slice 6** — zoom + scrollable viewport (up to 6×): pure `Viewport` (time ↔ pixel
-mapping, round-trip property-tested) + zoom/scroll controls that re-render the
-waveform peaks. Outside-in via `/new-feature-hexa`.
+**Slice 7** — keyboard shortcuts: pure `KeyBindings` (map) + a global listener;
+a11y (focus visible, `prefers-reduced-motion`) and responsive. Outside-in via
+`/new-feature-hexa`.
 
 ## Roadmap
 
@@ -42,13 +45,19 @@ waveform peaks. Outside-in via `/new-feature-hexa`.
 | J1.3 | Time-stretch + pitch (SoundTouch worklet) — browser-verified | ✅ |
 | J1.4 | Markers (section/measure/beat) | ✅ |
 | J1.5 | A/B loop drag-select + named loops (the « loupe ») | ✅ |
-| J1.6 | Zoom + scrollable viewport (6×) | ⬜ |
+| J1.6 | Zoom + scrollable viewport (6×) | ✅ |
 | J1.7 | Keyboard shortcuts | ⬜ |
 
 ## Session journal
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-28 — jalon1-zoom-viewport](sessions/2026-06-28-jalon1-zoom-viewport.md) —
+  Slice 6: pure `Viewport` (normalised ratio space, round-trip property-tested,
+  mutation 95.35%) + `sliceWaveform`, `useViewport` + `ViewportControls`,
+  viewport-aware `WaveformView` (slice peaks, zoom-at-centre, wheel pan, memoised
+  canvas). 4 code-review fixes folded in (empty-slice bug, wheel intent, anchor,
+  memo).
 - [2026-06-28 — session-wrap](sessions/2026-06-28-session-wrap.md) — Jalon 1
   Slices 1→5 shipped & merged (PRs #6–#10); engine switched to SoundTouch (MPL);
   tooling findings (gate enforcement is CI+manual not pre-commit; impeccable scope).

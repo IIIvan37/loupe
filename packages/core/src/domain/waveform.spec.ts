@@ -1,6 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { buildWaveform } from './waveform.ts'
+import { buildWaveform, sliceWaveform } from './waveform.ts'
 
 describe('buildWaveform', () => {
   it('summarises each bucket as its min/max envelope', () => {
@@ -77,6 +77,60 @@ describe('buildWaveform', () => {
             expect(min).toBeLessThanOrEqual(max)
             expect(min).toBeGreaterThanOrEqual(lo)
             expect(max).toBeLessThanOrEqual(hi)
+          }
+        }
+      )
+    )
+  })
+})
+
+describe('sliceWaveform', () => {
+  const waveform = buildWaveform([0, 1, 2, 3, 4, 5, 6, 7], 8)
+
+  it('returns the whole waveform for the full [0, 1] window', () => {
+    expect(sliceWaveform(waveform, 0, 1)).toEqual(waveform)
+  })
+
+  it('keeps only the peaks inside the window', () => {
+    // The second quarter of an 8-peak waveform is peaks[2..4).
+    expect(sliceWaveform(waveform, 0.25, 0.5).peaks).toEqual(
+      waveform.peaks.slice(2, 4)
+    )
+  })
+
+  it('clamps an out-of-range window to the waveform bounds', () => {
+    // A negative start must clamp to 0, not index from the end like Array.slice.
+    expect(sliceWaveform(waveform, -0.25, 2)).toEqual(waveform)
+  })
+
+  it('never returns an empty slice for a degenerate window', () => {
+    // A zero-width window still yields at least one peak to render.
+    expect(sliceWaveform(waveform, 0.5, 0.5).peaks).toHaveLength(1)
+  })
+
+  it('yields the last peak for a window flush against the right edge', () => {
+    // start ratio 1 must clamp to the final peak, not slice past the array.
+    expect(sliceWaveform(waveform, 1, 1).peaks).toEqual([waveform.peaks.at(-1)])
+  })
+
+  it('passes an empty waveform straight through', () => {
+    const empty = { peaks: [] }
+    expect(sliceWaveform(empty, 0.2, 0.8)).toBe(empty)
+  })
+
+  it('always returns a non-empty in-range sub-slice', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        fc.double({ min: 0, max: 1, noNaN: true }),
+        (a, b) => {
+          const start = Math.min(a, b)
+          const end = Math.max(a, b)
+          const { peaks } = sliceWaveform(waveform, start, end)
+          expect(peaks.length).toBeGreaterThanOrEqual(1)
+          expect(peaks.length).toBeLessThanOrEqual(waveform.peaks.length)
+          for (const peak of peaks) {
+            expect(waveform.peaks).toContainEqual(peak)
           }
         }
       )
