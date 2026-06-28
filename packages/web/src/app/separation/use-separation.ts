@@ -6,7 +6,7 @@ import {
   separateTrack,
   separationReducer
 } from '@app/core'
-import { useMemo, useReducer } from 'react'
+import { useMemo, useReducer, useRef } from 'react'
 import { createStubSeparator } from '../../audio/stub-separator.ts'
 
 /** Per-stem peak resolution: enough for a compact track-list waveform. */
@@ -27,29 +27,43 @@ export interface Separation {
 export function useSeparation(separator?: StemSeparator): Separation {
   const engine = useMemo(() => separator ?? createStubSeparator(), [separator])
   const [state, dispatch] = useReducer(separationReducer, initialSeparation)
+  // A monotonic token per run: a slow separation that finishes after a new
+  // import or reset is stale, and its late progress/result must not land on the
+  // current track. Bumped by every `separate` and every `reset`.
+  const runIdRef = useRef(0)
 
   async function separate(audio: DecodedAudio): Promise<void> {
+    const runId = ++runIdRef.current
     dispatch({ type: 'start' })
     const result = await separateTrack(
       { audio, bucketCount: BUCKET_COUNT },
       {
         separator: engine,
-        onProgress: (progress) =>
-          dispatch({
-            type: 'progress',
-            phase: progress.phase,
-            fraction: progress.fraction
-          })
+        onProgress: (progress) => {
+          if (runIdRef.current === runId) {
+            dispatch({
+              type: 'progress',
+              phase: progress.phase,
+              fraction: progress.fraction
+            })
+          }
+        }
       }
     )
-    if (result.ok) {
-      dispatch({ type: 'ready', stems: result.stems })
-    } else {
-      dispatch({ type: 'fail', message: result.error })
+    // Commit only if this is still the latest run (a newer separate/reset since
+    // the await would have bumped the token, making this result stale).
+    if (runIdRef.current === runId) {
+      if (result.ok) {
+        dispatch({ type: 'ready', stems: result.stems })
+      } else {
+        dispatch({ type: 'fail', message: result.error })
+      }
     }
   }
 
   function reset(): void {
+    // Abandon any in-flight run so its late result can't repopulate the state.
+    runIdRef.current++
     dispatch({ type: 'reset' })
   }
 
