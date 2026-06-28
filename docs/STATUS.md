@@ -4,12 +4,12 @@
 
 ## Where we are
 
-- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — **complete**, in a
-  polish pass. All 7 slices merged (Slice 7 via **PR #13** `ab6e1ad`); a
-  hands-on refinement of loops/markers/transport is in flight on
-  `feat/jalon1-polish-loops-markers` (PR pending).
+- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — **complete**, polished.
+  All 7 slices merged (Slice 7 via **PR #13** `ab6e1ad`); a hands-on refinement of
+  loops/markers/transport merged via **PR #14** (`65297a2`).
   See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon1-polish-loops-markers` (polish — pending PR).
+- **Branch**: `main` (Jalon 1 closed + polished). Next work starts a fresh Jalon 2
+  branch.
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
