@@ -4,10 +4,11 @@
 
 ## Where we are
 
-- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — **feature-complete**.
-  Slice 7 (keyboard shortcuts) done; PR open on `feat/jalon1-keyboard-shortcuts`.
+- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — **complete**. All 7
+  slices shipped and merged; Slice 7 (keyboard shortcuts + in-app help + AZERTY
+  layout/focus fixes) merged via **PR #13** (`ab6e1ad`).
   See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon1-keyboard-shortcuts` (Slice 7 in flight — pending PR merge).
+- **Branch**: `main` (Jalon 1 closed). Next work starts a fresh Jalon 2 branch.
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
@@ -31,10 +32,10 @@
 
 ## Next step
 
-**Merge Slice 7** (PR on `feat/jalon1-keyboard-shortcuts`) to close Jalon 1.
-After that, Jalon 1 is complete — next is Jalon 2 (séparation IA) per
+**Jalon 1 is complete (PR #13 merged).** Next is Jalon 2 (séparation IA) per
 [docs/loupe-plan-produit.md](loupe-plan-produit.md); kick it off with its own
-plan/kickoff. Optional cleanup: remove the now-redundant `@app/cli` example.
+plan/kickoff on a fresh branch. Optional cleanup: remove the now-redundant
+`@app/cli` example.
 
 ## Roadmap
 
