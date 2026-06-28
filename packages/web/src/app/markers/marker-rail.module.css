@@ -1,0 +1,61 @@
+.rail {
+  position: relative;
+  height: 28px;
+  border-block-end: 1px solid var(--line);
+}
+
+.marker {
+  position: absolute;
+  inset-block: 0;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-start;
+}
+
+/* The flag is a vertical amber line; kinds vary its weight. */
+.flag {
+  display: inline-flex;
+  align-items: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-inline-start: 2px solid var(--amber);
+  height: 28px;
+  cursor: pointer;
+}
+
+.section {
+  border-inline-start-width: 2px;
+}
+
+.measure {
+  border-inline-start-width: 1px;
+  opacity: 0.7;
+  height: 18px;
+}
+
+.beat {
+  border-inline-start-width: 1px;
+  opacity: 0.4;
+  height: 10px;
+}
+
+.text {
+  padding-inline: var(--space-2xs);
+  font-size: 0.65rem;
+  color: var(--amber);
+  white-space: nowrap;
+}
+
+.remove {
+  padding: 0 var(--space-2xs);
+  border: 0;
+  background: transparent;
+  color: var(--faint);
+  font-size: 0.6rem;
+  cursor: pointer;
+}
+
+.remove:hover {
+  color: var(--text);
+}

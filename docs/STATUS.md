@@ -4,10 +4,9 @@
 
 ## Where we are
 
-- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 3 (time-stretch
-  + pitch via SoundTouch) **done & browser-verified**, merged. See
-  [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `main` (no slice in flight; Slice 4 next).
+- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 4 (timeline
+  markers) **done**, in PR. See [docs/jalon-1-plan.md](jalon-1-plan.md).
+- **Branch**: `feat/jalon1-markers` (Slice 4 PR).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`)
   + `@app/cli` (example adapter, to be removed once it's redundant) + `packages/web`
@@ -28,8 +27,10 @@
 
 ## Next step
 
-**Slice 4** — markers (section / measure / beat): pure `Marker` / `MarkerList`
-domain + a timeline ruler over the waveform, outside-in via `/new-feature-hexa`.
+**Slice 5** — A/B loop drag-select + named loops (the « loupe »): pure
+`LoopRegion` / `LoopLibrary` domain + a `LoopStore` port (localStorage),
+drag-select on the waveform, the loupe effect (rest dims), saved-loops list.
+Outside-in via `/new-feature-hexa`.
 
 ## Roadmap
 
@@ -40,7 +41,7 @@ domain + a timeline ruler over the waveform, outside-in via `/new-feature-hexa`.
 | J1.1 | Import local file → waveform | ✅ |
 | J1.2 | Transport: play/pause/seek + playhead + Space | ✅ |
 | J1.3 | Time-stretch + pitch (SoundTouch worklet) — browser-verified | ✅ |
-| J1.4 | Markers (section/measure/beat) | ⬜ |
+| J1.4 | Markers (section/measure/beat) | ✅ |
 | J1.5 | A/B loop drag-select + named loops (the « loupe ») | ⬜ |
 | J1.6 | Zoom + scrollable viewport (6×) | ⬜ |
 | J1.7 | Keyboard shortcuts | ⬜ |
@@ -49,6 +50,9 @@ domain + a timeline ruler over the waveform, outside-in via `/new-feature-hexa`.
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-28 — jalon1-markers](sessions/2026-06-28-jalon1-markers.md) —
+  Slice 4: `Marker`/`MarkerList` (core, marker-list 100% mutation), `useMarkers`,
+  `MarkerControls` + `MarkerRail` (add at playhead, click-seek, remove, amber by kind).
 - [2026-06-28 — jalon1-timestretch](sessions/2026-06-28-jalon1-timestretch.md) —
   Slice 3: `clampPlaybackRate`/`clampPitchSemitones` (core, mutation 94.41%),
   `PlaybackEngine` gains tempo/pitch, Rubber Band worklet adapter + wired sliders.

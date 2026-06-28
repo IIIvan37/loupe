@@ -155,6 +155,46 @@ describe('WorkstationShell', () => {
     expect(screen.getByLabelText('Hauteur en demi-tons')).toBeDisabled()
   })
 
+  it('adds a marker at the playhead and seeks back to it', async () => {
+    const engine = fakeEngine()
+    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    await importTrack()
+
+    act(() => engine.emit(5))
+    fireEvent.click(screen.getByRole('button', { name: '+ Section' }))
+
+    const goto = screen.getByRole('button', { name: 'Aller à Section 1' })
+    fireEvent.click(goto)
+    expect(engine.seekTo).toHaveBeenCalledWith(5)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Section 1' }))
+    expect(
+      screen.queryByRole('button', { name: 'Aller à Section 1' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('clears markers when a new track is loaded', async () => {
+    const engine = fakeEngine()
+    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    await importTrack()
+
+    fireEvent.click(screen.getByRole('button', { name: '+ Section' }))
+    expect(
+      screen.getByRole('button', { name: 'Aller à Section 1' })
+    ).toBeInTheDocument()
+
+    await importTrack()
+    expect(
+      screen.queryByRole('button', { name: 'Aller à Section 1' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('disables marker controls until a track is loaded', () => {
+    const engine = fakeEngine()
+    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    expect(screen.getByRole('button', { name: '+ Section' })).toBeDisabled()
+  })
+
   it('seeks the engine when the waveform is clicked', async () => {
     const engine = fakeEngine()
     render(<WorkstationShell decoder={okDecoder} engine={engine} />)
