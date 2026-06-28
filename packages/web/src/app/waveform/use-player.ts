@@ -49,6 +49,9 @@ export interface Player {
   /** The active A/B loop (the « loupe »), or undefined when off. */
   readonly loopRegion: LoopRegion | undefined
   readonly setLoopRegion: (region: LoopRegion | undefined) => void
+  /** Whether the active region actually loops playback (vs playing through). */
+  readonly loopEnabled: boolean
+  readonly toggleLoop: () => void
 }
 
 /**
@@ -80,10 +83,13 @@ export function usePlayer(
   const [loopRegion, setLoopRegionState] = useState<LoopRegion | undefined>(
     undefined
   )
-  // Latest loop kept in a ref so the (mount-once) position listener never closes
-  // over a stale region.
+  const [loopEnabled, setLoopEnabledState] = useState(true)
+  // Latest loop + enabled flag kept in refs so the (mount-once) position listener
+  // never closes over stale values.
   const loopRef = useRef<LoopRegion | undefined>(undefined)
   loopRef.current = loopRegion
+  const loopEnabledRef = useRef(true)
+  loopEnabledRef.current = loopEnabled
   // Bumped per import so a slow metadata read from a previous file can't land on
   // top of the current one.
   const importIdRef = useRef(0)
@@ -93,9 +99,10 @@ export function usePlayer(
     const unsubscribe = playback.onPositionChange((seconds) => {
       const loop = loopRef.current
       // Guard a degenerate (zero-length) loop, which would otherwise wrap-seek
-      // every frame.
+      // every frame. Looping must also be enabled — otherwise play straight on.
       if (
         loop &&
+        loopEnabledRef.current &&
         loop.endSeconds > loop.startSeconds &&
         wrapToLoop(loop, seconds) !== seconds
       ) {
@@ -194,7 +201,16 @@ export function usePlayer(
   }
 
   function setLoopRegion(region: LoopRegion | undefined): void {
+    // Selecting a region where there was none re-arms looping, so a fresh loupe
+    // loops straight away; adjusting an existing region leaves the choice alone.
+    if (loopRegion === undefined && region !== undefined) {
+      setLoopEnabledState(true)
+    }
     setLoopRegionState(region)
+  }
+
+  function toggleLoop(): void {
+    setLoopEnabledState((enabled) => !enabled)
   }
 
   return {
@@ -210,6 +226,8 @@ export function usePlayer(
     seekToSeconds,
     setTimeRatio,
     setPitchSemitones,
-    setLoopRegion
+    setLoopRegion,
+    loopEnabled,
+    toggleLoop
   }
 }

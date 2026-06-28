@@ -9,6 +9,9 @@ interface TransportBarProps {
   /** Disabled until a track is loaded. */
   readonly canPlay: boolean
   readonly onPlayPause: () => void
+  /** Jump the playhead to the start / end of the timeline. */
+  readonly onSeekToStart: () => void
+  readonly onSeekToEnd: () => void
   /** Tempo as a percentage of normal speed (100 = original). */
   readonly tempoPercent: number
   /** Pitch shift in whole semitones (0 = original key). */
@@ -27,6 +30,8 @@ export function TransportBar({
   isPlaying,
   canPlay,
   onPlayPause,
+  onSeekToStart,
+  onSeekToEnd,
   tempoPercent,
   pitchSemitones,
   onTempoChange,
@@ -35,7 +40,13 @@ export function TransportBar({
   return (
     <footer className={styles.bar}>
       <Cluster gap="var(--space-s)" align="center">
-        <button type="button" className={styles.control} aria-label="Début" disabled>
+        <button
+          type="button"
+          className={styles.control}
+          aria-label="Début"
+          disabled={!canPlay}
+          onClick={onSeekToStart}
+        >
           ⏮
         </button>
         <button
@@ -48,11 +59,14 @@ export function TransportBar({
         >
           {isPlaying ? '⏸' : '▶'}
         </button>
-        <button type="button" className={styles.control} aria-label="Fin" disabled>
+        <button
+          type="button"
+          className={styles.control}
+          aria-label="Fin"
+          disabled={!canPlay}
+          onClick={onSeekToEnd}
+        >
           ⏭
-        </button>
-        <button type="button" className={styles.control} aria-label="Boucle" disabled>
-          ⟳
         </button>
         <span className={styles.time}>
           <span className={styles.position}>{position}</span>

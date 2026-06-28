@@ -6,18 +6,18 @@ import { vi } from 'vitest'
 import { MarkerRail } from './marker-rail.tsx'
 
 const markers: MarkerList = [
-  { id: 'a', timeSeconds: 5, kind: 'section', label: 'Section 1' }
+  { id: 'a', timeSeconds: 5, label: 'Repère 1' }
 ]
 
 const noop = () => {}
 
 describe('MarkerRail', () => {
-  it('seeks to a section marker when its tag is clicked', () => {
+  it('seeks to a marker when its tag is clicked', () => {
     const onSeek = vi.fn()
     render(
       <MarkerRail markers={markers} durationSeconds={10} onSeek={onSeek} />
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Aller à Section 1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Aller à Repère 1' }))
     expect(onSeek).toHaveBeenCalledWith(5)
   })
 
@@ -26,7 +26,7 @@ describe('MarkerRail', () => {
       <MarkerRail markers={markers} durationSeconds={0} onSeek={noop} />
     )
     expect(
-      screen.queryByRole('button', { name: 'Aller à Section 1' })
+      screen.queryByRole('button', { name: 'Aller à Repère 1' })
     ).not.toBeInTheDocument()
   })
 })

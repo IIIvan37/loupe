@@ -23,6 +23,22 @@
   font-size: 0.8rem;
 }
 
+/* Loop on/off: outlined when inactive, amber-filled when looping. */
+.toggle {
+  padding: var(--space-2xs) var(--space-s);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--dim);
+  font-size: 0.8rem;
+}
+
+.toggleOn {
+  border-color: var(--amber);
+  background: var(--amber-glow);
+  color: var(--amber);
+}
+
 .saved {
   display: inline-flex;
   align-items: center;
@@ -37,6 +53,18 @@
   background: transparent;
   color: var(--amber);
   font-size: 0.8rem;
+}
+
+.edit {
+  padding: 0 var(--space-2xs);
+  border: 0;
+  background: transparent;
+  color: var(--dim);
+  font-size: 0.75rem;
+}
+
+.edit:hover {
+  color: var(--amber);
 }
 
 .remove {

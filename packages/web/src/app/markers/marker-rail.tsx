@@ -1,5 +1,4 @@
 import { formatTimecode, type MarkerList } from '@app/core'
-import { cx } from '../../lib/cx.ts'
 import styles from './marker-rail.module.css'
 
 interface MarkerRailProps {
@@ -13,10 +12,9 @@ interface MarkerRailProps {
 const RULER_TICKS = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const
 
 /**
- * Dumb timeline: a timecode ruler with section/measure/beat markers pinned along
- * it (matching the prototype). Markers are amber — your settings, per the token
- * rule. A section shows a labelled tag (click to seek, ✕ to remove); finer
- * measure/beat markers are pins only.
+ * Dumb timeline: a timecode ruler with the user's named markers pinned along it.
+ * Markers are amber — your settings, per the token rule. Each shows a labelled
+ * tag; click it to seek.
  */
 export function MarkerRail({
   markers,
@@ -42,20 +40,15 @@ export function MarkerRail({
             className={styles.marker}
             style={{ left: `${(marker.timeSeconds / durationSeconds) * 100}%` }}
           >
-            <span
-              className={cx(styles.pin, styles[marker.kind])}
-              aria-hidden="true"
-            />
-            {marker.kind === 'section' && (
-              <button
-                type="button"
-                className={styles.tag}
-                aria-label={`Aller à ${marker.label}`}
-                onClick={() => onSeek(marker.timeSeconds)}
-              >
-                {marker.label}
-              </button>
-            )}
+            <span className={styles.pin} aria-hidden="true" />
+            <button
+              type="button"
+              className={styles.tag}
+              aria-label={`Aller à ${marker.label}`}
+              onClick={() => onSeek(marker.timeSeconds)}
+            >
+              {marker.label}
+            </button>
           </span>
         ))}
       </div>

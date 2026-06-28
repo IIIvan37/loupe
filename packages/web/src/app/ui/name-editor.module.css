@@ -1,0 +1,67 @@
+.popup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  width: min(18rem, calc(100vw - var(--space-l)));
+  padding: var(--space-m);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.title {
+  font-family: var(--font-logo);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.label {
+  color: var(--dim);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.input {
+  padding: var(--space-2xs) var(--space-xs);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+}
+
+.ghost {
+  padding: var(--space-2xs) var(--space-s);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--dim);
+  font-size: 0.8rem;
+}
+
+.submit {
+  padding: var(--space-2xs) var(--space-m);
+  border-radius: var(--radius);
+  border: 1px solid var(--amber);
+  background: var(--amber);
+  color: var(--bg);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.submit:disabled {
+  opacity: 0.5;
+}

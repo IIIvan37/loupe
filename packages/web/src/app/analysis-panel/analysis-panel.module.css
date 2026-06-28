@@ -62,12 +62,19 @@
   background: var(--panel-3);
 }
 
+.markerEdit,
 .markerRemove {
   padding: 0 var(--space-xs);
   border: 0;
   border-radius: var(--radius);
   background: var(--panel-2);
   color: var(--faint);
+  font-size: 0.75rem;
+}
+
+.markerEdit:hover {
+  color: var(--amber);
+  background: var(--panel-3);
 }
 
 .markerRemove:hover {

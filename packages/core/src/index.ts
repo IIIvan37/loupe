@@ -46,7 +46,7 @@ export {
   makeLoopRegion,
   wrapToLoop
 } from './domain/loop-region.ts'
-export type { Marker, MarkerKind } from './domain/marker.ts'
+export type { Marker } from './domain/marker.ts'
 export type { MarkerList } from './domain/marker-list.ts'
 export {
   addMarker,

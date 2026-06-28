@@ -16,8 +16,14 @@ import {
   waitFor,
   within
 } from '@testing-library/react'
-import { vi } from 'vitest'
+import { beforeAll, vi } from 'vitest'
 import { WorkstationShell } from './workstation-shell.tsx'
+
+beforeAll(() => {
+  // jsdom implements neither pointer-capture method; the waveform calls both.
+  Element.prototype.setPointerCapture = vi.fn()
+  Element.prototype.releasePointerCapture = vi.fn()
+})
 
 /** 10 samples at 1 Hz → a 10-second timeline, easy to read as 0:10. */
 const decoded: DecodedAudio = {
@@ -71,7 +77,19 @@ function fakeLoopStore(): LoopStore {
 
 /** The waveform stage button (click to seek, drag to loop). */
 function waveformSurface(): HTMLElement {
-  return screen.getByRole('button', { name: /Forme d'onde/ })
+  return screen.getByRole('button', { name: /Forme d'onde :/ })
+}
+
+/**
+ * Drive a pointer gesture on the waveform. Ratios are measured against the
+ * positioning container (the surface's parent), which we size to 100px.
+ */
+function pointerGesture(fromX: number, toX: number): void {
+  const surface = waveformSurface()
+  const container = surface.parentElement as HTMLElement
+  container.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
+  fireEvent.pointerDown(surface, { button: 0, clientX: fromX })
+  fireEvent.pointerUp(container, { button: 0, clientX: toX })
 }
 
 /** Render the shell with the default fakes; override any port per test. */
@@ -157,6 +175,18 @@ describe('WorkstationShell', () => {
     expect(screen.getByRole('button', { name: 'Lecture' })).toBeInTheDocument()
   })
 
+  it('jumps to the start and end of the timeline via the transport buttons', async () => {
+    const { engine } = renderShell()
+    await importTrack()
+    act(() => engine.emit(5))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fin' }))
+    expect(engine.seekTo).toHaveBeenLastCalledWith(10)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Début' }))
+    expect(engine.seekTo).toHaveBeenLastCalledWith(0)
+  })
+
   it('reflects the engine position as a timecode', async () => {
     const { engine, container } = renderShell()
     await importTrack()
@@ -225,9 +255,29 @@ describe('WorkstationShell', () => {
     // Bound by character ('m'), not physical position — works on any layout.
     fireEvent.keyDown(document.body, { key: 'm', code: 'Semicolon' })
 
-    const goto = screen.getByRole('button', { name: 'Aller à Section 1' })
+    const goto = screen.getByRole('button', { name: 'Aller à Repère 1' })
     fireEvent.click(goto)
     expect(engine.seekTo).toHaveBeenLastCalledWith(5)
+  })
+
+  it('renames a marker from the inspector', async () => {
+    const { engine } = renderShell()
+    await importTrack()
+
+    act(() => engine.emit(5))
+    fireEvent.keyDown(document.body, { key: 'm', code: 'Semicolon' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Renommer Repère 1' }))
+    fireEvent.change(screen.getByLabelText('Nom'), { target: { value: 'Pont' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Renommer' }))
+
+    // The rail tag follows the new label; the old one is gone.
+    expect(
+      screen.getByRole('button', { name: 'Aller à Pont' })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Aller à Repère 1' })
+    ).not.toBeInTheDocument()
   })
 
   it('zooms with the + and - characters, regardless of layout', async () => {
@@ -288,15 +338,15 @@ describe('WorkstationShell', () => {
     await importTrack()
 
     act(() => engine.emit(5))
-    fireEvent.click(screen.getByRole('button', { name: '+ Section' }))
+    fireEvent.click(screen.getByRole('button', { name: '+ Repère' }))
 
-    const goto = screen.getByRole('button', { name: 'Aller à Section 1' })
+    const goto = screen.getByRole('button', { name: 'Aller à Repère 1' })
     fireEvent.click(goto)
     expect(engine.seekTo).toHaveBeenCalledWith(5)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Section 1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Repère 1' }))
     expect(
-      screen.queryByRole('button', { name: 'Aller à Section 1' })
+      screen.queryByRole('button', { name: 'Aller à Repère 1' })
     ).not.toBeInTheDocument()
   })
 
@@ -304,53 +354,93 @@ describe('WorkstationShell', () => {
     renderShell()
     await importTrack()
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Section' }))
+    fireEvent.click(screen.getByRole('button', { name: '+ Repère' }))
     expect(
-      screen.getByRole('button', { name: 'Aller à Section 1' })
+      screen.getByRole('button', { name: 'Aller à Repère 1' })
     ).toBeInTheDocument()
 
     await importTrack()
     expect(
-      screen.queryByRole('button', { name: 'Aller à Section 1' })
+      screen.queryByRole('button', { name: 'Aller à Repère 1' })
     ).not.toBeInTheDocument()
   })
 
   it('disables marker controls until a track is loaded', () => {
     renderShell()
-    expect(screen.getByRole('button', { name: '+ Section' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '+ Repère' })).toBeDisabled()
   })
 
   it('seeks the engine when the waveform is clicked', async () => {
     const { engine } = renderShell()
     await importTrack()
 
-    const surface = waveformSurface()
-    surface.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
     // A press-release at the same x is a click → seek to 50% of a 10 s timeline.
-    fireEvent.pointerDown(surface, { button: 0, clientX: 50 })
-    fireEvent.pointerUp(surface, { button: 0, clientX: 50 })
+    pointerGesture(50, 50)
     expect(engine.seekTo).toHaveBeenCalledWith(5)
   })
 
-  it('drag-selects an A/B loop, saves it, and recalls it', async () => {
-    const prompt = vi
-      .spyOn(window, 'prompt')
-      .mockReturnValue('Mon passage')
+  it('drag-selects an A/B loop, names it via the editor, and recalls it', async () => {
     const { engine } = renderShell({ loopStore: fakeLoopStore() })
     await importTrack()
 
-    const surface = waveformSurface()
-    surface.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
     // Drag 20%→60% of a 10 s timeline → loop [2s, 6s].
-    fireEvent.pointerDown(surface, { button: 0, clientX: 20 })
-    fireEvent.pointerUp(surface, { button: 0, clientX: 60 })
+    pointerGesture(20, 60)
 
     fireEvent.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
-    const recall = await screen.findByRole('button', { name: 'Mon passage' })
+    fireEvent.change(screen.getByLabelText('Nom'), {
+      target: { value: 'Mon passage' }
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
+    const recall = await screen.findByRole('button', { name: 'Mon passage' })
     fireEvent.click(recall)
     expect(engine.seekTo).toHaveBeenCalledWith(2)
-    prompt.mockRestore()
+  })
+
+  it('edits a saved loop in place when its handle moves (no re-save prompt)', async () => {
+    renderShell({ loopStore: fakeLoopStore() })
+    await importTrack()
+
+    // Select [2 s, 6 s] and save it.
+    pointerGesture(20, 60)
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
+    fireEvent.change(screen.getByLabelText('Nom'), { target: { value: 'Pont' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    expect(
+      screen.queryByRole('button', { name: 'Enregistrer la boucle' })
+    ).not.toBeInTheDocument()
+
+    // Drag the end handle inward: the saved loop updates rather than spawning a
+    // duplicate, so no « Enregistrer » reappears and there is still one chip.
+    const container = waveformSurface().parentElement as HTMLElement
+    container.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
+    const endHandle = screen.getByRole('button', {
+      name: 'Déplacer la fin de la boucle'
+    })
+    fireEvent.pointerDown(endHandle, { button: 0, clientX: 60 })
+    fireEvent.pointerMove(endHandle, { clientX: 40 })
+    fireEvent.pointerUp(container, { button: 0, clientX: 40 })
+
+    expect(
+      screen.queryByRole('button', { name: 'Enregistrer la boucle' })
+    ).not.toBeInTheDocument()
+    expect(await screen.findAllByRole('button', { name: 'Pont' })).toHaveLength(1)
+  })
+
+  it('wraps playback at the loop end only while looping is enabled', async () => {
+    const { engine } = renderShell()
+    await importTrack()
+
+    // Drag 20%→60% of a 10 s timeline → loop [2 s, 6 s], looping armed.
+    pointerGesture(20, 60)
+    act(() => engine.emit(6))
+    expect(engine.seekTo).toHaveBeenLastCalledWith(2)
+
+    // Turn looping off: the same overshoot must now play straight through.
+    fireEvent.click(screen.getByRole('button', { name: /Boucle active/ }))
+    engine.seekTo.mockClear()
+    act(() => engine.emit(7))
+    expect(engine.seekTo).not.toHaveBeenCalled()
   })
 
   it('shows the file tags in the header once read', async () => {

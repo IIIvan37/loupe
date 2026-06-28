@@ -2,7 +2,6 @@ import {
   type Command,
   defaultKeyBindings,
   type KeyBindings,
-  type MarkerKind,
   resolveCommand
 } from '@app/core'
 import { useEffect, useRef } from 'react'
@@ -31,7 +30,7 @@ export interface ShortcutActions {
   readonly seekBy: (seconds: number) => void
   readonly zoomIn: () => void
   readonly zoomOut: () => void
-  readonly addMarker: (kind: MarkerKind) => void
+  readonly addMarker: () => void
 }
 
 export interface ShortcutOptions {
@@ -56,7 +55,7 @@ function dispatch(command: Command, actions: ShortcutActions): void {
       actions.zoomOut()
       return
     case 'addMarker':
-      actions.addMarker(command.kind)
+      actions.addMarker()
       return
   }
 }

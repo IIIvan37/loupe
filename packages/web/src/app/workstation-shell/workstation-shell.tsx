@@ -73,16 +73,45 @@ export function WorkstationShell({
     seekToSeconds,
     setTimeRatio,
     setPitchSemitones,
-    setLoopRegion
+    setLoopRegion,
+    loopEnabled,
+    toggleLoop
   } = usePlayer(decoder, engine, metadataReader)
   const markers = useMarkers()
   const loops = useLoops(loopStore)
   const viewport = useViewport()
   const [trackName, setTrackName] = useState<string | null>(null)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  // The saved loop the active region came from, so edge edits update it in place
+  // rather than spawning a duplicate. Undefined for a fresh, unsaved selection.
+  const [activeLoopId, setActiveLoopId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isLoaded = importState.status === 'loaded'
+
+  /** A fresh surface drag: a new, unsaved region detached from any saved loop. */
+  function selectRegion(startRatio: number, endRatio: number): void {
+    setActiveLoopId(null)
+    setLoopRegion(
+      makeLoopRegion(
+        startRatio * transport.durationSeconds,
+        endRatio * transport.durationSeconds
+      )
+    )
+  }
+
+  /** A handle/keyboard edge edit: adjust the region, persisting a saved loop. */
+  function adjustRegion(startRatio: number, endRatio: number): void {
+    const region = makeLoopRegion(
+      startRatio * transport.durationSeconds,
+      endRatio * transport.durationSeconds
+    )
+    setLoopRegion(region)
+    const active = loops.library.find((loop) => loop.id === activeLoopId)
+    if (active) {
+      loops.update({ ...active, region })
+    }
+  }
 
   // Global keyboard layout — only live once a track is loaded.
   useKeyboardShortcuts(
@@ -91,7 +120,7 @@ export function WorkstationShell({
       seekBy: (seconds) => seekToSeconds(transport.positionSeconds + seconds),
       zoomIn: viewport.zoomIn,
       zoomOut: viewport.zoomOut,
-      addMarker: (kind) => markers.addAt(kind, transport.positionSeconds)
+      addMarker: () => markers.addAt(transport.positionSeconds)
     },
     { enabled: isLoaded }
   )
@@ -146,7 +175,7 @@ export function WorkstationShell({
           <Stack gap="var(--space-m)">
             <MarkerControls
               disabled={!isLoaded}
-              onAdd={(kind) => markers.addAt(kind, transport.positionSeconds)}
+              onAdd={() => markers.addAt(transport.positionSeconds)}
             />
             <ZoomStage
               zoom={viewport.zoom}
@@ -164,32 +193,29 @@ export function WorkstationShell({
               <WaveformView
                 state={importState}
                 loopRegion={loopRegion}
+                loopEnabled={loopEnabled}
                 durationSeconds={transport.durationSeconds}
                 onSeek={seekToRatio}
-                onSelectRegion={(start, end) =>
-                  setLoopRegion(
-                    makeLoopRegion(
-                      start * transport.durationSeconds,
-                      end * transport.durationSeconds
-                    )
-                  )
-                }
+                onSelectRegion={selectRegion}
+                onAdjustRegion={adjustRegion}
               />
             </ZoomStage>
             <LoopBar
-              hasRegion={loopRegion !== undefined}
+              region={loopRegion}
+              isSaved={activeLoopId !== null}
+              loopEnabled={loopEnabled}
+              onToggleLoop={toggleLoop}
               library={loops.library}
-              onSaveRegion={() => {
-                if (!loopRegion) {
-                  return
-                }
-                const name = window.prompt('Nom de la boucle')?.trim()
-                if (name) {
-                  loops.save(name, loopRegion)
-                }
+              onSaveRegion={(name, region) =>
+                setActiveLoopId(loops.save(name, region).id)
+              }
+              onUpdateLoop={loops.update}
+              onClearRegion={() => {
+                setActiveLoopId(null)
+                setLoopRegion(undefined)
               }}
-              onClearRegion={() => setLoopRegion(undefined)}
               onActivate={(loop) => {
+                setActiveLoopId(loop.id)
                 setLoopRegion(loop.region)
                 seekToSeconds(loop.region.startSeconds)
               }}
@@ -203,6 +229,7 @@ export function WorkstationShell({
         <AnalysisPanel
           markers={markers.markers}
           onSeekMarker={seekToSeconds}
+          onRenameMarker={markers.rename}
           onRemoveMarker={markers.remove}
         />
       </div>
@@ -213,6 +240,8 @@ export function WorkstationShell({
         isPlaying={transport.isPlaying}
         canPlay={isLoaded}
         onPlayPause={togglePlayback}
+        onSeekToStart={() => seekToSeconds(0)}
+        onSeekToEnd={() => seekToSeconds(transport.durationSeconds)}
         tempoPercent={Math.round(timeRatio * 100)}
         pitchSemitones={pitchSemitones}
         onTempoChange={(percent) => setTimeRatio(percent / 100)}

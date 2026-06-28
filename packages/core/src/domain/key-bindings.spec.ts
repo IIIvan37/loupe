@@ -34,17 +34,16 @@ describe('resolveCommand', () => {
     })
   })
 
-  it('maps the M character to adding a section marker', () => {
+  it('maps the M character to adding a marker', () => {
     expect(resolveCommand(defaultKeyBindings, { key: 'm' })).toEqual({
-      type: 'addMarker',
-      kind: 'section'
+      type: 'addMarker'
     })
   })
 
   it('matches character bindings case-insensitively (Shift+M still works)', () => {
     expect(
       resolveCommand(defaultKeyBindings, { key: 'M', shift: true })
-    ).toEqual({ type: 'addMarker', kind: 'section' })
+    ).toEqual({ type: 'addMarker' })
   })
 
   it('matches a character binding regardless of the physical position', () => {
@@ -52,7 +51,7 @@ describe('resolveCommand', () => {
     // the user's actual `m` key adds the marker, wherever it sits.
     expect(
       resolveCommand(defaultKeyBindings, { key: 'm', code: 'Semicolon' })
-    ).toEqual({ type: 'addMarker', kind: 'section' })
+    ).toEqual({ type: 'addMarker' })
   })
 
   it('leaves browser zoom (Ctrl/Cmd +) alone', () => {
