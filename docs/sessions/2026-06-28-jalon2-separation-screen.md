@@ -66,10 +66,10 @@
   rule).
 
 ## State to resume from
-- **Single next action**: open the PR for `feat/jalon2-separation-screen` (2 code
-  commits + this report), then start **Slice J2.2** (real WASM separator) on a fresh
-  branch via `/new-feature-hexa` — implement `StemSeparator` with Demucs WASM in a
-  worker; the port contract is already fixed.
+- **Single next action**: **PR #16** is open for `feat/jalon2-separation-screen`
+  (2 code commits + this report) — once merged, start **Slice J2.2** (real WASM
+  separator) on a fresh branch via `/new-feature-hexa`: implement `StemSeparator`
+  with Demucs WASM in a worker; the port contract is already fixed.
 - Gotchas: the stub returns stems that REUSE the input PCM — per-stem waveforms are
   identical until J2.2 produces real isolation. `useSeparation` uses a `runIdRef`
   staleness guard; keep it when swapping in the real adapter.

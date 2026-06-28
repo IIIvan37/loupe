@@ -4,7 +4,7 @@
 
 ## Where we are
 
-- **Phase**: **Jalon 2 (« Séparation IA ») — Slice J2.1 done, PR open.** Plan in
+- **Phase**: **Jalon 2 (« Séparation IA ») — Slice J2.1 done, PR #16 open.** Plan in
   [docs/jalon-2-plan.md](jalon-2-plan.md). Jalon 1 (« Transcribe! dans le
   navigateur ») is **complete + polished**: all 7 slices merged (Slice 7 via
   **PR #13** `ab6e1ad`), loops/markers/transport refinement merged via **PR #14**
@@ -35,7 +35,7 @@
 
 ## Next step
 
-**Slice J2.1 done (PR open).** The import → separation → tracks screen is wired on
+**Slice J2.1 done (PR #16 open).** The import → separation → tracks screen is wired on
 a **stub separator** behind the pure `StemSeparator` port; separation reuses the
 SAME decoded PCM the player loaded (no second import). Next: **Slice J2.2** — the
 real **Demucs WASM** separator in an off-main-thread worker, behind the same port
