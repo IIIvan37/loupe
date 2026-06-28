@@ -5,31 +5,44 @@ import styles from './transport-bar.module.css'
 interface TransportBarProps {
   readonly position: string
   readonly duration: string
+  readonly isPlaying: boolean
+  /** Disabled until a track is loaded. */
+  readonly canPlay: boolean
+  readonly onPlayPause: () => void
 }
 
 /**
- * Dumb presentational transport bar. Placeholder controls for Slice 0 — the real
- * transport state machine and Web Audio engine arrive in Slice 2 / Slice 3.
- * Active/playing affordances use amber per the semantic rule.
+ * Dumb presentational transport bar. Play/pause is wired (Slice 2); the tempo and
+ * pitch sliders stay disabled until Slice 3. Active/playing affordances use amber
+ * per the semantic rule.
  */
-export function TransportBar({ position, duration }: TransportBarProps) {
+export function TransportBar({
+  position,
+  duration,
+  isPlaying,
+  canPlay,
+  onPlayPause
+}: TransportBarProps) {
   return (
     <footer className={styles.bar}>
       <Cluster gap="var(--space-s)" align="center">
-        <button type="button" className={styles.control} aria-label="Début">
+        <button type="button" className={styles.control} aria-label="Début" disabled>
           ⏮
         </button>
         <button
           type="button"
           className={cx(styles.control, styles.play)}
-          aria-label="Lecture / pause"
+          aria-label={isPlaying ? 'Pause' : 'Lecture'}
+          aria-pressed={isPlaying}
+          disabled={!canPlay}
+          onClick={onPlayPause}
         >
-          ▶
+          {isPlaying ? '⏸' : '▶'}
         </button>
-        <button type="button" className={styles.control} aria-label="Fin">
+        <button type="button" className={styles.control} aria-label="Fin" disabled>
           ⏭
         </button>
-        <button type="button" className={styles.control} aria-label="Boucle">
+        <button type="button" className={styles.control} aria-label="Boucle" disabled>
           ⟳
         </button>
         <span className={styles.time}>

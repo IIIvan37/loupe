@@ -26,3 +26,18 @@ export interface DecodedAudio {
 export interface AudioFileDecoder {
   decode(bytes: ArrayBuffer): Promise<DecodedAudio>
 }
+
+/**
+ * Driven port: real-time playback of decoded audio. Commands are fire-and-forget;
+ * the actual elapsed position streams back through `onPositionChange`. Implemented
+ * by an adapter (web: an `AudioBufferSourceNode`); the core stays timer-free.
+ */
+export interface PlaybackEngine {
+  /** Make `audio` the current track, ready to play from its start. */
+  load(audio: DecodedAudio): Promise<void>
+  play(): void
+  pause(): void
+  seekTo(seconds: number): void
+  /** Subscribe to position updates (seconds). Returns an unsubscribe function. */
+  onPositionChange(listener: (seconds: number) => void): () => void
+}

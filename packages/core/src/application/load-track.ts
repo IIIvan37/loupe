@@ -1,5 +1,5 @@
 import { buildTrack, type Track } from '../domain/track.ts'
-import type { AudioFileDecoder } from './ports.ts'
+import type { AudioFileDecoder, PlaybackEngine } from './ports.ts'
 
 export interface LoadTrackInput {
   readonly bytes: ArrayBuffer
@@ -9,6 +9,7 @@ export interface LoadTrackInput {
 
 export interface LoadTrackDeps {
   readonly decoder: AudioFileDecoder
+  readonly engine: PlaybackEngine
 }
 
 export type LoadTrackResult =
@@ -16,9 +17,11 @@ export type LoadTrackResult =
   | { readonly ok: false; readonly error: string }
 
 /**
- * Orchestration use-case, pure: decode the bytes via the port, summarise them in
- * the domain into a `Track`. No Web Audio here — it arrives through `deps`.
- * Expected failures (bad bytes, decoder error) are a `Result`, not an exception.
+ * Orchestration use-case, pure: decode the bytes once via the decoder port,
+ * summarise them in the domain into a `Track`, and hand the same PCM to the
+ * playback engine port — so a file is decoded a single time for both the
+ * waveform and playback. No Web Audio here; it arrives through `deps`. Expected
+ * failures (bad bytes, decoder error) are a `Result`, not an exception.
  */
 export async function loadTrack(
   input: LoadTrackInput,
@@ -31,6 +34,7 @@ export async function loadTrack(
       decoded.sampleRate,
       input.bucketCount
     )
+    await deps.engine.load(decoded)
     return { ok: true, track }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) }

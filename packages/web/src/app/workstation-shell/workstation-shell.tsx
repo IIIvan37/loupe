@@ -1,10 +1,10 @@
-import type { AudioFileDecoder } from '@app/core'
-import { type ChangeEvent, useRef } from 'react'
+import { type AudioFileDecoder, formatTimecode, type PlaybackEngine } from '@app/core'
+import { type ChangeEvent, useEffect, useRef } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { Header } from '../header/header.tsx'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
-import { useTrackImport } from '../waveform/use-track-import.ts'
+import { usePlayer } from '../waveform/use-player.ts'
 import { WaveformView } from '../waveform/waveform-view.tsx'
 import styles from './workstation-shell.module.css'
 
@@ -14,19 +14,45 @@ const DETECTED = [
   { id: 'meter', label: 'Mesure', value: '4/4' }
 ] as const
 
+const INTERACTIVE_TAGS = ['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT']
+
 interface WorkstationShellProps {
-  /** The decoder port, injected in tests; defaults to the real Web Audio one. */
+  /** Ports injected in tests; default to the real Web Audio adapters. */
   readonly decoder?: AudioFileDecoder
+  readonly engine?: PlaybackEngine
 }
 
 /**
  * Top-level smart shell: owns the single import entry point (the header button
- * drives a hidden file input) and the track-import state, and lays the regions
- * out. The waveform is the first real slice; tracks and readouts follow.
+ * drives a hidden file input), the transport, and the global Space shortcut, and
+ * lays the regions out.
  */
-export function WorkstationShell({ decoder }: WorkstationShellProps) {
-  const { state, importFile } = useTrackImport(decoder)
+export function WorkstationShell({ decoder, engine }: WorkstationShellProps) {
+  const { importState, transport, importFile, togglePlayback, seekToRatio } =
+    usePlayer(decoder, engine)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Keep a stable Space listener pointed at the latest toggle (updated after
+  // each commit, so the listener never closes over a stale transport).
+  const toggleRef = useRef(togglePlayback)
+  useEffect(() => {
+    toggleRef.current = togglePlayback
+  })
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent): void {
+      if (event.code !== 'Space') {
+        return
+      }
+      const target = event.target
+      if (target instanceof HTMLElement && INTERACTIVE_TAGS.includes(target.tagName)) {
+        return
+      }
+      event.preventDefault()
+      toggleRef.current()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   function onFilePicked(event: ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0]
@@ -36,6 +62,12 @@ export function WorkstationShell({ decoder }: WorkstationShellProps) {
     // Clear it so re-picking the same file fires `change` again.
     event.target.value = ''
   }
+
+  const isLoaded = importState.status === 'loaded'
+  const positionRatio =
+    transport.durationSeconds > 0
+      ? transport.positionSeconds / transport.durationSeconds
+      : 0
 
   return (
     <div className={styles.shell}>
@@ -58,7 +90,11 @@ export function WorkstationShell({ decoder }: WorkstationShellProps) {
         <main className={styles.main}>
           <Stack gap="var(--space-m)">
             <p className={styles.placeholderLabel}>Forme d'onde</p>
-            <WaveformView state={state} />
+            <WaveformView
+              state={importState}
+              positionRatio={positionRatio}
+              onSeek={seekToRatio}
+            />
             <p className={styles.placeholderLabel}>Pistes séparées</p>
             <div className={styles.tracksPlaceholder} aria-hidden="true" />
           </Stack>
@@ -67,7 +103,13 @@ export function WorkstationShell({ decoder }: WorkstationShellProps) {
         <AnalysisPanel />
       </div>
 
-      <TransportBar position="0:00" duration="4:32" />
+      <TransportBar
+        position={formatTimecode(transport.positionSeconds)}
+        duration={formatTimecode(transport.durationSeconds)}
+        isPlaying={transport.isPlaying}
+        canPlay={isLoaded}
+        onPlayPause={togglePlayback}
+      />
     </div>
   )
 }

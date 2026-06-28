@@ -1,0 +1,113 @@
+import {
+  type AudioFileDecoder,
+  initialTransport,
+  loadTrack,
+  type PlaybackEngine,
+  type Track,
+  type TransportState,
+  transportReducer
+} from '@app/core'
+import { useEffect, useMemo, useReducer, useState } from 'react'
+import { createWebAudioDecoder } from '../../audio/web-audio-decoder.ts'
+import { createWebAudioPlayback } from '../../audio/web-audio-playback.ts'
+
+/** Peak resolution: more buckets than screen pixels, so it stays crisp at 1×. */
+const BUCKET_COUNT = 1200
+
+export type ImportState =
+  | { readonly status: 'idle' }
+  | { readonly status: 'loading' }
+  | { readonly status: 'loaded'; readonly track: Track }
+  | { readonly status: 'error'; readonly message: string }
+
+export interface Player {
+  readonly importState: ImportState
+  readonly transport: TransportState
+  readonly importFile: (file: File) => Promise<void>
+  readonly togglePlayback: () => void
+  /** Seek to a fraction (0–1) of the timeline — what a waveform click yields. */
+  readonly seekToRatio: (ratio: number) => void
+}
+
+/**
+ * Smart hook (= driving adapter logic): owns the import flow and the transport
+ * state machine, and steers the playback engine port. The decoder and engine
+ * default to the real Web Audio adapters and are injected in tests.
+ */
+export function usePlayer(
+  decoder?: AudioFileDecoder,
+  engine?: PlaybackEngine
+): Player {
+  const audioDecoder = useMemo(
+    () => decoder ?? createWebAudioDecoder(),
+    [decoder]
+  )
+  const playback = useMemo(() => engine ?? createWebAudioPlayback(), [engine])
+  const [importState, setImportState] = useState<ImportState>({
+    status: 'idle'
+  })
+  const [transport, dispatch] = useReducer(transportReducer, initialTransport)
+
+  useEffect(() => {
+    // The engine streams elapsed position; the reducer turns it into UI state.
+    const unsubscribe = playback.onPositionChange((seconds) => {
+      dispatch({ type: 'tick', atSeconds: seconds })
+    })
+    // On unmount, stop the engine too: pausing cancels its animation-frame loop
+    // and the sound, so nothing keeps running once the player is gone.
+    return () => {
+      unsubscribe()
+      playback.pause()
+    }
+  }, [playback])
+
+  async function importFile(file: File): Promise<void> {
+    setImportState({ status: 'loading' })
+    try {
+      const bytes = await file.arrayBuffer()
+      const result = await loadTrack(
+        { bytes, bucketCount: BUCKET_COUNT },
+        { decoder: audioDecoder, engine: playback }
+      )
+      if (result.ok) {
+        setImportState({ status: 'loaded', track: result.track })
+        dispatch({
+          type: 'load',
+          durationSeconds: result.track.durationSeconds
+        })
+      } else {
+        setImportState({ status: 'error', message: result.error })
+      }
+    } catch (e) {
+      setImportState({
+        status: 'error',
+        message: e instanceof Error ? e.message : String(e)
+      })
+    }
+  }
+
+  function togglePlayback(): void {
+    if (importState.status !== 'loaded') {
+      return
+    }
+    if (transport.isPlaying) {
+      playback.pause()
+      dispatch({ type: 'pause' })
+    } else {
+      playback.play()
+      dispatch({ type: 'play' })
+    }
+  }
+
+  function seekToRatio(ratio: number): void {
+    if (importState.status !== 'loaded') {
+      return
+    }
+    const clamped = Math.min(Math.max(ratio, 0), 1)
+    const seconds = clamped * transport.durationSeconds
+    playback.seekTo(seconds)
+    dispatch({ type: 'seek', toSeconds: seconds })
+  }
+
+  return { importState, transport, importFile, togglePlayback, seekToRatio }
+}

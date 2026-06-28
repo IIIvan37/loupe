@@ -6,8 +6,22 @@
   color: var(--stem-vocals);
 }
 
-.duration {
-  font-family: var(--font-mono);
-  color: var(--amber);
-  font-size: 0.85rem;
+/* Clickable seek surface that stacks the playhead over the waveform canvas. */
+.stage {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.playhead {
+  position: absolute;
+  inset-block: 0;
+  width: 2px;
+  margin-inline-start: -1px;
+  background: var(--amber);
+  pointer-events: none;
 }
