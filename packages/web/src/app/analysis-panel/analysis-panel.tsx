@@ -1,12 +1,14 @@
 import { formatTimecode, type MarkerList } from '@app/core'
 import { Tabs } from '@base-ui-components/react/tabs'
 import { cx } from '../../lib/cx.ts'
+import { NameEditor } from '../ui/name-editor.tsx'
 import styles from './analysis-panel.module.css'
 
 interface AnalysisPanelProps {
   readonly markers: MarkerList
   /** Jump to a marker's time. */
   readonly onSeekMarker: (timeSeconds: number) => void
+  readonly onRenameMarker: (id: string, label: string) => void
   readonly onRemoveMarker: (id: string) => void
 }
 
@@ -18,6 +20,7 @@ interface AnalysisPanelProps {
 export function AnalysisPanel({
   markers,
   onSeekMarker,
+  onRenameMarker,
   onRemoveMarker
 }: AnalysisPanelProps) {
   return (
@@ -56,6 +59,15 @@ export function AnalysisPanel({
                     </span>
                     <span className={styles.markerName}>{marker.label}</span>
                   </button>
+                  <NameEditor
+                    title="Renommer le repère"
+                    triggerClassName={cx(styles.markerEdit)}
+                    triggerLabel={`Renommer ${marker.label}`}
+                    triggerContent="✎"
+                    submitLabel="Renommer"
+                    initialName={marker.label}
+                    onSubmit={(label) => onRenameMarker(marker.id, label)}
+                  />
                   <button
                     type="button"
                     className={styles.markerRemove}

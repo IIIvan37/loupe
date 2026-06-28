@@ -8,12 +8,21 @@
   padding: var(--space-m);
 }
 
-/* The clickable seek surface; fills the ZoomStage layer, fixed waveform height. */
-.surface {
+/* Positioning context for the surface, overlays and edit handles. */
+.container {
   position: relative;
-  display: block;
   width: 100%;
   height: var(--waveform-height);
+  touch-action: none;
+}
+
+/* The clickable seek surface; fills the container, drives click + drag-select. */
+.surface {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
   padding: 0;
   border: 0;
   background: transparent;
@@ -26,4 +35,50 @@
   inset-block: 0;
   background: color-mix(in srgb, var(--bg) 70%, transparent);
   pointer-events: none;
+}
+
+/* The region when looping is OFF: outlined, but nothing dimmed. */
+.region {
+  position: absolute;
+  inset-block: 0;
+  border-inline: 1px solid var(--amber);
+  background: color-mix(in srgb, var(--amber) 8%, transparent);
+  pointer-events: none;
+}
+
+/* Live preview of the region being dragged out. */
+.selection {
+  position: absolute;
+  inset-block: 0;
+  background: var(--amber-glow);
+  border-inline: 1px solid var(--amber);
+  pointer-events: none;
+}
+
+/* Draggable A/B edge handle, centred on its loop boundary. */
+.handle {
+  position: absolute;
+  inset-block: 0;
+  width: 12px;
+  margin-inline-start: -6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.handle::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--amber);
+}
+
+.handle:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
 }

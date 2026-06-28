@@ -35,21 +35,11 @@
   gap: 5px;
 }
 
-/* A thin pin; section pins are amber (yours), finer kinds fade and shorten. */
+/* A thin amber pin (yours) anchoring each marker's label. */
 .pin {
   width: 1px;
   height: 14px;
   background: var(--amber);
-}
-
-.measure {
-  height: 11px;
-  background: var(--faint);
-}
-
-.beat {
-  height: 7px;
-  background: var(--faint);
 }
 
 .tag {

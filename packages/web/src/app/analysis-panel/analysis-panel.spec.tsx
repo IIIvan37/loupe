@@ -6,7 +6,7 @@ import { vi } from 'vitest'
 import { AnalysisPanel } from './analysis-panel.tsx'
 
 const markers: MarkerList = [
-  { id: 'a', timeSeconds: 5, kind: 'beat', label: 'Temps 1' }
+  { id: 'a', timeSeconds: 5, label: 'Repère 1' }
 ]
 
 const noop = () => {}
@@ -18,6 +18,7 @@ describe('AnalysisPanel', () => {
       <AnalysisPanel
         markers={markers}
         onSeekMarker={onSeekMarker}
+        onRenameMarker={noop}
         onRemoveMarker={noop}
       />
     )
@@ -27,22 +28,46 @@ describe('AnalysisPanel', () => {
     expect(onSeekMarker).toHaveBeenCalledWith(5)
   })
 
-  it('removes a marker of any kind', () => {
+  it('renames a marker through the editor', () => {
+    const onRenameMarker = vi.fn()
+    render(
+      <AnalysisPanel
+        markers={markers}
+        onSeekMarker={noop}
+        onRenameMarker={onRenameMarker}
+        onRemoveMarker={noop}
+      />
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Renommer Repère 1' }))
+    fireEvent.change(screen.getByLabelText('Nom'), {
+      target: { value: 'Intro' }
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Renommer' }))
+    expect(onRenameMarker).toHaveBeenCalledWith('a', 'Intro')
+  })
+
+  it('removes a marker', () => {
     const onRemoveMarker = vi.fn()
     render(
       <AnalysisPanel
         markers={markers}
         onSeekMarker={noop}
+        onRenameMarker={noop}
         onRemoveMarker={onRemoveMarker}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Temps 1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Repère 1' }))
     expect(onRemoveMarker).toHaveBeenCalledWith('a')
   })
 
   it('invites adding markers when there are none', () => {
     render(
-      <AnalysisPanel markers={[]} onSeekMarker={noop} onRemoveMarker={noop} />
+      <AnalysisPanel
+        markers={[]}
+        onSeekMarker={noop}
+        onRenameMarker={noop}
+        onRemoveMarker={noop}
+      />
     )
     expect(screen.getByText(/Aucun repère/)).toBeInTheDocument()
   })

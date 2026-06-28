@@ -1,5 +1,3 @@
-import type { MarkerKind } from './marker.ts'
-
 /**
  * A keyboard chord identified one of two ways:
  *
@@ -33,7 +31,7 @@ export type Command =
   | { readonly type: 'seekBy'; readonly seconds: number }
   | { readonly type: 'zoomIn' }
   | { readonly type: 'zoomOut' }
-  | { readonly type: 'addMarker'; readonly kind: MarkerKind }
+  | { readonly type: 'addMarker' }
 
 export interface KeyBinding {
   readonly chord: KeyChord
@@ -63,7 +61,7 @@ export const defaultKeyBindings: KeyBindings = [
   },
   { chord: { key: '+' }, command: { type: 'zoomIn' } },
   { chord: { key: '-' }, command: { type: 'zoomOut' } },
-  { chord: { key: 'm' }, command: { type: 'addMarker', kind: 'section' } }
+  { chord: { key: 'm' }, command: { type: 'addMarker' } }
 ]
 
 /** Ctrl/alt/meta must match exactly so OS/browser chords are never hijacked. */

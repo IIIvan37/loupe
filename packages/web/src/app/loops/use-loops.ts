@@ -13,7 +13,10 @@ import { createLocalStorageLoopStore } from '../../audio/local-storage-loop-stor
 
 export interface Loops {
   readonly library: LoopLibrary
-  readonly save: (name: string, region: LoopRegion) => void
+  /** Save a fresh loop and return it (with its minted id). */
+  readonly save: (name: string, region: LoopRegion) => NamedLoop
+  /** Re-save an existing loop (same id), e.g. after editing its name/edges. */
+  readonly update: (loop: NamedLoop) => void
   readonly remove: (id: string) => void
 }
 
@@ -41,8 +44,14 @@ export function useLoops(store?: LoopStore): Loops {
     }
   }, [loopStore])
 
-  function save(name: string, region: LoopRegion): void {
+  function save(name: string, region: LoopRegion): NamedLoop {
     const loop: NamedLoop = { id: crypto.randomUUID(), name, region }
+    void saveLoop({ library, loop }, { store: loopStore }).then(setLibrary)
+    return loop
+  }
+
+  function update(loop: NamedLoop): void {
+    // addLoop (under saveLoop) replaces by id, so re-saving edits in place.
     void saveLoop({ library, loop }, { store: loopStore }).then(setLibrary)
   }
 
@@ -50,5 +59,5 @@ export function useLoops(store?: LoopStore): Loops {
     void deleteLoop({ library, id }, { store: loopStore }).then(setLibrary)
   }
 
-  return { library, save, remove }
+  return { library, save, update, remove }
 }

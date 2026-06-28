@@ -4,11 +4,12 @@
 
 ## Where we are
 
-- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — **complete**. All 7
-  slices shipped and merged; Slice 7 (keyboard shortcuts + in-app help + AZERTY
-  layout/focus fixes) merged via **PR #13** (`ab6e1ad`).
+- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — **complete**, in a
+  polish pass. All 7 slices merged (Slice 7 via **PR #13** `ab6e1ad`); a
+  hands-on refinement of loops/markers/transport is in flight on
+  `feat/jalon1-polish-loops-markers` (PR pending).
   See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `main` (Jalon 1 closed). Next work starts a fresh Jalon 2 branch.
+- **Branch**: `feat/jalon1-polish-loops-markers` (polish — pending PR).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
@@ -55,6 +56,14 @@ plan/kickoff on a fresh branch. Optional cleanup: remove the now-redundant
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-28 — jalon1-polish-loops-markers](sessions/2026-06-28-jalon1-polish-loops-markers.md) —
+  Hands-on polish of Jalon 1: wired transport ⏮/⏭ (⟳ removed); live loop
+  selection + draggable A/B handles that update saved loops in place; `NameEditor`
+  popover replacing `window.prompt` (loops + marker rename); loop enable/disable
+  toggle; no duplicate-save for saved regions; markers simplified to one named
+  « Repère » (dropped `MarkerKind` from core); zoom scrollbar gutter reserved to
+  stop layout shift. Gate green, core mutation 96.25% (key-bindings & marker-list
+  100%).
 - [2026-06-28 — jalon1-shortcuts-help-and-layout-fix](sessions/2026-06-28-jalon1-shortcuts-help-and-layout-fix.md) —
   Slice 7 follow-up (same branch / PR #13): in-app shortcuts help (pure
   `describeKeyBindings` deriving French rows from the active bindings + Base UI

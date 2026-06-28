@@ -4,7 +4,7 @@ import type { Marker } from './marker.ts'
 import { addMarker, emptyMarkerList, removeMarker } from './marker-list.ts'
 
 function marker(id: string, timeSeconds: number, label = id): Marker {
-  return { id, timeSeconds, kind: 'section', label }
+  return { id, timeSeconds, label }
 }
 
 describe('marker-list', () => {

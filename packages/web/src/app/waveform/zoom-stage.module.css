@@ -8,12 +8,20 @@
 }
 
 .scroll {
-  overflow-x: auto;
+  /* `scroll` (not `auto`) keeps the 7px track reserved at every zoom, so the
+     scrollbar appearing past 1× never shoves the loop bar and the rest of the
+     column downward. The track is transparent, so at 1× nothing shows. */
+  overflow-x: scroll;
   overflow-y: hidden;
+  scrollbar-width: thin;
 }
 
 .scroll::-webkit-scrollbar {
   height: 7px;
+}
+
+.scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .scroll::-webkit-scrollbar-thumb {
