@@ -1,0 +1,38 @@
+.label {
+  color: var(--dim);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.zoom {
+  width: 1.75rem;
+  padding: var(--space-2xs) 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.zoom:disabled {
+  opacity: 0.5;
+}
+
+.level {
+  min-width: 2.5rem;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.scroll {
+  flex: 1;
+  min-width: 6rem;
+}
+
+.scroll:disabled {
+  opacity: 0.5;
+}

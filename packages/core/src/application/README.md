@@ -23,6 +23,11 @@ The single place to look before adding a feature, so ports and use-cases get
 > Pure loop domain — Slice 5: `LoopRegion` (`makeLoopRegion` / `loopContains` /
 > `wrapToLoop` / `loopLength`) and `LoopLibrary` (`addLoop` / `removeLoop`); the
 > `loops` use-cases above persist the library through the `LoopStore` port.
+>
+> Pure viewport domain (no use-case/port, UI-driven) — Slice 6: `Viewport`
+> (`initialViewport` / `zoomTo` / `scrollTo` / `scrollBy`) in normalised timeline
+> space with `toViewRatio` / `toTimelineRatio` (round-trip property-tested),
+> `visibleWindow` / `maxOffset`, plus `sliceWaveform` to re-render the visible peaks.
 
 ## Ports
 

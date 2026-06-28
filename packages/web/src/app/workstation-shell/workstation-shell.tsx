@@ -16,6 +16,8 @@ import { MarkerRail } from '../markers/marker-rail.tsx'
 import { useMarkers } from '../markers/use-markers.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
+import { useViewport } from '../waveform/use-viewport.ts'
+import { ViewportControls } from '../waveform/viewport-controls.tsx'
 import { WaveformView } from '../waveform/waveform-view.tsx'
 import styles from './workstation-shell.module.css'
 
@@ -60,6 +62,7 @@ export function WorkstationShell({
   } = usePlayer(decoder, engine)
   const markers = useMarkers()
   const loops = useLoops(loopStore)
+  const viewport = useViewport()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Keep a stable Space listener pointed at the latest toggle (updated after
@@ -87,8 +90,10 @@ export function WorkstationShell({
   function onFilePicked(event: ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0]
     if (file) {
-      // A new track gets a fresh timeline — the old markers don't belong to it.
+      // A new track gets a fresh timeline — the old markers don't belong to it,
+      // and the view should start fully zoomed out.
       markers.clear()
+      viewport.reset()
       void importFile(file)
     }
     // Clear it so re-picking the same file fires `change` again.
@@ -131,11 +136,19 @@ export function WorkstationShell({
               onSeek={seekToSeconds}
               onRemove={markers.remove}
             />
+            <ViewportControls
+              viewport={viewport.viewport}
+              disabled={!isLoaded}
+              onZoomIn={viewport.zoomIn}
+              onZoomOut={viewport.zoomOut}
+              onScroll={viewport.scroll}
+            />
             <WaveformView
               state={importState}
               positionRatio={positionRatio}
               loopRegion={loopRegion}
               durationSeconds={transport.durationSeconds}
+              viewport={viewport.viewport}
               onSeek={seekToRatio}
               onSelectRegion={(start, end) =>
                 setLoopRegion(
@@ -145,6 +158,7 @@ export function WorkstationShell({
                   )
                 )
               }
+              onScrollBy={viewport.nudge}
             />
             <LoopBar
               hasRegion={loopRegion !== undefined}
