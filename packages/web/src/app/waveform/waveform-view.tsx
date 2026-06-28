@@ -1,4 +1,5 @@
-import type { MouseEvent } from 'react'
+import type { LoopRegion } from '@app/core'
+import { type PointerEvent, useRef } from 'react'
 import type { ImportState } from './use-player.ts'
 import { WaveformCanvas } from './waveform-canvas.tsx'
 import styles from './waveform-view.module.css'
@@ -7,27 +8,53 @@ interface WaveformViewProps {
   readonly state: ImportState
   /** Playhead position as a fraction (0–1) of the timeline. */
   readonly positionRatio: number
-  /** Seek to a fraction (0–1) of the timeline (waveform click). */
+  /** The active loop, for the « loupe » dim overlay. */
+  readonly loopRegion: LoopRegion | undefined
+  readonly durationSeconds: number
+  /** Click (no drag) seeks to a fraction (0–1) of the timeline. */
   readonly onSeek: (ratio: number) => void
+  /** A drag selects an A/B region, given as start/end fractions (0–1). */
+  readonly onSelectRegion: (startRatio: number, endRatio: number) => void
 }
+
+// Below this drag distance (fraction of the width) a press counts as a click.
+const DRAG_THRESHOLD = 0.005
 
 /**
  * Dumb presentational view of the import state: a prompt while idle, progress
- * while decoding, an alert on failure, and the amber waveform — with a playhead
- * and click-to-seek — once loaded.
+ * while decoding, an alert on failure, and — once loaded — the amber waveform with
+ * a playhead, click-to-seek, drag-to-select (the « loupe »), and a dim overlay
+ * outside the active loop.
  */
-export function WaveformView({ state, positionRatio, onSeek }: WaveformViewProps) {
-  function handleSeek(event: MouseEvent<HTMLButtonElement>): void {
-    // Keyboard activation reports no coordinates (detail 0); keyboard seeking is
-    // its own slice, so only a real pointer click seeks here.
-    if (event.detail === 0) {
+export function WaveformView({
+  state,
+  positionRatio,
+  loopRegion,
+  durationSeconds,
+  onSeek,
+  onSelectRegion
+}: WaveformViewProps) {
+  const dragStartRef = useRef<number | null>(null)
+
+  function onPointerDown(event: PointerEvent<HTMLButtonElement>): void {
+    if (event.button !== 0) {
       return
     }
-    const rect = event.currentTarget.getBoundingClientRect()
-    if (rect.width <= 0) {
+    dragStartRef.current = ratioAt(event)
+  }
+
+  function onPointerUp(event: PointerEvent<HTMLButtonElement>): void {
+    const start = dragStartRef.current
+    dragStartRef.current = null
+    const end = ratioAt(event)
+    if (start === null || end === null) {
       return
     }
-    onSeek((event.clientX - rect.left) / rect.width)
+    if (Math.abs(end - start) < DRAG_THRESHOLD) {
+      onSeek(end)
+    } else {
+      onSelectRegion(Math.min(start, end), Math.max(start, end))
+    }
   }
 
   switch (state.status) {
@@ -45,18 +72,34 @@ export function WaveformView({ state, positionRatio, onSeek }: WaveformViewProps
           {state.message}
         </p>
       )
-    case 'loaded':
+    case 'loaded': {
+      const loop = loopRatios(loopRegion, durationSeconds)
       return (
         <button
           type="button"
           className={styles.stage}
-          aria-label="Se positionner dans la piste"
-          onClick={handleSeek}
+          aria-label="Forme d'onde : clic pour se positionner, glisser pour boucler"
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
         >
           <WaveformCanvas
             waveform={state.track.waveform}
             label="Forme d'onde de la piste"
           />
+          {loop && (
+            <>
+              <span
+                className={styles.dim}
+                style={{ left: 0, width: `${loop.start * 100}%` }}
+                aria-hidden="true"
+              />
+              <span
+                className={styles.dim}
+                style={{ left: `${loop.end * 100}%`, right: 0 }}
+                aria-hidden="true"
+              />
+            </>
+          )}
           <span
             className={styles.playhead}
             style={{ left: `${playheadPercent(positionRatio)}%` }}
@@ -64,13 +107,41 @@ export function WaveformView({ state, positionRatio, onSeek }: WaveformViewProps
           />
         </button>
       )
+    }
   }
+}
+
+/** The pointer's position along the surface as a fraction (0–1), or null. */
+function ratioAt(event: PointerEvent<HTMLButtonElement>): number | null {
+  const rect = event.currentTarget.getBoundingClientRect()
+  if (rect.width <= 0) {
+    return null
+  }
+  return clamp01((event.clientX - rect.left) / rect.width)
+}
+
+/** Convert the loop region into start/end fractions, or undefined if not usable. */
+function loopRatios(
+  region: LoopRegion | undefined,
+  durationSeconds: number
+): { readonly start: number; readonly end: number } | undefined {
+  if (!region || durationSeconds <= 0) {
+    return undefined
+  }
+  return {
+    start: clamp01(region.startSeconds / durationSeconds),
+    end: clamp01(region.endSeconds / durationSeconds)
+  }
+}
+
+function clamp01(ratio: number): number {
+  if (Number.isNaN(ratio) || ratio < 0) {
+    return 0
+  }
+  return Math.min(ratio, 1)
 }
 
 /** Clamp the playhead to 0–100%, guarding a not-yet-known (NaN) ratio. */
 function playheadPercent(ratio: number): number {
-  if (Number.isNaN(ratio) || ratio < 0) {
-    return 0
-  }
-  return Math.min(ratio, 1) * 100
+  return clamp01(ratio) * 100
 }

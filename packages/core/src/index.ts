@@ -8,15 +8,31 @@ export type {
   LoadTrackResult
 } from './application/load-track.ts'
 export { loadTrack } from './application/load-track.ts'
+export type { LoopStoreDeps } from './application/loops.ts'
+export { deleteLoop, loadLoops, saveLoop } from './application/loops.ts'
 export type {
   AudioFileDecoder,
   DecodedAudio,
   GreetingSink,
+  LoopStore,
   NameSource,
   PlaybackEngine
 } from './application/ports.ts'
 export type { Greeting } from './domain/greeting.ts'
 export { buildGreeting } from './domain/greeting.ts'
+export type { LoopLibrary, NamedLoop } from './domain/loop-library.ts'
+export {
+  addLoop,
+  emptyLoopLibrary,
+  removeLoop
+} from './domain/loop-library.ts'
+export type { LoopRegion } from './domain/loop-region.ts'
+export {
+  loopContains,
+  loopLength,
+  makeLoopRegion,
+  wrapToLoop
+} from './domain/loop-region.ts'
 export type { Marker, MarkerKind } from './domain/marker.ts'
 export type { MarkerList } from './domain/marker-list.ts'
 export {
