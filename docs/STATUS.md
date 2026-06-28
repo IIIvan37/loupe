@@ -5,9 +5,9 @@
 ## Where we are
 
 - **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 3 (time-stretch
-  + pitch via Rubber Band) **code-complete, browser-verify pending**, in PR. See
+  + pitch via SoundTouch) **done & browser-verified**, merged. See
   [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon1-timestretch` (Slice 3 PR).
+- **Branch**: `main` (no slice in flight; Slice 4 next).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`)
   + `@app/cli` (example adapter, to be removed once it's redundant) + `packages/web`
@@ -28,12 +28,8 @@
 
 ## Next step
 
-**Verify Slice 3 in a browser** (`pnpm --filter @app/web dev`): tempo without
-pitch, pitch without tempo. The audio path can't run in jsdom/CI. If correct, the
-slice closes; if not, iterate on `WebAudioPlayback` (model documented inline).
-
-Then **Slice 4** — markers (section / measure / beat): pure `Marker` / `MarkerList`
-domain + a timeline ruler, outside-in via `/new-feature-hexa`.
+**Slice 4** — markers (section / measure / beat): pure `Marker` / `MarkerList`
+domain + a timeline ruler over the waveform, outside-in via `/new-feature-hexa`.
 
 ## Roadmap
 
@@ -43,7 +39,7 @@ domain + a timeline ruler, outside-in via `/new-feature-hexa`.
 | J1.0 | Scaffold `packages/web` (Vite+React+TS, tokens, Every Layout, Base UI, extended gate) | ✅ |
 | J1.1 | Import local file → waveform | ✅ |
 | J1.2 | Transport: play/pause/seek + playhead + Space | ✅ |
-| J1.3 | Time-stretch + pitch (Rubber Band worklet) — GPL confirmed | 🟡 verify |
+| J1.3 | Time-stretch + pitch (SoundTouch worklet) — browser-verified | ✅ |
 | J1.4 | Markers (section/measure/beat) | ⬜ |
 | J1.5 | A/B loop drag-select + named loops (the « loupe ») | ⬜ |
 | J1.6 | Zoom + scrollable viewport (6×) | ⬜ |
