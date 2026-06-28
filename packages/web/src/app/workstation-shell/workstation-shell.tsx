@@ -5,6 +5,7 @@ import {
   type LoopStore,
   makeLoopRegion,
   type PlaybackEngine,
+  type StemSeparator,
   type TrackMetadataReader
 } from '@app/core'
 import { type ChangeEvent, useRef, useState } from 'react'
@@ -19,6 +20,8 @@ import { useLoops } from '../loops/use-loops.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
 import { MarkerRail } from '../markers/marker-rail.tsx'
 import { useMarkers } from '../markers/use-markers.ts'
+import { SeparationPanel } from '../separation/separation-panel.tsx'
+import { useSeparation } from '../separation/use-separation.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
 import { useViewport } from '../waveform/use-viewport.ts'
@@ -47,6 +50,7 @@ interface WorkstationShellProps {
   readonly engine?: PlaybackEngine
   readonly loopStore?: LoopStore
   readonly metadataReader?: TrackMetadataReader
+  readonly separator?: StemSeparator
 }
 
 /**
@@ -58,10 +62,12 @@ export function WorkstationShell({
   decoder,
   engine,
   loopStore,
-  metadataReader
+  metadataReader,
+  separator
 }: WorkstationShellProps) {
   const {
     importState,
+    loadedAudio,
     metadata,
     transport,
     timeRatio,
@@ -79,6 +85,7 @@ export function WorkstationShell({
   } = usePlayer(decoder, engine, metadataReader)
   const markers = useMarkers()
   const loops = useLoops(loopStore)
+  const separation = useSeparation(separator)
   const viewport = useViewport()
   const [trackName, setTrackName] = useState<string | null>(null)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
@@ -129,9 +136,10 @@ export function WorkstationShell({
     const file = event.target.files?.[0]
     if (file) {
       // A new track gets a fresh timeline — the old markers don't belong to it,
-      // and the view should start fully zoomed out.
+      // the view should start fully zoomed out, and any prior stems are stale.
       markers.clear()
       viewport.reset()
+      separation.reset()
       setTrackName(trackTitle(file.name))
       void importFile(file)
     }
@@ -221,8 +229,15 @@ export function WorkstationShell({
               }}
               onRemove={loops.remove}
             />
-            <p className={styles.placeholderLabel}>Pistes séparées</p>
-            <div className={styles.tracksPlaceholder} aria-hidden="true" />
+            <SeparationPanel
+              state={separation.state}
+              canSeparate={isLoaded && loadedAudio !== undefined}
+              onSeparate={() => {
+                if (loadedAudio) {
+                  void separation.separate(loadedAudio)
+                }
+              }}
+            />
           </Stack>
         </main>
 

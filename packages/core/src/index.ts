@@ -13,9 +13,18 @@ export type {
   DecodedAudio,
   LoopStore,
   PlaybackEngine,
+  SeparatedStem,
+  SeparationProgress,
+  StemSeparator,
   TrackMetadata,
   TrackMetadataReader
 } from './application/ports.ts'
+export type {
+  SeparateTrackDeps,
+  SeparateTrackInput,
+  SeparateTrackResult
+} from './application/separate-track.ts'
+export { separateTrack } from './application/separate-track.ts'
 export type {
   Command,
   KeyBinding,
@@ -57,6 +66,14 @@ export {
   MAX_PLAYBACK_RATE,
   MIN_PLAYBACK_RATE
 } from './domain/playback-rate.ts'
+export type {
+  SeparationAction,
+  SeparationPhase,
+  SeparationState,
+  SeparationStatus
+} from './domain/separation.ts'
+export { initialSeparation, separationReducer } from './domain/separation.ts'
+export type { StemSet, StemTrack } from './domain/stem-set.ts'
 export { formatTimecode } from './domain/timecode.ts'
 export type { Track } from './domain/track.ts'
 export type {

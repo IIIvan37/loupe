@@ -4,19 +4,21 @@
 
 ## Where we are
 
-- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — **complete**, polished.
-  All 7 slices merged (Slice 7 via **PR #13** `ab6e1ad`); a hands-on refinement of
-  loops/markers/transport merged via **PR #14** (`65297a2`).
-  See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `main` (Jalon 1 closed + polished). Next work starts a fresh Jalon 2
-  branch.
+- **Phase**: **Jalon 2 (« Séparation IA ») — Slice J2.1 done, PR #16 open.** Plan in
+  [docs/jalon-2-plan.md](jalon-2-plan.md). Jalon 1 (« Transcribe! dans le
+  navigateur ») is **complete + polished**: all 7 slices merged (Slice 7 via
+  **PR #13** `ab6e1ad`), loops/markers/transport refinement merged via **PR #14**
+  (`65297a2`). See [docs/jalon-1-plan.md](jalon-1-plan.md).
+- **Branch**: `feat/jalon2-separation-screen` (Slice J2.1). Next: Slice J2.2 (real
+  WASM separator) on a fresh branch.
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
-  `TrackMetadataReader` port) + `packages/web`
+  `TrackMetadataReader` port, `separateTrack`/`StemSeparator` port +
+  `separationReducer`/`StemSet`) + `packages/web`
   (import → waveform → transport → time-stretch/pitch → markers → loops → zoom →
-  keyboard shortcuts, gate-green). The starter `@app/cli`/`greet` example has been
-  removed.
+  keyboard shortcuts → stem separation screen, gate-green). The starter
+  `@app/cli`/`greet` example has been removed.
 
 ## Locked decisions (kickoff)
 
@@ -33,9 +35,12 @@
 
 ## Next step
 
-**Jalon 1 is complete (PR #13 merged) and polished (PR #14).** Next is Jalon 2
-(séparation IA) per [docs/loupe-plan-produit.md](loupe-plan-produit.md); kick it
-off with its own plan/kickoff on a fresh branch.
+**Slice J2.1 done (PR #16 open).** The import → separation → tracks screen is wired on
+a **stub separator** behind the pure `StemSeparator` port; separation reuses the
+SAME decoded PCM the player loaded (no second import). Next: **Slice J2.2** — the
+real **Demucs WASM** separator in an off-main-thread worker, behind the same port
+(contract already fixed), on a fresh branch via `/new-feature-hexa`. See
+[docs/jalon-2-plan.md](jalon-2-plan.md) for the 6-slice breakdown.
 
 ## Roadmap
 
@@ -50,11 +55,26 @@ off with its own plan/kickoff on a fresh branch.
 | J1.5 | A/B loop drag-select + named loops (the « loupe ») | ✅ |
 | J1.6 | Zoom + scrollable viewport (6×) | ✅ |
 | J1.7 | Keyboard shortcuts | ✅ |
+| J2.1 | Import → separation → tracks screen (stub separator behind `StemSeparator` port) | ✅ |
+| J2.2 | Real WASM separator adapter (Demucs WASM, off-main-thread) | ⬜ |
+| J2.3 | Instrument detection → N adaptive tracks (mask empty, confidence) | ⬜ |
+| J2.4 | Multitrack mixer (solo/mute/volume, Web Audio gain graph) | ⬜ |
+| J2.5 | Track grouping (user bus, non-destructive) | ⬜ |
+| J2.6 | Export — tier A: aligned stem folder (+ bounced groups) | ⬜ |
 
 ## Session journal
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-28 — jalon2-separation-screen](sessions/2026-06-28-jalon2-separation-screen.md) —
+  Slice J2.1 (opens Jalon 2): separate the loaded track into stems, UI-first behind
+  a pure `StemSeparator` port. Core: `separateTrack` use-case + `SeparationState`
+  reducer + `StemSet`/`StemTrack` (`buildStemTrack` reuses the track mono-mix →
+  waveform). `loadTrack` now returns the decoded PCM so separation reuses the SAME
+  input (no second import). Web: `createStubSeparator`, `useSeparation` (run-id
+  guard against a stale run), `SeparationPanel`. Gate green; core mutation 95.99%
+  (`separate-track`/`stem-set` 100%). High-effort review: 1 real bug fixed (stale
+  separation landing on a new track).
 - [2026-06-28 — jalon1-polish-loops-markers](sessions/2026-06-28-jalon1-polish-loops-markers.md) —
   Hands-on polish of Jalon 1: wired transport ⏮/⏭ (⟳ removed); live loop
   selection + draggable A/B handles that update saved loops in place; `NameEditor`
