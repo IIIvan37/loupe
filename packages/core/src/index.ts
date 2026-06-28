@@ -17,6 +17,13 @@ export type {
 } from './application/ports.ts'
 export type { Greeting } from './domain/greeting.ts'
 export { buildGreeting } from './domain/greeting.ts'
+export type { Marker, MarkerKind } from './domain/marker.ts'
+export type { MarkerList } from './domain/marker-list.ts'
+export {
+  addMarker,
+  emptyMarkerList,
+  removeMarker
+} from './domain/marker-list.ts'
 export {
   clampPitchSemitones,
   MAX_PITCH_SEMITONES,

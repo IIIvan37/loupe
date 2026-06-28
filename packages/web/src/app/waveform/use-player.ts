@@ -33,6 +33,8 @@ export interface Player {
   readonly togglePlayback: () => void
   /** Seek to a fraction (0–1) of the timeline — what a waveform click yields. */
   readonly seekToRatio: (ratio: number) => void
+  /** Seek to an absolute time in seconds (e.g. a marker). */
+  readonly seekToSeconds: (seconds: number) => void
   readonly setTimeRatio: (ratio: number) => void
   readonly setPitchSemitones: (semitones: number) => void
 }
@@ -109,14 +111,18 @@ export function usePlayer(
     }
   }
 
-  function seekToRatio(ratio: number): void {
+  function seekToSeconds(seconds: number): void {
     if (importState.status !== 'loaded') {
       return
     }
-    const clamped = Math.min(Math.max(ratio, 0), 1)
-    const seconds = clamped * transport.durationSeconds
     playback.seekTo(seconds)
+    // The reducer clamps to [0, duration].
     dispatch({ type: 'seek', toSeconds: seconds })
+  }
+
+  function seekToRatio(ratio: number): void {
+    const clamped = Math.min(Math.max(ratio, 0), 1)
+    seekToSeconds(clamped * transport.durationSeconds)
   }
 
   function setTimeRatio(ratio: number): void {
@@ -139,6 +145,7 @@ export function usePlayer(
     importFile,
     togglePlayback,
     seekToRatio,
+    seekToSeconds,
     setTimeRatio,
     setPitchSemitones
   }

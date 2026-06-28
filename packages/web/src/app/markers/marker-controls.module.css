@@ -1,0 +1,19 @@
+.label {
+  color: var(--dim);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.add {
+  padding: var(--space-2xs) var(--space-s);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.add:disabled {
+  opacity: 0.5;
+}

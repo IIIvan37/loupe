@@ -14,6 +14,10 @@ The single place to look before adding a feature, so ports and use-cases get
 > `initialTransport` (`TransportState` machine), `formatTimecode` (m:ss), and the
 > playback-parameter clamps `clampPlaybackRate` (tempo ratio) / `clampPitchSemitones`
 > (semitones) — Slice 3.
+>
+> Pure marker domain (no use-case/port, UI-driven, in-memory) — Slice 4:
+> `addMarker` / `removeMarker` / `emptyMarkerList` over a time-sorted `MarkerList`
+> of `Marker` (`section` / `measure` / `beat`).
 
 ## Ports
 

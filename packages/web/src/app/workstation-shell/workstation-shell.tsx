@@ -3,6 +3,9 @@ import { type ChangeEvent, useEffect, useRef } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { Header } from '../header/header.tsx'
+import { MarkerControls } from '../markers/marker-controls.tsx'
+import { MarkerRail } from '../markers/marker-rail.tsx'
+import { useMarkers } from '../markers/use-markers.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
 import { WaveformView } from '../waveform/waveform-view.tsx'
@@ -36,9 +39,11 @@ export function WorkstationShell({ decoder, engine }: WorkstationShellProps) {
     importFile,
     togglePlayback,
     seekToRatio,
+    seekToSeconds,
     setTimeRatio,
     setPitchSemitones
   } = usePlayer(decoder, engine)
+  const markers = useMarkers()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Keep a stable Space listener pointed at the latest toggle (updated after
@@ -66,6 +71,8 @@ export function WorkstationShell({ decoder, engine }: WorkstationShellProps) {
   function onFilePicked(event: ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0]
     if (file) {
+      // A new track gets a fresh timeline — the old markers don't belong to it.
+      markers.clear()
       void importFile(file)
     }
     // Clear it so re-picking the same file fires `change` again.
@@ -98,7 +105,16 @@ export function WorkstationShell({ decoder, engine }: WorkstationShellProps) {
       <div className={styles.body}>
         <main className={styles.main}>
           <Stack gap="var(--space-m)">
-            <p className={styles.placeholderLabel}>Forme d'onde</p>
+            <MarkerControls
+              disabled={!isLoaded}
+              onAdd={(kind) => markers.addAt(kind, transport.positionSeconds)}
+            />
+            <MarkerRail
+              markers={markers.markers}
+              durationSeconds={transport.durationSeconds}
+              onSeek={seekToSeconds}
+              onRemove={markers.remove}
+            />
             <WaveformView
               state={importState}
               positionRatio={positionRatio}
