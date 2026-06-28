@@ -4,12 +4,12 @@
 
 ## Where we are
 
-- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — **complete**, polished.
-  All 7 slices merged (Slice 7 via **PR #13** `ab6e1ad`); a hands-on refinement of
-  loops/markers/transport merged via **PR #14** (`65297a2`).
-  See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `main` (Jalon 1 closed + polished). Next work starts a fresh Jalon 2
-  branch.
+- **Phase**: **Jalon 2 (« Séparation IA ») — kickoff.** Plan locked in
+  [docs/jalon-2-plan.md](jalon-2-plan.md). Jalon 1 (« Transcribe! dans le
+  navigateur ») is **complete + polished**: all 7 slices merged (Slice 7 via
+  **PR #13** `ab6e1ad`), loops/markers/transport refinement merged via **PR #14**
+  (`65297a2`). See [docs/jalon-1-plan.md](jalon-1-plan.md).
+- **Branch**: `feat/jalon2-kickoff` (Jalon 2 plan). First slice next.
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
@@ -33,9 +33,11 @@
 
 ## Next step
 
-**Jalon 1 is complete (PR #13 merged) and polished (PR #14).** Next is Jalon 2
-(séparation IA) per [docs/loupe-plan-produit.md](loupe-plan-produit.md); kick it
-off with its own plan/kickoff on a fresh branch.
+**Jalon 2 kicked off.** Decisions locked: separation behind a pure `StemSeparator`
+port, **WASM client-side as the first adapter** (Loupe stays backend-free; cloud
+API = a future second adapter); **first slice = the import → separation → tracks
+screen** wired on a **stub separator** (UI-first). Next: run `/new-feature-hexa`
+for Slice 1. See [docs/jalon-2-plan.md](jalon-2-plan.md) for the 6-slice breakdown.
 
 ## Roadmap
 
@@ -50,6 +52,12 @@ off with its own plan/kickoff on a fresh branch.
 | J1.5 | A/B loop drag-select + named loops (the « loupe ») | ✅ |
 | J1.6 | Zoom + scrollable viewport (6×) | ✅ |
 | J1.7 | Keyboard shortcuts | ✅ |
+| J2.1 | Import → separation → tracks screen (stub separator behind `StemSeparator` port) | ⬜ |
+| J2.2 | Real WASM separator adapter (Demucs WASM, off-main-thread) | ⬜ |
+| J2.3 | Instrument detection → N adaptive tracks (mask empty, confidence) | ⬜ |
+| J2.4 | Multitrack mixer (solo/mute/volume, Web Audio gain graph) | ⬜ |
+| J2.5 | Track grouping (user bus, non-destructive) | ⬜ |
+| J2.6 | Export — tier A: aligned stem folder (+ bounced groups) | ⬜ |
 
 ## Session journal
 
