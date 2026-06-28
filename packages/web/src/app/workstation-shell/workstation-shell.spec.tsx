@@ -174,6 +174,46 @@ describe('WorkstationShell', () => {
     expect(engine.play).toHaveBeenCalledOnce()
   })
 
+  it('ignores keyboard shortcuts until a track is loaded', () => {
+    const { engine } = renderShell()
+    fireEvent.keyDown(document.body, { code: 'Space' })
+    expect(engine.play).not.toHaveBeenCalled()
+  })
+
+  it('seeks backward and forward with the arrow keys', async () => {
+    const { engine } = renderShell()
+    await importTrack()
+
+    act(() => engine.emit(5))
+    fireEvent.keyDown(document.body, { code: 'ArrowRight' })
+    // 5 s + 5 s step → 10 s (the timeline end).
+    expect(engine.seekTo).toHaveBeenLastCalledWith(10)
+
+    act(() => engine.emit(5))
+    fireEvent.keyDown(document.body, { code: 'ArrowLeft' })
+    expect(engine.seekTo).toHaveBeenLastCalledWith(0)
+  })
+
+  it('adds a marker at the playhead with the M key', async () => {
+    const { engine } = renderShell()
+    await importTrack()
+
+    act(() => engine.emit(5))
+    fireEvent.keyDown(document.body, { code: 'KeyM' })
+
+    const goto = screen.getByRole('button', { name: 'Aller à Section 1' })
+    fireEvent.click(goto)
+    expect(engine.seekTo).toHaveBeenLastCalledWith(5)
+  })
+
+  it('leaves browser/OS chords alone (modified keys are not bound)', async () => {
+    const { engine } = renderShell()
+    await importTrack()
+
+    fireEvent.keyDown(document.body, { code: 'Space', metaKey: true })
+    expect(engine.play).not.toHaveBeenCalled()
+  })
+
   it('drives the engine tempo from the tempo slider', async () => {
     const { engine } = renderShell()
     await importTrack()

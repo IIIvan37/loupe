@@ -4,16 +4,17 @@
 
 ## Where we are
 
-- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 6 (zoom +
-  scrollable viewport) **done & merged** (PRs #11 + #12), incl. file-metadata
-  header and inspector marker list. See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `main` (no slice in flight; Slice 7 next).
+- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — **feature-complete**.
+  Slice 7 (keyboard shortcuts) done; PR open on `feat/jalon1-keyboard-shortcuts`.
+  See [docs/jalon-1-plan.md](jalon-1-plan.md).
+- **Branch**: `feat/jalon1-keyboard-shortcuts` (Slice 7 in flight — pending PR merge).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
-  `clampZoom`/`zoomIn`/`zoomOut`, `TrackMetadataReader` port) + `@app/cli`
+  `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
+  `TrackMetadataReader` port) + `@app/cli`
   (example adapter, to be removed once it's redundant) + `packages/web`
-  (import → waveform → transport → time-stretch/pitch → markers → loops → zoom,
-  gate-green).
+  (import → waveform → transport → time-stretch/pitch → markers → loops → zoom →
+  keyboard shortcuts, gate-green).
 
 ## Locked decisions (kickoff)
 
@@ -30,9 +31,10 @@
 
 ## Next step
 
-**Slice 7** — keyboard shortcuts: pure `KeyBindings` (map) + a global listener;
-a11y (focus visible, `prefers-reduced-motion`) and responsive. Outside-in via
-`/new-feature-hexa`.
+**Merge Slice 7** (PR on `feat/jalon1-keyboard-shortcuts`) to close Jalon 1.
+After that, Jalon 1 is complete — next is Jalon 2 (séparation IA) per
+[docs/loupe-plan-produit.md](loupe-plan-produit.md); kick it off with its own
+plan/kickoff. Optional cleanup: remove the now-redundant `@app/cli` example.
 
 ## Roadmap
 
@@ -46,12 +48,18 @@ a11y (focus visible, `prefers-reduced-motion`) and responsive. Outside-in via
 | J1.4 | Markers (section/measure/beat) | ✅ |
 | J1.5 | A/B loop drag-select + named loops (the « loupe ») | ✅ |
 | J1.6 | Zoom + scrollable viewport (6×) | ✅ |
-| J1.7 | Keyboard shortcuts | ⬜ |
+| J1.7 | Keyboard shortcuts | ✅ |
 
 ## Session journal
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-28 — jalon1-keyboard-shortcuts](sessions/2026-06-28-jalon1-keyboard-shortcuts.md) —
+  Slice 7 (closes Jalon 1): pure `KeyBindings` domain (`resolveCommand` /
+  `defaultKeyBindings`, exact code+modifier match, 100% mutation) +
+  `useKeyboardShortcuts` web adapter folding in the old Space listener (ref-fresh
+  actions, `enabled`-gated). Space/←→/=−/M bound; bare keys never hijack browser
+  chords. Gate green.
 - [2026-06-28 — jalon1-zoom-review](sessions/2026-06-28-jalon1-zoom-review.md) —
   Slice 6 follow-up: prototype-aligned zoom (magnify slider + native scroll +
   shared `ZoomStage`), `Viewport` reduced to a zoom scalar, file-metadata header
