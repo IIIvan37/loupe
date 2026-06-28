@@ -9,19 +9,28 @@ interface TransportBarProps {
   /** Disabled until a track is loaded. */
   readonly canPlay: boolean
   readonly onPlayPause: () => void
+  /** Tempo as a percentage of normal speed (100 = original). */
+  readonly tempoPercent: number
+  /** Pitch shift in whole semitones (0 = original key). */
+  readonly pitchSemitones: number
+  readonly onTempoChange: (percent: number) => void
+  readonly onPitchChange: (semitones: number) => void
 }
 
 /**
- * Dumb presentational transport bar. Play/pause is wired (Slice 2); the tempo and
- * pitch sliders stay disabled until Slice 3. Active/playing affordances use amber
- * per the semantic rule.
+ * Dumb presentational transport bar. Play/pause and the tempo/pitch sliders are
+ * wired (Slices 2–3); active/playing affordances use amber per the semantic rule.
  */
 export function TransportBar({
   position,
   duration,
   isPlaying,
   canPlay,
-  onPlayPause
+  onPlayPause,
+  tempoPercent,
+  pitchSemitones,
+  onTempoChange,
+  onPitchChange
 }: TransportBarProps) {
   return (
     <footer className={styles.bar}>
@@ -59,10 +68,12 @@ export function TransportBar({
             type="range"
             min={50}
             max={150}
-            defaultValue={100}
+            value={tempoPercent}
             aria-label="Tempo en pourcentage"
-            disabled
+            disabled={!canPlay}
+            onChange={(event) => onTempoChange(event.target.valueAsNumber)}
           />
+          <span className={styles.fieldValue}>{tempoPercent} %</span>
         </label>
         <label className={styles.field}>
           <span className={styles.fieldLabel}>Hauteur</span>
@@ -70,10 +81,14 @@ export function TransportBar({
             type="range"
             min={-12}
             max={12}
-            defaultValue={0}
+            value={pitchSemitones}
             aria-label="Hauteur en demi-tons"
-            disabled
+            disabled={!canPlay}
+            onChange={(event) => onPitchChange(event.target.valueAsNumber)}
           />
+          <span className={styles.fieldValue}>
+            {pitchSemitones > 0 ? `+${pitchSemitones}` : pitchSemitones}
+          </span>
         </label>
       </Cluster>
     </footer>

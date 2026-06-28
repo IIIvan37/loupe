@@ -1,5 +1,7 @@
 import {
   type AudioFileDecoder,
+  clampPitchSemitones,
+  clampPlaybackRate,
   initialTransport,
   loadTrack,
   type PlaybackEngine,
@@ -23,10 +25,16 @@ export type ImportState =
 export interface Player {
   readonly importState: ImportState
   readonly transport: TransportState
+  /** Tempo as a ratio of normal speed (1 = 100 %). */
+  readonly timeRatio: number
+  /** Pitch shift in whole semitones (0 = original key). */
+  readonly pitchSemitones: number
   readonly importFile: (file: File) => Promise<void>
   readonly togglePlayback: () => void
   /** Seek to a fraction (0–1) of the timeline — what a waveform click yields. */
   readonly seekToRatio: (ratio: number) => void
+  readonly setTimeRatio: (ratio: number) => void
+  readonly setPitchSemitones: (semitones: number) => void
 }
 
 /**
@@ -47,6 +55,8 @@ export function usePlayer(
     status: 'idle'
   })
   const [transport, dispatch] = useReducer(transportReducer, initialTransport)
+  const [timeRatio, setTimeRatioState] = useState(1)
+  const [pitchSemitones, setPitchSemitonesState] = useState(0)
 
   useEffect(() => {
     // The engine streams elapsed position; the reducer turns it into UI state.
@@ -109,5 +119,27 @@ export function usePlayer(
     dispatch({ type: 'seek', toSeconds: seconds })
   }
 
-  return { importState, transport, importFile, togglePlayback, seekToRatio }
+  function setTimeRatio(ratio: number): void {
+    const clamped = clampPlaybackRate(ratio)
+    setTimeRatioState(clamped)
+    playback.setTimeRatio(clamped)
+  }
+
+  function setPitchSemitones(semitones: number): void {
+    const clamped = clampPitchSemitones(semitones)
+    setPitchSemitonesState(clamped)
+    playback.setPitchSemitones(clamped)
+  }
+
+  return {
+    importState,
+    transport,
+    timeRatio,
+    pitchSemitones,
+    importFile,
+    togglePlayback,
+    seekToRatio,
+    setTimeRatio,
+    setPitchSemitones
+  }
 }

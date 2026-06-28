@@ -125,6 +125,36 @@ describe('WorkstationShell', () => {
     expect(engine.play).toHaveBeenCalledOnce()
   })
 
+  it('drives the engine tempo from the tempo slider', async () => {
+    const engine = fakeEngine()
+    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    await importTrack()
+
+    fireEvent.change(screen.getByLabelText('Tempo en pourcentage'), {
+      target: { value: '75' }
+    })
+    // 75 % → ratio 0.75.
+    expect(engine.setTimeRatio).toHaveBeenCalledWith(0.75)
+  })
+
+  it('drives the engine pitch from the pitch slider', async () => {
+    const engine = fakeEngine()
+    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    await importTrack()
+
+    fireEvent.change(screen.getByLabelText('Hauteur en demi-tons'), {
+      target: { value: '5' }
+    })
+    expect(engine.setPitchSemitones).toHaveBeenCalledWith(5)
+  })
+
+  it('disables the tempo and pitch sliders until a track is loaded', () => {
+    const engine = fakeEngine()
+    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    expect(screen.getByLabelText('Tempo en pourcentage')).toBeDisabled()
+    expect(screen.getByLabelText('Hauteur en demi-tons')).toBeDisabled()
+  })
+
   it('seeks the engine when the waveform is clicked', async () => {
     const engine = fakeEngine()
     render(<WorkstationShell decoder={okDecoder} engine={engine} />)

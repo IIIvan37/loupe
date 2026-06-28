@@ -4,14 +4,14 @@
 
 ## Where we are
 
-- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 2 (transport:
-  play/pause/seek + playhead + Space) **done**, in PR. See
+- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 3 (time-stretch
+  + pitch via Rubber Band) **code-complete, browser-verify pending**, in PR. See
   [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon1-transport` (Slice 2 PR).
-- **Packages**: `@app/core` (pure hexagon — `loadTrack` + `Waveform`/`Track` +
-  `transportReducer`/`formatTimecode`) + `@app/cli` (example adapter, to be removed
-  once it's redundant) + `packages/web` (import → waveform → transport playback,
-  gate-green).
+- **Branch**: `feat/jalon1-timestretch` (Slice 3 PR).
+- **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
+  `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`)
+  + `@app/cli` (example adapter, to be removed once it's redundant) + `packages/web`
+  (import → waveform → transport → time-stretch/pitch, gate-green).
 
 ## Locked decisions (kickoff)
 
@@ -25,11 +25,12 @@
 
 ## Next step
 
-**Slice 3** — time-stretch (without pitch) + pitch-shift. ⚠️ **Licence gate
-first**: Rubber Band ⇒ the product ships GPL or commercial — reconfirm before the
-worklet. Then spike an isolated `AudioWorkletProcessor`, extend `PlaybackEngine`
-with `setTimeRatio` / `setPitchSemitones`, and add pure `PlaybackRate` /
-`PitchShift` domain (clamped ranges) outside-in.
+**Verify Slice 3 in a browser** (`pnpm --filter @app/web dev`): tempo without
+pitch, pitch without tempo. The audio path can't run in jsdom/CI. If correct, the
+slice closes; if not, iterate on `WebAudioPlayback` (model documented inline).
+
+Then **Slice 4** — markers (section / measure / beat): pure `Marker` / `MarkerList`
+domain + a timeline ruler, outside-in via `/new-feature-hexa`.
 
 ## Roadmap
 
@@ -39,7 +40,7 @@ with `setTimeRatio` / `setPitchSemitones`, and add pure `PlaybackRate` /
 | J1.0 | Scaffold `packages/web` (Vite+React+TS, tokens, Every Layout, Base UI, extended gate) | ✅ |
 | J1.1 | Import local file → waveform | ✅ |
 | J1.2 | Transport: play/pause/seek + playhead + Space | ✅ |
-| J1.3 | Time-stretch + pitch (Rubber Band worklet) ⚠️ licence | ⬜ |
+| J1.3 | Time-stretch + pitch (Rubber Band worklet) — GPL confirmed | 🟡 verify |
 | J1.4 | Markers (section/measure/beat) | ⬜ |
 | J1.5 | A/B loop drag-select + named loops (the « loupe ») | ⬜ |
 | J1.6 | Zoom + scrollable viewport (6×) | ⬜ |
@@ -49,6 +50,10 @@ with `setTimeRatio` / `setPitchSemitones`, and add pure `PlaybackRate` /
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-28 — jalon1-timestretch](sessions/2026-06-28-jalon1-timestretch.md) —
+  Slice 3: `clampPlaybackRate`/`clampPitchSemitones` (core, mutation 94.41%),
+  `PlaybackEngine` gains tempo/pitch, Rubber Band worklet adapter + wired sliders.
+  GPL confirmed. ⚠️ audio path browser-verify pending.
 - [2026-06-28 — jalon1-transport](sessions/2026-06-28-jalon1-transport.md) —
   Slice 2: `transportReducer` + `formatTimecode` (core, mutation 96%), `PlaybackEngine`
   port + `WebAudioPlayback` adapter, play/pause/seek, playhead, click-to-seek, Space.

@@ -52,3 +52,9 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
+
+.fieldValue {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--amber);
+}
