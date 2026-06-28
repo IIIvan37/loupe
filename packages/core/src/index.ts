@@ -1,7 +1,5 @@
 // Public contract of the core (the only surface adapters consume).
 
-export type { GreetDeps, GreetResult } from './application/greet.ts'
-export { greet } from './application/greet.ts'
 export type {
   LoadTrackDeps,
   LoadTrackInput,
@@ -13,15 +11,11 @@ export { deleteLoop, loadLoops, saveLoop } from './application/loops.ts'
 export type {
   AudioFileDecoder,
   DecodedAudio,
-  GreetingSink,
   LoopStore,
-  NameSource,
   PlaybackEngine,
   TrackMetadata,
   TrackMetadataReader
 } from './application/ports.ts'
-export type { Greeting } from './domain/greeting.ts'
-export { buildGreeting } from './domain/greeting.ts'
 export type {
   Command,
   KeyBinding,
