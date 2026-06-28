@@ -11,13 +11,16 @@ interface HeaderProps {
   readonly title: string
   readonly artist: string
   readonly detected: readonly DetectedReadout[]
+  /** Open the file picker. The smart shell owns the actual import. */
+  readonly onImport: () => void
 }
 
 /**
  * Dumb presentational header. Detected values (key/BPM/measure) are rendered in
- * teal + mono per the semantic rule (teal = what the machine detected).
+ * teal + mono per the semantic rule (teal = what the machine detected). The
+ * "Importer" button is the single import entry point; the shell wires it.
  */
-export function Header({ title, artist, detected }: HeaderProps) {
+export function Header({ title, artist, detected, onImport }: HeaderProps) {
   return (
     <header className={styles.header}>
       <Cluster gap="var(--space-l)" align="center">
@@ -35,7 +38,11 @@ export function Header({ title, artist, detected }: HeaderProps) {
             <span className={styles.readoutValue}>{item.value}</span>
           </span>
         ))}
-        <button type="button" className={styles.secondaryAction}>
+        <button
+          type="button"
+          className={styles.secondaryAction}
+          onClick={onImport}
+        >
           Importer
         </button>
         <button type="button" className={styles.primaryAction}>

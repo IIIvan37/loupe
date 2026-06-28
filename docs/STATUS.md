@@ -4,11 +4,12 @@
 
 ## Where we are
 
-- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 0 (web scaffold +
-  extended gate) **done**, in PR. See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `chore/jalon1-web-scaffold` (Slice 0 PR).
-- **Packages**: `@app/core` (pure hexagon) + `@app/cli` (example adapter, to be
-  removed once a real slice lands) + `packages/web` (scaffolded, gate-green).
+- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 1 (import local
+  file → waveform) **done**, in PR. See [docs/jalon-1-plan.md](jalon-1-plan.md).
+- **Branch**: `feat/jalon1-import-waveform` (Slice 1 PR).
+- **Packages**: `@app/core` (pure hexagon — now `loadTrack` + `Waveform`/`Track`)
+  + `@app/cli` (example adapter, to be removed once it's redundant) + `packages/web`
+  (imports `@app/core`, renders the waveform, gate-green).
 
 ## Locked decisions (kickoff)
 
@@ -22,10 +23,11 @@
 
 ## Next step
 
-**Slice 1** — import a local file → render its waveform, outside-in via
-`/new-feature-hexa`: `loadTrack` use-case (decode via an `AudioFileDecoder` port →
-`Waveform` peaks → `Track`), then the `WebAudioDecoder` adapter + canvas renderer.
-Re-add `@app/core` to `packages/web` when web first imports it.
+**Slice 2** — transport play/pause/seek + playhead + Space, outside-in via
+`/new-feature-hexa`: `TransportState` (reducer) + mm:ss formatter in core (replaces
+the placeholder seconds readout in `WaveformView`), then a `WebAudioPlayback`
+adapter implementing a `PlaybackEngine` port (load/play/pause/seekTo/
+onPositionChange), playhead + click-to-seek + the Space shortcut.
 
 ## Roadmap
 
@@ -33,7 +35,7 @@ Re-add `@app/core` to `packages/web` when web first imports it.
 |------|-------------|--------|
 | 0 | Starter bootstrapped (monorepo, toolchain, guardrails, example slice) | ✅ |
 | J1.0 | Scaffold `packages/web` (Vite+React+TS, tokens, Every Layout, Base UI, extended gate) | ✅ |
-| J1.1 | Import local file → waveform | ⬜ |
+| J1.1 | Import local file → waveform | ✅ |
 | J1.2 | Transport: play/pause/seek + playhead + Space | ⬜ |
 | J1.3 | Time-stretch + pitch (Rubber Band worklet) ⚠️ licence | ⬜ |
 | J1.4 | Markers (section/measure/beat) | ⬜ |
@@ -45,6 +47,9 @@ Re-add `@app/core` to `packages/web` when web first imports it.
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-28 — jalon1-import-waveform](sessions/2026-06-28-jalon1-import-waveform.md) —
+  Slice 1: `loadTrack` + `Waveform`/`Track` (core, mutation 96.70%), `WebAudioDecoder`
+  adapter, single header-driven import, amber `WaveformCanvas`. Gate green.
 - [2026-06-28 — jalon1-web-scaffold](sessions/2026-06-28-jalon1-web-scaffold.md) —
   Slice 0: `packages/web` scaffolded (Vite+React+Base UI+Every Layout+CSS Modules),
   gate extended (impeccable + react-doctor), kickoff decisions locked.
