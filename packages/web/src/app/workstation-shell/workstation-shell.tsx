@@ -3,9 +3,10 @@ import {
   formatTimecode,
   type LoopStore,
   makeLoopRegion,
-  type PlaybackEngine
+  type PlaybackEngine,
+  type TrackMetadataReader
 } from '@app/core'
-import { type ChangeEvent, useEffect, useRef } from 'react'
+import { type ChangeEvent, useEffect, useRef, useState } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { Header } from '../header/header.tsx'
@@ -29,11 +30,18 @@ const DETECTED = [
 
 const INTERACTIVE_TAGS = ['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT']
 
+/** A file name without its extension, the fallback header title. */
+function trackTitle(fileName: string): string {
+  const dot = fileName.lastIndexOf('.')
+  return dot > 0 ? fileName.slice(0, dot) : fileName
+}
+
 interface WorkstationShellProps {
   /** Ports injected in tests; default to the real Web Audio adapters. */
   readonly decoder?: AudioFileDecoder
   readonly engine?: PlaybackEngine
   readonly loopStore?: LoopStore
+  readonly metadataReader?: TrackMetadataReader
 }
 
 /**
@@ -44,10 +52,12 @@ interface WorkstationShellProps {
 export function WorkstationShell({
   decoder,
   engine,
-  loopStore
+  loopStore,
+  metadataReader
 }: WorkstationShellProps) {
   const {
     importState,
+    metadata,
     transport,
     timeRatio,
     pitchSemitones,
@@ -59,10 +69,11 @@ export function WorkstationShell({
     setTimeRatio,
     setPitchSemitones,
     setLoopRegion
-  } = usePlayer(decoder, engine)
+  } = usePlayer(decoder, engine, metadataReader)
   const markers = useMarkers()
   const loops = useLoops(loopStore)
   const viewport = useViewport()
+  const [trackName, setTrackName] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Keep a stable Space listener pointed at the latest toggle (updated after
@@ -94,6 +105,7 @@ export function WorkstationShell({
       // and the view should start fully zoomed out.
       markers.clear()
       viewport.reset()
+      setTrackName(trackTitle(file.name))
       void importFile(file)
     }
     // Clear it so re-picking the same file fires `change` again.
@@ -109,8 +121,11 @@ export function WorkstationShell({
   return (
     <div className={styles.shell}>
       <Header
-        title="Midnight in Amber"
-        artist="Lena Vasquez Trio"
+        title={metadata.title ?? trackName ?? 'Aucun morceau'}
+        artist={
+          metadata.artist ??
+          (trackName ? 'Artiste inconnu' : 'Importe un fichier audio')
+        }
         detected={DETECTED}
         onImport={() => fileInputRef.current?.click()}
       />
@@ -184,7 +199,7 @@ export function WorkstationShell({
           </Stack>
         </main>
 
-        <AnalysisPanel />
+        <AnalysisPanel markers={markers.markers} onSeekMarker={seekToSeconds} />
       </div>
 
       <TransportBar

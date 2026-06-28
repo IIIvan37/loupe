@@ -55,3 +55,18 @@ export interface LoopStore {
   load(): Promise<LoopLibrary>
   save(library: LoopLibrary): Promise<void>
 }
+
+/** Tags read from a file (ID3 etc.); each field is absent when the file omits it. */
+export interface TrackMetadata {
+  readonly title: string | undefined
+  readonly artist: string | undefined
+}
+
+/**
+ * Driven port: extract embedded tags from encoded audio bytes. Best-effort — a
+ * tagless or unparsable file yields empty fields, never an error. Implemented by
+ * an adapter (web: music-metadata); the core stays format-agnostic.
+ */
+export interface TrackMetadataReader {
+  read(bytes: ArrayBuffer): Promise<TrackMetadata>
+}

@@ -7,13 +7,18 @@ import {
   loadTrack,
   type PlaybackEngine,
   type Track,
+  type TrackMetadata,
+  type TrackMetadataReader,
   type TransportState,
   transportReducer,
   wrapToLoop
 } from '@app/core'
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { createMusicMetadataReader } from '../../audio/music-metadata-reader.ts'
 import { createWebAudioDecoder } from '../../audio/web-audio-decoder.ts'
 import { createWebAudioPlayback } from '../../audio/web-audio-playback.ts'
+
+const NO_METADATA: TrackMetadata = { title: undefined, artist: undefined }
 
 /** Peak resolution: more buckets than screen pixels, so it stays crisp at 1×. */
 const BUCKET_COUNT = 1200
@@ -26,6 +31,8 @@ export type ImportState =
 
 export interface Player {
   readonly importState: ImportState
+  /** Tags read from the imported file (empty fields when the file has none). */
+  readonly metadata: TrackMetadata
   readonly transport: TransportState
   /** Tempo as a ratio of normal speed (1 = 100 %). */
   readonly timeRatio: number
@@ -51,13 +58,19 @@ export interface Player {
  */
 export function usePlayer(
   decoder?: AudioFileDecoder,
-  engine?: PlaybackEngine
+  engine?: PlaybackEngine,
+  metadataReader?: TrackMetadataReader
 ): Player {
   const audioDecoder = useMemo(
     () => decoder ?? createWebAudioDecoder(),
     [decoder]
   )
   const playback = useMemo(() => engine ?? createWebAudioPlayback(), [engine])
+  const reader = useMemo(
+    () => metadataReader ?? createMusicMetadataReader(),
+    [metadataReader]
+  )
+  const [metadata, setMetadata] = useState<TrackMetadata>(NO_METADATA)
   const [importState, setImportState] = useState<ImportState>({
     status: 'idle'
   })
@@ -100,8 +113,15 @@ export function usePlayer(
 
   async function importFile(file: File): Promise<void> {
     setImportState({ status: 'loading' })
+    setMetadata(NO_METADATA)
     try {
       const bytes = await file.arrayBuffer()
+      // Read tags best-effort and in parallel, from a copy — decoding may detach
+      // the original buffer. A tagless/unreadable file just keeps empty fields.
+      void reader
+        .read(bytes.slice(0))
+        .then(setMetadata)
+        .catch(() => setMetadata(NO_METADATA))
       const result = await loadTrack(
         { bytes, bucketCount: BUCKET_COUNT },
         { decoder: audioDecoder, engine: playback }
@@ -169,6 +189,7 @@ export function usePlayer(
 
   return {
     importState,
+    metadata,
     transport,
     timeRatio,
     pitchSemitones,

@@ -26,6 +26,17 @@ stage** so they stay aligned at any zoom. Reworked to match:
 
 Tokens added: `--amber-deep`, `--amber-glow`, `--teal-deep`, `--line-soft`.
 
+### Header & inspector de-placeholdered
+
+- **Header title/artist** now come from the imported file. New `TrackMetadataReader`
+  port (core) + `createMusicMetadataReader` web adapter (music-metadata) read
+  embedded tags best-effort; the title falls back to the file name (extension
+  stripped), artist to "Artiste inconnu". Read in parallel with decoding from a
+  buffer copy (decode may detach the original). Injected as a port (tests use a
+  silent fake).
+- **Analysis panel** « Repères » tab now lists the real markers (click to seek);
+  Spectre/Notes carry honest copy (no "(Jalon N)" dev labels). Default tab → Repères.
+
 ## Done
 - **Pure `Viewport` domain** (`packages/core/src/domain/viewport.ts`) in
   normalised timeline-ratio space (`[0, 1]`, duration-independent):

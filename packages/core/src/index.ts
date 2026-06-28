@@ -16,7 +16,9 @@ export type {
   GreetingSink,
   LoopStore,
   NameSource,
-  PlaybackEngine
+  PlaybackEngine,
+  TrackMetadata,
+  TrackMetadataReader
 } from './application/ports.ts'
 export type { Greeting } from './domain/greeting.ts'
 export { buildGreeting } from './domain/greeting.ts'

@@ -38,3 +38,4 @@ The single place to look before adding a feature, so ports and use-cases get
 | `AudioFileDecoder` | driven | `web`: `createWebAudioDecoder` (`decodeAudioData`) |
 | `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode` + SoundTouch worklet for tempo/pitch) |
 | `LoopStore` | driven | `web`: `createLocalStorageLoopStore` (localStorage) |
+| `TrackMetadataReader` | driven | `web`: `createMusicMetadataReader` (music-metadata; best-effort ID3/etc. tags) |

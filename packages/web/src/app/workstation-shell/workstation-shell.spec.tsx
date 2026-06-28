@@ -5,7 +5,8 @@ import type {
   DecodedAudio,
   LoopLibrary,
   LoopStore,
-  PlaybackEngine
+  PlaybackEngine,
+  TrackMetadataReader
 } from '@app/core'
 import {
   act,
@@ -52,6 +53,11 @@ function audioFile(): File {
   return new File([new Uint8Array([1, 2, 3, 4])], 'take.wav', { type: 'audio/wav' })
 }
 
+/** A tagless reader — keeps tests off the real music-metadata parser. */
+const silentReader: TrackMetadataReader = {
+  read: async () => ({ title: undefined, artist: undefined })
+}
+
 /** An in-memory loop store so tests never touch real localStorage. */
 function fakeLoopStore(): LoopStore {
   let saved: LoopLibrary = []
@@ -96,7 +102,7 @@ describe('WorkstationShell', () => {
   it('disables play until a track is loaded, then enables it with the duration', async () => {
     const engine = fakeEngine()
     const { container } = render(
-      <WorkstationShell decoder={okDecoder} engine={engine} />
+      <WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />
     )
 
     expect(screen.getByRole('button', { name: 'Lecture' })).toBeDisabled()
@@ -116,7 +122,7 @@ describe('WorkstationShell', () => {
         throw new Error('unsupported format')
       }
     }
-    render(<WorkstationShell decoder={decoder} engine={engine} />)
+    render(<WorkstationShell decoder={decoder} engine={engine} metadataReader={silentReader} />)
 
     fireEvent.change(screen.getByLabelText('Importer un fichier audio'), {
       target: { files: [audioFile()] }
@@ -128,7 +134,7 @@ describe('WorkstationShell', () => {
 
   it('plays and pauses via the transport button, driving the engine', async () => {
     const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
     await importTrack()
 
     fireEvent.click(screen.getByRole('button', { name: 'Lecture' }))
@@ -143,7 +149,7 @@ describe('WorkstationShell', () => {
   it('reflects the engine position as a timecode', async () => {
     const engine = fakeEngine()
     const { container } = render(
-      <WorkstationShell decoder={okDecoder} engine={engine} />
+      <WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />
     )
     await importTrack()
 
@@ -154,7 +160,7 @@ describe('WorkstationShell', () => {
 
   it('toggles playback with the Space key', async () => {
     const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
     await importTrack()
 
     fireEvent.keyDown(document.body, { code: 'Space' })
@@ -163,7 +169,7 @@ describe('WorkstationShell', () => {
 
   it('drives the engine tempo from the tempo slider', async () => {
     const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
     await importTrack()
 
     fireEvent.change(screen.getByLabelText('Tempo en pourcentage'), {
@@ -175,7 +181,7 @@ describe('WorkstationShell', () => {
 
   it('drives the engine pitch from the pitch slider', async () => {
     const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
     await importTrack()
 
     fireEvent.change(screen.getByLabelText('Hauteur en demi-tons'), {
@@ -186,14 +192,14 @@ describe('WorkstationShell', () => {
 
   it('disables the tempo and pitch sliders until a track is loaded', () => {
     const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
     expect(screen.getByLabelText('Tempo en pourcentage')).toBeDisabled()
     expect(screen.getByLabelText('Hauteur en demi-tons')).toBeDisabled()
   })
 
   it('adds a marker at the playhead and seeks back to it', async () => {
     const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
     await importTrack()
 
     act(() => engine.emit(5))
@@ -211,7 +217,7 @@ describe('WorkstationShell', () => {
 
   it('clears markers when a new track is loaded', async () => {
     const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
     await importTrack()
 
     fireEvent.click(screen.getByRole('button', { name: '+ Section' }))
@@ -227,13 +233,13 @@ describe('WorkstationShell', () => {
 
   it('disables marker controls until a track is loaded', () => {
     const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
     expect(screen.getByRole('button', { name: '+ Section' })).toBeDisabled()
   })
 
   it('seeks the engine when the waveform is clicked', async () => {
     const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
     await importTrack()
 
     const surface = waveformSurface()
@@ -250,7 +256,7 @@ describe('WorkstationShell', () => {
       .spyOn(window, 'prompt')
       .mockReturnValue('Mon passage')
     render(
-      <WorkstationShell decoder={okDecoder} engine={engine} loopStore={fakeLoopStore()} />
+      <WorkstationShell decoder={okDecoder} engine={engine} loopStore={fakeLoopStore()} metadataReader={silentReader} />
     )
     await importTrack()
 
@@ -266,5 +272,30 @@ describe('WorkstationShell', () => {
     fireEvent.click(recall)
     expect(engine.seekTo).toHaveBeenCalledWith(2)
     prompt.mockRestore()
+  })
+
+  it('shows the file tags in the header once read', async () => {
+    const engine = fakeEngine()
+    const reader: TrackMetadataReader = {
+      read: async () => ({ title: 'Nocturne', artist: 'Lena Vasquez' })
+    }
+    render(
+      <WorkstationShell decoder={okDecoder} engine={engine} metadataReader={reader} />
+    )
+    await importTrack()
+
+    expect(await screen.findByText('Nocturne')).toBeInTheDocument()
+    expect(screen.getByText('Lena Vasquez')).toBeInTheDocument()
+  })
+
+  it('falls back to the file name when the file has no tags', async () => {
+    const engine = fakeEngine()
+    render(
+      <WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />
+    )
+    await importTrack()
+
+    // "take.wav" → "take" (extension stripped), no fake title applied.
+    expect(screen.getByText('take')).toBeInTheDocument()
   })
 })
