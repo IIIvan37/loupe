@@ -13,14 +13,16 @@ import type { SheriffConfig } from '@softarc/sheriff-core'
  */
 export const config: SheriffConfig = {
   entryPoints: {
-    cli: 'packages/cli/src/main.ts'
+    cli: 'packages/cli/src/main.ts',
+    web: 'packages/web/src/main.tsx'
   },
   enableBarrelLess: true,
   modules: {
     'packages/core/src/domain': ['core:domain'],
     'packages/core/src/application': ['core:application'],
     'packages/core/src': ['core:api'],
-    'packages/cli/src': ['cli']
+    'packages/cli/src': ['cli'],
+    'packages/web/src': ['web']
   },
   depRules: {
     root: 'noTag',
@@ -33,6 +35,7 @@ export const config: SheriffConfig = {
     // The public contract (index.ts) re-exports domain + application.
     'core:api': ['core:domain', 'core:application'],
     // Adapters consume only the core's public contract.
-    cli: ['core:api']
+    cli: ['core:api'],
+    web: ['core:api']
   }
 }

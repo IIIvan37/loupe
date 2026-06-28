@@ -1,0 +1,32 @@
+.panel {
+  background: var(--panel);
+  border-inline-start: 1px solid var(--line);
+  padding: var(--space-m);
+  min-width: 0;
+}
+
+.list {
+  display: flex;
+  gap: var(--space-m);
+  border-block-end: 1px solid var(--line);
+}
+
+.tab {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: var(--space-xs) 0;
+  color: var(--dim);
+  border-block-end: 2px solid transparent;
+}
+
+.tab[data-selected] {
+  color: var(--text);
+  border-block-end-color: var(--amber);
+}
+
+.tabPanel {
+  padding-block-start: var(--space-m);
+  color: var(--dim);
+  font-size: 0.85rem;
+}

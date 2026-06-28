@@ -4,6 +4,10 @@
   "workspaces": {
     ".": {
       "entry": ["sheriff.config.ts"]
+    },
+    "packages/web": {
+      "entry": ["index.html"],
+      "project": ["src/**/*.{ts,tsx}"]
     }
   }
 }
