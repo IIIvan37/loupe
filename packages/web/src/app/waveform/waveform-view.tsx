@@ -1,5 +1,6 @@
 import type { LoopRegion } from '@app/core'
 import { type PointerEvent, useRef } from 'react'
+import { clamp01 } from '../../lib/clamp01.ts'
 import type { ImportState } from './use-player.ts'
 import { WaveformCanvas } from './waveform-canvas.tsx'
 import styles from './waveform-view.module.css'
@@ -125,11 +126,4 @@ function loopRatios(
     start: clamp01(region.startSeconds / durationSeconds),
     end: clamp01(region.endSeconds / durationSeconds)
   }
-}
-
-function clamp01(ratio: number): number {
-  if (Number.isNaN(ratio) || ratio < 0) {
-    return 0
-  }
-  return Math.min(ratio, 1)
 }

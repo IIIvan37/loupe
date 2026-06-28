@@ -1,7 +1,7 @@
-/* Floating zoom pill, top-right of the waveform — below the ruler (46px). */
+/* Floating zoom pill, top-right of the waveform — below the timeline ruler. */
 .tools {
   position: absolute;
-  top: calc(46px + var(--space-xs));
+  top: calc(var(--timeline-height) + var(--space-xs));
   right: var(--space-xs);
   z-index: 5;
   display: flex;

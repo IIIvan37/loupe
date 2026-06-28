@@ -148,7 +148,6 @@ export function WorkstationShell({
             <ZoomStage
               zoom={viewport.zoom}
               positionRatio={positionRatio}
-              isPlaying={transport.isPlaying}
               disabled={!isLoaded}
               onZoomIn={viewport.zoomIn}
               onZoomOut={viewport.zoomOut}
@@ -158,7 +157,6 @@ export function WorkstationShell({
                 markers={markers.markers}
                 durationSeconds={transport.durationSeconds}
                 onSeek={seekToSeconds}
-                onRemove={markers.remove}
               />
               <WaveformView
                 state={importState}
@@ -199,7 +197,11 @@ export function WorkstationShell({
           </Stack>
         </main>
 
-        <AnalysisPanel markers={markers.markers} onSeekMarker={seekToSeconds} />
+        <AnalysisPanel
+          markers={markers.markers}
+          onSeekMarker={seekToSeconds}
+          onRemoveMarker={markers.remove}
+        />
       </div>
 
       <TransportBar

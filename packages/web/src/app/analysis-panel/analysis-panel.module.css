@@ -39,11 +39,17 @@
   gap: var(--space-2xs);
 }
 
+.markerItem {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2xs);
+}
+
 .markerRow {
   display: flex;
   gap: var(--space-s);
   align-items: baseline;
-  width: 100%;
+  flex: 1;
   padding: var(--space-2xs) var(--space-xs);
   border: 0;
   border-radius: var(--radius);
@@ -53,6 +59,19 @@
 }
 
 .markerRow:hover {
+  background: var(--panel-3);
+}
+
+.markerRemove {
+  padding: 0 var(--space-xs);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  color: var(--faint);
+}
+
+.markerRemove:hover {
+  color: var(--text);
   background: var(--panel-3);
 }
 

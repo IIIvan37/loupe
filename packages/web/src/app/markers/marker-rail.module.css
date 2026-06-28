@@ -1,7 +1,7 @@
 /* Timecode ruler + markers, matching the prototype's .timeline block. */
 .timeline {
   position: relative;
-  height: 46px;
+  height: var(--timeline-height);
   border-block-end: 1px solid var(--line-soft);
 }
 
@@ -64,16 +64,4 @@
 
 .tag:hover {
   background: var(--panel-2);
-}
-
-.remove {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--faint);
-  font-size: 0.6rem;
-}
-
-.remove:hover {
-  color: var(--text);
 }

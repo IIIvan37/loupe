@@ -45,4 +45,8 @@
   --space-2xl: 3rem;
 
   --radius: 6px;
+
+  /* Timeline layout — shared so the ruler, waveform and zoom pill stay in sync. */
+  --timeline-height: 46px;
+  --waveform-height: 134px;
 }

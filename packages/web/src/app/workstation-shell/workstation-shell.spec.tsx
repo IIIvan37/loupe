@@ -74,6 +74,22 @@ function waveformSurface(): HTMLElement {
   return screen.getByRole('button', { name: /Forme d'onde/ })
 }
 
+/** Render the shell with the default fakes; override any port per test. */
+function renderShell(
+  overrides: Partial<Parameters<typeof WorkstationShell>[0]> = {}
+) {
+  const engine = fakeEngine()
+  const utils = render(
+    <WorkstationShell
+      decoder={okDecoder}
+      engine={engine}
+      metadataReader={silentReader}
+      {...overrides}
+    />
+  )
+  return { engine, ...utils }
+}
+
 async function importTrack(): Promise<void> {
   fireEvent.change(screen.getByLabelText('Importer un fichier audio'), {
     target: { files: [audioFile()] }
@@ -100,10 +116,7 @@ describe('WorkstationShell', () => {
   })
 
   it('disables play until a track is loaded, then enables it with the duration', async () => {
-    const engine = fakeEngine()
-    const { container } = render(
-      <WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />
-    )
+    const { container } = renderShell()
 
     expect(screen.getByRole('button', { name: 'Lecture' })).toBeDisabled()
 
@@ -116,13 +129,12 @@ describe('WorkstationShell', () => {
   })
 
   it('surfaces a decode failure as an alert', async () => {
-    const engine = fakeEngine()
     const decoder: AudioFileDecoder = {
       decode: async () => {
         throw new Error('unsupported format')
       }
     }
-    render(<WorkstationShell decoder={decoder} engine={engine} metadataReader={silentReader} />)
+    renderShell({ decoder })
 
     fireEvent.change(screen.getByLabelText('Importer un fichier audio'), {
       target: { files: [audioFile()] }
@@ -133,8 +145,7 @@ describe('WorkstationShell', () => {
   })
 
   it('plays and pauses via the transport button, driving the engine', async () => {
-    const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
+    const { engine } = renderShell()
     await importTrack()
 
     fireEvent.click(screen.getByRole('button', { name: 'Lecture' }))
@@ -147,10 +158,7 @@ describe('WorkstationShell', () => {
   })
 
   it('reflects the engine position as a timecode', async () => {
-    const engine = fakeEngine()
-    const { container } = render(
-      <WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />
-    )
+    const { engine, container } = renderShell()
     await importTrack()
 
     act(() => engine.emit(5))
@@ -159,8 +167,7 @@ describe('WorkstationShell', () => {
   })
 
   it('toggles playback with the Space key', async () => {
-    const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
+    const { engine } = renderShell()
     await importTrack()
 
     fireEvent.keyDown(document.body, { code: 'Space' })
@@ -168,8 +175,7 @@ describe('WorkstationShell', () => {
   })
 
   it('drives the engine tempo from the tempo slider', async () => {
-    const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
+    const { engine } = renderShell()
     await importTrack()
 
     fireEvent.change(screen.getByLabelText('Tempo en pourcentage'), {
@@ -180,8 +186,7 @@ describe('WorkstationShell', () => {
   })
 
   it('drives the engine pitch from the pitch slider', async () => {
-    const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
+    const { engine } = renderShell()
     await importTrack()
 
     fireEvent.change(screen.getByLabelText('Hauteur en demi-tons'), {
@@ -191,15 +196,13 @@ describe('WorkstationShell', () => {
   })
 
   it('disables the tempo and pitch sliders until a track is loaded', () => {
-    const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
+    renderShell()
     expect(screen.getByLabelText('Tempo en pourcentage')).toBeDisabled()
     expect(screen.getByLabelText('Hauteur en demi-tons')).toBeDisabled()
   })
 
   it('adds a marker at the playhead and seeks back to it', async () => {
-    const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
+    const { engine } = renderShell()
     await importTrack()
 
     act(() => engine.emit(5))
@@ -216,8 +219,7 @@ describe('WorkstationShell', () => {
   })
 
   it('clears markers when a new track is loaded', async () => {
-    const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
+    renderShell()
     await importTrack()
 
     fireEvent.click(screen.getByRole('button', { name: '+ Section' }))
@@ -232,14 +234,12 @@ describe('WorkstationShell', () => {
   })
 
   it('disables marker controls until a track is loaded', () => {
-    const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
+    renderShell()
     expect(screen.getByRole('button', { name: '+ Section' })).toBeDisabled()
   })
 
   it('seeks the engine when the waveform is clicked', async () => {
-    const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />)
+    const { engine } = renderShell()
     await importTrack()
 
     const surface = waveformSurface()
@@ -251,13 +251,10 @@ describe('WorkstationShell', () => {
   })
 
   it('drag-selects an A/B loop, saves it, and recalls it', async () => {
-    const engine = fakeEngine()
     const prompt = vi
       .spyOn(window, 'prompt')
       .mockReturnValue('Mon passage')
-    render(
-      <WorkstationShell decoder={okDecoder} engine={engine} loopStore={fakeLoopStore()} metadataReader={silentReader} />
-    )
+    const { engine } = renderShell({ loopStore: fakeLoopStore() })
     await importTrack()
 
     const surface = waveformSurface()
@@ -275,13 +272,10 @@ describe('WorkstationShell', () => {
   })
 
   it('shows the file tags in the header once read', async () => {
-    const engine = fakeEngine()
     const reader: TrackMetadataReader = {
       read: async () => ({ title: 'Nocturne', artist: 'Lena Vasquez' })
     }
-    render(
-      <WorkstationShell decoder={okDecoder} engine={engine} metadataReader={reader} />
-    )
+    renderShell({ metadataReader: reader })
     await importTrack()
 
     expect(await screen.findByText('Nocturne')).toBeInTheDocument()
@@ -289,10 +283,7 @@ describe('WorkstationShell', () => {
   })
 
   it('falls back to the file name when the file has no tags', async () => {
-    const engine = fakeEngine()
-    render(
-      <WorkstationShell decoder={okDecoder} engine={engine} metadataReader={silentReader} />
-    )
+    renderShell()
     await importTrack()
 
     // "take.wav" → "take" (extension stripped), no fake title applied.

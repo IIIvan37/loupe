@@ -7,6 +7,7 @@ interface AnalysisPanelProps {
   readonly markers: MarkerList
   /** Jump to a marker's time. */
   readonly onSeekMarker: (timeSeconds: number) => void
+  readonly onRemoveMarker: (id: string) => void
 }
 
 /**
@@ -14,7 +15,11 @@ interface AnalysisPanelProps {
  * « Repères » lists the real markers (click to seek); spectrum and notes are
  * honest placeholders for later jalons.
  */
-export function AnalysisPanel({ markers, onSeekMarker }: AnalysisPanelProps) {
+export function AnalysisPanel({
+  markers,
+  onSeekMarker,
+  onRemoveMarker
+}: AnalysisPanelProps) {
   return (
     <aside className={styles.panel}>
       <Tabs.Root defaultValue="reperes">
@@ -40,7 +45,7 @@ export function AnalysisPanel({ markers, onSeekMarker }: AnalysisPanelProps) {
           ) : (
             <ul className={styles.markerList}>
               {markers.map((marker) => (
-                <li key={marker.id}>
+                <li key={marker.id} className={styles.markerItem}>
                   <button
                     type="button"
                     className={styles.markerRow}
@@ -50,6 +55,14 @@ export function AnalysisPanel({ markers, onSeekMarker }: AnalysisPanelProps) {
                       {formatTimecode(marker.timeSeconds)}
                     </span>
                     <span className={styles.markerName}>{marker.label}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.markerRemove}
+                    aria-label={`Supprimer ${marker.label}`}
+                    onClick={() => onRemoveMarker(marker.id)}
+                  >
+                    ✕
                   </button>
                 </li>
               ))}

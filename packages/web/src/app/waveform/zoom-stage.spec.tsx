@@ -12,7 +12,6 @@ function renderStage(
     <ZoomStage
       zoom={1}
       positionRatio={0}
-      isPlaying={false}
       disabled={false}
       onZoomIn={noop}
       onZoomOut={noop}

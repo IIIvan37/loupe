@@ -84,6 +84,9 @@ export function usePlayer(
   // over a stale region.
   const loopRef = useRef<LoopRegion | undefined>(undefined)
   loopRef.current = loopRegion
+  // Bumped per import so a slow metadata read from a previous file can't land on
+  // top of the current one.
+  const importIdRef = useRef(0)
 
   useEffect(() => {
     // The engine streams elapsed position; the reducer turns it into UI state.
@@ -112,16 +115,23 @@ export function usePlayer(
   }, [playback])
 
   async function importFile(file: File): Promise<void> {
+    importIdRef.current += 1
+    const importId = importIdRef.current
     setImportState({ status: 'loading' })
     setMetadata(NO_METADATA)
     try {
       const bytes = await file.arrayBuffer()
       // Read tags best-effort and in parallel, from a copy — decoding may detach
-      // the original buffer. A tagless/unreadable file just keeps empty fields.
-      void reader
+      // the original buffer. A tagless/unreadable file just keeps empty fields,
+      // and a read from a superseded import is ignored.
+      reader
         .read(bytes.slice(0))
-        .then(setMetadata)
-        .catch(() => setMetadata(NO_METADATA))
+        .then((meta) => {
+          if (importIdRef.current === importId) {
+            setMetadata(meta)
+          }
+        })
+        .catch(() => {})
       const result = await loadTrack(
         { bytes, bucketCount: BUCKET_COUNT },
         { decoder: audioDecoder, engine: playback }

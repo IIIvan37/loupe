@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useRef } from 'react'
+import { clamp01 } from '../../lib/clamp01.ts'
 import { ViewportControls } from './viewport-controls.tsx'
 import styles from './zoom-stage.module.css'
 
@@ -7,8 +8,6 @@ interface ZoomStageProps {
   readonly zoom: number
   /** Playhead position as a fraction (0–1) of the timeline. */
   readonly positionRatio: number
-  /** Auto-scroll follows the playhead only while playing. */
-  readonly isPlaying: boolean
   /** Disables the zoom pill until a track is loaded. */
   readonly disabled: boolean
   readonly onZoomIn: () => void
@@ -28,7 +27,6 @@ interface ZoomStageProps {
 export function ZoomStage({
   zoom,
   positionRatio,
-  isPlaying,
   disabled,
   onZoomIn,
   onZoomOut,
@@ -37,15 +35,17 @@ export function ZoomStage({
 }: ZoomStageProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Keep the playhead centred while it plays through a zoomed-in view.
+  // Sync the scroll to the playhead so it stays in view through a zoomed-in
+  // timeline — on playback and on a seek (paused included). Centres the playhead;
+  // at zoom 1 there's nothing to scroll.
   useEffect(() => {
     const scroll = scrollRef.current
-    if (!scroll || !isPlaying || zoom <= 1) {
+    if (!scroll || zoom <= 1) {
       return
     }
-    const target = positionRatio * scroll.scrollWidth - scroll.clientWidth / 2
-    scroll.scrollLeft = Math.max(0, target)
-  }, [positionRatio, isPlaying, zoom])
+    const centred = positionRatio * scroll.scrollWidth - scroll.clientWidth / 2
+    scroll.scrollLeft = Math.max(0, centred)
+  }, [positionRatio, zoom])
 
   return (
     <div className={styles.stage}>
@@ -61,19 +61,11 @@ export function ZoomStage({
           {children}
           <span
             className={styles.playhead}
-            style={{ left: `${playheadPercent(positionRatio)}%` }}
+            style={{ left: `${clamp01(positionRatio) * 100}%` }}
             aria-hidden="true"
           />
         </div>
       </div>
     </div>
   )
-}
-
-/** Clamp the playhead to 0–100%, guarding a not-yet-known (NaN) ratio. */
-function playheadPercent(ratio: number): number {
-  if (Number.isNaN(ratio) || ratio < 0) {
-    return 0
-  }
-  return Math.min(ratio, 1) * 100
 }
