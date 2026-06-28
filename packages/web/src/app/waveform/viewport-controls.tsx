@@ -1,67 +1,67 @@
-import { MAX_ZOOM, MIN_ZOOM, maxOffset, type Viewport } from '@app/core'
-import { Cluster } from '../../layout/cluster/cluster.tsx'
+import { MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from '@app/core'
 import styles from './viewport-controls.module.css'
 
 interface ViewportControlsProps {
-  readonly viewport: Viewport
+  /** Current magnification, 1× … 6×. */
+  readonly zoom: number
   /** Disabled until a track is loaded. */
   readonly disabled: boolean
   readonly onZoomIn: () => void
   readonly onZoomOut: () => void
-  /** Scroll the window to an absolute offset (timeline fraction). */
-  readonly onScroll: (offset: number) => void
+  /** Set an absolute zoom level (the slider). */
+  readonly onSetZoom: (zoom: number) => void
+}
+
+/** Format the zoom level like the prototype: `1×`, `2.5×`. */
+function formatZoom(zoom: number): string {
+  return `${Number.isInteger(zoom) ? zoom : zoom.toFixed(1)}×`
 }
 
 /**
- * Dumb zoom + scroll control row. The zoom buttons step the magnification; the
- * range slider pans the visible window and is inert until there's something off
- * screen to reveal (zoom > 1).
+ * Dumb zoom pill, overlaid top-right of the waveform. The slider sets the
+ * magnification (it zooms — it does not pan); − / + step it. Panning is the
+ * waveform's own horizontal scroll.
  */
 export function ViewportControls({
-  viewport,
+  zoom,
   disabled,
   onZoomIn,
   onZoomOut,
-  onScroll
+  onSetZoom
 }: ViewportControlsProps) {
-  const max = maxOffset(viewport)
-  const canScroll = !disabled && max > 0
-  // Drive the slider as a 0–1 fraction so its step is independent of the zoom.
-  const fraction = max > 0 ? viewport.offset / max : 0
-
   return (
-    <Cluster gap="var(--space-s)" align="center">
-      <span className={styles.label}>Zoom</span>
+    <div className={styles.tools}>
+      <span className={styles.level}>{formatZoom(zoom)}</span>
       <button
         type="button"
-        className={styles.zoom}
+        className={styles.tick}
         aria-label="Dézoomer"
-        disabled={disabled || viewport.zoom <= MIN_ZOOM}
+        disabled={disabled || zoom <= MIN_ZOOM}
         onClick={onZoomOut}
       >
         −
       </button>
-      <span className={styles.level}>{Math.round(viewport.zoom)}×</span>
+      <input
+        type="range"
+        className={styles.slider}
+        data-accent="amber"
+        min={MIN_ZOOM}
+        max={MAX_ZOOM}
+        step={ZOOM_STEP}
+        value={zoom}
+        aria-label="Zoom de la forme d'onde"
+        disabled={disabled}
+        onChange={(event) => onSetZoom(event.target.valueAsNumber)}
+      />
       <button
         type="button"
-        className={styles.zoom}
+        className={styles.tick}
         aria-label="Zoomer"
-        disabled={disabled || viewport.zoom >= MAX_ZOOM}
+        disabled={disabled || zoom >= MAX_ZOOM}
         onClick={onZoomIn}
       >
         +
       </button>
-      <input
-        type="range"
-        className={styles.scroll}
-        min={0}
-        max={1}
-        step={0.01}
-        value={fraction}
-        aria-label="Défilement horizontal"
-        disabled={!canScroll}
-        onChange={(event) => onScroll(event.target.valueAsNumber * max)}
-      />
-    </Cluster>
+    </div>
   )
 }

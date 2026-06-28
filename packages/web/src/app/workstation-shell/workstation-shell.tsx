@@ -17,8 +17,8 @@ import { useMarkers } from '../markers/use-markers.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
 import { useViewport } from '../waveform/use-viewport.ts'
-import { ViewportControls } from '../waveform/viewport-controls.tsx'
 import { WaveformView } from '../waveform/waveform-view.tsx'
+import { ZoomStage } from '../waveform/zoom-stage.tsx'
 import styles from './workstation-shell.module.css'
 
 const DETECTED = [
@@ -130,36 +130,36 @@ export function WorkstationShell({
               disabled={!isLoaded}
               onAdd={(kind) => markers.addAt(kind, transport.positionSeconds)}
             />
-            <MarkerRail
-              markers={markers.markers}
-              durationSeconds={transport.durationSeconds}
-              onSeek={seekToSeconds}
-              onRemove={markers.remove}
-            />
-            <ViewportControls
-              viewport={viewport.viewport}
+            <ZoomStage
+              zoom={viewport.zoom}
+              positionRatio={positionRatio}
+              isPlaying={transport.isPlaying}
               disabled={!isLoaded}
               onZoomIn={viewport.zoomIn}
               onZoomOut={viewport.zoomOut}
-              onScroll={viewport.scroll}
-            />
-            <WaveformView
-              state={importState}
-              positionRatio={positionRatio}
-              loopRegion={loopRegion}
-              durationSeconds={transport.durationSeconds}
-              viewport={viewport.viewport}
-              onSeek={seekToRatio}
-              onSelectRegion={(start, end) =>
-                setLoopRegion(
-                  makeLoopRegion(
-                    start * transport.durationSeconds,
-                    end * transport.durationSeconds
+              onSetZoom={viewport.setZoom}
+            >
+              <MarkerRail
+                markers={markers.markers}
+                durationSeconds={transport.durationSeconds}
+                onSeek={seekToSeconds}
+                onRemove={markers.remove}
+              />
+              <WaveformView
+                state={importState}
+                loopRegion={loopRegion}
+                durationSeconds={transport.durationSeconds}
+                onSeek={seekToRatio}
+                onSelectRegion={(start, end) =>
+                  setLoopRegion(
+                    makeLoopRegion(
+                      start * transport.durationSeconds,
+                      end * transport.durationSeconds
+                    )
                   )
-                )
-              }
-              onScrollBy={viewport.nudge}
-            />
+                }
+              />
+            </ZoomStage>
             <LoopBar
               hasRegion={loopRegion !== undefined}
               library={loops.library}

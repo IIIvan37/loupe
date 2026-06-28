@@ -66,6 +66,7 @@ export function TransportBar({
           <span className={styles.fieldLabel}>Tempo (sans toucher au pitch)</span>
           <input
             type="range"
+            data-accent="amber"
             min={50}
             max={150}
             value={tempoPercent}
@@ -79,6 +80,7 @@ export function TransportBar({
           <span className={styles.fieldLabel}>Hauteur</span>
           <input
             type="range"
+            data-accent="teal"
             min={-12}
             max={12}
             value={pitchSemitones}

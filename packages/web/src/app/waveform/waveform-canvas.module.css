@@ -1,8 +1,6 @@
+/* Fills the waveform frame (which owns the border/background/height). */
 .canvas {
   display: block;
   width: 100%;
-  height: 180px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
+  height: 100%;
 }

@@ -7,7 +7,14 @@ import type {
   LoopStore,
   PlaybackEngine
 } from '@app/core'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within
+} from '@testing-library/react'
 import { vi } from 'vitest'
 import { WorkstationShell } from './workstation-shell.tsx'
 
@@ -88,14 +95,18 @@ describe('WorkstationShell', () => {
 
   it('disables play until a track is loaded, then enables it with the duration', async () => {
     const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    const { container } = render(
+      <WorkstationShell decoder={okDecoder} engine={engine} />
+    )
 
     expect(screen.getByRole('button', { name: 'Lecture' })).toBeDisabled()
 
     await importTrack()
 
     expect(screen.getByRole('button', { name: 'Lecture' })).toBeEnabled()
-    expect(screen.getByText('0:10')).toBeInTheDocument()
+    // Scope to the transport — the ruler also prints timecodes.
+    const footer = container.querySelector('footer') as HTMLElement
+    expect(within(footer).getByText('0:10')).toBeInTheDocument()
   })
 
   it('surfaces a decode failure as an alert', async () => {
@@ -131,11 +142,14 @@ describe('WorkstationShell', () => {
 
   it('reflects the engine position as a timecode', async () => {
     const engine = fakeEngine()
-    render(<WorkstationShell decoder={okDecoder} engine={engine} />)
+    const { container } = render(
+      <WorkstationShell decoder={okDecoder} engine={engine} />
+    )
     await importTrack()
 
     act(() => engine.emit(5))
-    expect(screen.getByText('0:05')).toBeInTheDocument()
+    const footer = container.querySelector('footer') as HTMLElement
+    expect(within(footer).getByText('0:05')).toBeInTheDocument()
   })
 
   it('toggles playback with the Space key', async () => {

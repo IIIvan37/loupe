@@ -24,10 +24,10 @@ The single place to look before adding a feature, so ports and use-cases get
 > `wrapToLoop` / `loopLength`) and `LoopLibrary` (`addLoop` / `removeLoop`); the
 > `loops` use-cases above persist the library through the `LoopStore` port.
 >
-> Pure viewport domain (no use-case/port, UI-driven) — Slice 6: `Viewport`
-> (`initialViewport` / `zoomTo` / `scrollTo` / `scrollBy`) in normalised timeline
-> space with `toViewRatio` / `toTimelineRatio` (round-trip property-tested),
-> `visibleWindow` / `maxOffset`, plus `sliceWaveform` to re-render the visible peaks.
+> Pure zoom domain (no use-case/port, UI-driven) — Slice 6: `clampZoom` /
+> `zoomIn` / `zoomOut` over a `MIN_ZOOM…MAX_ZOOM` (1×–6×) scalar in `ZOOM_STEP`
+> increments. Panning is the view's job (a native horizontal scroll over a
+> zoom-scaled inner element), so the core only owns the magnification level.
 
 ## Ports
 

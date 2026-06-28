@@ -1,38 +1,50 @@
-.label {
-  color: var(--dim);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.zoom {
-  width: 1.75rem;
-  padding: var(--space-2xs) 0;
-  border-radius: var(--radius);
+/* Floating zoom pill, top-right of the waveform — below the ruler (46px). */
+.tools {
+  position: absolute;
+  top: calc(46px + var(--space-xs));
+  right: var(--space-xs);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-3xs) var(--space-2xs);
   border: 1px solid var(--line);
-  background: var(--panel-2);
-  color: var(--text);
-  font-size: 0.9rem;
-  line-height: 1;
-}
-
-.zoom:disabled {
-  opacity: 0.5;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(3px);
 }
 
 .level {
-  min-width: 2.5rem;
-  color: var(--text);
+  width: 2.25rem;
+  color: var(--dim);
   font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-align: right;
+}
+
+.tick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel-2);
+  color: var(--dim);
   font-size: 0.8rem;
-  text-align: center;
+  line-height: 1;
 }
 
-.scroll {
-  flex: 1;
-  min-width: 6rem;
+.tick:hover:not(:disabled) {
+  color: var(--text);
+  border-color: #3a3f52;
 }
 
-.scroll:disabled {
+.tick:disabled {
   opacity: 0.5;
+}
+
+.slider {
+  width: 74px;
 }
