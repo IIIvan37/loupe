@@ -22,6 +22,17 @@ export type {
 } from './application/ports.ts'
 export type { Greeting } from './domain/greeting.ts'
 export { buildGreeting } from './domain/greeting.ts'
+export type {
+  Command,
+  KeyBinding,
+  KeyBindings,
+  KeyChord
+} from './domain/key-bindings.ts'
+export {
+  defaultKeyBindings,
+  resolveCommand,
+  SEEK_STEP_SECONDS
+} from './domain/key-bindings.ts'
 export type { LoopLibrary, NamedLoop } from './domain/loop-library.ts'
 export {
   addLoop,

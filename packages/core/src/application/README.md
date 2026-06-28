@@ -28,6 +28,13 @@ The single place to look before adding a feature, so ports and use-cases get
 > `zoomIn` / `zoomOut` over a `MIN_ZOOM…MAX_ZOOM` (1×–6×) scalar in `ZOOM_STEP`
 > increments. Panning is the view's job (a native horizontal scroll over a
 > zoom-scaled inner element), so the core only owns the magnification level.
+>
+> Pure keyboard domain (no use-case/port, UI-driven) — Slice 7: `resolveCommand`
+> maps a `KeyChord` (code + modifiers) through `defaultKeyBindings` to a
+> `Command` (`togglePlayback` / `seekBy` / `zoomIn` / `zoomOut` / `addMarker`).
+> Matching is exact on code AND every modifier, so bare keys never hijack
+> browser/OS chords. The web's `useKeyboardShortcuts` is the global-listener
+> adapter that dispatches each command onto the smart hooks.
 
 ## Ports
 

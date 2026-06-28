@@ -1,15 +1,19 @@
 import {
   type AudioFileDecoder,
+  defaultKeyBindings,
   formatTimecode,
   type LoopStore,
   makeLoopRegion,
   type PlaybackEngine,
   type TrackMetadataReader
 } from '@app/core'
-import { type ChangeEvent, useEffect, useRef, useState } from 'react'
+import { type ChangeEvent, useRef, useState } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { Header } from '../header/header.tsx'
+import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
+import { ShortcutsDialog } from '../keyboard/shortcuts-dialog.tsx'
+import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
 import { LoopBar } from '../loops/loop-bar.tsx'
 import { useLoops } from '../loops/use-loops.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
@@ -22,13 +26,14 @@ import { WaveformView } from '../waveform/waveform-view.tsx'
 import { ZoomStage } from '../waveform/zoom-stage.tsx'
 import styles from './workstation-shell.module.css'
 
+/** Help rows derived once from the shipped layout — never drift from the keys. */
+const SHORTCUT_HINTS = describeKeyBindings(defaultKeyBindings)
+
 const DETECTED = [
   { id: 'key', label: 'Tonalité', value: 'B♭ min' },
   { id: 'tempo', label: 'Tempo', value: '96 BPM' },
   { id: 'meter', label: 'Mesure', value: '4/4' }
 ] as const
-
-const INTERACTIVE_TAGS = ['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT']
 
 /** A file name without its extension, the fallback header title. */
 function trackTitle(fileName: string): string {
@@ -46,8 +51,8 @@ interface WorkstationShellProps {
 
 /**
  * Top-level smart shell: owns the single import entry point (the header button
- * drives a hidden file input), the transport, and the global Space shortcut, and
- * lays the regions out.
+ * drives a hidden file input), the transport, and the global keyboard shortcuts,
+ * and lays the regions out.
  */
 export function WorkstationShell({
   decoder,
@@ -74,29 +79,22 @@ export function WorkstationShell({
   const loops = useLoops(loopStore)
   const viewport = useViewport()
   const [trackName, setTrackName] = useState<string | null>(null)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Keep a stable Space listener pointed at the latest toggle (updated after
-  // each commit, so the listener never closes over a stale transport).
-  const toggleRef = useRef(togglePlayback)
-  useEffect(() => {
-    toggleRef.current = togglePlayback
-  })
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent): void {
-      if (event.code !== 'Space') {
-        return
-      }
-      const target = event.target
-      if (target instanceof HTMLElement && INTERACTIVE_TAGS.includes(target.tagName)) {
-        return
-      }
-      event.preventDefault()
-      toggleRef.current()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  const isLoaded = importState.status === 'loaded'
+
+  // Global keyboard layout — only live once a track is loaded.
+  useKeyboardShortcuts(
+    {
+      togglePlayback,
+      seekBy: (seconds) => seekToSeconds(transport.positionSeconds + seconds),
+      zoomIn: viewport.zoomIn,
+      zoomOut: viewport.zoomOut,
+      addMarker: (kind) => markers.addAt(kind, transport.positionSeconds)
+    },
+    { enabled: isLoaded }
+  )
 
   function onFilePicked(event: ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0]
@@ -112,7 +110,6 @@ export function WorkstationShell({
     event.target.value = ''
   }
 
-  const isLoaded = importState.status === 'loaded'
   const positionRatio =
     transport.durationSeconds > 0
       ? transport.positionSeconds / transport.durationSeconds
@@ -128,6 +125,12 @@ export function WorkstationShell({
         }
         detected={DETECTED}
         onImport={() => fileInputRef.current?.click()}
+        onShowShortcuts={() => setShortcutsOpen(true)}
+      />
+      <ShortcutsDialog
+        open={shortcutsOpen}
+        onOpenChange={setShortcutsOpen}
+        hints={SHORTCUT_HINTS}
       />
       <input
         ref={fileInputRef}
