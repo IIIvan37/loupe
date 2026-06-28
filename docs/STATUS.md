@@ -5,8 +5,8 @@
 ## Where we are
 
 - **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 4 (timeline
-  markers) **done**, in PR. See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon1-markers` (Slice 4 PR).
+  markers) **done & merged**. See [docs/jalon-1-plan.md](jalon-1-plan.md).
+- **Branch**: `main` (no slice in flight; Slice 5 next).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`)
   + `@app/cli` (example adapter, to be removed once it's redundant) + `packages/web`
