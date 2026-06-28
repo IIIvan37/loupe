@@ -5,13 +5,13 @@
 ## Where we are
 
 - **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 6 (zoom +
-  scrollable viewport) **done**, PR open on `feat/jalon1-zoom-viewport`. See
-  [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon1-zoom-viewport` (Slice 6 in PR; Slice 7 next).
-- **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track` +
-  `sliceWaveform`, `transportReducer`/`formatTimecode`,
-  `clampPlaybackRate`/`clampPitchSemitones`, `Viewport` zoom/scroll mapping)
-  + `@app/cli` (example adapter, to be removed once it's redundant) + `packages/web`
+  scrollable viewport) **done & merged** (PRs #11 + #12), incl. file-metadata
+  header and inspector marker list. See [docs/jalon-1-plan.md](jalon-1-plan.md).
+- **Branch**: `main` (no slice in flight; Slice 7 next).
+- **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
+  `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
+  `clampZoom`/`zoomIn`/`zoomOut`, `TrackMetadataReader` port) + `@app/cli`
+  (example adapter, to be removed once it's redundant) + `packages/web`
   (import → waveform → transport → time-stretch/pitch → markers → loops → zoom,
   gate-green).
 
@@ -52,6 +52,12 @@ a11y (focus visible, `prefers-reduced-motion`) and responsive. Outside-in via
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-28 — jalon1-zoom-review](sessions/2026-06-28-jalon1-zoom-review.md) —
+  Slice 6 follow-up: prototype-aligned zoom (magnify slider + native scroll +
+  shared `ZoomStage`), `Viewport` reduced to a zoom scalar, file-metadata header
+  (`TrackMetadataReader` + music-metadata), inspector marker list, high-effort
+  code review fixed (metadata race, marker removal, auto-follow). Merged via
+  PR #11 (first cut) + PR #12 (corrections).
 - [2026-06-28 — jalon1-zoom-viewport](sessions/2026-06-28-jalon1-zoom-viewport.md) —
   Slice 6: pure `Viewport` (normalised ratio space, round-trip property-tested,
   mutation 95.35%) + `sliceWaveform`, `useViewport` + `ViewportControls`,
