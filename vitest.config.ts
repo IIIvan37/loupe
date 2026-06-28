@@ -3,13 +3,22 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     globals: true,
+    // Node by default (the pure core). Web specs opt into jsdom per-file via a
+    // `// @vitest-environment jsdom` docblock.
     environment: 'node',
-    include: ['packages/*/src/**/*.spec.ts'],
+    include: ['packages/*/src/**/*.spec.ts', 'packages/*/src/**/*.spec.tsx'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
-      include: ['packages/*/src/**/*.ts'],
-      exclude: ['**/*.spec.ts', '**/index.ts', '**/*.d.ts'],
+      include: ['packages/*/src/**/*.{ts,tsx}'],
+      exclude: [
+        '**/*.spec.ts',
+        '**/*.spec.tsx',
+        '**/index.ts',
+        '**/main.ts',
+        '**/main.tsx',
+        '**/*.d.ts'
+      ],
       // TDD strict: the pure core is meant to stay fully covered. Thresholds gate
       // `core`; cli adapters are exercised end-to-end and main.ts is the entrypoint.
       thresholds: {

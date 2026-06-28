@@ -1,5 +1,5 @@
 {
-  "name": "hexagonal-tdd-starter",
+  "name": "loupe",
   "private": true,
   "type": "module",
   "engines": {
@@ -8,7 +8,7 @@
   },
   "packageManager": "pnpm@10.11.0",
   "scripts": {
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p packages/web/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -20,9 +20,11 @@
     "check": "biome check .",
     "check:fix": "biome check . --write",
     "check:arch": "sheriff verify",
+    "check:design": "impeccable detect packages/web/src",
+    "check:react": "react-doctor packages/web --blocking warning --no-telemetry",
     "check:dead": "knip",
     "check:dup": "jscpd packages",
-    "gate": "pnpm run \"/^(typecheck|check|check:arch|test:coverage|check:dead|check:dup)$/\"",
+    "gate": "pnpm run \"/^(typecheck|check|check:arch|check:design|check:react|test:coverage|check:dead|check:dup)$/\"",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -36,8 +38,10 @@
     "@vitest/coverage-v8": "^4.0.4",
     "fast-check": "^3.23.1",
     "husky": "^9.1.7",
+    "impeccable": "^3.1.0",
     "jscpd": "^5.0.6",
     "knip": "^6.16.1",
+    "react-doctor": "^0.5.8",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "vitest": "^4.0.4"

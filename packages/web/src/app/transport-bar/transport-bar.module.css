@@ -1,0 +1,54 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-l);
+  padding: var(--space-s) var(--space-l);
+  background: var(--panel);
+  border-block-start: 1px solid var(--line);
+}
+
+.control {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+}
+
+.play {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--bg);
+}
+
+.time {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  margin-inline-start: var(--space-s);
+}
+
+.position {
+  color: var(--amber);
+}
+
+.separator,
+.duration {
+  color: var(--dim);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3xs);
+}
+
+.fieldLabel {
+  color: var(--dim);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}

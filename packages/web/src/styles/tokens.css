@@ -1,0 +1,44 @@
+/*
+ * Loupe design tokens — single source of truth for color, type and spacing.
+ * Semantic rule (do not dilute): amber = your settings / what's playing;
+ * teal = what the machine detected (key, BPM, chords, confidence).
+ */
+:root {
+  /* Surfaces & text */
+  --bg: #13151c;
+  --panel: #1a1d27;
+  --panel-2: #21242f;
+  --panel-3: #262a37;
+  --line: #2c3040;
+  --text: #e9e7e1;
+  --dim: #8b90a3;
+  --faint: #5a5f72;
+
+  /* Semantic accents */
+  --amber: #e5a53d; /* what plays / is active / the loupe loop */
+  --teal: #56b8c9; /* what the AI detected */
+
+  /* Stems */
+  --stem-vocals: #e2897a;
+  --stem-drums: #7c86a6;
+  --stem-bass: #a481c9;
+  --stem-guitar: #8db585;
+  --stem-keys: #6fa8d4;
+
+  /* Typography */
+  --font-ui: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-logo: 'Space Grotesk', var(--font-ui);
+
+  /* Spacing scale (Every Layout — modular, owned by primitives) */
+  --space-3xs: 0.125rem;
+  --space-2xs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-s: 0.75rem;
+  --space-m: 1rem;
+  --space-l: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  --radius: 6px;
+}
