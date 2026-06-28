@@ -20,7 +20,7 @@ export default defineConfig({
         '**/*.d.ts'
       ],
       // TDD strict: the pure core is meant to stay fully covered. Thresholds gate
-      // `core`; cli adapters are exercised end-to-end and main.ts is the entrypoint.
+      // `core` only; web adapters are exercised through component/integration tests.
       thresholds: {
         'packages/core/src/**': {
           statements: 90,

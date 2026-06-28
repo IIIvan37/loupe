@@ -13,10 +13,10 @@
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
-  `TrackMetadataReader` port) + `@app/cli`
-  (example adapter, to be removed once it's redundant) + `packages/web`
+  `TrackMetadataReader` port) + `packages/web`
   (import → waveform → transport → time-stretch/pitch → markers → loops → zoom →
-  keyboard shortcuts, gate-green).
+  keyboard shortcuts, gate-green). The starter `@app/cli`/`greet` example has been
+  removed.
 
 ## Locked decisions (kickoff)
 
@@ -33,10 +33,9 @@
 
 ## Next step
 
-**Jalon 1 is complete (PR #13 merged).** Next is Jalon 2 (séparation IA) per
-[docs/loupe-plan-produit.md](loupe-plan-produit.md); kick it off with its own
-plan/kickoff on a fresh branch. Optional cleanup: remove the now-redundant
-`@app/cli` example.
+**Jalon 1 is complete (PR #13 merged) and polished (PR #14).** Next is Jalon 2
+(séparation IA) per [docs/loupe-plan-produit.md](loupe-plan-produit.md); kick it
+off with its own plan/kickoff on a fresh branch.
 
 ## Roadmap
 

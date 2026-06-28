@@ -6,14 +6,13 @@ import type { SheriffConfig } from '@softarc/sheriff-core'
  * held by Biome (noRestrictedGlobals / noRestrictedImports, override on
  * packages/core in biome.json).
  *
- *   domain  ← application  ← api (index.ts)  ← cli adapter
+ *   domain  ← application  ← api (index.ts)  ← web adapter
  *
- * The domain is the center and depends on nothing. Add packages/web (or any new
- * adapter) as another entry point + module + depRule when you grow the workspace.
+ * The domain is the center and depends on nothing. Add another adapter as an
+ * extra entry point + module + depRule when you grow the workspace.
  */
 export const config: SheriffConfig = {
   entryPoints: {
-    cli: 'packages/cli/src/main.ts',
     web: 'packages/web/src/main.tsx'
   },
   enableBarrelLess: true,
@@ -21,7 +20,6 @@ export const config: SheriffConfig = {
     'packages/core/src/domain': ['core:domain'],
     'packages/core/src/application': ['core:application'],
     'packages/core/src': ['core:api'],
-    'packages/cli/src': ['cli'],
     'packages/web/src': ['web']
   },
   depRules: {
@@ -35,7 +33,6 @@ export const config: SheriffConfig = {
     // The public contract (index.ts) re-exports domain + application.
     'core:api': ['core:domain', 'core:application'],
     // Adapters consume only the core's public contract.
-    cli: ['core:api'],
     web: ['core:api']
   }
 }

@@ -53,17 +53,17 @@ build/spike that consumer first**. Don't invent the shape.
 - `fast-check` for cross-input invariants.
 - Stop when the outer acceptance test goes green. No extra domain API.
 
-## 4. Adapter in cli/web (the only impure code)
+## 4. Adapter in web (the only impure code)
 
-- `packages/cli/src/adapters/<name>.ts` implements the port (fs, a client lib…);
-  web adapters use Web Audio / DOM. Wired in the entrypoint (`cli/src/main.ts`):
-  assemble input → inject real ports → map Result. Adapters may import `node:*` /
-  browser APIs — they live outside the hexagon.
+- `packages/web/src/...` implements the port (Web Audio / localStorage / DOM /
+  file APIs) and a smart hook wires it into the UI: assemble input → inject real
+  ports → map Result. Adapters may import browser APIs — they live outside the
+  hexagon.
 - Export the public surface from `packages/core/src/index.ts`.
 
-> A new package (e.g. `packages/web`) is this recipe at package scale: a package
-> depending on `@app/core`, adapters implementing the EXISTING ports, no new core
-> code unless a port is genuinely missing.
+> A new adapter package is this recipe at package scale: a package depending on
+> `@app/core`, adapters implementing the EXISTING ports, no new core code unless a
+> port is genuinely missing.
 
 ## 5. Prove it & register
 

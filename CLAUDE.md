@@ -4,10 +4,10 @@ Guidance for Claude Code (and any contributor) working in this repository.
 
 ## What this is
 
-A **reusable starter**: a pnpm monorepo with a **pure hexagonal core** + adapters,
-**TDD-strict**, and a blocking quality gate. It ships one example vertical slice
-(`greet <name>`) to prove the toolchain and the method; replace it with your
-domain.
+**loupe** — a browser audio practice tool (import a track and work it: waveform,
+transport, time-stretch/pitch, markers, A/B loops, zoom, keyboard shortcuts). A
+pnpm monorepo with a **pure hexagonal core** + a React (`web`) adapter,
+**TDD-strict**, and a blocking quality gate.
 
 ## Commands
 
@@ -20,7 +20,7 @@ domain.
   CI post-merge. Kept out of `gate` (too slow per commit).
 - `pnpm typecheck` / `pnpm check` / `pnpm check:fix` / `pnpm check:arch`
   / `pnpm check:dead` / `pnpm check:dup`.
-- Run the example: `pnpm --filter @app/cli start <name>`.
+- Run the app: `pnpm --filter @app/web dev`.
 
 ## Architecture (hexagonal)
 
@@ -28,7 +28,7 @@ domain.
 packages/
   core/   — pure hexagon, no I/O. src/domain (model) + src/application (use-cases + ports).
             src/index.ts is the only public surface adapters import.
-  cli/     — Node adapters implementing the ports + entrypoint (src/main.ts).
+  web/     — React adapter: Web Audio / localStorage / file ports + the workstation UI.
 ```
 
 Dependency direction: `application → domain`; adapters depend only on `@app/core`'s
@@ -49,7 +49,7 @@ can't see.
 - **TDD strict** (`/tdd-cycle`): red → green → refactor; never write core code
   without a failing test. Property tests (fast-check) for invariants.
 - **New feature** = a hexagonal vertical slice (`/new-feature-hexa`): pure domain +
-  use-case/port in `core`, adapter in `cli`; register it in
+  use-case/port in `core`, adapter in `web`; register it in
   [packages/core/src/application/README.md](packages/core/src/application/README.md).
 - **Close every step** with `/session-report` (updates `docs/STATUS.md` + a dated
   report under `docs/sessions/`). The report ships **inside** the feature's PR.

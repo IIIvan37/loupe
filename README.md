@@ -1,53 +1,52 @@
-# hexagonal-tdd-starter
+# loupe
 
-A reusable starter for a **pnpm monorepo** with a **pure hexagonal core**,
-**strict TDD**, and a **blocking quality gate** — plus Claude Code skills that
-encode the method. Domain-agnostic: it ships one tiny example slice (`greet`) and
-nothing else, so you can replace it with your own domain immediately.
+A browser audio practice tool — import a track and work it: waveform with
+click-to-seek, transport, time-stretch and pitch (SoundTouch), markers, A/B loops
+(the « loupe »), zoom, and keyboard shortcuts. Built as a **pnpm monorepo** with a
+**pure hexagonal core**, **strict TDD**, and a **blocking quality gate**.
 
-## What's in the box
+## Architecture
 
-- **Hexagonal layering**, enforced three ways:
-  - the package graph (`@app/core` pure ← `@app/cli` adapter),
-  - **Sheriff** (`sheriff.config.ts`) on the module graph,
-  - **Biome** `noRestricted*` (override on `packages/core`) for the no-I/O /
-    no-browser-global purity invariant Sheriff can't see.
-- **Blocking quality gate** (`pnpm gate`): TypeScript strict, Biome lint+format,
-  Sheriff, vitest with coverage thresholds, knip (dead code), jscpd (duplication,
-  threshold 0). Greenfield = no debt tolerated, a finding fails the build.
-- **Mutation testing** (Stryker, scoped to the pure core) — run locally before the
-  PR, and in CI post-merge.
-- **TDD strict** with fast-check property tests; one example vertical slice.
-- **Guardrails**: husky `pre-commit` (gate) + `commit-msg` (commitlint), a
-  `block-commit-on-main` hook (code needs a branch+PR; docs may go straight to main).
-- **CI** (GitHub Actions): gate + commitlint on PRs, mutation post-merge; Dependabot.
-- **Claude Code skills**: `/tdd-cycle`, `/new-feature-hexa`, `/quality-gate`,
-  `/session-report` (the close-step discipline: report ships in the PR, mutation
-  run locally pre-PR).
+- **`@app/core`** — the pure hexagon. `src/domain` (model) + `src/application`
+  (use-cases + ports). No I/O, no browser globals; values in, values out.
+  `src/index.ts` is the only public surface adapters import.
+- **`packages/web`** — the React adapter: Web Audio / localStorage / file ports
+  behind the core's interfaces, smart hooks + dumb components, the workstation UI.
 
-## Use it
+Layering is enforced three ways: the package graph (`@app/core` pure ← `web`
+adapter), **Sheriff** (`sheriff.config.ts`) on the module graph, and **Biome**
+`noRestricted*` (override on `packages/core`) for the no-I/O / no-browser-global
+purity invariant Sheriff can't see.
+
+## Commands
 
 ```sh
-# scaffold a new project from this template
-npx degit <your-org>/hexagonal-tdd-starter my-project
-cd my-project
 corepack enable
 pnpm install
-pnpm gate          # everything green
-pnpm --filter @app/cli start Ada   # → Hello, Ada!
+pnpm --filter @app/web dev   # run the workstation
+pnpm gate                    # the blocking quality gate (run before any commit)
 ```
 
-Requires Node (see `.nvmrc`) and pnpm via Corepack.
+- **`pnpm gate`** — TypeScript strict, Biome lint+format, Sheriff, vitest with
+  coverage thresholds (core), knip (dead code), jscpd (duplication), plus
+  `impeccable` + `react-doctor` on the web package. Greenfield: a finding fails it.
+- **`pnpm test`** / `test:watch` / `test:coverage` — vitest (`*.spec.ts(x)`,
+  colocated).
+- **`pnpm test:mutation`** — Stryker, scoped to `@app/core`; run locally before a
+  PR (also runs in CI post-merge).
 
-## Make it yours
+## Method
 
-1. Rename the packages (`@app/core`, `@app/cli`) and the root `name`.
-2. Replace the `greeting` slice with your domain, **outside-in**: write the
-   use-case acceptance test first (`/new-feature-hexa`), let it pull the domain
-   into existence (`/tdd-cycle`), then implement the adapter.
-3. Adjust the Biome core-purity denylist and the Sheriff tags/depRules as your
-   layers grow (e.g. add `packages/web`).
-4. Keep `docs/STATUS.md` + `docs/sessions/` current via `/session-report`.
+- **TDD strict** (`/tdd-cycle`): red → green → refactor; the core is never written
+  without a failing test. Property tests (fast-check) for invariants.
+- **New feature = a hexagonal vertical slice** (`/new-feature-hexa`): pure
+  domain + use-case/port in `core`, adapter in `web`; registered in
+  [packages/core/src/application/README.md](packages/core/src/application/README.md).
+- **Close every step** with `/session-report` (updates `docs/STATUS.md` + a dated
+  report under `docs/sessions/`); the report ships inside the feature's PR.
+- **Guardrails**: husky `pre-commit` (gate) + `commit-msg` (commitlint), a
+  `block-commit-on-main` hook (code needs a branch + PR; docs may go straight to
+  main). CI runs the gate + commitlint on PRs, mutation post-merge.
 
 ## Layout
 
@@ -55,8 +54,7 @@ Requires Node (see `.nvmrc`) and pnpm via Corepack.
 packages/core/src/domain        pure model
 packages/core/src/application   use-cases + ports (the registry README lives here)
 packages/core/src/index.ts      the only public surface adapters import
-packages/cli/src/adapters       port implementations (I/O lives here)
-packages/cli/src/main.ts        composition root / entrypoint
+packages/web/src                the React adapter + workstation UI
 .claude/skills                  the method, as Claude Code skills
 docs/STATUS.md, docs/sessions   resumable project state
 ```

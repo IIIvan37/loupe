@@ -1,15 +1,4 @@
-import type { Greeting } from '../domain/greeting.ts'
 import type { LoopLibrary } from '../domain/loop-library.ts'
-
-/** Driving port: provides the input. Implemented by an adapter (cli/web/…). */
-export interface NameSource {
-  load(): Promise<string>
-}
-
-/** Driven port: emits/persists the result. The concrete sink is the adapter's job. */
-export interface GreetingSink {
-  save(greeting: Greeting): Promise<void>
-}
 
 /**
  * Raw decoded PCM: one array of samples (normalised to [-1, 1]) per channel,
