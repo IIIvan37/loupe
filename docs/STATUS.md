@@ -5,8 +5,8 @@
 ## Where we are
 
 - **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 5 (A/B loops,
-  the « loupe ») **done**, in PR. See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon1-loops` (Slice 5 PR).
+  the « loupe ») **done & merged**. See [docs/jalon-1-plan.md](jalon-1-plan.md).
+- **Branch**: `main` (no slice in flight; Slice 6 next).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`)
   + `@app/cli` (example adapter, to be removed once it's redundant) + `packages/web`
