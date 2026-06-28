@@ -1,8 +1,16 @@
-import { type AudioFileDecoder, formatTimecode, type PlaybackEngine } from '@app/core'
+import {
+  type AudioFileDecoder,
+  formatTimecode,
+  type LoopStore,
+  makeLoopRegion,
+  type PlaybackEngine
+} from '@app/core'
 import { type ChangeEvent, useEffect, useRef } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { Header } from '../header/header.tsx'
+import { LoopBar } from '../loops/loop-bar.tsx'
+import { useLoops } from '../loops/use-loops.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
 import { MarkerRail } from '../markers/marker-rail.tsx'
 import { useMarkers } from '../markers/use-markers.ts'
@@ -23,6 +31,7 @@ interface WorkstationShellProps {
   /** Ports injected in tests; default to the real Web Audio adapters. */
   readonly decoder?: AudioFileDecoder
   readonly engine?: PlaybackEngine
+  readonly loopStore?: LoopStore
 }
 
 /**
@@ -30,20 +39,27 @@ interface WorkstationShellProps {
  * drives a hidden file input), the transport, and the global Space shortcut, and
  * lays the regions out.
  */
-export function WorkstationShell({ decoder, engine }: WorkstationShellProps) {
+export function WorkstationShell({
+  decoder,
+  engine,
+  loopStore
+}: WorkstationShellProps) {
   const {
     importState,
     transport,
     timeRatio,
     pitchSemitones,
+    loopRegion,
     importFile,
     togglePlayback,
     seekToRatio,
     seekToSeconds,
     setTimeRatio,
-    setPitchSemitones
+    setPitchSemitones,
+    setLoopRegion
   } = usePlayer(decoder, engine)
   const markers = useMarkers()
+  const loops = useLoops(loopStore)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Keep a stable Space listener pointed at the latest toggle (updated after
@@ -118,7 +134,36 @@ export function WorkstationShell({ decoder, engine }: WorkstationShellProps) {
             <WaveformView
               state={importState}
               positionRatio={positionRatio}
+              loopRegion={loopRegion}
+              durationSeconds={transport.durationSeconds}
               onSeek={seekToRatio}
+              onSelectRegion={(start, end) =>
+                setLoopRegion(
+                  makeLoopRegion(
+                    start * transport.durationSeconds,
+                    end * transport.durationSeconds
+                  )
+                )
+              }
+            />
+            <LoopBar
+              hasRegion={loopRegion !== undefined}
+              library={loops.library}
+              onSaveRegion={() => {
+                if (!loopRegion) {
+                  return
+                }
+                const name = window.prompt('Nom de la boucle')?.trim()
+                if (name) {
+                  loops.save(name, loopRegion)
+                }
+              }}
+              onClearRegion={() => setLoopRegion(undefined)}
+              onActivate={(loop) => {
+                setLoopRegion(loop.region)
+                seekToSeconds(loop.region.startSeconds)
+              }}
+              onRemove={loops.remove}
             />
             <p className={styles.placeholderLabel}>Pistes séparées</p>
             <div className={styles.tracksPlaceholder} aria-hidden="true" />

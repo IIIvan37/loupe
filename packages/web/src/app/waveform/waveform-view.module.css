@@ -25,3 +25,11 @@
   background: var(--amber);
   pointer-events: none;
 }
+
+/* The « loupe »: everything outside the active loop dims. */
+.dim {
+  position: absolute;
+  inset-block: 0;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  pointer-events: none;
+}

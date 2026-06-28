@@ -4,9 +4,9 @@
 
 ## Where we are
 
-- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 4 (timeline
-  markers) **done & merged**. See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `main` (no slice in flight; Slice 5 next).
+- **Phase**: Jalon 1 (« Transcribe! dans le navigateur ») — Slice 5 (A/B loops,
+  the « loupe ») **done**, in PR. See [docs/jalon-1-plan.md](jalon-1-plan.md).
+- **Branch**: `feat/jalon1-loops` (Slice 5 PR).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`)
   + `@app/cli` (example adapter, to be removed once it's redundant) + `packages/web`
@@ -27,10 +27,9 @@
 
 ## Next step
 
-**Slice 5** — A/B loop drag-select + named loops (the « loupe »): pure
-`LoopRegion` / `LoopLibrary` domain + a `LoopStore` port (localStorage),
-drag-select on the waveform, the loupe effect (rest dims), saved-loops list.
-Outside-in via `/new-feature-hexa`.
+**Slice 6** — zoom + scrollable viewport (up to 6×): pure `Viewport` (time ↔ pixel
+mapping, round-trip property-tested) + zoom/scroll controls that re-render the
+waveform peaks. Outside-in via `/new-feature-hexa`.
 
 ## Roadmap
 
@@ -42,7 +41,7 @@ Outside-in via `/new-feature-hexa`.
 | J1.2 | Transport: play/pause/seek + playhead + Space | ✅ |
 | J1.3 | Time-stretch + pitch (SoundTouch worklet) — browser-verified | ✅ |
 | J1.4 | Markers (section/measure/beat) | ✅ |
-| J1.5 | A/B loop drag-select + named loops (the « loupe ») | ⬜ |
+| J1.5 | A/B loop drag-select + named loops (the « loupe ») | ✅ |
 | J1.6 | Zoom + scrollable viewport (6×) | ⬜ |
 | J1.7 | Keyboard shortcuts | ⬜ |
 
@@ -50,6 +49,10 @@ Outside-in via `/new-feature-hexa`.
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-28 — jalon1-loops](sessions/2026-06-28-jalon1-loops.md) —
+  Slice 5: `LoopRegion`/`LoopLibrary` + `LoopStore` port + loops use-cases (core,
+  loops.ts 100% mutation), localStorage adapter, drag-select + loupe dim overlay +
+  loop playback + saved-loops bar.
 - [2026-06-28 — jalon1-markers](sessions/2026-06-28-jalon1-markers.md) —
   Slice 4: `Marker`/`MarkerList` (core, marker-list 100% mutation), `useMarkers`,
   `MarkerControls` + `MarkerRail` (add at playhead, click-seek, remove, amber by kind).

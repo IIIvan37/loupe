@@ -13,62 +13,69 @@ const track: Track = {
 
 const noop = () => {}
 
+function renderLoaded(
+  overrides: Partial<Parameters<typeof WaveformView>[0]> = {}
+) {
+  return render(
+    <WaveformView
+      state={{ status: 'loaded', track }}
+      positionRatio={0}
+      loopRegion={undefined}
+      durationSeconds={10}
+      onSeek={noop}
+      onSelectRegion={noop}
+      {...overrides}
+    />
+  )
+}
+
+/** A press-and-release at the same x is a click; a span is a drag. */
+function pressDrag(element: Element, fromX: number, toX: number): void {
+  element.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
+  fireEvent.pointerDown(element, { button: 0, clientX: fromX })
+  fireEvent.pointerUp(element, { button: 0, clientX: toX })
+}
+
 describe('WaveformView', () => {
   it('prompts for an import while idle', () => {
-    render(<WaveformView state={{ status: 'idle' }} positionRatio={0} onSeek={noop} />)
+    render(
+      <WaveformView
+        state={{ status: 'idle' }}
+        positionRatio={0}
+        loopRegion={undefined}
+        durationSeconds={0}
+        onSeek={noop}
+        onSelectRegion={noop}
+      />
+    )
     expect(screen.getByText(/Importe un fichier audio/)).toBeInTheDocument()
   })
 
-  it('shows progress while decoding', () => {
-    render(<WaveformView state={{ status: 'loading' }} positionRatio={0} onSeek={noop} />)
-    expect(screen.getByText('Décodage…')).toBeInTheDocument()
+  it('seeks on a click (no drag)', () => {
+    const onSeek = vi.fn()
+    renderLoaded({ onSeek })
+    pressDrag(screen.getByRole('button'), 30, 30)
+    expect(onSeek).toHaveBeenCalledWith(0.3)
   })
 
-  it('reports a failure as an alert', () => {
-    render(
-      <WaveformView
-        state={{ status: 'error', message: 'bad file' }}
-        positionRatio={0}
-        onSeek={noop}
-      />
-    )
-    expect(screen.getByRole('alert')).toHaveTextContent('bad file')
+  it('selects an A/B region on a drag', () => {
+    const onSelectRegion = vi.fn()
+    renderLoaded({ onSelectRegion })
+    pressDrag(screen.getByRole('button'), 20, 60)
+    expect(onSelectRegion).toHaveBeenCalledWith(0.2, 0.6)
   })
 
-  it('renders the waveform with a seek surface once loaded', () => {
-    render(
-      <WaveformView state={{ status: 'loaded', track }} positionRatio={0.5} onSeek={noop} />
-    )
+  it('normalises a backwards drag', () => {
+    const onSelectRegion = vi.fn()
+    renderLoaded({ onSelectRegion })
+    pressDrag(screen.getByRole('button'), 60, 20)
+    expect(onSelectRegion).toHaveBeenCalledWith(0.2, 0.6)
+  })
+
+  it('renders the waveform image once loaded', () => {
+    renderLoaded()
     expect(
       screen.getByRole('img', { name: "Forme d'onde de la piste" })
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Se positionner dans la piste' })
-    ).toBeInTheDocument()
-  })
-
-  it('seeks to the clicked fraction of the surface', () => {
-    const onSeek = vi.fn()
-    render(
-      <WaveformView state={{ status: 'loaded', track }} positionRatio={0} onSeek={onSeek} />
-    )
-    const surface = screen.getByRole('button', { name: 'Se positionner dans la piste' })
-    surface.getBoundingClientRect = () =>
-      ({ left: 0, width: 200 }) as DOMRect
-    // detail: 1 marks a real pointer click (detail 0 = keyboard activation).
-    fireEvent.click(surface, { clientX: 50, detail: 1 })
-    expect(onSeek).toHaveBeenCalledWith(0.25)
-  })
-
-  it('ignores keyboard activation of the seek surface', () => {
-    const onSeek = vi.fn()
-    render(
-      <WaveformView state={{ status: 'loaded', track }} positionRatio={0} onSeek={onSeek} />
-    )
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Se positionner dans la piste' }),
-      { detail: 0 }
-    )
-    expect(onSeek).not.toHaveBeenCalled()
   })
 })

@@ -1,4 +1,5 @@
 import type { Greeting } from '../domain/greeting.ts'
+import type { LoopLibrary } from '../domain/loop-library.ts'
 
 /** Driving port: provides the input. Implemented by an adapter (cli/web/…). */
 export interface NameSource {
@@ -44,4 +45,13 @@ export interface PlaybackEngine {
   setPitchSemitones(semitones: number): void
   /** Subscribe to position updates (seconds). Returns an unsubscribe function. */
   onPositionChange(listener: (seconds: number) => void): () => void
+}
+
+/**
+ * Driven port: persist the saved-loop library across sessions. Implemented by an
+ * adapter (web: localStorage); the pure core never touches storage.
+ */
+export interface LoopStore {
+  load(): Promise<LoopLibrary>
+  save(library: LoopLibrary): Promise<void>
 }

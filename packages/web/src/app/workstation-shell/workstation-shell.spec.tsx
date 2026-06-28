@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import type { AudioFileDecoder, DecodedAudio, PlaybackEngine } from '@app/core'
+import type {
+  AudioFileDecoder,
+  DecodedAudio,
+  LoopLibrary,
+  LoopStore,
+  PlaybackEngine
+} from '@app/core'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { WorkstationShell } from './workstation-shell.tsx'
@@ -37,6 +43,22 @@ function fakeEngine() {
 
 function audioFile(): File {
   return new File([new Uint8Array([1, 2, 3, 4])], 'take.wav', { type: 'audio/wav' })
+}
+
+/** An in-memory loop store so tests never touch real localStorage. */
+function fakeLoopStore(): LoopStore {
+  let saved: LoopLibrary = []
+  return {
+    load: async () => saved,
+    save: async (library) => {
+      saved = library
+    }
+  }
+}
+
+/** The waveform stage button (click to seek, drag to loop). */
+function waveformSurface(): HTMLElement {
+  return screen.getByRole('button', { name: /Forme d'onde/ })
 }
 
 async function importTrack(): Promise<void> {
@@ -200,10 +222,35 @@ describe('WorkstationShell', () => {
     render(<WorkstationShell decoder={okDecoder} engine={engine} />)
     await importTrack()
 
-    const surface = screen.getByRole('button', { name: 'Se positionner dans la piste' })
+    const surface = waveformSurface()
     surface.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
-    fireEvent.click(surface, { clientX: 50, detail: 1 })
-    // 50% of a 10 s timeline.
+    // A press-release at the same x is a click → seek to 50% of a 10 s timeline.
+    fireEvent.pointerDown(surface, { button: 0, clientX: 50 })
+    fireEvent.pointerUp(surface, { button: 0, clientX: 50 })
     expect(engine.seekTo).toHaveBeenCalledWith(5)
+  })
+
+  it('drag-selects an A/B loop, saves it, and recalls it', async () => {
+    const engine = fakeEngine()
+    const prompt = vi
+      .spyOn(window, 'prompt')
+      .mockReturnValue('Mon passage')
+    render(
+      <WorkstationShell decoder={okDecoder} engine={engine} loopStore={fakeLoopStore()} />
+    )
+    await importTrack()
+
+    const surface = waveformSurface()
+    surface.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
+    // Drag 20%→60% of a 10 s timeline → loop [2s, 6s].
+    fireEvent.pointerDown(surface, { button: 0, clientX: 20 })
+    fireEvent.pointerUp(surface, { button: 0, clientX: 60 })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
+    const recall = await screen.findByRole('button', { name: 'Mon passage' })
+
+    fireEvent.click(recall)
+    expect(engine.seekTo).toHaveBeenCalledWith(2)
+    prompt.mockRestore()
   })
 })
