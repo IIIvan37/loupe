@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "copy-ort": "node scripts/copy-ort.mjs",
+    "predev": "pnpm run copy-ort",
     "dev": "vite",
+    "prebuild": "pnpm run copy-ort",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -16,6 +19,7 @@
     "@fontsource/space-grotesk": "^5.2.10",
     "@soundtouchjs/audio-worklet": "^2.0.4",
     "music-metadata": "^11.13.0",
+    "onnxruntime-web": "^1.27.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },

@@ -66,6 +66,8 @@ export {
   MAX_PLAYBACK_RATE,
   MIN_PLAYBACK_RATE
 } from './domain/playback-rate.ts'
+export type { Segment } from './domain/segment-plan.ts'
+export { planSegments, transitionWindow } from './domain/segment-plan.ts'
 export type {
   SeparationAction,
   SeparationPhase,

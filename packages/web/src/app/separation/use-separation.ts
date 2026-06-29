@@ -7,7 +7,7 @@ import {
   separationReducer
 } from '@app/core'
 import { useMemo, useReducer, useRef } from 'react'
-import { createStubSeparator } from '../../audio/stub-separator.ts'
+import { createSeparator } from '../../audio/create-separator.ts'
 
 /** Per-stem peak resolution: enough for a compact track-list waveform. */
 const BUCKET_COUNT = 240
@@ -22,10 +22,11 @@ export interface Separation {
 /**
  * Smart hook (= driving adapter logic): owns the separation state machine and
  * runs the `separateTrack` use-case, streaming the separator's progress into the
- * reducer. The separator defaults to the stub adapter and is injected in tests.
+ * reducer. The separator defaults to the real WASM engine (`createSeparator`) and
+ * is injected (a stub) in tests.
  */
 export function useSeparation(separator?: StemSeparator): Separation {
-  const engine = useMemo(() => separator ?? createStubSeparator(), [separator])
+  const engine = useMemo(() => separator ?? createSeparator(), [separator])
   const [state, dispatch] = useReducer(separationReducer, initialSeparation)
   // A monotonic token per run: a slow separation that finishes after a new
   // import or reset is stale, and its late progress/result must not land on the

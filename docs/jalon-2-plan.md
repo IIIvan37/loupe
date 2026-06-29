@@ -26,6 +26,26 @@
 - **Export : palier A** (plan produit §3.7) — dossier de stems WAV alignés (t=0,
   même durée, nommés), zippé + tempo en métadonnée. Palier B (`.band`) = hors jalon.
 
+### Licence du modèle (verrouillé Slice J2.2)
+
+Le moteur réel (J2.2) est **htdemucs**, derrière le port `StemSeparator`, avec
+**deux adapters** sélectionnables (`createSeparator`) : par défaut **demucs.cpp
+compilé en WASM** (`Retrobear/demucs.cpp`, fp16 ~84 Mo, mono-thread SIMD, plus
+léger/rapide, pas d'upcast fp32) ; alternative **onnxruntime-web** (`StemSplitio/
+htdemucs-onnx`, fp16 ~166 Mo). Le `demucs.cpp` n'a pas de build npm → compilé via
+`packages/web/scripts/build-demucs.sh` (Docker emsdk 3.1.51), artefacts
+`public/demucs/demucs.{js,wasm}` commités. Le **code** (onnxruntime-web, demucs.cpp,
+demucs) est MIT, mais **les poids htdemucs sont research-only** : entraînés sur
+MUSDB18 (non-commercial), l'auteur Demucs déclare
+qu'ils sont « provided only for scientific purposes »
+([facebookresearch/demucs#327](https://github.com/facebookresearch/demucs/issues/327)).
+Les tags « MIT » des ré-exports ONNX sont des relabels inexacts. **Décision** :
+loupe étant un outil **public, non-commercial**, cet usage scientifique est
+acceptable — mais **ne pas embarquer ces poids dans un produit commercial** (il
+faudrait alors des poids sous licence commerciale ou ré-entraînés). Même esprit que
+la bascule Rubber Band (GPL) → SoundTouch. Mono-thread ⇒ pas de SharedArrayBuffer ⇒
+**aucun en-tête COOP/COEP** ⇒ déploiement **Netlify** sans config.
+
 ## Architecture — produit → hexagone
 
 On prolonge l'hexagone de Jalon 1. Le **temps réel reste local** ; la séparation
