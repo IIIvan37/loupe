@@ -51,4 +51,4 @@ The single place to look before adding a feature, so ports and use-cases get
 | `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode` + SoundTouch worklet for tempo/pitch) |
 | `LoopStore` | driven | `web`: `createLocalStorageLoopStore` (localStorage) |
 | `TrackMetadataReader` | driven | `web`: `createMusicMetadataReader` (music-metadata; best-effort ID3/etc. tags) |
-| `StemSeparator` | driven | `web`: `createSeparator` picks the engine — default `createGgmlSeparator` (demucs.cpp WASM, fp16, single-threaded SIMD, off-main-thread) or `createDemucsSeparator` (htdemucs via onnxruntime-web). Slice J2.2; a cloud API could be a later adapter on the same port. |
+| `StemSeparator` | driven | `web`: `createSeparator` picks the engine — default `createGgmlSeparator` (demucs.cpp WASM, fp16, **data-parallel across N workers**, blended by the core overlap-add — J2.2b) or `createDemucsSeparator` (htdemucs via onnxruntime-web). Slice J2.2; a cloud API could be a later adapter on the same port. |

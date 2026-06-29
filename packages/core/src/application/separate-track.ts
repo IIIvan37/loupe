@@ -1,6 +1,7 @@
 import { buildStemTrack, type StemSet } from '../domain/stem-set.ts'
 import type {
   DecodedAudio,
+  SeparatedStem,
   SeparationProgress,
   StemSeparator
 } from './ports.ts'
@@ -19,7 +20,12 @@ export interface SeparateTrackDeps {
 }
 
 export type SeparateTrackResult =
-  | { readonly ok: true; readonly stems: StemSet }
+  | {
+      readonly ok: true
+      readonly stems: StemSet
+      /** The isolated stems' raw PCM, retained so an adapter can play or export them. */
+      readonly sources: readonly SeparatedStem[]
+    }
   | { readonly ok: false; readonly error: string }
 
 /**
@@ -46,7 +52,7 @@ export async function separateTrack(
         input.bucketCount
       )
     )
-    return { ok: true, stems }
+    return { ok: true, stems, sources: separated }
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) }
   }

@@ -37,6 +37,16 @@ describe('separateTrack — when the separator yields stems', () => {
     expect(result.stems[0]?.track.waveform.peaks).toEqual([{ min: -1, max: 1 }])
   })
 
+  it('retains the raw stem PCM as sources for playback/export', async () => {
+    const result = await separateTrack(
+      { audio, bucketCount: 1 },
+      { separator: fakeSeparator() }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.sources.map((s) => s.id)).toEqual(['vox', 'bass'])
+    expect(result.sources[0]?.audio).toBe(audio)
+  })
+
   it('forwards every progress event to the optional sink', async () => {
     const events: SeparationProgress[] = [
       { phase: 'analysing', fraction: 0.5 },

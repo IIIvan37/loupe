@@ -15,67 +15,61 @@ function state(partial: Partial<SeparationState>): SeparationState {
   return { status: 'idle', progress: 0, stems: [], error: undefined, ...partial }
 }
 
+function renderPanel(
+  partial: Partial<SeparationState>,
+  props: Partial<Parameters<typeof SeparationPanel>[0]> = {}
+) {
+  return render(
+    <SeparationPanel
+      state={state(partial)}
+      canSeparate
+      onSeparate={() => {}}
+      onDownloadStem={() => {}}
+      {...props}
+    />
+  )
+}
+
 describe('SeparationPanel', () => {
   it('separates the loaded track on demand', () => {
     const onSeparate = vi.fn()
-    render(
-      <SeparationPanel
-        state={state({ status: 'idle' })}
-        canSeparate
-        onSeparate={onSeparate}
-      />
-    )
+    renderPanel({ status: 'idle' }, { onSeparate })
     fireEvent.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
     expect(onSeparate).toHaveBeenCalledOnce()
   })
 
   it('disables the action until a track is loaded', () => {
-    render(
-      <SeparationPanel
-        state={state({ status: 'idle' })}
-        canSeparate={false}
-        onSeparate={() => {}}
-      />
-    )
+    renderPanel({ status: 'idle' }, { canSeparate: false })
     expect(
       screen.getByRole('button', { name: 'Séparer les pistes' })
     ).toBeDisabled()
   })
 
   it('shows the running phase and progress, hiding the action', () => {
-    render(
-      <SeparationPanel
-        state={state({ status: 'separating', progress: 0.4 })}
-        canSeparate
-        onSeparate={() => {}}
-      />
-    )
+    renderPanel({ status: 'separating', progress: 0.4 })
     expect(screen.getByText('Séparation des pistes…')).toBeInTheDocument()
     expect(screen.getByRole('progressbar')).toHaveAttribute('value', '40')
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('lists the separated stems when ready', () => {
-    render(
-      <SeparationPanel
-        state={state({ status: 'ready', progress: 1, stems })}
-        canSeparate
-        onSeparate={() => {}}
-      />
-    )
+    renderPanel({ status: 'ready', progress: 1, stems })
     expect(screen.getByText('Voix')).toBeInTheDocument()
     expect(screen.getByText('Basse')).toBeInTheDocument()
   })
 
+  it('downloads a stem as WAV when its button is clicked', () => {
+    const onDownloadStem = vi.fn()
+    renderPanel({ status: 'ready', progress: 1, stems }, { onDownloadStem })
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Télécharger Basse en WAV' })
+    )
+    expect(onDownloadStem).toHaveBeenCalledWith('basse')
+  })
+
   it('surfaces a failure and offers a retry', () => {
     const onSeparate = vi.fn()
-    render(
-      <SeparationPanel
-        state={state({ status: 'error', error: 'moteur indisponible' })}
-        canSeparate
-        onSeparate={onSeparate}
-      />
-    )
+    renderPanel({ status: 'error', error: 'moteur indisponible' }, { onSeparate })
     expect(screen.getByRole('alert')).toHaveTextContent('moteur indisponible')
     fireEvent.click(screen.getByRole('button', { name: 'Réessayer' }))
     expect(onSeparate).toHaveBeenCalledOnce()

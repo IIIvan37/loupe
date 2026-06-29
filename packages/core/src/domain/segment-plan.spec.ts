@@ -1,6 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { planSegments, transitionWindow } from './segment-plan.ts'
+import { planChunks, planSegments, transitionWindow } from './segment-plan.ts'
 
 /** Element-wise close comparison — the window is float32, the maths is float64. */
 function expectWindow(actual: Float32Array, expected: readonly number[]): void {
@@ -93,6 +93,65 @@ describe('planSegments', () => {
           // Every sample is reached, and the last window touches the very end.
           expect(covered.every(Boolean)).toBe(true)
           expect(lastEnd).toBe(total)
+        }
+      )
+    )
+  })
+})
+
+describe('planChunks', () => {
+  it('splits the track into chunk-sized windows that overlap by the context', () => {
+    // stride = ceil(100/4) = 25, segmentLength = 25 + 10 = 35.
+    expect(planChunks(100, 4, 10)).toEqual([
+      { start: 0, length: 35 },
+      { start: 25, length: 35 },
+      { start: 50, length: 35 },
+      { start: 75, length: 25 }
+    ])
+  })
+
+  it('yields a single full-length window for one chunk', () => {
+    expect(planChunks(100, 1, 10)).toEqual([{ start: 0, length: 100 }])
+  })
+
+  it('produces no window for an empty track', () => {
+    expect(planChunks(0, 4, 10)).toEqual([])
+  })
+
+  it('rejects a non-positive chunk count or context', () => {
+    expect(() => planChunks(100, 0, 10)).toThrow(/chunk count/)
+    expect(() => planChunks(100, 1.5, 10)).toThrow(/chunk count/)
+    expect(() => planChunks(100, 4, 0)).toThrow(/context/)
+    expect(() => planChunks(100, 4, 1.5)).toThrow(/context/)
+  })
+
+  // Property: ≤ chunkCount windows, gap-free coverage, neighbours overlap by context.
+  it('covers the track with at most chunkCount overlapping windows', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 5000 }),
+        fc.integer({ min: 1, max: 8 }),
+        fc.integer({ min: 1, max: 200 }),
+        (total, chunkCount, context) => {
+          const chunks = planChunks(total, chunkCount, context)
+
+          expect(chunks.length).toBeGreaterThan(0)
+          expect(chunks.length).toBeLessThanOrEqual(chunkCount)
+          const covered = new Array<boolean>(total).fill(false)
+          chunks.forEach((chunk, index) => {
+            for (let i = chunk.start; i < chunk.start + chunk.length; i++) {
+              covered[i] = true
+            }
+            // Each window but the last overlaps its successor — by `context` when
+            // full-length, less when the track is shorter than a full segment.
+            const next = chunks[index + 1]
+            if (next) {
+              const overlap = chunk.start + chunk.length - next.start
+              expect(overlap).toBeGreaterThan(0)
+              expect(overlap).toBeLessThanOrEqual(context)
+            }
+          })
+          expect(covered.every(Boolean)).toBe(true)
         }
       )
     )

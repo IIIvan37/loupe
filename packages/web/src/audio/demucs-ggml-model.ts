@@ -19,6 +19,13 @@ export const GGML_MODEL_URL =
 export const GGML_STEM_COUNT = 4
 
 /**
+ * Overlap context (samples) between parallel chunks — one htdemucs internal
+ * segment (~7.8 s at 44.1 kHz). Generous enough that each chunk has full context
+ * where it matters, so the overlap-add blends the seams cleanly.
+ */
+export const CHUNK_CONTEXT_SAMPLES = 343980
+
+/**
  * Messages the GGML worker emits. The structured `type` ones are ours; the `msg`
  * ones are posted straight from the C++ (`EM_JS` `postMessage`): `PROGRESS_UPDATE`
  * (inference fraction, the one we forward) and `WASM_LOG` (cout/cerr, ignored).
