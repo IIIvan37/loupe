@@ -5,14 +5,13 @@
 ## Where we are
 
 - **Phase**: **Jalon 2 (« Séparation IA ») — J2.2 merged (PR #17); parallel
-  separation + WAV export done (PR #18).** Plan in
+  separation + WAV export merged (PR #18).** Plan in
   [docs/jalon-2-plan.md](jalon-2-plan.md). J2.1 merged via **PR #16**. Jalon 1
   (« Transcribe! dans le navigateur ») is **complete + polished**: all 7 slices
   merged (Slice 7 via **PR #13** `ab6e1ad`), loops/markers/transport refinement
   merged via **PR #14** (`65297a2`). See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon2-parallel-separation` (data-parallel GGML + per-stem WAV
-  export, **PR #18 open**). Next: merge, then **in-app per-stem playback** (start of
-  the J2.4 mixer), then Slice J2.3 (adaptive detection).
+- **Branch**: `main` (PR #18 merged). Next: **in-app per-stem playback** (start of
+  the J2.4 mixer) on a fresh branch, then Slice J2.3 (adaptive detection).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
@@ -43,14 +42,15 @@
 
 ## Next step
 
-**J2.2 merged (PR #17); parallel separation + WAV export done (PR #18).** The
-default GGML separator now fans out **data-parallel across N workers** (split →
+**J2.2 merged (PR #17); parallel separation + WAV export merged (PR #18).** The
+default GGML separator fans out **data-parallel across N workers** (split →
 overlapping chunks → core `overlapAdd` blend), and each separated stem can be
 **downloaded as a WAV** (pure core `encodeWav` + retained PCM + per-stem button) —
-so the stems can finally be heard. Browser-verified. Speed gain is modest (CPU
-memory-bandwidth bound), not tuned this session. Next: merge **PR #18**, then
-**in-app per-stem playback** (start of the J2.4 mixer), then **Slice J2.3**
-(adaptive detection). See [docs/jalon-2-plan.md](jalon-2-plan.md).
+so the stems can be heard. Browser-verified. Speed gain is modest (CPU
+memory-bandwidth bound), not yet tuned. Next: **in-app per-stem playback** (start of
+the J2.4 mixer) on a fresh branch, then **Slice J2.3** (adaptive detection). See
+[docs/jalon-2-plan.md](jalon-2-plan.md). Open follow-up: consolidate the
+single/parallel worker orchestrators (ONNX path).
 
 ## Roadmap
 
