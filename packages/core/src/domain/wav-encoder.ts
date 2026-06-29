@@ -23,7 +23,7 @@ function toInt16(sample: number): number {
 export function encodeWav(
   channels: ReadonlyArray<ArrayLike<number>>,
   sampleRate: number
-): Uint8Array {
+): Uint8Array<ArrayBuffer> {
   if (channels.length < 1) {
     throw new Error('at least one channel is required')
   }
@@ -33,6 +33,9 @@ export function encodeWav(
 
   const numChannels = channels.length
   const frames = channels[0]?.length ?? 0
+  if (channels.some((channel) => channel.length !== frames)) {
+    throw new Error('all channels must have the same length')
+  }
   const blockAlign = numChannels * BYTES_PER_SAMPLE
   const dataSize = frames * blockAlign
   const buffer = new ArrayBuffer(HEADER_BYTES + dataSize)

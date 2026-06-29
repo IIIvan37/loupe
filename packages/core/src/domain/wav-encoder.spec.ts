@@ -59,6 +59,10 @@ describe('encodeWav', () => {
     expect(() => encodeWav([[0]], 1.5)).toThrow(/sample rate/)
   })
 
+  it('rejects channels of unequal length', () => {
+    expect(() => encodeWav([[0, 0], [0]], 44100)).toThrow(/same length/)
+  })
+
   // Property: byte length is the 44-byte header plus interleaved 16-bit samples.
   it('produces header + frames × channels × 2 bytes', () => {
     fc.assert(

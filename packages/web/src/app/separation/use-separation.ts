@@ -84,11 +84,9 @@ export function useSeparation(separator?: StemSeparator): Separation {
       return
     }
     const wav = encodeWav(stem.audio.channels, stem.audio.sampleRate)
-    // `wav` spans its whole backing buffer, so pass that ArrayBuffer to the Blob.
-    const bytes = wav.buffer as ArrayBuffer
     downloadBlob(
       stemFilename(index, stem.label),
-      new Blob([bytes], { type: 'audio/wav' })
+      new Blob([wav], { type: 'audio/wav' })
     )
   }
 

@@ -49,9 +49,7 @@ describe('SeparationPanel', () => {
     renderPanel({ status: 'separating', progress: 0.4 })
     expect(screen.getByText('Séparation des pistes…')).toBeInTheDocument()
     expect(screen.getByRole('progressbar')).toHaveAttribute('value', '40')
-    expect(
-      screen.queryByRole('button', { name: /Séparer/ })
-    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('lists the separated stems when ready', () => {

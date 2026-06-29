@@ -12,9 +12,6 @@ import { toStereo44100 } from './resample.ts'
 import { toSeparatedStems } from './stem-layout.ts'
 import type { WorkerDispatch } from './worker-separator.ts'
 
-/** htdemucs returns four stereo stems, in model order. */
-const MODEL_STEM_COUNT = 4
-
 export interface ParallelOptions {
   /** How many workers to fan out to — evaluated per run (e.g. from CPU count). */
   readonly workerCount: () => number
@@ -22,23 +19,33 @@ export interface ParallelOptions {
   readonly context: number
 }
 
-/** Weighted overlap-add of the per-chunk stems back into full-length stems. */
+/**
+ * Weighted overlap-add of the per-chunk stems back into full-length stems. Each
+ * chunk's window ramps over `context` at both ends so neighbours cross-fade; at the
+ * track's own edges a single chunk covers the sample, so the overlap-add normalises
+ * it back to identity regardless of the ramp. The stem count is taken from the
+ * workers' output, not assumed.
+ */
 function combineStems(
   totalSamples: number,
   plan: readonly Segment[],
-  window: Float32Array,
+  context: number,
   perChunk: ReadonlyArray<ReadonlyArray<StereoChannels>>
 ): StereoChannels[] {
+  const stemCount = perChunk[0]?.length ?? 0
+  const windows = plan.map((chunk) =>
+    transitionWindow(chunk.length, Math.min(context, chunk.length))
+  )
   const stems: StereoChannels[] = []
-  for (let stem = 0; stem < MODEL_STEM_COUNT; stem++) {
+  for (let stem = 0; stem < stemCount; stem++) {
     const left: WindowedPiece[] = []
     const right: WindowedPiece[] = []
     plan.forEach((chunk, index) => {
       const source = perChunk[index]?.[stem]
-      if (source) {
-        const win = window.subarray(0, chunk.length)
-        left.push({ start: chunk.start, samples: source.left, window: win })
-        right.push({ start: chunk.start, samples: source.right, window: win })
+      const window = windows[index]
+      if (source && window) {
+        left.push({ start: chunk.start, samples: source.left, window })
+        right.push({ start: chunk.start, samples: source.right, window })
       }
     })
     stems.push({
@@ -85,47 +92,73 @@ export function createParallelWorkerSeparator(
         return []
       }
 
-      const count = Math.max(1, options.workerCount())
-      const chunkCount = total <= 2 * options.context ? 1 : count
-      const stride = Math.max(1, Math.ceil(total / chunkCount))
+      // Cap the fan-out so each chunk does unique work: a chunk spans
+      // stride + context, so stride ≥ 2·context keeps neighbours adjacent (no
+      // triple overlap) and the first chunk from covering the whole track.
+      const chunkCount = Math.max(
+        1,
+        Math.min(
+          options.workerCount(),
+          Math.floor(total / (2 * options.context))
+        )
+      )
       const plan = planChunks(total, chunkCount, options.context)
-      const window = transitionWindow(stride + options.context, options.context)
 
       const fractions = new Array<number>(plan.length).fill(0)
-      let phase: SeparationPhase = 'analysing'
+      const phases = new Array<SeparationPhase>(plan.length).fill('analysing')
       const workers: Worker[] = []
       active = workers
+
+      // Aggregate progress: average the chunks' fractions; stay 'analysing' until
+      // every worker has moved on to separating.
+      function reportChunkProgress(
+        index: number,
+        fraction: number,
+        phase: SeparationPhase
+      ): void {
+        fractions[index] = fraction
+        phases[index] = phase
+        const done = fractions.reduce((sum, f) => sum + f, 0)
+        onProgress({
+          phase: phases.every((p) => p === 'separating')
+            ? 'separating'
+            : 'analysing',
+          fraction: done / fractions.length
+        })
+      }
+
+      function runChunk(
+        chunk: Segment,
+        index: number
+      ): Promise<ReadonlyArray<StereoChannels>> {
+        return new Promise((resolve, reject) => {
+          const worker = spawn()
+          workers.push(worker)
+          worker.onmessage = (event: MessageEvent) =>
+            dispatch(event.data, resolve, reject, (progress) =>
+              reportChunkProgress(index, progress.fraction, progress.phase)
+            )
+          worker.onerror = (event) =>
+            reject(new Error(event.message || 'separation worker crashed'))
+          const l = left.slice(chunk.start, chunk.start + chunk.length)
+          const r = right.slice(chunk.start, chunk.start + chunk.length)
+          worker.postMessage({ left: l, right: r }, [l.buffer, r.buffer])
+        })
+      }
 
       // A run is settled by its chunks completing OR by being superseded.
       const superseded = new Promise<never>((_, reject) => {
         rejectActive = reject
       })
-      const chunkRuns = plan.map(
-        (chunk, index) =>
-          new Promise<ReadonlyArray<StereoChannels>>((resolve, reject) => {
-            const worker = spawn()
-            workers.push(worker)
-            worker.onmessage = (event: MessageEvent) =>
-              dispatch(event.data, resolve, reject, (progress) => {
-                fractions[index] = progress.fraction
-                phase = progress.phase
-                const done = fractions.reduce((sum, f) => sum + f, 0)
-                onProgress({ phase, fraction: done / fractions.length })
-              })
-            worker.onerror = (event) =>
-              reject(new Error(event.message || 'separation worker crashed'))
-            const l = left.slice(chunk.start, chunk.start + chunk.length)
-            const r = right.slice(chunk.start, chunk.start + chunk.length)
-            worker.postMessage({ left: l, right: r }, [l.buffer, r.buffer])
-          })
-      )
-
+      const all = Promise.all(plan.map(runChunk))
+      // If `superseded` wins the race, a straggler chunk that rejects afterwards
+      // must not surface as an unhandled rejection.
+      all.catch(() => {})
       try {
-        const perChunk = await Promise.race([
-          Promise.all(chunkRuns),
-          superseded
-        ])
-        return toSeparatedStems(combineStems(total, plan, window, perChunk))
+        const perChunk = await Promise.race([all, superseded])
+        return toSeparatedStems(
+          combineStems(total, plan, options.context, perChunk)
+        )
       } finally {
         for (const worker of workers) {
           worker.terminate()
