@@ -23,6 +23,8 @@ interface SeparationPanelProps {
   /** Whether a track is loaded and ready to be separated. */
   readonly canSeparate: boolean
   readonly onSeparate: () => void
+  /** Download one separated stem as a WAV. */
+  readonly onDownloadStem: (id: string) => void
 }
 
 /**
@@ -33,7 +35,8 @@ interface SeparationPanelProps {
 export function SeparationPanel({
   state,
   canSeparate,
-  onSeparate
+  onSeparate,
+  onDownloadStem
 }: SeparationPanelProps) {
   const isRunning = state.status === 'analysing' || state.status === 'separating'
   const percent = Math.round(state.progress * 100)
@@ -85,6 +88,14 @@ export function SeparationPanel({
                   aria-hidden="true"
                 />
                 <span className={styles.stemLabel}>{stem.label}</span>
+                <button
+                  type="button"
+                  className={styles.download}
+                  aria-label={`Télécharger ${stem.label} en WAV`}
+                  onClick={() => onDownloadStem(stem.id)}
+                >
+                  WAV ↓
+                </button>
               </li>
             ))}
           </ul>

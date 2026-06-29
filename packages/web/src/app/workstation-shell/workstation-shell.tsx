@@ -237,6 +237,7 @@ export function WorkstationShell({
                   void separation.separate(loadedAudio)
                 }
               }}
+              onDownloadStem={separation.downloadStem}
             />
           </Stack>
         </main>

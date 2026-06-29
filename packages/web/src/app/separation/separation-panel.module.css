@@ -108,6 +108,22 @@
   color: var(--text);
 }
 
+.download {
+  margin-inline-start: auto;
+  padding: 2px var(--space-2xs);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  flex: none;
+}
+
+.download:hover {
+  color: var(--teal);
+}
+
 .empty {
   height: 120px;
   border: 1px dashed var(--line);
