@@ -4,23 +4,24 @@
 
 ## Where we are
 
-- **Phase**: **Jalon 2 (« Séparation IA ») — Slice J2.2 done (PR #17).** Plan in
+- **Phase**: **Jalon 2 (« Séparation IA ») — J2.2 merged (PR #17); parallel
+  separation + WAV export done (PR pending).** Plan in
   [docs/jalon-2-plan.md](jalon-2-plan.md). J2.1 merged via **PR #16**. Jalon 1
   (« Transcribe! dans le navigateur ») is **complete + polished**: all 7 slices
   merged (Slice 7 via **PR #13** `ab6e1ad`), loops/markers/transport refinement
   merged via **PR #14** (`65297a2`). See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon2-wasm-separator` (Slice J2.2, **PR #17 open**). Next:
-  merge, then Slice J2.3 (adaptive detection) — or a follow-up speed slice
-  (multi-worker parallel GGML).
+- **Branch**: `feat/jalon2-parallel-separation` (data-parallel GGML + per-stem WAV
+  export, PR pending). Next: open the PR, then **in-app per-stem playback** (start of
+  the J2.4 mixer), then Slice J2.3 (adaptive detection).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
   `TrackMetadataReader` port, `separateTrack`/`StemSeparator` port +
-  `separationReducer`/`StemSet`, `planSegments`/`transitionWindow` overlap-add DSP)
-  + `packages/web` (import → waveform → transport → time-stretch/pitch → markers →
-  loops → zoom → keyboard shortcuts → real WASM stem separation: `createSeparator`
-  → GGML `demucs.cpp` default or `onnxruntime-web`, in module workers, gate-green).
-  The starter `@app/cli`/`greet` example has been removed.
+  `separationReducer`/`StemSet`, `planSegments`/`planChunks`/`transitionWindow`/
+  `overlapAdd` DSP, `encodeWav`) + `packages/web` (import → … → real WASM stem
+  separation: `createSeparator` → GGML `demucs.cpp` default, **data-parallel across
+  N workers**, or `onnxruntime-web`; per-stem WAV download; gate-green). The starter
+  `@app/cli`/`greet` example has been removed.
 
 ## Locked decisions (kickoff)
 
@@ -42,14 +43,14 @@
 
 ## Next step
 
-**Slice J2.2 done (PR #17).** Two real client-side separators behind the
-`StemSeparator` port, selectable via `createSeparator('ggml' | 'onnx')`: default
-**GGML** (`demucs.cpp` compiled to WASM, fp16, single-thread SIMD, engine committed
-under `public/demucs/`) and **ONNX** (htdemucs via `onnxruntime-web`). Pure core
-`segment-plan` (overlap-add DSP) added. Browser-verified. Known limit: CPU
-single-thread is heavy — neither engine is faster than the other; the speed lever
-(multi-worker data parallelism) is deferred. Next: merge **PR #17**, then **Slice
-J2.3** (adaptive instrument detection). See [docs/jalon-2-plan.md](jalon-2-plan.md).
+**J2.2 merged (PR #17); parallel separation + WAV export done (PR pending).** The
+default GGML separator now fans out **data-parallel across N workers** (split →
+overlapping chunks → core `overlapAdd` blend), and each separated stem can be
+**downloaded as a WAV** (pure core `encodeWav` + retained PCM + per-stem button) —
+so the stems can finally be heard. Browser-verified. Speed gain is modest (CPU
+memory-bandwidth bound), not tuned this session. Next: open the PR, then **in-app
+per-stem playback** (start of the J2.4 mixer), then **Slice J2.3** (adaptive
+detection). See [docs/jalon-2-plan.md](jalon-2-plan.md).
 
 ## Roadmap
 
@@ -75,6 +76,15 @@ J2.3** (adaptive instrument detection). See [docs/jalon-2-plan.md](jalon-2-plan.
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-29 — jalon2-parallel-and-wav](sessions/2026-06-29-jalon2-parallel-and-wav.md) —
+  Two separation enhancements behind the same `StemSeparator` port: **data-parallel
+  GGML** (core `overlapAdd` + `planChunks`; N=`min(cores−1,4)` workers blend
+  overlapping chunks) and **per-stem WAV export** (core `encodeWav` + retained PCM +
+  « WAV ↓ » button) so stems can be heard. Browser-verified. High-effort review:
+  no happy-path bug; fixed chunk-overlap cap, per-chunk windows, post-supersede
+  rejection, progress phase, early `revokeObjectURL`. Gate green, core mutation
+  94.24%. Orchestrator single/parallel consolidation noted as follow-up; in-app
+  playback is the next slice.
 - [2026-06-29 — jalon2-wasm-separator](sessions/2026-06-29-jalon2-wasm-separator.md) —
   Slice J2.2: real client-side separation behind the `StemSeparator` port. Core
   `segment-plan` (planSegments + transitionWindow, overlap-add DSP, mutation 95.95%).
