@@ -1,4 +1,5 @@
 import type { SeparationPhase } from '@app/core'
+import type { StereoChannels } from './audio-format.ts'
 
 /**
  * Contract for the demucs.cpp (GGML) engine — htdemucs compiled to WebAssembly,
@@ -18,16 +19,10 @@ export const GGML_MODEL_URL =
 /** htdemucs 4-stem: the engine writes targets [drums, bass, other, vocals]. */
 export const GGML_STEM_COUNT = 4
 
-/** One isolated stereo stem read back out of the wasm heap. */
-export interface StereoStem {
-  readonly left: Float32Array
-  readonly right: Float32Array
-}
-
 /**
  * Messages the GGML worker emits. The structured `type` ones are ours; the `msg`
- * ones are posted straight from the C++ (an `EM_JS` `postMessage` during
- * inference) — the adapter listens for both.
+ * ones are posted straight from the C++ (`EM_JS` `postMessage`): `PROGRESS_UPDATE`
+ * (inference fraction, the one we forward) and `WASM_LOG` (cout/cerr, ignored).
  */
 export type GgmlWorkerMessage =
   | {
@@ -35,8 +30,7 @@ export type GgmlWorkerMessage =
       readonly phase: SeparationPhase
       readonly fraction: number
     }
-  | { readonly type: 'done'; readonly stems: ReadonlyArray<StereoStem> }
+  | { readonly type: 'done'; readonly stems: ReadonlyArray<StereoChannels> }
   | { readonly type: 'error'; readonly message: string }
   | { readonly msg: 'PROGRESS_UPDATE'; readonly data: number }
-  | { readonly msg: 'PROGRESS_UPDATE_BATCH'; readonly data: number }
   | { readonly msg: 'WASM_LOG'; readonly data: string }

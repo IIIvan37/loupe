@@ -1,6 +1,5 @@
 import type { SeparatedStem } from '@app/core'
-import type { StereoStem } from './demucs-ggml-model.ts'
-import { TARGET_SAMPLE_RATE } from './demucs-model.ts'
+import { type StereoChannels, TARGET_SAMPLE_RATE } from './audio-format.ts'
 
 /**
  * Display order + labels for the four htdemucs stems, shared by every separator
@@ -21,7 +20,7 @@ const STEMS: ReadonlyArray<{
 
 /** Map the engine's raw ordered stems into labelled, display-ordered `SeparatedStem`s. */
 export function toSeparatedStems(
-  raw: ReadonlyArray<StereoStem>
+  raw: ReadonlyArray<StereoChannels>
 ): SeparatedStem[] {
   return STEMS.map((stem): SeparatedStem => {
     const source = raw[stem.source]

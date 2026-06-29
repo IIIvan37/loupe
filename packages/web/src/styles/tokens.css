@@ -28,6 +28,7 @@
   --stem-bass: #a481c9;
   --stem-guitar: #8db585;
   --stem-keys: #6fa8d4;
+  --stem-other: #9aa0ab; /* the htdemucs « other » bucket — neutral slate */
 
   /* Typography */
   --font-ui: 'Inter', system-ui, sans-serif;

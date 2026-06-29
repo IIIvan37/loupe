@@ -1,4 +1,5 @@
 import type { SeparationPhase } from '@app/core'
+import type { StereoChannels } from './audio-format.ts'
 import { fetchCachedModel } from './model-cache.ts'
 
 /**
@@ -22,8 +23,6 @@ const MODEL_URL =
 export const SEGMENT_SAMPLES = 343980
 /** 25 % overlap between consecutive windows (Demucs default). */
 export const OVERLAP_SAMPLES = 85995
-/** The rate the model is trained at; we resample anything else to it. */
-export const TARGET_SAMPLE_RATE = 44100
 
 /** Worker → adapter messages. The stems come back in model order, transferred. */
 export type WorkerMessage =
@@ -32,20 +31,11 @@ export type WorkerMessage =
       readonly phase: SeparationPhase
       readonly fraction: number
     }
-  | {
-      readonly type: 'done'
-      readonly stems: ReadonlyArray<{
-        readonly left: Float32Array
-        readonly right: Float32Array
-      }>
-    }
+  | { readonly type: 'done'; readonly stems: ReadonlyArray<StereoChannels> }
   | { readonly type: 'error'; readonly message: string }
 
 /** Adapter → worker message: the already-resampled stereo mix to separate. */
-export interface SeparateRequest {
-  readonly left: Float32Array
-  readonly right: Float32Array
-}
+export type SeparateRequest = StereoChannels
 
 /** Fetch the ONNX model bytes (~166 MB), cached so the download happens once. */
 export async function loadModel(

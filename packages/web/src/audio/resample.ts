@@ -1,10 +1,5 @@
 import type { DecodedAudio } from '@app/core'
-import { TARGET_SAMPLE_RATE } from './demucs-model.ts'
-
-export interface StereoPcm {
-  readonly left: Float32Array
-  readonly right: Float32Array
-}
+import { type StereoChannels, TARGET_SAMPLE_RATE } from './audio-format.ts'
 
 /**
  * Bring any decoded audio to the shape the separator needs: stereo at 44.1 kHz.
@@ -12,16 +7,33 @@ export interface StereoPcm {
  * the browser's own high-quality resampler — far better than a hand-rolled linear
  * interpolation, and it handles mono → stereo (the model requires two channels).
  */
-export async function toStereo44100(audio: DecodedAudio): Promise<StereoPcm> {
+export async function toStereo44100(
+  audio: DecodedAudio
+): Promise<StereoChannels> {
   const sourceLength = audio.channels[0]?.length ?? 0
   if (sourceLength === 0) {
     return { left: new Float32Array(0), right: new Float32Array(0) }
   }
+
+  // Fast path: already stereo at the target rate — copy the channels, skip the
+  // OfflineAudioContext render (and its sub-sample resampler group delay) entirely.
+  const [sourceLeft, sourceRight] = audio.channels
+  if (
+    audio.sampleRate === TARGET_SAMPLE_RATE &&
+    audio.channels.length === 2 &&
+    sourceLeft &&
+    sourceRight
+  ) {
+    return {
+      left: Float32Array.from(sourceLeft),
+      right: Float32Array.from(sourceRight)
+    }
+  }
+
   const targetLength = Math.max(
     1,
     Math.round((sourceLength * TARGET_SAMPLE_RATE) / audio.sampleRate)
   )
-
   const context = new OfflineAudioContext(2, targetLength, TARGET_SAMPLE_RATE)
   const source = context.createBuffer(
     audio.channels.length,

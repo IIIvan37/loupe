@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import { planSegments, type Segment, transitionWindow } from '@app/core'
 import * as ort from 'onnxruntime-web/wasm'
+import type { StereoChannels } from './audio-format.ts'
 import {
   loadModel,
   OVERLAP_SAMPLES,
@@ -21,12 +22,6 @@ ort.env.wasm.numThreads = 1
 
 const worker = globalThis as unknown as DedicatedWorkerGlobalScope
 const N = SEGMENT_SAMPLES
-
-/** One stereo stem buffer, accumulated across overlapping windows. */
-interface StemBuffer {
-  readonly left: Float32Array
-  readonly right: Float32Array
-}
 
 function post(message: WorkerMessage, transfer: Transferable[] = []): void {
   worker.postMessage(message, transfer)
@@ -60,7 +55,7 @@ function buildInput(
 
 /** Weighted overlap-add of one window's four stems into the running buffers. */
 function accumulate(
-  stems: readonly StemBuffer[],
+  stems: readonly StereoChannels[],
   weight: Float32Array,
   window: Float32Array,
   output: Float32Array,
@@ -83,7 +78,10 @@ function accumulate(
 }
 
 /** Turn the weighted sums into a true weighted average. */
-function normalize(stems: readonly StemBuffer[], weight: Float32Array): void {
+function normalize(
+  stems: readonly StereoChannels[],
+  weight: Float32Array
+): void {
   for (const stem of stems) {
     for (let i = 0; i < weight.length; i++) {
       const w = weight[i] ?? 0
@@ -107,7 +105,7 @@ async function separate({ left, right }: SeparateRequest): Promise<void> {
   const segments = planSegments(total, N, OVERLAP_SAMPLES)
   const window = transitionWindow(N, OVERLAP_SAMPLES)
   // Four stems in model order: drums, bass, other, vocals.
-  const stems: StemBuffer[] = Array.from({ length: 4 }, () => ({
+  const stems: StereoChannels[] = Array.from({ length: 4 }, () => ({
     left: new Float32Array(total),
     right: new Float32Array(total)
   }))
