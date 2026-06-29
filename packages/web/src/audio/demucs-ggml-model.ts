@@ -1,5 +1,4 @@
-import type { SeparationPhase } from '@app/core'
-import type { StereoChannels } from './audio-format.ts'
+import type { StandardSeparatorMessage } from './worker-separator.ts'
 
 /**
  * Contract for the demucs.cpp (GGML) engine — htdemucs compiled to WebAssembly,
@@ -25,12 +24,6 @@ export const GGML_STEM_COUNT = 4
  * (inference fraction, the one we forward) and `WASM_LOG` (cout/cerr, ignored).
  */
 export type GgmlWorkerMessage =
-  | {
-      readonly type: 'progress'
-      readonly phase: SeparationPhase
-      readonly fraction: number
-    }
-  | { readonly type: 'done'; readonly stems: ReadonlyArray<StereoChannels> }
-  | { readonly type: 'error'; readonly message: string }
+  | StandardSeparatorMessage
   | { readonly msg: 'PROGRESS_UPDATE'; readonly data: number }
   | { readonly msg: 'WASM_LOG'; readonly data: string }

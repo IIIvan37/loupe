@@ -1,6 +1,6 @@
 import type { StemSeparator } from '@app/core'
 import type { WorkerMessage } from './demucs-model.ts'
-import { createWorkerSeparator } from './worker-separator.ts'
+import { createWorkerSeparator, dispatchStandard } from './worker-separator.ts'
 
 /**
  * Driven adapter for `StemSeparator`: htdemucs via onnxruntime-web in an
@@ -13,15 +13,7 @@ export function createDemucsSeparator(): StemSeparator {
       new Worker(new URL('./demucs-worker.ts', import.meta.url), {
         type: 'module'
       }),
-    (data, resolve, reject, onProgress) => {
-      const message = data as WorkerMessage
-      if (message.type === 'progress') {
-        onProgress({ phase: message.phase, fraction: message.fraction })
-      } else if (message.type === 'done') {
-        resolve(message.stems)
-      } else {
-        reject(new Error(message.message))
-      }
-    }
+    (data, resolve, reject, onProgress) =>
+      dispatchStandard(data as WorkerMessage, resolve, reject, onProgress)
   )
 }

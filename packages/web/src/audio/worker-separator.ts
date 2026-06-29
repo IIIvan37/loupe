@@ -1,7 +1,21 @@
-import type { SeparationProgress, StemSeparator } from '@app/core'
+import type {
+  SeparationPhase,
+  SeparationProgress,
+  StemSeparator
+} from '@app/core'
 import type { StereoChannels } from './audio-format.ts'
 import { toStereo44100 } from './resample.ts'
 import { toSeparatedStems } from './stem-layout.ts'
+
+/** The progress / done / error messages every separator worker posts. */
+export type StandardSeparatorMessage =
+  | {
+      readonly type: 'progress'
+      readonly phase: SeparationPhase
+      readonly fraction: number
+    }
+  | { readonly type: 'done'; readonly stems: ReadonlyArray<StereoChannels> }
+  | { readonly type: 'error'; readonly message: string }
 
 /**
  * Translate one raw worker message into the run's outcome: drive `onProgress`,
@@ -14,6 +28,22 @@ export type WorkerDispatch = (
   reject: (error: Error) => void,
   onProgress: (progress: SeparationProgress) => void
 ) => void
+
+/** Map a standard message to resolve / reject / onProgress (shared by all engines). */
+export function dispatchStandard(
+  message: StandardSeparatorMessage,
+  resolve: (stems: ReadonlyArray<StereoChannels>) => void,
+  reject: (error: Error) => void,
+  onProgress: (progress: SeparationProgress) => void
+): void {
+  if (message.type === 'progress') {
+    onProgress({ phase: message.phase, fraction: message.fraction })
+  } else if (message.type === 'done') {
+    resolve(message.stems)
+  } else {
+    reject(new Error(message.message))
+  }
+}
 
 /**
  * Build a `StemSeparator` around an off-main-thread worker: resample to stereo

@@ -1,6 +1,5 @@
-import type { SeparationPhase } from '@app/core'
-import type { StereoChannels } from './audio-format.ts'
 import { fetchCachedModel } from './model-cache.ts'
+import type { StandardSeparatorMessage } from './worker-separator.ts'
 
 /**
  * The Demucs ONNX model contract + a cached, progress-reporting loader.
@@ -25,17 +24,7 @@ export const SEGMENT_SAMPLES = 343980
 export const OVERLAP_SAMPLES = 85995
 
 /** Worker → adapter messages. The stems come back in model order, transferred. */
-export type WorkerMessage =
-  | {
-      readonly type: 'progress'
-      readonly phase: SeparationPhase
-      readonly fraction: number
-    }
-  | { readonly type: 'done'; readonly stems: ReadonlyArray<StereoChannels> }
-  | { readonly type: 'error'; readonly message: string }
-
-/** Adapter → worker message: the already-resampled stereo mix to separate. */
-export type SeparateRequest = StereoChannels
+export type WorkerMessage = StandardSeparatorMessage
 
 /** Fetch the ONNX model bytes (~166 MB), cached so the download happens once. */
 export async function loadModel(

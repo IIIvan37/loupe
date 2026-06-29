@@ -6,7 +6,6 @@ import {
   loadModel,
   OVERLAP_SAMPLES,
   SEGMENT_SAMPLES,
-  type SeparateRequest,
   type WorkerMessage
 } from './demucs-model.ts'
 
@@ -93,7 +92,7 @@ function normalize(
 }
 
 /** Run the whole separation: load + session create (analysing), then inference. */
-async function separate({ left, right }: SeparateRequest): Promise<void> {
+async function separate({ left, right }: StereoChannels): Promise<void> {
   const model = await loadModel((fraction) =>
     post({ type: 'progress', phase: 'analysing', fraction })
   )
@@ -146,7 +145,7 @@ async function separate({ left, right }: SeparateRequest): Promise<void> {
   post({ type: 'done', stems }, transfer)
 }
 
-worker.onmessage = (event: MessageEvent<SeparateRequest>) => {
+worker.onmessage = (event: MessageEvent<StereoChannels>) => {
   separate(event.data).catch((error: unknown) => {
     post({
       type: 'error',

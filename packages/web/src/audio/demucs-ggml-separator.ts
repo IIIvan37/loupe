@@ -1,6 +1,6 @@
 import type { StemSeparator } from '@app/core'
 import type { GgmlWorkerMessage } from './demucs-ggml-model.ts'
-import { createWorkerSeparator } from './worker-separator.ts'
+import { createWorkerSeparator, dispatchStandard } from './worker-separator.ts'
 
 /**
  * Driven adapter for `StemSeparator`: the demucs.cpp (GGML) WebAssembly engine.
@@ -23,13 +23,7 @@ export function createGgmlSeparator(): StemSeparator {
         }
         return
       }
-      if (message.type === 'progress') {
-        onProgress({ phase: message.phase, fraction: message.fraction })
-      } else if (message.type === 'done') {
-        resolve(message.stems)
-      } else {
-        reject(new Error(message.message))
-      }
+      dispatchStandard(message, resolve, reject, onProgress)
     }
   )
 }
