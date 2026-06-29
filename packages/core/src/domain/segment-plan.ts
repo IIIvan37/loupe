@@ -42,6 +42,28 @@ export function planSegments(
 }
 
 /**
+ * Plan up to `chunkCount` overlapping windows for data-parallel separation: each
+ * window goes to its own worker, and consecutive windows overlap by `context` so
+ * the weighted overlap-add can blend the seams. `chunkCount = 1` (or a short track)
+ * yields a single full-length window — no seam. Thin wrapper over `planSegments`:
+ * the stride is the per-worker share, the segment its share plus the shared context.
+ */
+export function planChunks(
+  totalSamples: number,
+  chunkCount: number,
+  context: number
+): readonly Segment[] {
+  if (!Number.isInteger(chunkCount) || chunkCount < 1) {
+    throw new Error('chunk count must be a positive integer')
+  }
+  if (!Number.isInteger(context) || context < 1) {
+    throw new Error('context must be a positive integer')
+  }
+  const stride = Math.max(1, Math.ceil(totalSamples / chunkCount))
+  return planSegments(totalSamples, stride + context, context)
+}
+
+/**
  * A strictly-positive trapezoidal window: it ramps linearly up over the first
  * `overlap` samples, sits flat across the middle, then ramps back down — peak
  * normalised to 1, edges never zero. Down-weighting each window's edges lets the

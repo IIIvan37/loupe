@@ -1,15 +1,29 @@
 import type { StemSeparator } from '@app/core'
-import type { GgmlWorkerMessage } from './demucs-ggml-model.ts'
-import { createWorkerSeparator, dispatchStandard } from './worker-separator.ts'
+import {
+  CHUNK_CONTEXT_SAMPLES,
+  type GgmlWorkerMessage
+} from './demucs-ggml-model.ts'
+import { createParallelWorkerSeparator } from './parallel-worker-separator.ts'
+import { dispatchStandard } from './worker-separator.ts'
+
+/** Cap on parallel workers — each holds its own ~84 MB model copy, so bound memory. */
+const MAX_WORKERS = 4
+
+/** How many workers to fan out to: leave a core for the UI, capped for memory. */
+function workerCount(): number {
+  const cores = globalThis.navigator?.hardwareConcurrency ?? 1
+  return Math.max(1, Math.min(cores - 1, MAX_WORKERS))
+}
 
 /**
- * Driven adapter for `StemSeparator`: the demucs.cpp (GGML) WebAssembly engine.
- * Lighter and faster than the ONNX path (fp16 weights, no upcast/pre-packing,
- * single-threaded SIMD, no COOP/COEP). The worker streams its own
- * `PROGRESS_UPDATE` from the C++ during inference; lifecycle is shared.
+ * Driven adapter for `StemSeparator`: the demucs.cpp (GGML) WebAssembly engine,
+ * run data-parallel across N workers (each separates one overlapping chunk; the
+ * results are blended by the core overlap-add). Lighter than the ONNX path (fp16,
+ * single-threaded SIMD, no COOP/COEP) and ~N× faster on a multi-core machine. Each
+ * worker streams its own `PROGRESS_UPDATE` from the C++; lifecycle is shared.
  */
 export function createGgmlSeparator(): StemSeparator {
-  return createWorkerSeparator(
+  return createParallelWorkerSeparator(
     () =>
       new Worker(new URL('./demucs-ggml-worker.ts', import.meta.url), {
         type: 'module'
@@ -24,6 +38,7 @@ export function createGgmlSeparator(): StemSeparator {
         return
       }
       dispatchStandard(message, resolve, reject, onProgress)
-    }
+    },
+    { workerCount, context: CHUNK_CONTEXT_SAMPLES }
   )
 }
