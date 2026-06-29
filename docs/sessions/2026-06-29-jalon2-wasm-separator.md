@@ -41,8 +41,20 @@ Slice **J2.2** — real client-side stem separator behind the (already-fixed)
 - **WebGPU is a dead end** for the ONNX model: ORT-web 1.27 can't run htdemucs's
   embedded iSTFT (`ConstantOfShape`) on the GPU, and the GPU bundle's asyncify wasm
   drops the CPU kernel for it.
-- `/code-review` was started then interrupted — not completed this session.
 - Slices J2.3–J2.6 (adaptive detection, mixer, grouping, export) unchanged.
+
+## Code review (high effort) — done, findings addressed
+
+8-angle recall review found no happy-path bug (browser-verified). Fixed: shared
+`createWorkerSeparator` (dedups the two adapters + rejects a superseded run's
+dangling promise); guarded `_malloc` (OOM → throw, not heap-0 corruption) with C-style
+tracked-pointer `finally` cleanup; model-size + output-finiteness guards (demucs.cpp
+signals a bad model via `exit(1)`, swallowed under `noExitRuntime`); unified the
+stereo-pair type to `StereoChannels` + neutral `audio-format.ts`; `resample` fast-path
+when already stereo 44.1 kHz; dedicated `--stem-other` colour token. Left as noted:
+6-stem null-slot footgun (pinned 4s model, documented-safe); ONNX-only "analysing"
+stall during session creation (no ORT progress hook); a 57-token idiomatic
+worker-onmessage clone (jscpd informational).
 
 ## Decisions
 
