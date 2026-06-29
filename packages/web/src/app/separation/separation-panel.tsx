@@ -7,6 +7,8 @@ const STEM_COLOR: Readonly<Record<string, string>> = {
   voix: 'var(--stem-vocals)',
   batterie: 'var(--stem-drums)',
   basse: 'var(--stem-bass)',
+  // The htdemucs « other » bucket (everything that is not voice/drums/bass).
+  autres: 'var(--teal)',
   guitare: 'var(--stem-guitar)',
   claviers: 'var(--stem-keys)'
 }

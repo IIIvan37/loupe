@@ -4,21 +4,23 @@
 
 ## Where we are
 
-- **Phase**: **Jalon 2 (« Séparation IA ») — Slice J2.1 done, PR #16 open.** Plan in
-  [docs/jalon-2-plan.md](jalon-2-plan.md). Jalon 1 (« Transcribe! dans le
-  navigateur ») is **complete + polished**: all 7 slices merged (Slice 7 via
-  **PR #13** `ab6e1ad`), loops/markers/transport refinement merged via **PR #14**
-  (`65297a2`). See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon2-separation-screen` (Slice J2.1). Next: Slice J2.2 (real
-  WASM separator) on a fresh branch.
+- **Phase**: **Jalon 2 (« Séparation IA ») — Slice J2.2 done (PR pending).** Plan in
+  [docs/jalon-2-plan.md](jalon-2-plan.md). J2.1 merged via **PR #16**. Jalon 1
+  (« Transcribe! dans le navigateur ») is **complete + polished**: all 7 slices
+  merged (Slice 7 via **PR #13** `ab6e1ad`), loops/markers/transport refinement
+  merged via **PR #14** (`65297a2`). See [docs/jalon-1-plan.md](jalon-1-plan.md).
+- **Branch**: `feat/jalon2-wasm-separator` (Slice J2.2). Next: open the PR, then
+  Slice J2.3 (adaptive detection) — or a follow-up speed slice (multi-worker
+  parallel GGML).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
   `TrackMetadataReader` port, `separateTrack`/`StemSeparator` port +
-  `separationReducer`/`StemSet`) + `packages/web`
-  (import → waveform → transport → time-stretch/pitch → markers → loops → zoom →
-  keyboard shortcuts → stem separation screen, gate-green). The starter
-  `@app/cli`/`greet` example has been removed.
+  `separationReducer`/`StemSet`, `planSegments`/`transitionWindow` overlap-add DSP)
+  + `packages/web` (import → waveform → transport → time-stretch/pitch → markers →
+  loops → zoom → keyboard shortcuts → real WASM stem separation: `createSeparator`
+  → GGML `demucs.cpp` default or `onnxruntime-web`, in module workers, gate-green).
+  The starter `@app/cli`/`greet` example has been removed.
 
 ## Locked decisions (kickoff)
 
@@ -27,6 +29,11 @@
   only web wrapper (`rubberband-web`) crashes on live pitch change and is
   unmaintained; in-browser verification surfaced it. SoundTouch fixes the crash
   **and** lifts the GPL obligation — the product can ship under any licence.
+- **Separation engine** (J2.2): **demucs.cpp compiled to WASM (GGML, fp16)** is the
+  default adapter — single-thread SIMD, no COOP/COEP, memory-safe; **onnxruntime-web**
+  kept as a selectable alternative. WebGPU ruled out (htdemucs embedded iSTFT
+  unsupported on the GPU EP). htdemucs weights are research-only — fine for this
+  non-commercial tool, not for a commercial product.
 - **Web stack**: React + Jotai · Base UI (headless) · Every Layout · CSS Modules +
   CSS-variable tokens · smart/dumb components.
 - **Extra gates** (blocking, `packages/web` only): impeccable + react-doctor.
@@ -35,12 +42,14 @@
 
 ## Next step
 
-**Slice J2.1 done (PR #16 open).** The import → separation → tracks screen is wired on
-a **stub separator** behind the pure `StemSeparator` port; separation reuses the
-SAME decoded PCM the player loaded (no second import). Next: **Slice J2.2** — the
-real **Demucs WASM** separator in an off-main-thread worker, behind the same port
-(contract already fixed), on a fresh branch via `/new-feature-hexa`. See
-[docs/jalon-2-plan.md](jalon-2-plan.md) for the 6-slice breakdown.
+**Slice J2.2 done (PR pending).** Two real client-side separators behind the
+`StemSeparator` port, selectable via `createSeparator('ggml' | 'onnx')`: default
+**GGML** (`demucs.cpp` compiled to WASM, fp16, single-thread SIMD, engine committed
+under `public/demucs/`) and **ONNX** (htdemucs via `onnxruntime-web`). Pure core
+`segment-plan` (overlap-add DSP) added. Browser-verified. Known limit: CPU
+single-thread is heavy — neither engine is faster than the other; the speed lever
+(multi-worker data parallelism) is deferred. Next: open the PR, then **Slice J2.3**
+(adaptive instrument detection). See [docs/jalon-2-plan.md](jalon-2-plan.md).
 
 ## Roadmap
 
@@ -56,7 +65,7 @@ real **Demucs WASM** separator in an off-main-thread worker, behind the same por
 | J1.6 | Zoom + scrollable viewport (6×) | ✅ |
 | J1.7 | Keyboard shortcuts | ✅ |
 | J2.1 | Import → separation → tracks screen (stub separator behind `StemSeparator` port) | ✅ |
-| J2.2 | Real WASM separator adapter (Demucs WASM, off-main-thread) | ⬜ |
+| J2.2 | Real WASM separator adapters (demucs.cpp GGML default + onnxruntime-web), off-main-thread | ✅ |
 | J2.3 | Instrument detection → N adaptive tracks (mask empty, confidence) | ⬜ |
 | J2.4 | Multitrack mixer (solo/mute/volume, Web Audio gain graph) | ⬜ |
 | J2.5 | Track grouping (user bus, non-destructive) | ⬜ |
@@ -66,6 +75,16 @@ real **Demucs WASM** separator in an off-main-thread worker, behind the same por
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-29 — jalon2-wasm-separator](sessions/2026-06-29-jalon2-wasm-separator.md) —
+  Slice J2.2: real client-side separation behind the `StemSeparator` port. Core
+  `segment-plan` (planSegments + transitionWindow, overlap-add DSP, mutation 95.95%).
+  Two selectable WASM engines (`createSeparator`): default **GGML** (`demucs.cpp`
+  compiled via Docker/emsdk, fp16 ~84 MB, committed under `public/demucs/`) and
+  **ONNX** (htdemucs via onnxruntime-web, ~166 MB). Module workers, resample to
+  44.1 kHz, Cache-API model download. Browser-verified. WebGPU ruled out (ORT can't
+  run the embedded iSTFT on GPU); fp16-vs-OOM and several Vite /public-import gotchas
+  documented. Speed limit (CPU single-thread) → multi-worker parallelism deferred.
+  Gate green, core mutation 95.98%.
 - [2026-06-28 — jalon2-separation-screen](sessions/2026-06-28-jalon2-separation-screen.md) —
   Slice J2.1 (opens Jalon 2): separate the loaded track into stems, UI-first behind
   a pure `StemSeparator` port. Core: `separateTrack` use-case + `SeparationState`
