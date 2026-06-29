@@ -4,14 +4,14 @@
 
 ## Where we are
 
-- **Phase**: **Jalon 2 (« Séparation IA ») — Slice J2.2 done (PR pending).** Plan in
+- **Phase**: **Jalon 2 (« Séparation IA ») — Slice J2.2 done (PR #17).** Plan in
   [docs/jalon-2-plan.md](jalon-2-plan.md). J2.1 merged via **PR #16**. Jalon 1
   (« Transcribe! dans le navigateur ») is **complete + polished**: all 7 slices
   merged (Slice 7 via **PR #13** `ab6e1ad`), loops/markers/transport refinement
   merged via **PR #14** (`65297a2`). See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon2-wasm-separator` (Slice J2.2). Next: open the PR, then
-  Slice J2.3 (adaptive detection) — or a follow-up speed slice (multi-worker
-  parallel GGML).
+- **Branch**: `feat/jalon2-wasm-separator` (Slice J2.2, **PR #17 open**). Next:
+  merge, then Slice J2.3 (adaptive detection) — or a follow-up speed slice
+  (multi-worker parallel GGML).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
@@ -42,14 +42,14 @@
 
 ## Next step
 
-**Slice J2.2 done (PR pending).** Two real client-side separators behind the
+**Slice J2.2 done (PR #17).** Two real client-side separators behind the
 `StemSeparator` port, selectable via `createSeparator('ggml' | 'onnx')`: default
 **GGML** (`demucs.cpp` compiled to WASM, fp16, single-thread SIMD, engine committed
 under `public/demucs/`) and **ONNX** (htdemucs via `onnxruntime-web`). Pure core
 `segment-plan` (overlap-add DSP) added. Browser-verified. Known limit: CPU
 single-thread is heavy — neither engine is faster than the other; the speed lever
-(multi-worker data parallelism) is deferred. Next: open the PR, then **Slice J2.3**
-(adaptive instrument detection). See [docs/jalon-2-plan.md](jalon-2-plan.md).
+(multi-worker data parallelism) is deferred. Next: merge **PR #17**, then **Slice
+J2.3** (adaptive instrument detection). See [docs/jalon-2-plan.md](jalon-2-plan.md).
 
 ## Roadmap
 
