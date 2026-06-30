@@ -1,3 +1,8 @@
+import {
+  type DetectedStem,
+  detectInstruments,
+  stemEnergy
+} from '../domain/instrument-detection.ts'
 import { buildStemTrack, type StemSet } from '../domain/stem-set.ts'
 import type {
   DecodedAudio,
@@ -43,13 +48,24 @@ export async function separateTrack(
       input.audio,
       deps.onProgress ?? (() => {})
     )
-    const stems: StemSet = separated.map((stem) =>
+    // Decide which stems are actually present (the separator emits a fixed roster;
+    // a track rarely uses them all) and how confident we are, from their energy.
+    const detected = detectInstruments(
+      separated.map((stem) => ({
+        id: stem.id,
+        energy: stemEnergy(stem.audio.channels)
+      }))
+    )
+    const stems: StemSet = separated.map((stem, index) =>
       buildStemTrack(
         stem.id,
         stem.label,
         stem.audio.channels,
         stem.audio.sampleRate,
-        input.bucketCount
+        input.bucketCount,
+        // Detection ran over `separated` in order, so the index is in bounds; the
+        // assertion only satisfies `noUncheckedIndexedAccess`.
+        detected[index] as DetectedStem
       )
     )
     return { ok: true, stems, sources: separated }

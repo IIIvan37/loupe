@@ -10,7 +10,9 @@ const stems: StemSet = [
   {
     id: 'vox',
     label: 'Voix',
-    track: { sampleRate: 4, durationSeconds: 1, waveform: { peaks: [] } }
+    track: { sampleRate: 4, durationSeconds: 1, waveform: { peaks: [] } },
+    confidence: 1,
+    present: true
   }
 ]
 

@@ -7,8 +7,21 @@ import { SeparationPanel } from './separation-panel.tsx'
 
 const emptyTrack = { sampleRate: 4, durationSeconds: 1, waveform: { peaks: [] } }
 const stems: StemSet = [
-  { id: 'voix', label: 'Voix', track: emptyTrack },
-  { id: 'basse', label: 'Basse', track: emptyTrack }
+  { id: 'voix', label: 'Voix', track: emptyTrack, confidence: 1, present: true },
+  {
+    id: 'basse',
+    label: 'Basse',
+    track: emptyTrack,
+    confidence: 0.6,
+    present: true
+  },
+  {
+    id: 'guitare',
+    label: 'Guitare',
+    track: emptyTrack,
+    confidence: 0.02,
+    present: false
+  }
 ]
 
 function state(partial: Partial<SeparationState>): SeparationState {
@@ -52,10 +65,33 @@ describe('SeparationPanel', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
-  it('lists the separated stems when ready', () => {
+  it('lists the present stems when ready', () => {
     renderPanel({ status: 'ready', progress: 1, stems })
     expect(screen.getByText('Voix')).toBeInTheDocument()
     expect(screen.getByText('Basse')).toBeInTheDocument()
+  })
+
+  it('shows each present stem its detection confidence', () => {
+    renderPanel({ status: 'ready', progress: 1, stems })
+    expect(screen.getByText('100 %')).toBeInTheDocument()
+    expect(screen.getByText('60 %')).toBeInTheDocument()
+  })
+
+  it('masks absent stems and lists them as not detected', () => {
+    renderPanel({ status: 'ready', progress: 1, stems })
+    // No track row / download for the masked stem…
+    expect(
+      screen.queryByRole('button', { name: 'Télécharger Guitare en WAV' })
+    ).not.toBeInTheDocument()
+    // …but it is named in the "not detected" line.
+    expect(screen.getByText('Non détectés')).toBeInTheDocument()
+    expect(screen.getByText('Guitare')).toBeInTheDocument()
+  })
+
+  it('omits the not-detected line when every stem is present', () => {
+    const present = stems.filter((s) => s.present)
+    renderPanel({ status: 'ready', progress: 1, stems: present })
+    expect(screen.queryByText(/Non détectés/)).not.toBeInTheDocument()
   })
 
   it('downloads a stem as WAV when its button is clicked', () => {
