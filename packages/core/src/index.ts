@@ -26,6 +26,15 @@ export type {
 } from './application/separate-track.ts'
 export { separateTrack } from './application/separate-track.ts'
 export type {
+  DetectedStem,
+  StemEnergy
+} from './domain/instrument-detection.ts'
+export {
+  detectInstruments,
+  PRESENCE_THRESHOLD,
+  stemEnergy
+} from './domain/instrument-detection.ts'
+export type {
   Command,
   KeyBinding,
   KeyBindings,

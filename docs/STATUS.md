@@ -12,8 +12,9 @@
   separation + WAV export merged (PR #18). Plan in
   [docs/jalon-2-plan.md](jalon-2-plan.md). Jalon 1 is **complete + polished**.
   See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `chore/remove-wasm-separators` (WASM removal, −1598 lines). Next
-  after merge: resume Slice J2.3 (adaptive detection) / in-app per-stem playback.
+- **Branch**: `feat/jalon2-instrument-detection` (Slice J2.3 — adaptive
+  instrument detection + server on `htdemucs_6s`). Next after merge: browser-verify
+  the 6-stem model, then Slice J2.4 (multitrack mixer).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
@@ -47,15 +48,16 @@
 
 ## Next step
 
-**WASM separators removed (branch `chore/remove-wasm-separators`).** The HTTP
-separator ([separator-server/](../separator-server/), PR #19 merged) is now the only
-engine, so the superseded in-browser adapters (GGML/ONNX separators, workers,
-model-cache, resample, stem-layout, audio-format), their vendored assets
-(`public/demucs`, `public/ort`) + build scripts, the `onnxruntime-web` dep, and the
-now-unused chunk/overlap-add core DSP (`segment-plan`, `overlap-add`) were deleted —
-net −1598 lines, gate green. After this merges, resume **Slice J2.3** (adaptive
-instrument detection) or implement **in-app per-stem playback** (multitrack mixer,
-roadmap J2.4). See [docs/jalon-2-plan.md](jalon-2-plan.md).
+**Slice J2.3 done (branch `feat/jalon2-instrument-detection`).** Adaptive
+instrument detection lives in the pure core (`stemEnergy` + `detectInstruments`):
+every `StemTrack` now carries a `confidence` and a `present` flag, the
+`SeparationPanel` masks near-silent stems and shows the rest with a teal
+confidence badge (absent ones named on a « Non détectés » line). The server
+default model moved to **`htdemucs_6s`** so guitar + piano split out of "other"
+(overridable via `DEMUCS_MODEL`). Gate green, core mutation 95.62% (new files
+100%). **Next**: browser-verify a real 6-stem separation, then **Slice J2.4**
+(multitrack mixer — solo/mute/volume over a Web Audio gain graph). See
+[docs/jalon-2-plan.md](jalon-2-plan.md).
 
 ## Roadmap
 
@@ -74,7 +76,7 @@ roadmap J2.4). See [docs/jalon-2-plan.md](jalon-2-plan.md).
 | J2.2 | Real WASM separator adapters (demucs.cpp GGML default + onnxruntime-web), off-main-thread | ✅ |
 | J2.2b | Server-side separation (FastAPI + Demucs) behind the `StemSeparator` port; HTTP/NDJSON, now the default engine | ✅ |
 | J2.2c | Remove the superseded in-browser WASM separators (HTTP is the only engine) — −1598 lines | ✅ |
-| J2.3 | Instrument detection → N adaptive tracks (mask empty, confidence) | ⬜ |
+| J2.3 | Instrument detection → N adaptive tracks (mask empty, confidence) + server on `htdemucs_6s` (guitar/piano) | ✅ |
 | J2.4 | Multitrack mixer (solo/mute/volume, Web Audio gain graph) | ⬜ |
 | J2.5 | Track grouping (user bus, non-destructive) | ⬜ |
 | J2.6 | Export — tier A: aligned stem folder (+ bounced groups) | ⬜ |
@@ -83,6 +85,16 @@ roadmap J2.4). See [docs/jalon-2-plan.md](jalon-2-plan.md).
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-30 — jalon2-instrument-detection](sessions/2026-06-30-jalon2-instrument-detection.md) —
+  Slice J2.3: adaptive instrument detection. Pure core `stemEnergy` (RMS) +
+  `detectInstruments` (energy relative to the loudest → `confidence` ∈ [0,1] +
+  `present` above `PRESENCE_THRESHOLD`); `StemTrack` carries the verdict and
+  `separateTrack` runs it. `SeparationPanel` masks near-silent stems, shows kept
+  ones with a teal confidence badge, and names the masked ones on a « Non
+  détectés » line. Server default model switched to `htdemucs_6s` so guitar +
+  piano split out of "other" (the whole point of masking); `DEMUCS_MODEL` still
+  overrides. Gate green, core mutation 95.62% (new files 100%). Real 6-stem
+  browser-verify pending.
 - [2026-06-30 — remove-wasm-separators](sessions/2026-06-30-remove-wasm-separators.md) —
   Removed the superseded in-browser WASM separators now that the HTTP separator
   (PR #19) is the only engine: GGML/ONNX adapters, workers, parallel/worker

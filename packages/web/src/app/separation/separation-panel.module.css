@@ -108,8 +108,15 @@
   color: var(--text);
 }
 
-.download {
+.confidence {
   margin-inline-start: auto;
+  color: var(--teal);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  flex: none;
+}
+
+.download {
   padding: 2px var(--space-2xs);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -122,6 +129,19 @@
 
 .download:hover {
   color: var(--teal);
+}
+
+.undetected {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--dim);
+}
+
+.undetectedLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  color: var(--dim);
 }
 
 .empty {

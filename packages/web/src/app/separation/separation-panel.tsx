@@ -1,4 +1,4 @@
-import type { SeparationState } from '@app/core'
+import type { SeparationState, StemSet } from '@app/core'
 import { Stack } from '../../layout/stack/stack.tsx'
 import styles from './separation-panel.module.css'
 
@@ -76,35 +76,65 @@ export function SeparationPanel({
       )}
 
       {state.status === 'ready' && (
-        <Stack gap="var(--space-2xs)">
-          <ul className={styles.stems}>
-            {state.stems.map((stem) => (
-              <li key={stem.id} className={styles.stem}>
-                <span
-                  className={styles.swatch}
-                  style={{
-                    backgroundColor: STEM_COLOR[stem.id] ?? 'var(--teal)'
-                  }}
-                  aria-hidden="true"
-                />
-                <span className={styles.stemLabel}>{stem.label}</span>
-                <button
-                  type="button"
-                  className={styles.download}
-                  aria-label={`Télécharger ${stem.label} en WAV`}
-                  onClick={() => onDownloadStem(stem.id)}
-                >
-                  WAV ↓
-                </button>
-              </li>
-            ))}
-          </ul>
-        </Stack>
+        <ReadyStems stems={state.stems} onDownloadStem={onDownloadStem} />
       )}
 
       {state.status === 'idle' && (
         <div className={styles.empty} aria-hidden="true" />
       )}
     </section>
+  )
+}
+
+interface ReadyStemsProps {
+  readonly stems: StemSet
+  readonly onDownloadStem: (id: string) => void
+}
+
+/**
+ * The ready result, split by adaptive detection: the instruments actually
+ * present (each with a teal machine-confidence badge) as a track list, and a
+ * single muted line naming the stems detection masked as near-silent.
+ */
+function ReadyStems({ stems, onDownloadStem }: ReadyStemsProps) {
+  const present = stems.filter((stem) => stem.present)
+  const absent = stems.filter((stem) => !stem.present)
+
+  return (
+    <Stack gap="var(--space-2xs)">
+      <ul className={styles.stems}>
+        {present.map((stem) => (
+          <li key={stem.id} className={styles.stem}>
+            <span
+              className={styles.swatch}
+              style={{ backgroundColor: STEM_COLOR[stem.id] ?? 'var(--teal)' }}
+              aria-hidden="true"
+            />
+            <span className={styles.stemLabel}>{stem.label}</span>
+            <span
+              className={styles.confidence}
+              title={`Confiance de détection : ${Math.round(stem.confidence * 100)} %`}
+            >
+              {Math.round(stem.confidence * 100)} %
+            </span>
+            <button
+              type="button"
+              className={styles.download}
+              aria-label={`Télécharger ${stem.label} en WAV`}
+              onClick={() => onDownloadStem(stem.id)}
+            >
+              WAV ↓
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {absent.length > 0 && (
+        <p className={styles.undetected}>
+          <span className={styles.undetectedLabel}>Non détectés</span>{' '}
+          <span>{absent.map((stem) => stem.label).join(' · ')}</span>
+        </p>
+      )}
+    </Stack>
   )
 }

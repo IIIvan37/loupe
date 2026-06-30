@@ -9,7 +9,7 @@ The single place to look before adding a feature, so ports and use-cases get
 |----------|-----------|-------|
 | `loadTrack` | `(input, deps) => Promise<LoadTrackResult>` | Slices 1–2 — decode bytes once via `AudioFileDecoder`, summarise into a `Track` (mono mix → `Waveform` peaks + duration), and load the same PCM into the `PlaybackEngine`. Also returns the decoded PCM so separation reuses the same audio (no second decode). |
 | `loadLoops` / `saveLoop` / `deleteLoop` | `(…, deps) => Promise<LoopLibrary>` | Slice 5 — read/add/remove a saved loop via the `LoopStore` port (persistence best-effort). |
-| `separateTrack` | `(input, deps) => Promise<SeparateTrackResult>` | Slice J2.1 — hand the loaded PCM to the `StemSeparator` port and summarise each isolated stem into a render-ready `StemTrack` (`StemSet`); progress streams to an optional sink. Input is the SAME `DecodedAudio` the player loaded. |
+| `separateTrack` | `(input, deps) => Promise<SeparateTrackResult>` | Slice J2.1 — hand the loaded PCM to the `StemSeparator` port and summarise each isolated stem into a render-ready `StemTrack` (`StemSet`); progress streams to an optional sink. Input is the SAME `DecodedAudio` the player loaded. **J2.3**: also runs adaptive detection — each stem carries a `confidence` and a `present` flag derived from its energy, so the UI can mask near-silent stems. |
 
 > Pure transport domain (no use-case, driven by the UI): `transportReducer` /
 > `initialTransport` (`TransportState` machine), `formatTimecode` (m:ss), and the
@@ -42,6 +42,13 @@ The single place to look before adding a feature, so ports and use-cases get
 > `StemSet` / `StemTrack` are the render-ready result (`buildStemTrack` reuses the
 > track mono-mix → waveform reduction). The web's `useSeparation` hook is the
 > adapter that runs `separateTrack` and streams progress into the reducer.
+>
+> Pure instrument detection — Slice J2.3: `stemEnergy` (RMS loudness of a stem's
+> channels) + `detectInstruments` (energy relative to the loudest stem →
+> `confidence` in [0, 1] + a `present` flag above `PRESENCE_THRESHOLD`). The
+> separator emits a fixed roster (htdemucs_6s: voice/drums/bass/guitar/piano/
+> other) but a track rarely uses them all; detection masks the near-silent ones.
+> `separateTrack` runs it so every `StemTrack` carries its verdict.
 >
 > Pure WAV codec (no use-case/port, used by adapters) — `encodeWav` (Slice J2.2,
 > per-stem export) serialises PCM to a 16-bit WAV; `decodeWav` (Slice J2.2b) is

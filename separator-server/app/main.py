@@ -57,24 +57,29 @@ class _ProgressTqdm(tqdm.tqdm):
 
 demucs.apply.tqdm = types.SimpleNamespace(tqdm=_ProgressTqdm)
 
-# `htdemucs` is a single model (fast); `htdemucs_ft` is a bag of 4 fine-tuned
-# models — best quality but ~4x slower. Override with DEMUCS_MODEL.
-MODEL_NAME = os.environ.get("DEMUCS_MODEL", "htdemucs")
+# `htdemucs_6s` is the 6-source model: it splits guitar and piano out of the
+# "other" bucket, which is what makes the app's adaptive instrument detection
+# (J2.3) worthwhile — a track without guitar/piano comes back near-silent on
+# those stems and the UI masks them. `htdemucs` (4 stems) is faster; the piano
+# stem in 6s is weaker/experimental. Override with DEMUCS_MODEL.
+MODEL_NAME = os.environ.get("DEMUCS_MODEL", "htdemucs_6s")
 TARGET_SAMPLE_RATE = 44100
 
-# Map Demucs' source names to the musician-friendly ids/labels the core's
-# `stem-layout` expects, so the stems line up with the in-browser engines.
+# Map Demucs' source names to the musician-friendly ids/labels the UI expects.
+# The web reserves a colour per id (voix/batterie/basse/guitare/claviers/autres).
 STEM_META: dict[str, tuple[str, str]] = {
     "vocals": ("voix", "Voix"),
     "drums": ("batterie", "Batterie"),
     "bass": ("basse", "Basse"),
+    "guitar": ("guitare", "Guitare"),
+    "piano": ("claviers", "Claviers"),
     "other": ("autres", "Autres"),
 }
 
-# Musician-friendly display order, matching the in-browser engines' `stem-layout`
-# so switching engines never reshuffles the UI. Demucs' native order is
-# [drums, bass, other, vocals].
-DISPLAY_ORDER = ["vocals", "drums", "bass", "other"]
+# Musician-friendly display order. Demucs' native order differs per model
+# (4s: [drums, bass, other, vocals]; 6s adds guitar, piano), so we re-order to a
+# stable UI layout. Sources absent from the loaded model are simply skipped.
+DISPLAY_ORDER = ["vocals", "drums", "bass", "guitar", "piano", "other"]
 
 app = FastAPI(title="loupe separator")
 app.add_middleware(

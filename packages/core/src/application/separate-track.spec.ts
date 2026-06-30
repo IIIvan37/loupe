@@ -61,6 +61,25 @@ describe('separateTrack — when the separator yields stems', () => {
   })
 })
 
+describe('separateTrack — adaptive detection', () => {
+  it('annotates each stem with its detection verdict and masks silence', async () => {
+    const loud: DecodedAudio = { sampleRate: 4, channels: [[1, -1, 1, -1]] }
+    const silent: DecodedAudio = { sampleRate: 4, channels: [[0, 0, 0, 0]] }
+    const separator: StemSeparator = {
+      async separate() {
+        return [
+          { id: 'drums', label: 'Batterie', audio: loud },
+          { id: 'bass', label: 'Basse', audio: silent }
+        ]
+      }
+    }
+    const result = await separateTrack({ audio, bucketCount: 1 }, { separator })
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.stems[0]).toMatchObject({ confidence: 1, present: true })
+    expect(result.stems[1]).toMatchObject({ confidence: 0, present: false })
+  })
+})
+
 describe('separateTrack — when separation fails', () => {
   it('turns a thrown error into a typed error Result', async () => {
     const separator: StemSeparator = {

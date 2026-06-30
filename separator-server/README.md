@@ -1,10 +1,12 @@
 # loupe separator-server
 
-A local separation backend for loupe: runs the full **Demucs `htdemucs`**
+A local separation backend for loupe: runs the full **Demucs `htdemucs_6s`**
 model (PyTorch, GPU when available) and streams stems back to the web app. It
 exists because the in-browser WASM engines hit a quality/speed wall — server-side
-PyTorch has no such ceiling. Override the model with `DEMUCS_MODEL` (e.g.
-`htdemucs_ft`, the slower 4-model fine-tuned bag).
+PyTorch has no such ceiling. The 6-source model splits **guitar** and **piano**
+out of the "other" bucket, so the app's adaptive detection can surface only the
+instruments actually present. Override the model with `DEMUCS_MODEL` (e.g.
+`htdemucs` for the faster 4-stem model, or `htdemucs_ft`, the slower fine-tuned bag).
 
 This is a standalone Python service, **deliberately outside the pnpm monorepo /
 hexagon**. The web app talks to it only through the HTTP contract below, behind
@@ -30,6 +32,19 @@ VITE_SEPARATOR_URL=http://localhost:8000 pnpm --filter @app/web dev
 ```
 
 (Defaults to `http://localhost:8000` when the variable is unset.)
+
+### One command (server + web)
+
+Once the venv exists (the `python -m venv .venv && pip install …` step above),
+launch both from the repo root:
+
+```sh
+pnpm dev          # = concurrently: dev:server (uvicorn) + dev:web (Vite)
+```
+
+`pnpm dev:server` / `pnpm dev:web` run them individually. `dev:server` calls the
+venv's uvicorn directly (`separator-server/.venv/bin/uvicorn`), so the venv must
+be set up first.
 
 ## HTTP contract
 
