@@ -26,6 +26,11 @@
   font-size: 0.8rem;
 }
 
+.action:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--panel-3);
+}
+
 .action:disabled {
   opacity: 0.5;
 }

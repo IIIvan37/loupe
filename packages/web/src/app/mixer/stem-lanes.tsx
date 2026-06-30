@@ -22,18 +22,20 @@ export function StemLanes({ channels }: StemLanesProps) {
   return (
     <ul className={styles.lanes}>
       {channels.map(({ stem, level }) => (
-        <li
-          key={stem.id}
-          className={styles.lane}
-          // Never fully gone, so a muted stem stays legible.
-          style={{ opacity: 0.15 + 0.85 * level }}
-        >
+        <li key={stem.id} className={styles.lane}>
           <span className={styles.label}>{stem.label}</span>
-          <WaveformCanvas
-            waveform={stem.track.waveform}
-            colorVar={stemColorVar(stem.id)}
-            label={`Forme d'onde de ${stem.label}`}
-          />
+          <div
+            className={styles.wave}
+            // Fade only the envelope — never fully gone, and the label above it
+            // stays at full opacity so a muted stem is still identifiable.
+            style={{ opacity: 0.15 + 0.85 * level }}
+          >
+            <WaveformCanvas
+              waveform={stem.track.waveform}
+              colorVar={stemColorVar(stem.id)}
+              label={`Forme d'onde de ${stem.label}`}
+            />
+          </div>
         </li>
       ))}
     </ul>

@@ -13,6 +13,12 @@
   height: 36px;
   border-radius: var(--radius);
   background: var(--panel-2);
+  overflow: hidden;
+}
+
+/* The envelope fades with the channel level; the label above keeps full opacity. */
+.wave {
+  height: 100%;
   transition: opacity 120ms ease-out;
 }
 

@@ -48,9 +48,16 @@
   font-size: 0.75rem;
 }
 
+.toggle:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+/* Mute is neutral (a stem colour here would clash with the stem swatches). */
 .muted {
-  border-color: var(--stem-vocals);
-  color: var(--stem-vocals);
+  border-color: var(--text);
+  color: var(--text);
+  background: var(--panel-3);
 }
 
 .soloed {
