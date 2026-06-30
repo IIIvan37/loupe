@@ -12,15 +12,20 @@
   separation + WAV export merged (PR #18). Plan in
   [docs/jalon-2-plan.md](jalon-2-plan.md). Jalon 1 is **complete + polished**.
   See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `main` — Slice J2.3 merged (PR #21: adaptive instrument detection +
-  server on `htdemucs_6s`). Next: browser-verify the 6-stem model, then Slice J2.4
-  (multitrack mixer). **Scope change (2026-06-30): J2.5 track grouping is dropped**
-  (low value) — Jalon 2 now ends at the mixer (J2.4) + export (J2.6).
+- **Branch**: `feat/jalon2-multitrack-mixer` — Slice J2.4 (multitrack mixer)
+  built, gate-green, **PR open**. Solo/mute/dB-volume over a pure `MixerState` +
+  a Web Audio gain graph, **unified transport** (stems drive the one transport
+  once ready), per-stem aligned read-only waveform lanes, and a **reactive
+  audible-mix** main waveform. Next: browser-verify, then Slice J2.6 (export).
+  **Scope change (2026-06-30): J2.5 track grouping is dropped** (low value) —
+  Jalon 2 now ends at the mixer (J2.4) + export (J2.6).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
   `TrackMetadataReader` port, `separateTrack`/`StemSeparator` port +
-  `separationReducer`/`StemSet`, `encodeWav`/`decodeWav` WAV codec) + `packages/web`
+  `separationReducer`/`StemSet`, `encodeWav`/`decodeWav` WAV codec,
+  `mixerReducer`/`effectiveGains` + `StemPlaybackEngine` port +
+  `combineWaveforms`) + `packages/web`
   (import → … → stem separation via the HTTP `createSeparator` → local FastAPI +
   Demucs backend; per-stem WAV download; gate-green). The starter `@app/cli`/`greet`
   example and the in-browser WASM separators have been removed.
@@ -49,7 +54,21 @@
 
 ## Next step
 
-**Slice J2.3 merged (PR #21).** Adaptive instrument detection lives in the pure
+**Slice J2.4 built — PR open.** The multitrack mixer: pure `MixerState`
+(`gainDb`/`muted`/`soloed` per stem → `effectiveGains`, mute-wins, dB faders with
+a true-silence floor) + `combineWaveforms` (audible-mix envelope), a new
+`StemPlaybackEngine` port implemented by a Web Audio gain graph (per-stem
+`GainNode` → one SoundTouch master bus). The **transport is unified**: once stems
+are ready the bottom bar drives the mix (one playhead/loop, tempo/pitch on the
+mix); the **main waveform shows the reactive audible mix** and each stem gets an
+**aligned, read-only waveform lane** inside the zoom stage that pales with its
+level. The mixer panel holds the dB fader + mute/solo + confidence + WAV per
+stem. The « Séparer les pistes » action hides once stems are ready. Gate green,
+core mutation 95.54%. **Next**: browser-verify the mixer, then **Slice J2.6**
+(export — aligned stem folder, zipped).
+
+### Earlier — Slice J2.3 (merged, PR #21)
+Adaptive instrument detection lives in the pure
 core (`stemEnergy` + `detectInstruments`): every `StemTrack` now carries a
 `confidence` and a `present` flag, the `SeparationPanel` masks near-silent stems
 and shows the rest with a teal confidence badge (absent ones named on a « Non
@@ -79,7 +98,7 @@ mixer (J2.4) then export (J2.6). See
 | J2.2b | Server-side separation (FastAPI + Demucs) behind the `StemSeparator` port; HTTP/NDJSON, now the default engine | ✅ |
 | J2.2c | Remove the superseded in-browser WASM separators (HTTP is the only engine) — −1598 lines | ✅ |
 | J2.3 | Instrument detection → N adaptive tracks (mask empty, confidence) + server on `htdemucs_6s` (guitar/piano) | ✅ |
-| J2.4 | Multitrack mixer (solo/mute/volume, Web Audio gain graph) | ⬜ |
+| J2.4 | Multitrack mixer (solo/mute/dB-volume, Web Audio gain graph, unified transport, reactive mix waveform + per-stem lanes) | 🔄 PR open |
 | ~~J2.5~~ | ~~Track grouping (user bus, non-destructive)~~ — **dropped** (low value without enough perceived benefit) | 🚫 |
 | J2.6 | Export — tier A: aligned stem folder (named WAVs, t=0, zipped) | ⬜ |
 
@@ -87,6 +106,18 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-01 — jalon2-multitrack-mixer](sessions/2026-07-01-jalon2-multitrack-mixer.md) —
+  Slice J2.4: the multitrack mixer. Pure core `mixerReducer`/`effectiveGains`
+  (per-stem `gainDb`/`muted`/`soloed` → one linear gain; mute-wins; dB faders with
+  a true-silence floor) + `combineWaveforms` (audible-mix envelope). New
+  `StemPlaybackEngine` port → Web Audio gain graph (per-stem `GainNode` → one
+  SoundTouch master bus). **Unified transport**: stems drive the single transport
+  once ready (one playhead/loop, tempo/pitch on the mix). The **main waveform
+  shows the reactive audible mix**; each stem gets an **aligned, read-only lane**
+  inside the zoom stage that pales with its level. Mixer panel = dB fader +
+  mute/solo + confidence + WAV per stem; the « Séparer » action hides once ready.
+  Engine load + mixer seed are event-driven (no prop-watching effect). Gate green,
+  core mutation 95.54%. Browser-verify pending.
 - [2026-06-30 — jalon2-instrument-detection](sessions/2026-06-30-jalon2-instrument-detection.md) —
   Slice J2.3: adaptive instrument detection. Pure core `stemEnergy` (RMS) +
   `detectInstruments` (energy relative to the loudest → `confidence` ∈ [0,1] +

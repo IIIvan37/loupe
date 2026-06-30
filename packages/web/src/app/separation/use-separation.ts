@@ -5,20 +5,36 @@ import {
   type SeparatedStem,
   type SeparationState,
   type StemSeparator,
+  type StemSet,
   separateTrack,
   separationReducer
 } from '@app/core'
-import { useMemo, useReducer, useRef } from 'react'
+import { useMemo, useReducer, useRef, useState } from 'react'
 import { createSeparator } from '../../audio/create-separator.ts'
 import { downloadBlob } from '../../audio/download-blob.ts'
 
-/** Per-stem peak resolution: enough for a compact track-list waveform. */
-const BUCKET_COUNT = 240
+// Per-stem peak resolution. Matches the main view's, so the stems sum cleanly
+// into the audible-mix waveform shown there and the lanes stay crisp when zoomed.
+const BUCKET_COUNT = 1200
+
+/** The committed outcome of a separation run: render-ready stems + their PCM. */
+export interface SeparationResult {
+  readonly stems: StemSet
+  readonly sources: readonly SeparatedStem[]
+}
 
 export interface Separation {
   readonly state: SeparationState
-  /** Separate the already-loaded PCM — the SAME audio the player decoded. */
-  readonly separate: (audio: DecodedAudio) => Promise<void>
+  /** The isolated stems' raw PCM, retained for the mixer and per-stem export. */
+  readonly sources: readonly SeparatedStem[]
+  /**
+   * Separate the already-loaded PCM — the SAME audio the player decoded.
+   * Resolves with the committed result, or `undefined` if it failed or a newer
+   * run superseded it (so the caller can wire the mixer in this same handler).
+   */
+  readonly separate: (
+    audio: DecodedAudio
+  ) => Promise<SeparationResult | undefined>
   /** Download one separated stem as a 16-bit WAV (no-op if its PCM is gone). */
   readonly downloadStem: (id: string) => void
   readonly reset: () => void
@@ -43,12 +59,15 @@ export function useSeparation(separator?: StemSeparator): Separation {
   // import or reset is stale, and its late progress/result must not land on the
   // current track. Bumped by every `separate` and every `reset`.
   const runIdRef = useRef(0)
-  // The isolated stems' raw PCM, retained for export (kept off the domain state).
-  const sourcesRef = useRef<readonly SeparatedStem[]>([])
+  // The isolated stems' raw PCM, kept off the pure domain state (heavy buffers)
+  // but reactive so the mixer can load them into the gain graph when they land.
+  const [sources, setSources] = useState<readonly SeparatedStem[]>([])
 
-  async function separate(audio: DecodedAudio): Promise<void> {
+  async function separate(
+    audio: DecodedAudio
+  ): Promise<SeparationResult | undefined> {
     const runId = ++runIdRef.current
-    sourcesRef.current = []
+    setSources([])
     dispatch({ type: 'start' })
     const result = await separateTrack(
       { audio, bucketCount: BUCKET_COUNT },
@@ -67,19 +86,22 @@ export function useSeparation(separator?: StemSeparator): Separation {
     )
     // Commit only if this is still the latest run (a newer separate/reset since
     // the await would have bumped the token, making this result stale).
+    let committed: SeparationResult | undefined
     if (runIdRef.current === runId) {
       if (result.ok) {
-        sourcesRef.current = result.sources
+        setSources(result.sources)
         dispatch({ type: 'ready', stems: result.stems })
+        committed = { stems: result.stems, sources: result.sources }
       } else {
         dispatch({ type: 'fail', message: result.error })
       }
     }
+    return committed
   }
 
   function downloadStem(id: string): void {
-    const index = sourcesRef.current.findIndex((stem) => stem.id === id)
-    const stem = sourcesRef.current[index]
+    const index = sources.findIndex((stem) => stem.id === id)
+    const stem = sources[index]
     if (!stem) {
       return
     }
@@ -93,9 +115,9 @@ export function useSeparation(separator?: StemSeparator): Separation {
   function reset(): void {
     // Abandon any in-flight run so its late result can't repopulate the state.
     runIdRef.current++
-    sourcesRef.current = []
+    setSources([])
     dispatch({ type: 'reset' })
   }
 
-  return { state, separate, downloadStem, reset }
+  return { state, sources, separate, downloadStem, reset }
 }

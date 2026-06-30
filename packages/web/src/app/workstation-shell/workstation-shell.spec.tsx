@@ -6,6 +6,7 @@ import type {
   LoopLibrary,
   LoopStore,
   PlaybackEngine,
+  StemPlaybackEngine,
   StemSeparator,
   TrackMetadataReader
 } from '@app/core'
@@ -54,6 +55,20 @@ function fakeEngine() {
       }
     }
   } satisfies PlaybackEngine & { emit: (s: number) => void }
+}
+
+/** A no-op stem engine so the mixer never touches real Web Audio in jsdom. */
+function fakeStemEngine(): StemPlaybackEngine {
+  return {
+    load: vi.fn(async () => {}),
+    play: vi.fn(),
+    pause: vi.fn(),
+    seekTo: vi.fn(),
+    setTimeRatio: vi.fn(),
+    setPitchSemitones: vi.fn(),
+    setGain: vi.fn(),
+    onPositionChange: () => () => {}
+  }
 }
 
 function audioFile(): File {
@@ -122,6 +137,7 @@ function renderShell(
     <WorkstationShell
       decoder={okDecoder}
       engine={engine}
+      stemEngine={fakeStemEngine()}
       metadataReader={silentReader}
       {...overrides}
     />
@@ -494,8 +510,17 @@ describe('WorkstationShell', () => {
     await importTrack()
     fireEvent.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
 
-    expect(await screen.findByText('Voix')).toBeInTheDocument()
-    expect(screen.getByText('Basse')).toBeInTheDocument()
+    // The stems land in the mixer: one fader (and lane) per separated stem.
+    expect(
+      await screen.findByRole('slider', { name: 'Volume Voix' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('slider', { name: 'Volume Basse' })
+    ).toBeInTheDocument()
+    // The action is gone once the stems are ready.
+    expect(
+      screen.queryByRole('button', { name: 'Séparer les pistes' })
+    ).not.toBeInTheDocument()
   })
 
   it('surfaces a separation failure and offers a retry', async () => {

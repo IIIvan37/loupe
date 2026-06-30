@@ -1,0 +1,95 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.strips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
+.strip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-2xs) var(--space-s);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.label {
+  min-width: 6ch;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.toggle {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.muted {
+  border-color: var(--stem-vocals);
+  color: var(--stem-vocals);
+}
+
+.soloed {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.fader {
+  flex: 1;
+  min-width: 80px;
+}
+
+.db {
+  min-width: 5ch;
+  text-align: end;
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--amber);
+}
+
+.confidence {
+  color: var(--teal);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  flex: none;
+}
+
+.download {
+  padding: 2px var(--space-2xs);
+  flex: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+}
+
+.download:hover {
+  color: var(--teal);
+}
