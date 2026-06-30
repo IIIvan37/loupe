@@ -37,7 +37,6 @@ function renderPanel(
       state={state(partial)}
       canSeparate
       onSeparate={() => {}}
-      onDownloadStem={() => {}}
       {...props}
     />
   )
@@ -65,42 +64,23 @@ describe('SeparationPanel', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
-  it('lists the present stems when ready', () => {
+  it('names the masked stems on the not-detected line when ready', () => {
     renderPanel({ status: 'ready', progress: 1, stems })
-    expect(screen.getByText('Voix')).toBeInTheDocument()
-    expect(screen.getByText('Basse')).toBeInTheDocument()
-  })
-
-  it('shows each present stem its detection confidence', () => {
-    renderPanel({ status: 'ready', progress: 1, stems })
-    expect(screen.getByText('100 %')).toBeInTheDocument()
-    expect(screen.getByText('60 %')).toBeInTheDocument()
-  })
-
-  it('masks absent stems and lists them as not detected', () => {
-    renderPanel({ status: 'ready', progress: 1, stems })
-    // No track row / download for the masked stem…
-    expect(
-      screen.queryByRole('button', { name: 'Télécharger Guitare en WAV' })
-    ).not.toBeInTheDocument()
-    // …but it is named in the "not detected" line.
     expect(screen.getByText('Non détectés')).toBeInTheDocument()
     expect(screen.getByText('Guitare')).toBeInTheDocument()
+  })
+
+  it('hides the separate action once the stems are ready', () => {
+    renderPanel({ status: 'ready', progress: 1, stems })
+    expect(
+      screen.queryByRole('button', { name: 'Séparer les pistes' })
+    ).not.toBeInTheDocument()
   })
 
   it('omits the not-detected line when every stem is present', () => {
     const present = stems.filter((s) => s.present)
     renderPanel({ status: 'ready', progress: 1, stems: present })
     expect(screen.queryByText(/Non détectés/)).not.toBeInTheDocument()
-  })
-
-  it('downloads a stem as WAV when its button is clicked', () => {
-    const onDownloadStem = vi.fn()
-    renderPanel({ status: 'ready', progress: 1, stems }, { onDownloadStem })
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Télécharger Basse en WAV' })
-    )
-    expect(onDownloadStem).toHaveBeenCalledWith('basse')
   })
 
   it('surfaces a failure and offers a retry', () => {

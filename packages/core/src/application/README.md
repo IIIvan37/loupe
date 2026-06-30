@@ -50,6 +50,19 @@ The single place to look before adding a feature, so ports and use-cases get
 > other) but a track rarely uses them all; detection masks the near-silent ones.
 > `separateTrack` runs it so every `StemTrack` carries its verdict.
 >
+> Pure mixer domain — Slice J2.4: `mixerReducer` / `emptyMixer` drive the
+> `MixerState` (one `MixerChannel` per stem: `gainDb` + `muted` + `soloed`);
+> `effectiveGains` folds the solo/mute rules into one linear gain per channel
+> (mute silences itself, any solo silences the non-soloed, mute wins), the value
+> both the gain graph and the fading waveforms read. `clampGainDb` /
+> `dbToAmplitude` map the dB fader (`MIN_GAIN_DB`…`MAX_GAIN_DB`, `UNITY_GAIN_DB`)
+> to a linear multiplier, the bottom of the fader being true silence.
+> `combineWaveforms` sums the stem envelopes weighted by their effective gains
+> into one (clamped to [-1, 1]) — the waveform of the **audible mix** the main
+> view shows, recomputed as solo/mute/volume change. The web's `useMixer` hook
+> owns the state, pushes the effective gains into the `StemPlaybackEngine`, and
+> exposes that mix envelope plus the per-stem lanes.
+>
 > Pure WAV codec (no use-case/port, used by adapters) — `encodeWav` (Slice J2.2,
 > per-stem export) serialises PCM to a 16-bit WAV; `decodeWav` (Slice J2.2b) is
 > its inverse, parsing a WAV the HTTP separator fetched back into `DecodedAudio`.
@@ -60,6 +73,7 @@ The single place to look before adding a feature, so ports and use-cases get
 |------|------|----------------|
 | `AudioFileDecoder` | driven | `web`: `createWebAudioDecoder` (`decodeAudioData`) |
 | `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode` + SoundTouch worklet for tempo/pitch) |
+| `StemPlaybackEngine` | driven | `web`: `createWebAudioStemPlayback` — synchronised multitrack playback (J2.4): a `GainNode` per stem summed into one SoundTouch master bus (tempo/pitch on the mix), `setGain` driven by the mixer's `effectiveGains` |
 | `LoopStore` | driven | `web`: `createLocalStorageLoopStore` (localStorage) |
 | `TrackMetadataReader` | driven | `web`: `createMusicMetadataReader` (music-metadata; best-effort ID3/etc. tags) |
 | `StemSeparator` | driven | `web`: `createHttpSeparator` against a local **FastAPI + Demucs** backend (mix → WAV POST → streamed NDJSON progress → fetch + `decodeWav` stems — J2.2b). The earlier in-browser WASM engines (demucs.cpp GGML / onnxruntime-web) hit a quality+speed wall and were removed; a cloud API could be a later adapter on the same port. |

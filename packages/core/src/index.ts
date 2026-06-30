@@ -15,7 +15,9 @@ export type {
   PlaybackEngine,
   SeparatedStem,
   SeparationProgress,
+  StemPlaybackEngine,
   StemSeparator,
+  StemSource,
   TrackMetadata,
   TrackMetadataReader
 } from './application/ports.ts'
@@ -65,6 +67,22 @@ export {
   emptyMarkerList,
   removeMarker
 } from './domain/marker-list.ts'
+export type {
+  ChannelGain,
+  MixerAction,
+  MixerChannel,
+  MixerState
+} from './domain/mixer.ts'
+export {
+  clampGainDb,
+  dbToAmplitude,
+  effectiveGains,
+  emptyMixer,
+  MAX_GAIN_DB,
+  MIN_GAIN_DB,
+  mixerReducer,
+  UNITY_GAIN_DB
+} from './domain/mixer.ts'
 export {
   clampPitchSemitones,
   MAX_PITCH_SEMITONES,
@@ -101,3 +119,5 @@ export {
 export { decodeWav } from './domain/wav-decoder.ts'
 export { encodeWav } from './domain/wav-encoder.ts'
 export type { Waveform, WaveformPeak } from './domain/waveform.ts'
+export type { WaveformLayer } from './domain/waveform-mix.ts'
+export { combineWaveforms } from './domain/waveform-mix.ts'

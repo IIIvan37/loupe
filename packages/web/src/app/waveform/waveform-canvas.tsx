@@ -5,14 +5,22 @@ import styles from './waveform-canvas.module.css'
 interface WaveformCanvasProps {
   readonly waveform: Waveform
   readonly label: string
+  /** CSS custom property to paint the envelope with (default the amber accent). */
+  readonly colorVar?: string
 }
 
 /**
- * Presentational waveform: paints min/max peaks as an amber envelope on a
+ * Presentational waveform: paints min/max peaks as a coloured envelope on a
  * canvas. Pure view — peaks in, pixels out; all summarising happened in the
- * core. The imperative draw is the canvas equivalent of returning JSX.
+ * core. The imperative draw is the canvas equivalent of returning JSX. The
+ * colour is a CSS custom property name (amber by default, a stem colour in the
+ * mixer).
  */
-export function WaveformCanvas({ waveform, label }: WaveformCanvasProps) {
+export function WaveformCanvas({
+  waveform,
+  label,
+  colorVar = '--amber'
+}: WaveformCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -21,13 +29,15 @@ export function WaveformCanvas({ waveform, label }: WaveformCanvasProps) {
     if (!canvas || !context) {
       return
     }
-    paint(canvas, context, waveform)
+    paint(canvas, context, waveform, colorVar)
     // Repaint when the canvas resizes — zooming widens it, and so does a window
     // resize — so the bitmap always matches its CSS box rather than stretching.
-    const observer = new ResizeObserver(() => paint(canvas, context, waveform))
+    const observer = new ResizeObserver(() =>
+      paint(canvas, context, waveform, colorVar)
+    )
     observer.observe(canvas)
     return () => observer.disconnect()
-  }, [waveform])
+  }, [waveform, colorVar])
 
   return (
     <canvas ref={canvasRef} className={styles.canvas} role="img" aria-label={label} />
@@ -38,7 +48,8 @@ export function WaveformCanvas({ waveform, label }: WaveformCanvasProps) {
 function paint(
   canvas: HTMLCanvasElement,
   context: CanvasRenderingContext2D,
-  waveform: Waveform
+  waveform: Waveform,
+  colorVar: string
 ): void {
   const ratio = window.devicePixelRatio || 1
   const width = canvas.clientWidth
@@ -48,8 +59,8 @@ function paint(
   context.scale(ratio, ratio)
 
   context.clearRect(0, 0, width, height)
-  const amber = getComputedStyle(canvas).getPropertyValue('--amber').trim()
-  context.fillStyle = amber
+  const color = getComputedStyle(canvas).getPropertyValue(colorVar).trim()
+  context.fillStyle = color || 'currentColor'
 
   const peaks = waveform.peaks
   if (peaks.length === 0) {

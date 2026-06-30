@@ -75,6 +75,35 @@ export interface SeparationProgress {
   readonly fraction: number
 }
 
+/** One stem loaded into the mixer: its id (matching the `MixerState` channel) and PCM. */
+export interface StemSource {
+  readonly id: string
+  readonly audio: DecodedAudio
+}
+
+/**
+ * Driven port: synchronised multitrack playback of separated stems through a
+ * per-stem gain graph summed to a master output (web: a `GainNode` per stem →
+ * one SoundTouch master bus). It is the `PlaybackEngine`'s multitrack sibling —
+ * same transport surface (play/pause/seek/tempo/pitch/position) — so the unified
+ * transport can steer it once stems exist, plus a `setGain` per channel the
+ * mixer drives. The pure core never touches Web Audio; gains are the linear
+ * values `effectiveGains` produced.
+ */
+export interface StemPlaybackEngine {
+  /** Load the stems as the current multitrack source, ready from the start. */
+  load(stems: readonly StemSource[]): Promise<void>
+  play(): void
+  pause(): void
+  seekTo(seconds: number): void
+  setTimeRatio(ratio: number): void
+  setPitchSemitones(semitones: number): void
+  /** Set one channel's linear output gain (0 = silent). */
+  setGain(id: string, gain: number): void
+  /** Subscribe to position updates (seconds). Returns an unsubscribe function. */
+  onPositionChange(listener: (seconds: number) => void): () => void
+}
+
 /**
  * Driven port: split decoded audio into isolated stems. Long-running and
  * progressive — it streams phase/fraction through `onProgress`. Implemented by an

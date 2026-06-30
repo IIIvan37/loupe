@@ -1,17 +1,5 @@
 import type { SeparationState, StemSet } from '@app/core'
-import { Stack } from '../../layout/stack/stack.tsx'
 import styles from './separation-panel.module.css'
-
-/** Map each stem id to its reserved design-system colour (teal as a fallback). */
-const STEM_COLOR: Readonly<Record<string, string>> = {
-  voix: 'var(--stem-vocals)',
-  batterie: 'var(--stem-drums)',
-  basse: 'var(--stem-bass)',
-  // The htdemucs « other » bucket (everything that is not voice/drums/bass).
-  autres: 'var(--stem-other)',
-  guitare: 'var(--stem-guitar)',
-  claviers: 'var(--stem-keys)'
-}
 
 const PHASE_LABEL: Readonly<Record<'analysing' | 'separating', string>> = {
   analysing: 'Analyse du mix…',
@@ -23,29 +11,31 @@ interface SeparationPanelProps {
   /** Whether a track is loaded and ready to be separated. */
   readonly canSeparate: boolean
   readonly onSeparate: () => void
-  /** Download one separated stem as a WAV. */
-  readonly onDownloadStem: (id: string) => void
 }
 
 /**
  * Dumb presentational panel for the import → separation moment: a single action
- * on the loaded track, a progress read-out while it runs, then the list of
- * separated stems. No second import — it acts on the audio already in the player.
+ * on the loaded track, a progress read-out while it runs, then — once ready —
+ * the « Non détectés » line for the stems detection masked. The present stems
+ * are the mixer's job (faders, waveforms). No second import: it acts on the
+ * audio already in the player.
  */
 export function SeparationPanel({
   state,
   canSeparate,
-  onSeparate,
-  onDownloadStem
+  onSeparate
 }: SeparationPanelProps) {
   const isRunning = state.status === 'analysing' || state.status === 'separating'
   const percent = Math.round(state.progress * 100)
+  // Offer the action only while there is something to do: hide it once the stems
+  // are ready (a re-run needs a fresh import), keep it as a retry on failure.
+  const canAct = !isRunning && state.status !== 'ready'
 
   return (
     <section className={styles.panel} aria-label="Séparation des pistes">
       <div className={styles.head}>
         <span className={styles.label}>Pistes séparées</span>
-        {!isRunning && (
+        {canAct && (
           <button
             type="button"
             className={styles.action}
@@ -75,9 +65,7 @@ export function SeparationPanel({
         </p>
       )}
 
-      {state.status === 'ready' && (
-        <ReadyStems stems={state.stems} onDownloadStem={onDownloadStem} />
-      )}
+      {state.status === 'ready' && <UndetectedLine stems={state.stems} />}
 
       {state.status === 'idle' && (
         <div className={styles.empty} aria-hidden="true" />
@@ -86,55 +74,16 @@ export function SeparationPanel({
   )
 }
 
-interface ReadyStemsProps {
-  readonly stems: StemSet
-  readonly onDownloadStem: (id: string) => void
-}
-
-/**
- * The ready result, split by adaptive detection: the instruments actually
- * present (each with a teal machine-confidence badge) as a track list, and a
- * single muted line naming the stems detection masked as near-silent.
- */
-function ReadyStems({ stems, onDownloadStem }: ReadyStemsProps) {
-  const present = stems.filter((stem) => stem.present)
+/** Name the stems adaptive detection masked as near-silent (nothing if none). */
+function UndetectedLine({ stems }: { readonly stems: StemSet }) {
   const absent = stems.filter((stem) => !stem.present)
-
+  if (absent.length === 0) {
+    return null
+  }
   return (
-    <Stack gap="var(--space-2xs)">
-      <ul className={styles.stems}>
-        {present.map((stem) => (
-          <li key={stem.id} className={styles.stem}>
-            <span
-              className={styles.swatch}
-              style={{ backgroundColor: STEM_COLOR[stem.id] ?? 'var(--teal)' }}
-              aria-hidden="true"
-            />
-            <span className={styles.stemLabel}>{stem.label}</span>
-            <span
-              className={styles.confidence}
-              title={`Confiance de détection : ${Math.round(stem.confidence * 100)} %`}
-            >
-              {Math.round(stem.confidence * 100)} %
-            </span>
-            <button
-              type="button"
-              className={styles.download}
-              aria-label={`Télécharger ${stem.label} en WAV`}
-              onClick={() => onDownloadStem(stem.id)}
-            >
-              WAV ↓
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      {absent.length > 0 && (
-        <p className={styles.undetected}>
-          <span className={styles.undetectedLabel}>Non détectés</span>{' '}
-          <span>{absent.map((stem) => stem.label).join(' · ')}</span>
-        </p>
-      )}
-    </Stack>
+    <p className={styles.undetected}>
+      <span className={styles.undetectedLabel}>Non détectés</span>{' '}
+      <span>{absent.map((stem) => stem.label).join(' · ')}</span>
+    </p>
   )
 }

@@ -5,10 +5,12 @@ import {
   type LoopStore,
   makeLoopRegion,
   type PlaybackEngine,
+  type StemPlaybackEngine,
   type StemSeparator,
   type TrackMetadataReader
 } from '@app/core'
-import { type ChangeEvent, useRef, useState } from 'react'
+import { type ChangeEvent, useMemo, useRef, useState } from 'react'
+import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { Header } from '../header/header.tsx'
@@ -20,6 +22,9 @@ import { useLoops } from '../loops/use-loops.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
 import { MarkerRail } from '../markers/marker-rail.tsx'
 import { useMarkers } from '../markers/use-markers.ts'
+import { MixerPanel } from '../mixer/mixer-panel.tsx'
+import { StemLanes } from '../mixer/stem-lanes.tsx'
+import { useMixer } from '../mixer/use-mixer.ts'
 import { SeparationPanel } from '../separation/separation-panel.tsx'
 import { useSeparation } from '../separation/use-separation.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
@@ -48,6 +53,7 @@ interface WorkstationShellProps {
   /** Ports injected in tests; default to the real Web Audio adapters. */
   readonly decoder?: AudioFileDecoder
   readonly engine?: PlaybackEngine
+  readonly stemEngine?: StemPlaybackEngine
   readonly loopStore?: LoopStore
   readonly metadataReader?: TrackMetadataReader
   readonly separator?: StemSeparator
@@ -61,10 +67,20 @@ interface WorkstationShellProps {
 export function WorkstationShell({
   decoder,
   engine,
+  stemEngine,
   loopStore,
   metadataReader,
   separator
 }: WorkstationShellProps) {
+  // One stem engine shared by the mixer (gains + loading) and the transport.
+  const stemPlayback = useMemo(
+    () => stemEngine ?? createWebAudioStemPlayback(),
+    [stemEngine]
+  )
+  const separation = useSeparation(separator)
+  const mixer = useMixer(stemPlayback)
+  const stemsReady =
+    separation.state.status === 'ready' && mixer.channels.length > 0
   const {
     importState,
     loadedAudio,
@@ -82,10 +98,9 @@ export function WorkstationShell({
     setLoopRegion,
     loopEnabled,
     toggleLoop
-  } = usePlayer(decoder, engine, metadataReader)
+  } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsReady)
   const markers = useMarkers()
   const loops = useLoops(loopStore)
-  const separation = useSeparation(separator)
   const viewport = useViewport()
   const [trackName, setTrackName] = useState<string | null>(null)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
@@ -140,6 +155,7 @@ export function WorkstationShell({
       markers.clear()
       viewport.reset()
       separation.reset()
+      mixer.reset()
       setTrackName(trackTitle(file.name))
       void importFile(file)
     }
@@ -151,6 +167,16 @@ export function WorkstationShell({
     transport.durationSeconds > 0
       ? transport.positionSeconds / transport.durationSeconds
       : 0
+
+  // Once the stems are mixing, the main view shows the audible mix (recomputed as
+  // the faders/solo/mute change); otherwise it shows the imported track itself.
+  const mainViewState =
+    stemsReady && importState.status === 'loaded'
+      ? {
+          status: 'loaded' as const,
+          track: { ...importState.track, waveform: mixer.mixWaveform }
+        }
+      : importState
 
   return (
     <div className={styles.shell}>
@@ -199,7 +225,7 @@ export function WorkstationShell({
                 onSeek={seekToSeconds}
               />
               <WaveformView
-                state={importState}
+                state={mainViewState}
                 loopRegion={loopRegion}
                 loopEnabled={loopEnabled}
                 durationSeconds={transport.durationSeconds}
@@ -207,6 +233,7 @@ export function WorkstationShell({
                 onSelectRegion={selectRegion}
                 onAdjustRegion={adjustRegion}
               />
+              <StemLanes channels={mixer.channels} />
             </ZoomStage>
             <LoopBar
               region={loopRegion}
@@ -234,9 +261,19 @@ export function WorkstationShell({
               canSeparate={isLoaded && loadedAudio !== undefined}
               onSeparate={() => {
                 if (loadedAudio) {
-                  void separation.separate(loadedAudio)
+                  // Wire the mixer right where the stems are produced — no effect
+                  // watching props (the audio engine sync belongs to this event).
+                  void separation
+                    .separate(loadedAudio)
+                    .then((result) => result && mixer.load(result.stems, result.sources))
                 }
               }}
+            />
+            <MixerPanel
+              channels={mixer.channels}
+              onSetGain={mixer.setGain}
+              onToggleMute={mixer.toggleMute}
+              onToggleSolo={mixer.toggleSolo}
               onDownloadStem={separation.downloadStem}
             />
           </Stack>
