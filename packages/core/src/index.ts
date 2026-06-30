@@ -56,8 +56,6 @@ export {
   emptyMarkerList,
   removeMarker
 } from './domain/marker-list.ts'
-export type { WindowedPiece } from './domain/overlap-add.ts'
-export { overlapAdd } from './domain/overlap-add.ts'
 export {
   clampPitchSemitones,
   MAX_PITCH_SEMITONES,
@@ -68,12 +66,6 @@ export {
   MAX_PLAYBACK_RATE,
   MIN_PLAYBACK_RATE
 } from './domain/playback-rate.ts'
-export type { Segment } from './domain/segment-plan.ts'
-export {
-  planChunks,
-  planSegments,
-  transitionWindow
-} from './domain/segment-plan.ts'
 export type {
   SeparationAction,
   SeparationPhase,
