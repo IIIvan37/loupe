@@ -5,13 +5,13 @@
 ## Where we are
 
 - **Phase**: **Jalon 2 (« Séparation IA ») — separation pivoted to a local
-  server** (branch `feat/http-separator`, PR pending). The in-browser WASM engines
+  server** (branch `feat/http-separator`, PR #19). The in-browser WASM engines
   hit a quality/speed ceiling; a local **FastAPI + Demucs** backend now implements
   the same `StemSeparator` port behind an HTTP contract. J2.2 merged (PR #17);
   parallel separation + WAV export merged (PR #18). Plan in
   [docs/jalon-2-plan.md](jalon-2-plan.md). Jalon 1 is **complete + polished**.
   See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/http-separator` (PR pending). Next after merge: **remove the
+- **Branch**: `feat/http-separator` (PR #19). Next after merge: **remove the
   now-superseded WASM engines** (separate PR), then resume Slice J2.3 (adaptive
   detection) / in-app per-stem playback.
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
@@ -47,14 +47,14 @@
 
 ## Next step
 
-**Separation pivoted to a local server (branch `feat/http-separator`, PR pending).**
+**Separation pivoted to a local server (branch `feat/http-separator`, PR #19).**
 A new `createHttpSeparator` adapter implements the `StemSeparator` port against a
 **FastAPI + Demucs** backend ([separator-server/](../separator-server/)): the mix is
 POSTed as a WAV, progress streams back as NDJSON, stems are fetched and read by the
 new pure core `decodeWav`. Browser-verified end-to-end (a ~4-min track separated in
 ~38 s on the Apple GPU via MPS; live progress bar). Gate green, core mutation
-95.66%. **Open the PR**, then the immediate follow-up is a **separate PR removing the
-superseded WASM engines** (GGML/ONNX adapters, workers, model-cache, resample, and
+95.66%. **PR #19 opened**; the immediate follow-up after merge is a **separate PR
+removing the superseded WASM engines** (GGML/ONNX adapters, workers, model-cache, resample, and
 the now-unused chunk/overlap-add DSP). Then resume **Slice J2.3** (adaptive
 detection) / in-app per-stem playback. See [docs/jalon-2-plan.md](jalon-2-plan.md).
 
