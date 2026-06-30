@@ -4,25 +4,24 @@
 
 ## Where we are
 
-- **Phase**: **Jalon 2 (« Séparation IA ») — separation pivoted to a local
-  server** (branch `feat/http-separator`, PR #19). The in-browser WASM engines
-  hit a quality/speed ceiling; a local **FastAPI + Demucs** backend now implements
-  the same `StemSeparator` port behind an HTTP contract. J2.2 merged (PR #17);
-  parallel separation + WAV export merged (PR #18). Plan in
+- **Phase**: **Jalon 2 (« Séparation IA ») — separation runs on a local server**
+  (PR #19 merged). The in-browser WASM engines hit a quality/speed ceiling; a
+  local **FastAPI + Demucs** backend implements the `StemSeparator` port behind an
+  HTTP contract and is now the **only** engine — the WASM adapters were removed
+  (branch `chore/remove-wasm-separators`). J2.2 merged (PR #17); parallel
+  separation + WAV export merged (PR #18). Plan in
   [docs/jalon-2-plan.md](jalon-2-plan.md). Jalon 1 is **complete + polished**.
   See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/http-separator` (PR #19). Next after merge: **remove the
-  now-superseded WASM engines** (separate PR), then resume Slice J2.3 (adaptive
-  detection) / in-app per-stem playback.
+- **Branch**: `chore/remove-wasm-separators` (WASM removal, −1598 lines). Next
+  after merge: resume Slice J2.3 (adaptive detection) / in-app per-stem playback.
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
   `TrackMetadataReader` port, `separateTrack`/`StemSeparator` port +
-  `separationReducer`/`StemSet`, `planSegments`/`planChunks`/`transitionWindow`/
-  `overlapAdd` DSP, `encodeWav`) + `packages/web` (import → … → real WASM stem
-  separation: `createSeparator` → GGML `demucs.cpp` default, **data-parallel across
-  N workers**, or `onnxruntime-web`; per-stem WAV download; gate-green). The starter
-  `@app/cli`/`greet` example has been removed.
+  `separationReducer`/`StemSet`, `encodeWav`/`decodeWav` WAV codec) + `packages/web`
+  (import → … → stem separation via the HTTP `createSeparator` → local FastAPI +
+  Demucs backend; per-stem WAV download; gate-green). The starter `@app/cli`/`greet`
+  example and the in-browser WASM separators have been removed.
 
 ## Locked decisions (kickoff)
 
@@ -36,9 +35,10 @@
   quality+speed wall (quantised models, wasm32 memory ceiling, no native GPU). A
   **FastAPI + Demucs** backend (`separator-server/`, GPU-capable, outside the
   hexagon) implements the same `StemSeparator` port via an HTTP/NDJSON contract;
-  `createSeparator` defaults to `'http'`. The WASM engines remain as fallbacks for
-  now, slated for removal in a follow-up PR. htdemucs weights are research-only —
-  fine for this non-commercial tool, not for a commercial product.
+  `createSeparator` returns the HTTP adapter. **The in-browser WASM engines were
+  removed** (branch `chore/remove-wasm-separators`) — server-side Demucs is the
+  single supported engine. htdemucs weights are research-only — fine for this
+  non-commercial tool, not for a commercial product.
 - **Web stack**: React + Jotai · Base UI (headless) · Every Layout · CSS Modules +
   CSS-variable tokens · smart/dumb components.
 - **Extra gates** (blocking, `packages/web` only): impeccable + react-doctor.
@@ -47,16 +47,15 @@
 
 ## Next step
 
-**Separation pivoted to a local server (branch `feat/http-separator`, PR #19).**
-A new `createHttpSeparator` adapter implements the `StemSeparator` port against a
-**FastAPI + Demucs** backend ([separator-server/](../separator-server/)): the mix is
-POSTed as a WAV, progress streams back as NDJSON, stems are fetched and read by the
-new pure core `decodeWav`. Browser-verified end-to-end (a ~4-min track separated in
-~38 s on the Apple GPU via MPS; live progress bar). Gate green, core mutation
-95.66%. **PR #19 opened**; the immediate follow-up after merge is a **separate PR
-removing the superseded WASM engines** (GGML/ONNX adapters, workers, model-cache, resample, and
-the now-unused chunk/overlap-add DSP). Then resume **Slice J2.3** (adaptive
-detection) / in-app per-stem playback. See [docs/jalon-2-plan.md](jalon-2-plan.md).
+**WASM separators removed (branch `chore/remove-wasm-separators`).** The HTTP
+separator ([separator-server/](../separator-server/), PR #19 merged) is now the only
+engine, so the superseded in-browser adapters (GGML/ONNX separators, workers,
+model-cache, resample, stem-layout, audio-format), their vendored assets
+(`public/demucs`, `public/ort`) + build scripts, the `onnxruntime-web` dep, and the
+now-unused chunk/overlap-add core DSP (`segment-plan`, `overlap-add`) were deleted —
+net −1598 lines, gate green. After this merges, resume **Slice J2.3** (adaptive
+instrument detection) or implement **in-app per-stem playback** (multitrack mixer,
+roadmap J2.4). See [docs/jalon-2-plan.md](jalon-2-plan.md).
 
 ## Roadmap
 
@@ -74,6 +73,7 @@ detection) / in-app per-stem playback. See [docs/jalon-2-plan.md](jalon-2-plan.m
 | J2.1 | Import → separation → tracks screen (stub separator behind `StemSeparator` port) | ✅ |
 | J2.2 | Real WASM separator adapters (demucs.cpp GGML default + onnxruntime-web), off-main-thread | ✅ |
 | J2.2b | Server-side separation (FastAPI + Demucs) behind the `StemSeparator` port; HTTP/NDJSON, now the default engine | ✅ |
+| J2.2c | Remove the superseded in-browser WASM separators (HTTP is the only engine) — −1598 lines | ✅ |
 | J2.3 | Instrument detection → N adaptive tracks (mask empty, confidence) | ⬜ |
 | J2.4 | Multitrack mixer (solo/mute/volume, Web Audio gain graph) | ⬜ |
 | J2.5 | Track grouping (user bus, non-destructive) | ⬜ |
@@ -83,6 +83,14 @@ detection) / in-app per-stem playback. See [docs/jalon-2-plan.md](jalon-2-plan.m
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-06-30 — remove-wasm-separators](sessions/2026-06-30-remove-wasm-separators.md) —
+  Removed the superseded in-browser WASM separators now that the HTTP separator
+  (PR #19) is the only engine: GGML/ONNX adapters, workers, parallel/worker
+  orchestrators, model-cache, resample, stem-layout, audio-format; vendored
+  `public/demucs`/`public/ort` + build scripts; the `onnxruntime-web` dep;
+  `create-separator` collapsed to a no-arg HTTP factory; and the now-dead core DSP
+  (`segment-plan`, `overlap-add`) + their exports. Net −1598 lines across 25 files.
+  Gate green, core mutation 95.37%. Next: Slice J2.3 / in-app per-stem playback.
 - [2026-06-30 — jalon2-server-side-separation](sessions/2026-06-30-jalon2-server-side-separation.md) —
   Separation pivoted off the browser onto a local **FastAPI + Demucs** server,
   behind the same `StemSeparator` port. New pure core `decodeWav` (mutation
