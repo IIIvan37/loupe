@@ -37,6 +37,15 @@ button {
 }
 
 /*
+ * On amber-filled controls an amber ring would blend in; switch the ring to the
+ * text colour so the focus indicator keeps full contrast. Opt-in via the
+ * data-attribute so component modules don't each re-declare it.
+ */
+[data-on-amber]:focus-visible {
+  outline-color: var(--text);
+}
+
+/*
  * Range sliders (tempo, pitch, zoom, volume) — one consistent look from the
  * prototype. A thin track with a round knob; `data-accent` tints the knob amber
  * (your settings: tempo/zoom) or teal (what the machine detected: not used yet).
@@ -53,8 +62,8 @@ input[type='range'] {
 
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--text);
   border: 3px solid var(--panel);
@@ -63,11 +72,12 @@ input[type='range']::-webkit-slider-thumb {
 }
 
 input[type='range']::-moz-range-thumb {
-  width: 13px;
-  height: 13px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--text);
   border: 3px solid var(--panel);
+  box-shadow: 0 0 0 1px var(--line);
   cursor: pointer;
 }
 

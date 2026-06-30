@@ -62,6 +62,21 @@
   font-size: 0.8rem;
 }
 
+.submit:hover:not(:disabled) {
+  background: var(--amber-deep);
+  border-color: var(--amber-deep);
+}
+
+/* Keep the focus ring contrasting on the amber fill. */
+.submit:focus-visible {
+  outline-color: var(--text);
+}
+
 .submit:disabled {
   opacity: 0.5;
+}
+
+.ghost:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
 }

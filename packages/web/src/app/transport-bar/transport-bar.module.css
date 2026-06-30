@@ -19,10 +19,25 @@
   background: var(--panel-2);
 }
 
+.control:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--panel-3);
+}
+
+.control:disabled {
+  opacity: 0.5;
+}
+
 .play {
   background: var(--amber);
   border-color: var(--amber);
   color: var(--bg);
+}
+
+/* Keep the play button amber on hover (override the neutral .control hover). */
+.play:hover:not(:disabled) {
+  background: var(--amber-deep);
+  border-color: var(--amber-deep);
 }
 
 .time {

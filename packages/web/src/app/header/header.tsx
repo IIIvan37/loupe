@@ -57,12 +57,18 @@ export function Header({
         </button>
         <button
           type="button"
-          className={styles.secondaryAction}
+          className={styles.primaryAction}
+          data-on-amber=""
           onClick={onImport}
         >
           Importer
         </button>
-        <button type="button" className={styles.primaryAction}>
+        <button
+          type="button"
+          className={styles.secondaryAction}
+          disabled
+          title="Bientôt — export des stems (jalon export)"
+        >
           Exporter
         </button>
       </Cluster>

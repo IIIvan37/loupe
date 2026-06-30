@@ -38,7 +38,7 @@
 
 .tick:hover:not(:disabled) {
   color: var(--text);
-  border-color: #3a3f52;
+  border-color: var(--line-strong);
 }
 
 .tick:disabled {
