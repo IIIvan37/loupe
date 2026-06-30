@@ -12,9 +12,10 @@
   separation + WAV export merged (PR #18). Plan in
   [docs/jalon-2-plan.md](jalon-2-plan.md). Jalon 1 is **complete + polished**.
   See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon2-instrument-detection` (Slice J2.3 — adaptive
-  instrument detection + server on `htdemucs_6s`). Next after merge: browser-verify
-  the 6-stem model, then Slice J2.4 (multitrack mixer).
+- **Branch**: `main` — Slice J2.3 merged (PR #21: adaptive instrument detection +
+  server on `htdemucs_6s`). Next: browser-verify the 6-stem model, then Slice J2.4
+  (multitrack mixer). **Scope change (2026-06-30): J2.5 track grouping is dropped**
+  (low value) — Jalon 2 now ends at the mixer (J2.4) + export (J2.6).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
   `transportReducer`/`formatTimecode`, `clampPlaybackRate`/`clampPitchSemitones`,
   `clampZoom`/`zoomIn`/`zoomOut`, `resolveCommand`/`defaultKeyBindings`,
@@ -48,15 +49,16 @@
 
 ## Next step
 
-**Slice J2.3 done (branch `feat/jalon2-instrument-detection`).** Adaptive
-instrument detection lives in the pure core (`stemEnergy` + `detectInstruments`):
-every `StemTrack` now carries a `confidence` and a `present` flag, the
-`SeparationPanel` masks near-silent stems and shows the rest with a teal
-confidence badge (absent ones named on a « Non détectés » line). The server
-default model moved to **`htdemucs_6s`** so guitar + piano split out of "other"
-(overridable via `DEMUCS_MODEL`). Gate green, core mutation 95.62% (new files
-100%). **Next**: browser-verify a real 6-stem separation, then **Slice J2.4**
-(multitrack mixer — solo/mute/volume over a Web Audio gain graph). See
+**Slice J2.3 merged (PR #21).** Adaptive instrument detection lives in the pure
+core (`stemEnergy` + `detectInstruments`): every `StemTrack` now carries a
+`confidence` and a `present` flag, the `SeparationPanel` masks near-silent stems
+and shows the rest with a teal confidence badge (absent ones named on a « Non
+détectés » line). The server default model moved to **`htdemucs_6s`** so guitar +
+piano split out of "other" (overridable via `DEMUCS_MODEL`). Gate green, core
+mutation 95.62% (new files 100%). **Next**: browser-verify a real 6-stem
+separation, then **Slice J2.4** (multitrack mixer — solo/mute/volume over a Web
+Audio gain graph). **J2.5 (track grouping) is dropped**; Jalon 2 closes with the
+mixer (J2.4) then export (J2.6). See
 [docs/jalon-2-plan.md](jalon-2-plan.md).
 
 ## Roadmap
@@ -78,8 +80,8 @@ default model moved to **`htdemucs_6s`** so guitar + piano split out of "other"
 | J2.2c | Remove the superseded in-browser WASM separators (HTTP is the only engine) — −1598 lines | ✅ |
 | J2.3 | Instrument detection → N adaptive tracks (mask empty, confidence) + server on `htdemucs_6s` (guitar/piano) | ✅ |
 | J2.4 | Multitrack mixer (solo/mute/volume, Web Audio gain graph) | ⬜ |
-| J2.5 | Track grouping (user bus, non-destructive) | ⬜ |
-| J2.6 | Export — tier A: aligned stem folder (+ bounced groups) | ⬜ |
+| ~~J2.5~~ | ~~Track grouping (user bus, non-destructive)~~ — **dropped** (low value without enough perceived benefit) | 🚫 |
+| J2.6 | Export — tier A: aligned stem folder (named WAVs, t=0, zipped) | ⬜ |
 
 ## Session journal
 

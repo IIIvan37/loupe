@@ -2,8 +2,9 @@
 
 > **But.** La brique Moises, mieux ciblée : importer un morceau, le **séparer en
 > N pistes adaptatives** (= les instruments réellement présents), les **mixer**
-> (solo / mute / volume + regroupement en bus) et **exporter un dossier de stems
-> aligné** prêt pour GarageBand / Logic / Ableton.
+> (solo / mute / volume) et **exporter un dossier de stems aligné** prêt pour
+> GarageBand / Logic / Ableton.
+> *(Le regroupement en bus, initialement prévu, a été abandonné — voir Slices.)*
 > Source : [docs/loupe-plan-produit.md](loupe-plan-produit.md) §4 (Jalon 2) et §3.3–3.7.
 
 ## Décisions verrouillées (kickoff)
@@ -20,9 +21,10 @@
   **Pas de second import** : l'entrée de la séparation est le **même `DecodedAudio`
   que le lecteur Jalon 1** (on ne re-décode pas) — l'import (J1) retient le PCM
   décodé pour le re-fournir au séparateur.
-- **Découpe : N pistes adaptatives + regroupement utilisateur** (déjà tranché,
-  plan produit §3.4–3.5). Pas de profil fixe « toujours 6 pistes » : on masque les
-  pistes dont l'énergie est négligeable, chacune affichée avec sa confiance.
+- **Découpe : N pistes adaptatives** (plan produit §3.4). Pas de profil fixe
+  « toujours 6 pistes » : on masque les pistes dont l'énergie est négligeable,
+  chacune affichée avec sa confiance. *(Le regroupement utilisateur §3.5 est
+  abandonné — voir Slices.)*
 - **Export : palier A** (plan produit §3.7) — dossier de stems WAV alignés (t=0,
   même durée, nommés), zippé + tempo en métadonnée. Palier B (`.band`) = hors jalon.
 
@@ -67,16 +69,16 @@ valeurs (échantillons, confiances, gains) et appelle un port.
   garder** (seuil de masquage) et leur **confiance** ; produit la liste adaptative.
 - `MixerState` (reducer) — par piste : gain, solo, mute → calcul des **gains
   effectifs** (un solo coupe les autres ; mute = 0). Property-testé.
-- `TrackGroup` / bus utilisateur — vue non destructive : regroupe des stems sous un
-  fader/solo/mute commun ; sert aussi au **bucketing d'export**.
 - Encodage **WAV PCM** (échantillons → octets) : pur, valeurs → valeurs.
 - Nommage/alignement d'export (`01_Voix.wav`…, t=0, même durée) : pur.
+
+> *`TrackGroup` / bus utilisateur (regroupement) : abandonné — voir Slices.*
 
 **Ports (driven, implémentés côté web).**
 - `StemSeparator.separate(audio, onProgress) → StemSet` — adapter **stub** (S1)
   puis **WASM** (S2) ; API cloud = adapter futur.
 - `StemPlaybackEngine` — graphe Web Audio multipiste (un nœud de gain par stem +
-  bus), étend / réutilise l'esprit de `PlaybackEngine` de Jalon 1.
+  sortie master), étend / réutilise l'esprit de `PlaybackEngine` de Jalon 1.
 - `ArchiveWriter.write(files) → blob` + déclenchement du download (zip côté web).
 
 ## Boucle de travail par slice
@@ -98,12 +100,12 @@ Identique à Jalon 1 (chaque slice = tranche hexagonale verticale, sa branche, s
 | **2** | **Moteur WASM réel** derrière le port | (contrat `StemSeparator` déjà posé) | adapter **Demucs WASM** dans un worker (off-main-thread), progression réelle, gestion mémoire/erreurs |
 | **3** | **Détection → N pistes adaptatives** | `InstrumentDetection` (énergies → garder/masquer + confiance) | masquage des pistes vides, ligne « non détectés », badge confiance (cyan = détecté machine) |
 | **4** | **Mixer multipiste** solo / mute / volume | `MixerState` (gains effectifs, property-testé) | `StemPlaybackEngine` (graphe gains), faders, waveform qui pâlit selon le niveau |
-| **5** | **Regroupement de pistes** (bus utilisateur) | `TrackGroup` (vue non destructive, fader/solo/mute de bus) | sélection multiple → « Regrouper », bus dans le mixer |
-| **6** | **Export — palier A** (dossier de stems aligné + groupes bouncés) | encodage WAV PCM, nommage/alignement, bucketing par groupe | `ArchiveWriter` (zip + download), bounce des bus |
+| ~~**5**~~ | ~~**Regroupement de pistes** (bus utilisateur)~~ — **abandonné (2026-06-30)** : peu de valeur perçue | — | — |
+| **6** | **Export — palier A** (dossier de stems aligné) | encodage WAV PCM, nommage/alignement | `ArchiveWriter` (zip + download) |
 
 > Ordre dérisquant : on câble le flux complet sur un **stub** (S1), on remplace par
 > le **vrai moteur** une fois le contrat figé (S2), puis on enrichit
-> (adaptatif → mixer → bus → export). Chaque slice est livrable seule.
+> (adaptatif → mixer → export). Chaque slice est livrable seule.
 
 ## Tokens de design (rappel — règle sémantique)
 
