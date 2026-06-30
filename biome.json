@@ -40,7 +40,8 @@
       "!**/coverage",
       "!**/reports",
       "!**/.stryker-tmp",
-      "!**/public"
+      "!**/public",
+      "!separator-server"
     ],
     "ignoreUnknown": true
   },

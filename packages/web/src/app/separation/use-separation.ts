@@ -32,8 +32,8 @@ function stemFilename(index: number, label: string): string {
 /**
  * Smart hook (= driving adapter logic): owns the separation state machine and
  * runs the `separateTrack` use-case, streaming the separator's progress into the
- * reducer. The separator defaults to the real WASM engine (`createSeparator`) and
- * is injected (a stub) in tests. The stems' raw PCM is kept in a ref (out of the
+ * reducer. The separator defaults to the local-server engine (`createSeparator`)
+ * and is injected (a stub) in tests. The stems' raw PCM is kept in a ref (out of the
  * pure domain state) so it can be exported on demand.
  */
 export function useSeparation(separator?: StemSeparator): Separation {
