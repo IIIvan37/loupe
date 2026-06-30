@@ -1,9 +1,10 @@
 # loupe separator-server
 
-A local separation backend for loupe: runs the full **Demucs `htdemucs_ft`**
+A local separation backend for loupe: runs the full **Demucs `htdemucs`**
 model (PyTorch, GPU when available) and streams stems back to the web app. It
 exists because the in-browser WASM engines hit a quality/speed wall — server-side
-PyTorch has no such ceiling.
+PyTorch has no such ceiling. Override the model with `DEMUCS_MODEL` (e.g.
+`htdemucs_ft`, the slower 4-model fine-tuned bag).
 
 This is a standalone Python service, **deliberately outside the pnpm monorepo /
 hexagon**. The web app talks to it only through the HTTP contract below, behind
@@ -18,8 +19,9 @@ pip install -r requirements.txt
 uvicorn app.main:app --port 8000
 ```
 
-First run downloads the model weights (~hundreds of MB). With CUDA available it
-runs on GPU automatically; otherwise CPU (still well ahead of the browser).
+First run downloads the model weights (~hundreds of MB). The best available
+device is picked automatically — CUDA, then Apple GPU (MPS), then CPU (still well
+ahead of the browser).
 
 Point the web app at it:
 

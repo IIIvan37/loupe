@@ -2,8 +2,9 @@
 
 A browser audio practice tool — import a track and work it: waveform with
 click-to-seek, transport, time-stretch and pitch (SoundTouch), markers, A/B loops
-(the « loupe »), zoom, and keyboard shortcuts. Built as a **pnpm monorepo** with a
-**pure hexagonal core**, **strict TDD**, and a **blocking quality gate**.
+(the « loupe »), zoom, keyboard shortcuts, and **AI stem separation** (isolate
+voice/drums/bass/other). Built as a **pnpm monorepo** with a **pure hexagonal
+core**, **strict TDD**, and a **blocking quality gate**.
 
 ## Architecture
 
@@ -12,6 +13,10 @@ click-to-seek, transport, time-stretch and pitch (SoundTouch), markers, A/B loop
   `src/index.ts` is the only public surface adapters import.
 - **`packages/web`** — the React adapter: Web Audio / localStorage / file ports
   behind the core's interfaces, smart hooks + dumb components, the workstation UI.
+- **`separator-server/`** — a standalone **FastAPI + Demucs** backend (PyTorch,
+  GPU-capable), deliberately outside the monorepo/hexagon. It implements the
+  `StemSeparator` port over an HTTP/NDJSON contract; the web app's default `'http'`
+  engine talks to it. See [separator-server/README.md](separator-server/README.md).
 
 Layering is enforced three ways: the package graph (`@app/core` pure ← `web`
 adapter), **Sheriff** (`sheriff.config.ts`) on the module graph, and **Biome**
@@ -55,6 +60,7 @@ packages/core/src/domain        pure model
 packages/core/src/application   use-cases + ports (the registry README lives here)
 packages/core/src/index.ts      the only public surface adapters import
 packages/web/src                the React adapter + workstation UI
+separator-server                standalone FastAPI + Demucs backend (StemSeparator over HTTP)
 .claude/skills                  the method, as Claude Code skills
 docs/STATUS.md, docs/sessions   resumable project state
 ```

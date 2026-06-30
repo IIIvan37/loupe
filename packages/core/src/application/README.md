@@ -42,6 +42,10 @@ The single place to look before adding a feature, so ports and use-cases get
 > `StemSet` / `StemTrack` are the render-ready result (`buildStemTrack` reuses the
 > track mono-mix → waveform reduction). The web's `useSeparation` hook is the
 > adapter that runs `separateTrack` and streams progress into the reducer.
+>
+> Pure WAV codec (no use-case/port, used by adapters) — `encodeWav` (Slice J2.2,
+> per-stem export) serialises PCM to a 16-bit WAV; `decodeWav` (Slice J2.2b) is
+> its inverse, parsing a WAV the HTTP separator fetched back into `DecodedAudio`.
 
 ## Ports
 
@@ -51,4 +55,4 @@ The single place to look before adding a feature, so ports and use-cases get
 | `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode` + SoundTouch worklet for tempo/pitch) |
 | `LoopStore` | driven | `web`: `createLocalStorageLoopStore` (localStorage) |
 | `TrackMetadataReader` | driven | `web`: `createMusicMetadataReader` (music-metadata; best-effort ID3/etc. tags) |
-| `StemSeparator` | driven | `web`: `createSeparator` picks the engine — default `createGgmlSeparator` (demucs.cpp WASM, fp16, **data-parallel across N workers**, blended by the core overlap-add — J2.2b) or `createDemucsSeparator` (htdemucs via onnxruntime-web). Slice J2.2; a cloud API could be a later adapter on the same port. |
+| `StemSeparator` | driven | `web`: `createSeparator` picks the engine — default `'http'` `createHttpSeparator` (local **FastAPI + Demucs** backend; mix → WAV POST → streamed NDJSON progress → fetch + `decodeWav` stems — J2.2b). In-browser fallbacks: `createGgmlSeparator` (demucs.cpp WASM, fp16, data-parallel across N workers, blended by the core overlap-add) and `createDemucsSeparator` (htdemucs via onnxruntime-web), both slated for removal. Slice J2.2; a cloud API could be a later adapter on the same port. |
