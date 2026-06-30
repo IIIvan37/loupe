@@ -97,5 +97,6 @@ export {
   zoomIn,
   zoomOut
 } from './domain/viewport.ts'
+export { decodeWav } from './domain/wav-decoder.ts'
 export { encodeWav } from './domain/wav-encoder.ts'
 export type { Waveform, WaveformPeak } from './domain/waveform.ts'

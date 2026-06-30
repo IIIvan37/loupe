@@ -1,0 +1,4 @@
+# Python virtualenv — recreated from requirements.txt, never committed.
+.venv/
+__pycache__/
+*.pyc
