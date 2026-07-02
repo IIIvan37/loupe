@@ -88,6 +88,7 @@ export type { MarkerList } from './domain/marker-list.ts'
 export {
   addMarker,
   emptyMarkerList,
+  moveMarker,
   removeMarker
 } from './domain/marker-list.ts'
 export type {

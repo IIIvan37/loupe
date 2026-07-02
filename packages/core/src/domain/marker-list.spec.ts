@@ -1,7 +1,12 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import type { Marker } from './marker.ts'
-import { addMarker, emptyMarkerList, removeMarker } from './marker-list.ts'
+import {
+  addMarker,
+  emptyMarkerList,
+  moveMarker,
+  removeMarker
+} from './marker-list.ts'
 
 function marker(id: string, timeSeconds: number, label = id): Marker {
   return { id, timeSeconds, label }
@@ -35,6 +40,33 @@ describe('marker-list', () => {
     )
     expect(list).toHaveLength(1)
     expect(list[0]?.timeSeconds).toBe(8)
+  })
+
+  it('moves a marker to a new time', () => {
+    const list = [marker('a', 1), marker('b', 4)].reduce(
+      addMarker,
+      emptyMarkerList
+    )
+    const moved = moveMarker(list, 'a', 8)
+    expect(moved.find((m) => m.id === 'a')?.timeSeconds).toBe(8)
+  })
+
+  it('re-sorts the list when a move crosses another marker', () => {
+    const list = [marker('a', 1), marker('b', 4)].reduce(
+      addMarker,
+      emptyMarkerList
+    )
+    expect(moveMarker(list, 'a', 8).map((m) => m.id)).toEqual(['b', 'a'])
+  })
+
+  it('keeps the label of a moved marker', () => {
+    const list = addMarker(emptyMarkerList, marker('a', 1, 'Couplet 1'))
+    expect(moveMarker(list, 'a', 8)[0]?.label).toBe('Couplet 1')
+  })
+
+  it('leaves the list unchanged when moving a missing id', () => {
+    const list = addMarker(emptyMarkerList, marker('a', 1))
+    expect(moveMarker(list, 'zzz', 8)).toEqual(list)
   })
 
   it('removes a marker by id', () => {

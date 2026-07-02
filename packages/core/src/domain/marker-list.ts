@@ -21,6 +21,23 @@ export function addMarker(list: MarkerList, marker: Marker): MarkerList {
   return [...without.slice(0, index), marker, ...without.slice(index)]
 }
 
+/**
+ * Move the marker with `id` to a new time, keeping its label and the list's
+ * time order (re-inserted via `addMarker`). A missing id leaves the list
+ * unchanged. Pure — a new list out.
+ */
+export function moveMarker(
+  list: MarkerList,
+  id: string,
+  timeSeconds: number
+): MarkerList {
+  const target = list.find((marker) => marker.id === id)
+  if (!target) {
+    return list
+  }
+  return addMarker(list, { ...target, timeSeconds })
+}
+
 /** Drop the marker with `id`; a missing id leaves the list unchanged. */
 export function removeMarker(list: MarkerList, id: string): MarkerList {
   return list.filter((marker) => marker.id !== id)

@@ -285,6 +285,7 @@ export function WorkstationShell({
                 markers={markers.markers}
                 durationSeconds={transport.durationSeconds}
                 onSeek={seekToSeconds}
+                onMove={markers.move}
               />
               <WaveformView
                 state={mainViewState}
