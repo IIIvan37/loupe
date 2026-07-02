@@ -12,15 +12,20 @@
   separation + WAV export merged (PR #18). Plan in
   [docs/jalon-2-plan.md](jalon-2-plan.md). Jalon 1 is **complete + polished**.
   See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Now — Jalon 3 (« Projets ») kicked off.** J2.4 multitrack mixer **merged**
-  (PR #22). New direction: now that a local server exists, add real **project
-  persistence** (save / list / open). **Decided: domain-first** — the backend
-  (Tauri desktop FS vs extended HTTP server) is a late, cheap **adapter** choice
-  since persistence sits behind a port; the `Project` domain + use-cases are
-  identical either way. Note: `localStorage` was never a project store (it only
-  holds the loop library, ~KB); "projects" is a *new* capability (persist heavy
-  audio + session state). Jalon 2 export (J2.6) is now done (see Branch).
-- **Branch**: `feat/ux-session-state` (gate-green, **PR to open**) — five
+- **Now — Jalon 2 is CLOSED (2026-07-02).** The last pending item — the J2.6
+  export — was **browser-verified on a real separation** (The Cure – Lullaby,
+  4:19, `htdemucs_6s`/MPS): zip flat, `01_Voix … 05_Autres` numbered aligned
+  WAVs (11 456 000 frames each), present stems only, « Exporter » re-disabled
+  on a new import (stale-export fix holds), console clean. Verification note:
+  the export freezes the UI a few seconds (main-thread encode+zip of ~229 MB)
+  — the deferred « off-thread zip/encode » item now has measured impact.
+  Details in
+  [2026-07-02-jalon2-export-verify](sessions/2026-07-02-jalon2-export-verify.md).
+- **Jalon 3 (« Projets ») core slices are merged** (J3.1–J3.4 + races +
+  active-loop fix + UX session state). Remaining Jalon 3 work is polish
+  (project rename, blob GC, `separator-server/` → `server/`).
+- **Branch**: `main` (clean, gate-green, 404 tests). No PR in flight.
+- **Earlier**: `feat/ux-session-state` (**merged, PR #34**) — five
   user-reported UX gaps: active-loop chip highlighted (`aria-current`), the
   header « Exporter » wired to the zip export (mixer duplicate removed), a
   status strip for save/open (the whole rebuild, not just the dialog), an
@@ -28,8 +33,8 @@
   of loops/markers/loupe/mixer vs last save/open), and **incremental save**
   (client-side sha256 + session memo + `HEAD /audio/{ref}` — unchanged audio
   is never re-uploaded; new server HEAD route, fallback covers old servers).
-  Browser-verified incl. the network trace. **Restart the local server once**
-  so the HEAD route is live.
+  Browser-verified incl. the network trace; the running server already serves
+  the HEAD route (probed 2026-07-02 — no restart needed).
 - **Earlier**: `fix/project-keeps-active-loop` (merged, PR #33) — user-found
   bug fixed: the **armed A/B region (the loupe) was not part of the `Project`
   model** — saving a project silently dropped it (named loops persisted fine).
@@ -113,12 +118,13 @@
 
 ## Next step
 
-**Merge the `feat/ux-session-state` PR** (PRs #32 and #33 are merged), restart
-the local server once (new `HEAD /audio/{ref}` route), then **browser-verify
-the export on a real separation** (import → separate → header « Exporter » →
-zip opens flat, WAVs aligned in a DAW). Jalon 2 then closes; next is the UX backlog (uniform dirty-session guard on import/reload,
-real tempo detection, tempo/pitch/zoom persistence, speed trainer, undo) and
-Jalon 3 polish (project rename, blob GC, `separator-server/` → `server/`).
+**Pick the next slice** — Jalon 2 is closed, `main` is clean. Candidates, by
+user value:
+- UX backlog: uniform dirty-session guard on import/reload, real tempo
+  detection, tempo/pitch/zoom persistence, speed trainer, undo.
+- Jalon 3 polish: project rename, blob GC, `separator-server/` → `server/`.
+- Perf: off-thread zip/encode — the export measurably freezes the UI a few
+  seconds on a 4-min track (main-thread encode+zip, ~229 MB).
 
 ### Earlier — J3.3 browser-verify note
 
@@ -205,6 +211,14 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-02 — jalon2-export-verify](sessions/2026-07-02-jalon2-export-verify.md) —
+  Close-out: PR #34 merged, `HEAD /audio/{ref}` probed live (no restart
+  needed), and the J2.6 export browser-verified on a real separation (zip
+  flat, 5 numbered aligned WAVs, present stems only, stale-export reset
+  holds, console clean). **Jalon 2 closes.** Found: the export freezes the
+  UI a few seconds (main-thread encode+zip) — off-thread zip/encode now has
+  measured impact. Gate green on `main`, 404 tests; mutation skipped (no
+  code touched).
 - [2026-07-02 — ux-session-state](sessions/2026-07-02-ux-session-state.md) —
   Five UX gaps in one slice: active-loop chip highlighted, header « Exporter »
   wired (mixer duplicate removed), save/open status strip, « Enregistré /
