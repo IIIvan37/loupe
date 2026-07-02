@@ -20,6 +20,7 @@ import {
   waitFor,
   within
 } from '@testing-library/react'
+import userEvent, { type UserEvent } from '@testing-library/user-event'
 import { beforeAll, vi } from 'vitest'
 import { WorkstationShell } from './workstation-shell.tsx'
 
@@ -73,8 +74,8 @@ function fakeStemEngine(): StemPlaybackEngine {
   }
 }
 
-function audioFile(): File {
-  return new File([new Uint8Array([1, 2, 3, 4])], 'take.wav', { type: 'audio/wav' })
+function audioFile(name = 'take.wav'): File {
+  return new File([new Uint8Array([1, 2, 3, 4])], name, { type: 'audio/wav' })
 }
 
 /** A tagless reader — keeps tests off the real music-metadata parser. */
@@ -169,6 +170,7 @@ function waveformSurface(): HTMLElement {
 /**
  * Drive a pointer gesture on the waveform. Ratios are measured against the
  * positioning container (the surface's parent), which we size to 100px.
+ * Kept on fireEvent: coordinate-based gestures need explicit clientX values.
  */
 function pointerGesture(fromX: number, toX: number): void {
   const surface = waveformSurface()
@@ -182,6 +184,7 @@ function pointerGesture(fromX: number, toX: number): void {
 function renderShell(
   overrides: Partial<Parameters<typeof WorkstationShell>[0]> = {}
 ) {
+  const user = userEvent.setup()
   const engine = fakeEngine()
   const utils = render(
     <WorkstationShell
@@ -194,13 +197,14 @@ function renderShell(
       {...overrides}
     />
   )
-  return { engine, ...utils }
+  return { engine, user, ...utils }
 }
 
-async function importTrack(): Promise<void> {
-  fireEvent.change(screen.getByLabelText('Importer un fichier audio'), {
-    target: { files: [audioFile()] }
-  })
+async function importTrack(user: UserEvent, fileName?: string): Promise<void> {
+  await user.upload(
+    screen.getByLabelText('Importer un fichier audio'),
+    audioFile(fileName)
+  )
   await waitFor(() => {
     expect(
       screen.getByRole('img', { name: "Forme d'onde de la piste" })
@@ -229,14 +233,40 @@ describe('WorkstationShell', () => {
   })
 
   it('disables play until a track is loaded, then enables it with the duration', async () => {
-    const { container } = renderShell()
+    const { container, user } = renderShell()
 
     expect(screen.getByRole('button', { name: 'Lecture' })).toBeDisabled()
 
-    await importTrack()
+    await importTrack(user)
 
     expect(screen.getByRole('button', { name: 'Lecture' })).toBeEnabled()
     // Scope to the transport — the ruler also prints timecodes.
+    const footer = container.querySelector('footer') as HTMLElement
+    expect(within(footer).getByText('0:10')).toBeInTheDocument()
+  })
+
+  it('ignores a superseded import that resolves after the newer one', async () => {
+    const pending: Array<(audio: DecodedAudio) => void> = []
+    const decoder: AudioFileDecoder = {
+      decode: () =>
+        new Promise((resolve) => {
+          pending.push(resolve)
+        })
+    }
+    const { user, container } = renderShell({ decoder })
+    const input = screen.getByLabelText('Importer un fichier audio')
+    await user.upload(input, audioFile('lent.wav'))
+    await user.upload(input, audioFile('rapide.wav'))
+
+    // The newer import resolves first (10 s)...
+    await act(async () => {
+      pending[1]?.(decoded)
+    })
+    // ...then the stale one lands with a different, shorter timeline.
+    await act(async () => {
+      pending[0]?.({ sampleRate: 1, channels: [[0, 0.5, 1]] })
+    })
+
     const footer = container.querySelector('footer') as HTMLElement
     expect(within(footer).getByText('0:10')).toBeInTheDocument()
   })
@@ -247,44 +277,45 @@ describe('WorkstationShell', () => {
         throw new Error('unsupported format')
       }
     }
-    renderShell({ decoder })
+    const { user } = renderShell({ decoder })
 
-    fireEvent.change(screen.getByLabelText('Importer un fichier audio'), {
-      target: { files: [audioFile()] }
-    })
+    await user.upload(
+      screen.getByLabelText('Importer un fichier audio'),
+      audioFile()
+    )
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('unsupported format')
     })
   })
 
   it('plays and pauses via the transport button, driving the engine', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Lecture' }))
+    await user.click(screen.getByRole('button', { name: 'Lecture' }))
     expect(engine.play).toHaveBeenCalledOnce()
 
     const pauseButton = screen.getByRole('button', { name: 'Pause' })
-    fireEvent.click(pauseButton)
+    await user.click(pauseButton)
     expect(engine.pause).toHaveBeenCalledOnce()
     expect(screen.getByRole('button', { name: 'Lecture' })).toBeInTheDocument()
   })
 
   it('jumps to the start and end of the timeline via the transport buttons', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
     act(() => engine.emit(5))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Fin' }))
+    await user.click(screen.getByRole('button', { name: 'Fin' }))
     expect(engine.seekTo).toHaveBeenLastCalledWith(10)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Début' }))
+    await user.click(screen.getByRole('button', { name: 'Début' }))
     expect(engine.seekTo).toHaveBeenLastCalledWith(0)
   })
 
   it('reflects the engine position as a timecode', async () => {
-    const { engine, container } = renderShell()
-    await importTrack()
+    const { engine, container, user } = renderShell()
+    await importTrack(user)
 
     act(() => engine.emit(5))
     const footer = container.querySelector('footer') as HTMLElement
@@ -292,16 +323,16 @@ describe('WorkstationShell', () => {
   })
 
   it('toggles playback with the Space key', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
     fireEvent.keyDown(document.body, { code: 'Space' })
     expect(engine.play).toHaveBeenCalledOnce()
   })
 
   it('still fires shortcuts while a control button holds focus', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
     // Importing leaves focus on the "Importer" button; Space must still toggle
     // playback rather than being swallowed as the button's own activation.
@@ -312,8 +343,8 @@ describe('WorkstationShell', () => {
   })
 
   it('does not fire shortcuts while typing in a text field', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
     const input = document.createElement('input')
     document.body.appendChild(input)
@@ -329,8 +360,8 @@ describe('WorkstationShell', () => {
   })
 
   it('seeks backward and forward with the arrow keys', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
     act(() => engine.emit(5))
     fireEvent.keyDown(document.body, { code: 'ArrowRight' })
@@ -343,28 +374,29 @@ describe('WorkstationShell', () => {
   })
 
   it('adds a marker at the playhead with the M key', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
     act(() => engine.emit(5))
     // Bound by character ('m'), not physical position — works on any layout.
     fireEvent.keyDown(document.body, { key: 'm', code: 'Semicolon' })
 
     const goto = screen.getByRole('button', { name: 'Aller à Repère 1' })
-    fireEvent.click(goto)
+    await user.click(goto)
     expect(engine.seekTo).toHaveBeenLastCalledWith(5)
   })
 
   it('renames a marker from the inspector', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
     act(() => engine.emit(5))
     fireEvent.keyDown(document.body, { key: 'm', code: 'Semicolon' })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Renommer Repère 1' }))
-    fireEvent.change(screen.getByLabelText('Nom'), { target: { value: 'Pont' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Renommer' }))
+    await user.click(screen.getByRole('button', { name: 'Renommer Repère 1' }))
+    await user.clear(screen.getByLabelText('Nom'))
+    await user.type(screen.getByLabelText('Nom'), 'Pont')
+    await user.click(screen.getByRole('button', { name: 'Renommer' }))
 
     // The rail tag follows the new label; the old one is gone.
     expect(
@@ -376,8 +408,8 @@ describe('WorkstationShell', () => {
   })
 
   it('zooms with the + and - characters, regardless of layout', async () => {
-    renderShell()
-    await importTrack()
+    const { user } = renderShell()
+    await importTrack(user)
 
     const slider = screen.getByLabelText(
       "Zoom de la forme d'onde"
@@ -394,17 +426,18 @@ describe('WorkstationShell', () => {
   })
 
   it('leaves browser/OS chords alone (modified keys are not bound)', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
     fireEvent.keyDown(document.body, { code: 'Space', metaKey: true })
     expect(engine.play).not.toHaveBeenCalled()
   })
 
   it('drives the engine tempo from the tempo slider', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
+    // Range slider: user-event cannot drive <input type="range">.
     fireEvent.change(screen.getByLabelText('Tempo en pourcentage'), {
       target: { value: '75' }
     })
@@ -413,9 +446,10 @@ describe('WorkstationShell', () => {
   })
 
   it('drives the engine pitch from the pitch slider', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
+    // Range slider: user-event cannot drive <input type="range">.
     fireEvent.change(screen.getByLabelText('Hauteur en demi-tons'), {
       target: { value: '5' }
     })
@@ -429,32 +463,32 @@ describe('WorkstationShell', () => {
   })
 
   it('adds a marker at the playhead and seeks back to it', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
     act(() => engine.emit(5))
-    fireEvent.click(screen.getByRole('button', { name: '+ Repère' }))
+    await user.click(screen.getByRole('button', { name: '+ Repère' }))
 
     const goto = screen.getByRole('button', { name: 'Aller à Repère 1' })
-    fireEvent.click(goto)
+    await user.click(goto)
     expect(engine.seekTo).toHaveBeenCalledWith(5)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Repère 1' }))
+    await user.click(screen.getByRole('button', { name: 'Supprimer Repère 1' }))
     expect(
       screen.queryByRole('button', { name: 'Aller à Repère 1' })
     ).not.toBeInTheDocument()
   })
 
   it('clears markers when a new track is loaded', async () => {
-    renderShell()
-    await importTrack()
+    const { user } = renderShell()
+    await importTrack(user)
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Repère' }))
+    await user.click(screen.getByRole('button', { name: '+ Repère' }))
     expect(
       screen.getByRole('button', { name: 'Aller à Repère 1' })
     ).toBeInTheDocument()
 
-    await importTrack()
+    await importTrack(user)
     expect(
       screen.queryByRole('button', { name: 'Aller à Repère 1' })
     ).not.toBeInTheDocument()
@@ -466,8 +500,8 @@ describe('WorkstationShell', () => {
   })
 
   it('seeks the engine when the waveform is clicked', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
     // A press-release at the same x is a click → seek to 50% of a 10 s timeline.
     pointerGesture(50, 50)
@@ -475,38 +509,39 @@ describe('WorkstationShell', () => {
   })
 
   it('drag-selects an A/B loop, names it via the editor, and recalls it', async () => {
-    const { engine } = renderShell({ loopStore: fakeLoopStore() })
-    await importTrack()
+    const { engine, user } = renderShell({ loopStore: fakeLoopStore() })
+    await importTrack(user)
 
     // Drag 20%→60% of a 10 s timeline → loop [2s, 6s].
     pointerGesture(20, 60)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
-    fireEvent.change(screen.getByLabelText('Nom'), {
-      target: { value: 'Mon passage' }
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await user.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
+    await user.clear(screen.getByLabelText('Nom'))
+    await user.type(screen.getByLabelText('Nom'), 'Mon passage')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
     const recall = await screen.findByRole('button', { name: 'Mon passage' })
-    fireEvent.click(recall)
+    await user.click(recall)
     expect(engine.seekTo).toHaveBeenCalledWith(2)
   })
 
   it('edits a saved loop in place when its handle moves (no re-save prompt)', async () => {
-    renderShell({ loopStore: fakeLoopStore() })
-    await importTrack()
+    const { user } = renderShell({ loopStore: fakeLoopStore() })
+    await importTrack(user)
 
     // Select [2 s, 6 s] and save it.
     pointerGesture(20, 60)
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
-    fireEvent.change(screen.getByLabelText('Nom'), { target: { value: 'Pont' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await user.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
+    await user.clear(screen.getByLabelText('Nom'))
+    await user.type(screen.getByLabelText('Nom'), 'Pont')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
     expect(
       screen.queryByRole('button', { name: 'Enregistrer la boucle' })
     ).not.toBeInTheDocument()
 
     // Drag the end handle inward: the saved loop updates rather than spawning a
     // duplicate, so no « Enregistrer » reappears and there is still one chip.
+    // Kept on fireEvent: coordinate-based drag needs explicit clientX values.
     const container = waveformSurface().parentElement as HTMLElement
     container.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
     const endHandle = screen.getByRole('button', {
@@ -523,8 +558,8 @@ describe('WorkstationShell', () => {
   })
 
   it('wraps playback at the loop end only while looping is enabled', async () => {
-    const { engine } = renderShell()
-    await importTrack()
+    const { engine, user } = renderShell()
+    await importTrack(user)
 
     // Drag 20%→60% of a 10 s timeline → loop [2 s, 6 s], looping armed.
     pointerGesture(20, 60)
@@ -532,7 +567,7 @@ describe('WorkstationShell', () => {
     expect(engine.seekTo).toHaveBeenLastCalledWith(2)
 
     // Turn looping off: the same overshoot must now play straight through.
-    fireEvent.click(screen.getByRole('button', { name: /Boucle active/ }))
+    await user.click(screen.getByRole('button', { name: /Boucle active/ }))
     engine.seekTo.mockClear()
     act(() => engine.emit(7))
     expect(engine.seekTo).not.toHaveBeenCalled()
@@ -542,31 +577,31 @@ describe('WorkstationShell', () => {
     const reader: TrackMetadataReader = {
       read: async () => ({ title: 'Nocturne', artist: 'Lena Vasquez' })
     }
-    renderShell({ metadataReader: reader })
-    await importTrack()
+    const { user } = renderShell({ metadataReader: reader })
+    await importTrack(user)
 
     expect(await screen.findByText('Nocturne')).toBeInTheDocument()
     expect(screen.getByText('Lena Vasquez')).toBeInTheDocument()
   })
 
   it('falls back to the file name when the file has no tags', async () => {
-    renderShell()
-    await importTrack()
+    const { user } = renderShell()
+    await importTrack(user)
 
     // "take.wav" → "take" (extension stripped), no fake title applied.
     expect(screen.getByText('take')).toBeInTheDocument()
   })
 
   it('separates the loaded track on demand and lists the stems', async () => {
-    renderShell({ separator: fakeSeparator() })
+    const { user } = renderShell({ separator: fakeSeparator() })
 
     // The action is disabled until a track is loaded.
     expect(
       screen.getByRole('button', { name: 'Séparer les pistes' })
     ).toBeDisabled()
 
-    await importTrack()
-    fireEvent.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
+    await importTrack(user)
+    await user.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
 
     // The stems land in the mixer: one fader (and lane) per separated stem.
     expect(
@@ -582,10 +617,10 @@ describe('WorkstationShell', () => {
   })
 
   it('surfaces a separation failure and offers a retry', async () => {
-    renderShell({ separator: failingSeparator })
-    await importTrack()
+    const { user } = renderShell({ separator: failingSeparator })
+    await importTrack(user)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
+    await user.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
 
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('moteur indisponible')
@@ -610,65 +645,93 @@ describe('WorkstationShell', () => {
   })
 
   /** First save through the header popover, under the given name. */
-  async function saveProjectAs(name: string): Promise<void> {
-    fireEvent.click(
+  async function saveProjectAs(user: UserEvent, name: string): Promise<void> {
+    await user.click(
       screen.getByRole('button', { name: 'Enregistrer le projet' })
     )
-    fireEvent.change(screen.getByLabelText('Nom'), { target: { value: name } })
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await user.clear(screen.getByLabelText('Nom'))
+    await user.type(screen.getByLabelText('Nom'), name)
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
     // The one-click re-save appears once the project exists.
     await screen.findByRole('button', { name: 'Renommer le projet' })
   }
 
   it('surfaces a failed save as a dismissible alert banner', async () => {
-    renderShell({ projectStores: brokenProjectStores() })
-    await importTrack()
+    const { user } = renderShell({ projectStores: brokenProjectStores() })
+    await importTrack(user)
 
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: 'Enregistrer le projet' })
     )
-    fireEvent.change(screen.getByLabelText('Nom'), {
-      target: { value: 'Mon projet' }
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await user.clear(screen.getByLabelText('Nom'))
+    await user.type(screen.getByLabelText('Nom'), 'Mon projet')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent(
       "Impossible d'enregistrer le projet : server down"
     )
 
-    fireEvent.click(screen.getByRole('button', { name: "Fermer l'alerte" }))
+    await user.click(screen.getByRole('button', { name: "Fermer l'alerte" }))
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('re-saves an existing project in one click, keeping a rename popover', async () => {
-    renderShell({ projectStores: fakeProjectStores() })
-    await importTrack()
-    await saveProjectAs('Mon projet')
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveProjectAs(user, 'Mon projet')
 
     // One direct click — no popover asks for the name again.
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
     expect(screen.queryByLabelText('Nom')).not.toBeInTheDocument()
 
     // Still a single project, under the same name.
-    fireEvent.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
     expect(await screen.findByText('Mon projet')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Ouvrir' })).toHaveLength(1)
   })
 
-  it('asks before opening a project over the loaded session', async () => {
-    renderShell({ projectStores: fakeProjectStores() })
-    await importTrack()
-    await saveProjectAs('Mon projet')
+  it('detaches the session from the saved project when a new file is imported', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveProjectAs(user, 'Premier morceau')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Projets' }))
-    fireEvent.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    // A new import starts a fresh session — the header must offer a first
+    // save (name popover), not a one-click re-save onto the old project.
+    await importTrack(user)
+
+    expect(
+      screen.getByRole('button', { name: 'Enregistrer le projet' })
+    ).toBeInTheDocument()
+  })
+
+  it('saves the re-imported session as a second project, not over the first', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveProjectAs(user, 'Premier morceau')
+
+    await importTrack(user)
+    await saveProjectAs(user, 'Deuxième morceau')
+
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    expect(
+      await screen.findAllByRole('button', { name: 'Ouvrir' })
+    ).toHaveLength(2)
+  })
+
+  it('asks before opening a project over the loaded session', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveProjectAs(user, 'Mon projet')
+
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
 
     // The session would be replaced — the row asks for a confirmation first.
     expect(
       screen.getByText('La session actuelle sera remplacée')
     ).toBeInTheDocument()
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', {
         name: "Confirmer l'ouverture de Mon projet"
       })
@@ -680,10 +743,50 @@ describe('WorkstationShell', () => {
     })
   })
 
-  it('says the server is unreachable when the projects listing fails', async () => {
-    renderShell({ projectStores: brokenProjectStores() })
+  it('discards a resolving open once a new file was imported meanwhile', async () => {
+    const working = fakeProjectStores()
+    let gateNext = false
+    let release: (() => void) | undefined
+    const gated: ProjectDeps = {
+      store: {
+        ...working.store,
+        load: (id) => {
+          if (!gateNext) {
+            return working.store.load(id)
+          }
+          return new Promise((resolve) => {
+            release = () => resolve(working.store.load(id))
+          })
+        }
+      },
+      audio: working.audio
+    }
+    const { user } = renderShell({ projectStores: gated })
+    await importTrack(user)
+    await saveProjectAs(user, 'Projet A')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Projets' }))
+    gateNext = true
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(
+      screen.getByRole('button', { name: "Confirmer l'ouverture de Projet A" })
+    )
+    // The open hangs on the gated store; leave the dialog, import a new file.
+    await user.click(screen.getByRole('button', { name: 'Fermer' }))
+    await importTrack(user, 'nouveau.wav')
+
+    await act(async () => {
+      release?.()
+    })
+
+    // The stale open must not clobber the freshly imported session.
+    expect(screen.getByText('nouveau')).toBeInTheDocument()
+  })
+
+  it('says the server is unreachable when the projects listing fails', async () => {
+    const { user } = renderShell({ projectStores: brokenProjectStores() })
+
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
 
     expect(
       await screen.findByText(

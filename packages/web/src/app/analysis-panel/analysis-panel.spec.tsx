@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import type { MarkerList } from '@app/core'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { AnalysisPanel } from './analysis-panel.tsx'
 
@@ -12,7 +13,8 @@ const markers: MarkerList = [
 const noop = () => {}
 
 describe('AnalysisPanel', () => {
-  it('lists markers of every kind and seeks one', () => {
+  it('lists markers of every kind and seeks one', async () => {
+    const user = userEvent.setup()
     const onSeekMarker = vi.fn()
     render(
       <AnalysisPanel
@@ -24,11 +26,12 @@ describe('AnalysisPanel', () => {
     )
     // A beat marker has no rail tag, so the inspector is its only seek path.
     // The seek row carries the timecode; the remove button does not.
-    fireEvent.click(screen.getByRole('button', { name: /0:05/ }))
+    await user.click(screen.getByRole('button', { name: /0:05/ }))
     expect(onSeekMarker).toHaveBeenCalledWith(5)
   })
 
-  it('renames a marker through the editor', () => {
+  it('renames a marker through the editor', async () => {
+    const user = userEvent.setup()
     const onRenameMarker = vi.fn()
     render(
       <AnalysisPanel
@@ -38,15 +41,16 @@ describe('AnalysisPanel', () => {
         onRemoveMarker={noop}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Renommer Repère 1' }))
-    fireEvent.change(screen.getByLabelText('Nom'), {
-      target: { value: 'Intro' }
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Renommer' }))
+    await user.click(screen.getByRole('button', { name: 'Renommer Repère 1' }))
+    const input = screen.getByLabelText('Nom')
+    await user.clear(input)
+    await user.type(input, 'Intro')
+    await user.click(screen.getByRole('button', { name: 'Renommer' }))
     expect(onRenameMarker).toHaveBeenCalledWith('a', 'Intro')
   })
 
-  it('removes a marker', () => {
+  it('removes a marker', async () => {
+    const user = userEvent.setup()
     const onRemoveMarker = vi.fn()
     render(
       <AnalysisPanel
@@ -56,7 +60,7 @@ describe('AnalysisPanel', () => {
         onRemoveMarker={onRemoveMarker}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Repère 1' }))
+    await user.click(screen.getByRole('button', { name: 'Supprimer Repère 1' }))
     expect(onRemoveMarker).toHaveBeenCalledWith('a')
   })
 

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { ViewportControls } from './viewport-controls.tsx'
 
@@ -32,12 +33,13 @@ describe('ViewportControls', () => {
     expect(screen.getByText('2.5×')).toBeInTheDocument()
   })
 
-  it('zooms in and out', () => {
+  it('zooms in and out', async () => {
+    const user = userEvent.setup()
     const onZoomIn = vi.fn()
     const onZoomOut = vi.fn()
     renderControls({ zoom: 3, onZoomIn, onZoomOut })
-    fireEvent.click(screen.getByRole('button', { name: 'Zoomer' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Dézoomer' }))
+    await user.click(screen.getByRole('button', { name: 'Zoomer' }))
+    await user.click(screen.getByRole('button', { name: 'Dézoomer' }))
     expect(onZoomIn).toHaveBeenCalled()
     expect(onZoomOut).toHaveBeenCalled()
   })
@@ -56,6 +58,7 @@ describe('ViewportControls', () => {
     const onSetZoom = vi.fn()
     renderControls({ onSetZoom })
     const slider = screen.getByRole('slider', { name: "Zoom de la forme d'onde" })
+    // fireEvent kept: user-event cannot drive <input type="range">.
     fireEvent.change(slider, { target: { value: '4' } })
     expect(onSetZoom).toHaveBeenCalledWith(4)
   })

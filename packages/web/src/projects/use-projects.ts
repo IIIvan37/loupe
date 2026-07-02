@@ -8,7 +8,7 @@ import {
   type SaveProjectInput,
   saveProject
 } from '@app/core'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { createProjectStores } from './create-project-stores.ts'
 
 /** The operation currently in flight, driving the busy affordances. */
@@ -34,6 +34,12 @@ export interface Projects {
   /** Open a project; the caller rebuilds the session from the result. */
   readonly open: (id: string) => Promise<OpenProjectResult>
   readonly remove: (id: string) => Promise<void>
+  /**
+   * Forget the current project without touching the store — the session no
+   * longer maps to it (e.g. a new file was imported), so the next save must
+   * mint a fresh project instead of overwriting the old one.
+   */
+  readonly detach: () => void
 }
 
 /**
@@ -50,6 +56,15 @@ export function useProjects(stores?: ProjectDeps): Projects {
   const [error, setError] = useState<string | undefined>(undefined)
   const [listError, setListError] = useState(false)
   const [busy, setBusy] = useState<ProjectsBusy>(null)
+  // Bumped by every detach; save/open re-attach only if no detach happened
+  // while they were in flight, so a detached session never silently re-maps
+  // to the old project when a slow operation resolves.
+  const sessionRef = useRef(0)
+
+  function detachSession(): void {
+    sessionRef.current += 1
+    setCurrentId(undefined)
+  }
 
   async function refresh(): Promise<void> {
     const result = await listProjects({ store: deps.store })
@@ -65,6 +80,7 @@ export function useProjects(stores?: ProjectDeps): Projects {
     name: string,
     input: Omit<SaveProjectInput, 'stamp'>
   ): Promise<void> {
+    const session = sessionRef.current
     const stamp = {
       id: currentId ?? crypto.randomUUID(),
       name,
@@ -74,7 +90,9 @@ export function useProjects(stores?: ProjectDeps): Projects {
     try {
       const result = await saveProject({ ...input, stamp }, deps)
       if (result.ok) {
-        setCurrentId(result.project.id)
+        if (sessionRef.current === session) {
+          setCurrentId(result.project.id)
+        }
         setError(undefined)
         await refresh()
       } else {
@@ -86,11 +104,14 @@ export function useProjects(stores?: ProjectDeps): Projects {
   }
 
   async function open(id: string): Promise<OpenProjectResult> {
+    const session = sessionRef.current
     setBusy('open')
     try {
       const result = await openProject({ id }, deps)
       if (result.ok) {
-        setCurrentId(id)
+        if (sessionRef.current === session) {
+          setCurrentId(id)
+        }
         setError(undefined)
       } else {
         setError(`Impossible d'ouvrir le projet : ${result.error}`)
@@ -107,7 +128,7 @@ export function useProjects(stores?: ProjectDeps): Projects {
       if (id === currentId) {
         // The open session no longer maps to a saved project — the next save
         // mints a fresh one instead of resurrecting the deleted id.
-        setCurrentId(undefined)
+        detachSession()
       }
       setError(undefined)
       await refresh()
@@ -126,6 +147,7 @@ export function useProjects(stores?: ProjectDeps): Projects {
     refresh,
     save,
     open,
-    remove
+    remove,
+    detach: detachSession
   }
 }

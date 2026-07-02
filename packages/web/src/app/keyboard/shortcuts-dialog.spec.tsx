@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { ShortcutsDialog } from './shortcuts-dialog.tsx'
 
@@ -20,13 +21,14 @@ describe('ShortcutsDialog', () => {
     expect(screen.getByText('Avancer de 5 s')).toBeInTheDocument()
   })
 
-  it('asks to close when the close button is pressed', () => {
+  it('asks to close when the close button is pressed', async () => {
+    const user = userEvent.setup()
     const onOpenChange = vi.fn()
     render(
       <ShortcutsDialog open onOpenChange={onOpenChange} hints={HINTS} />
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Fermer' }))
+    await user.click(screen.getByRole('button', { name: 'Fermer' }))
     expect(onOpenChange).toHaveBeenCalled()
     expect(onOpenChange.mock.calls[0]?.[0]).toBe(false)
   })

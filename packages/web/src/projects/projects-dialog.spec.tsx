@@ -2,6 +2,7 @@
 import '@testing-library/jest-dom/vitest'
 import type { Project } from '@app/core'
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { ProjectsDialog } from './projects-dialog.tsx'
 
@@ -61,38 +62,43 @@ describe('ProjectsDialog', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('opens the picked project with a single click when nothing would be lost', () => {
+  it('opens the picked project with a single click when nothing would be lost', async () => {
+    const user = userEvent.setup()
     const onOpen = vi.fn()
     renderDialog({ onOpen })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: 'Ouvrir' }))
     expect(onOpen).toHaveBeenCalledWith('p1')
   })
 
-  it('asks before opening when the current session would be replaced', () => {
+  it('asks before opening when the current session would be replaced', async () => {
+    const user = userEvent.setup()
     const onOpen = vi.fn()
     renderDialog({ onOpen, confirmBeforeOpen: true })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: 'Ouvrir' }))
     expect(onOpen).not.toHaveBeenCalled()
     expect(
       screen.getByText('La session actuelle sera remplacée')
     ).toBeInTheDocument()
 
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
     )
     expect(onOpen).toHaveBeenCalledWith('p1')
   })
 
-  it('deletes only after the inline two-step confirmation', () => {
+  it('deletes only after the inline two-step confirmation', async () => {
+    const user = userEvent.setup()
     const onDelete = vi.fn()
     renderDialog({ onDelete })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Mon projet' }))
+    await user.click(
+      screen.getByRole('button', { name: 'Supprimer Mon projet' })
+    )
     expect(onDelete).not.toHaveBeenCalled()
 
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', {
         name: 'Confirmer la suppression de Mon projet'
       })
@@ -105,6 +111,8 @@ describe('ProjectsDialog', () => {
     const onDelete = vi.fn()
     renderDialog({ onDelete })
 
+    // user-event limitation: user.click hangs under vi.useFakeTimers (its
+    // internal waits never resolve on the fake clock), so fireEvent stays here.
     fireEvent.click(screen.getByRole('button', { name: 'Supprimer Mon projet' }))
     act(() => {
       vi.advanceTimersByTime(4000)
@@ -121,10 +129,13 @@ describe('ProjectsDialog', () => {
     vi.useRealTimers()
   })
 
-  it('reverts an armed confirmation when it loses focus', () => {
+  it('reverts an armed confirmation when it loses focus', async () => {
+    const user = userEvent.setup()
     renderDialog()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Mon projet' }))
+    await user.click(
+      screen.getByRole('button', { name: 'Supprimer Mon projet' })
+    )
     fireEvent.blur(
       screen.getByRole('button', {
         name: 'Confirmer la suppression de Mon projet'

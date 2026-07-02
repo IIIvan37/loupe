@@ -9,7 +9,7 @@ import {
   type StemSeparator,
   type TrackMetadataReader
 } from '@app/core'
-import { type ChangeEvent, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
@@ -24,7 +24,6 @@ import { MarkerControls } from '../markers/marker-controls.tsx'
 import { MarkerRail } from '../markers/marker-rail.tsx'
 import { useMarkers } from '../markers/use-markers.ts'
 import { ProjectsDialog } from '../../projects/projects-dialog.tsx'
-import { useProjects } from '../../projects/use-projects.ts'
 import {
   type ServerHealth,
   useServerHealth
@@ -40,7 +39,7 @@ import { usePlayer } from '../waveform/use-player.ts'
 import { useViewport } from '../waveform/use-viewport.ts'
 import { WaveformView } from '../waveform/waveform-view.tsx'
 import { ZoomStage } from '../waveform/zoom-stage.tsx'
-import { restoreSession, sessionSaveInput } from './project-session.ts'
+import { useProjectSession } from './use-project-session.ts'
 import styles from './workstation-shell.module.css'
 
 /** Help rows derived once from the shipped layout — never drift from the keys. */
@@ -60,12 +59,6 @@ const SERVER_STATUS: Record<
   offline: { tone: 'offline', label: 'Serveur hors ligne' },
   'no-separation': { tone: 'degraded', label: 'Séparation indisponible' },
   ready: { tone: 'ready', label: 'Serveur prêt' }
-}
-
-/** A file name without its extension, the fallback header title. */
-function trackTitle(fileName: string): string {
-  const dot = fileName.lastIndexOf('.')
-  return dot > 0 ? fileName.slice(0, dot) : fileName
 }
 
 interface WorkstationShellProps {
@@ -132,68 +125,27 @@ export function WorkstationShell({
     seekToSeconds
   })
   const viewport = useViewport()
-  const projects = useProjects(projectStores)
   const serverHealth = useServerHealth({ fetchImpl: healthFetch })
-  const [trackName, setTrackName] = useState<string | null>(null)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [projectsOpen, setProjectsOpen] = useState(false)
-  const [openingId, setOpeningId] = useState<string | undefined>(undefined)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // The whole project ↔ session lifecycle (save/open/detach-on-import).
+  const session = useProjectSession({
+    stores: projectStores,
+    importFile,
+    loadedBytes,
+    metadata,
+    stemsReady,
+    markers,
+    loops,
+    separation,
+    mixer,
+    viewport,
+    onRestoreStarted: () => setProjectsOpen(false)
+  })
+  const { projects, trackName, currentProject } = session
 
   const isLoaded = importState.status === 'loaded'
-
-  /**
-   * A new track gets a fresh timeline — the old markers don't belong to it, the
-   * view should start fully zoomed out, and any prior stems are stale.
-   */
-  function startFreshTrack(name: string): void {
-    markers.clear()
-    viewport.reset()
-    separation.reset()
-    mixer.reset()
-    setTrackName(name)
-  }
-
-  /** Persist the whole session under a name — bytes, loops, markers, stems. */
-  function handleSave(name: string): void {
-    if (!loadedBytes) {
-      return
-    }
-    const input = sessionSaveInput({
-      bytes: loadedBytes,
-      title: metadata.title ?? trackName ?? undefined,
-      artist: metadata.artist,
-      loops: loops.library,
-      markers: markers.markers,
-      ...(stemsReady
-        ? { separation: { sources: separation.sources, mixer: mixer.state } }
-        : {})
-    })
-    void projects.save(name, input)
-  }
-
-  /** Rebuild the whole session from a saved project. */
-  async function handleOpen(id: string): Promise<void> {
-    setOpeningId(id)
-    try {
-      const result = await projects.open(id)
-      if (!result.ok) {
-        return
-      }
-      setProjectsOpen(false)
-      // Same clean slate as a fresh import, then re-import the stored bytes.
-      startFreshTrack(result.project.name)
-      await restoreSession(result, {
-        importFile,
-        markers,
-        loops,
-        separation,
-        mixer
-      })
-    } finally {
-      setOpeningId(undefined)
-    }
-  }
 
   // Global keyboard layout — only live once a track is loaded.
   useKeyboardShortcuts(
@@ -206,16 +158,6 @@ export function WorkstationShell({
     },
     { enabled: isLoaded }
   )
-
-  function onFilePicked(event: ChangeEvent<HTMLInputElement>): void {
-    const file = event.target.files?.[0]
-    if (file) {
-      startFreshTrack(trackTitle(file.name))
-      void importFile(file)
-    }
-    // Clear it so re-picking the same file fires `change` again.
-    event.target.value = ''
-  }
 
   const positionRatio =
     transport.durationSeconds > 0
@@ -232,10 +174,6 @@ export function WorkstationShell({
         }
       : importState
 
-  const currentProject = projects.projects.find(
-    (p) => p.id === projects.currentId
-  )
-
   return (
     <div className={styles.shell}>
       <Header
@@ -250,7 +188,7 @@ export function WorkstationShell({
         }
         onImport={() => fileInputRef.current?.click()}
         onShowShortcuts={() => setShortcutsOpen(true)}
-        onSaveProject={handleSave}
+        onSaveProject={session.handleSave}
         saveName={currentProject?.name ?? trackName ?? ''}
         canSave={isLoaded}
         hasProject={currentProject !== undefined}
@@ -275,14 +213,14 @@ export function WorkstationShell({
         open={projectsOpen}
         onOpenChange={setProjectsOpen}
         projects={projects.projects}
-        onOpen={(id) => void handleOpen(id)}
+        onOpen={(id) => void session.handleOpen(id)}
         onDelete={(id) => void projects.remove(id)}
         errorMessage={
           projects.listError
             ? 'Serveur injoignable — vérifie que le serveur local est lancé'
             : undefined
         }
-        openingId={openingId}
+        openingId={session.openingId}
         confirmBeforeOpen={isLoaded}
       />
       <input
@@ -291,7 +229,7 @@ export function WorkstationShell({
         accept="audio/*"
         className={styles.fileInput}
         aria-label="Importer un fichier audio"
-        onChange={onFilePicked}
+        onChange={session.onFilePicked}
       />
 
       <div className={styles.body}>

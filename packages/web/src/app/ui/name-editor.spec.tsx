@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { NameEditor } from './name-editor.tsx'
 
@@ -22,30 +23,35 @@ function renderEditor(overrides: Partial<Parameters<typeof NameEditor>[0]> = {})
 }
 
 describe('NameEditor', () => {
-  it('submits the trimmed name', () => {
+  it('submits the trimmed name', async () => {
+    const user = userEvent.setup()
     const { onSubmit } = renderEditor()
-    fireEvent.click(screen.getByRole('button', { name: 'Renommer la chose' }))
+    await user.click(screen.getByRole('button', { name: 'Renommer la chose' }))
 
     const input = screen.getByLabelText('Nom')
     expect(input).toHaveValue('Avant')
-    fireEvent.change(input, { target: { value: '  Après  ' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Renommer' }))
+    await user.clear(input)
+    await user.type(input, '  Après  ')
+    await user.click(screen.getByRole('button', { name: 'Renommer' }))
 
     expect(onSubmit).toHaveBeenCalledWith('Après')
   })
 
-  it('submits on Enter', () => {
+  it('submits on Enter', async () => {
+    const user = userEvent.setup()
     const { onSubmit } = renderEditor()
-    fireEvent.click(screen.getByRole('button', { name: 'Renommer la chose' }))
+    await user.click(screen.getByRole('button', { name: 'Renommer la chose' }))
     const input = screen.getByLabelText('Nom')
-    fireEvent.change(input, { target: { value: 'Après' } })
+    await user.clear(input)
+    await user.type(input, 'Après')
     fireEvent.keyDown(input, { key: 'Enter' })
     expect(onSubmit).toHaveBeenCalledWith('Après')
   })
 
-  it('refuses an empty name', () => {
+  it('refuses an empty name', async () => {
+    const user = userEvent.setup()
     const { onSubmit } = renderEditor({ initialName: '' })
-    fireEvent.click(screen.getByRole('button', { name: 'Renommer la chose' }))
+    await user.click(screen.getByRole('button', { name: 'Renommer la chose' }))
     const submit = screen.getByRole('button', { name: 'Renommer' })
     expect(submit).toBeDisabled()
     fireEvent.keyDown(screen.getByLabelText('Nom'), { key: 'Enter' })
