@@ -101,6 +101,22 @@ describe('exportStems — expected failures are a Result', () => {
     })
   })
 
+  it('rejects a stem with no channels (encodeWav refuses it)', async () => {
+    const empty: SeparatedStem = {
+      id: 'vox',
+      label: 'Voix',
+      audio: { sampleRate: 4, channels: [] }
+    }
+    const result = await exportStems(
+      { stems: [empty] },
+      { archive: fakeArchive([]) }
+    )
+    expect(result).toEqual({
+      ok: false,
+      error: 'at least one channel is required'
+    })
+  })
+
   it('turns a throwing archive writer into a typed error Result', async () => {
     const archive: ArchiveWriter = {
       write: async () => {

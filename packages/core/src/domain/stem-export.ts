@@ -23,11 +23,9 @@ export function padChannels(
     if (channel.length === frames) {
       return channel
     }
-    const adjusted = new Float64Array(frames)
-    const copied = Math.min(channel.length, frames)
-    for (let i = 0; i < copied; i++) {
-      adjusted[i] = channel[i] ?? 0
-    }
-    return adjusted
+    return Array.from({ length: frames }, (_, i) => {
+      const sample = channel[i]
+      return sample === undefined ? 0 : sample
+    })
   })
 }
