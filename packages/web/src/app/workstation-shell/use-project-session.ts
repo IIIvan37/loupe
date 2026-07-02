@@ -1,4 +1,4 @@
-import type { Project, ProjectDeps } from '@app/core'
+import type { LoopRegion, Project, ProjectDeps } from '@app/core'
 import { type ChangeEvent, useRef, useState } from 'react'
 import { type Projects, useProjects } from '../../projects/use-projects.ts'
 import {
@@ -22,6 +22,9 @@ export interface ProjectSessionDeps extends SessionRestoreDeps {
     readonly artist: string | undefined
   }
   readonly stemsReady: boolean
+  /** The armed A/B region and its wrap choice — the loupe a save keeps. */
+  readonly loopRegion: LoopRegion | undefined
+  readonly loopEnabled: boolean
   readonly viewport: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
@@ -79,6 +82,14 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       artist: deps.metadata.artist,
       loops: deps.loops.library,
       markers: deps.markers.markers,
+      ...(deps.loopRegion === undefined
+        ? {}
+        : {
+            activeLoop: {
+              region: deps.loopRegion,
+              enabled: deps.loopEnabled
+            }
+          }),
       ...(deps.stemsReady
         ? {
             separation: {

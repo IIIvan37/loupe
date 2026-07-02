@@ -66,6 +66,8 @@ export interface Player {
   /** Whether the active region actually loops playback (vs playing through). */
   readonly loopEnabled: boolean
   readonly toggleLoop: () => void
+  /** Seat a persisted loupe: region and wrap choice together (project open). */
+  readonly restoreLoop: (region: LoopRegion, enabled: boolean) => void
 }
 
 /**
@@ -312,6 +314,15 @@ export function usePlayer(
     setLoopEnabledState((enabled) => !enabled)
   }
 
+  /**
+   * Seat a persisted loupe exactly as saved: region AND wrap choice together,
+   * bypassing the fresh-selection re-arm heuristic of `setLoopRegion`.
+   */
+  function restoreLoop(region: LoopRegion, enabled: boolean): void {
+    setLoopRegionState(region)
+    setLoopEnabledState(enabled)
+  }
+
   return {
     importState,
     loadedAudio,
@@ -329,6 +340,7 @@ export function usePlayer(
     setPitchSemitones,
     setLoopRegion,
     loopEnabled,
-    toggleLoop
+    toggleLoop,
+    restoreLoop
   }
 }

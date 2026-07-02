@@ -761,6 +761,93 @@ describe('WorkstationShell', () => {
     })
   })
 
+  it('restores the armed A/B region — the loupe — when a project is reopened', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    // An A/B drag alone (never saved as a named loop) IS the loupe being used.
+    pointerGesture(20, 60)
+    await saveProjectAs(user, 'Mon projet')
+
+    await importTrack(user, 'autre.wav')
+
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(
+      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+    )
+
+    // The region must come back armed, exactly as the user left it.
+    expect(
+      await screen.findByRole('button', { name: '⟳ Boucle active' })
+    ).toBeInTheDocument()
+  })
+
+  it('restores the loupe with looping still disabled when it was off at save', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    pointerGesture(20, 60)
+    // Turn the wrap-around off before saving: play-through mode.
+    await user.click(screen.getByRole('button', { name: '⟳ Boucle active' }))
+    await saveProjectAs(user, 'Mon projet')
+
+    await importTrack(user, 'autre.wav')
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(
+      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+    )
+
+    // The region is back but still in play-through mode, as it was saved.
+    expect(
+      await screen.findByRole('button', { name: '⟳ Boucle inactive' })
+    ).toBeInTheDocument()
+  })
+
+  it('relinks the restored region to its saved loop (no duplicate save offered)', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveNamedLoop(user, 'Refrain')
+    await saveProjectAs(user, 'Mon projet')
+
+    await importTrack(user, 'autre.wav')
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(
+      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+    )
+
+    // The region is armed AND recognised as the saved « Refrain »: offering
+    // « Enregistrer la boucle » again would invite a duplicate.
+    await screen.findByRole('button', { name: '⟳ Boucle active' })
+    expect(
+      screen.queryByRole('button', { name: 'Enregistrer la boucle' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('restores the saved loops when a project is reopened', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveNamedLoop(user, 'Refrain')
+    await saveProjectAs(user, 'Mon projet')
+
+    // Move on to a fresh track — its session starts without the loop.
+    await importTrack(user, 'autre.wav')
+    expect(
+      screen.queryByRole('button', { name: 'Refrain' })
+    ).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(
+      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+    )
+
+    // The reopened project must bring its saved loop back.
+    expect(
+      await screen.findByRole('button', { name: 'Refrain' })
+    ).toBeInTheDocument()
+  })
+
   it('discards a resolving open once a new file was imported meanwhile', async () => {
     const working = fakeProjectStores()
     let gateNext = false

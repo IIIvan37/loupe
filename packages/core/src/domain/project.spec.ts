@@ -5,6 +5,7 @@ import type { MarkerList } from './marker-list.ts'
 import type { MixerState } from './mixer.ts'
 import {
   mixerMatchesStems,
+  type ProjectActiveLoop,
   type ProjectSeparation,
   type ProjectStamp,
   projectFromSession,
@@ -61,6 +62,20 @@ describe('projectFromSession', () => {
     expect(project.source).toEqual(source)
     expect(project.loops).toEqual(loops)
     expect(project.markers).toEqual(markers)
+  })
+
+  it('carries the armed A/B region — the loupe — through when present', () => {
+    const activeLoop: ProjectActiveLoop = {
+      region: { startSeconds: 1.5, endSeconds: 6 },
+      enabled: false
+    }
+    const project = projectFromSession(snapshot({ activeLoop }), stamp)
+    expect(project.activeLoop).toEqual(activeLoop)
+  })
+
+  it('omits activeLoop when the session has no armed region', () => {
+    const project = projectFromSession(snapshot(), stamp)
+    expect('activeLoop' in project).toBe(false)
   })
 
   it('omits separation for an unseparated session', () => {

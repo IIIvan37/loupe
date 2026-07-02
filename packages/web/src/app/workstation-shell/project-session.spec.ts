@@ -104,6 +104,7 @@ describe('restoreSession', () => {
         restore: vi.fn(),
         clear: vi.fn()
       } satisfies Loops,
+      restoreActiveLoop: vi.fn(),
       separation: {
         state: initialSeparation,
         sources: [],
@@ -190,6 +191,57 @@ describe('restoreSession', () => {
     await restoreSession(opened, deps)
 
     expect(deps.loops.restore).not.toHaveBeenCalled()
+  })
+
+  it('re-arms the persisted loupe, relinked to the saved loop it came from', async () => {
+    const deps = fakeDeps(undefined)
+    const activeLoop = {
+      region: { startSeconds: 1, endSeconds: 2 },
+      enabled: false
+    }
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: { ...baseProject, activeLoop },
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    // The region equals library loop l1's exactly — it WAS that loop.
+    expect(deps.restoreActiveLoop).toHaveBeenCalledWith(activeLoop, 'l1')
+  })
+
+  it('re-arms a never-saved loupe as an unlinked region', async () => {
+    const deps = fakeDeps(undefined)
+    const activeLoop = {
+      region: { startSeconds: 4, endSeconds: 7 },
+      enabled: true
+    }
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: { ...baseProject, activeLoop },
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    expect(deps.restoreActiveLoop).toHaveBeenCalledWith(activeLoop, null)
+  })
+
+  it('leaves the loupe alone when the project saved none', async () => {
+    const deps = fakeDeps(undefined)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: baseProject,
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    expect(deps.restoreActiveLoop).not.toHaveBeenCalled()
   })
 
   it('stops after markers and loops when the project has no separation', async () => {

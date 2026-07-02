@@ -6,6 +6,7 @@ import {
   type MarkerList,
   type MixerState,
   type OpenProjectResult,
+  type ProjectActiveLoop,
   type SaveProjectInput,
   type SeparatedStem
 } from '@app/core'
@@ -22,6 +23,8 @@ export interface SessionSnapshot {
   readonly artist: string | undefined
   readonly loops: LoopLibrary
   readonly markers: MarkerList
+  /** The armed A/B region — the loupe — when one is set. */
+  readonly activeLoop?: ProjectActiveLoop
   /** The separation half, only once the stems are ready and mixing. */
   readonly separation?: {
     readonly sources: readonly SeparatedStem[]
@@ -47,6 +50,9 @@ export function sessionSaveInput(
     },
     loops: session.loops,
     markers: session.markers,
+    ...(session.activeLoop === undefined
+      ? {}
+      : { activeLoop: session.activeLoop }),
     ...(separation === undefined
       ? {}
       : {
@@ -83,6 +89,14 @@ export interface SessionRestoreDeps {
   readonly importFile: (file: File) => Promise<DecodedAudio | undefined>
   readonly markers: Markers
   readonly loops: Loops
+  /**
+   * Re-arm the persisted loupe: seat the region with its wrap choice, relinked
+   * to the saved loop it came from (`null` for a never-saved region).
+   */
+  readonly restoreActiveLoop: (
+    active: ProjectActiveLoop,
+    savedLoopId: string | null
+  ) => void
   readonly separation: Separation
   readonly mixer: Mixer
 }
@@ -108,6 +122,17 @@ export async function restoreSession(
   }
   deps.markers.restore(opened.project.markers)
   deps.loops.restore(opened.project.loops)
+  const active = opened.project.activeLoop
+  if (active) {
+    // If the region matches a library loop exactly, it WAS that loop: relink,
+    // so handle edits keep updating it instead of offering a duplicate save.
+    const origin = opened.project.loops.find(
+      (loop) =>
+        loop.region.startSeconds === active.region.startSeconds &&
+        loop.region.endSeconds === active.region.endSeconds
+    )
+    deps.restoreActiveLoop(active, origin?.id ?? null)
+  }
   const saved = opened.project.separation
   if (!saved || opened.stems.length === 0) {
     return
