@@ -66,6 +66,16 @@ The single place to look before adding a feature, so ports and use-cases get
 > Pure WAV codec (no use-case/port, used by adapters) — `encodeWav` (Slice J2.2,
 > per-stem export) serialises PCM to a 16-bit WAV; `decodeWav` (Slice J2.2b) is
 > its inverse, parsing a WAV the HTTP separator fetched back into `DecodedAudio`.
+>
+> Pure project domain (no use-case/port yet) — Slice J3.1: `projectFromSession`
+> assembles a `Project` (id/name/timestamps + `ProjectSource`, `LoopLibrary`,
+> `MarkerList`, optional `ProjectSeparation` = stems + `MixerState`) from a
+> `SessionSnapshot` and a caller-minted `ProjectStamp` (`id`/`name`/`now` — the
+> core owns no clock or id generator). Heavy audio never enters the model: the
+> source and each stem hold only an `AudioRef`, an opaque pointer a
+> `ProjectAudioStore` adapter resolves to bytes. The `ProjectStore` /
+> `ProjectAudioStore` ports and the `saveProject` / `listProjects` / `openProject`
+> use-cases arrive in Slice J3.2.
 
 ## Ports
 

@@ -12,11 +12,21 @@
   separation + WAV export merged (PR #18). Plan in
   [docs/jalon-2-plan.md](jalon-2-plan.md). Jalon 1 is **complete + polished**.
   See [docs/jalon-1-plan.md](jalon-1-plan.md).
-- **Branch**: `feat/jalon2-multitrack-mixer` — Slice J2.4 (multitrack mixer)
-  built, gate-green, **PR open**. Solo/mute/dB-volume over a pure `MixerState` +
-  a Web Audio gain graph, **unified transport** (stems drive the one transport
-  once ready), per-stem aligned read-only waveform lanes, and a **reactive
-  audible-mix** main waveform. Next: browser-verify, then Slice J2.6 (export).
+- **Now — Jalon 3 (« Projets ») kicked off.** J2.4 multitrack mixer **merged**
+  (PR #22). New direction: now that a local server exists, add real **project
+  persistence** (save / list / open). **Decided: domain-first** — the backend
+  (Tauri desktop FS vs extended HTTP server) is a late, cheap **adapter** choice
+  since persistence sits behind a port; the `Project` domain + use-cases are
+  identical either way. Note: `localStorage` was never a project store (it only
+  holds the loop library, ~KB); "projects" is a *new* capability (persist heavy
+  audio + session state). Jalon 2 export (J2.6) remains open and unblocked.
+- **Branch**: `feat/jalon3-project-domain` — Slice **J3.1** (pure `Project`
+  domain) built, gate-green, mutation `project.ts` 100%. `projectFromSession`
+  assembles a light `Project` (source/loops/markers + optional stems+mixer) from
+  a `SessionSnapshot` + injected `ProjectStamp` (`id`/`name`/`now`); heavy audio
+  stays behind an `AudioRef`. **Next**: open the J3.1 PR, then J3.2 (ports
+  `ProjectStore`/`ProjectAudioStore` + use-cases `saveProject`/`listProjects`/
+  `openProject` with fake adapters).
   **Scope change (2026-06-30): J2.5 track grouping is dropped** (low value) —
   Jalon 2 now ends at the mixer (J2.4) + export (J2.6).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
@@ -54,18 +64,29 @@
 
 ## Next step
 
-**Slice J2.4 built — PR open.** The multitrack mixer: pure `MixerState`
-(`gainDb`/`muted`/`soloed` per stem → `effectiveGains`, mute-wins, dB faders with
-a true-silence floor) + `combineWaveforms` (audible-mix envelope), a new
-`StemPlaybackEngine` port implemented by a Web Audio gain graph (per-stem
-`GainNode` → one SoundTouch master bus). The **transport is unified**: once stems
-are ready the bottom bar drives the mix (one playhead/loop, tempo/pitch on the
-mix); the **main waveform shows the reactive audible mix** and each stem gets an
-**aligned, read-only waveform lane** inside the zoom stage that pales with its
-level. The mixer panel holds the dB fader + mute/solo + confidence + WAV per
-stem. The « Séparer les pistes » action hides once stems are ready. Gate green,
-core mutation 95.54%. **Next**: browser-verify the mixer, then **Slice J2.6**
-(export — aligned stem folder, zipped).
+**Slice J3.1 built — PR open.** The pure `Project` domain that opens Jalon 3
+(project persistence). `projectFromSession(session, stamp)` is the single seam
+turning a `SessionSnapshot` into a saveable `Project`: pure, with `id`/`name`/
+`now` **injected** (the core owns no clock/id generator), `createdAt` =
+`updatedAt` = `now`. The model is deliberately **light** — id/name/timestamps +
+`ProjectSource`, `LoopLibrary`, `MarkerList`, optional `ProjectSeparation`
+(`ProjectStem[]` + `MixerState`); heavy audio never enters it (source and each
+stem hold only an `AudioRef`, resolved later by a `ProjectAudioStore` adapter).
+`separation` is truly optional under `exactOptionalPropertyTypes` (key omitted,
+not `undefined`). Gate green, core mutation 96.49% (`project.ts` 100%). **Next**:
+open the J3.1 PR, then **Slice J3.2** — ports `ProjectStore` /
+`ProjectAudioStore` + use-cases `saveProject` / `listProjects` / `openProject`
+(outer-loop acceptance tests with fake in-memory adapters). The Tauri-vs-server
+call lands at **J3.3** (real adapter + UI). Jalon 2 export (J2.6) stays open.
+
+### Earlier — Slice J2.4 (merged, PR #22)
+The multitrack mixer: pure `MixerState` (`gainDb`/`muted`/`soloed` per stem →
+`effectiveGains`, mute-wins, dB faders with a true-silence floor) +
+`combineWaveforms` (audible-mix envelope), a `StemPlaybackEngine` port
+implemented by a Web Audio gain graph (per-stem `GainNode` → one SoundTouch
+master bus). Unified transport (stems drive the one transport once ready),
+reactive audible-mix main waveform + per-stem aligned lanes. Core mutation
+95.54%.
 
 ### Earlier — Slice J2.3 (merged, PR #21)
 Adaptive instrument detection lives in the pure
@@ -98,14 +119,28 @@ mixer (J2.4) then export (J2.6). See
 | J2.2b | Server-side separation (FastAPI + Demucs) behind the `StemSeparator` port; HTTP/NDJSON, now the default engine | ✅ |
 | J2.2c | Remove the superseded in-browser WASM separators (HTTP is the only engine) — −1598 lines | ✅ |
 | J2.3 | Instrument detection → N adaptive tracks (mask empty, confidence) + server on `htdemucs_6s` (guitar/piano) | ✅ |
-| J2.4 | Multitrack mixer (solo/mute/dB-volume, Web Audio gain graph, unified transport, reactive mix waveform + per-stem lanes) | 🔄 PR open |
+| J2.4 | Multitrack mixer (solo/mute/dB-volume, Web Audio gain graph, unified transport, reactive mix waveform + per-stem lanes) | ✅ |
 | ~~J2.5~~ | ~~Track grouping (user bus, non-destructive)~~ — **dropped** (low value without enough perceived benefit) | 🚫 |
 | J2.6 | Export — tier A: aligned stem folder (named WAVs, t=0, zipped) | ⬜ |
+| J3.1 | Pure `Project` domain — `projectFromSession` (light model, `AudioRef` pointers, injected id/name/now) | 🔄 PR open |
+| J3.2 | Ports `ProjectStore` / `ProjectAudioStore` + use-cases `saveProject` / `listProjects` / `openProject` (fake adapters) | ⬜ |
+| J3.3 | Real adapter + UI (Save / list / Open) — **decides Tauri desktop vs web server** | ⬜ |
 
 ## Session journal
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-01 — jalon3-project-domain](sessions/2026-07-01-jalon3-project-domain.md) —
+  Slice J3.1 opens **Jalon 3 (project persistence)**. Pure core
+  `projectFromSession(session, stamp)` assembles a light `Project`
+  (source/loops/markers + optional `ProjectSeparation` = stems + `MixerState`)
+  from a `SessionSnapshot` and an injected `ProjectStamp` (`id`/`name`/`now` —
+  the core owns no clock/id generator; `createdAt` = `updatedAt` = `now`). Heavy
+  audio never enters the model — source and each stem hold only an `AudioRef`,
+  resolved later by a `ProjectAudioStore` adapter. `separation` truly optional
+  under `exactOptionalPropertyTypes`. **Decision: domain-first** — Tauri-vs-server
+  is a late adapter choice (J3.3). Gate green, core mutation 96.49%
+  (`project.ts` 100%). PR open.
 - [2026-07-01 — jalon2-multitrack-mixer](sessions/2026-07-01-jalon2-multitrack-mixer.md) —
   Slice J2.4: the multitrack mixer. Pure core `mixerReducer`/`effectiveGains`
   (per-stem `gainDb`/`muted`/`soloed` → one linear gain; mute-wins; dB faders with

@@ -94,6 +94,16 @@ export {
   MIN_PLAYBACK_RATE
 } from './domain/playback-rate.ts'
 export type {
+  AudioRef,
+  Project,
+  ProjectSeparation,
+  ProjectSource,
+  ProjectStamp,
+  ProjectStem,
+  SessionSnapshot
+} from './domain/project.ts'
+export { projectFromSession } from './domain/project.ts'
+export type {
   SeparationAction,
   SeparationPhase,
   SeparationState,
