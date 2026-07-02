@@ -395,6 +395,21 @@ describe('WorkstationShell', () => {
     expect(engine.seekTo).toHaveBeenLastCalledWith(expect.closeTo(5.1))
   })
 
+  it('does not fire the global seek while an arrow key nudges a marker tag', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    act(() => engine.emit(5))
+    fireEvent.keyDown(document.body, { key: 'm', code: 'Semicolon' })
+
+    const goto = screen.getByRole('button', { name: 'Aller à Repère 1' })
+    engine.seekTo.mockClear()
+    // The tag owns the arrow (it nudges the marker); the ←/→ seek shortcut
+    // bound to the same physical key must stand back.
+    fireEvent.keyDown(goto, { key: 'ArrowRight', code: 'ArrowRight' })
+    expect(engine.seekTo).not.toHaveBeenCalled()
+  })
+
   it('renames a marker from the inspector', async () => {
     const { engine, user } = renderShell()
     await importTrack(user)

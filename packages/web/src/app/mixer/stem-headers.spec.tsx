@@ -4,7 +4,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import type { MixerChannelView } from './use-mixer.ts'
-import { MixerPanel } from './mixer-panel.tsx'
+import { StemHeaders } from './stem-headers.tsx'
 
 const emptyTrack = { sampleRate: 4, durationSeconds: 1, waveform: { peaks: [] } }
 
@@ -24,12 +24,12 @@ function channel(
   }
 }
 
-function renderPanel(
+function renderHeaders(
   channels: readonly MixerChannelView[],
-  props: Partial<Parameters<typeof MixerPanel>[0]> = {}
+  props: Partial<Parameters<typeof StemHeaders>[0]> = {}
 ) {
   return render(
-    <MixerPanel
+    <StemHeaders
       channels={channels}
       onSetGain={() => {}}
       onToggleMute={() => {}}
@@ -40,18 +40,24 @@ function renderPanel(
   )
 }
 
-describe('MixerPanel', () => {
-  it('renders a strip per channel with its label and confidence', () => {
-    renderPanel([channel('voix', 'Voix'), channel('basse', 'Basse')])
+describe('StemHeaders', () => {
+  it('renders a track header per channel with its label', () => {
+    renderHeaders([channel('voix', 'Voix'), channel('basse', 'Basse')])
     expect(screen.getByText('Voix')).toBeInTheDocument()
     expect(screen.getByText('Basse')).toBeInTheDocument()
-    expect(screen.getAllByText('90 %')).toHaveLength(2)
+  })
+
+  it('carries the machine confidence as the label tooltip', () => {
+    renderHeaders([channel('voix', 'Voix')])
+    expect(screen.getByText('Voix')).toHaveAccessibleDescription(
+      'Confiance de détection : 90 %'
+    )
   })
 
   it('toggles mute and reflects the muted state', async () => {
     const user = userEvent.setup()
     const onToggleMute = vi.fn()
-    renderPanel([channel('voix', 'Voix', { muted: true })], { onToggleMute })
+    renderHeaders([channel('voix', 'Voix', { muted: true })], { onToggleMute })
     const button = screen.getByRole('button', { name: 'Couper Voix' })
     expect(button).toHaveAttribute('aria-pressed', 'true')
     await user.click(button)
@@ -61,7 +67,7 @@ describe('MixerPanel', () => {
   it('toggles solo and reflects the soloed state', async () => {
     const user = userEvent.setup()
     const onToggleSolo = vi.fn()
-    renderPanel([channel('voix', 'Voix', { soloed: true })], { onToggleSolo })
+    renderHeaders([channel('voix', 'Voix', { soloed: true })], { onToggleSolo })
     const button = screen.getByRole('button', { name: 'Isoler Voix' })
     expect(button).toHaveAttribute('aria-pressed', 'true')
     await user.click(button)
@@ -70,7 +76,7 @@ describe('MixerPanel', () => {
 
   it('moves the dB fader', () => {
     const onSetGain = vi.fn()
-    renderPanel([channel('voix', 'Voix')], { onSetGain })
+    renderHeaders([channel('voix', 'Voix')], { onSetGain })
     // fireEvent kept: user-event cannot drive <input type="range">.
     fireEvent.change(screen.getByRole('slider', { name: 'Volume Voix' }), {
       target: { value: '-6' }
@@ -79,14 +85,14 @@ describe('MixerPanel', () => {
   })
 
   it('shows the fader level in dB', () => {
-    renderPanel([channel('voix', 'Voix', { gainDb: -6 })])
+    renderHeaders([channel('voix', 'Voix', { gainDb: -6 })])
     expect(screen.getByText('-6 dB')).toBeInTheDocument()
   })
 
   it('downloads a stem as WAV', async () => {
     const user = userEvent.setup()
     const onDownloadStem = vi.fn()
-    renderPanel([channel('basse', 'Basse')], { onDownloadStem })
+    renderHeaders([channel('basse', 'Basse')], { onDownloadStem })
     await user.click(
       screen.getByRole('button', { name: 'Télécharger Basse en WAV' })
     )
@@ -94,7 +100,7 @@ describe('MixerPanel', () => {
   })
 
   it('renders nothing without channels', () => {
-    const { container } = renderPanel([])
+    const { container } = renderHeaders([])
     expect(container).toBeEmptyDOMElement()
   })
 })

@@ -48,7 +48,12 @@
 
   --radius: 6px;
 
-  /* Timeline layout — shared so the ruler, waveform and zoom pill stay in sync. */
+  /* Timeline layout — shared so the ruler, waveform and zoom pill stay in sync.
+     The stem-lane pair keeps the fixed gutter (track headers) and the zoomable
+     lanes aligned row by row: change one side, the other follows. */
   --timeline-height: 46px;
   --waveform-height: 134px;
+  --stem-lane-height: 48px;
+  --stem-lane-gap: 2px;
+  --track-gutter-width: 200px;
 }

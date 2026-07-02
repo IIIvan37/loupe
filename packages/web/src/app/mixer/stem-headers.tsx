@@ -2,9 +2,9 @@ import { MAX_GAIN_DB, MIN_GAIN_DB } from '@app/core'
 import { cx } from '../../lib/cx.ts'
 import { stemColor } from '../stems/stem-color.ts'
 import type { MixerChannelView } from './use-mixer.ts'
-import styles from './mixer-panel.module.css'
+import styles from './stem-headers.module.css'
 
-interface MixerPanelProps {
+interface StemHeadersProps {
   readonly channels: readonly MixerChannelView[]
   readonly onSetGain: (id: string, gainDb: number) => void
   readonly onToggleMute: (id: string) => void
@@ -23,33 +23,49 @@ function formatDb(db: number): string {
 }
 
 /**
- * Dumb multitrack mixer: one control strip per present stem — a dB fader,
- * mute/solo toggles, the teal machine-confidence badge and a WAV export, colour-
- * matched to its waveform lane. Pure view: the flags come from the mixer hook;
- * this only renders and reports. The stems' waveforms are the lanes' job.
+ * Dumb DAW-style track headers for the `ZoomStage` gutter: one compact header
+ * per present stem — name (machine confidence as its tooltip), WAV export,
+ * mute/solo and a dB fader — colour-matched to, and row-aligned with, its
+ * waveform lane (shared `--stem-lane-*` tokens). Pure view: the flags come
+ * from the mixer hook; this only renders and reports.
  */
-export function MixerPanel({
+export function StemHeaders({
   channels,
   onSetGain,
   onToggleMute,
   onToggleSolo,
   onDownloadStem
-}: MixerPanelProps) {
+}: StemHeadersProps) {
   if (channels.length === 0) {
     return null
   }
 
   return (
-    <section className={styles.panel} aria-label="Mixer">
-      <ul className={styles.strips}>
-        {channels.map(({ stem, gainDb, muted, soloed }) => (
-          <li key={stem.id} className={styles.strip}>
+    <ul className={styles.headers} aria-label="Mixer">
+      {channels.map(({ stem, gainDb, muted, soloed }) => (
+        <li key={stem.id} className={styles.header}>
+          <div className={styles.identity}>
             <span
               className={styles.swatch}
               style={{ backgroundColor: stemColor(stem.id) }}
               aria-hidden="true"
             />
-            <span className={styles.label}>{stem.label}</span>
+            <span
+              className={styles.label}
+              title={`Confiance de détection : ${Math.round(stem.confidence * 100)} %`}
+            >
+              {stem.label}
+            </span>
+            <button
+              type="button"
+              className={styles.download}
+              aria-label={`Télécharger ${stem.label} en WAV`}
+              onClick={() => onDownloadStem(stem.id)}
+            >
+              WAV ↓
+            </button>
+          </div>
+          <div className={styles.controls}>
             <button
               type="button"
               className={cx(styles.toggle, muted && styles.muted)}
@@ -72,6 +88,7 @@ export function MixerPanel({
               type="range"
               className={styles.fader}
               data-accent="amber"
+              data-compact=""
               min={MIN_GAIN_DB}
               max={MAX_GAIN_DB}
               step={1}
@@ -80,23 +97,9 @@ export function MixerPanel({
               onChange={(event) => onSetGain(stem.id, event.target.valueAsNumber)}
             />
             <span className={styles.db}>{formatDb(gainDb)}</span>
-            <span
-              className={styles.confidence}
-              title={`Confiance de détection : ${Math.round(stem.confidence * 100)} %`}
-            >
-              {Math.round(stem.confidence * 100)} %
-            </span>
-            <button
-              type="button"
-              className={styles.download}
-              aria-label={`Télécharger ${stem.label} en WAV`}
-              onClick={() => onDownloadStem(stem.id)}
-            >
-              WAV ↓
-            </button>
-          </li>
-        ))}
-      </ul>
-    </section>
+          </div>
+        </li>
+      ))}
+    </ul>
   )
 }

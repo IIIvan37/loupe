@@ -29,7 +29,7 @@ import {
 } from '../../projects/use-server-health.ts'
 import { exportBaseName } from '../../lib/export-base-name.ts'
 import { AlertBanner } from '../ui/alert-banner.tsx'
-import { MixerPanel } from '../mixer/mixer-panel.tsx'
+import { StemHeaders } from '../mixer/stem-headers.tsx'
 import { StemLanes } from '../mixer/stem-lanes.tsx'
 import { useMixer } from '../mixer/use-mixer.ts'
 import { SeparationPanel } from '../separation/separation-panel.tsx'
@@ -37,6 +37,7 @@ import { useSeparation } from '../separation/use-separation.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
 import { useViewport } from '../waveform/use-viewport.ts'
+import { ViewportControls } from '../waveform/viewport-controls.tsx'
 import { WaveformView } from '../waveform/waveform-view.tsx'
 import { ZoomStage } from '../waveform/zoom-stage.tsx'
 import { useProjectSession } from './use-project-session.ts'
@@ -271,31 +272,49 @@ export function WorkstationShell({
               disabled={!isLoaded}
               onAdd={() => markers.addAt(transport.positionSeconds)}
             />
-            <ZoomStage
-              zoom={viewport.zoom}
-              positionRatio={positionRatio}
-              disabled={!isLoaded}
-              onZoomIn={viewport.zoomIn}
-              onZoomOut={viewport.zoomOut}
-              onSetZoom={viewport.setZoom}
-            >
-              <MarkerRail
-                markers={markers.markers}
-                durationSeconds={transport.durationSeconds}
-                onSeek={seekToSeconds}
-                onMove={markers.move}
-              />
-              <WaveformView
-                state={mainViewState}
-                loopRegion={loopRegion}
-                loopEnabled={loopEnabled}
-                durationSeconds={transport.durationSeconds}
-                onSeek={seekToRatio}
-                onSelectRegion={loopEditing.selectRegion}
-                onAdjustRegion={loopEditing.adjustRegion}
-              />
-              <StemLanes channels={mixer.channels} />
-            </ZoomStage>
+            <div className={styles.stage}>
+              <div className={styles.gutter}>
+                <div className={styles.gutterRuler}>
+                  <ViewportControls
+                    zoom={viewport.zoom}
+                    disabled={!isLoaded}
+                    onZoomIn={viewport.zoomIn}
+                    onZoomOut={viewport.zoomOut}
+                    onSetZoom={viewport.setZoom}
+                  />
+                </div>
+                {isLoaded && (
+                  <>
+                    <div className={styles.mixLabel}>Mix</div>
+                    <StemHeaders
+                      channels={mixer.channels}
+                      onSetGain={mixer.setGain}
+                      onToggleMute={mixer.toggleMute}
+                      onToggleSolo={mixer.toggleSolo}
+                      onDownloadStem={separation.downloadStem}
+                    />
+                  </>
+                )}
+              </div>
+              <ZoomStage zoom={viewport.zoom} positionRatio={positionRatio}>
+                <MarkerRail
+                  markers={markers.markers}
+                  durationSeconds={transport.durationSeconds}
+                  onSeek={seekToSeconds}
+                  onMove={markers.move}
+                />
+                <WaveformView
+                  state={mainViewState}
+                  loopRegion={loopRegion}
+                  loopEnabled={loopEnabled}
+                  durationSeconds={transport.durationSeconds}
+                  onSeek={seekToRatio}
+                  onSelectRegion={loopEditing.selectRegion}
+                  onAdjustRegion={loopEditing.adjustRegion}
+                />
+                <StemLanes channels={mixer.channels} />
+              </ZoomStage>
+            </div>
             <LoopBar
               region={loopRegion}
               isSaved={loopEditing.isSaved}
@@ -321,13 +340,6 @@ export function WorkstationShell({
                     .then((result) => result && mixer.load(result.stems, result.sources))
                 }
               }}
-            />
-            <MixerPanel
-              channels={mixer.channels}
-              onSetGain={mixer.setGain}
-              onToggleMute={mixer.toggleMute}
-              onToggleSolo={mixer.toggleSolo}
-              onDownloadStem={separation.downloadStem}
             />
           </Stack>
         </main>

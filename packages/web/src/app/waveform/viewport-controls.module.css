@@ -1,17 +1,9 @@
-/* Floating zoom pill, top-right of the waveform — below the timeline ruler. */
+/* Zoom controls, in flow inside the gutter's ruler cell. */
 .tools {
-  position: absolute;
-  top: calc(var(--timeline-height) + var(--space-xs));
-  right: var(--space-xs);
-  z-index: 5;
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
-  padding: var(--space-3xs) var(--space-2xs);
-  border: 1px solid var(--line);
-  border-radius: 7px;
-  background: color-mix(in srgb, var(--bg) 70%, transparent);
-  backdrop-filter: blur(3px);
+  width: 100%;
 }
 
 .level {
@@ -26,6 +18,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: none;
   width: 20px;
   height: 20px;
   border: 1px solid var(--line);
@@ -46,5 +39,6 @@
 }
 
 .slider {
-  width: 74px;
+  flex: 1;
+  min-width: 48px;
 }

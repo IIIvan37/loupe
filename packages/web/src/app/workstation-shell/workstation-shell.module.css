@@ -17,6 +17,47 @@
   overflow: auto;
 }
 
+/* The timeline frame, DAW style: the fixed track-header gutter beside the
+   scrollable ZoomStage. `isolation` caps the stage's inner z-indexes (playhead,
+   zoom pill) so they never rise above portalled dialogs. */
+.stage {
+  display: grid;
+  grid-template-columns: var(--track-gutter-width) 1fr;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Rows mirror the scrolling layers' heights via the shared tokens. */
+.gutter {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-inline-end: 1px solid var(--line);
+}
+
+.gutterRuler {
+  display: flex;
+  align-items: center;
+  height: var(--timeline-height);
+  padding-inline: var(--space-xs);
+  border-block-end: 1px solid var(--line-soft);
+}
+
+/* The gutter cell facing the main waveform: names the audible mix. */
+.mixLabel {
+  display: flex;
+  align-items: flex-start;
+  height: var(--waveform-height);
+  padding: var(--space-2xs) var(--space-xs);
+  color: var(--dim);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 /* The single import control lives in the header; this input is its hidden target. */
 .fileInput {
   position: absolute;

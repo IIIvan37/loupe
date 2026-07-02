@@ -95,9 +95,10 @@
   color: var(--dim);
 }
 
-.empty {
-  height: 120px;
-  border: 1px dashed var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
+/* Idle: one quiet line instead of an empty frame — the lanes appear in the
+   timeline stage once a separation runs, not here. */
+.hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--dim);
 }

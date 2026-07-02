@@ -23,11 +23,10 @@ function channel(
 }
 
 describe('StemLanes', () => {
-  it('renders an aligned waveform lane per stem with its label', () => {
+  it('renders an aligned waveform lane per stem', () => {
     render(<StemLanes channels={[channel('voix', 'Voix'), channel('basse', 'Basse')]} />)
     expect(screen.getByRole('img', { name: /Voix/ })).toBeInTheDocument()
     expect(screen.getByRole('img', { name: /Basse/ })).toBeInTheDocument()
-    expect(screen.getByText('Voix')).toBeInTheDocument()
   })
 
   it('fades a quieter lane below a louder one', () => {
@@ -39,8 +38,7 @@ describe('StemLanes', () => {
         ]}
       />
     )
-    // The fade lives on the envelope wrapper (the div inside each lane), so the
-    // label above it keeps full opacity.
+    // The fade lives on the envelope wrapper (the div inside each lane).
     const waves = container.querySelectorAll('li > div')
     const loud = Number((waves[0] as HTMLElement).style.opacity)
     const quiet = Number((waves[1] as HTMLElement).style.opacity)
