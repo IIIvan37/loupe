@@ -199,6 +199,14 @@ async function importTrack(user: UserEvent, fileName?: string): Promise<void> {
   })
 }
 
+/** Drag 20%→60% of the 10 s timeline and save the region as a named loop. */
+async function saveNamedLoop(user: UserEvent, name: string): Promise<void> {
+  pointerGesture(20, 60)
+  await user.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
+  await user.type(screen.getByLabelText('Nom'), name)
+  await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+}
+
 describe('WorkstationShell', () => {
   it('renders the core workstation landmarks', () => {
     renderShell()
@@ -499,13 +507,8 @@ describe('WorkstationShell', () => {
     const { engine, user } = renderShell()
     await importTrack(user)
 
-    // Drag 20%→60% of a 10 s timeline → loop [2s, 6s].
-    pointerGesture(20, 60)
-
-    await user.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
-    await user.clear(screen.getByLabelText('Nom'))
-    await user.type(screen.getByLabelText('Nom'), 'Mon passage')
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    // The 20%→60% drag on a 10 s timeline saves the loop [2 s, 6 s].
+    await saveNamedLoop(user, 'Mon passage')
 
     const recall = await screen.findByRole('button', { name: 'Mon passage' })
     await user.click(recall)
@@ -516,12 +519,7 @@ describe('WorkstationShell', () => {
     const { user } = renderShell()
     await importTrack(user)
 
-    // Select [2 s, 6 s] and save it.
-    pointerGesture(20, 60)
-    await user.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
-    await user.clear(screen.getByLabelText('Nom'))
-    await user.type(screen.getByLabelText('Nom'), 'Pont')
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await saveNamedLoop(user, 'Pont')
     expect(
       screen.queryByRole('button', { name: 'Enregistrer la boucle' })
     ).not.toBeInTheDocument()
@@ -544,15 +542,29 @@ describe('WorkstationShell', () => {
     expect(await screen.findAllByRole('button', { name: 'Pont' })).toHaveLength(1)
   })
 
+  it('lets the region be saved again after its saved loop is removed', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    await saveNamedLoop(user, 'Refrain')
+    // The region belongs to a saved loop now, so the save action is gone.
+    expect(
+      screen.queryByRole('button', { name: 'Enregistrer la boucle' })
+    ).not.toBeInTheDocument()
+
+    // Removing that loop orphans the region — it must read as unsaved again.
+    await user.click(screen.getByRole('button', { name: 'Supprimer Refrain' }))
+
+    expect(
+      await screen.findByRole('button', { name: 'Enregistrer la boucle' })
+    ).toBeInTheDocument()
+  })
+
   it('clears the saved loops when a new file is imported', async () => {
     const { user } = renderShell()
     await importTrack(user)
 
-    // Save a loop on the first track.
-    pointerGesture(20, 60)
-    await user.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
-    await user.type(screen.getByLabelText('Nom'), 'Refrain')
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await saveNamedLoop(user, 'Refrain')
     await screen.findByRole('button', { name: 'Refrain' })
 
     // A new track gets a fresh timeline — the old loops don't belong to it.

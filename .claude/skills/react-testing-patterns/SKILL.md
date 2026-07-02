@@ -26,6 +26,24 @@ test id, fix the component's semantics instead.
 For portals/dialogs (Base UI), query via `screen` (whole document), never via
 `container`.
 
+**Settle a Base UI dialog before clicking inside it.** Base UI defers the
+dialog's initial focus to an animation frame; in jsdom that frame can fire
+mid-test and steal focus from whatever the test just armed (a focus-dependent
+state like an armed « Confirmer ? » disarms on blur and the next click lands
+on the wrong face). After rendering/opening a dialog, wait for the initial
+focus to land INSIDE the popup before interacting — see `renderDialogSettled`
+in `projects-dialog.spec.tsx`:
+
+```ts
+await waitFor(() => {
+  expect(screen.getByRole('dialog')).toContainElement(document.activeElement)
+})
+```
+
+(`activeElement !== document.body` is NOT enough: when the dialog was opened
+by a click, focus still sits on the trigger and the condition passes before
+the deferred focus fires.)
+
 ## Interactions — `userEvent` first, `fireEvent` for the exceptions
 
 Default to `@testing-library/user-event`: it dispatches the full real-browser
@@ -79,7 +97,7 @@ Everything else — clicks, typing in text fields, tabbing — uses `userEvent`.
 - **Never mock the domain** (`@app/core` values/functions are pure — call them).
 - **Never mock the unit under test's internals** — inject a fake at the port
   boundary instead (`PlaybackEngine`, `StemSeparator`, `ProjectDeps`,
-  `LoopStore`, a stubbed `fetch` for HTTP adapters). The existing
+  a stubbed `fetch` for HTTP adapters). The existing
   `fakeEngine()` / `fakeProjectStores()` helpers in `workstation-shell.spec.tsx`
   are the pattern.
 - `renderHook` fakes must be **created once outside the hook callback** —

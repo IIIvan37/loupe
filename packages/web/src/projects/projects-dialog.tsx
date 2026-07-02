@@ -43,6 +43,7 @@ interface RowActionProps {
     readonly onClick: () => void
   }
   readonly confirmAriaLabel: string
+  /** The confirmed action; RowAction disarms before running it. */
   readonly onConfirm: () => void
   readonly onDisarm: () => void
 }
@@ -62,6 +63,11 @@ function RowAction({
   onConfirm,
   onDisarm
 }: RowActionProps) {
+  function confirm(): void {
+    onDisarm()
+    onConfirm()
+  }
+
   return (
     <button
       type="button"
@@ -69,7 +75,7 @@ function RowAction({
       aria-label={armed ? confirmAriaLabel : idle.ariaLabel}
       disabled={disabled}
       onBlur={armed ? onDisarm : undefined}
-      onClick={armed ? onConfirm : idle.onClick}
+      onClick={armed ? confirm : idle.onClick}
     >
       {armed ? 'Confirmer ?' : idle.label}
     </button>
@@ -145,52 +151,48 @@ export function ProjectsDialog({
         <p className={cx(styles.empty)}>Aucun projet enregistré</p>
       ) : (
         <ul className={cx(styles.list)}>
-          {projects.map((project) => (
-            <li key={project.id} className={cx(styles.row)}>
-              <span className={cx(styles.name)}>{project.name}</span>
-              <span className={cx(styles.updated)}>
-                {formatUpdatedAt(project.updatedAt)}
-              </span>
-              {confirm?.id === project.id && confirm.action === 'open' && (
-                <span className={cx(styles.confirmNote)}>
-                  La session actuelle sera remplacée
+          {projects.map((project) => {
+            const armedAction =
+              confirm?.id === project.id ? confirm.action : null
+            return (
+              <li key={project.id} className={cx(styles.row)}>
+                <span className={cx(styles.name)}>{project.name}</span>
+                <span className={cx(styles.updated)}>
+                  {formatUpdatedAt(project.updatedAt)}
                 </span>
-              )}
-              <RowAction
-                armed={confirm?.id === project.id && confirm.action === 'open'}
-                disabled={locked}
-                idle={{
-                  label: openLabel(project),
-                  className: styles.open,
-                  onClick: () => onOpenClick(project.id)
-                }}
-                confirmAriaLabel={`Confirmer l'ouverture de ${project.name}`}
-                onConfirm={() => {
-                  disarm()
-                  onOpen(project.id)
-                }}
-                onDisarm={disarm}
-              />
-              <RowAction
-                armed={
-                  confirm?.id === project.id && confirm.action === 'delete'
-                }
-                disabled={locked}
-                idle={{
-                  label: 'Supprimer',
-                  ariaLabel: `Supprimer ${project.name}`,
-                  className: styles.delete,
-                  onClick: () => arm(project.id, 'delete')
-                }}
-                confirmAriaLabel={`Confirmer la suppression de ${project.name}`}
-                onConfirm={() => {
-                  disarm()
-                  onDelete(project.id)
-                }}
-                onDisarm={disarm}
-              />
-            </li>
-          ))}
+                {armedAction === 'open' && (
+                  <span className={cx(styles.confirmNote)}>
+                    La session actuelle sera remplacée
+                  </span>
+                )}
+                <RowAction
+                  armed={armedAction === 'open'}
+                  disabled={locked}
+                  idle={{
+                    label: openLabel(project),
+                    className: styles.open,
+                    onClick: () => onOpenClick(project.id)
+                  }}
+                  confirmAriaLabel={`Confirmer l'ouverture de ${project.name}`}
+                  onConfirm={() => onOpen(project.id)}
+                  onDisarm={disarm}
+                />
+                <RowAction
+                  armed={armedAction === 'delete'}
+                  disabled={locked}
+                  idle={{
+                    label: 'Supprimer',
+                    ariaLabel: `Supprimer ${project.name}`,
+                    className: styles.delete,
+                    onClick: () => arm(project.id, 'delete')
+                  }}
+                  confirmAriaLabel={`Confirmer la suppression de ${project.name}`}
+                  onConfirm={() => onDelete(project.id)}
+                  onDisarm={disarm}
+                />
+              </li>
+            )
+          })}
         </ul>
       )}
     </AppDialog>

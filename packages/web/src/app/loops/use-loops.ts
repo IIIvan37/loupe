@@ -31,7 +31,7 @@ export function useLoops(): Loops {
 
   function save(name: string, region: LoopRegion): NamedLoop {
     const loop: NamedLoop = { id: crypto.randomUUID(), name, region }
-    setLibrary((current) => addLoop(current, loop))
+    update(loop)
     return loop
   }
 
@@ -49,7 +49,7 @@ export function useLoops(): Loops {
   }
 
   function clear(): void {
-    setLibrary(emptyLoopLibrary)
+    restore(emptyLoopLibrary)
   }
 
   return { library, save, update, remove, restore, clear }

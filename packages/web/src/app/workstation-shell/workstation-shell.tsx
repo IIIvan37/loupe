@@ -270,7 +270,7 @@ export function WorkstationShell({
               onUpdateLoop={loops.update}
               onClearRegion={loopEditing.clearRegion}
               onActivate={loopEditing.activate}
-              onRemove={loops.remove}
+              onRemove={loopEditing.remove}
             />
             <SeparationPanel
               state={separation.state}

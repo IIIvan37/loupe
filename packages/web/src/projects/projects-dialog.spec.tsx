@@ -41,12 +41,16 @@ function renderDialog(overrides: DialogProps = {}) {
  * animation frame, and in jsdom that frame can fire MID-TEST, stealing focus
  * from an armed « Confirmer ? » and disarming it under the second click. Any
  * test that clicks must settle it first (a real browser settles within one
- * frame of opening, long before a human can click).
+ * frame of opening, long before a human can click). The condition asserts the
+ * focus is INSIDE the popup: "not on body" would pass early wherever a click
+ * opened the dialog, with focus still on the trigger.
  */
 async function renderDialogSettled(overrides: DialogProps = {}) {
   const utils = renderDialog(overrides)
   await waitFor(() => {
-    expect(document.activeElement).not.toBe(document.body)
+    expect(screen.getByRole('dialog')).toContainElement(
+      document.activeElement as HTMLElement | null
+    )
   })
   return utils
 }
