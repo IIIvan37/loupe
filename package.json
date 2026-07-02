@@ -26,7 +26,7 @@
     "check:design": "impeccable detect packages/web/src",
     "check:react": "react-doctor packages/web --blocking warning --no-telemetry",
     "check:dead": "knip",
-    "check:dup": "jscpd packages --ignore \"**/public/**\"",
+    "check:dup": "jscpd packages",
     "gate": "pnpm run \"/^(typecheck|check|check:arch|check:design|check:react|test:coverage|check:dead|check:dup)$/\"",
     "prepare": "husky"
   },

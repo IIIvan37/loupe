@@ -6,6 +6,8 @@ export default defineConfig({
     // Node by default (the pure core). Web specs opt into jsdom per-file via a
     // `// @vitest-environment jsdom` docblock.
     environment: 'node',
+    // Silences jsdom's "Not implemented: getContext()" noise (see the file).
+    setupFiles: ['./vitest.setup.ts'],
     include: ['packages/*/src/**/*.spec.ts', 'packages/*/src/**/*.spec.tsx'],
     coverage: {
       provider: 'v8',

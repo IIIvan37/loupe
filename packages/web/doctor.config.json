@@ -1,0 +1,10 @@
+{
+  "ignore": {
+    "overrides": [
+      {
+        "files": ["public/**"],
+        "rules": ["deslop/unused-file"]
+      }
+    ]
+  }
+}
