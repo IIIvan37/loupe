@@ -82,7 +82,9 @@ export function useKeyboardShortcuts(
       return
     }
     function onKeyDown(event: KeyboardEvent): void {
-      if (isTextEntry(event.target)) {
+      // A control that owns the key consumed it first (a marker tag or a loop
+      // handle arrow-nudge calls preventDefault): the global layout stands back.
+      if (event.defaultPrevented || isTextEntry(event.target)) {
         return
       }
       const command = resolveCommand(bindings, {

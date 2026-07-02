@@ -60,11 +60,15 @@
   font-size: 0.85rem;
 }
 
-/* Server health: a small coloured dot + label, dim like other metadata. */
+/* Server health: a small coloured dot + label, dim like other metadata,
+   set apart from the action buttons by a soft divider (infra, not an action). */
 .serverStatus {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
+  margin-inline-start: var(--space-2xs);
+  padding-inline-start: var(--space-s);
+  border-inline-start: 1px solid var(--line);
   color: var(--dim);
   font-size: 0.75rem;
   white-space: nowrap;
@@ -151,7 +155,8 @@
   outline-offset: 2px;
 }
 
-/* Saved-state read-out: dim when in sync, amber when the session drifted. */
+/* Document-state chip next to the title: dim when in sync, amber when the
+   session drifted, teal while a long operation narrates itself. */
 .saveState {
   font-size: 0.72rem;
   color: var(--dim);
@@ -160,4 +165,8 @@
 
 .saveStateDirty {
   color: var(--amber);
+}
+
+.saveStateBusy {
+  color: var(--teal);
 }

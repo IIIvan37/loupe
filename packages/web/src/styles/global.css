@@ -94,6 +94,18 @@ input[type='range'][data-accent='teal']::-moz-range-thumb {
   background: var(--teal);
 }
 
+/* Compact variant for tight spots (track headers): a smaller knob. */
+input[type='range'][data-compact]::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  border-width: 2px;
+}
+input[type='range'][data-compact]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-width: 2px;
+}
+
 input[type='range']:disabled {
   opacity: 0.5;
 }

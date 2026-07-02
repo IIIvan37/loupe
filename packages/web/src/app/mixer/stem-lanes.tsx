@@ -9,10 +9,12 @@ interface StemLanesProps {
 
 /**
  * The per-stem waveform lanes, one under another, meant to sit inside the
- * `ZoomStage` so they share the main view's zoom, scroll and playhead. Each lane
- * is read-only (the transport drives them all): the stem's envelope in its
- * reserved colour, paling with the channel's effective level so muting/soloing
- * is legible at a glance. Pure view — levels and waveforms come from the mixer.
+ * `ZoomStage` so they share the main view's zoom, scroll and playhead. Each
+ * lane is read-only (the transport drives them all): the stem's envelope in
+ * its reserved colour, paling with the channel's effective level so muting/
+ * soloing is legible at a glance. Naming and controls live in the gutter's
+ * `StemHeaders`, row-aligned by the shared `--stem-lane-*` tokens. Pure view —
+ * levels and waveforms come from the mixer.
  */
 export function StemLanes({ channels }: StemLanesProps) {
   if (channels.length === 0) {
@@ -23,11 +25,10 @@ export function StemLanes({ channels }: StemLanesProps) {
     <ul className={styles.lanes}>
       {channels.map(({ stem, level }) => (
         <li key={stem.id} className={styles.lane}>
-          <span className={styles.label}>{stem.label}</span>
           <div
             className={styles.wave}
-            // Fade only the envelope — never fully gone, and the label above it
-            // stays at full opacity so a muted stem is still identifiable.
+            // Fade only the envelope — never fully gone, so a muted stem's
+            // lane still reads against its header in the gutter.
             style={{ opacity: 0.15 + 0.85 * level }}
           >
             <WaveformCanvas

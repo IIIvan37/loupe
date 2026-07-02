@@ -31,6 +31,12 @@ export function SeparationPanel({
   // are ready (a re-run needs a fresh import), keep it as a retry on failure.
   const canAct = !isRunning && state.status !== 'ready'
 
+  // Once ready the stems live in the timeline (lanes + gutter headers); with
+  // no masked stem to report either, the whole section would just dangle.
+  if (state.status === 'ready' && state.stems.every((stem) => stem.present)) {
+    return null
+  }
+
   return (
     <section className={styles.panel} aria-label="Séparation des pistes">
       <div className={styles.head}>
@@ -68,7 +74,10 @@ export function SeparationPanel({
       {state.status === 'ready' && <UndetectedLine stems={state.stems} />}
 
       {state.status === 'idle' && (
-        <div className={styles.empty} aria-hidden="true" />
+        <p className={styles.hint}>
+          Les pistes séparées (voix, batterie, basse…) s'alignent sous la forme
+          d'onde, chacune avec ses propres contrôles.
+        </p>
       )}
     </section>
   )

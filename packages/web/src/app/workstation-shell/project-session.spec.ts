@@ -88,6 +88,7 @@ describe('restoreSession', () => {
         markers: [],
         addAt: vi.fn(),
         rename: vi.fn(),
+        move: vi.fn(),
         remove: vi.fn(),
         clear: vi.fn(),
         restore: vi.fn()

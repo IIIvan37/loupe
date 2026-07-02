@@ -3,6 +3,7 @@ import {
   emptyMarkerList,
   type Marker,
   type MarkerList,
+  moveMarker,
   removeMarker
 } from '@app/core'
 import { useState } from 'react'
@@ -13,6 +14,8 @@ export interface Markers {
   readonly addAt: (timeSeconds: number) => void
   /** Rename an existing marker (same id and time kept). */
   readonly rename: (id: string, label: string) => void
+  /** Move an existing marker to a new time (same id and label kept). */
+  readonly move: (id: string, timeSeconds: number) => void
   readonly remove: (id: string) => void
   /** Drop every marker — e.g. when a new track is loaded. */
   readonly clear: () => void
@@ -46,6 +49,10 @@ export function useMarkers(): Markers {
     })
   }
 
+  function move(id: string, timeSeconds: number): void {
+    setMarkers((current) => moveMarker(current, id, timeSeconds))
+  }
+
   function remove(id: string): void {
     setMarkers((current) => removeMarker(current, id))
   }
@@ -58,5 +65,5 @@ export function useMarkers(): Markers {
     setMarkers(next)
   }
 
-  return { markers, addAt, rename, remove, clear, restore }
+  return { markers, addAt, rename, move, remove, clear, restore }
 }

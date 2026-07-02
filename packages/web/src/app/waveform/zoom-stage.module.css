@@ -1,12 +1,3 @@
-/* The shared scrollable timeline frame: clips the zoomed inner that scrolls. */
-.stage {
-  position: relative;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
-  overflow: hidden;
-}
-
 .scroll {
   /* `scroll` (not `auto`) keeps the 7px track reserved at every zoom, so the
      scrollbar appearing past 1× never shoves the loop bar and the rest of the

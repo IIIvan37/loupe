@@ -1,0 +1,123 @@
+/* Track headers in the gutter, row-aligned with the stem lanes: same list
+   gap and per-row height tokens as `stem-lanes.module.css`. */
+.headers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--stem-lane-gap);
+}
+
+/* Two compact lines per track: identity (swatch, name, WAV), then controls. */
+.header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-3xs);
+  height: var(--stem-lane-height);
+  padding-inline: var(--space-xs);
+  min-width: 0;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.swatch {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.download {
+  flex: none;
+  padding: 0 var(--space-2xs);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  line-height: 1.5;
+}
+
+.download:hover {
+  color: var(--teal);
+  border-color: var(--line);
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  min-width: 0;
+}
+
+.toggle {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--dim);
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.toggle:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+/* Mute engaged: raised chip, full-strength text. */
+.muted {
+  background: var(--panel-3);
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+/* Solo engaged: amber — it decides what plays. */
+.soloed {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.fader {
+  flex: 1;
+  min-width: 40px;
+}
+
+.db {
+  flex: none;
+  min-width: 5ch;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--amber);
+}
+
+.toggle:focus-visible,
+.download:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}

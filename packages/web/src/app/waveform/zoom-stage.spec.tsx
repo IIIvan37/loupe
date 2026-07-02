@@ -3,31 +3,20 @@ import '@testing-library/jest-dom/vitest'
 import { render, screen } from '@testing-library/react'
 import { ZoomStage } from './zoom-stage.tsx'
 
-const noop = () => {}
-
 function renderStage(
   overrides: Partial<Parameters<typeof ZoomStage>[0]> = {}
 ) {
   return render(
-    <ZoomStage
-      zoom={1}
-      positionRatio={0}
-      disabled={false}
-      onZoomIn={noop}
-      onZoomOut={noop}
-      onSetZoom={noop}
-      {...overrides}
-    >
+    <ZoomStage zoom={1} positionRatio={0} {...overrides}>
       <div data-testid="layer">ruler + waveform</div>
     </ZoomStage>
   )
 }
 
 describe('ZoomStage', () => {
-  it('renders its aligned layers and the zoom pill', () => {
+  it('renders its aligned layers', () => {
     renderStage({ zoom: 2 })
     expect(screen.getByTestId('layer')).toBeInTheDocument()
-    expect(screen.getByText('2×')).toBeInTheDocument()
   })
 
   it('widens the inner so every layer scales with the zoom', () => {
