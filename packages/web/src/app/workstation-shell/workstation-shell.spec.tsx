@@ -6,6 +6,8 @@ import type {
   LoopLibrary,
   LoopStore,
   PlaybackEngine,
+  Project,
+  ProjectDeps,
   StemPlaybackEngine,
   StemSeparator,
   TrackMetadataReader
@@ -100,6 +102,54 @@ const failingSeparator: StemSeparator = {
   }
 }
 
+/** In-memory project stores so tests never reach the local server. */
+function fakeProjectStores(): ProjectDeps {
+  const manifests = new Map<string, Project>()
+  const blobs = new Map<string, ArrayBuffer>()
+  let nextRef = 0
+  return {
+    store: {
+      list: async () => [...manifests.values()],
+      load: async (id) => manifests.get(id),
+      save: async (project) => {
+        manifests.set(project.id, project)
+      },
+      delete: async (id) => {
+        manifests.delete(id)
+      }
+    },
+    audio: {
+      put: async (bytes) => {
+        const ref = `ref-${nextRef++}`
+        blobs.set(ref, bytes)
+        return ref
+      },
+      get: async (ref) => blobs.get(ref)
+    }
+  }
+}
+
+/** Project stores whose every operation fails, to surface the error path. */
+function brokenProjectStores(): ProjectDeps {
+  const fail = async () => {
+    throw new Error('server down')
+  }
+  return {
+    store: { list: fail, load: fail, save: fail, delete: fail },
+    audio: { put: fail, get: fail }
+  }
+}
+
+/** A health probe stub answering with the given device (or unreachable). */
+function healthFetch(device: string | null | 'unreachable'): typeof fetch {
+  return (async () => {
+    if (device === 'unreachable') {
+      throw new TypeError('fetch failed')
+    }
+    return { ok: true, json: async () => ({ device }) } as Response
+  }) as typeof fetch
+}
+
 /** An in-memory loop store so tests never touch real localStorage. */
 function fakeLoopStore(): LoopStore {
   let saved: LoopLibrary = []
@@ -139,6 +189,8 @@ function renderShell(
       engine={engine}
       stemEngine={fakeStemEngine()}
       metadataReader={silentReader}
+      // A probe that never answers keeps the header status silent by default.
+      healthFetch={(() => new Promise(() => {})) as typeof fetch}
       {...overrides}
     />
   )
@@ -158,16 +210,22 @@ async function importTrack(): Promise<void> {
 
 describe('WorkstationShell', () => {
   it('renders the core workstation landmarks', () => {
-    render(<WorkstationShell />)
+    renderShell()
     expect(screen.getByRole('banner')).toBeInTheDocument()
     expect(screen.getByRole('main')).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
   })
 
   it('exposes the analysis tabs', () => {
-    render(<WorkstationShell />)
+    renderShell()
     expect(screen.getByRole('tab', { name: 'Spectre' })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Repères' })).toBeInTheDocument()
+  })
+
+  it('shows no detected key/tempo chips (no real detection yet)', () => {
+    renderShell()
+    expect(screen.queryByText('Tonalité')).not.toBeInTheDocument()
+    expect(screen.queryByText('96 BPM')).not.toBeInTheDocument()
   })
 
   it('disables play until a track is loaded, then enables it with the duration', async () => {
@@ -533,6 +591,104 @@ describe('WorkstationShell', () => {
     expect(alert).toHaveTextContent('moteur indisponible')
     expect(
       screen.getByRole('button', { name: 'Réessayer' })
+    ).toBeInTheDocument()
+  })
+
+  it('reports the server health in the header once probed', async () => {
+    renderShell({ healthFetch: healthFetch('cuda') })
+    expect(await screen.findByText('Serveur prêt')).toBeInTheDocument()
+  })
+
+  it('tells apart an unreachable server from one without separation', async () => {
+    renderShell({ healthFetch: healthFetch('unreachable') })
+    expect(await screen.findByText('Serveur hors ligne')).toBeInTheDocument()
+
+    renderShell({ healthFetch: healthFetch(null) })
+    expect(
+      await screen.findByText('Séparation indisponible')
+    ).toBeInTheDocument()
+  })
+
+  /** First save through the header popover, under the given name. */
+  async function saveProjectAs(name: string): Promise<void> {
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Enregistrer le projet' })
+    )
+    fireEvent.change(screen.getByLabelText('Nom'), { target: { value: name } })
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    // The one-click re-save appears once the project exists.
+    await screen.findByRole('button', { name: 'Renommer le projet' })
+  }
+
+  it('surfaces a failed save as a dismissible alert banner', async () => {
+    renderShell({ projectStores: brokenProjectStores() })
+    await importTrack()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Enregistrer le projet' })
+    )
+    fireEvent.change(screen.getByLabelText('Nom'), {
+      target: { value: 'Mon projet' }
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+
+    const alert = await screen.findByRole('alert')
+    expect(alert).toHaveTextContent(
+      "Impossible d'enregistrer le projet : server down"
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: "Fermer l'alerte" }))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('re-saves an existing project in one click, keeping a rename popover', async () => {
+    renderShell({ projectStores: fakeProjectStores() })
+    await importTrack()
+    await saveProjectAs('Mon projet')
+
+    // One direct click — no popover asks for the name again.
+    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    expect(screen.queryByLabelText('Nom')).not.toBeInTheDocument()
+
+    // Still a single project, under the same name.
+    fireEvent.click(screen.getByRole('button', { name: 'Projets' }))
+    expect(await screen.findByText('Mon projet')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Ouvrir' })).toHaveLength(1)
+  })
+
+  it('asks before opening a project over the loaded session', async () => {
+    renderShell({ projectStores: fakeProjectStores() })
+    await importTrack()
+    await saveProjectAs('Mon projet')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Projets' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+
+    // The session would be replaced — the row asks for a confirmation first.
+    expect(
+      screen.getByText('La session actuelle sera remplacée')
+    ).toBeInTheDocument()
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: "Confirmer l'ouverture de Mon projet"
+      })
+    )
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('button', { name: 'Ouvrir' })
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  it('says the server is unreachable when the projects listing fails', async () => {
+    renderShell({ projectStores: brokenProjectStores() })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Projets' }))
+
+    expect(
+      await screen.findByText(
+        'Serveur injoignable — vérifie que le serveur local est lancé'
+      )
     ).toBeInTheDocument()
   })
 })

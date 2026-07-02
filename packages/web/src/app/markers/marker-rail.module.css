@@ -55,3 +55,9 @@
 .tag:hover {
   background: var(--panel-2);
 }
+
+/* Visible keyboard focus on the seekable marker tags (baseline ring). */
+.tag:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}

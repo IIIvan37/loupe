@@ -25,6 +25,11 @@ import { MarkerRail } from '../markers/marker-rail.tsx'
 import { useMarkers } from '../markers/use-markers.ts'
 import { ProjectsDialog } from '../../projects/projects-dialog.tsx'
 import { useProjects } from '../../projects/use-projects.ts'
+import {
+  type ServerHealth,
+  useServerHealth
+} from '../../projects/use-server-health.ts'
+import { AlertBanner } from '../ui/alert-banner.tsx'
 import { MixerPanel } from '../mixer/mixer-panel.tsx'
 import { StemLanes } from '../mixer/stem-lanes.tsx'
 import { useMixer } from '../mixer/use-mixer.ts'
@@ -41,11 +46,21 @@ import styles from './workstation-shell.module.css'
 /** Help rows derived once from the shipped layout — never drift from the keys. */
 const SHORTCUT_HINTS = describeKeyBindings(defaultKeyBindings)
 
-const DETECTED = [
-  { id: 'key', label: 'Tonalité', value: 'B♭ min' },
-  { id: 'tempo', label: 'Tempo', value: '96 BPM' },
-  { id: 'meter', label: 'Mesure', value: '4/4' }
-] as const
+/**
+ * No real key/tempo detection yet — show nothing rather than a hardcoded lie.
+ * The header keeps its `detected` prop for when detection lands.
+ */
+const DETECTED: readonly never[] = []
+
+/** How each probed health state reads in the header. */
+const SERVER_STATUS: Record<
+  Exclude<ServerHealth, 'checking'>,
+  { readonly tone: 'offline' | 'degraded' | 'ready'; readonly label: string }
+> = {
+  offline: { tone: 'offline', label: 'Serveur hors ligne' },
+  'no-separation': { tone: 'degraded', label: 'Séparation indisponible' },
+  ready: { tone: 'ready', label: 'Serveur prêt' }
+}
 
 /** A file name without its extension, the fallback header title. */
 function trackTitle(fileName: string): string {
@@ -62,6 +77,8 @@ interface WorkstationShellProps {
   readonly metadataReader?: TrackMetadataReader
   readonly separator?: StemSeparator
   readonly projectStores?: ProjectDeps
+  /** Injected in tests; the health poll defaults to the real global fetch. */
+  readonly healthFetch?: typeof fetch
 }
 
 /**
@@ -76,7 +93,8 @@ export function WorkstationShell({
   loopStore,
   metadataReader,
   separator,
-  projectStores
+  projectStores,
+  healthFetch
 }: WorkstationShellProps) {
   // One stem engine shared by the mixer (gains + loading) and the transport.
   const stemPlayback = useMemo(
@@ -115,9 +133,11 @@ export function WorkstationShell({
   })
   const viewport = useViewport()
   const projects = useProjects(projectStores)
+  const serverHealth = useServerHealth({ fetchImpl: healthFetch })
   const [trackName, setTrackName] = useState<string | null>(null)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [projectsOpen, setProjectsOpen] = useState(false)
+  const [openingId, setOpeningId] = useState<string | undefined>(undefined)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isLoaded = importState.status === 'loaded'
@@ -154,20 +174,25 @@ export function WorkstationShell({
 
   /** Rebuild the whole session from a saved project. */
   async function handleOpen(id: string): Promise<void> {
-    const result = await projects.open(id)
-    if (!result.ok) {
-      return
+    setOpeningId(id)
+    try {
+      const result = await projects.open(id)
+      if (!result.ok) {
+        return
+      }
+      setProjectsOpen(false)
+      // Same clean slate as a fresh import, then re-import the stored bytes.
+      startFreshTrack(result.project.name)
+      await restoreSession(result, {
+        importFile,
+        markers,
+        loops,
+        separation,
+        mixer
+      })
+    } finally {
+      setOpeningId(undefined)
     }
-    setProjectsOpen(false)
-    // Same clean slate as a fresh import, then re-import the stored bytes.
-    startFreshTrack(result.project.name)
-    await restoreSession(result, {
-      importFile,
-      markers,
-      loops,
-      separation,
-      mixer
-    })
   }
 
   // Global keyboard layout — only live once a track is loaded.
@@ -207,6 +232,10 @@ export function WorkstationShell({
         }
       : importState
 
+  const currentProject = projects.projects.find(
+    (p) => p.id === projects.currentId
+  )
+
   return (
     <div className={styles.shell}>
       <Header
@@ -216,20 +245,27 @@ export function WorkstationShell({
           (trackName ? 'Artiste inconnu' : 'Importe un fichier audio')
         }
         detected={DETECTED}
+        serverStatus={
+          serverHealth === 'checking' ? undefined : SERVER_STATUS[serverHealth]
+        }
         onImport={() => fileInputRef.current?.click()}
         onShowShortcuts={() => setShortcutsOpen(true)}
         onSaveProject={handleSave}
-        saveName={
-          projects.projects.find((p) => p.id === projects.currentId)?.name ??
-          trackName ??
-          ''
-        }
+        saveName={currentProject?.name ?? trackName ?? ''}
         canSave={isLoaded}
+        hasProject={currentProject !== undefined}
+        saving={projects.busy === 'save'}
         onShowProjects={() => {
           void projects.refresh()
           setProjectsOpen(true)
         }}
       />
+      {projects.error !== undefined && (
+        <AlertBanner
+          message={projects.error}
+          onDismiss={projects.dismissError}
+        />
+      )}
       <ShortcutsDialog
         open={shortcutsOpen}
         onOpenChange={setShortcutsOpen}
@@ -241,6 +277,13 @@ export function WorkstationShell({
         projects={projects.projects}
         onOpen={(id) => void handleOpen(id)}
         onDelete={(id) => void projects.remove(id)}
+        errorMessage={
+          projects.listError
+            ? 'Serveur injoignable — vérifie que le serveur local est lancé'
+            : undefined
+        }
+        openingId={openingId}
+        confirmBeforeOpen={isLoaded}
       />
       <input
         ref={fileInputRef}

@@ -3,10 +3,7 @@ import {
   createHttpProjectAudioStore,
   createHttpProjectStore
 } from './http-project-store.ts'
-
-/** Base URL of the local loupe server (same server as the separator). */
-const PROJECTS_URL =
-  import.meta.env.VITE_SEPARATOR_URL ?? 'http://localhost:8000'
+import { SERVER_URL } from './server-url.ts'
 
 /**
  * Build the project persistence adapters (`ProjectStore` + `ProjectAudioStore`)
@@ -15,7 +12,7 @@ const PROJECTS_URL =
  */
 export function createProjectStores(): ProjectDeps {
   return {
-    store: createHttpProjectStore(PROJECTS_URL),
-    audio: createHttpProjectAudioStore(PROJECTS_URL)
+    store: createHttpProjectStore(SERVER_URL),
+    audio: createHttpProjectAudioStore(SERVER_URL)
   }
 }

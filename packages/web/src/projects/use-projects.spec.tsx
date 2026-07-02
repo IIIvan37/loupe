@@ -110,14 +110,138 @@ describe('useProjects', () => {
     expect(result.current.currentId).toBeUndefined()
   })
 
-  it('keeps the error a failing store produces', async () => {
+  it('flags a failing listing so the dialog can say the server is unreachable', async () => {
     const { result } = renderHook(() => useProjects(brokenStores()))
 
     await act(async () => {
       await result.current.refresh()
     })
 
-    expect(result.current.error).toBe('server down')
+    expect(result.current.listError).toBe(true)
     expect(result.current.projects).toEqual([])
+  })
+
+  it('clears the listing flag once a refresh succeeds again', async () => {
+    let broken = true
+    const working = fakeStores()
+    const stores: ProjectDeps = {
+      store: {
+        ...working.store,
+        list: async () => {
+          if (broken) {
+            throw new Error('server down')
+          }
+          return working.store.list()
+        }
+      },
+      audio: working.audio
+    }
+    const { result } = renderHook(() => useProjects(stores))
+
+    await act(async () => {
+      await result.current.refresh()
+    })
+    expect(result.current.listError).toBe(true)
+
+    broken = false
+    await act(async () => {
+      await result.current.refresh()
+    })
+    expect(result.current.listError).toBe(false)
+  })
+
+  it('words a save failure for the user, dismissible from the banner', async () => {
+    const { result } = renderHook(() => useProjects(brokenStores()))
+
+    await act(async () => {
+      await result.current.save('Mon projet', input)
+    })
+    expect(result.current.error).toBe(
+      "Impossible d'enregistrer le projet : server down"
+    )
+
+    act(() => result.current.dismissError())
+    expect(result.current.error).toBeUndefined()
+  })
+
+  it('words an open failure and a delete failure for the user', async () => {
+    const { result } = renderHook(() => useProjects(brokenStores()))
+
+    await act(async () => {
+      await result.current.open('missing')
+    })
+    expect(result.current.error).toBe(
+      "Impossible d'ouvrir le projet : server down"
+    )
+
+    await act(async () => {
+      await result.current.remove('missing')
+    })
+    expect(result.current.error).toBe(
+      'Impossible de supprimer le projet : server down'
+    )
+  })
+
+  it('reports a save in flight as busy, then idle again', async () => {
+    const working = fakeStores()
+    let release: (() => void) | undefined
+    const stores: ProjectDeps = {
+      store: working.store,
+      audio: {
+        ...working.audio,
+        put: (bytes) =>
+          new Promise((resolve) => {
+            release = () => resolve(working.audio.put(bytes))
+          })
+      }
+    }
+    const { result } = renderHook(() => useProjects(stores))
+
+    let pending: Promise<void> | undefined
+    act(() => {
+      pending = result.current.save('Mon projet', input)
+    })
+    expect(result.current.busy).toBe('save')
+
+    await act(async () => {
+      release?.()
+      await pending
+    })
+    expect(result.current.busy).toBeNull()
+    expect(result.current.projects).toHaveLength(1)
+  })
+
+  it('reports an open in flight as busy, then idle again', async () => {
+    const stores = fakeStores()
+    const { result } = renderHook(() => useProjects(stores))
+    await act(async () => {
+      await result.current.save('Mon projet', input)
+    })
+    const savedId = result.current.currentId as string
+
+    let release: (() => void) | undefined
+    const gated: ProjectDeps = {
+      store: {
+        ...stores.store,
+        load: (id) =>
+          new Promise((resolve) => {
+            release = () => resolve(stores.store.load(id))
+          })
+      },
+      audio: stores.audio
+    }
+    const { result: fresh } = renderHook(() => useProjects(gated))
+
+    let pending: Promise<unknown> | undefined
+    act(() => {
+      pending = fresh.current.open(savedId)
+    })
+    expect(fresh.current.busy).toBe('open')
+
+    await act(async () => {
+      release?.()
+      await pending
+    })
+    expect(fresh.current.busy).toBeNull()
   })
 })

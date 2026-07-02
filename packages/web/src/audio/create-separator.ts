@@ -1,9 +1,6 @@
 import type { StemSeparator } from '@app/core'
+import { SERVER_URL } from '../projects/server-url.ts'
 import { createHttpSeparator } from './http-separator.ts'
-
-/** Base URL of the separation server. */
-const SEPARATOR_URL =
-  import.meta.env.VITE_SEPARATOR_URL ?? 'http://localhost:8000'
 
 /**
  * Build the `StemSeparator` adapter. Separation runs on a local **FastAPI +
@@ -13,5 +10,5 @@ const SEPARATOR_URL =
  * quality+speed wall and were removed.
  */
 export function createSeparator(): StemSeparator {
-  return createHttpSeparator(SEPARATOR_URL)
+  return createHttpSeparator(SERVER_URL)
 }

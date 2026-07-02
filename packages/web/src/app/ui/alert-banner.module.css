@@ -1,0 +1,39 @@
+/* Error accent: the red-ish token the separation error already uses. */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: var(--space-2xs) var(--space-l);
+  background: var(--panel);
+  border-block-end: 1px solid var(--stem-vocals);
+  color: var(--stem-vocals);
+  font-size: 0.85rem;
+}
+
+.message {
+  flex: 1;
+  min-width: 0;
+}
+
+.close {
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--stem-vocals);
+  font-size: 0.8rem;
+}
+
+.close:hover {
+  border-color: var(--stem-vocals);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
