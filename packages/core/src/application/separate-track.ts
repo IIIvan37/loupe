@@ -4,6 +4,7 @@ import {
   stemEnergy
 } from '../domain/instrument-detection.ts'
 import { buildStemTrack, type StemSet } from '../domain/stem-set.ts'
+import { errorMessage } from './error-message.ts'
 import type {
   DecodedAudio,
   SeparatedStem,
@@ -70,6 +71,6 @@ export async function separateTrack(
     )
     return { ok: true, stems, sources: separated }
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : String(e) }
+    return { ok: false, error: errorMessage(e) }
   }
 }

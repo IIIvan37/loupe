@@ -47,19 +47,14 @@ function fakeAudioStore(): ProjectAudioStore & {
   }
 }
 
+const boom = async (): Promise<never> => {
+  throw new Error('disk full')
+}
 const failingStore: ProjectStore = {
-  list: async () => {
-    throw new Error('disk full')
-  },
-  load: async () => {
-    throw new Error('disk full')
-  },
-  save: async () => {
-    throw new Error('disk full')
-  },
-  delete: async () => {
-    throw new Error('disk full')
-  }
+  list: boom,
+  load: boom,
+  save: boom,
+  delete: boom
 }
 
 function bytesOf(text: string): ArrayBuffer {
@@ -152,6 +147,32 @@ describe('saveProject', () => {
       audio: fakeAudioStore()
     })
     expect(result).toEqual({ ok: false, error: 'disk full' })
+  })
+
+  it('rejects a separation whose mixer channels do not match its stems, before storing any audio', async () => {
+    const store = fakeProjectStore()
+    const audio = fakeAudioStore()
+
+    const result = await saveProject(
+      {
+        ...saveInput,
+        separation: {
+          stems: [{ id: 'vocals', label: 'Voix', bytes: bytesOf('v') }],
+          mixer: [
+            { id: 'vocals', gainDb: 0, muted: false, soloed: false },
+            { id: 'drums', gainDb: 0, muted: false, soloed: false }
+          ]
+        }
+      },
+      { store, audio }
+    )
+
+    expect(result).toEqual({
+      ok: false,
+      error: 'Mixer channels do not match the stems'
+    })
+    expect(audio.blobs.size).toBe(0)
+    expect(store.saved.size).toBe(0)
   })
 })
 

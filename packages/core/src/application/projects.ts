@@ -2,11 +2,13 @@ import type { LoopLibrary } from '../domain/loop-library.ts'
 import type { MarkerList } from '../domain/marker-list.ts'
 import type { MixerState } from '../domain/mixer.ts'
 import {
+  mixerMatchesStems,
   type Project,
   type ProjectStamp,
   type ProjectStem,
   projectFromSession
 } from '../domain/project.ts'
+import { errorMessage } from './error-message.ts'
 import type { ProjectAudioStore, ProjectStore } from './ports.ts'
 
 export interface ProjectDeps {
@@ -48,16 +50,33 @@ export type SaveProjectResult =
 /**
  * Persist the current session as a project: store the heavy audio (source +
  * stems) behind refs, assemble the light `Project` around them, and save the
- * manifest. Saving over an existing id is an update — `createdAt` survives,
- * `updatedAt` becomes `stamp.now`. Expected failures (full disk, unreachable
- * store) are a `Result`, not an exception.
+ * manifest. An inconsistent separation (mixer channels ≠ stems) is rejected
+ * before any byte is stored. Saving over an existing id is an update —
+ * `createdAt` survives, `updatedAt` becomes `stamp.now`. Expected failures
+ * (full disk, unreachable store) are a `Result`, not an exception.
  */
 export async function saveProject(
   input: SaveProjectInput,
   deps: ProjectDeps
 ): Promise<SaveProjectResult> {
+  const separation = input.separation
+  if (
+    separation !== undefined &&
+    !mixerMatchesStems(
+      separation.stems.map((stem) => stem.id),
+      separation.mixer
+    )
+  ) {
+    return { ok: false, error: 'Mixer channels do not match the stems' }
+  }
   try {
-    const sourceRef = await deps.audio.put(input.source.bytes)
+    const [sourceRef, stems, existing] = await Promise.all([
+      deps.audio.put(input.source.bytes),
+      separation === undefined
+        ? undefined
+        : storeStems(separation.stems, deps.audio),
+      deps.store.load(input.stamp.id)
+    ])
     const fresh = projectFromSession(
       {
         source: {
@@ -67,18 +86,12 @@ export async function saveProject(
         },
         loops: input.loops,
         markers: input.markers,
-        ...(input.separation === undefined
+        ...(separation === undefined || stems === undefined
           ? {}
-          : {
-              separation: {
-                stems: await storeStems(input.separation.stems, deps.audio),
-                mixer: input.separation.mixer
-              }
-            })
+          : { separation: { stems, mixer: separation.mixer } })
       },
       input.stamp
     )
-    const existing = await deps.store.load(input.stamp.id)
     const project =
       existing === undefined
         ? fresh
@@ -99,7 +112,7 @@ export async function listProjects(deps: {
   readonly store: ProjectStore
 }): Promise<ListProjectsResult> {
   try {
-    const projects = [...(await deps.store.list())].sort(
+    const projects = (await deps.store.list()).toSorted(
       (a, b) => b.updatedAt - a.updatedAt
     )
     return { ok: true, projects }
@@ -137,14 +150,15 @@ export async function openProject(
     if (project === undefined) {
       return { ok: false, error: `Unknown project "${input.id}"` }
     }
-    const sourceBytes = await fetchAudio(project.source.audioRef, deps.audio)
-    const stems: OpenedStem[] = []
-    for (const stem of project.separation?.stems ?? []) {
-      stems.push({
-        id: stem.id,
-        bytes: await fetchAudio(stem.audioRef, deps.audio)
-      })
-    }
+    const [sourceBytes, stems] = await Promise.all([
+      fetchAudio(project.source.audioRef, deps.audio),
+      Promise.all(
+        (project.separation?.stems ?? []).map(async (stem) => ({
+          id: stem.id,
+          bytes: await fetchAudio(stem.audioRef, deps.audio)
+        }))
+      )
+    ])
     return { ok: true, project, sourceBytes, stems }
   } catch (e) {
     return { ok: false, error: errorMessage(e) }
@@ -171,19 +185,17 @@ export async function deleteProject(
   }
 }
 
-async function storeStems(
+function storeStems(
   stems: readonly SaveProjectStem[],
   audio: ProjectAudioStore
 ): Promise<readonly ProjectStem[]> {
-  const stored: ProjectStem[] = []
-  for (const stem of stems) {
-    stored.push({
+  return Promise.all(
+    stems.map(async (stem) => ({
       id: stem.id,
       label: stem.label,
       audioRef: await audio.put(stem.bytes)
-    })
-  }
-  return stored
+    }))
+  )
 }
 
 async function fetchAudio(
@@ -195,8 +207,4 @@ async function fetchAudio(
     throw new Error(`Missing audio for ref "${ref}"`)
   }
   return bytes
-}
-
-function errorMessage(e: unknown): string {
-  return e instanceof Error ? e.message : String(e)
 }

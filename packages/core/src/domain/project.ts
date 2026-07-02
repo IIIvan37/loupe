@@ -55,6 +55,22 @@ export interface Project {
 }
 
 /**
+ * The separation consistency invariant: the mixer's channels line up with the
+ * stems — one channel per stem id, in any order, nothing extra on either side.
+ * A caller persisting a separation checks the pair before trusting it.
+ */
+export function mixerMatchesStems(
+  stemIds: readonly string[],
+  mixer: MixerState
+): boolean {
+  const channelIds = new Set(mixer.map((channel) => channel.id))
+  return (
+    channelIds.size === stemIds.length &&
+    stemIds.every((id) => channelIds.has(id))
+  )
+}
+
+/**
  * A snapshot of the current working session — the raw material a project is
  * assembled from. The same shape as a `Project` minus the identity and
  * timestamps, which only come into being when it is saved.
