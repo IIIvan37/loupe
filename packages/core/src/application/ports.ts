@@ -1,4 +1,5 @@
 import type { LoopLibrary } from '../domain/loop-library.ts'
+import type { AudioRef, Project } from '../domain/project.ts'
 import type { SeparationPhase } from '../domain/separation.ts'
 
 /**
@@ -59,6 +60,29 @@ export interface TrackMetadata {
  */
 export interface TrackMetadataReader {
   read(bytes: ArrayBuffer): Promise<TrackMetadata>
+}
+
+/**
+ * Driven port: persist the light project manifests (`Project` — refs, loops,
+ * markers, mixer; never audio bytes). Implemented by an adapter (Tauri FS or
+ * HTTP server — decided at J3.3); the pure core never knows which. `load`
+ * resolves to `undefined` for an unknown id.
+ */
+export interface ProjectStore {
+  list(): Promise<readonly Project[]>
+  load(id: string): Promise<Project | undefined>
+  save(project: Project): Promise<void>
+  delete(id: string): Promise<void>
+}
+
+/**
+ * Driven port: persist the heavy audio bytes a project only points at. `put`
+ * mints the `AudioRef` — its spelling (a path, a key, a URL) is the adapter's
+ * business. `get` resolves to `undefined` for an unknown ref.
+ */
+export interface ProjectAudioStore {
+  put(bytes: ArrayBuffer): Promise<AudioRef>
+  get(ref: AudioRef): Promise<ArrayBuffer | undefined>
 }
 
 /** One isolated source the separator produced — raw PCM, like a mini `DecodedAudio`. */
