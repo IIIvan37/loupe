@@ -27,6 +27,7 @@ import {
   type ServerHealth,
   useServerHealth
 } from '../../projects/use-server-health.ts'
+import { exportBaseName } from '../../lib/export-base-name.ts'
 import { AlertBanner } from '../ui/alert-banner.tsx'
 import { MixerPanel } from '../mixer/mixer-panel.tsx'
 import { StemLanes } from '../mixer/stem-lanes.tsx'
@@ -299,7 +300,7 @@ export function WorkstationShell({
               onDownloadStem={separation.downloadStem}
               onExportStems={() => {
                 void separation.exportStems(
-                  metadata.title ?? trackName ?? 'stems'
+                  exportBaseName(metadata.title, trackName)
                 )
               }}
             />

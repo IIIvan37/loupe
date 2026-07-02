@@ -48,7 +48,11 @@ export interface Separation {
     mix: DecodedAudio,
     sources: readonly SeparatedStem[]
   ) => Promise<SeparationResult | undefined>
-  /** Download one separated stem as a 16-bit WAV (no-op if its PCM is gone). */
+  /**
+   * Download one separated stem as a 16-bit WAV (no-op if its PCM is gone).
+   * Numbered by its position among the PRESENT stems — the same number the
+   * zip export gives it.
+   */
   readonly downloadStem: (id: string) => void
   /**
    * Download ALL present stems as one zip of aligned WAVs (`01_Voix.wav`…,
@@ -138,9 +142,23 @@ export function useSeparation(
     return run(mix, { separate: async () => sources })
   }
 
+  // What the mixer shows, joined with its PCM: the present stems in display
+  // order — the ONE numbering basis shared by the single-file download and the
+  // zip export (the same stem must carry the same number in both).
+  function presentSources(): readonly SeparatedStem[] {
+    const present = new Set<string>()
+    for (const stem of state.stems) {
+      if (stem.present) {
+        present.add(stem.id)
+      }
+    }
+    return sources.filter((stem) => present.has(stem.id))
+  }
+
   function downloadStem(id: string): void {
-    const index = sources.findIndex((stem) => stem.id === id)
-    const stem = sources[index]
+    const shown = presentSources()
+    const index = shown.findIndex((stem) => stem.id === id)
+    const stem = shown[index]
     if (!stem) {
       return
     }
@@ -153,25 +171,23 @@ export function useSeparation(
 
   async function exportAllStems(baseName: string): Promise<void> {
     setExportError(undefined)
-    // Export what the mixer shows: the present stems, in display order.
-    const present = new Set<string>()
-    for (const stem of state.stems) {
-      if (stem.present) {
-        present.add(stem.id)
-      }
-    }
+    const runId = runIdRef.current
     const result = await exportStems(
-      { stems: sources.filter((stem) => present.has(stem.id)) },
+      { stems: presentSources() },
       { archive: archive ?? createZipArchiveWriter() }
     )
-    if (!result.ok) {
-      setExportError(`L'export a échoué : ${result.error}`)
-      return
+    // A reset or a new import during the write supersedes this export: its
+    // download and its error belong to the previous session — drop both.
+    if (runIdRef.current === runId) {
+      if (result.ok) {
+        downloadBlob(
+          `${baseName}_stems.zip`,
+          new Blob([result.archive], { type: 'application/zip' })
+        )
+      } else {
+        setExportError(`L'export a échoué : ${result.error}`)
+      }
     }
-    downloadBlob(
-      `${baseName}_stems.zip`,
-      new Blob([result.archive], { type: 'application/zip' })
-    )
   }
 
   function reset(): void {

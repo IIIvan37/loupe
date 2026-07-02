@@ -27,52 +27,93 @@ function expectOk(
   if (!result.ok) throw new Error(`expected ok, got "${result.error}"`)
 }
 
+async function exportTwo(received: ArchiveFile[]): Promise<ExportStemsResult> {
+  return exportStems(
+    {
+      stems: [stem('vox', 'Voix', [0, 1]), stem('drums', 'Batterie', [1, 0])]
+    },
+    { archive: fakeArchive(received) }
+  )
+}
+
 describe('exportStems — the aligned stem folder', () => {
   it('archives one numbered WAV per stem, in display order', async () => {
     const received: ArchiveFile[] = []
-    const result = await exportStems(
-      {
-        stems: [stem('vox', 'Voix', [0, 1]), stem('drums', 'Batterie', [1, 0])]
-      },
-      { archive: fakeArchive(received) }
-    )
-    expectOk(result)
+    await exportTwo(received)
     expect(received.map((f) => f.name)).toEqual([
       '01_Voix.wav',
       '02_Batterie.wav'
     ])
+  })
+
+  it('returns the archive bytes the writer produced', async () => {
+    const result = await exportTwo([])
+    expectOk(result)
     expect(result.archive).toEqual(new Uint8Array([1, 2, 3]))
   })
 
-  it('encodes each stem as a decodable WAV carrying its own PCM', async () => {
+  async function decodeSingleExport(samples: readonly number[]) {
     const received: ArchiveFile[] = []
     const result = await exportStems(
-      { stems: [stem('vox', 'Voix', [0, 1, -1, 0])] },
+      { stems: [stem('vox', 'Voix', samples)] },
       { archive: fakeArchive(received) }
     )
     expectOk(result)
     const wav = received[0]
     if (!wav) throw new Error('expected one file')
-    const decoded = decodeWav(wav.bytes.slice().buffer)
+    return decodeWav(wav.bytes.slice().buffer)
+  }
+
+  it('encodes a WAV that keeps the stem sample rate', async () => {
+    const decoded = await decodeSingleExport([0, 1, -1, 0])
     expect(decoded.sampleRate).toBe(4)
+  })
+
+  it('encodes a WAV carrying the stem PCM', async () => {
+    const decoded = await decodeSingleExport([0, 1, -1, 0])
     expect(Array.from(decoded.channels[0] ?? [])).toEqual([0, 1, -1, 0])
   })
 
-  it('zero-pads shorter stems so every WAV has the same duration (t=0 aligned)', async () => {
+  async function decodeAligned(stems: readonly SeparatedStem[]) {
     const received: ArchiveFile[] = []
     const result = await exportStems(
-      {
-        stems: [
-          stem('vox', 'Voix', [1, -1]),
-          stem('bass', 'Basse', [1, -1, 1, -1])
-        ]
-      },
+      { stems },
       { archive: fakeArchive(received) }
     )
     expectOk(result)
-    const decoded = received.map((f) => decodeWav(f.bytes.slice().buffer))
+    return received.map((f) => decodeWav(f.bytes.slice().buffer))
+  }
+
+  it('gives every WAV the longest stem duration (t=0 aligned)', async () => {
+    const decoded = await decodeAligned([
+      stem('vox', 'Voix', [1, -1]),
+      stem('bass', 'Basse', [1, -1, 1, -1])
+    ])
     expect(decoded.map((d) => d.channels[0]?.length)).toEqual([4, 4])
+  })
+
+  it('pads a shorter stem with trailing silence', async () => {
+    const decoded = await decodeAligned([
+      stem('vox', 'Voix', [1, -1]),
+      stem('bass', 'Basse', [1, -1, 1, -1])
+    ])
     expect(Array.from(decoded[0]?.channels[0] ?? [])).toEqual([1, -1, 0, 0])
+  })
+
+  it('covers every channel: a longer second channel sets the duration too', async () => {
+    const uneven: SeparatedStem = {
+      id: 'vox',
+      label: 'Voix',
+      audio: {
+        sampleRate: 4,
+        channels: [
+          [1, -1],
+          [1, -1, 1, -1]
+        ]
+      }
+    }
+    const decoded = await decodeAligned([uneven])
+    expect(decoded[0]?.channels.map((c) => c.length)).toEqual([4, 4])
   })
 })
 

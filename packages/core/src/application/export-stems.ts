@@ -22,9 +22,10 @@ export type ExportStemsResult =
 /**
  * Export — tier A (plan produit §3.7): turn the separated stems into an aligned
  * stem folder. Every stem is encoded as a numbered 16-bit WAV (`01_Voix.wav`…)
- * padded to the longest stem, so all files share t=0 and one duration, then
- * bundled by the `ArchiveWriter` port into the archive the caller downloads.
- * Expected failures are a `Result`, not an exception.
+ * zero-padded to the longest channel anywhere in the set, so all files share
+ * t=0 and one duration, then bundled by the `ArchiveWriter` port into the
+ * archive the caller downloads. Expected failures are a `Result`, not an
+ * exception.
  */
 export async function exportStems(
   input: ExportStemsInput,
@@ -39,8 +40,11 @@ export async function exportStems(
     return { ok: false, error: 'Stems have mismatched sample rates' }
   }
   try {
+    // The shared duration covers EVERY channel of every stem — padding only,
+    // never truncation (samples must not be dropped by an export).
     const frames = Math.max(
-      ...stems.map((s) => s.audio.channels[0]?.length ?? 0)
+      0,
+      ...stems.flatMap((s) => s.audio.channels.map((c) => c.length))
     )
     const files = stems.map((stem, index) => ({
       name: stemExportFilename(index, stem.label),
