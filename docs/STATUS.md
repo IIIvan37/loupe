@@ -20,18 +20,25 @@
   identical either way. Note: `localStorage` was never a project store (it only
   holds the loop library, ~KB); "projects" is a *new* capability (persist heavy
   audio + session state). Jalon 2 export (J2.6) remains open and unblocked.
-- **Branch**: `fix/import-detaches-saved-project` (clean, gate-green, **PR to
-  open**) — the J3.3 browser-verify is **done** and caught a real data loss:
-  importing a new file after opening a project kept `currentId`, so the
-  one-click save silently overwrote the open project. Fixed (detach on import)
-  along with the three confirmed races around it (stale save re-attach, stale
-  open clobbering a fresh import, superseded import winning late); the
-  project ↔ session lifecycle now lives in `useProjectSession`. Same branch:
-  all web specs migrated to `@testing-library/user-event` and the testing idiom
-  codified in `.claude/skills/react-testing-patterns`. **Decided (2026-07-02):
-  loops become per-project** — the localStorage `LoopStore` goes away; loops
-  are session state, persisted only via the project manifest. That slice is
-  next, then J2.6 export.
+- **Branch**: `feat/per-project-loops` (clean, gate-green, **PR to open**) —
+  the per-project loops slice is **done**: the localStorage `LoopStore` is
+  gone (core port + use-cases deleted), loops are session state cleared by
+  `startFreshTrack` and persisted only via the project manifest. Same branch:
+  root-caused and fixed the flaky projects-dialog spec (Base UI defers the
+  dialog's initial focus to an animation frame; in jsdom it stole focus from
+  the armed « Confirmer ? » mid-test — specs now settle focus inside the popup,
+  and each row action is one relabeled `RowAction` button), plus two review
+  fixes: `restoreSession` aborts wholesale when its re-import was superseded,
+  and removing the active saved loop marks the region unsaved again. Next:
+  J2.6 export.
+- **Earlier**: `fix/import-detaches-saved-project` (PR #30 merged) — the J3.3
+  browser-verify caught a real data loss: importing a new file after opening a
+  project kept `currentId`, so the one-click save silently overwrote the open
+  project. Fixed (detach on import) with the three confirmed races around it
+  (stale save re-attach, stale open clobbering a fresh import, superseded
+  import winning late); the project ↔ session lifecycle lives in
+  `useProjectSession`. All web specs migrated to `@testing-library/user-event`;
+  testing idiom codified in `.claude/skills/react-testing-patterns`.
 - **Earlier**: `feat/jalon3-project-server-ui` — Slice **J3.3** merged (PR #28). **Decision resolved: extended HTTP server** (not
   Tauri) — the one local server now hosts project storage (always on,
   content-addressed sha256 blobs + JSON manifests under `LOUPE_DATA_DIR`) and
@@ -79,13 +86,11 @@
 
 ## Next step
 
-**Open + merge the `fix/import-detaches-saved-project` PR** (data-loss fix +
-races + user-event migration + testing skill + this report). Then the
-**per-project loops** slice (own branch: drop the localStorage `LoopStore`,
-loops cleared by `startFreshTrack`, persisted/restored only through the project
-manifest — which already stores them). Then **J2.6 export** (aligned stem
-folder) and the rest of the UX backlog (real tempo detection, tempo/pitch/zoom
-persistence, speed trainer, undo).
+**Open + merge the `feat/per-project-loops` PR** (per-project loops + dialog
+flake root-cause fix + review fixes + report). Then **J2.6 export** (aligned
+stem folder) and the rest of the UX backlog (uniform dirty-session guard on
+import/reload, real tempo detection, tempo/pitch/zoom persistence, speed
+trainer, undo).
 
 ### Earlier — J3.3 browser-verify note
 
@@ -166,11 +171,22 @@ mixer (J2.4) then export (J2.6). See
 | J3.1 | Pure `Project` domain — `projectFromSession` (light model, `AudioRef` pointers, injected id/name/now) | ✅ |
 | J3.2 | Ports `ProjectStore` / `ProjectAudioStore` + use-cases `saveProject` / `listProjects` / `openProject` / `deleteProject` (fake adapters, mixer↔stems invariant enforced) | ✅ |
 | J3.3 | Real adapter + UI (Save / list / Open) — **decided: extended HTTP server** (content-addressed blobs; storage works without torch) | ✅ |
+| J3.4 | Per-project loops — localStorage `LoopStore` removed; loops are session state, persisted only via the manifest | ✅ |
 
 ## Session journal
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-02 — per-project-loops](sessions/2026-07-02-per-project-loops.md) —
+  Slice J3.4: loops become per-project — the localStorage `LoopStore` (core
+  port + use-cases + web adapter) is deleted; `useLoops` is session state,
+  cleared by `startFreshTrack`, persisted only via the project manifest.
+  Root-caused the flaky projects-dialog spec (Base UI rAF-deferred initial
+  focus disarming the two-step confirm in jsdom → settle focus inside the
+  popup + single relabeled `RowAction` button; gotcha documented in the
+  testing skill). Review fixes: `restoreSession` aborts when superseded;
+  removing the active loop unsaves the region. Gate green, 347 tests,
+  mutation 95.44 %. PR to open.
 - [2026-07-02 — project-session-races](sessions/2026-07-02-project-session-races.md) —
   J3.3 browser-verify (FAIL → fix): import after open kept `currentId` and the
   one-click save overwrote the open project. Fixed with `detach()` on import,
