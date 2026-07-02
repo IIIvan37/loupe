@@ -3,8 +3,8 @@ import {
   defaultKeyBindings,
   formatTimecode,
   type LoopStore,
-  makeLoopRegion,
   type PlaybackEngine,
+  type ProjectDeps,
   type StemPlaybackEngine,
   type StemSeparator,
   type TrackMetadataReader
@@ -18,10 +18,13 @@ import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
 import { ShortcutsDialog } from '../keyboard/shortcuts-dialog.tsx'
 import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
 import { LoopBar } from '../loops/loop-bar.tsx'
+import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
 import { MarkerRail } from '../markers/marker-rail.tsx'
 import { useMarkers } from '../markers/use-markers.ts'
+import { ProjectsDialog } from '../../projects/projects-dialog.tsx'
+import { useProjects } from '../../projects/use-projects.ts'
 import { MixerPanel } from '../mixer/mixer-panel.tsx'
 import { StemLanes } from '../mixer/stem-lanes.tsx'
 import { useMixer } from '../mixer/use-mixer.ts'
@@ -32,6 +35,7 @@ import { usePlayer } from '../waveform/use-player.ts'
 import { useViewport } from '../waveform/use-viewport.ts'
 import { WaveformView } from '../waveform/waveform-view.tsx'
 import { ZoomStage } from '../waveform/zoom-stage.tsx'
+import { restoreSession, sessionSaveInput } from './project-session.ts'
 import styles from './workstation-shell.module.css'
 
 /** Help rows derived once from the shipped layout — never drift from the keys. */
@@ -57,6 +61,7 @@ interface WorkstationShellProps {
   readonly loopStore?: LoopStore
   readonly metadataReader?: TrackMetadataReader
   readonly separator?: StemSeparator
+  readonly projectStores?: ProjectDeps
 }
 
 /**
@@ -70,7 +75,8 @@ export function WorkstationShell({
   stemEngine,
   loopStore,
   metadataReader,
-  separator
+  separator,
+  projectStores
 }: WorkstationShellProps) {
   // One stem engine shared by the mixer (gains + loading) and the transport.
   const stemPlayback = useMemo(
@@ -84,6 +90,7 @@ export function WorkstationShell({
   const {
     importState,
     loadedAudio,
+    loadedBytes,
     metadata,
     transport,
     timeRatio,
@@ -101,38 +108,66 @@ export function WorkstationShell({
   } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsReady)
   const markers = useMarkers()
   const loops = useLoops(loopStore)
+  const loopEditing = useLoopEditing(loops, {
+    durationSeconds: transport.durationSeconds,
+    setLoopRegion,
+    seekToSeconds
+  })
   const viewport = useViewport()
+  const projects = useProjects(projectStores)
   const [trackName, setTrackName] = useState<string | null>(null)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
-  // The saved loop the active region came from, so edge edits update it in place
-  // rather than spawning a duplicate. Undefined for a fresh, unsaved selection.
-  const [activeLoopId, setActiveLoopId] = useState<string | null>(null)
+  const [projectsOpen, setProjectsOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const isLoaded = importState.status === 'loaded'
 
-  /** A fresh surface drag: a new, unsaved region detached from any saved loop. */
-  function selectRegion(startRatio: number, endRatio: number): void {
-    setActiveLoopId(null)
-    setLoopRegion(
-      makeLoopRegion(
-        startRatio * transport.durationSeconds,
-        endRatio * transport.durationSeconds
-      )
-    )
+  /**
+   * A new track gets a fresh timeline — the old markers don't belong to it, the
+   * view should start fully zoomed out, and any prior stems are stale.
+   */
+  function startFreshTrack(name: string): void {
+    markers.clear()
+    viewport.reset()
+    separation.reset()
+    mixer.reset()
+    setTrackName(name)
   }
 
-  /** A handle/keyboard edge edit: adjust the region, persisting a saved loop. */
-  function adjustRegion(startRatio: number, endRatio: number): void {
-    const region = makeLoopRegion(
-      startRatio * transport.durationSeconds,
-      endRatio * transport.durationSeconds
-    )
-    setLoopRegion(region)
-    const active = loops.library.find((loop) => loop.id === activeLoopId)
-    if (active) {
-      loops.update({ ...active, region })
+  /** Persist the whole session under a name — bytes, loops, markers, stems. */
+  function handleSave(name: string): void {
+    if (!loadedBytes) {
+      return
     }
+    const input = sessionSaveInput({
+      bytes: loadedBytes,
+      title: metadata.title ?? trackName ?? undefined,
+      artist: metadata.artist,
+      loops: loops.library,
+      markers: markers.markers,
+      ...(stemsReady
+        ? { separation: { sources: separation.sources, mixer: mixer.state } }
+        : {})
+    })
+    void projects.save(name, input)
+  }
+
+  /** Rebuild the whole session from a saved project. */
+  async function handleOpen(id: string): Promise<void> {
+    const result = await projects.open(id)
+    if (!result.ok) {
+      return
+    }
+    setProjectsOpen(false)
+    // Same clean slate as a fresh import, then re-import the stored bytes.
+    startFreshTrack(result.project.name)
+    await restoreSession(result, {
+      importFile,
+      markers,
+      loops,
+      separation,
+      mixer
+    })
   }
 
   // Global keyboard layout — only live once a track is loaded.
@@ -150,13 +185,7 @@ export function WorkstationShell({
   function onFilePicked(event: ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0]
     if (file) {
-      // A new track gets a fresh timeline — the old markers don't belong to it,
-      // the view should start fully zoomed out, and any prior stems are stale.
-      markers.clear()
-      viewport.reset()
-      separation.reset()
-      mixer.reset()
-      setTrackName(trackTitle(file.name))
+      startFreshTrack(trackTitle(file.name))
       void importFile(file)
     }
     // Clear it so re-picking the same file fires `change` again.
@@ -189,11 +218,29 @@ export function WorkstationShell({
         detected={DETECTED}
         onImport={() => fileInputRef.current?.click()}
         onShowShortcuts={() => setShortcutsOpen(true)}
+        onSaveProject={handleSave}
+        saveName={
+          projects.projects.find((p) => p.id === projects.currentId)?.name ??
+          trackName ??
+          ''
+        }
+        canSave={isLoaded}
+        onShowProjects={() => {
+          void projects.refresh()
+          setProjectsOpen(true)
+        }}
       />
       <ShortcutsDialog
         open={shortcutsOpen}
         onOpenChange={setShortcutsOpen}
         hints={SHORTCUT_HINTS}
+      />
+      <ProjectsDialog
+        open={projectsOpen}
+        onOpenChange={setProjectsOpen}
+        projects={projects.projects}
+        onOpen={(id) => void handleOpen(id)}
+        onDelete={(id) => void projects.remove(id)}
       />
       <input
         ref={fileInputRef}
@@ -230,30 +277,21 @@ export function WorkstationShell({
                 loopEnabled={loopEnabled}
                 durationSeconds={transport.durationSeconds}
                 onSeek={seekToRatio}
-                onSelectRegion={selectRegion}
-                onAdjustRegion={adjustRegion}
+                onSelectRegion={loopEditing.selectRegion}
+                onAdjustRegion={loopEditing.adjustRegion}
               />
               <StemLanes channels={mixer.channels} />
             </ZoomStage>
             <LoopBar
               region={loopRegion}
-              isSaved={activeLoopId !== null}
+              isSaved={loopEditing.isSaved}
               loopEnabled={loopEnabled}
               onToggleLoop={toggleLoop}
               library={loops.library}
-              onSaveRegion={(name, region) =>
-                setActiveLoopId(loops.save(name, region).id)
-              }
+              onSaveRegion={loopEditing.saveRegion}
               onUpdateLoop={loops.update}
-              onClearRegion={() => {
-                setActiveLoopId(null)
-                setLoopRegion(undefined)
-              }}
-              onActivate={(loop) => {
-                setActiveLoopId(loop.id)
-                setLoopRegion(loop.region)
-                seekToSeconds(loop.region.startSeconds)
-              }}
+              onClearRegion={loopEditing.clearRegion}
+              onActivate={loopEditing.activate}
               onRemove={loops.remove}
             />
             <SeparationPanel

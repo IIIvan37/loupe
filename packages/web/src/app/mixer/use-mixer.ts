@@ -4,6 +4,7 @@ import {
   effectiveGains,
   emptyMixer,
   type MixerAction,
+  type MixerState,
   mixerReducer,
   type SeparatedStem,
   type StemPlaybackEngine,
@@ -28,6 +29,8 @@ export interface MixerChannelView {
 
 export interface Mixer {
   readonly channels: readonly MixerChannelView[]
+  /** The raw mixer state — what a saved project persists alongside the stems. */
+  readonly state: MixerState
   /** Envelope of the audible mix, recomputed as the controls change. */
   readonly mixWaveform: Waveform
   /**
@@ -35,6 +38,15 @@ export interface Mixer {
    * and seed a unity mixer. Call from the handler that produced them.
    */
   readonly load: (stems: StemSet, sources: readonly SeparatedStem[]) => void
+  /**
+   * Adopt a restored separation with its persisted mixer settings: load the
+   * stems' PCM and push the saved effective gains to the engine.
+   */
+  readonly restore: (
+    stems: StemSet,
+    sources: readonly SeparatedStem[],
+    saved: MixerState
+  ) => void
   /** Drop every stem (a new import) — empties the mixer and its lanes. */
   readonly reset: () => void
   readonly setGain: (id: string, gainDb: number) => void
@@ -61,17 +73,41 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
   // The stems being mixed (present + with PCM), kept for the channel views.
   const [mixable, setMixable] = useState<readonly Mixable[]>([])
 
-  function load(stems: StemSet, sources: readonly SeparatedStem[]): void {
+  // Pair each present stem with its PCM, adopt the pairs and load them into the
+  // gain graph. Both `load` and `restore` start here; only the seeding differs.
+  function adopt(
+    stems: StemSet,
+    sources: readonly SeparatedStem[]
+  ): readonly Mixable[] {
     const byId = new Map(sources.map((source) => [source.id, source]))
     const next = stems.flatMap((stem) => {
       const source = byId.get(stem.id)
       return stem.present && source ? [{ stem, source }] : []
     })
     setMixable(next)
-    dispatch({ type: 'init', ids: next.map((entry) => entry.stem.id) })
     void engine.load(
       next.map((entry) => ({ id: entry.source.id, audio: entry.source.audio }))
     )
+    return next
+  }
+
+  function load(stems: StemSet, sources: readonly SeparatedStem[]): void {
+    const next = adopt(stems, sources)
+    dispatch({ type: 'init', ids: next.map((entry) => entry.stem.id) })
+  }
+
+  function restore(
+    stems: StemSet,
+    sources: readonly SeparatedStem[],
+    saved: MixerState
+  ): void {
+    adopt(stems, sources)
+    dispatch({ type: 'restore', channels: saved })
+    // A restored mixer rarely sits at unity (the engine's default after a load),
+    // so push its effective gains — the engine keeps them across the async load.
+    for (const { id, gain } of effectiveGains(saved)) {
+      engine.setGain(id, gain)
+    }
   }
 
   function reset(): void {
@@ -125,8 +161,10 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
 
   return {
     channels,
+    state,
     mixWaveform,
     load,
+    restore,
     reset,
     setGain: (id, gainDb) => apply({ type: 'setGain', id, gainDb }),
     toggleMute: (id) => apply({ type: 'toggleMute', id }),

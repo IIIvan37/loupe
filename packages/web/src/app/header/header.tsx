@@ -1,4 +1,6 @@
 import { Cluster } from '../../layout/cluster/cluster.tsx'
+import { cx } from '../../lib/cx.ts'
+import { NameEditor } from '../ui/name-editor.tsx'
 import styles from './header.module.css'
 
 interface DetectedReadout {
@@ -15,6 +17,14 @@ interface HeaderProps {
   readonly onImport: () => void
   /** Reveal the keyboard-shortcuts help. The shell owns the dialog state. */
   readonly onShowShortcuts: () => void
+  /** Save the session as a named project. The shell owns the actual save. */
+  readonly onSaveProject?: (name: string) => void
+  /** The current project's name, seeding the save popover. */
+  readonly saveName?: string
+  /** Whether there is anything to save (a track is loaded). */
+  readonly canSave?: boolean
+  /** Reveal the saved-projects dialog. The shell owns its state. */
+  readonly onShowProjects?: () => void
 }
 
 /**
@@ -27,7 +37,11 @@ export function Header({
   artist,
   detected,
   onImport,
-  onShowShortcuts
+  onShowShortcuts,
+  onSaveProject,
+  saveName,
+  canSave,
+  onShowProjects
 }: HeaderProps) {
   return (
     <header className={styles.header}>
@@ -71,6 +85,36 @@ export function Header({
         >
           Exporter
         </button>
+        {onSaveProject &&
+          (canSave ? (
+            <NameEditor
+              title="Enregistrer le projet"
+              triggerClassName={cx(styles.secondaryAction)}
+              triggerLabel="Enregistrer le projet"
+              triggerContent="Enregistrer"
+              submitLabel="Enregistrer"
+              initialName={saveName ?? ''}
+              onSubmit={onSaveProject}
+            />
+          ) : (
+            <button
+              type="button"
+              className={styles.secondaryAction}
+              disabled
+              title="Importe un morceau pour pouvoir l'enregistrer"
+            >
+              Enregistrer
+            </button>
+          ))}
+        {onShowProjects && (
+          <button
+            type="button"
+            className={styles.secondaryAction}
+            onClick={onShowProjects}
+          >
+            Projets
+          </button>
+        )}
       </Cluster>
     </header>
   )
