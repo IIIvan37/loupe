@@ -17,6 +17,7 @@ function renderBar(overrides: Partial<Parameters<typeof LoopBar>[0]> = {}) {
     <LoopBar
       region={undefined}
       isSaved={false}
+      activeLoopId={null}
       loopEnabled
       onToggleLoop={noop}
       library={[]}
@@ -41,6 +42,7 @@ describe('LoopBar', () => {
       <LoopBar
         region={region}
         isSaved={false}
+        activeLoopId={null}
         loopEnabled
         onToggleLoop={noop}
         library={[]}
@@ -54,6 +56,26 @@ describe('LoopBar', () => {
     expect(
       screen.getByRole('button', { name: 'Enregistrer la boucle' })
     ).toBeInTheDocument()
+  })
+
+  it('marks the chip of the loop the active region came from', () => {
+    renderBar({
+      region: library[0]?.region,
+      isSaved: true,
+      activeLoopId: 'a',
+      library
+    })
+    expect(screen.getByRole('button', { name: 'Verse' })).toHaveAttribute(
+      'aria-current',
+      'true'
+    )
+  })
+
+  it('marks no chip while the region is unsaved', () => {
+    renderBar({ region, activeLoopId: null, library })
+    expect(screen.getByRole('button', { name: 'Verse' })).not.toHaveAttribute(
+      'aria-current'
+    )
   })
 
   it('drops save and clear when the active region is an already-saved loop', () => {
@@ -87,6 +109,7 @@ describe('LoopBar', () => {
       <LoopBar
         region={region}
         isSaved={false}
+        activeLoopId={null}
         loopEnabled={false}
         onToggleLoop={onToggleLoop}
         library={[]}

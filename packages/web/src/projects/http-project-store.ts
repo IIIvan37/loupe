@@ -50,15 +50,52 @@ export function createHttpProjectStore(baseUrl: string): ProjectStore {
   }
 }
 
+/** The server refs blobs by their sha256 — computing it locally lets a save
+ * skip re-uploading unchanged audio (stems especially: hundreds of MB). */
+async function sha256Hex(bytes: ArrayBuffer): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, '0')
+  ).join('')
+}
+
 export function createHttpProjectAudioStore(
   baseUrl: string
 ): ProjectAudioStore {
+  // Local hash → ref the server answered with, for blobs already uploaded or
+  // probed — a re-save of the same session skips even the existence probe.
+  const known = new Map<string, AudioRef>()
+
+  async function existsOnServer(ref: AudioRef): Promise<boolean> {
+    try {
+      const response = await fetch(`${baseUrl}/audio/${ref}`, {
+        method: 'HEAD'
+      })
+      return response.ok
+    } catch {
+      // Probe failed (older server, network blip) — fall back to uploading.
+      return false
+    }
+  }
+
   return {
     async put(bytes: ArrayBuffer): Promise<AudioRef> {
+      const localRef = await sha256Hex(bytes)
+      const cached = known.get(localRef)
+      if (cached !== undefined) {
+        return cached
+      }
+      if (await existsOnServer(localRef)) {
+        known.set(localRef, localRef)
+        return localRef
+      }
       const response = await ensureOk(
         await fetch(`${baseUrl}/audio`, { method: 'POST', body: bytes })
       )
+      // The server's ref is the source of truth; it matches the local hash
+      // under the shared content-addressing contract.
       const { ref } = (await response.json()) as { ref: AudioRef }
+      known.set(localRef, ref)
       return ref
     },
     async get(ref: AudioRef): Promise<ArrayBuffer | undefined> {

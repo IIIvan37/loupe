@@ -67,6 +67,15 @@
   background: var(--panel-2);
 }
 
+/* The loop the active region came from — amber = the user's current setting. */
+.savedActive {
+  border-color: var(--amber);
+}
+
+.savedActive .recall {
+  color: var(--amber);
+}
+
 .recall {
   padding: var(--space-2xs) var(--space-s);
   border: 0;

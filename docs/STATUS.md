@@ -20,15 +20,23 @@
   identical either way. Note: `localStorage` was never a project store (it only
   holds the loop library, ~KB); "projects" is a *new* capability (persist heavy
   audio + session state). Jalon 2 export (J2.6) is now done (see Branch).
-- **Branch**: `fix/project-keeps-active-loop` (stacked on
-  `feat/jalon2-export-stems`, gate-green, **PR to open after #32**) — user-found
+- **Branch**: `feat/ux-session-state` (gate-green, **PR to open**) — five
+  user-reported UX gaps: active-loop chip highlighted (`aria-current`), the
+  header « Exporter » wired to the zip export (mixer duplicate removed), a
+  status strip for save/open (the whole rebuild, not just the dialog), an
+  « Enregistré / ● Non enregistré » read-out (`sessionSignature` fingerprint
+  of loops/markers/loupe/mixer vs last save/open), and **incremental save**
+  (client-side sha256 + session memo + `HEAD /audio/{ref}` — unchanged audio
+  is never re-uploaded; new server HEAD route, fallback covers old servers).
+  Browser-verified incl. the network trace. **Restart the local server once**
+  so the HEAD route is live.
+- **Earlier**: `fix/project-keeps-active-loop` (merged, PR #33) — user-found
   bug fixed: the **armed A/B region (the loupe) was not part of the `Project`
   model** — saving a project silently dropped it (named loops persisted fine).
   Now persisted as optional `ProjectActiveLoop { region, enabled }` and
   re-armed on open, relinked to its saved loop when the region matches one.
   Root-caused against the real manifest, reproduced by shell tests written RED
-  first, browser-verified end-to-end. Follow-up spotted: the header
-  « Exporter » stub should be wired to the J2.6 zip export.
+  first, browser-verified end-to-end.
 - **Earlier**: `feat/jalon2-export-stems` (gate-green, **PR #32 open**) —
   **Slice J2.6 (export palier A) is done**: `exportStems` use-case + pure
   `stem-export` domain (numbered, sanitised, zero-padded aligned WAVs) behind
@@ -105,11 +113,10 @@
 
 ## Next step
 
-**Merge PR #32 (J2.6 export), then the stacked `fix/project-keeps-active-loop`
-PR** (loupe persisted in the project). Then **browser-verify the export**
-(import → separate → « Exporter les stems (ZIP) » → zip opens flat, WAVs
-aligned in a DAW) and wire the header « Exporter » stub to the zip export.
-Jalon 2 then closes; next is the UX backlog (uniform dirty-session guard on import/reload,
+**Merge the `feat/ux-session-state` PR** (PRs #32 and #33 are merged), restart
+the local server once (new `HEAD /audio/{ref}` route), then **browser-verify
+the export on a real separation** (import → separate → header « Exporter » →
+zip opens flat, WAVs aligned in a DAW). Jalon 2 then closes; next is the UX backlog (uniform dirty-session guard on import/reload,
 real tempo detection, tempo/pitch/zoom persistence, speed trainer, undo) and
 Jalon 3 polish (project rename, blob GC, `separator-server/` → `server/`).
 
@@ -198,6 +205,12 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-02 — ux-session-state](sessions/2026-07-02-ux-session-state.md) —
+  Five UX gaps in one slice: active-loop chip highlighted, header « Exporter »
+  wired (mixer duplicate removed), save/open status strip, « Enregistré /
+  Non enregistré » via a `sessionSignature` fingerprint, and incremental save
+  (client sha256 + HEAD probe — unchanged audio never re-uploaded; verified by
+  network trace). Core untouched (mutation skipped). Gate green, 404 tests.
 - [2026-07-02 — project-active-loop](sessions/2026-07-02-project-active-loop.md) —
   User-found bug: reopening a project lost « la loop ». Root cause: the armed
   A/B region (the loupe) was **not in the `Project` model** — every layer

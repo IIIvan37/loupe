@@ -5,6 +5,8 @@ import type { Loops } from './use-loops.ts'
 export interface LoopEditing {
   /** Whether the active region already belongs to a saved loop. */
   readonly isSaved: boolean
+  /** The saved loop the active region came from, or null (highlights its chip). */
+  readonly activeLoopId: string | null
   /** A fresh surface drag: a new, unsaved region detached from any saved loop. */
   readonly selectRegion: (startRatio: number, endRatio: number) => void
   /** A handle/keyboard edge edit: adjust the region, persisting a saved loop. */
@@ -88,6 +90,7 @@ export function useLoopEditing(
 
   return {
     isSaved: activeLoopId !== null,
+    activeLoopId,
     selectRegion,
     adjustRegion,
     saveRegion,

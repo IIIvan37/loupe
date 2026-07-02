@@ -26,11 +26,14 @@ export interface Projects {
   readonly busy: ProjectsBusy
   readonly dismissError: () => void
   readonly refresh: () => Promise<void>
-  /** Save the session under a name; a fresh id is minted when none is current. */
+  /**
+   * Save the session under a name; a fresh id is minted when none is current.
+   * Resolves with the saved project, or undefined when the save failed.
+   */
   readonly save: (
     name: string,
     input: Omit<SaveProjectInput, 'stamp'>
-  ) => Promise<void>
+  ) => Promise<Project | undefined>
   /** Open a project; the caller rebuilds the session from the result. */
   readonly open: (id: string) => Promise<OpenProjectResult>
   readonly remove: (id: string) => Promise<void>
@@ -79,7 +82,7 @@ export function useProjects(stores?: ProjectDeps): Projects {
   async function save(
     name: string,
     input: Omit<SaveProjectInput, 'stamp'>
-  ): Promise<void> {
+  ): Promise<Project | undefined> {
     const session = sessionRef.current
     const stamp = {
       id: currentId ?? crypto.randomUUID(),
@@ -95,9 +98,10 @@ export function useProjects(stores?: ProjectDeps): Projects {
         }
         setError(undefined)
         await refresh()
-      } else {
-        setError(`Impossible d'enregistrer le projet : ${result.error}`)
+        return result.project
       }
+      setError(`Impossible d'enregistrer le projet : ${result.error}`)
+      return undefined
     } finally {
       setBusy(null)
     }

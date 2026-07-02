@@ -11,8 +11,6 @@ interface MixerPanelProps {
   readonly onToggleSolo: (id: string) => void
   /** Download one stem as a WAV. */
   readonly onDownloadStem: (id: string) => void
-  /** Download every present stem as one zip of aligned WAVs (export tier A). */
-  readonly onExportStems: () => void
 }
 
 /** Format a fader level for the mono read-out: `+3 dB`, `0 dB`, `−∞ dB`. */
@@ -35,8 +33,7 @@ export function MixerPanel({
   onSetGain,
   onToggleMute,
   onToggleSolo,
-  onDownloadStem,
-  onExportStems
+  onDownloadStem
 }: MixerPanelProps) {
   if (channels.length === 0) {
     return null
@@ -100,15 +97,6 @@ export function MixerPanel({
           </li>
         ))}
       </ul>
-      <div className={styles.actions}>
-        <button
-          type="button"
-          className={styles.export}
-          onClick={onExportStems}
-        >
-          Exporter les stems (ZIP)
-        </button>
-      </div>
     </section>
   )
 }
