@@ -1,4 +1,5 @@
 import type { LoopLibrary } from './loop-library.ts'
+import type { LoopRegion } from './loop-region.ts'
 import type { MarkerList } from './marker-list.ts'
 import type { MixerState } from './mixer.ts'
 
@@ -22,6 +23,17 @@ export interface ProjectStem {
   readonly id: string
   readonly label: string
   readonly audioRef: AudioRef
+}
+
+/**
+ * The armed A/B region — the « loupe » itself — as the user left it. Distinct
+ * from the saved-loop library: a region being worked needs no name to be worth
+ * keeping, and losing it on save is losing the very thing being practised.
+ */
+export interface ProjectActiveLoop {
+  readonly region: LoopRegion
+  /** Whether playback wraps at the region end (vs playing through). */
+  readonly enabled: boolean
 }
 
 /**
@@ -50,6 +62,8 @@ export interface Project {
   readonly source: ProjectSource
   readonly loops: LoopLibrary
   readonly markers: MarkerList
+  /** Present while an A/B region was armed when the project was saved. */
+  readonly activeLoop?: ProjectActiveLoop
   /** Present once the track has been separated. */
   readonly separation?: ProjectSeparation
 }
@@ -79,6 +93,9 @@ export interface SessionSnapshot {
   readonly source: ProjectSource
   readonly loops: LoopLibrary
   readonly markers: MarkerList
+  /** `undefined` is accepted here so callers can pass it straight through —
+   * `projectFromSession` owns the single guard that omits the key. */
+  readonly activeLoop?: ProjectActiveLoop | undefined
   readonly separation?: ProjectSeparation
 }
 
@@ -108,6 +125,9 @@ export function projectFromSession(
     source: session.source,
     loops: session.loops,
     markers: session.markers,
+    ...(session.activeLoop === undefined
+      ? {}
+      : { activeLoop: session.activeLoop }),
     ...(session.separation === undefined
       ? {}
       : { separation: session.separation })

@@ -15,6 +15,12 @@ export interface LoopEditing {
   readonly clearRegion: () => void
   /** Recall a saved loop: make it active and seek to its start. */
   readonly activate: (loop: NamedLoop) => void
+  /**
+   * Relink a restored region to the saved loop it came from (a project open) —
+   * `null` for a region that was never saved. No seek: the region is being
+   * seated, not recalled.
+   */
+  readonly restore: (savedLoopId: string | null) => void
   /** Remove a saved loop; if it backed the active region, mark it unsaved. */
   readonly remove: (id: string) => void
 }
@@ -87,6 +93,7 @@ export function useLoopEditing(
     saveRegion,
     clearRegion,
     activate,
+    restore: setActiveLoopId,
     remove
   }
 }

@@ -109,6 +109,21 @@ describe('saveProject', () => {
     expect(audio.blobs.get('audio-1')).toBe(sourceBytes)
   })
 
+  it('persists the armed A/B region (the loupe) into the manifest', async () => {
+    const store = fakeProjectStore()
+    const activeLoop = {
+      region: { startSeconds: 1.5, endSeconds: 6 },
+      enabled: true
+    }
+
+    await saveProject(
+      { ...saveInput, activeLoop },
+      { store, audio: fakeAudioStore() }
+    )
+
+    expect(store.saved.get('p1')?.activeLoop).toEqual(activeLoop)
+  })
+
   it('stores each stem behind its own ref and keeps the mixer', async () => {
     const store = fakeProjectStore()
     const audio = fakeAudioStore()

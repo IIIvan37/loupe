@@ -113,7 +113,8 @@ export function WorkstationShell({
     setPitchSemitones,
     setLoopRegion,
     loopEnabled,
-    toggleLoop
+    toggleLoop,
+    restoreLoop
   } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsReady)
   const markers = useMarkers()
   const loops = useLoops()
@@ -134,8 +135,14 @@ export function WorkstationShell({
     loadedBytes,
     metadata,
     stemsReady,
+    loopRegion,
+    loopEnabled,
     markers,
     loops,
+    restoreActiveLoop: (active, savedLoopId) => {
+      restoreLoop(active.region, active.enabled)
+      loopEditing.restore(savedLoopId)
+    },
     separation,
     mixer,
     viewport,

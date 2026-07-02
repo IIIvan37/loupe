@@ -119,6 +119,7 @@ export {
 export type {
   AudioRef,
   Project,
+  ProjectActiveLoop,
   ProjectSeparation,
   ProjectSource,
   ProjectStamp,

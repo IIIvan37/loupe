@@ -4,6 +4,7 @@ import type { MixerState } from '../domain/mixer.ts'
 import {
   mixerMatchesStems,
   type Project,
+  type ProjectActiveLoop,
   type ProjectStamp,
   type ProjectStem,
   projectFromSession
@@ -37,6 +38,8 @@ export interface SaveProjectInput {
   }
   readonly loops: LoopLibrary
   readonly markers: MarkerList
+  /** The armed A/B region — the loupe — when one was set at save time. */
+  readonly activeLoop?: ProjectActiveLoop
   readonly separation?: {
     readonly stems: readonly SaveProjectStem[]
     readonly mixer: MixerState
@@ -86,6 +89,7 @@ export async function saveProject(
         },
         loops: input.loops,
         markers: input.markers,
+        activeLoop: input.activeLoop,
         ...(separation === undefined || stems === undefined
           ? {}
           : { separation: { stems, mixer: separation.mixer } })

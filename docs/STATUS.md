@@ -20,7 +20,16 @@
   identical either way. Note: `localStorage` was never a project store (it only
   holds the loop library, ~KB); "projects" is a *new* capability (persist heavy
   audio + session state). Jalon 2 export (J2.6) is now done (see Branch).
-- **Branch**: `feat/jalon2-export-stems` (clean, gate-green, **PR to open**) —
+- **Branch**: `fix/project-keeps-active-loop` (stacked on
+  `feat/jalon2-export-stems`, gate-green, **PR to open after #32**) — user-found
+  bug fixed: the **armed A/B region (the loupe) was not part of the `Project`
+  model** — saving a project silently dropped it (named loops persisted fine).
+  Now persisted as optional `ProjectActiveLoop { region, enabled }` and
+  re-armed on open, relinked to its saved loop when the region matches one.
+  Root-caused against the real manifest, reproduced by shell tests written RED
+  first, browser-verified end-to-end. Follow-up spotted: the header
+  « Exporter » stub should be wired to the J2.6 zip export.
+- **Earlier**: `feat/jalon2-export-stems` (gate-green, **PR #32 open**) —
   **Slice J2.6 (export palier A) is done**: `exportStems` use-case + pure
   `stem-export` domain (numbered, sanitised, zero-padded aligned WAVs) behind
   the new `ArchiveWriter` port; web fflate zip adapter (stored entries) +
@@ -96,10 +105,11 @@
 
 ## Next step
 
-**Open + merge the `feat/jalon2-export-stems` PR** (J2.6 export + review fixes
-+ report), then **browser-verify the export** (import → separate → « Exporter
-les stems (ZIP) » → zip opens flat, WAVs aligned in a DAW). Jalon 2 then
-closes; next is the UX backlog (uniform dirty-session guard on import/reload,
+**Merge PR #32 (J2.6 export), then the stacked `fix/project-keeps-active-loop`
+PR** (loupe persisted in the project). Then **browser-verify the export**
+(import → separate → « Exporter les stems (ZIP) » → zip opens flat, WAVs
+aligned in a DAW) and wire the header « Exporter » stub to the zip export.
+Jalon 2 then closes; next is the UX backlog (uniform dirty-session guard on import/reload,
 real tempo detection, tempo/pitch/zoom persistence, speed trainer, undo) and
 Jalon 3 polish (project rename, blob GC, `separator-server/` → `server/`).
 
@@ -188,6 +198,15 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-02 — project-active-loop](sessions/2026-07-02-project-active-loop.md) —
+  User-found bug: reopening a project lost « la loop ». Root cause: the armed
+  A/B region (the loupe) was **not in the `Project` model** — every layer
+  saved faithfully, no test asserted the user-visible invariant. Fixed
+  (optional `ProjectActiveLoop`, re-armed + relinked on open), reproduced RED
+  first at shell level, browser-verified against the real server. Post-mortem
+  in the report: round-trip tests must enumerate visible session state, and
+  browser-verify the journey, not the endpoints. Gate green, 390 tests,
+  mutation 95.83 %.
 - [2026-07-02 — jalon2-export-stems](sessions/2026-07-02-jalon2-export-stems.md) —
   Slice J2.6 closes the Jalon 2 backlog: `exportStems` use-case (numbered,
   sanitised, zero-padded aligned WAVs — pad-only, never truncate) + the
