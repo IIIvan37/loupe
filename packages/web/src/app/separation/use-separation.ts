@@ -1,17 +1,21 @@
 import {
+  type ArchiveWriter,
   type DecodedAudio,
   encodeWav,
+  exportStems,
   initialSeparation,
   type SeparatedStem,
   type SeparationState,
   type StemSeparator,
   type StemSet,
   separateTrack,
-  separationReducer
+  separationReducer,
+  stemExportFilename
 } from '@app/core'
 import { useMemo, useReducer, useRef, useState } from 'react'
 import { createSeparator } from '../../audio/create-separator.ts'
 import { downloadBlob } from '../../audio/download-blob.ts'
+import { createZipArchiveWriter } from '../../audio/zip-archive-writer.ts'
 
 // Per-stem peak resolution. Matches the main view's, so the stems sum cleanly
 // into the audible-mix waveform shown there and the lanes stay crisp when zoomed.
@@ -44,24 +48,35 @@ export interface Separation {
     mix: DecodedAudio,
     sources: readonly SeparatedStem[]
   ) => Promise<SeparationResult | undefined>
-  /** Download one separated stem as a 16-bit WAV (no-op if its PCM is gone). */
+  /**
+   * Download one separated stem as a 16-bit WAV (no-op if its PCM is gone).
+   * Numbered by its position among the PRESENT stems — the same number the
+   * zip export gives it.
+   */
   readonly downloadStem: (id: string) => void
+  /**
+   * Download ALL present stems as one zip of aligned WAVs (`01_Voix.wav`…,
+   * t=0, same duration) named `<baseName>_stems.zip` — export tier A.
+   */
+  readonly exportStems: (baseName: string) => Promise<void>
+  /** Why the last export did not happen — cleared by the next one. */
+  readonly exportError: string | undefined
+  readonly dismissExportError: () => void
   readonly reset: () => void
-}
-
-/** `01_Voix.wav` — numbered, in display order, for a tidy stem folder. */
-function stemFilename(index: number, label: string): string {
-  return `${String(index + 1).padStart(2, '0')}_${label}.wav`
 }
 
 /**
  * Smart hook (= driving adapter logic): owns the separation state machine and
  * runs the `separateTrack` use-case, streaming the separator's progress into the
  * reducer. The separator defaults to the local-server engine (`createSeparator`)
- * and is injected (a stub) in tests. The stems' raw PCM is kept in a ref (out of the
- * pure domain state) so it can be exported on demand.
+ * and is injected (a stub) in tests, like the export's `ArchiveWriter` (zip).
+ * The stems' raw PCM is kept in a ref (out of the pure domain state) so it can
+ * be exported on demand.
  */
-export function useSeparation(separator?: StemSeparator): Separation {
+export function useSeparation(
+  separator?: StemSeparator,
+  archive?: ArchiveWriter
+): Separation {
   const engine = useMemo(() => separator ?? createSeparator(), [separator])
   const [state, dispatch] = useReducer(separationReducer, initialSeparation)
   // A monotonic token per run: a slow separation that finishes after a new
@@ -71,6 +86,7 @@ export function useSeparation(separator?: StemSeparator): Separation {
   // The isolated stems' raw PCM, kept off the pure domain state (heavy buffers)
   // but reactive so the mixer can load them into the gain graph when they land.
   const [sources, setSources] = useState<readonly SeparatedStem[]>([])
+  const [exportError, setExportError] = useState<string>()
 
   // The whole pipeline behind both entry points: run `separateTrack` with the
   // given separator (the real engine, or the stored stems replayed) and commit.
@@ -126,25 +142,71 @@ export function useSeparation(separator?: StemSeparator): Separation {
     return run(mix, { separate: async () => sources })
   }
 
+  // What the mixer shows, joined with its PCM: the present stems in display
+  // order — the ONE numbering basis shared by the single-file download and the
+  // zip export (the same stem must carry the same number in both).
+  function presentSources(): readonly SeparatedStem[] {
+    const present = new Set<string>()
+    for (const stem of state.stems) {
+      if (stem.present) {
+        present.add(stem.id)
+      }
+    }
+    return sources.filter((stem) => present.has(stem.id))
+  }
+
   function downloadStem(id: string): void {
-    const index = sources.findIndex((stem) => stem.id === id)
-    const stem = sources[index]
+    const shown = presentSources()
+    const index = shown.findIndex((stem) => stem.id === id)
+    const stem = shown[index]
     if (!stem) {
       return
     }
     const wav = encodeWav(stem.audio.channels, stem.audio.sampleRate)
     downloadBlob(
-      stemFilename(index, stem.label),
+      stemExportFilename(index, stem.label),
       new Blob([wav], { type: 'audio/wav' })
     )
+  }
+
+  async function exportAllStems(baseName: string): Promise<void> {
+    setExportError(undefined)
+    const runId = runIdRef.current
+    const result = await exportStems(
+      { stems: presentSources() },
+      { archive: archive ?? createZipArchiveWriter() }
+    )
+    // A reset or a new import during the write supersedes this export: its
+    // download and its error belong to the previous session — drop both.
+    if (runIdRef.current === runId) {
+      if (result.ok) {
+        downloadBlob(
+          `${baseName}_stems.zip`,
+          new Blob([result.archive], { type: 'application/zip' })
+        )
+      } else {
+        setExportError(`L'export a échoué : ${result.error}`)
+      }
+    }
   }
 
   function reset(): void {
     // Abandon any in-flight run so its late result can't repopulate the state.
     runIdRef.current++
     setSources([])
+    setExportError(undefined)
     dispatch({ type: 'reset' })
   }
 
-  return { state, sources, separate, restore, downloadStem, reset }
+  return {
+    state,
+    sources,
+    separate,
+    restore,
+    downloadStem,
+    exportStems: exportAllStems,
+    exportError,
+    dismissExportError: () => setExportError(undefined),
+    reset
+  }
 }

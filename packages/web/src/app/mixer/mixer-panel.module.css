@@ -101,9 +101,31 @@
   color: var(--teal);
 }
 
+/* The one panel-level action: take the whole aligned folder away. */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.export {
+  padding: var(--space-2xs) var(--space-s);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.export:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
 /* Visible keyboard focus on the strip actions (baseline ring). */
 .toggle:focus-visible,
-.download:focus-visible {
+.download:focus-visible,
+.export:focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: 2px;
 }

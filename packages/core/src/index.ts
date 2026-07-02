@@ -1,12 +1,20 @@
 // Public contract of the core (the only surface adapters consume).
 
 export type {
+  ExportStemsDeps,
+  ExportStemsInput,
+  ExportStemsResult
+} from './application/export-stems.ts'
+export { exportStems } from './application/export-stems.ts'
+export type {
   LoadTrackDeps,
   LoadTrackInput,
   LoadTrackResult
 } from './application/load-track.ts'
 export { loadTrack } from './application/load-track.ts'
 export type {
+  ArchiveFile,
+  ArchiveWriter,
   AudioFileDecoder,
   DecodedAudio,
   PlaybackEngine,
@@ -125,6 +133,7 @@ export type {
   SeparationStatus
 } from './domain/separation.ts'
 export { initialSeparation, separationReducer } from './domain/separation.ts'
+export { stemExportFilename } from './domain/stem-export.ts'
 export type { StemSet, StemTrack } from './domain/stem-set.ts'
 export { formatTimecode } from './domain/timecode.ts'
 export type { Track } from './domain/track.ts'

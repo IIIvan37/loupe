@@ -27,6 +27,7 @@ import {
   type ServerHealth,
   useServerHealth
 } from '../../projects/use-server-health.ts'
+import { exportBaseName } from '../../lib/export-base-name.ts'
 import { AlertBanner } from '../ui/alert-banner.tsx'
 import { MixerPanel } from '../mixer/mixer-panel.tsx'
 import { StemLanes } from '../mixer/stem-lanes.tsx'
@@ -201,6 +202,12 @@ export function WorkstationShell({
           onDismiss={projects.dismissError}
         />
       )}
+      {separation.exportError !== undefined && (
+        <AlertBanner
+          message={separation.exportError}
+          onDismiss={separation.dismissExportError}
+        />
+      )}
       <ShortcutsDialog
         open={shortcutsOpen}
         onOpenChange={setShortcutsOpen}
@@ -291,6 +298,11 @@ export function WorkstationShell({
               onToggleMute={mixer.toggleMute}
               onToggleSolo={mixer.toggleSolo}
               onDownloadStem={separation.downloadStem}
+              onExportStems={() => {
+                void separation.exportStems(
+                  exportBaseName(metadata.title, trackName)
+                )
+              }}
             />
           </Stack>
         </main>
