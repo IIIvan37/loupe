@@ -9,6 +9,8 @@ interface LoopBarProps {
   readonly region: LoopRegion | undefined
   /** Whether the active region already belongs to a saved loop. */
   readonly isSaved: boolean
+  /** The saved loop the region came from — its chip reads as selected. */
+  readonly activeLoopId: string | null
   /** Whether the active region loops playback (vs playing through). */
   readonly loopEnabled: boolean
   readonly onToggleLoop: () => void
@@ -29,6 +31,7 @@ interface LoopBarProps {
 export function LoopBar({
   region,
   isSaved,
+  activeLoopId,
   loopEnabled,
   onToggleLoop,
   library,
@@ -78,10 +81,14 @@ export function LoopBar({
       )}
 
       {library.map((loop) => (
-        <span key={loop.id} className={styles.saved}>
+        <span
+          key={loop.id}
+          className={cx(styles.saved, loop.id === activeLoopId && styles.savedActive)}
+        >
           <button
             type="button"
             className={styles.recall}
+            aria-current={loop.id === activeLoopId ? 'true' : undefined}
             onClick={() => onActivate(loop)}
           >
             {loop.name}

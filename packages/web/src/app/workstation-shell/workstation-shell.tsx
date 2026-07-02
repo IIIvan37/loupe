@@ -169,6 +169,23 @@ export function WorkstationShell({
       ? transport.positionSeconds / transport.durationSeconds
       : 0
 
+  // One export entry point shared by the header and the mixer panel.
+  const handleExportStems = () => {
+    void separation.exportStems(exportBaseName(metadata.title, trackName))
+  }
+
+  // The long operations get one visible status strip (the dialog may be closed
+  // while an open is still rebuilding the session).
+  const openingProject = projects.projects.find(
+    (p) => p.id === session.openingId
+  )
+  const busyMessage =
+    projects.busy === 'save'
+      ? 'Enregistrement du projet…'
+      : openingProject !== undefined
+        ? `Ouverture de « ${openingProject.name} »…`
+        : undefined
+
   // Once the stems are mixing, the main view shows the audible mix (recomputed as
   // the faders/solo/mute change); otherwise it shows the imported track itself.
   const mainViewState =
@@ -192,12 +209,15 @@ export function WorkstationShell({
           serverHealth === 'checking' ? undefined : SERVER_STATUS[serverHealth]
         }
         onImport={() => fileInputRef.current?.click()}
+        onExportStems={handleExportStems}
+        canExport={stemsReady}
         onShowShortcuts={() => setShortcutsOpen(true)}
         onSaveProject={session.handleSave}
         saveName={currentProject?.name ?? trackName ?? ''}
         canSave={isLoaded}
         hasProject={currentProject !== undefined}
         saving={projects.busy === 'save'}
+        dirty={session.dirty}
         onShowProjects={() => {
           void projects.refresh()
           setProjectsOpen(true)
@@ -214,6 +234,9 @@ export function WorkstationShell({
           message={separation.exportError}
           onDismiss={separation.dismissExportError}
         />
+      )}
+      {busyMessage !== undefined && (
+        <output className={styles.busyBanner}>{busyMessage}</output>
       )}
       <ShortcutsDialog
         open={shortcutsOpen}
@@ -277,6 +300,7 @@ export function WorkstationShell({
             <LoopBar
               region={loopRegion}
               isSaved={loopEditing.isSaved}
+              activeLoopId={loopEditing.activeLoopId}
               loopEnabled={loopEnabled}
               onToggleLoop={toggleLoop}
               library={loops.library}
@@ -305,11 +329,6 @@ export function WorkstationShell({
               onToggleMute={mixer.toggleMute}
               onToggleSolo={mixer.toggleSolo}
               onDownloadStem={separation.downloadStem}
-              onExportStems={() => {
-                void separation.exportStems(
-                  exportBaseName(metadata.title, trackName)
-                )
-              }}
             />
           </Stack>
         </main>

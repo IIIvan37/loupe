@@ -35,7 +35,6 @@ function renderPanel(
       onToggleMute={() => {}}
       onToggleSolo={() => {}}
       onDownloadStem={() => {}}
-      onExportStems={() => {}}
       {...props}
     />
   )
@@ -92,16 +91,6 @@ describe('MixerPanel', () => {
       screen.getByRole('button', { name: 'Télécharger Basse en WAV' })
     )
     expect(onDownloadStem).toHaveBeenCalledWith('basse')
-  })
-
-  it('exports all stems as a zip', async () => {
-    const user = userEvent.setup()
-    const onExportStems = vi.fn()
-    renderPanel([channel('voix', 'Voix')], { onExportStems })
-    await user.click(
-      screen.getByRole('button', { name: 'Exporter les stems (ZIP)' })
-    )
-    expect(onExportStems).toHaveBeenCalledTimes(1)
   })
 
   it('renders nothing without channels', () => {

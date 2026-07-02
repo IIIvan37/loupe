@@ -76,16 +76,59 @@ describe('createHttpProjectStore', () => {
 })
 
 describe('createHttpProjectAudioStore', () => {
-  it('puts bytes to POST /audio and returns the server-minted ref', async () => {
-    const fetchMock = stubFetch(Response.json({ ref: 'abc' }))
-    const bytes = new TextEncoder().encode('wav').buffer as ArrayBuffer
+  const bytes = new TextEncoder().encode('wav').buffer as ArrayBuffer
+
+  it('uploads unknown bytes: the existence probe misses, POST follows', async () => {
+    const fetchMock = stubFetch(
+      new Response(null, { status: 404 }),
+      Response.json({ ref: 'abc' })
+    )
 
     const ref = await createHttpProjectAudioStore(BASE).put(bytes)
 
-    const [url, init] = fetchMock.mock.calls[0] ?? []
+    const [probeUrl, probeInit] = fetchMock.mock.calls[0] ?? []
+    expect(probeInit?.method).toBe('HEAD')
+    expect(String(probeUrl)).toMatch(new RegExp(`${BASE}/audio/[0-9a-f]{64}$`))
+    const [url, init] = fetchMock.mock.calls[1] ?? []
     expect(url).toBe(`${BASE}/audio`)
     expect(init?.method).toBe('POST')
     expect(init?.body).toBe(bytes)
+    expect(ref).toBe('abc')
+  })
+
+  it('skips the upload when the server already has the blob (same hash)', async () => {
+    const fetchMock = stubFetch(new Response(null, { status: 200 }))
+
+    const ref = await createHttpProjectAudioStore(BASE).put(bytes)
+
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    // The ref is the locally computed sha256 — the shared addressing contract.
+    expect(String(fetchMock.mock.calls[0]?.[0])).toBe(`${BASE}/audio/${ref}`)
+  })
+
+  it('skips even the probe when the same bytes were already put', async () => {
+    const fetchMock = stubFetch(
+      new Response(null, { status: 404 }),
+      Response.json({ ref: 'abc' })
+    )
+    const store = createHttpProjectAudioStore(BASE)
+
+    await store.put(bytes)
+    const again = await store.put(bytes)
+
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(again).toBe('abc')
+  })
+
+  it('falls back to uploading when the probe itself fails (older server)', async () => {
+    const fetchMock = vi.fn<typeof fetch>()
+    fetchMock.mockRejectedValueOnce(new TypeError('fetch failed'))
+    fetchMock.mockResolvedValueOnce(Response.json({ ref: 'abc' }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const ref = await createHttpProjectAudioStore(BASE).put(bytes)
+
+    expect(fetchMock.mock.calls[1]?.[1]?.method).toBe('POST')
     expect(ref).toBe('abc')
   })
 

@@ -888,6 +888,84 @@ describe('WorkstationShell', () => {
     expect(screen.getByText('nouveau')).toBeInTheDocument()
   })
 
+  it('enables the header export only once stems are ready', async () => {
+    const { user } = renderShell({ separator: fakeSeparator() })
+    await importTrack(user)
+
+    const exportButton = screen.getByRole('button', { name: 'Exporter' })
+    expect(exportButton).toBeDisabled()
+
+    await user.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
+    await waitFor(() => expect(exportButton).toBeEnabled())
+  })
+
+  it('shows « Enregistré », flips to « Non enregistré » on a change, back on re-save', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveProjectAs(user, 'Mon projet')
+    expect(await screen.findByText('Enregistré')).toBeInTheDocument()
+
+    // Any persisted-state change drifts the session from its saved project.
+    await user.click(screen.getByRole('button', { name: '+ Repère' }))
+    expect(await screen.findByText('● Non enregistré')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    expect(await screen.findByText('Enregistré')).toBeInTheDocument()
+  })
+
+  it('announces the rebuild while a project opens', async () => {
+    const working = fakeProjectStores()
+    let release: (() => void) | undefined
+    let gateNext = false
+    const gated: ProjectDeps = {
+      store: working.store,
+      audio: {
+        ...working.audio,
+        get: (ref) => {
+          if (!gateNext) {
+            return working.audio.get(ref)
+          }
+          return new Promise((resolve) => {
+            release = () => resolve(working.audio.get(ref))
+          })
+        }
+      }
+    }
+    const { user } = renderShell({ projectStores: gated })
+    await importTrack(user)
+    await saveProjectAs(user, 'Projet lent')
+
+    gateNext = true
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(
+      screen.getByRole('button', { name: "Confirmer l'ouverture de Projet lent" })
+    )
+
+    expect(
+      await screen.findByText('Ouverture de « Projet lent »…')
+    ).toBeInTheDocument()
+
+    await act(async () => {
+      release?.()
+    })
+    await waitFor(() => {
+      expect(
+        screen.queryByText('Ouverture de « Projet lent »…')
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  it('highlights the chip of the saved loop the region came from', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    await saveNamedLoop(user, 'Refrain')
+
+    expect(
+      await screen.findByRole('button', { name: 'Refrain' })
+    ).toHaveAttribute('aria-current', 'true')
+  })
+
   it('says the server is unreachable when the projects listing fails', async () => {
     const { user } = renderShell({ projectStores: brokenProjectStores() })
 

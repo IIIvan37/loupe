@@ -75,6 +75,16 @@ async def get_audio(ref: str) -> Response:
     return Response(path.read_bytes(), media_type="application/octet-stream")
 
 
+@router.head("/audio/{ref}")
+async def has_audio(ref: str) -> Response:
+    """Existence probe: refs are content hashes, so a client that computed the
+    hash locally can skip re-uploading a blob the server already has."""
+    path = _audio_path(ref)
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="unknown audio ref")
+    return Response(status_code=200)
+
+
 @router.get("/projects")
 async def list_projects() -> list:
     if not PROJECTS_DIR.is_dir():

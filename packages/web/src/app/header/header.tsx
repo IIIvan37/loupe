@@ -23,6 +23,10 @@ interface HeaderProps {
   readonly serverStatus?: ServerStatus | undefined
   /** Open the file picker. The smart shell owns the actual import. */
   readonly onImport: () => void
+  /** Download the separated stems as one zip. The shell owns the export. */
+  readonly onExportStems: () => void
+  /** Whether there are stems to export (a separation is ready). */
+  readonly canExport: boolean
   /** Reveal the keyboard-shortcuts help. The shell owns the dialog state. */
   readonly onShowShortcuts: () => void
   /** Save the session as a named project. The shell owns the actual save. */
@@ -35,6 +39,8 @@ interface HeaderProps {
   readonly hasProject?: boolean
   /** Whether a save is in flight — the save controls lock while it runs. */
   readonly saving?: boolean
+  /** Whether the session has changes the saved project does not (undefined = no project). */
+  readonly dirty?: boolean | undefined
   /** Reveal the saved-projects dialog. The shell owns its state. */
   readonly onShowProjects?: () => void
 }
@@ -124,12 +130,15 @@ export function Header({
   detected,
   serverStatus,
   onImport,
+  onExportStems,
+  canExport,
   onShowShortcuts,
   onSaveProject,
   saveName,
   canSave,
   hasProject,
   saving,
+  dirty,
   onShowProjects
 }: HeaderProps) {
   return (
@@ -175,11 +184,23 @@ export function Header({
         <button
           type="button"
           className={styles.secondaryAction}
-          disabled
-          title="Bientôt — export des stems (jalon export)"
+          disabled={!canExport}
+          title={
+            canExport
+              ? 'Télécharger les stems en ZIP'
+              : 'Sépare les pistes pour exporter les stems'
+          }
+          onClick={onExportStems}
         >
           Exporter
         </button>
+        {hasProject && (
+          <output
+            className={cx(styles.saveState, dirty && styles.saveStateDirty)}
+          >
+            {dirty ? '● Non enregistré' : 'Enregistré'}
+          </output>
+        )}
         {onSaveProject && (
           <SaveControls
             onSaveProject={onSaveProject}

@@ -141,7 +141,7 @@ describe('useProjects', () => {
     }
     const { result } = renderHook(() => useProjects(gated))
 
-    let pending: Promise<void> | undefined
+    let pending: Promise<unknown> | undefined
     act(() => {
       pending = result.current.save('Mon projet', input)
     })
@@ -291,7 +291,7 @@ describe('useProjects', () => {
     }
     const { result } = renderHook(() => useProjects(stores))
 
-    let pending: Promise<void> | undefined
+    let pending: Promise<unknown> | undefined
     act(() => {
       pending = result.current.save('Mon projet', input)
     })

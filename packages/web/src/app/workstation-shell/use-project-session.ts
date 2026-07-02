@@ -1,5 +1,6 @@
 import type { LoopRegion, Project, ProjectDeps } from '@app/core'
 import { type ChangeEvent, useRef, useState } from 'react'
+import { sessionSignature } from '../../projects/session-signature.ts'
 import { type Projects, useProjects } from '../../projects/use-projects.ts'
 import {
   restoreSession,
@@ -38,6 +39,8 @@ export interface ProjectSession {
   readonly openingId: string | undefined
   /** The saved project the session maps to — what a re-save overwrites. */
   readonly currentProject: Project | undefined
+  /** Whether the session holds changes its saved project does not. */
+  readonly dirty: boolean
   readonly handleSave: (name: string) => void
   readonly handleOpen: (id: string) => Promise<void>
   readonly onFilePicked: (event: ChangeEvent<HTMLInputElement>) => void
@@ -53,6 +56,11 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
   const projects = useProjects(deps.stores)
   const [trackName, setTrackName] = useState<string | null>(null)
   const [openingId, setOpeningId] = useState<string | undefined>(undefined)
+  // The fingerprint of what the current project last saved/loaded — comparing
+  // it to the live session's is what the « Enregistré » read-out shows.
+  const [savedSignature, setSavedSignature] = useState<string | undefined>(
+    undefined
+  )
   // Bumped by every new import; a project open that resolves after the user
   // moved on to a fresh file must not clobber that session (the projects
   // dialog stays dismissible while an open is in flight).
@@ -69,6 +77,19 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     deps.separation.reset()
     deps.mixer.reset()
     setTrackName(name)
+  }
+
+  /** The live session's persisted-state fingerprint (heavy audio excluded). */
+  function liveSignature(): string {
+    return sessionSignature({
+      loops: deps.loops.library,
+      markers: deps.markers.markers,
+      activeLoop:
+        deps.loopRegion === undefined
+          ? undefined
+          : { region: deps.loopRegion, enabled: deps.loopEnabled },
+      separation: deps.stemsReady ? { mixer: deps.mixer.state } : undefined
+    })
   }
 
   /** Persist the whole session under a name — bytes, loops, markers, stems. */
@@ -99,7 +120,12 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
           }
         : {})
     })
-    void projects.save(name, input)
+    void projects.save(name, input).then((saved) => {
+      if (saved) {
+        // Sign what was actually persisted — the session now matches it.
+        setSavedSignature(sessionSignature(saved))
+      }
+    })
   }
 
   /** Rebuild the whole session from a saved project. */
@@ -117,6 +143,8 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       // Same clean slate as a fresh import, then re-import the stored bytes.
       startFreshTrack(result.project.name)
       await restoreSession(result, deps)
+      // The rebuilt session mirrors the manifest — sign it as the saved state.
+      setSavedSignature(sessionSignature(result.project))
     } finally {
       setOpeningId(undefined)
     }
@@ -128,6 +156,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       // Detach: saving the new track must not overwrite the open project.
       sessionEpochRef.current += 1
       projects.detach()
+      setSavedSignature(undefined)
       startFreshTrack(trackTitle(file.name))
       void deps.importFile(file)
     }
@@ -135,11 +164,22 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     event.target.value = ''
   }
 
+  const currentProject = projects.projects.find(
+    (p) => p.id === projects.currentId
+  )
+
   return {
     projects,
     trackName,
     openingId,
-    currentProject: projects.projects.find((p) => p.id === projects.currentId),
+    currentProject,
+    // Dirty = the session drifted from its saved project. Muted while an open
+    // is still rebuilding (the live state settles asynchronously).
+    dirty:
+      currentProject !== undefined &&
+      savedSignature !== undefined &&
+      openingId === undefined &&
+      liveSignature() !== savedSignature,
     handleSave,
     handleOpen,
     onFilePicked
