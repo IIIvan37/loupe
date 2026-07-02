@@ -52,6 +52,7 @@ export function TransportBar({
         <button
           type="button"
           className={cx(styles.control, styles.play)}
+          data-on-amber=""
           aria-label={isPlaying ? 'Pause' : 'Lecture'}
           aria-pressed={isPlaying}
           disabled={!canPlay}
@@ -86,7 +87,9 @@ export function TransportBar({
             value={tempoPercent}
             aria-label="Tempo en pourcentage"
             disabled={!canPlay}
+            title="Double-clic pour revenir à 100 %"
             onChange={(event) => onTempoChange(event.target.valueAsNumber)}
+            onDoubleClick={() => onTempoChange(100)}
           />
           <span className={styles.fieldValue}>{tempoPercent} %</span>
         </label>
@@ -94,13 +97,15 @@ export function TransportBar({
           <span className={styles.fieldLabel}>Hauteur</span>
           <input
             type="range"
-            data-accent="teal"
+            data-accent="amber"
             min={-12}
             max={12}
             value={pitchSemitones}
             aria-label="Hauteur en demi-tons"
             disabled={!canPlay}
+            title="Double-clic pour revenir à 0"
             onChange={(event) => onPitchChange(event.target.valueAsNumber)}
+            onDoubleClick={() => onPitchChange(0)}
           />
           <span className={styles.fieldValue}>
             {pitchSemitones > 0 ? `+${pitchSemitones}` : pitchSemitones}

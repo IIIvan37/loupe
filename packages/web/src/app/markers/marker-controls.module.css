@@ -14,6 +14,11 @@
   font-size: 0.8rem;
 }
 
+.add:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--panel-3);
+}
+
 .add:disabled {
   opacity: 0.5;
 }

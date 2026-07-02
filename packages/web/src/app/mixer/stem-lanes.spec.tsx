@@ -39,9 +39,11 @@ describe('StemLanes', () => {
         ]}
       />
     )
-    const lanes = container.querySelectorAll('li')
-    const loud = Number((lanes[0] as HTMLElement).style.opacity)
-    const quiet = Number((lanes[1] as HTMLElement).style.opacity)
+    // The fade lives on the envelope wrapper (the div inside each lane), so the
+    // label above it keeps full opacity.
+    const waves = container.querySelectorAll('li > div')
+    const loud = Number((waves[0] as HTMLElement).style.opacity)
+    const quiet = Number((waves[1] as HTMLElement).style.opacity)
     expect(loud).toBeGreaterThan(quiet)
   })
 

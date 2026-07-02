@@ -24,11 +24,17 @@
 .title {
   font-weight: 600;
   font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .artist {
   color: var(--dim);
   font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .readout {
@@ -63,11 +69,26 @@
   color: var(--text);
 }
 
+.secondaryAction:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--panel-2);
+}
+
+.secondaryAction:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .primaryAction {
   background: var(--amber);
   border-color: var(--amber);
   color: var(--bg);
   font-weight: 600;
+}
+
+.primaryAction:hover {
+  background: var(--amber-deep);
+  border-color: var(--amber-deep);
 }
 
 .iconAction {
@@ -81,4 +102,9 @@
   background: transparent;
   color: var(--dim);
   font-weight: 600;
+}
+
+.iconAction:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
 }

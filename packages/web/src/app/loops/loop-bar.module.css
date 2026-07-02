@@ -14,6 +14,16 @@
   font-size: 0.8rem;
 }
 
+.action:hover {
+  background: var(--amber-deep);
+  border-color: var(--amber-deep);
+}
+
+/* Keep the focus ring contrasting on the amber fill. */
+.action:focus-visible {
+  outline-color: var(--text);
+}
+
 .ghost {
   padding: var(--space-2xs) var(--space-s);
   border-radius: var(--radius);
@@ -21,6 +31,11 @@
   background: transparent;
   color: var(--dim);
   font-size: 0.8rem;
+}
+
+.ghost:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
 }
 
 /* Loop on/off: outlined when inactive, amber-filled when looping. */
@@ -31,6 +46,11 @@
   background: transparent;
   color: var(--dim);
   font-size: 0.8rem;
+}
+
+.toggle:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
 }
 
 .toggleOn {
@@ -53,6 +73,10 @@
   background: transparent;
   color: var(--amber);
   font-size: 0.8rem;
+}
+
+.recall:hover {
+  background: var(--amber-glow);
 }
 
 .edit {
