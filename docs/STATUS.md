@@ -19,8 +19,19 @@
   since persistence sits behind a port; the `Project` domain + use-cases are
   identical either way. Note: `localStorage` was never a project store (it only
   holds the loop library, ~KB); "projects" is a *new* capability (persist heavy
-  audio + session state). Jalon 2 export (J2.6) remains open and unblocked.
-- **Branch**: `feat/per-project-loops` (clean, gate-green, **PR to open**) —
+  audio + session state). Jalon 2 export (J2.6) is now done (see Branch).
+- **Branch**: `feat/jalon2-export-stems` (clean, gate-green, **PR to open**) —
+  **Slice J2.6 (export palier A) is done**: `exportStems` use-case + pure
+  `stem-export` domain (numbered, sanitised, zero-padded aligned WAVs) behind
+  the new `ArchiveWriter` port; web fflate zip adapter (stored entries) +
+  « Exporter les stems (ZIP) » in the mixer, present stems only, one numbering
+  basis shared with the per-stem download. High-effort review fixed 5 confirmed
+  bugs pre-PR (stale export after reset, every-channel duration, filename
+  sanitisation, shared numbering, blank-title zip name). **Jalon 2 is
+  code-complete** — browser click-through of the export pending. Deferred,
+  documented: off-thread zip/encode, streaming archive (peak memory), typed
+  error kinds, tempo metadata (needs tempo detection).
+- **Earlier**: `feat/per-project-loops` (merged, PR #31) —
   the per-project loops slice is **done**: the localStorage `LoopStore` is
   gone (core port + use-cases deleted), loops are session state cleared by
   `startFreshTrack` and persisted only via the project manifest. Same branch:
@@ -29,8 +40,7 @@
   the armed « Confirmer ? » mid-test — specs now settle focus inside the popup,
   and each row action is one relabeled `RowAction` button), plus two review
   fixes: `restoreSession` aborts wholesale when its re-import was superseded,
-  and removing the active saved loop marks the region unsaved again. Next:
-  J2.6 export.
+  and removing the active saved loop marks the region unsaved again.
 - **Earlier**: `fix/import-detaches-saved-project` (PR #30 merged) — the J3.3
   browser-verify caught a real data loss: importing a new file after opening a
   project kept `currentId`, so the one-click save silently overwrote the open
@@ -86,11 +96,12 @@
 
 ## Next step
 
-**Open + merge the `feat/per-project-loops` PR** (per-project loops + dialog
-flake root-cause fix + review fixes + report). Then **J2.6 export** (aligned
-stem folder) and the rest of the UX backlog (uniform dirty-session guard on
-import/reload, real tempo detection, tempo/pitch/zoom persistence, speed
-trainer, undo).
+**Open + merge the `feat/jalon2-export-stems` PR** (J2.6 export + review fixes
++ report), then **browser-verify the export** (import → separate → « Exporter
+les stems (ZIP) » → zip opens flat, WAVs aligned in a DAW). Jalon 2 then
+closes; next is the UX backlog (uniform dirty-session guard on import/reload,
+real tempo detection, tempo/pitch/zoom persistence, speed trainer, undo) and
+Jalon 3 polish (project rename, blob GC, `separator-server/` → `server/`).
 
 ### Earlier — J3.3 browser-verify note
 
@@ -167,7 +178,7 @@ mixer (J2.4) then export (J2.6). See
 | J2.3 | Instrument detection → N adaptive tracks (mask empty, confidence) + server on `htdemucs_6s` (guitar/piano) | ✅ |
 | J2.4 | Multitrack mixer (solo/mute/dB-volume, Web Audio gain graph, unified transport, reactive mix waveform + per-stem lanes) | ✅ |
 | ~~J2.5~~ | ~~Track grouping (user bus, non-destructive)~~ — **dropped** (low value without enough perceived benefit) | 🚫 |
-| J2.6 | Export — tier A: aligned stem folder (named WAVs, t=0, zipped) | ⬜ |
+| J2.6 | Export — tier A: aligned stem folder (numbered sanitised WAVs, t=0, same duration, stored zip via `ArchiveWriter`/fflate) | ✅ |
 | J3.1 | Pure `Project` domain — `projectFromSession` (light model, `AudioRef` pointers, injected id/name/now) | ✅ |
 | J3.2 | Ports `ProjectStore` / `ProjectAudioStore` + use-cases `saveProject` / `listProjects` / `openProject` / `deleteProject` (fake adapters, mixer↔stems invariant enforced) | ✅ |
 | J3.3 | Real adapter + UI (Save / list / Open) — **decided: extended HTTP server** (content-addressed blobs; storage works without torch) | ✅ |
@@ -177,6 +188,14 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-02 — jalon2-export-stems](sessions/2026-07-02-jalon2-export-stems.md) —
+  Slice J2.6 closes the Jalon 2 backlog: `exportStems` use-case (numbered,
+  sanitised, zero-padded aligned WAVs — pad-only, never truncate) + the
+  `ArchiveWriter` port; web fflate zip adapter (stored entries) + mixer button
+  + `AlertBanner` on failure. High-effort review (8 angles) fixed 5 confirmed
+  bugs pre-PR; deferred (documented): off-thread zip/encode, streaming
+  archive, typed error kinds, tempo metadata. Gate green, 380 tests, mutation
+  95.68 % (both new core files 100 %). PR to open; browser-verify pending.
 - [2026-07-02 — per-project-loops](sessions/2026-07-02-per-project-loops.md) —
   Slice J3.4: loops become per-project — the localStorage `LoopStore` (core
   port + use-cases + web adapter) is deleted; `useLoops` is session state,
