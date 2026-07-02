@@ -20,13 +20,16 @@
   identical either way. Note: `localStorage` was never a project store (it only
   holds the loop library, ~KB); "projects" is a *new* capability (persist heavy
   audio + session state). Jalon 2 export (J2.6) remains open and unblocked.
-- **Branch**: `feat/jalon3-project-domain` — Slice **J3.1** (pure `Project`
-  domain) built, gate-green, mutation `project.ts` 100%. `projectFromSession`
-  assembles a light `Project` (source/loops/markers + optional stems+mixer) from
-  a `SessionSnapshot` + injected `ProjectStamp` (`id`/`name`/`now`); heavy audio
-  stays behind an `AudioRef`. **Next**: open the J3.1 PR, then J3.2 (ports
-  `ProjectStore`/`ProjectAudioStore` + use-cases `saveProject`/`listProjects`/
-  `openProject` with fake adapters).
+- **Branch**: `main` (clean, gate-green, no open branches/PRs). Slice **J3.1**
+  (pure `Project` domain) **merged** (PR #25) — `projectFromSession` assembles a
+  light `Project` (source/loops/markers + optional stems+mixer) from a
+  `SessionSnapshot` + injected `ProjectStamp` (`id`/`name`/`now`); heavy audio
+  stays behind an `AudioRef`; mutation `project.ts` 100%. Also **recovered the
+  lost design pass** (PR #24): PR #23 had been merged into the stale J2.4
+  feature branch instead of `main`; all 13 merged remote branches then deleted
+  (enable GitHub "Automatically delete head branches" to prevent a recurrence).
+  **Next**: **J3.2** — ports `ProjectStore`/`ProjectAudioStore` + use-cases
+  `saveProject`/`listProjects`/`openProject` with fake in-memory adapters.
   **Scope change (2026-06-30): J2.5 track grouping is dropped** (low value) —
   Jalon 2 now ends at the mixer (J2.4) + export (J2.6).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
@@ -64,20 +67,29 @@
 
 ## Next step
 
-**Slice J3.1 built — PR open.** The pure `Project` domain that opens Jalon 3
-(project persistence). `projectFromSession(session, stamp)` is the single seam
-turning a `SessionSnapshot` into a saveable `Project`: pure, with `id`/`name`/
-`now` **injected** (the core owns no clock/id generator), `createdAt` =
-`updatedAt` = `now`. The model is deliberately **light** — id/name/timestamps +
-`ProjectSource`, `LoopLibrary`, `MarkerList`, optional `ProjectSeparation`
-(`ProjectStem[]` + `MixerState`); heavy audio never enters it (source and each
-stem hold only an `AudioRef`, resolved later by a `ProjectAudioStore` adapter).
-`separation` is truly optional under `exactOptionalPropertyTypes` (key omitted,
-not `undefined`). Gate green, core mutation 96.49% (`project.ts` 100%). **Next**:
-open the J3.1 PR, then **Slice J3.2** — ports `ProjectStore` /
-`ProjectAudioStore` + use-cases `saveProject` / `listProjects` / `openProject`
-(outer-loop acceptance tests with fake in-memory adapters). The Tauri-vs-server
-call lands at **J3.3** (real adapter + UI). Jalon 2 export (J2.6) stays open.
+**Start Slice J3.2** — the application layer of project persistence. Branch
+`feat/jalon3-project-ports` off `main`, then outer-loop acceptance test for
+`saveProject` with **fake in-memory adapters**, pulling the ports into
+existence: `ProjectStore` (light manifest — list/load/save/delete) and
+`ProjectAudioStore` (heavy blobs — put/get by `AudioRef`), plus the use-cases
+`saveProject` / `listProjects` / `openProject`. The mixer↔stems consistency
+invariant (every `MixerState` channel id maps to a `ProjectStem`) is still
+deliberately unenforced — validate it here if a use-case needs it. The
+Tauri-vs-server call lands at **J3.3** (real adapter + UI). Jalon 2 export
+(J2.6) stays open and unblocked.
+
+### Earlier — Slice J3.1 (merged, PR #25)
+The pure `Project` domain that opens Jalon 3. `projectFromSession(session,
+stamp)` is the single seam turning a `SessionSnapshot` into a saveable
+`Project`: pure, with `id`/`name`/`now` **injected** (the core owns no clock/id
+generator), `createdAt` = `updatedAt` = `now`. The model is deliberately
+**light** — id/name/timestamps + `ProjectSource`, `LoopLibrary`, `MarkerList`,
+optional `ProjectSeparation` (`ProjectStem[]` + `MixerState`); heavy audio
+never enters it (source and each stem hold only an `AudioRef`). `separation` is
+truly optional under `exactOptionalPropertyTypes` (key omitted, not
+`undefined`). Core mutation 96.49% (`project.ts` 100%). The same session also
+recovered the **lost design pass** (PR #24 — PR #23 had merged into the stale
+J2.4 branch instead of `main`) and deleted all 13 merged remote branches.
 
 ### Earlier — Slice J2.4 (merged, PR #22)
 The multitrack mixer: pure `MixerState` (`gainDb`/`muted`/`soloed` per stem →
@@ -122,7 +134,7 @@ mixer (J2.4) then export (J2.6). See
 | J2.4 | Multitrack mixer (solo/mute/dB-volume, Web Audio gain graph, unified transport, reactive mix waveform + per-stem lanes) | ✅ |
 | ~~J2.5~~ | ~~Track grouping (user bus, non-destructive)~~ — **dropped** (low value without enough perceived benefit) | 🚫 |
 | J2.6 | Export — tier A: aligned stem folder (named WAVs, t=0, zipped) | ⬜ |
-| J3.1 | Pure `Project` domain — `projectFromSession` (light model, `AudioRef` pointers, injected id/name/now) | 🔄 PR open |
+| J3.1 | Pure `Project` domain — `projectFromSession` (light model, `AudioRef` pointers, injected id/name/now) | ✅ |
 | J3.2 | Ports `ProjectStore` / `ProjectAudioStore` + use-cases `saveProject` / `listProjects` / `openProject` (fake adapters) | ⬜ |
 | J3.3 | Real adapter + UI (Save / list / Open) — **decides Tauri desktop vs web server** | ⬜ |
 
@@ -130,6 +142,14 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-02 — jalon3-merge-and-branch-cleanup](sessions/2026-07-02-jalon3-merge-and-branch-cleanup.md) —
+  Post-merge close: **PR #25 (J3.1 Project domain) merged**; **PR #24 recovered
+  the lost design pass** (PR #23 had been merged into the stale
+  `feat/jalon2-multitrack-mixer` branch instead of `main` — wrong base branch,
+  zero conflicts on recovery). All 13 merged remote branches deleted (+ local);
+  only `main` remains. Recommendation: enable GitHub "Automatically delete head
+  branches". Gate green on `main` (274 tests); mutation skipped (no code touched
+  since the pre-PR run). **Next**: J3.2.
 - [2026-07-01 — jalon3-project-domain](sessions/2026-07-01-jalon3-project-domain.md) —
   Slice J3.1 opens **Jalon 3 (project persistence)**. Pure core
   `projectFromSession(session, stamp)` assembles a light `Project`
