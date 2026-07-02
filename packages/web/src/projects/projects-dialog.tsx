@@ -33,6 +33,55 @@ function formatUpdatedAt(updatedAt: number): string {
   return new Date(updatedAt).toLocaleDateString('fr-FR')
 }
 
+interface RowActionProps {
+  readonly armed: boolean
+  readonly disabled: boolean
+  readonly idle: {
+    readonly label: string
+    readonly ariaLabel?: string
+    readonly className: string | undefined
+    readonly onClick: () => void
+  }
+  readonly confirmAriaLabel: string
+  /** The confirmed action; RowAction disarms before running it. */
+  readonly onConfirm: () => void
+  readonly onDisarm: () => void
+}
+
+/**
+ * A row action with its two-step confirmation, as ONE button element for both
+ * faces. Swapping elements would unmount the button the user just focused —
+ * focus falls to the body and the dialog's trap re-grabs it elsewhere;
+ * relabeling in place keeps focus (and the screen-reader announcement) on the
+ * action being confirmed.
+ */
+function RowAction({
+  armed,
+  disabled,
+  idle,
+  confirmAriaLabel,
+  onConfirm,
+  onDisarm
+}: RowActionProps) {
+  function confirm(): void {
+    onDisarm()
+    onConfirm()
+  }
+
+  return (
+    <button
+      type="button"
+      className={cx(armed ? styles.confirmAction : idle.className)}
+      aria-label={armed ? confirmAriaLabel : idle.ariaLabel}
+      disabled={disabled}
+      onBlur={armed ? onDisarm : undefined}
+      onClick={armed ? confirm : idle.onClick}
+    >
+      {armed ? 'Confirmer ?' : idle.label}
+    </button>
+  )
+}
+
 /**
  * Dumb dialog listing the saved projects: open one, or delete one. The listing
  * and both actions live upstream — this only renders what it is given, plus
@@ -102,68 +151,48 @@ export function ProjectsDialog({
         <p className={cx(styles.empty)}>Aucun projet enregistré</p>
       ) : (
         <ul className={cx(styles.list)}>
-          {projects.map((project) => (
-            <li key={project.id} className={cx(styles.row)}>
-              <span className={cx(styles.name)}>{project.name}</span>
-              <span className={cx(styles.updated)}>
-                {formatUpdatedAt(project.updatedAt)}
-              </span>
-              {confirm?.id === project.id && confirm.action === 'open' ? (
-                <>
+          {projects.map((project) => {
+            const armedAction =
+              confirm?.id === project.id ? confirm.action : null
+            return (
+              <li key={project.id} className={cx(styles.row)}>
+                <span className={cx(styles.name)}>{project.name}</span>
+                <span className={cx(styles.updated)}>
+                  {formatUpdatedAt(project.updatedAt)}
+                </span>
+                {armedAction === 'open' && (
                   <span className={cx(styles.confirmNote)}>
                     La session actuelle sera remplacée
                   </span>
-                  <button
-                    type="button"
-                    className={cx(styles.confirmAction)}
-                    aria-label={`Confirmer l'ouverture de ${project.name}`}
-                    disabled={locked}
-                    onBlur={disarm}
-                    onClick={() => {
-                      disarm()
-                      onOpen(project.id)
-                    }}
-                  >
-                    Confirmer ?
-                  </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  className={cx(styles.open)}
+                )}
+                <RowAction
+                  armed={armedAction === 'open'}
                   disabled={locked}
-                  onClick={() => onOpenClick(project.id)}
-                >
-                  {openLabel(project)}
-                </button>
-              )}
-              {confirm?.id === project.id && confirm.action === 'delete' ? (
-                <button
-                  type="button"
-                  className={cx(styles.confirmAction)}
-                  aria-label={`Confirmer la suppression de ${project.name}`}
-                  disabled={locked}
-                  onBlur={disarm}
-                  onClick={() => {
-                    disarm()
-                    onDelete(project.id)
+                  idle={{
+                    label: openLabel(project),
+                    className: styles.open,
+                    onClick: () => onOpenClick(project.id)
                   }}
-                >
-                  Confirmer ?
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className={cx(styles.delete)}
-                  aria-label={`Supprimer ${project.name}`}
+                  confirmAriaLabel={`Confirmer l'ouverture de ${project.name}`}
+                  onConfirm={() => onOpen(project.id)}
+                  onDisarm={disarm}
+                />
+                <RowAction
+                  armed={armedAction === 'delete'}
                   disabled={locked}
-                  onClick={() => arm(project.id, 'delete')}
-                >
-                  Supprimer
-                </button>
-              )}
-            </li>
-          ))}
+                  idle={{
+                    label: 'Supprimer',
+                    ariaLabel: `Supprimer ${project.name}`,
+                    className: styles.delete,
+                    onClick: () => arm(project.id, 'delete')
+                  }}
+                  confirmAriaLabel={`Confirmer la suppression de ${project.name}`}
+                  onConfirm={() => onDelete(project.id)}
+                  onDisarm={disarm}
+                />
+              </li>
+            )
+          })}
         </ul>
       )}
     </AppDialog>

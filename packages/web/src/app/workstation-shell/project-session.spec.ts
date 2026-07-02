@@ -101,7 +101,8 @@ describe('restoreSession', () => {
         })),
         update: vi.fn(),
         remove: vi.fn(),
-        restore: vi.fn()
+        restore: vi.fn(),
+        clear: vi.fn()
       } satisfies Loops,
       separation: {
         state: initialSeparation,
@@ -166,6 +167,26 @@ describe('restoreSession', () => {
       restored.sources,
       savedMixer
     )
+  })
+
+  it('restores nothing when the re-import was superseded by a newer one', async () => {
+    // A stale open resolving after the user imported a fresh file: the
+    // supersede guard makes importFile resolve undefined — the old project's
+    // loops/markers must not land on the track imported meanwhile.
+    const deps = {
+      ...fakeDeps(undefined),
+      importFile: vi.fn(async () => undefined)
+    }
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: baseProject,
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    expect(deps.loops.restore).not.toHaveBeenCalled()
   })
 
   it('stops after markers and loops when the project has no separation', async () => {

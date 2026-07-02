@@ -100,10 +100,16 @@ export async function restoreSession(
   const audio = await deps.importFile(
     new File([opened.sourceBytes], opened.project.name)
   )
+  // No audio means the re-import was superseded by a newer user import (or
+  // failed): the session belongs to that newer track now — restoring the old
+  // project's loops/markers onto it would corrupt what a later save persists.
+  if (!audio) {
+    return
+  }
   deps.markers.restore(opened.project.markers)
   deps.loops.restore(opened.project.loops)
   const saved = opened.project.separation
-  if (!audio || !saved || opened.stems.length === 0) {
+  if (!saved || opened.stems.length === 0) {
     return
   }
   const labelById = new Map(saved.stems.map((stem) => [stem.id, stem.label]))

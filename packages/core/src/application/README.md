@@ -8,7 +8,6 @@ The single place to look before adding a feature, so ports and use-cases get
 | Use-case | Signature | Notes |
 |----------|-----------|-------|
 | `loadTrack` | `(input, deps) => Promise<LoadTrackResult>` | Slices 1–2 — decode bytes once via `AudioFileDecoder`, summarise into a `Track` (mono mix → `Waveform` peaks + duration), and load the same PCM into the `PlaybackEngine`. Also returns the decoded PCM so separation reuses the same audio (no second decode). |
-| `loadLoops` / `saveLoop` / `deleteLoop` | `(…, deps) => Promise<LoopLibrary>` | Slice 5 — read/add/remove a saved loop via the `LoopStore` port (persistence best-effort). |
 | `separateTrack` | `(input, deps) => Promise<SeparateTrackResult>` | Slice J2.1 — hand the loaded PCM to the `StemSeparator` port and summarise each isolated stem into a render-ready `StemTrack` (`StemSet`); progress streams to an optional sink. Input is the SAME `DecodedAudio` the player loaded. **J2.3**: also runs adaptive detection — each stem carries a `confidence` and a `present` flag derived from its energy, so the UI can mask near-silent stems. |
 | `saveProject` | `(input, deps) => Promise<SaveProjectResult>` | Slice J3.2 — persist the session as a project: `put` the heavy audio (source + stem WAV bytes) into `ProjectAudioStore` to mint refs, assemble the light `Project` via `projectFromSession`, `save` the manifest through `ProjectStore`. An inconsistent separation (mixer channels ≠ stems, `mixerMatchesStems`) is rejected before any byte is stored. Saving over an existing id is an update (`createdAt` survives, `updatedAt` = `stamp.now`). |
 | `listProjects` | `(deps) => Promise<ListProjectsResult>` | Slice J3.2 — the saved manifests, most recently updated first. |
@@ -25,8 +24,10 @@ The single place to look before adding a feature, so ports and use-cases get
 > of `Marker` — a single named cue (bars/beats belong to later tempo detection).
 >
 > Pure loop domain — Slice 5: `LoopRegion` (`makeLoopRegion` / `loopContains` /
-> `wrapToLoop` / `loopLength`) and `LoopLibrary` (`addLoop` / `removeLoop`); the
-> `loops` use-cases above persist the library through the `LoopStore` port.
+> `wrapToLoop` / `loopLength`) and `LoopLibrary` (`addLoop` / `removeLoop`).
+> Loops are session state, UI-driven (web `useLoops`); they persist only inside
+> the project manifest (`LoopLibrary` is part of `Project`) — the former
+> `LoopStore` port + localStorage adapter were removed with per-project loops.
 >
 > Pure zoom domain (no use-case/port, UI-driven) — Slice 6: `clampZoom` /
 > `zoomIn` / `zoomOut` over a `MIN_ZOOM…MAX_ZOOM` (1×–6×) scalar in `ZOOM_STEP`
@@ -87,7 +88,6 @@ The single place to look before adding a feature, so ports and use-cases get
 | `AudioFileDecoder` | driven | `web`: `createWebAudioDecoder` (`decodeAudioData`) |
 | `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode` + SoundTouch worklet for tempo/pitch) |
 | `StemPlaybackEngine` | driven | `web`: `createWebAudioStemPlayback` — synchronised multitrack playback (J2.4): a `GainNode` per stem summed into one SoundTouch master bus (tempo/pitch on the mix), `setGain` driven by the mixer's `effectiveGains` |
-| `LoopStore` | driven | `web`: `createLocalStorageLoopStore` (localStorage) |
 | `TrackMetadataReader` | driven | `web`: `createMusicMetadataReader` (music-metadata; best-effort ID3/etc. tags) |
 | `StemSeparator` | driven | `web`: `createHttpSeparator` against a local **FastAPI + Demucs** backend (mix → WAV POST → streamed NDJSON progress → fetch + `decodeWav` stems — J2.2b). The earlier in-browser WASM engines (demucs.cpp GGML / onnxruntime-web) hit a quality+speed wall and were removed; a cloud API could be a later adapter on the same port. |
 | `ProjectStore` | driven | fakes only (J3.2 spec) — the real adapter (Tauri FS vs HTTP server) is the J3.3 decision. Light manifests: `list` / `load` (undefined for unknown id) / `save` / `delete`. |

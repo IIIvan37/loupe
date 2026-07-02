@@ -3,8 +3,6 @@ import '@testing-library/jest-dom/vitest'
 import type {
   AudioFileDecoder,
   DecodedAudio,
-  LoopLibrary,
-  LoopStore,
   PlaybackEngine,
   Project,
   ProjectDeps,
@@ -151,17 +149,6 @@ function healthFetch(device: string | null | 'unreachable'): typeof fetch {
   }) as typeof fetch
 }
 
-/** An in-memory loop store so tests never touch real localStorage. */
-function fakeLoopStore(): LoopStore {
-  let saved: LoopLibrary = []
-  return {
-    load: async () => saved,
-    save: async (library) => {
-      saved = library
-    }
-  }
-}
-
 /** The waveform stage button (click to seek, drag to loop). */
 function waveformSurface(): HTMLElement {
   return screen.getByRole('button', { name: /Forme d'onde :/ })
@@ -210,6 +197,14 @@ async function importTrack(user: UserEvent, fileName?: string): Promise<void> {
       screen.getByRole('img', { name: "Forme d'onde de la piste" })
     ).toBeInTheDocument()
   })
+}
+
+/** Drag 20%→60% of the 10 s timeline and save the region as a named loop. */
+async function saveNamedLoop(user: UserEvent, name: string): Promise<void> {
+  pointerGesture(20, 60)
+  await user.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
+  await user.type(screen.getByLabelText('Nom'), name)
+  await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
 }
 
 describe('WorkstationShell', () => {
@@ -509,16 +504,11 @@ describe('WorkstationShell', () => {
   })
 
   it('drag-selects an A/B loop, names it via the editor, and recalls it', async () => {
-    const { engine, user } = renderShell({ loopStore: fakeLoopStore() })
+    const { engine, user } = renderShell()
     await importTrack(user)
 
-    // Drag 20%→60% of a 10 s timeline → loop [2s, 6s].
-    pointerGesture(20, 60)
-
-    await user.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
-    await user.clear(screen.getByLabelText('Nom'))
-    await user.type(screen.getByLabelText('Nom'), 'Mon passage')
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    // The 20%→60% drag on a 10 s timeline saves the loop [2 s, 6 s].
+    await saveNamedLoop(user, 'Mon passage')
 
     const recall = await screen.findByRole('button', { name: 'Mon passage' })
     await user.click(recall)
@@ -526,15 +516,10 @@ describe('WorkstationShell', () => {
   })
 
   it('edits a saved loop in place when its handle moves (no re-save prompt)', async () => {
-    const { user } = renderShell({ loopStore: fakeLoopStore() })
+    const { user } = renderShell()
     await importTrack(user)
 
-    // Select [2 s, 6 s] and save it.
-    pointerGesture(20, 60)
-    await user.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
-    await user.clear(screen.getByLabelText('Nom'))
-    await user.type(screen.getByLabelText('Nom'), 'Pont')
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await saveNamedLoop(user, 'Pont')
     expect(
       screen.queryByRole('button', { name: 'Enregistrer la boucle' })
     ).not.toBeInTheDocument()
@@ -555,6 +540,39 @@ describe('WorkstationShell', () => {
       screen.queryByRole('button', { name: 'Enregistrer la boucle' })
     ).not.toBeInTheDocument()
     expect(await screen.findAllByRole('button', { name: 'Pont' })).toHaveLength(1)
+  })
+
+  it('lets the region be saved again after its saved loop is removed', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    await saveNamedLoop(user, 'Refrain')
+    // The region belongs to a saved loop now, so the save action is gone.
+    expect(
+      screen.queryByRole('button', { name: 'Enregistrer la boucle' })
+    ).not.toBeInTheDocument()
+
+    // Removing that loop orphans the region — it must read as unsaved again.
+    await user.click(screen.getByRole('button', { name: 'Supprimer Refrain' }))
+
+    expect(
+      await screen.findByRole('button', { name: 'Enregistrer la boucle' })
+    ).toBeInTheDocument()
+  })
+
+  it('clears the saved loops when a new file is imported', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    await saveNamedLoop(user, 'Refrain')
+    await screen.findByRole('button', { name: 'Refrain' })
+
+    // A new track gets a fresh timeline — the old loops don't belong to it.
+    await importTrack(user, 'autre.wav')
+
+    expect(
+      screen.queryByRole('button', { name: 'Refrain' })
+    ).not.toBeInTheDocument()
   })
 
   it('wraps playback at the loop end only while looping is enabled', async () => {

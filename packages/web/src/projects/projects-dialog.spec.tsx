@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import type { Project } from '@app/core'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { ProjectsDialog } from './projects-dialog.tsx'
@@ -36,6 +36,25 @@ function renderDialog(overrides: DialogProps = {}) {
   )
 }
 
+/**
+ * Render, then let Base UI's initial focus land — it is deferred to an
+ * animation frame, and in jsdom that frame can fire MID-TEST, stealing focus
+ * from an armed « Confirmer ? » and disarming it under the second click. Any
+ * test that clicks must settle it first (a real browser settles within one
+ * frame of opening, long before a human can click). The condition asserts the
+ * focus is INSIDE the popup: "not on body" would pass early wherever a click
+ * opened the dialog, with focus still on the trigger.
+ */
+async function renderDialogSettled(overrides: DialogProps = {}) {
+  const utils = renderDialog(overrides)
+  await waitFor(() => {
+    expect(screen.getByRole('dialog')).toContainElement(
+      document.activeElement as HTMLElement | null
+    )
+  })
+  return utils
+}
+
 describe('ProjectsDialog', () => {
   it('lists each project with its name and last-touch date when open', () => {
     renderDialog()
@@ -65,7 +84,7 @@ describe('ProjectsDialog', () => {
   it('opens the picked project with a single click when nothing would be lost', async () => {
     const user = userEvent.setup()
     const onOpen = vi.fn()
-    renderDialog({ onOpen })
+    await renderDialogSettled({ onOpen })
 
     await user.click(screen.getByRole('button', { name: 'Ouvrir' }))
     expect(onOpen).toHaveBeenCalledWith('p1')
@@ -74,7 +93,7 @@ describe('ProjectsDialog', () => {
   it('asks before opening when the current session would be replaced', async () => {
     const user = userEvent.setup()
     const onOpen = vi.fn()
-    renderDialog({ onOpen, confirmBeforeOpen: true })
+    await renderDialogSettled({ onOpen, confirmBeforeOpen: true })
 
     await user.click(screen.getByRole('button', { name: 'Ouvrir' }))
     expect(onOpen).not.toHaveBeenCalled()
@@ -91,7 +110,7 @@ describe('ProjectsDialog', () => {
   it('deletes only after the inline two-step confirmation', async () => {
     const user = userEvent.setup()
     const onDelete = vi.fn()
-    renderDialog({ onDelete })
+    await renderDialogSettled({ onDelete })
 
     await user.click(
       screen.getByRole('button', { name: 'Supprimer Mon projet' })
@@ -131,7 +150,7 @@ describe('ProjectsDialog', () => {
 
   it('reverts an armed confirmation when it loses focus', async () => {
     const user = userEvent.setup()
-    renderDialog()
+    await renderDialogSettled()
 
     await user.click(
       screen.getByRole('button', { name: 'Supprimer Mon projet' })

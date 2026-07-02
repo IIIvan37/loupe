@@ -15,6 +15,8 @@ export interface LoopEditing {
   readonly clearRegion: () => void
   /** Recall a saved loop: make it active and seek to its start. */
   readonly activate: (loop: NamedLoop) => void
+  /** Remove a saved loop; if it backed the active region, mark it unsaved. */
+  readonly remove: (id: string) => void
 }
 
 /**
@@ -70,12 +72,21 @@ export function useLoopEditing(
     transport.seekToSeconds(loop.region.startSeconds)
   }
 
+  function remove(id: string): void {
+    // The region outlives its loop, but as a fresh, unsaved selection.
+    if (id === activeLoopId) {
+      setActiveLoopId(null)
+    }
+    loops.remove(id)
+  }
+
   return {
     isSaved: activeLoopId !== null,
     selectRegion,
     adjustRegion,
     saveRegion,
     clearRegion,
-    activate
+    activate,
+    remove
   }
 }

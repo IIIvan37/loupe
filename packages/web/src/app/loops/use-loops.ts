@@ -1,15 +1,12 @@
 import {
-  deleteLoop,
+  addLoop,
   emptyLoopLibrary,
   type LoopLibrary,
   type LoopRegion,
-  type LoopStore,
-  loadLoops,
   type NamedLoop,
-  saveLoop
+  removeLoop
 } from '@app/core'
-import { useEffect, useMemo, useState } from 'react'
-import { createLocalStorageLoopStore } from '../../audio/local-storage-loop-store.ts'
+import { useState } from 'react'
 
 export interface Loops {
   readonly library: LoopLibrary
@@ -20,52 +17,40 @@ export interface Loops {
   readonly remove: (id: string) => void
   /** Replace the whole library with a persisted one (opening a project). */
   readonly restore: (library: LoopLibrary) => void
+  /** Drop every loop — a fresh track starts with an empty library. */
+  readonly clear: () => void
 }
 
 /**
- * Smart hook for the saved-loop library: loads it on mount and runs the loop
- * use-cases (which persist through the `LoopStore` port). The store defaults to
- * the localStorage adapter and is injected in tests.
+ * Smart hook for the saved-loop library. Loops are session state, scoped to
+ * the loaded track: they persist only through the project manifest (saved on
+ * « Enregistrer », restored on open) and a new import starts empty.
  */
-export function useLoops(store?: LoopStore): Loops {
-  const loopStore = useMemo(
-    () => store ?? createLocalStorageLoopStore(),
-    [store]
-  )
+export function useLoops(): Loops {
   const [library, setLibrary] = useState<LoopLibrary>(emptyLoopLibrary)
-
-  useEffect(() => {
-    let active = true
-    void loadLoops({ store: loopStore }).then((loaded) => {
-      if (active) {
-        setLibrary(loaded)
-      }
-    })
-    return () => {
-      active = false
-    }
-  }, [loopStore])
 
   function save(name: string, region: LoopRegion): NamedLoop {
     const loop: NamedLoop = { id: crypto.randomUUID(), name, region }
-    void saveLoop({ library, loop }, { store: loopStore }).then(setLibrary)
+    update(loop)
     return loop
   }
 
   function update(loop: NamedLoop): void {
-    // addLoop (under saveLoop) replaces by id, so re-saving edits in place.
-    void saveLoop({ library, loop }, { store: loopStore }).then(setLibrary)
+    // addLoop replaces by id, so re-saving edits in place.
+    setLibrary((current) => addLoop(current, loop))
   }
 
   function remove(id: string): void {
-    void deleteLoop({ library, id }, { store: loopStore }).then(setLibrary)
+    setLibrary((current) => removeLoop(current, id))
   }
 
   function restore(next: LoopLibrary): void {
     setLibrary(next)
-    // Best-effort persist, so the restored library survives a reload too.
-    void loopStore.save(next).catch(() => {})
   }
 
-  return { library, save, update, remove, restore }
+  function clear(): void {
+    restore(emptyLoopLibrary)
+  }
+
+  return { library, save, update, remove, restore, clear }
 }

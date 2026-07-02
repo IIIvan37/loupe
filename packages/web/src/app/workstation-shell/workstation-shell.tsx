@@ -2,7 +2,6 @@ import {
   type AudioFileDecoder,
   defaultKeyBindings,
   formatTimecode,
-  type LoopStore,
   type PlaybackEngine,
   type ProjectDeps,
   type StemPlaybackEngine,
@@ -66,7 +65,6 @@ interface WorkstationShellProps {
   readonly decoder?: AudioFileDecoder
   readonly engine?: PlaybackEngine
   readonly stemEngine?: StemPlaybackEngine
-  readonly loopStore?: LoopStore
   readonly metadataReader?: TrackMetadataReader
   readonly separator?: StemSeparator
   readonly projectStores?: ProjectDeps
@@ -83,7 +81,6 @@ export function WorkstationShell({
   decoder,
   engine,
   stemEngine,
-  loopStore,
   metadataReader,
   separator,
   projectStores,
@@ -118,7 +115,7 @@ export function WorkstationShell({
     toggleLoop
   } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsReady)
   const markers = useMarkers()
-  const loops = useLoops(loopStore)
+  const loops = useLoops()
   const loopEditing = useLoopEditing(loops, {
     durationSeconds: transport.durationSeconds,
     setLoopRegion,
@@ -273,7 +270,7 @@ export function WorkstationShell({
               onUpdateLoop={loops.update}
               onClearRegion={loopEditing.clearRegion}
               onActivate={loopEditing.activate}
-              onRemove={loops.remove}
+              onRemove={loopEditing.remove}
             />
             <SeparationPanel
               state={separation.state}

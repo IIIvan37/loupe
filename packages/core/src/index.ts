@@ -6,12 +6,9 @@ export type {
   LoadTrackResult
 } from './application/load-track.ts'
 export { loadTrack } from './application/load-track.ts'
-export type { LoopStoreDeps } from './application/loops.ts'
-export { deleteLoop, loadLoops, saveLoop } from './application/loops.ts'
 export type {
   AudioFileDecoder,
   DecodedAudio,
-  LoopStore,
   PlaybackEngine,
   ProjectAudioStore,
   ProjectStore,
