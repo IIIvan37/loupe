@@ -24,7 +24,20 @@
 - **Jalon 3 (« Projets ») core slices are merged** (J3.1–J3.4 + races +
   active-loop fix + UX session state). Remaining Jalon 3 work is polish
   (project rename, blob GC, `separator-server/` → `server/`).
-- **Branch**: `main` (clean, gate-green, 404 tests). No PR in flight.
+- **Now — UI polish slice (2026-07-03)**: user-driven polish pass before the
+  next roadmap slice. **Draggable markers** (core `moveMarker`, TDD; drag +
+  ←/→ nudge on the rail tags), **status indicators get one place per kind**
+  (document-state chip next to the title absorbing the busy strip, server
+  health far right, ✎ rename icon), and the **DAW-style track grouping**: a
+  fixed gutter of per-stem headers (M/S, compact dB fader, WAV, confidence
+  tooltip) row-aligned with the lanes via shared `--stem-lane-*` tokens — the
+  detached mixer panel is deleted. Two user-found bugs fixed: arrow keys on a
+  focused tag no longer double-fire the global seek (`defaultPrevented`
+  guard), and the playhead can no longer paint above dialogs (stage
+  `isolation`). Browser-verified on the real project.
+  See [2026-07-03-ui-polish](sessions/2026-07-03-ui-polish.md).
+- **Branch**: `feat/ui-polish` (gate-green, 417 tests, mutation 95.76 % —
+  `marker-list.ts` 100 %). PR to open.
 - **Earlier**: `feat/ux-session-state` (**merged, PR #34**) — five
   user-reported UX gaps: active-loop chip highlighted (`aria-current`), the
   header « Exporter » wired to the zip export (mixer duplicate removed), a
@@ -118,7 +131,7 @@
 
 ## Next step
 
-**Pick the next slice** — Jalon 2 is closed, `main` is clean. Candidates, by
+**Merge the `feat/ui-polish` PR**, then pick the next slice. Candidates, by
 user value:
 - UX backlog: uniform dirty-session guard on import/reload, real tempo
   detection, tempo/pitch/zoom persistence, speed trainer, undo.
@@ -211,6 +224,15 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-03 — ui-polish](sessions/2026-07-03-ui-polish.md) —
+  User-driven UI polish: draggable markers (core `moveMarker` TDD-first, drag +
+  arrow-nudge on the rail tags), one place per kind of status in the header
+  (document chip next to the title, server health far right, busy strip
+  folded in), and DAW-style track grouping — fixed gutter of per-stem headers
+  (M/S, compact fader, WAV) row-aligned with the lanes; the detached mixer
+  panel deleted. Fixed two user-found bugs (arrow keys double-firing the
+  global seek; playhead above dialogs). Gate green, 417 tests, mutation
+  95.76 % (`marker-list.ts` 100 %). Browser-verified; PR to open.
 - [2026-07-02 — jalon2-export-verify](sessions/2026-07-02-jalon2-export-verify.md) —
   Close-out: PR #34 merged, `HEAD /audio/{ref}` probed live (no restart
   needed), and the J2.6 export browser-verified on a real separation (zip
