@@ -218,6 +218,7 @@ export function WorkstationShell({
         hasProject={currentProject !== undefined}
         saving={projects.busy === 'save'}
         dirty={session.dirty}
+        busyMessage={busyMessage}
         onShowProjects={() => {
           void projects.refresh()
           setProjectsOpen(true)
@@ -234,9 +235,6 @@ export function WorkstationShell({
           message={separation.exportError}
           onDismiss={separation.dismissExportError}
         />
-      )}
-      {busyMessage !== undefined && (
-        <output className={styles.busyBanner}>{busyMessage}</output>
       )}
       <ShortcutsDialog
         open={shortcutsOpen}

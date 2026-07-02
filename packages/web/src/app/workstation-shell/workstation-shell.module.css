@@ -35,13 +35,3 @@
     grid-template-columns: 1fr;
   }
 }
-
-/* Status strip for the long project operations (save, open/rebuild). */
-.busyBanner {
-  display: block;
-  padding: var(--space-2xs) var(--space-m);
-  border-block-end: 1px solid var(--line);
-  background: var(--panel-2);
-  color: var(--teal);
-  font-size: 0.8rem;
-}

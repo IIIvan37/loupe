@@ -41,6 +41,8 @@ interface HeaderProps {
   readonly saving?: boolean
   /** Whether the session has changes the saved project does not (undefined = no project). */
   readonly dirty?: boolean | undefined
+  /** A long operation in flight (save, open/rebuild) — takes over the state chip. */
+  readonly busyMessage?: string | undefined
   /** Reveal the saved-projects dialog. The shell owns its state. */
   readonly onShowProjects?: () => void
 }
@@ -78,9 +80,10 @@ function SaveControls({
     )
   }
   if (saving) {
+    // The header's state chip narrates the save; the button just locks.
     return (
       <button type="button" className={styles.secondaryAction} disabled>
-        Enregistrement…
+        Enregistrer
       </button>
     )
   }
@@ -96,9 +99,9 @@ function SaveControls({
         </button>
         <NameEditor
           title="Enregistrer sous un autre nom"
-          triggerClassName={cx(styles.secondaryAction)}
+          triggerClassName={cx(styles.iconAction)}
           triggerLabel="Renommer le projet"
-          triggerContent="Renommer…"
+          triggerContent="✎"
           submitLabel="Enregistrer"
           initialName={saveName}
           onSubmit={onSaveProject}
@@ -120,7 +123,10 @@ function SaveControls({
 }
 
 /**
- * Dumb presentational header. Detected values (key/BPM/measure) are rendered in
+ * Dumb presentational header, one place per kind of information: the document
+ * (title, artist, detected values, saved/busy state) on the left with the logo;
+ * the actions on the right; the server health — infrastructure, not an action —
+ * alone at the far right. Detected values (key/BPM/measure) are rendered in
  * teal + mono per the semantic rule (teal = what the machine detected). The
  * "Importer" button is the single import entry point; the shell wires it.
  */
@@ -139,8 +145,15 @@ export function Header({
   hasProject,
   saving,
   dirty,
+  busyMessage,
   onShowProjects
 }: HeaderProps) {
+  // The one document-state chip: a running operation narrates itself; otherwise
+  // the saved/dirty read-out (which only means something once a project exists).
+  const sessionState =
+    busyMessage ??
+    (hasProject ? (dirty ? '● Non enregistré' : 'Enregistré') : undefined)
+
   return (
     <header className={styles.header}>
       <Cluster gap="var(--space-l)" align="center">
@@ -149,21 +162,27 @@ export function Header({
           <p className={styles.title}>{title}</p>
           <p className={styles.artist}>{artist}</p>
         </div>
-      </Cluster>
-
-      <Cluster gap="var(--space-s)" align="center">
         {detected.map((item) => (
           <span key={item.id} className={styles.readout}>
             <span className={styles.readoutLabel}>{item.label}</span>
             <span className={styles.readoutValue}>{item.value}</span>
           </span>
         ))}
-        {serverStatus && (
-          <span className={styles.serverStatus} data-tone={serverStatus.tone}>
-            <span className={styles.statusDot} aria-hidden="true" />
-            {serverStatus.label}
-          </span>
+        {sessionState !== undefined && (
+          <output
+            className={cx(
+              styles.saveState,
+              busyMessage !== undefined
+                ? styles.saveStateBusy
+                : dirty && styles.saveStateDirty
+            )}
+          >
+            {sessionState}
+          </output>
         )}
+      </Cluster>
+
+      <Cluster gap="var(--space-s)" align="center">
         <button
           type="button"
           className={styles.iconAction}
@@ -194,13 +213,6 @@ export function Header({
         >
           Exporter
         </button>
-        {hasProject && (
-          <output
-            className={cx(styles.saveState, dirty && styles.saveStateDirty)}
-          >
-            {dirty ? '● Non enregistré' : 'Enregistré'}
-          </output>
-        )}
         {onSaveProject && (
           <SaveControls
             onSaveProject={onSaveProject}
@@ -218,6 +230,12 @@ export function Header({
           >
             Projets
           </button>
+        )}
+        {serverStatus && (
+          <span className={styles.serverStatus} data-tone={serverStatus.tone}>
+            <span className={styles.statusDot} aria-hidden="true" />
+            {serverStatus.label}
+          </span>
         )}
       </Cluster>
     </header>
