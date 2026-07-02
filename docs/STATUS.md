@@ -20,8 +20,19 @@
   identical either way. Note: `localStorage` was never a project store (it only
   holds the loop library, ~KB); "projects" is a *new* capability (persist heavy
   audio + session state). Jalon 2 export (J2.6) remains open and unblocked.
-- **Branch**: `feat/jalon3-project-server-ui` (clean, gate-green) — Slice
-  **J3.3** done, PR to open. **Decision resolved: extended HTTP server** (not
+- **Branch**: `fix/import-detaches-saved-project` (clean, gate-green, **PR to
+  open**) — the J3.3 browser-verify is **done** and caught a real data loss:
+  importing a new file after opening a project kept `currentId`, so the
+  one-click save silently overwrote the open project. Fixed (detach on import)
+  along with the three confirmed races around it (stale save re-attach, stale
+  open clobbering a fresh import, superseded import winning late); the
+  project ↔ session lifecycle now lives in `useProjectSession`. Same branch:
+  all web specs migrated to `@testing-library/user-event` and the testing idiom
+  codified in `.claude/skills/react-testing-patterns`. **Decided (2026-07-02):
+  loops become per-project** — the localStorage `LoopStore` goes away; loops
+  are session state, persisted only via the project manifest. That slice is
+  next, then J2.6 export.
+- **Earlier**: `feat/jalon3-project-server-ui` — Slice **J3.3** merged (PR #28). **Decision resolved: extended HTTP server** (not
   Tauri) — the one local server now hosts project storage (always on,
   content-addressed sha256 blobs + JSON manifests under `LOUPE_DATA_DIR`) and
   separation (lazily imported: a torch-less host still stores projects).
@@ -68,10 +79,13 @@
 
 ## Next step
 
-**Merge the `fix/ux-feedback-guardrails` PR**, browser-verify save/open (now
-guarded by banners/confirmations), then start **J2.6 export** (aligned stem
-folder) — first item of the UX analysis backlog (then: real tempo detection,
-tempo/pitch/zoom persistence, speed trainer, per-project loops, undo).
+**Open + merge the `fix/import-detaches-saved-project` PR** (data-loss fix +
+races + user-event migration + testing skill + this report). Then the
+**per-project loops** slice (own branch: drop the localStorage `LoopStore`,
+loops cleared by `startFreshTrack`, persisted/restored only through the project
+manifest — which already stores them). Then **J2.6 export** (aligned stem
+folder) and the rest of the UX backlog (real tempo detection, tempo/pitch/zoom
+persistence, speed trainer, undo).
 
 ### Earlier — J3.3 browser-verify note
 
@@ -157,6 +171,15 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-02 — project-session-races](sessions/2026-07-02-project-session-races.md) —
+  J3.3 browser-verify (FAIL → fix): import after open kept `currentId` and the
+  one-click save overwrote the open project. Fixed with `detach()` on import,
+  plus the three confirmed races found by the branch review (stale save
+  re-attach, stale open clobber, superseded import) — session generation +
+  import epoch + supersede guard; lifecycle extracted to `useProjectSession`.
+  Web specs migrated to user-event; `react-testing-patterns` skill installed.
+  **Decided: per-project loops** (localStorage store goes away) — next slice.
+  Gate green, 348 tests; mutation skipped (core untouched). PR to open.
 - [2026-07-02 — ux-feedback-guardrails](sessions/2026-07-02-ux-feedback-guardrails.md) —
   UX audit + the « feedback & garde-fous » slice (web-only): project errors
   surfaced (banner + « Serveur injoignable »), busy states on save/open,
