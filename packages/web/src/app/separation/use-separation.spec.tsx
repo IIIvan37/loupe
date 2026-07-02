@@ -1,6 +1,13 @@
 // @vitest-environment jsdom
-import type { DecodedAudio, SeparatedStem, StemSeparator } from '@app/core'
+import type {
+  ArchiveFile,
+  ArchiveWriter,
+  DecodedAudio,
+  SeparatedStem,
+  StemSeparator
+} from '@app/core'
 import { act, renderHook, waitFor } from '@testing-library/react'
+import { vi } from 'vitest'
 import { useSeparation } from './use-separation.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
@@ -76,5 +83,69 @@ describe('useSeparation', () => {
     })
     expect(result.current.state.status).toBe('idle')
     expect(result.current.state.stems).toEqual([])
+  })
+})
+
+describe('useSeparation — exportStems (the aligned stem folder)', () => {
+  /** Fake archive port: records the files, returns fixed bytes. */
+  function fakeArchive(received: ArchiveFile[]): ArchiveWriter {
+    return {
+      async write(files) {
+        received.push(...files)
+        return new Uint8Array([9])
+      }
+    }
+  }
+
+  beforeEach(() => {
+    // jsdom implements neither; downloadBlob needs both.
+    URL.createObjectURL = vi.fn(() => 'blob:test')
+    URL.revokeObjectURL = vi.fn()
+  })
+
+  async function readyHook(archive: ArchiveWriter, ready: SeparatedStem[]) {
+    const { separator } = deferredSeparator()
+    const { result } = renderHook(() => useSeparation(separator, archive))
+    await act(async () => {
+      await result.current.restore(audio, ready)
+    })
+    return result
+  }
+
+  it('archives only the present stems, then downloads the named zip', async () => {
+    const received: ArchiveFile[] = []
+    const silent: DecodedAudio = { sampleRate: 4, channels: [[0, 0, 0, 0]] }
+    const result = await readyHook(fakeArchive(received), [
+      { id: 'voix', label: 'Voix', audio },
+      { id: 'basse', label: 'Basse', audio: silent }
+    ])
+
+    await act(async () => {
+      await result.current.exportStems('Mon morceau')
+    })
+
+    // The silent stem was masked by detection, so the folder skips it.
+    expect(received.map((f) => f.name)).toEqual(['01_Voix.wav'])
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1)
+    expect(result.current.exportError).toBeUndefined()
+  })
+
+  it('surfaces a failed export as a dismissible error', async () => {
+    const archive: ArchiveWriter = {
+      write: async () => {
+        throw new Error('zip failed')
+      }
+    }
+    const result = await readyHook(archive, stems)
+
+    await act(async () => {
+      await result.current.exportStems('Mon morceau')
+    })
+    expect(result.current.exportError).toBe("L'export a échoué : zip failed")
+
+    act(() => {
+      result.current.dismissExportError()
+    })
+    expect(result.current.exportError).toBeUndefined()
   })
 })

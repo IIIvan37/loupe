@@ -135,3 +135,18 @@ export interface StemSeparator {
     onProgress: (progress: SeparationProgress) => void
   ): Promise<readonly SeparatedStem[]>
 }
+
+/** One file destined for the export archive: its name and encoded bytes. */
+export interface ArchiveFile {
+  readonly name: string
+  readonly bytes: Uint8Array
+}
+
+/**
+ * Driven port: bundle named files into one downloadable archive and return its
+ * bytes. Implemented by an adapter (web: a zip); the pure core never touches
+ * Blob or the DOM — triggering the actual download is the adapter's business.
+ */
+export interface ArchiveWriter {
+  write(files: readonly ArchiveFile[]): Promise<Uint8Array<ArrayBuffer>>
+}

@@ -201,6 +201,12 @@ export function WorkstationShell({
           onDismiss={projects.dismissError}
         />
       )}
+      {separation.exportError !== undefined && (
+        <AlertBanner
+          message={separation.exportError}
+          onDismiss={separation.dismissExportError}
+        />
+      )}
       <ShortcutsDialog
         open={shortcutsOpen}
         onOpenChange={setShortcutsOpen}
@@ -291,6 +297,11 @@ export function WorkstationShell({
               onToggleMute={mixer.toggleMute}
               onToggleSolo={mixer.toggleSolo}
               onDownloadStem={separation.downloadStem}
+              onExportStems={() => {
+                void separation.exportStems(
+                  metadata.title ?? trackName ?? 'stems'
+                )
+              }}
             />
           </Stack>
         </main>

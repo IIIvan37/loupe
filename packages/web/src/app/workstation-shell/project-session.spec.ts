@@ -110,6 +110,9 @@ describe('restoreSession', () => {
         separate: vi.fn(async () => undefined),
         restore: vi.fn<Separation['restore']>(async () => restored),
         downloadStem: vi.fn(),
+        exportStems: vi.fn(async () => undefined),
+        exportError: undefined,
+        dismissExportError: vi.fn(),
         reset: vi.fn()
       } satisfies Separation,
       mixer: {

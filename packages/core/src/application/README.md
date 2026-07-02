@@ -13,6 +13,7 @@ The single place to look before adding a feature, so ports and use-cases get
 | `listProjects` | `(deps) => Promise<ListProjectsResult>` | Slice J3.2 — the saved manifests, most recently updated first. |
 | `openProject` | `(input, deps) => Promise<OpenProjectResult>` | Slice J3.2 — load a manifest and resolve every `AudioRef` back to bytes (source + stems) so the caller can rebuild the working session; unknown id / dangling ref → error `Result`. |
 | `deleteProject` | `(input, deps) => Promise<DeleteProjectResult>` | Slice J3.2 — remove a manifest. Its blobs become unreachable; reclaiming them is the audio-store adapter's business (later GC). |
+| `exportStems` | `(input, deps) => Promise<ExportStemsResult>` | Slice J2.6 — export tier A: encode the given stems (the caller picks which, e.g. only the present ones; numbering follows the input order) as numbered 16-bit WAVs (`01_Voix.wav`…) padded to one shared duration (t=0 aligned), and bundle them through the `ArchiveWriter` port into the archive the caller downloads. |
 
 > Pure transport domain (no use-case, driven by the UI): `transportReducer` /
 > `initialTransport` (`TransportState` machine), `formatTimecode` (m:ss), and the
@@ -72,6 +73,11 @@ The single place to look before adding a feature, so ports and use-cases get
 > per-stem export) serialises PCM to a 16-bit WAV; `decodeWav` (Slice J2.2b) is
 > its inverse, parsing a WAV the HTTP separator fetched back into `DecodedAudio`.
 >
+> Pure stem-export domain — Slice J2.6: `stemExportFilename` (`01_Voix.wav`…,
+> numbered in display order) and `padChannels` (bring every channel to one shared
+> frame count — zero-pad or truncate — so all exported WAVs start at t=0 and last
+> exactly as long). `exportStems` composes them with `encodeWav`.
+>
 > Pure project domain — Slice J3.1: `projectFromSession`
 > assembles a `Project` (id/name/timestamps + `ProjectSource`, `LoopLibrary`,
 > `MarkerList`, optional `ProjectSeparation` = stems + `MixerState`) from a
@@ -90,5 +96,6 @@ The single place to look before adding a feature, so ports and use-cases get
 | `StemPlaybackEngine` | driven | `web`: `createWebAudioStemPlayback` — synchronised multitrack playback (J2.4): a `GainNode` per stem summed into one SoundTouch master bus (tempo/pitch on the mix), `setGain` driven by the mixer's `effectiveGains` |
 | `TrackMetadataReader` | driven | `web`: `createMusicMetadataReader` (music-metadata; best-effort ID3/etc. tags) |
 | `StemSeparator` | driven | `web`: `createHttpSeparator` against a local **FastAPI + Demucs** backend (mix → WAV POST → streamed NDJSON progress → fetch + `decodeWav` stems — J2.2b). The earlier in-browser WASM engines (demucs.cpp GGML / onnxruntime-web) hit a quality+speed wall and were removed; a cloud API could be a later adapter on the same port. |
-| `ProjectStore` | driven | fakes only (J3.2 spec) — the real adapter (Tauri FS vs HTTP server) is the J3.3 decision. Light manifests: `list` / `load` (undefined for unknown id) / `save` / `delete`. |
-| `ProjectAudioStore` | driven | fakes only (J3.2 spec) — real adapter at J3.3. Heavy bytes: `put` mints the `AudioRef` (its spelling is the adapter's business), `get` resolves it (undefined for unknown ref). |
+| `ProjectStore` | driven | `web`: `createHttpProjectStore` against the local server (J3.3 — JSON manifests under `LOUPE_DATA_DIR`). Light manifests: `list` / `load` (undefined for unknown id) / `save` / `delete`. |
+| `ProjectAudioStore` | driven | `web`: `createHttpProjectAudioStore` (J3.3 — content-addressed sha256 blobs on the local server). Heavy bytes: `put` mints the `AudioRef` (its spelling is the adapter's business), `get` resolves it (undefined for unknown ref). |
+| `ArchiveWriter` | driven | `web`: `createZipArchiveWriter` (fflate, entries stored uncompressed — WAV PCM barely deflates). Bundles the export's named files into one downloadable archive; the download itself stays in the adapter. |
