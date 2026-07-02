@@ -20,16 +20,18 @@
   identical either way. Note: `localStorage` was never a project store (it only
   holds the loop library, ~KB); "projects" is a *new* capability (persist heavy
   audio + session state). Jalon 2 export (J2.6) remains open and unblocked.
-- **Branch**: `main` (clean, gate-green, no open branches/PRs). Slice **J3.1**
-  (pure `Project` domain) **merged** (PR #25) — `projectFromSession` assembles a
-  light `Project` (source/loops/markers + optional stems+mixer) from a
-  `SessionSnapshot` + injected `ProjectStamp` (`id`/`name`/`now`); heavy audio
-  stays behind an `AudioRef`; mutation `project.ts` 100%. Also **recovered the
-  lost design pass** (PR #24): PR #23 had been merged into the stale J2.4
-  feature branch instead of `main`; all 13 merged remote branches then deleted
-  (enable GitHub "Automatically delete head branches" to prevent a recurrence).
-  **Next**: **J3.2** — ports `ProjectStore`/`ProjectAudioStore` + use-cases
-  `saveProject`/`listProjects`/`openProject` with fake in-memory adapters.
+- **Branch**: `feat/jalon3-project-ports` (clean, gate-green) — Slice **J3.2**
+  done, PR to open. The ports `ProjectStore` (light manifests —
+  list/load/save/delete) + `ProjectAudioStore` (heavy bytes — `put` mints the
+  `AudioRef`, `get` resolves it; adapters should content-address) and the
+  use-cases `saveProject` / `listProjects` / `openProject` / `deleteProject`,
+  outside-in with fake in-memory adapters. The **mixer↔stems invariant is now
+  enforced**: pure `mixerMatchesStems` + fail-fast rejection in `saveProject`
+  before any byte is stored. Re-save keeps `createdAt`, bumps `updatedAt`.
+  Earlier: **J3.1** (pure `Project` domain) merged (PR #25); lost design pass
+  recovered (PR #24); toolchain hardening merged (PR #26).
+  **Next**: **J3.3** — real adapter + UI (Save / list / Open), decides
+  Tauri desktop vs extended HTTP server.
   **Scope change (2026-06-30): J2.5 track grouping is dropped** (low value) —
   Jalon 2 now ends at the mixer (J2.4) + export (J2.6).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
@@ -67,16 +69,27 @@
 
 ## Next step
 
-**Start Slice J3.2** — the application layer of project persistence. Branch
-`feat/jalon3-project-ports` off `main`, then outer-loop acceptance test for
-`saveProject` with **fake in-memory adapters**, pulling the ports into
-existence: `ProjectStore` (light manifest — list/load/save/delete) and
-`ProjectAudioStore` (heavy blobs — put/get by `AudioRef`), plus the use-cases
-`saveProject` / `listProjects` / `openProject`. The mixer↔stems consistency
-invariant (every `MixerState` channel id maps to a `ProjectStem`) is still
-deliberately unenforced — validate it here if a use-case needs it. The
-Tauri-vs-server call lands at **J3.3** (real adapter + UI). Jalon 2 export
-(J2.6) stays open and unblocked.
+**Merge the J3.2 PR, then start Slice J3.3** — the real adapter + UI, where
+the **Tauri-desktop vs extended-HTTP-server decision lands**. Drive it from
+the consumer: a Save action in the workstation (assemble `SaveProjectInput`
+from the live session — source bytes already in memory from `loadTrack`, stem
+WAVs via `encodeWav`) and a project list/open screen on `listProjects` /
+`openProject` / `deleteProject`. The adapter should **content-address**
+`AudioRef`s (same bytes → same ref) so re-saves dedupe and orphaned blobs stay
+GC-able — that recommendation is on the port doc. `openProject` returns bytes;
+rebuild the session with `loadTrack` + `decodeWav`. Jalon 2 export (J2.6)
+stays open and unblocked.
+
+### Earlier — Slice J3.2 (this branch, PR pending)
+
+The application layer of project persistence: `ProjectStore` /
+`ProjectAudioStore` ports + `saveProject` / `listProjects` / `openProject` /
+`deleteProject`, acceptance-tested against fake in-memory adapters. Store-
+minted refs; results as ok/error unions; parallel audio I/O; mixer↔stems
+invariant enforced at its first consumer (`mixerMatchesStems`). Gate green,
+291 tests, mutation 96.26% (application layer 100%). Known deferral: orphaned
+blobs on failed/re-saves — mitigated by the content-addressing contract note,
+reclamation is the adapter's business.
 
 ### Earlier — Slice J3.1 (merged, PR #25)
 The pure `Project` domain that opens Jalon 3. `projectFromSession(session,
@@ -135,13 +148,23 @@ mixer (J2.4) then export (J2.6). See
 | ~~J2.5~~ | ~~Track grouping (user bus, non-destructive)~~ — **dropped** (low value without enough perceived benefit) | 🚫 |
 | J2.6 | Export — tier A: aligned stem folder (named WAVs, t=0, zipped) | ⬜ |
 | J3.1 | Pure `Project` domain — `projectFromSession` (light model, `AudioRef` pointers, injected id/name/now) | ✅ |
-| J3.2 | Ports `ProjectStore` / `ProjectAudioStore` + use-cases `saveProject` / `listProjects` / `openProject` (fake adapters) | ⬜ |
+| J3.2 | Ports `ProjectStore` / `ProjectAudioStore` + use-cases `saveProject` / `listProjects` / `openProject` / `deleteProject` (fake adapters, mixer↔stems invariant enforced) | ✅ |
 | J3.3 | Real adapter + UI (Save / list / Open) — **decides Tauri desktop vs web server** | ⬜ |
 
 ## Session journal
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-02 — jalon3-project-ports](sessions/2026-07-02-jalon3-project-ports.md) —
+  Slice J3.2: the application layer of project persistence. `ProjectStore`
+  (list/load/save/delete manifests) + `ProjectAudioStore` (`put` mints the
+  `AudioRef`, `get` resolves; adapters should content-address) pulled into
+  existence by `saveProject` / `listProjects` / `openProject` / `deleteProject`
+  over fake in-memory adapters. Mixer↔stems invariant enforced fail-fast at its
+  first consumer (pure `mixerMatchesStems`); re-save keeps `createdAt`. Review
+  fixes: parallel audio I/O, shared `errorMessage`, port contract notes. Gate
+  green, 291 tests, mutation 96.26% (application 100%). Next: J3.3 (real
+  adapter + UI — Tauri vs server decision).
 - [2026-07-02 — jalon3-merge-and-branch-cleanup](sessions/2026-07-02-jalon3-merge-and-branch-cleanup.md) —
   Post-merge close: **PR #25 (J3.1 Project domain) merged**; **PR #24 recovered
   the lost design pass** (PR #23 had been merged into the stale
