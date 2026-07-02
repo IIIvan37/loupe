@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import {
   dbToAmplitude,
+  type MixerState,
   type SeparatedStem,
   type StemSet,
   type StemSource
@@ -149,6 +150,30 @@ describe('useMixer', () => {
     })
     // Muting one leaves only the other's envelope.
     expect(result.current.mixWaveform.peaks[0]).toEqual({ min: -0.4, max: 0.4 })
+  })
+
+  it('restores a persisted mixer and pushes its effective gains to the engine', () => {
+    const engine = fakeEngine()
+    const hook = renderHook(() => useMixer(engine))
+    const saved: MixerState = [
+      { id: 'voix', gainDb: -6, muted: false, soloed: false },
+      { id: 'basse', gainDb: 0, muted: true, soloed: false }
+    ]
+
+    act(() => {
+      hook.result.current.restore(stems, sources, saved)
+    })
+
+    expect(engine.load).toHaveBeenCalledOnce()
+    expect(hook.result.current.state).toEqual(saved)
+    // Unlike a fresh load, restored gains rarely sit at unity — they are pushed.
+    expect(engine.setGain).toHaveBeenCalledWith('voix', dbToAmplitude(-6))
+    expect(engine.setGain).toHaveBeenCalledWith('basse', 0)
+    const basse = hook.result.current.channels.find(
+      (c) => c.stem.id === 'basse'
+    )
+    expect(basse?.muted).toBe(true)
+    expect(basse?.level).toBe(0)
   })
 
   it('only mixes the stems that are present and whose PCM is available', () => {

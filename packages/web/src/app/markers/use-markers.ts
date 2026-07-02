@@ -16,6 +16,8 @@ export interface Markers {
   readonly remove: (id: string) => void
   /** Drop every marker — e.g. when a new track is loaded. */
   readonly clear: () => void
+  /** Replace the whole list with a persisted one (opening a project). */
+  readonly restore: (markers: MarkerList) => void
 }
 
 /**
@@ -52,5 +54,9 @@ export function useMarkers(): Markers {
     setMarkers(emptyMarkerList)
   }
 
-  return { markers, addAt, rename, remove, clear }
+  function restore(next: MarkerList): void {
+    setMarkers(next)
+  }
+
+  return { markers, addAt, rename, remove, clear, restore }
 }

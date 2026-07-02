@@ -18,6 +18,8 @@ export interface Loops {
   /** Re-save an existing loop (same id), e.g. after editing its name/edges. */
   readonly update: (loop: NamedLoop) => void
   readonly remove: (id: string) => void
+  /** Replace the whole library with a persisted one (opening a project). */
+  readonly restore: (library: LoopLibrary) => void
 }
 
 /**
@@ -59,5 +61,11 @@ export function useLoops(store?: LoopStore): Loops {
     void deleteLoop({ library, id }, { store: loopStore }).then(setLibrary)
   }
 
-  return { library, save, update, remove }
+  function restore(next: LoopLibrary): void {
+    setLibrary(next)
+    // Best-effort persist, so the restored library survives a reload too.
+    void loopStore.save(next).catch(() => {})
+  }
+
+  return { library, save, update, remove, restore }
 }

@@ -29,6 +29,8 @@ export type MixerAction =
   | { readonly type: 'toggleMute'; readonly id: string }
   | { readonly type: 'toggleSolo'; readonly id: string }
   | { readonly type: 'reset' }
+  /** Adopt a persisted state wholesale (opening a saved project). */
+  | { readonly type: 'restore'; readonly channels: MixerState }
 
 export const emptyMixer: MixerState = []
 
@@ -90,6 +92,12 @@ export function mixerReducer(
       )
     case 'reset':
       return emptyMixer
+    case 'restore':
+      // Re-clamp on the way in: persisted data is outside the reducer's control.
+      return action.channels.map((channel) => ({
+        ...channel,
+        gainDb: clampGainDb(channel.gainDb)
+      }))
   }
 }
 

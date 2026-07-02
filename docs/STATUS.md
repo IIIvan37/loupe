@@ -20,18 +20,17 @@
   identical either way. Note: `localStorage` was never a project store (it only
   holds the loop library, ~KB); "projects" is a *new* capability (persist heavy
   audio + session state). Jalon 2 export (J2.6) remains open and unblocked.
-- **Branch**: `feat/jalon3-project-ports` (clean, gate-green) — Slice **J3.2**
-  done, PR to open. The ports `ProjectStore` (light manifests —
-  list/load/save/delete) + `ProjectAudioStore` (heavy bytes — `put` mints the
-  `AudioRef`, `get` resolves it; adapters should content-address) and the
-  use-cases `saveProject` / `listProjects` / `openProject` / `deleteProject`,
-  outside-in with fake in-memory adapters. The **mixer↔stems invariant is now
-  enforced**: pure `mixerMatchesStems` + fail-fast rejection in `saveProject`
-  before any byte is stored. Re-save keeps `createdAt`, bumps `updatedAt`.
-  Earlier: **J3.1** (pure `Project` domain) merged (PR #25); lost design pass
-  recovered (PR #24); toolchain hardening merged (PR #26).
-  **Next**: **J3.3** — real adapter + UI (Save / list / Open), decides
-  Tauri desktop vs extended HTTP server.
+- **Branch**: `feat/jalon3-project-server-ui` (clean, gate-green) — Slice
+  **J3.3** done, PR to open. **Decision resolved: extended HTTP server** (not
+  Tauri) — the one local server now hosts project storage (always on,
+  content-addressed sha256 blobs + JSON manifests under `LOUPE_DATA_DIR`) and
+  separation (lazily imported: a torch-less host still stores projects).
+  Web: HTTP adapters on the J3.2 ports, « Enregistrer » (NameEditor) +
+  « Projets » dialog in the header, full session save/rebuild (source bytes,
+  loops, markers, stems re-encoded + replayed through the separation
+  pipeline, mixer `restore` action). Browser click-through still pending.
+  Earlier: **J3.2** (ports + use-cases, PR #27) and **J3.1** (pure `Project`
+  domain, PR #25) merged.
   **Scope change (2026-06-30): J2.5 track grouping is dropped** (low value) —
   Jalon 2 now ends at the mixer (J2.4) + export (J2.6).
 - **Packages**: `@app/core` (pure hexagon — `loadTrack`, `Waveform`/`Track`,
@@ -69,16 +68,12 @@
 
 ## Next step
 
-**Merge the J3.2 PR, then start Slice J3.3** — the real adapter + UI, where
-the **Tauri-desktop vs extended-HTTP-server decision lands**. Drive it from
-the consumer: a Save action in the workstation (assemble `SaveProjectInput`
-from the live session — source bytes already in memory from `loadTrack`, stem
-WAVs via `encodeWav`) and a project list/open screen on `listProjects` /
-`openProject` / `deleteProject`. The adapter should **content-address**
-`AudioRef`s (same bytes → same ref) so re-saves dedupe and orphaned blobs stay
-GC-able — that recommendation is on the port doc. `openProject` returns bytes;
-rebuild the session with `loadTrack` + `decodeWav`. Jalon 2 export (J2.6)
-stays open and unblocked.
+**Browser-verify J3.3, then merge its PR.** Run `pnpm dev` (the server side
+needs only fastapi+uvicorn for storage — `separator-server/.venv` on this PC
+has them), import a track, save (« Enregistrer »), reload, « Projets » →
+open, and check markers/loops (and stems + mixer on a machine with Demucs).
+Then pick the next slice: **J2.6 export** (aligned stem folder) or Jalon 3
+polish (project rename, blob GC, `separator-server/` → `server/` rename).
 
 ### Earlier — Slice J3.2 (this branch, PR pending)
 
@@ -149,12 +144,20 @@ mixer (J2.4) then export (J2.6). See
 | J2.6 | Export — tier A: aligned stem folder (named WAVs, t=0, zipped) | ⬜ |
 | J3.1 | Pure `Project` domain — `projectFromSession` (light model, `AudioRef` pointers, injected id/name/now) | ✅ |
 | J3.2 | Ports `ProjectStore` / `ProjectAudioStore` + use-cases `saveProject` / `listProjects` / `openProject` / `deleteProject` (fake adapters, mixer↔stems invariant enforced) | ✅ |
-| J3.3 | Real adapter + UI (Save / list / Open) — **decides Tauri desktop vs web server** | ⬜ |
+| J3.3 | Real adapter + UI (Save / list / Open) — **decided: extended HTTP server** (content-addressed blobs; storage works without torch) | ✅ |
 
 ## Session journal
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-02 — jalon3-server-adapter-ui](sessions/2026-07-02-jalon3-server-adapter-ui.md) —
+  Slice J3.3: **backend decided — extended HTTP server**. Server split
+  (`projects.py` storage always-on, `separation.py` torch-gated, lazy import;
+  curl-verified without torch); content-addressed sha256 blobs, atomic writes.
+  Web HTTP adapters + `useProjects`, « Enregistrer »/« Projets » in the header,
+  full session save/rebuild (bytes retained, stems `encodeWav`↔`decodeWav`,
+  separation replayed, new mixer `restore` action). Gate green, 316 tests,
+  mutation 96.28%. Browser click-through pending.
 - [2026-07-02 — jalon3-project-ports](sessions/2026-07-02-jalon3-project-ports.md) —
   Slice J3.2: the application layer of project persistence. `ProjectStore`
   (list/load/save/delete manifests) + `ProjectAudioStore` (`put` mints the

@@ -41,6 +41,22 @@ describe('useSeparation', () => {
     expect(result.current.state.stems.map((s) => s.id)).toEqual(['voix'])
   })
 
+  it('rebuilds the ready state from persisted stems without the separator', async () => {
+    const { separator } = deferredSeparator()
+    const { result } = renderHook(() => useSeparation(separator))
+
+    let restored: Awaited<ReturnType<typeof result.current.restore>>
+    await act(async () => {
+      restored = await result.current.restore(audio, stems)
+    })
+
+    // The pipeline re-ran over the stored stems — never touching the separator.
+    expect(result.current.state.status).toBe('ready')
+    expect(result.current.state.stems.map((s) => s.id)).toEqual(['voix'])
+    expect(result.current.sources).toEqual(stems)
+    expect(restored?.sources).toEqual(stems)
+  })
+
   it('ignores a stale run that finishes after a reset', async () => {
     const { separator, finish } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(separator))

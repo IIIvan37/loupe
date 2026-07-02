@@ -42,6 +42,8 @@ export interface Player {
   readonly importState: ImportState
   /** The decoded PCM of the loaded track, for reuse (stem separation). */
   readonly loadedAudio: DecodedAudio | undefined
+  /** The imported file's original encoded bytes, for reuse (saving a project). */
+  readonly loadedBytes: ArrayBuffer | undefined
   /** Tags read from the imported file (empty fields when the file has none). */
   readonly metadata: TrackMetadata
   readonly transport: TransportState
@@ -49,7 +51,8 @@ export interface Player {
   readonly timeRatio: number
   /** Pitch shift in whole semitones (0 = original key). */
   readonly pitchSemitones: number
-  readonly importFile: (file: File) => Promise<void>
+  /** Import a file; resolves with its decoded PCM (undefined on failure). */
+  readonly importFile: (file: File) => Promise<DecodedAudio | undefined>
   readonly togglePlayback: () => void
   /** Seek to a fraction (0–1) of the timeline — what a waveform click yields. */
   readonly seekToRatio: (ratio: number) => void
@@ -99,6 +102,9 @@ export function usePlayer(
     status: 'idle'
   })
   const [loadedAudio, setLoadedAudio] = useState<DecodedAudio | undefined>(
+    undefined
+  )
+  const [loadedBytes, setLoadedBytes] = useState<ArrayBuffer | undefined>(
     undefined
   )
   const [transport, dispatch] = useReducer(transportReducer, initialTransport)
@@ -185,19 +191,23 @@ export function usePlayer(
     dispatch({ type: 'pause' })
   }, [stemsActive, playback, stemPlayback])
 
-  async function importFile(file: File): Promise<void> {
+  async function importFile(file: File): Promise<DecodedAudio | undefined> {
     importIdRef.current += 1
     const importId = importIdRef.current
     setImportState({ status: 'loading' })
     setMetadata(NO_METADATA)
     setLoadedAudio(undefined)
+    setLoadedBytes(undefined)
     try {
       const bytes = await file.arrayBuffer()
+      // Retain the original bytes from a copy — decoding may detach the buffer.
+      // They are what a saved project stores as the source audio.
+      const retained = bytes.slice(0)
       // Read tags best-effort and in parallel, from a copy — decoding may detach
       // the original buffer. A tagless/unreadable file just keeps empty fields,
       // and a read from a superseded import is ignored.
       reader
-        .read(bytes.slice(0))
+        .read(retained.slice(0))
         .then((meta) => {
           if (importIdRef.current === importId) {
             setMetadata(meta)
@@ -211,20 +221,22 @@ export function usePlayer(
       if (result.ok) {
         setImportState({ status: 'loaded', track: result.track })
         setLoadedAudio(result.audio)
+        setLoadedBytes(retained)
         setLoopRegionState(undefined)
         dispatch({
           type: 'load',
           durationSeconds: result.track.durationSeconds
         })
-      } else {
-        setImportState({ status: 'error', message: result.error })
+        return result.audio
       }
+      setImportState({ status: 'error', message: result.error })
     } catch (e) {
       setImportState({
         status: 'error',
         message: e instanceof Error ? e.message : String(e)
       })
     }
+    return undefined
   }
 
   function togglePlayback(): void {
@@ -285,6 +297,7 @@ export function usePlayer(
   return {
     importState,
     loadedAudio,
+    loadedBytes,
     metadata,
     transport,
     timeRatio,

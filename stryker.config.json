@@ -15,6 +15,7 @@
     "low": 80,
     "break": 80
   },
+  "ignorePatterns": ["separator-server"],
   "tempDirName": ".stryker-tmp",
   "htmlReporter": {
     "fileName": "reports/mutation/index.html"

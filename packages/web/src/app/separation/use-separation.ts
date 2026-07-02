@@ -35,6 +35,15 @@ export interface Separation {
   readonly separate: (
     audio: DecodedAudio
   ) => Promise<SeparationResult | undefined>
+  /**
+   * Rebuild the ready state from a project's persisted stems: the same pipeline
+   * as `separate` (waveforms + instrument detection re-run over the PCM), but
+   * fed the stored stems instead of the separator port.
+   */
+  readonly restore: (
+    mix: DecodedAudio,
+    sources: readonly SeparatedStem[]
+  ) => Promise<SeparationResult | undefined>
   /** Download one separated stem as a 16-bit WAV (no-op if its PCM is gone). */
   readonly downloadStem: (id: string) => void
   readonly reset: () => void
@@ -63,8 +72,11 @@ export function useSeparation(separator?: StemSeparator): Separation {
   // but reactive so the mixer can load them into the gain graph when they land.
   const [sources, setSources] = useState<readonly SeparatedStem[]>([])
 
-  async function separate(
-    audio: DecodedAudio
+  // The whole pipeline behind both entry points: run `separateTrack` with the
+  // given separator (the real engine, or the stored stems replayed) and commit.
+  async function run(
+    audio: DecodedAudio,
+    separateWith: StemSeparator
   ): Promise<SeparationResult | undefined> {
     const runId = ++runIdRef.current
     setSources([])
@@ -72,7 +84,7 @@ export function useSeparation(separator?: StemSeparator): Separation {
     const result = await separateTrack(
       { audio, bucketCount: BUCKET_COUNT },
       {
-        separator: engine,
+        separator: separateWith,
         onProgress: (progress) => {
           if (runIdRef.current === runId) {
             dispatch({
@@ -99,6 +111,21 @@ export function useSeparation(separator?: StemSeparator): Separation {
     return committed
   }
 
+  function separate(
+    audio: DecodedAudio
+  ): Promise<SeparationResult | undefined> {
+    return run(audio, engine)
+  }
+
+  function restore(
+    mix: DecodedAudio,
+    sources: readonly SeparatedStem[]
+  ): Promise<SeparationResult | undefined> {
+    // A separator that just replays the stored stems — waveforms and instrument
+    // detection are recomputed, exactly as after a live separation.
+    return run(mix, { separate: async () => sources })
+  }
+
   function downloadStem(id: string): void {
     const index = sources.findIndex((stem) => stem.id === id)
     const stem = sources[index]
@@ -119,5 +146,5 @@ export function useSeparation(separator?: StemSeparator): Separation {
     dispatch({ type: 'reset' })
   }
 
-  return { state, sources, separate, downloadStem, reset }
+  return { state, sources, separate, restore, downloadStem, reset }
 }

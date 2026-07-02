@@ -115,6 +115,31 @@ describe('mixerReducer', () => {
     expect(mixerReducer(start, { type: 'reset' })).toEqual(emptyMixer)
   })
 
+  it('restores a persisted state as-is, replacing the current channels', () => {
+    const start = mixerReducer(emptyMixer, { type: 'init', ids: ['x'] })
+    const saved: MixerState = [
+      { id: 'voix', gainDb: -12, muted: true, soloed: false },
+      { id: 'basse', gainDb: 3, muted: false, soloed: true }
+    ]
+    expect(mixerReducer(start, { type: 'restore', channels: saved })).toEqual(
+      saved
+    )
+  })
+
+  it('clamps each restored channel gain to the fader range', () => {
+    const saved: MixerState = [
+      { id: 'a', gainDb: 99, muted: false, soloed: false },
+      { id: 'b', gainDb: -200, muted: false, soloed: false },
+      { id: 'c', gainDb: Number.NaN, muted: false, soloed: false }
+    ]
+    const state = mixerReducer(emptyMixer, { type: 'restore', channels: saved })
+    expect(state.map((channel) => channel.gainDb)).toEqual([
+      MAX_GAIN_DB,
+      MIN_GAIN_DB,
+      UNITY_GAIN_DB
+    ])
+  })
+
   it('ignores actions targeting an unknown channel', () => {
     const start = mixerReducer(emptyMixer, { type: 'init', ids: ['a'] })
     expect(
