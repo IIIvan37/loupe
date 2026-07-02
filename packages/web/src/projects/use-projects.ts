@@ -34,6 +34,12 @@ export interface Projects {
   /** Open a project; the caller rebuilds the session from the result. */
   readonly open: (id: string) => Promise<OpenProjectResult>
   readonly remove: (id: string) => Promise<void>
+  /**
+   * Forget the current project without touching the store — the session no
+   * longer maps to it (e.g. a new file was imported), so the next save must
+   * mint a fresh project instead of overwriting the old one.
+   */
+  readonly detach: () => void
 }
 
 /**
@@ -126,6 +132,7 @@ export function useProjects(stores?: ProjectDeps): Projects {
     refresh,
     save,
     open,
-    remove
+    remove,
+    detach: () => setCurrentId(undefined)
   }
 }

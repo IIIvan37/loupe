@@ -656,6 +656,34 @@ describe('WorkstationShell', () => {
     expect(screen.getAllByRole('button', { name: 'Ouvrir' })).toHaveLength(1)
   })
 
+  it('detaches the session from the saved project when a new file is imported', async () => {
+    renderShell({ projectStores: fakeProjectStores() })
+    await importTrack()
+    await saveProjectAs('Premier morceau')
+
+    // A new import starts a fresh session — the header must offer a first
+    // save (name popover), not a one-click re-save onto the old project.
+    await importTrack()
+
+    expect(
+      screen.getByRole('button', { name: 'Enregistrer le projet' })
+    ).toBeInTheDocument()
+  })
+
+  it('saves the re-imported session as a second project, not over the first', async () => {
+    renderShell({ projectStores: fakeProjectStores() })
+    await importTrack()
+    await saveProjectAs('Premier morceau')
+
+    await importTrack()
+    await saveProjectAs('Deuxième morceau')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Projets' }))
+    expect(
+      await screen.findAllByRole('button', { name: 'Ouvrir' })
+    ).toHaveLength(2)
+  })
+
   it('asks before opening a project over the loaded session', async () => {
     renderShell({ projectStores: fakeProjectStores() })
     await importTrack()

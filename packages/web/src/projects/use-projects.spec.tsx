@@ -95,6 +95,37 @@ describe('useProjects', () => {
     expect(fresh.current.currentId).toBe(savedId)
   })
 
+  it('detaches the current project so the next save mints a fresh id', async () => {
+    const stores = fakeStores()
+    const { result } = renderHook(() => useProjects(stores))
+    await act(async () => {
+      await result.current.save('Premier morceau', input)
+    })
+    const firstId = result.current.currentId
+
+    act(() => result.current.detach())
+    await act(async () => {
+      await result.current.save('Deuxième morceau', input)
+    })
+
+    expect(result.current.currentId).not.toBe(firstId)
+  })
+
+  it('keeps both projects when saving after a detach', async () => {
+    const stores = fakeStores()
+    const { result } = renderHook(() => useProjects(stores))
+    await act(async () => {
+      await result.current.save('Premier morceau', input)
+    })
+
+    act(() => result.current.detach())
+    await act(async () => {
+      await result.current.save('Deuxième morceau', input)
+    })
+
+    expect(result.current.projects).toHaveLength(2)
+  })
+
   it('removes a project; removing the current one clears the current id', async () => {
     const { result } = renderHook(() => useProjects(fakeStores()))
     await act(async () => {

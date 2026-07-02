@@ -210,6 +210,8 @@ export function WorkstationShell({
   function onFilePicked(event: ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0]
     if (file) {
+      // Detach: saving the new track must not overwrite the open project.
+      projects.detach()
       startFreshTrack(trackTitle(file.name))
       void importFile(file)
     }
