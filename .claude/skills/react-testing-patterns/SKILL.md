@@ -39,7 +39,7 @@ await user.click(screen.getByRole('button', { name: 'Projets' }))
 await user.type(screen.getByLabelText('Nom'), 'Mon passage')
 ```
 
-`fireEvent` remains the RIGHT tool for three cases in this codebase:
+`fireEvent` remains the RIGHT tool for four cases in this codebase:
 
 1. **Range sliders** (`fireEvent.change(slider, { target: { value: '75' } })`)
    — `user-event` cannot drive `<input type="range">`.

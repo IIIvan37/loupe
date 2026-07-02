@@ -126,6 +126,69 @@ describe('useProjects', () => {
     expect(result.current.projects).toHaveLength(2)
   })
 
+  it('does not re-attach when a save resolves after a detach', async () => {
+    const working = fakeStores()
+    let release: (() => void) | undefined
+    const gated: ProjectDeps = {
+      store: working.store,
+      audio: {
+        ...working.audio,
+        put: (bytes) =>
+          new Promise((resolve) => {
+            release = () => resolve(working.audio.put(bytes))
+          })
+      }
+    }
+    const { result } = renderHook(() => useProjects(gated))
+
+    let pending: Promise<void> | undefined
+    act(() => {
+      pending = result.current.save('Mon projet', input)
+    })
+    // The session moved on (new import) while the save is in flight.
+    act(() => result.current.detach())
+    await act(async () => {
+      release?.()
+      await pending
+    })
+
+    expect(result.current.currentId).toBeUndefined()
+  })
+
+  it('does not re-attach when an open resolves after a detach', async () => {
+    const stores = fakeStores()
+    const { result } = renderHook(() => useProjects(stores))
+    await act(async () => {
+      await result.current.save('Mon projet', input)
+    })
+    const savedId = result.current.currentId as string
+
+    let release: (() => void) | undefined
+    const gated: ProjectDeps = {
+      store: {
+        ...stores.store,
+        load: (id) =>
+          new Promise((resolve) => {
+            release = () => resolve(stores.store.load(id))
+          })
+      },
+      audio: stores.audio
+    }
+    const { result: fresh } = renderHook(() => useProjects(gated))
+
+    let pending: Promise<unknown> | undefined
+    act(() => {
+      pending = fresh.current.open(savedId)
+    })
+    act(() => fresh.current.detach())
+    await act(async () => {
+      release?.()
+      await pending
+    })
+
+    expect(fresh.current.currentId).toBeUndefined()
+  })
+
   it('removes a project; removing the current one clears the current id', async () => {
     const { result } = renderHook(() => useProjects(fakeStores()))
     await act(async () => {

@@ -216,25 +216,43 @@ export function usePlayer(
         .catch(() => {})
       const result = await loadTrack(
         { bytes, bucketCount: BUCKET_COUNT },
-        { decoder: audioDecoder, engine: playback }
+        {
+          decoder: audioDecoder,
+          // A superseded import must not push its audio into the engine — the
+          // newer import already owns it.
+          engine: {
+            ...playback,
+            load: async (audio) => {
+              if (importIdRef.current === importId) {
+                await playback.load(audio)
+              }
+            }
+          }
+        }
       )
-      if (result.ok) {
-        setImportState({ status: 'loaded', track: result.track })
-        setLoadedAudio(result.audio)
-        setLoadedBytes(retained)
-        setLoopRegionState(undefined)
-        dispatch({
-          type: 'load',
-          durationSeconds: result.track.durationSeconds
-        })
-        return result.audio
+      // Apply the outcome only if no newer import took over during the decode
+      // — the newer import owns the session now, success and error alike.
+      if (importIdRef.current === importId) {
+        if (result.ok) {
+          setImportState({ status: 'loaded', track: result.track })
+          setLoadedAudio(result.audio)
+          setLoadedBytes(retained)
+          setLoopRegionState(undefined)
+          dispatch({
+            type: 'load',
+            durationSeconds: result.track.durationSeconds
+          })
+          return result.audio
+        }
+        setImportState({ status: 'error', message: result.error })
       }
-      setImportState({ status: 'error', message: result.error })
     } catch (e) {
-      setImportState({
-        status: 'error',
-        message: e instanceof Error ? e.message : String(e)
-      })
+      if (importIdRef.current === importId) {
+        setImportState({
+          status: 'error',
+          message: e instanceof Error ? e.message : String(e)
+        })
+      }
     }
     return undefined
   }

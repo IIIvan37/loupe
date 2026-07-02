@@ -74,8 +74,8 @@ function fakeStemEngine(): StemPlaybackEngine {
   }
 }
 
-function audioFile(): File {
-  return new File([new Uint8Array([1, 2, 3, 4])], 'take.wav', { type: 'audio/wav' })
+function audioFile(name = 'take.wav'): File {
+  return new File([new Uint8Array([1, 2, 3, 4])], name, { type: 'audio/wav' })
 }
 
 /** A tagless reader — keeps tests off the real music-metadata parser. */
@@ -200,10 +200,10 @@ function renderShell(
   return { engine, user, ...utils }
 }
 
-async function importTrack(user: UserEvent): Promise<void> {
+async function importTrack(user: UserEvent, fileName?: string): Promise<void> {
   await user.upload(
     screen.getByLabelText('Importer un fichier audio'),
-    audioFile()
+    audioFile(fileName)
   )
   await waitFor(() => {
     expect(
@@ -241,6 +241,32 @@ describe('WorkstationShell', () => {
 
     expect(screen.getByRole('button', { name: 'Lecture' })).toBeEnabled()
     // Scope to the transport — the ruler also prints timecodes.
+    const footer = container.querySelector('footer') as HTMLElement
+    expect(within(footer).getByText('0:10')).toBeInTheDocument()
+  })
+
+  it('ignores a superseded import that resolves after the newer one', async () => {
+    const pending: Array<(audio: DecodedAudio) => void> = []
+    const decoder: AudioFileDecoder = {
+      decode: () =>
+        new Promise((resolve) => {
+          pending.push(resolve)
+        })
+    }
+    const { user, container } = renderShell({ decoder })
+    const input = screen.getByLabelText('Importer un fichier audio')
+    await user.upload(input, audioFile('lent.wav'))
+    await user.upload(input, audioFile('rapide.wav'))
+
+    // The newer import resolves first (10 s)...
+    await act(async () => {
+      pending[1]?.(decoded)
+    })
+    // ...then the stale one lands with a different, shorter timeline.
+    await act(async () => {
+      pending[0]?.({ sampleRate: 1, channels: [[0, 0.5, 1]] })
+    })
+
     const footer = container.querySelector('footer') as HTMLElement
     expect(within(footer).getByText('0:10')).toBeInTheDocument()
   })
@@ -715,6 +741,46 @@ describe('WorkstationShell', () => {
         screen.queryByRole('button', { name: 'Ouvrir' })
       ).not.toBeInTheDocument()
     })
+  })
+
+  it('discards a resolving open once a new file was imported meanwhile', async () => {
+    const working = fakeProjectStores()
+    let gateNext = false
+    let release: (() => void) | undefined
+    const gated: ProjectDeps = {
+      store: {
+        ...working.store,
+        load: (id) => {
+          if (!gateNext) {
+            return working.store.load(id)
+          }
+          return new Promise((resolve) => {
+            release = () => resolve(working.store.load(id))
+          })
+        }
+      },
+      audio: working.audio
+    }
+    const { user } = renderShell({ projectStores: gated })
+    await importTrack(user)
+    await saveProjectAs(user, 'Projet A')
+
+    gateNext = true
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(
+      screen.getByRole('button', { name: "Confirmer l'ouverture de Projet A" })
+    )
+    // The open hangs on the gated store; leave the dialog, import a new file.
+    await user.click(screen.getByRole('button', { name: 'Fermer' }))
+    await importTrack(user, 'nouveau.wav')
+
+    await act(async () => {
+      release?.()
+    })
+
+    // The stale open must not clobber the freshly imported session.
+    expect(screen.getByText('nouveau')).toBeInTheDocument()
   })
 
   it('says the server is unreachable when the projects listing fails', async () => {
