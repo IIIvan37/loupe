@@ -13,6 +13,8 @@ export type {
   DecodedAudio,
   LoopStore,
   PlaybackEngine,
+  ProjectAudioStore,
+  ProjectStore,
   SeparatedStem,
   SeparationProgress,
   StemPlaybackEngine,
@@ -21,6 +23,22 @@ export type {
   TrackMetadata,
   TrackMetadataReader
 } from './application/ports.ts'
+export type {
+  DeleteProjectResult,
+  ListProjectsResult,
+  OpenedStem,
+  OpenProjectResult,
+  ProjectDeps,
+  SaveProjectInput,
+  SaveProjectResult,
+  SaveProjectStem
+} from './application/projects.ts'
+export {
+  deleteProject,
+  listProjects,
+  openProject,
+  saveProject
+} from './application/projects.ts'
 export type {
   SeparateTrackDeps,
   SeparateTrackInput,

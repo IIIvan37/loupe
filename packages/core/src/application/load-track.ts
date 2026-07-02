@@ -1,4 +1,5 @@
 import { buildTrack, type Track } from '../domain/track.ts'
+import { errorMessage } from './error-message.ts'
 import type { AudioFileDecoder, DecodedAudio, PlaybackEngine } from './ports.ts'
 
 export interface LoadTrackInput {
@@ -39,6 +40,6 @@ export async function loadTrack(
     await deps.engine.load(decoded)
     return { ok: true, track, audio: decoded }
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : String(e) }
+    return { ok: false, error: errorMessage(e) }
   }
 }

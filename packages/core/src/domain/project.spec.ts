@@ -4,6 +4,7 @@ import type { LoopLibrary } from './loop-library.ts'
 import type { MarkerList } from './marker-list.ts'
 import type { MixerState } from './mixer.ts'
 import {
+  mixerMatchesStems,
   type ProjectSeparation,
   type ProjectStamp,
   projectFromSession,
@@ -100,5 +101,29 @@ describe('projectFromSession', () => {
         expect(project.markers).toBe(snap.markers)
       })
     )
+  })
+})
+
+describe('mixerMatchesStems', () => {
+  const mixer: MixerState = [
+    { id: 'voice', gainDb: 0, muted: false, soloed: false },
+    { id: 'drums', gainDb: -3, muted: true, soloed: false }
+  ]
+
+  it('accepts a mixer whose channel ids equal the stem ids, in any order', () => {
+    expect(mixerMatchesStems(['voice', 'drums'], mixer)).toBe(true)
+    expect(mixerMatchesStems(['drums', 'voice'], mixer)).toBe(true)
+  })
+
+  it('rejects a mixer channel with no matching stem', () => {
+    expect(mixerMatchesStems(['voice'], mixer)).toBe(false)
+  })
+
+  it('rejects a stem with no matching mixer channel', () => {
+    expect(mixerMatchesStems(['voice', 'drums', 'bass'], mixer)).toBe(false)
+  })
+
+  it('accepts the empty separation', () => {
+    expect(mixerMatchesStems([], [])).toBe(true)
   })
 })
