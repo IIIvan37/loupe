@@ -79,10 +79,16 @@ describe('SeparationPanel', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('omits the not-detected line when every stem is present', () => {
+  it('disappears entirely once ready with nothing to report', () => {
     const present = stems.filter((s) => s.present)
-    renderPanel({ status: 'ready', progress: 1, stems: present })
-    expect(screen.queryByText(/Non détectés/)).not.toBeInTheDocument()
+    const { container } = renderPanel({
+      status: 'ready',
+      progress: 1,
+      stems: present
+    })
+    // The stems live in the timeline (lanes + headers); a bare section
+    // title with nothing under it would just dangle.
+    expect(container).toBeEmptyDOMElement()
   })
 
   it('surfaces a failure and offers a retry', async () => {

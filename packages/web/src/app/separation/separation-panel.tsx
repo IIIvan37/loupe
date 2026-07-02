@@ -31,6 +31,12 @@ export function SeparationPanel({
   // are ready (a re-run needs a fresh import), keep it as a retry on failure.
   const canAct = !isRunning && state.status !== 'ready'
 
+  // Once ready the stems live in the timeline (lanes + gutter headers); with
+  // no masked stem to report either, the whole section would just dangle.
+  if (state.status === 'ready' && state.stems.every((stem) => stem.present)) {
+    return null
+  }
+
   return (
     <section className={styles.panel} aria-label="Séparation des pistes">
       <div className={styles.head}>
