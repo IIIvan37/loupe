@@ -4,6 +4,13 @@
   font-size: 0.9rem;
 }
 
+/* Unreachable server: red-ish, the same accent as the other error surfaces. */
+.error {
+  margin-block-start: var(--space-m);
+  color: var(--stem-vocals);
+  font-size: 0.9rem;
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -64,4 +71,27 @@
 .delete:hover {
   color: var(--text);
   border-color: var(--line-strong);
+}
+
+/* The second step of a destructive/replacing action — red-ish and explicit. */
+.confirmAction {
+  padding: var(--space-3xs) var(--space-xs);
+  border: 1px solid var(--stem-vocals);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--stem-vocals);
+  font-size: 0.8rem;
+}
+
+.confirmNote {
+  color: var(--stem-vocals);
+  font-size: 0.7rem;
+}
+
+/* Visible keyboard focus on every row action (same ring as the app baseline). */
+.open:focus-visible,
+.delete:focus-visible,
+.confirmAction:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
 }

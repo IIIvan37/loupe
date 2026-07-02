@@ -68,6 +68,13 @@
 
 ## Next step
 
+**Merge the `fix/ux-feedback-guardrails` PR**, browser-verify save/open (now
+guarded by banners/confirmations), then start **J2.6 export** (aligned stem
+folder) — first item of the UX analysis backlog (then: real tempo detection,
+tempo/pitch/zoom persistence, speed trainer, per-project loops, undo).
+
+### Earlier — J3.3 browser-verify note
+
 **Browser-verify J3.3, then merge its PR.** Run `pnpm dev` (the server side
 needs only fastapi+uvicorn for storage — `separator-server/.venv` on this PC
 has them), import a track, save (« Enregistrer »), reload, « Projets » →
@@ -149,6 +156,13 @@ mixer (J2.4) then export (J2.6). See
 ## Session journal
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
+
+- [2026-07-02 — ux-feedback-guardrails](sessions/2026-07-02-ux-feedback-guardrails.md) —
+  UX audit + the « feedback & garde-fous » slice (web-only): project errors
+  surfaced (banner + « Serveur injoignable »), busy states on save/open,
+  two-step delete + confirm-before-open, fake detected chips removed, server
+  status dot (/health poll), one-click re-save, :focus-visible coverage.
+  Gate green, 340 tests. Full prioritized backlog in the report (J2.6 next).
 
 - [2026-07-02 — jalon3-server-adapter-ui](sessions/2026-07-02-jalon3-server-adapter-ui.md) —
   Slice J3.3: **backend decided — extended HTTP server**. Server split

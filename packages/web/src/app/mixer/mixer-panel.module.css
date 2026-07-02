@@ -100,3 +100,10 @@
 .download:hover {
   color: var(--teal);
 }
+
+/* Visible keyboard focus on the strip actions (baseline ring). */
+.toggle:focus-visible,
+.download:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}

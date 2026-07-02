@@ -28,6 +28,17 @@
   opacity: 0.5;
 }
 
+/* Visible keyboard focus on the transport controls (baseline ring). */
+.control:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+/* Keep the focus ring contrasting on the amber play fill. */
+.play:focus-visible {
+  outline-color: var(--text);
+}
+
 .play {
   background: var(--amber);
   border-color: var(--amber);
