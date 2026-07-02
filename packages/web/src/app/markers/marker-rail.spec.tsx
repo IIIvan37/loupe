@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import type { MarkerList } from '@app/core'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { MarkerRail } from './marker-rail.tsx'
 
@@ -12,12 +13,13 @@ const markers: MarkerList = [
 const noop = () => {}
 
 describe('MarkerRail', () => {
-  it('seeks to a marker when its tag is clicked', () => {
+  it('seeks to a marker when its tag is clicked', async () => {
+    const user = userEvent.setup()
     const onSeek = vi.fn()
     render(
       <MarkerRail markers={markers} durationSeconds={10} onSeek={onSeek} />
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Aller à Repère 1' }))
+    await user.click(screen.getByRole('button', { name: 'Aller à Repère 1' }))
     expect(onSeek).toHaveBeenCalledWith(5)
   })
 

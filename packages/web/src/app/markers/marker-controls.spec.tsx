@@ -1,15 +1,17 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { MarkerControls } from './marker-controls.tsx'
 
 describe('MarkerControls', () => {
-  it('drops a marker at the playhead', () => {
+  it('drops a marker at the playhead', async () => {
+    const user = userEvent.setup()
     const onAdd = vi.fn()
     render(<MarkerControls disabled={false} onAdd={onAdd} />)
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Repère' }))
+    await user.click(screen.getByRole('button', { name: '+ Repère' }))
     expect(onAdd).toHaveBeenCalledOnce()
   })
 

@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import type { SeparationState, StemSet } from '@app/core'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { SeparationPanel } from './separation-panel.tsx'
 
@@ -43,10 +44,11 @@ function renderPanel(
 }
 
 describe('SeparationPanel', () => {
-  it('separates the loaded track on demand', () => {
+  it('separates the loaded track on demand', async () => {
+    const user = userEvent.setup()
     const onSeparate = vi.fn()
     renderPanel({ status: 'idle' }, { onSeparate })
-    fireEvent.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
+    await user.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
     expect(onSeparate).toHaveBeenCalledOnce()
   })
 
@@ -83,11 +85,12 @@ describe('SeparationPanel', () => {
     expect(screen.queryByText(/Non détectés/)).not.toBeInTheDocument()
   })
 
-  it('surfaces a failure and offers a retry', () => {
+  it('surfaces a failure and offers a retry', async () => {
+    const user = userEvent.setup()
     const onSeparate = vi.fn()
     renderPanel({ status: 'error', error: 'moteur indisponible' }, { onSeparate })
     expect(screen.getByRole('alert')).toHaveTextContent('moteur indisponible')
-    fireEvent.click(screen.getByRole('button', { name: 'Réessayer' }))
+    await user.click(screen.getByRole('button', { name: 'Réessayer' }))
     expect(onSeparate).toHaveBeenCalledOnce()
   })
 })

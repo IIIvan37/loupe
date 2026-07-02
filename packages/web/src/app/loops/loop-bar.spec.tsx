@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import type { LoopLibrary, LoopRegion } from '@app/core'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { LoopBar } from './loop-bar.tsx'
 
@@ -72,13 +73,14 @@ describe('LoopBar', () => {
     ).toBeInTheDocument()
   })
 
-  it('toggles looping on and off for the active region', () => {
+  it('toggles looping on and off for the active region', async () => {
+    const user = userEvent.setup()
     const onToggleLoop = vi.fn()
     const { rerender } = renderBar({ region, loopEnabled: true, onToggleLoop })
 
     const toggle = screen.getByRole('button', { name: /Boucle active/ })
     expect(toggle).toHaveAttribute('aria-pressed', 'true')
-    fireEvent.click(toggle)
+    await user.click(toggle)
     expect(onToggleLoop).toHaveBeenCalledOnce()
 
     rerender(
@@ -100,30 +102,32 @@ describe('LoopBar', () => {
     ).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('names and saves the active region through the editor', () => {
+  it('names and saves the active region through the editor', async () => {
+    const user = userEvent.setup()
     const onSaveRegion = vi.fn()
     renderBar({ region, onSaveRegion })
 
-    fireEvent.click(
+    await user.click(
       screen.getByRole('button', { name: 'Enregistrer la boucle' })
     )
-    fireEvent.change(screen.getByLabelText('Nom'), {
-      target: { value: 'Refrain' }
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    const input = screen.getByLabelText('Nom')
+    await user.clear(input)
+    await user.type(input, 'Refrain')
+    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
 
     expect(onSaveRegion).toHaveBeenCalledWith('Refrain', region)
   })
 
-  it('renames a saved loop in place (same id and region)', () => {
+  it('renames a saved loop in place (same id and region)', async () => {
+    const user = userEvent.setup()
     const onUpdateLoop = vi.fn()
     renderBar({ library, onUpdateLoop })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Renommer Verse' }))
-    fireEvent.change(screen.getByLabelText('Nom'), {
-      target: { value: 'Couplet' }
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Renommer' }))
+    await user.click(screen.getByRole('button', { name: 'Renommer Verse' }))
+    const input = screen.getByLabelText('Nom')
+    await user.clear(input)
+    await user.type(input, 'Couplet')
+    await user.click(screen.getByRole('button', { name: 'Renommer' }))
 
     expect(onUpdateLoop).toHaveBeenCalledWith({
       id: 'a',
@@ -132,15 +136,16 @@ describe('LoopBar', () => {
     })
   })
 
-  it('recalls and removes saved loops', () => {
+  it('recalls and removes saved loops', async () => {
+    const user = userEvent.setup()
     const onActivate = vi.fn()
     const onRemove = vi.fn()
     renderBar({ library, onActivate, onRemove })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Verse' }))
+    await user.click(screen.getByRole('button', { name: 'Verse' }))
     expect(onActivate).toHaveBeenCalledWith(library[0])
 
-    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Verse' }))
+    await user.click(screen.getByRole('button', { name: 'Supprimer Verse' }))
     expect(onRemove).toHaveBeenCalledWith('a')
   })
 })
