@@ -1,4 +1,3 @@
-import type { LoopLibrary } from '../domain/loop-library.ts'
 import type { AudioRef, Project } from '../domain/project.ts'
 import type { SeparationPhase } from '../domain/separation.ts'
 
@@ -36,15 +35,6 @@ export interface PlaybackEngine {
   setPitchSemitones(semitones: number): void
   /** Subscribe to position updates (seconds). Returns an unsubscribe function. */
   onPositionChange(listener: (seconds: number) => void): () => void
-}
-
-/**
- * Driven port: persist the saved-loop library across sessions. Implemented by an
- * adapter (web: localStorage); the pure core never touches storage.
- */
-export interface LoopStore {
-  load(): Promise<LoopLibrary>
-  save(library: LoopLibrary): Promise<void>
 }
 
 /** Tags read from a file (ID3 etc.); each field is absent when the file omits it. */

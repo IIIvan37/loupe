@@ -101,7 +101,8 @@ describe('restoreSession', () => {
         })),
         update: vi.fn(),
         remove: vi.fn(),
-        restore: vi.fn()
+        restore: vi.fn(),
+        clear: vi.fn()
       } satisfies Loops,
       separation: {
         state: initialSeparation,

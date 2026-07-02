@@ -60,6 +60,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
    * the view should start fully zoomed out, and any prior stems are stale.
    */
   function startFreshTrack(name: string): void {
+    deps.loops.clear()
     deps.markers.clear()
     deps.viewport.reset()
     deps.separation.reset()
