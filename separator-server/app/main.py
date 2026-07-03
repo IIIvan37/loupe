@@ -1,6 +1,6 @@
 """Local server for loupe: project storage + Demucs separation.
 
-Two independent capability groups behind one process:
+Three independent capability groups behind one process:
 
 - `projects` (always on): project manifests + content-addressed audio blobs —
   the server side of the core's `ProjectStore` / `ProjectAudioStore` ports.
@@ -8,6 +8,9 @@ Two independent capability groups behind one process:
   contract. Imported lazily so a host without the ML stack (or its weights)
   still serves project storage; `/separate` then answers with an NDJSON error
   line and `/health` reports `"device": null`.
+- `tempo` (when librosa is installed): the `/tempo` beat-tracking contract.
+  Also imported lazily — a host without librosa still serves the rest, and
+  `/tempo` answers with a 503 the client surfaces as an error.
 
 Single-user, localhost — no auth. Run with `uvicorn app.main:app --port 8000`.
 """
@@ -16,7 +19,7 @@ from __future__ import annotations
 
 import json
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
@@ -48,6 +51,18 @@ except Exception as exc:  # noqa: BLE001 - torch missing, weights unreachable…
         )
 else:
     app.include_router(separation_router)
+
+try:
+    from .tempo import router as tempo_router
+except Exception as exc:  # noqa: BLE001 - librosa missing on this host
+    _tempo_unavailable = f"tempo detection unavailable on this host: {exc}"
+
+    @app.post("/tempo")
+    async def tempo() -> None:
+        """Honour the contract with a clean error when librosa is absent."""
+        raise HTTPException(status_code=503, detail=_tempo_unavailable)
+else:
+    app.include_router(tempo_router)
 
 
 @app.get("/health")

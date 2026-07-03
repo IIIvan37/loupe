@@ -1,0 +1,42 @@
+.panel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+.label {
+  color: var(--dim);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.readout {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.action {
+  margin-left: auto;
+  padding: var(--space-2xs) var(--space-s);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.action:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--panel-3);
+}
+
+.action:disabled {
+  opacity: 0.5;
+}
+
+.error {
+  color: var(--accent);
+  font-size: 0.8rem;
+}

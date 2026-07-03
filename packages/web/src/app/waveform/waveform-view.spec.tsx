@@ -30,6 +30,7 @@ function renderLoaded(
       state={{ status: 'loaded', track }}
       loopRegion={undefined}
       loopEnabled
+      beatGrid={[]}
       durationSeconds={10}
       onSeek={noop}
       onSelectRegion={noop}
@@ -52,6 +53,7 @@ describe('WaveformView', () => {
         state={{ status: 'idle' }}
         loopRegion={undefined}
         loopEnabled
+        beatGrid={[]}
         durationSeconds={0}
         onSeek={noop}
         onSelectRegion={noop}
@@ -102,6 +104,7 @@ describe('WaveformView', () => {
         state={{ status: 'loaded', track }}
         loopRegion={loopRegion}
         loopEnabled
+        beatGrid={[]}
         durationSeconds={10}
         onSeek={noop}
         onSelectRegion={noop}
@@ -113,6 +116,23 @@ describe('WaveformView', () => {
         name: i18n._('waveform.move-loop-start')
       })
     ).toBeInTheDocument()
+  })
+
+  it('draws a line per detected beat, flagging downbeats', () => {
+    const { container } = renderLoaded({
+      beatGrid: [
+        { timeSeconds: 0, downbeat: true },
+        { timeSeconds: 0.5, downbeat: false },
+        { timeSeconds: 1, downbeat: false }
+      ]
+    })
+    expect(container.querySelectorAll('[data-beat]')).toHaveLength(3)
+    expect(container.querySelectorAll('[data-beat="downbeat"]')).toHaveLength(1)
+  })
+
+  it('draws no beat lines when the grid is empty', () => {
+    const { container } = renderLoaded({ beatGrid: [] })
+    expect(container.querySelectorAll('[data-beat]')).toHaveLength(0)
   })
 
   it('adjusts the loop end by dragging its handle', () => {

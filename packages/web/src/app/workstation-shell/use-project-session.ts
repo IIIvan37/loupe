@@ -29,6 +29,8 @@ export interface ProjectSessionDeps extends SessionRestoreDeps {
   /** The live playback tuning (tempo/pitch/zoom) — saved and fingerprinted. */
   readonly tuning: ProjectTuning
   readonly viewport: { readonly reset: () => void }
+  /** The tempo analysis is per-track — a fresh track forgets it. */
+  readonly tempo: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
 }
@@ -84,6 +86,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     deps.viewport.reset()
     deps.separation.reset()
     deps.mixer.reset()
+    deps.tempo.reset()
     setTrackName(name)
   }
 

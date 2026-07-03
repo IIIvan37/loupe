@@ -37,6 +37,25 @@
   pointer-events: none;
 }
 
+/* A detected beat line; downbeats (bar starts) are drawn stronger. */
+.beat {
+  position: absolute;
+  inset-block: 0;
+  width: 1px;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--dim) 40%, transparent);
+  pointer-events: none;
+}
+
+.downbeat {
+  position: absolute;
+  inset-block: 0;
+  width: 2px;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--dim) 85%, transparent);
+  pointer-events: none;
+}
+
 /* The region when looping is OFF: outlined, but nothing dimmed. */
 .region {
   position: absolute;

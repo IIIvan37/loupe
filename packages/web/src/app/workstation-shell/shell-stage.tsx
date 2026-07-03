@@ -1,4 +1,5 @@
 import { Trans } from '@lingui/react/macro'
+import type { BeatGrid } from '@app/core'
 import type { ComponentProps } from 'react'
 import { StemHeaders } from '../mixer/stem-headers.tsx'
 import { StemLanes } from '../mixer/stem-lanes.tsx'
@@ -21,6 +22,7 @@ interface ShellStageProps {
   readonly onDownloadStem: (id: string) => void
   readonly markers: ReturnType<typeof useMarkers>
   readonly loopEditing: ReturnType<typeof useLoopEditing>
+  readonly beatGrid: BeatGrid
   readonly mainViewState: ComponentProps<typeof WaveformView>['state']
   readonly loopRegion: ComponentProps<typeof WaveformView>['loopRegion']
   readonly loopEnabled: boolean
@@ -41,6 +43,7 @@ export function ShellStage({
   onDownloadStem,
   markers,
   loopEditing,
+  beatGrid,
   mainViewState,
   loopRegion,
   loopEnabled,
@@ -85,6 +88,7 @@ export function ShellStage({
           state={mainViewState}
           loopRegion={loopRegion}
           loopEnabled={loopEnabled}
+          beatGrid={beatGrid}
           durationSeconds={durationSeconds}
           onSeek={onSeekRatio}
           onSelectRegion={loopEditing.selectRegion}

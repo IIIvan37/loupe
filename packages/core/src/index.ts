@@ -1,6 +1,13 @@
 // Public contract of the core (the only surface adapters consume).
 
 export type {
+  DetectTempoDeps,
+  DetectTempoInput,
+  DetectTempoResult,
+  TempoAnalysis
+} from './application/detect-tempo.ts'
+export { detectTempo } from './application/detect-tempo.ts'
+export type {
   ExportStemsDeps,
   ExportStemsInput,
   ExportStemsResult
@@ -17,6 +24,7 @@ export type {
   ArchiveWriter,
   AudioFileDecoder,
   DecodedAudio,
+  DetectedTempo,
   PlaybackEngine,
   ProjectAudioStore,
   ProjectStore,
@@ -25,6 +33,7 @@ export type {
   StemPlaybackEngine,
   StemSeparator,
   StemSource,
+  TempoDetector,
   TrackMetadata,
   TrackMetadataReader
 } from './application/ports.ts'
@@ -138,6 +147,7 @@ export type {
 export { initialSeparation, separationReducer } from './domain/separation.ts'
 export { stemExportFilename } from './domain/stem-export.ts'
 export type { StemSet, StemTrack } from './domain/stem-set.ts'
+export type { BeatGrid } from './domain/tempo.ts'
 export { formatTimecode } from './domain/timecode.ts'
 export type { Track } from './domain/track.ts'
 export type {

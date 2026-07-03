@@ -136,6 +136,25 @@ export interface StemSeparator {
   ): Promise<readonly SeparatedStem[]>
 }
 
+/** A detector's raw verdict: the track's tempo and the beat instants it found. */
+export interface DetectedTempo {
+  /** Estimated tempo in beats per minute. */
+  readonly bpm: number
+  /** Beat onset times in seconds, in order. */
+  readonly beatsSeconds: readonly number[]
+}
+
+/**
+ * Driven port: estimate a track's tempo and beat positions from decoded PCM.
+ * Implemented by an adapter (web: an HTTP call to the local server running a
+ * beat tracker); the pure core never runs the DSP, and the audio is the SAME
+ * PCM the player loaded. A cloud API or an in-browser worker could be later
+ * adapters on the same port.
+ */
+export interface TempoDetector {
+  detect(audio: DecodedAudio): Promise<DetectedTempo>
+}
+
 /** One file destined for the export archive: its name and encoded bytes. */
 export interface ArchiveFile {
   readonly name: string

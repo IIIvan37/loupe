@@ -292,7 +292,7 @@ msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-stage.tsx:65
+#: src/app/workstation-shell/shell-stage.tsx:68
 msgid "mixer.mix-label"
 msgstr "Mix"
 
@@ -488,6 +488,37 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
+#. placeholder {0}: Math.round(bpm)
+#: src/app/tempo/tempo-panel.tsx:40
+msgid "tempo.bpm"
+msgstr "{0} BPM"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:52
+msgid "tempo.detect"
+msgstr "Détecter le tempo"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:50
+msgid "tempo.detecting"
+msgstr "Analyse…"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:36
+msgid "tempo.label"
+msgstr "Tempo"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:54
+msgid "tempo.redetect"
+msgstr "Recalculer"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:33
+msgid "tempo.region-label"
+msgstr "Tempo"
+
+#. js-lingui-explicit-id
 #: src/app/transport-bar/transport-bar.tsx:72
 msgid "transport.end"
 msgstr "Fin"
@@ -538,22 +569,22 @@ msgid "transport.tempo-slider"
 msgstr "Tempo en pourcentage"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:181
+#: src/app/waveform/waveform-view.tsx:184
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:173
+#: src/app/waveform/waveform-view.tsx:176
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:270
+#: src/app/waveform/waveform-view.tsx:285
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:258
+#: src/app/waveform/waveform-view.tsx:273
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
@@ -563,12 +594,12 @@ msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:213
+#: src/app/waveform/waveform-view.tsx:216
 msgid "waveform.surface"
 msgstr "Forme d'onde : clic pour se positionner, glisser pour boucler"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:222
+#: src/app/waveform/waveform-view.tsx:225
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 

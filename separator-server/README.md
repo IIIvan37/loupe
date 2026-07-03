@@ -52,6 +52,7 @@ be set up first.
 | --- | --- |
 | `POST /separate` | Body = mix as a 16-bit PCM WAV (`audio/wav`). Responds `application/x-ndjson`, one JSON object per line. |
 | `GET /stems/{job}/{stem}.wav` | The isolated stem produced by a prior `/separate`. |
+| `POST /tempo` | Body = mix as a 16-bit PCM WAV (`audio/wav`). Responds `application/json`: `{"bpm": float, "beats": [seconds, …]}` from a librosa beat tracker. Independent of the Demucs stack — needs only librosa; a host without it answers `503`. |
 | `GET /health` | Liveness + which model/device is loaded. |
 
 `/separate` streamed lines:
