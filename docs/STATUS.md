@@ -24,7 +24,20 @@
 - **Jalon 3 (« Projets ») core slices are merged** (J3.1–J3.4 + races +
   active-loop fix + UX session state). Remaining Jalon 3 work is polish
   (project rename, blob GC, `separator-server/` → `server/`).
-- **Now — UI polish slice (2026-07-03)**: user-driven polish pass before the
+- **Now — dirty-session guard slice (2026-07-03)**: the first UX-backlog
+  item after the polish pass. One predicate — `unsavedWork` (saved project →
+  signature drift; otherwise → a loaded track is itself unsaved work) — now
+  guards the three destructive paths uniformly: « Importer » arms a two-step
+  « Confirmer ? » (shared `useTwoStepConfirm`, also adopted by the projects
+  dialog), `beforeunload` raises the native leave prompt, and the projects
+  dialog only confirms an open when something would be lost (a clean saved
+  session opens in one click — deliberate relaxation of the old `isLoaded`
+  guard). High-effort review reshaped the predicate (a bare imported track
+  was silently unguarded in the first cut). Gate green, 425 tests, mutation
+  skipped (core untouched). **Browser-verify pending — on the Mac** (this
+  WSL2 PC has no Chrome). See
+  [2026-07-03-dirty-session-guard](sessions/2026-07-03-dirty-session-guard.md).
+- **Earlier — UI polish slice (2026-07-03)**: user-driven polish pass before the
   next roadmap slice. **Draggable markers** (core `moveMarker`, TDD; drag +
   ←/→ nudge on the rail tags), **status indicators get one place per kind**
   (document-state chip next to the title absorbing the busy strip, server
@@ -36,8 +49,9 @@
   guard), and the playhead can no longer paint above dialogs (stage
   `isolation`). Browser-verified on the real project.
   See [2026-07-03-ui-polish](sessions/2026-07-03-ui-polish.md).
-- **Branch**: `feat/ui-polish` (gate-green, 417 tests, mutation 95.76 % —
-  `marker-list.ts` 100 %). PR to open.
+- **Branch**: `feat/dirty-session-guard` (gate-green, 425 tests). PR to
+  open; browser-verify on the Mac before merge. Earlier: `feat/ui-polish`
+  **merged (PR #35)**.
 - **Earlier**: `feat/ux-session-state` (**merged, PR #34**) — five
   user-reported UX gaps: active-loop chip highlighted (`aria-current`), the
   header « Exporter » wired to the zip export (mixer duplicate removed), a
@@ -131,10 +145,10 @@
 
 ## Next step
 
-**Merge the `feat/ui-polish` PR**, then pick the next slice. Candidates, by
-user value:
-- UX backlog: uniform dirty-session guard on import/reload, real tempo
-  detection, tempo/pitch/zoom persistence, speed trainer, undo.
+**Open the `feat/dirty-session-guard` PR, browser-verify on the Mac, merge.**
+Then pick the next slice. Candidates, by user value:
+- UX backlog: real tempo detection, tempo/pitch/zoom persistence (also the
+  real fix for the fingerprint's tempo/pitch blind spot), speed trainer, undo.
 - Jalon 3 polish: project rename, blob GC, `separator-server/` → `server/`.
 - Perf: off-thread zip/encode — the export measurably freezes the UI a few
   seconds on a 4-min track (main-thread encode+zip, ~229 MB).
@@ -224,6 +238,15 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-03 — dirty-session-guard](sessions/2026-07-03-dirty-session-guard.md) —
+  UX-backlog slice: uniform unsaved-work guard. `unsavedWork` predicate
+  (project drift, or any loaded never-saved track) drives the armed
+  « Confirmer ? » on « Importer », the `beforeunload` prompt
+  (`useUnloadGuard`), and the projects-dialog open confirm (clean saved
+  session = one-click open). Two-step confirm machine extracted to a shared
+  `useTwoStepConfirm` (header + dialog). Review pass fixed the bare-track
+  blind spot of the first fingerprint-based cut. Gate green, 425 tests,
+  mutation skipped (core untouched). Browser-verify pending (Mac).
 - [2026-07-03 — ui-polish](sessions/2026-07-03-ui-polish.md) —
   User-driven UI polish: draggable markers (core `moveMarker` TDD-first, drag +
   arrow-nudge on the rail tags), one place per kind of status in the header
