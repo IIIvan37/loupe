@@ -24,6 +24,8 @@ const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 const voix: SeparatedStem = { id: 'voix', label: 'Voix', audio }
 const basse: SeparatedStem = { id: 'basse', label: 'Basse', audio }
 
+const neutralTuning = { timeRatio: 1, pitchSemitones: 0, zoom: 1 }
+
 describe('sessionSaveInput', () => {
   it('snapshots the session without stems when nothing is mixing', () => {
     const input = sessionSaveInput({
@@ -31,10 +33,24 @@ describe('sessionSaveInput', () => {
       title: 'Song',
       artist: 'Band',
       loops: [],
-      markers: []
+      markers: [],
+      tuning: neutralTuning
     })
     expect(input.separation).toBeUndefined()
     expect(input.source.title).toBe('Song')
+  })
+
+  it('carries the playback tuning into the save input', () => {
+    const tuning = { timeRatio: 0.85, pitchSemitones: -2, zoom: 3 }
+    const input = sessionSaveInput({
+      bytes: new ArrayBuffer(4),
+      title: 'Song',
+      artist: 'Band',
+      loops: [],
+      markers: [],
+      tuning
+    })
+    expect(input.tuning).toEqual(tuning)
   })
 
   it('persists only the stems the mixer holds a channel for, as WAV bytes', () => {
@@ -48,6 +64,7 @@ describe('sessionSaveInput', () => {
       artist: undefined,
       loops: [],
       markers: [],
+      tuning: neutralTuning,
       separation: { sources: [voix, basse], mixer }
     })
     expect(input.separation?.mixer).toEqual(mixer)
@@ -106,6 +123,7 @@ describe('restoreSession', () => {
         clear: vi.fn()
       } satisfies Loops,
       restoreActiveLoop: vi.fn(),
+      restoreTuning: vi.fn(),
       separation: {
         state: initialSeparation,
         sources: [],
@@ -229,6 +247,35 @@ describe('restoreSession', () => {
     await restoreSession(opened, deps)
 
     expect(deps.restoreActiveLoop).toHaveBeenCalledWith(activeLoop, null)
+  })
+
+  it('seats the persisted tuning', async () => {
+    const deps = fakeDeps(undefined)
+    const tuning = { timeRatio: 0.85, pitchSemitones: -2, zoom: 3 }
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: { ...baseProject, tuning },
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    expect(deps.restoreTuning).toHaveBeenCalledWith(tuning)
+  })
+
+  it('seats the neutral tuning when the manifest predates the field', async () => {
+    const deps = fakeDeps(undefined)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: baseProject,
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    expect(deps.restoreTuning).toHaveBeenCalledWith(neutralTuning)
   })
 
   it('leaves the loupe alone when the project saved none', async () => {

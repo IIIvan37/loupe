@@ -1,4 +1,4 @@
-import type { LoopRegion, Project, ProjectDeps } from '@app/core'
+import type { LoopRegion, Project, ProjectDeps, ProjectTuning } from '@app/core'
 import { type ChangeEvent, useRef, useState } from 'react'
 import { sessionSignature } from '../../projects/session-signature.ts'
 import { type Projects, useProjects } from '../../projects/use-projects.ts'
@@ -26,6 +26,8 @@ export interface ProjectSessionDeps extends SessionRestoreDeps {
   /** The armed A/B region and its wrap choice — the loupe a save keeps. */
   readonly loopRegion: LoopRegion | undefined
   readonly loopEnabled: boolean
+  /** The live playback tuning (tempo/pitch/zoom) — saved and fingerprinted. */
+  readonly tuning: ProjectTuning
   readonly viewport: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
@@ -94,6 +96,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
         deps.loopRegion === undefined
           ? undefined
           : { region: deps.loopRegion, enabled: deps.loopEnabled },
+      tuning: deps.tuning,
       separation: deps.stemsReady ? { mixer: deps.mixer.state } : undefined
     })
   }
@@ -109,6 +112,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       artist: deps.metadata.artist,
       loops: deps.loops.library,
       markers: deps.markers.markers,
+      tuning: deps.tuning,
       ...(deps.loopRegion === undefined
         ? {}
         : {
@@ -190,8 +194,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     currentProject,
     dirty,
     // With a saved project, drift is what a discard would lose; without one,
-    // the loaded track itself (and everything around it — the fingerprint
-    // can't see tempo/pitch) lives only in this session.
+    // the loaded track itself lives only in this session.
     unsavedWork:
       openingId === undefined &&
       (currentProject !== undefined ? dirty : deps.loadedBytes !== undefined),

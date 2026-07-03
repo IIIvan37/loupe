@@ -37,6 +37,21 @@ export interface ProjectActiveLoop {
 }
 
 /**
+ * The playback tuning as the user left it — how the track is being practised:
+ * tempo ratio, pitch shift and view magnification. Values are the same scalars
+ * the transport clamps (`clampPlaybackRate` / `clampPitchSemitones` /
+ * `clampZoom`); a reader restoring a manifest re-clamps through those.
+ */
+export interface ProjectTuning {
+  /** Tempo as a ratio of normal speed (1 = 100 %). */
+  readonly timeRatio: number
+  /** Pitch shift in whole semitones (0 = original key). */
+  readonly pitchSemitones: number
+  /** View magnification (1× = fully zoomed out). */
+  readonly zoom: number
+}
+
+/**
  * The separation half of a project: the stems produced plus the mixer settings
  * over them. The mixer's channels line up with the stems (one channel per stem
  * id). Present only once the track has been separated; absent otherwise.
@@ -64,8 +79,29 @@ export interface Project {
   readonly markers: MarkerList
   /** Present while an A/B region was armed when the project was saved. */
   readonly activeLoop?: ProjectActiveLoop
+  /** The playback tuning at save time; absent on manifests that predate it. */
+  readonly tuning?: ProjectTuning
   /** Present once the track has been separated. */
   readonly separation?: ProjectSeparation
+}
+
+/** The neutral tuning: normal speed, original key, fully zoomed out. */
+const NEUTRAL_TUNING: ProjectTuning = {
+  timeRatio: 1,
+  pitchSemitones: 0,
+  zoom: 1
+}
+
+/**
+ * Normalise an optional persisted tuning: a manifest that predates the field
+ * means the user had the neutral settings, so absent reads as neutral. Keeps
+ * the « old manifest » rule in one place — the fingerprint and the restore
+ * path must agree on it, or an untouched reopened project would read dirty.
+ */
+export function tuningOrDefault(
+  tuning: ProjectTuning | undefined
+): ProjectTuning {
+  return tuning ?? NEUTRAL_TUNING
 }
 
 /**
@@ -96,6 +132,7 @@ export interface SessionSnapshot {
   /** `undefined` is accepted here so callers can pass it straight through —
    * `projectFromSession` owns the single guard that omits the key. */
   readonly activeLoop?: ProjectActiveLoop | undefined
+  readonly tuning?: ProjectTuning | undefined
   readonly separation?: ProjectSeparation
 }
 
@@ -128,6 +165,7 @@ export function projectFromSession(
     ...(session.activeLoop === undefined
       ? {}
       : { activeLoop: session.activeLoop }),
+    ...(session.tuning === undefined ? {} : { tuning: session.tuning }),
     ...(session.separation === undefined
       ? {}
       : { separation: session.separation })

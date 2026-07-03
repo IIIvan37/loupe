@@ -7,6 +7,7 @@ import {
   type ProjectActiveLoop,
   type ProjectStamp,
   type ProjectStem,
+  type ProjectTuning,
   projectFromSession
 } from '../domain/project.ts'
 import { errorMessage } from './error-message.ts'
@@ -40,6 +41,8 @@ export interface SaveProjectInput {
   readonly markers: MarkerList
   /** The armed A/B region — the loupe — when one was set at save time. */
   readonly activeLoop?: ProjectActiveLoop
+  /** The playback tuning (tempo/pitch/zoom) as the user left it. */
+  readonly tuning?: ProjectTuning
   readonly separation?: {
     readonly stems: readonly SaveProjectStem[]
     readonly mixer: MixerState
@@ -90,6 +93,7 @@ export async function saveProject(
         loops: input.loops,
         markers: input.markers,
         activeLoop: input.activeLoop,
+        tuning: input.tuning,
         ...(separation === undefined || stems === undefined
           ? {}
           : { separation: { stems, mixer: separation.mixer } })

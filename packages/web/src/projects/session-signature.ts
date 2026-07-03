@@ -1,8 +1,10 @@
-import type {
-  LoopLibrary,
-  MarkerList,
-  MixerState,
-  ProjectActiveLoop
+import {
+  type LoopLibrary,
+  type MarkerList,
+  type MixerState,
+  type ProjectActiveLoop,
+  type ProjectTuning,
+  tuningOrDefault
 } from '@app/core'
 
 /** The light, persisted parts of a session — both a live session and a saved
@@ -11,6 +13,7 @@ export interface SignedSession {
   readonly loops: LoopLibrary
   readonly markers: MarkerList
   readonly activeLoop?: ProjectActiveLoop | undefined
+  readonly tuning?: ProjectTuning | undefined
   readonly separation?: { readonly mixer: MixerState } | undefined
 }
 
@@ -22,6 +25,9 @@ export interface SignedSession {
  * explicitly so extra properties and key order can never skew the comparison.
  */
 export function sessionSignature(session: SignedSession): string {
+  // Absent tuning (a manifest that predates the field) reads as neutral, so
+  // an untouched reopened old project still signs « Enregistré ».
+  const tuning = tuningOrDefault(session.tuning)
   return JSON.stringify({
     loops: session.loops.map((loop) => [
       loop.id,
@@ -41,6 +47,7 @@ export function sessionSignature(session: SignedSession): string {
           session.activeLoop.enabled
         ]
       : null,
+    tuning: [tuning.timeRatio, tuning.pitchSemitones, tuning.zoom],
     mixer: session.separation
       ? session.separation.mixer.map((channel) => [
           channel.id,
