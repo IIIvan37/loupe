@@ -1,6 +1,5 @@
 import {
   type ChannelGain,
-  combineWaveforms,
   effectiveGains,
   emptyMixer,
   type MixerAction,
@@ -9,8 +8,7 @@ import {
   type SeparatedStem,
   type StemPlaybackEngine,
   type StemSet,
-  type StemTrack,
-  type Waveform
+  type StemTrack
 } from '@app/core'
 import { useMemo, useReducer, useState } from 'react'
 
@@ -31,8 +29,6 @@ export interface Mixer {
   readonly channels: readonly MixerChannelView[]
   /** The raw mixer state — what a saved project persists alongside the stems. */
   readonly state: MixerState
-  /** Envelope of the audible mix, recomputed as the controls change. */
-  readonly mixWaveform: Waveform
   /**
    * Adopt a fresh separation: load the present stems' PCM into the gain graph
    * and seed a unity mixer. Call from the handler that produced them.
@@ -47,6 +43,13 @@ export interface Mixer {
     sources: readonly SeparatedStem[],
     saved: MixerState
   ) => void
+  /**
+   * Add one stem to the running mix (e.g. the metronome): a new unity channel
+   * plus its PCM in the gain graph, leaving the other channels untouched.
+   */
+  readonly addStem: (stem: StemTrack, source: SeparatedStem) => void
+  /** Drop one stem from the mix by id, leaving the rest playing. */
+  readonly removeStem: (id: string) => void
   /** Drop every stem (a new import) — empties the mixer and its lanes. */
   readonly reset: () => void
   readonly setGain: (id: string, gainDb: number) => void
@@ -110,6 +113,22 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
     }
   }
 
+  function addStem(stem: StemTrack, source: SeparatedStem): void {
+    setMixable((prev) =>
+      prev.some((entry) => entry.stem.id === stem.id)
+        ? prev
+        : [...prev, { stem, source }]
+    )
+    void engine.addStem({ id: source.id, audio: source.audio })
+    dispatch({ type: 'addChannel', id: stem.id })
+  }
+
+  function removeStem(id: string): void {
+    setMixable((prev) => prev.filter((entry) => entry.stem.id !== id))
+    engine.removeStem(id)
+    dispatch({ type: 'removeChannel', id })
+  }
+
   function reset(): void {
     setMixable([])
     dispatch({ type: 'reset' })
@@ -148,23 +167,13 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
     })
   }, [state, mixable])
 
-  const mixWaveform = useMemo<Waveform>(
-    () =>
-      combineWaveforms(
-        channels.map((channel) => ({
-          waveform: channel.stem.track.waveform,
-          gain: channel.gain
-        }))
-      ),
-    [channels]
-  )
-
   return {
     channels,
     state,
-    mixWaveform,
     load,
     restore,
+    addStem,
+    removeStem,
     reset,
     setGain: (id, gainDb) => apply({ type: 'setGain', id, gainDb }),
     toggleMute: (id) => apply({ type: 'toggleMute', id }),

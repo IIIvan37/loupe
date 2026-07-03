@@ -64,6 +64,8 @@ function fakeEngine() {
 function fakeStemEngine(): StemPlaybackEngine {
   return {
     load: vi.fn(async () => {}),
+    addStem: vi.fn(async () => {}),
+    removeStem: vi.fn(),
     play: vi.fn(),
     pause: vi.fn(),
     seekTo: vi.fn(),
@@ -183,6 +185,9 @@ function renderShell(
       metadataReader={silentReader}
       // A probe that never answers keeps the header status silent by default.
       healthFetch={(() => new Promise(() => {})) as typeof fetch}
+      // A detector that never resolves keeps the auto-detect-on-import inert
+      // by default; tempo tests inject one that answers.
+      tempoDetector={{ detect: () => new Promise(() => {}) }}
       {...overrides}
     />,
     { wrapper: I18nTestingProvider }
@@ -237,17 +242,96 @@ describe('WorkstationShell', () => {
     expect(screen.queryByText(/BPM/)).not.toBeInTheDocument()
   })
 
-  it('reads out the detected BPM and draws the beat grid after detection', async () => {
+  it('auto-detects the BPM on import and draws the beat grid', async () => {
     const detector = {
       detect: async () => ({ bpm: 128, beatsSeconds: [0, 0.47, 0.94] })
     }
     const { user } = renderShell({ tempoDetector: detector })
     await importTrack(user)
 
-    await user.click(screen.getByRole('button', { name: i18n._('tempo.detect') }))
-
+    // No click of a button — detection runs on its own once the track loads.
     expect(await screen.findByText('128 BPM')).toBeInTheDocument()
     expect(document.querySelectorAll('[data-beat]')).toHaveLength(3)
+  })
+
+  it('shows the metronome as a mixer stem automatically once detected', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+
+    // It rides the mixer like any stem — its lane header (with a WAV export)
+    // appears on its own, no button.
+    expect(
+      await screen.findByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Métronome' })
+      })
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the separated stems AND the metronome after separating', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+    }
+    const { user } = renderShell({
+      separator: fakeSeparator(),
+      tempoDetector: detector
+    })
+    await importTrack(user)
+    // The metronome is seated on the un-separated track first.
+    await screen.findByRole('button', {
+      name: i18n._('mixer.download-wav', { name: 'Métronome' })
+    })
+
+    await user.click(screen.getByRole('button', { name: i18n._('separation.separate') }))
+
+    // Separation replaces the mix — the stems must show, with the click kept.
+    expect(
+      await screen.findByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Voix' })
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Basse' })
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Métronome' })
+      })
+    ).toBeInTheDocument()
+    // The « Piste » catch-all from the un-separated state is gone.
+    expect(
+      screen.queryByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Piste' })
+      })
+    ).not.toBeInTheDocument()
+  })
+
+  it('drops the metronome stem when a new file is imported', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+    await screen.findByRole('button', {
+      name: i18n._('mixer.download-wav', { name: 'Métronome' })
+    })
+
+    await importTrack(user, 'autre.wav')
+
+    // The fresh track re-detects; its click stem replaces the old one, and there
+    // is never a lingering one from the previous track.
+    await screen.findByRole('button', {
+      name: i18n._('mixer.download-wav', { name: 'Métronome' })
+    })
+    expect(
+      screen.getAllByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Métronome' })
+      })
+    ).toHaveLength(1)
   })
 
   it('surfaces a tempo detection failure as an alert', async () => {
@@ -259,26 +343,9 @@ describe('WorkstationShell', () => {
     const { user } = renderShell({ tempoDetector: detector })
     await importTrack(user)
 
-    await user.click(screen.getByRole('button', { name: i18n._('tempo.detect') }))
-
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'serveur injoignable'
     )
-  })
-
-  it('forgets the detected tempo when a new file is imported', async () => {
-    const detector = {
-      detect: async () => ({ bpm: 100, beatsSeconds: [0, 0.6] })
-    }
-    const { user } = renderShell({ tempoDetector: detector })
-    await importTrack(user)
-    await user.click(screen.getByRole('button', { name: i18n._('tempo.detect') }))
-    await screen.findByText('100 BPM')
-
-    await importTrack(user, 'autre.wav')
-
-    expect(screen.queryByText('100 BPM')).not.toBeInTheDocument()
-    expect(document.querySelectorAll('[data-beat]')).toHaveLength(0)
   })
 
   it('disables play until a track is loaded, then enables it with the duration', async () => {

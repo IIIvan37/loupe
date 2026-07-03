@@ -11,7 +11,10 @@ const STEM_COLOR_VAR: Readonly<Record<string, string>> = {
   // The htdemucs « other » bucket (everything that is not voice/drums/bass).
   autres: '--stem-other',
   guitare: '--stem-guitar',
-  claviers: '--stem-keys'
+  claviers: '--stem-keys',
+  // Synthetic stems: the whole track (un-separated) and the metronome click.
+  piste: '--teal',
+  metronome: '--amber'
 }
 
 /** The CSS custom-property name for a stem's colour (`--teal` as a fallback). */

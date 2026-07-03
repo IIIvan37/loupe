@@ -489,32 +489,22 @@ msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
 #. placeholder {0}: Math.round(bpm)
-#: src/app/tempo/tempo-panel.tsx:40
+#: src/app/tempo/tempo-panel.tsx:31
 msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:52
-msgid "tempo.detect"
-msgstr "Détecter le tempo"
-
-#. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:50
+#: src/app/tempo/tempo-panel.tsx:36
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:36
+#: src/app/tempo/tempo-panel.tsx:27
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:54
-msgid "tempo.redetect"
-msgstr "Recalculer"
-
-#. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:33
+#: src/app/tempo/tempo-panel.tsx:24
 msgid "tempo.region-label"
 msgstr "Tempo"
 
@@ -579,12 +569,12 @@ msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:285
+#: src/app/waveform/waveform-view.tsx:286
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:273
+#: src/app/waveform/waveform-view.tsx:274
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 

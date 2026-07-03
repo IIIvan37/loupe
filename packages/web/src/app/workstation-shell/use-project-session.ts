@@ -1,7 +1,15 @@
-import type { LoopRegion, Project, ProjectDeps, ProjectTuning } from '@app/core'
+import type {
+  LoopRegion,
+  MixerState,
+  Project,
+  ProjectDeps,
+  ProjectTuning
+} from '@app/core'
 import { type ChangeEvent, useRef, useState } from 'react'
 import { sessionSignature } from '../../projects/session-signature.ts'
 import { type Projects, useProjects } from '../../projects/use-projects.ts'
+import { TRACK_STEM_ID } from '../mixer/track-stem.ts'
+import { METRONOME_ID } from '../tempo/metronome-stem.ts'
 import {
   restoreSession,
   type SessionRestoreDeps,
@@ -31,6 +39,8 @@ export interface ProjectSessionDeps extends SessionRestoreDeps {
   readonly viewport: { readonly reset: () => void }
   /** The tempo analysis is per-track — a fresh track forgets it. */
   readonly tempo: { readonly reset: () => void }
+  /** The metronome is per-track — a fresh track drops the click. */
+  readonly metronome: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
 }
@@ -87,7 +97,20 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     deps.separation.reset()
     deps.mixer.reset()
     deps.tempo.reset()
+    deps.metronome.reset()
     setTrackName(name)
+  }
+
+  /**
+   * The mixer as a save persists it: the separation channels only. The
+   * metronome (and the un-split « Piste ») are synthetic stems that ride the
+   * same mixer but are never part of the saved separation — the audio behind
+   * them is re-synthesised, not stored.
+   */
+  function separationMixer(): MixerState {
+    return deps.mixer.state.filter(
+      (channel) => channel.id !== METRONOME_ID && channel.id !== TRACK_STEM_ID
+    )
   }
 
   /** The live session's persisted-state fingerprint (heavy audio excluded). */
@@ -100,7 +123,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
           ? undefined
           : { region: deps.loopRegion, enabled: deps.loopEnabled },
       tuning: deps.tuning,
-      separation: deps.stemsReady ? { mixer: deps.mixer.state } : undefined
+      separation: deps.stemsReady ? { mixer: separationMixer() } : undefined
     })
   }
 
@@ -128,7 +151,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
         ? {
             separation: {
               sources: deps.separation.sources,
-              mixer: deps.mixer.state
+              mixer: separationMixer()
             }
           }
         : {})

@@ -14,8 +14,12 @@ export interface Tempo {
   readonly detecting: boolean
   /** Why the last detection failed — cleared by the next run or a reset. */
   readonly error: string | undefined
-  /** Detect the tempo of the already-loaded PCM (the SAME audio the player has). */
-  readonly detect: (audio: DecodedAudio) => Promise<void>
+  /**
+   * Detect the tempo of the already-loaded PCM (the SAME audio the player has).
+   * Resolves with the analysis so the caller can act on it in the same handler
+   * (e.g. seat the metronome stem), or undefined if detection failed/was stale.
+   */
+  readonly detect: (audio: DecodedAudio) => Promise<TempoAnalysis | undefined>
   /** Forget the analysis — a fresh track has its own tempo. */
   readonly reset: () => void
 }
@@ -33,7 +37,9 @@ export function useTempo(detector?: TempoDetector): Tempo {
   const [error, setError] = useState<string>()
   const runIdRef = useRef(0)
 
-  async function detect(audio: DecodedAudio): Promise<void> {
+  async function detect(
+    audio: DecodedAudio
+  ): Promise<TempoAnalysis | undefined> {
     const runId = ++runIdRef.current
     setDetecting(true)
     setError(undefined)
@@ -44,10 +50,11 @@ export function useTempo(detector?: TempoDetector): Tempo {
       setDetecting(false)
       if (result.ok) {
         setAnalysis(result.analysis)
-      } else {
-        setError(result.error)
+        return result.analysis
       }
+      setError(result.error)
     }
+    return undefined
   }
 
   function reset(): void {

@@ -29,6 +29,8 @@ function fakeEngine() {
     load: vi.fn<(stems: readonly StemSource[]) => Promise<void>>(
       async () => {}
     ),
+    addStem: vi.fn<(stem: StemSource) => Promise<void>>(async () => {}),
+    removeStem: vi.fn<(id: string) => void>(),
     play: vi.fn(),
     pause: vi.fn(),
     seekTo: vi.fn(),
@@ -82,6 +84,45 @@ describe('useMixer', () => {
     expect(engine.setGain).not.toHaveBeenCalled()
   })
 
+  it('adds a stem as a new channel and loads its PCM into the engine', () => {
+    const engine = fakeEngine()
+    const { result } = mountLoaded(engine)
+
+    const metro = { id: 'metronome', label: 'Métronome', audio }
+    act(() => {
+      result.current.addStem(stem('metronome', 'Métronome'), metro)
+    })
+
+    expect(result.current.channels.map((c) => c.stem.id)).toEqual([
+      'voix',
+      'basse',
+      'metronome'
+    ])
+    expect(engine.addStem).toHaveBeenCalledWith({ id: 'metronome', audio })
+  })
+
+  it('removes a stem channel and drops it from the engine', () => {
+    const engine = fakeEngine()
+    const { result } = mountLoaded(engine)
+    act(() => {
+      result.current.addStem(stem('metronome', 'Métronome'), {
+        id: 'metronome',
+        label: 'Métronome',
+        audio
+      })
+    })
+
+    act(() => {
+      result.current.removeStem('metronome')
+    })
+
+    expect(result.current.channels.map((c) => c.stem.id)).toEqual([
+      'voix',
+      'basse'
+    ])
+    expect(engine.removeStem).toHaveBeenCalledWith('metronome')
+  })
+
   it('empties the mixer on reset', () => {
     const engine = fakeEngine()
     const { result } = mountLoaded(engine)
@@ -127,29 +168,6 @@ describe('useMixer', () => {
     expect(voix?.gainDb).toBe(-6)
     expect(voix?.level).toBeCloseTo(dbToAmplitude(-6))
     expect(engine.setGain).toHaveBeenCalledWith('voix', dbToAmplitude(-6))
-  })
-
-  it('exposes the audible-mix envelope, dropping muted stems from it', () => {
-    const track = {
-      sampleRate: 4,
-      durationSeconds: 1,
-      waveform: { peaks: [{ min: -0.4, max: 0.4 }] }
-    }
-    const loud: StemSet = [
-      { id: 'voix', label: 'Voix', track, confidence: 1, present: true },
-      { id: 'basse', label: 'Basse', track, confidence: 1, present: true }
-    ]
-    const engine = fakeEngine()
-    const { result } = mountLoaded(engine, loud)
-
-    // Both at unity → the two equal envelopes sum.
-    expect(result.current.mixWaveform.peaks[0]).toEqual({ min: -0.8, max: 0.8 })
-
-    act(() => {
-      result.current.toggleMute('voix')
-    })
-    // Muting one leaves only the other's envelope.
-    expect(result.current.mixWaveform.peaks[0]).toEqual({ min: -0.4, max: 0.4 })
   })
 
   it('restores a persisted mixer and pushes its effective gains to the engine', () => {

@@ -31,6 +31,7 @@ function renderLoaded(
       loopRegion={undefined}
       loopEnabled
       beatGrid={[]}
+      mixLayers={[]}
       durationSeconds={10}
       onSeek={noop}
       onSelectRegion={noop}
@@ -54,6 +55,7 @@ describe('WaveformView', () => {
         loopRegion={undefined}
         loopEnabled
         beatGrid={[]}
+        mixLayers={[]}
         durationSeconds={0}
         onSeek={noop}
         onSelectRegion={noop}
@@ -105,6 +107,7 @@ describe('WaveformView', () => {
         loopRegion={loopRegion}
         loopEnabled
         beatGrid={[]}
+        mixLayers={[]}
         durationSeconds={10}
         onSeek={noop}
         onSelectRegion={noop}
@@ -170,6 +173,29 @@ describe('WaveformView', () => {
     renderLoaded()
     expect(
       screen.getByRole('img', { name: i18n._('waveform.track-image') })
+    ).toBeInTheDocument()
+  })
+
+  it('draws one coloured envelope per mix layer instead of the single one', () => {
+    renderLoaded({
+      mixLayers: [
+        { id: 'voix', label: 'Voix', waveform: track.waveform, level: 1 },
+        { id: 'metronome', label: 'Métronome', waveform: track.waveform, level: 0.5 }
+      ]
+    })
+    // The stems' own images replace the single track envelope.
+    expect(
+      screen.queryByRole('img', { name: i18n._('waveform.track-image') })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('img', {
+        name: i18n._('waveform.stem-image', { name: 'Voix' })
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('img', {
+        name: i18n._('waveform.stem-image', { name: 'Métronome' })
+      })
     ).toBeInTheDocument()
   })
 })
