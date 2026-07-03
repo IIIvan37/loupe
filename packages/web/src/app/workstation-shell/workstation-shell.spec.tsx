@@ -208,6 +208,12 @@ async function saveNamedLoop(user: UserEvent, name: string): Promise<void> {
 }
 
 describe('WorkstationShell', () => {
+  // Picker tests spy on HTMLInputElement.prototype.click — restore even when
+  // an assertion failed mid-test, so no spy (or its counts) leaks onward.
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('renders the core workstation landmarks', () => {
     renderShell()
     expect(screen.getByRole('banner')).toBeInTheDocument()
@@ -766,10 +772,12 @@ describe('WorkstationShell', () => {
     ).toHaveLength(2)
   })
 
-  it('asks before opening a project over the loaded session', async () => {
+  it('asks before opening a project over unsaved session changes', async () => {
     const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
     await saveProjectAs(user, 'Mon projet')
+    // Drift from the saved project — the session now holds unsaved work.
+    await user.click(screen.getByRole('button', { name: '+ Repère' }))
 
     await user.click(screen.getByRole('button', { name: 'Projets' }))
     await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
@@ -902,9 +910,6 @@ describe('WorkstationShell', () => {
     gateNext = true
     await user.click(screen.getByRole('button', { name: 'Projets' }))
     await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
-    await user.click(
-      screen.getByRole('button', { name: "Confirmer l'ouverture de Projet A" })
-    )
     // The open hangs on the gated store; leave the dialog, import a new file.
     await user.click(screen.getByRole('button', { name: 'Fermer' }))
     await importTrack(user, 'nouveau.wav')
@@ -942,6 +947,111 @@ describe('WorkstationShell', () => {
     expect(await screen.findByText('Enregistré')).toBeInTheDocument()
   })
 
+  it('arms the import button for confirmation while the loaded track is not saved', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    await user.click(screen.getByRole('button', { name: 'Importer' }))
+
+    expect(
+      screen.getByRole('button', {
+        name: "Confirmer l'import — la session actuelle sera remplacée"
+      })
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the file picker closed until the armed import is confirmed', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    const picker = vi.spyOn(HTMLInputElement.prototype, 'click')
+
+    await user.click(screen.getByRole('button', { name: 'Importer' }))
+
+    expect(picker).not.toHaveBeenCalled()
+  })
+
+  it('opens the file picker once the armed import is confirmed', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    const picker = vi.spyOn(HTMLInputElement.prototype, 'click')
+
+    await user.click(screen.getByRole('button', { name: 'Importer' }))
+    await user.click(
+      screen.getByRole('button', {
+        name: "Confirmer l'import — la session actuelle sera remplacée"
+      })
+    )
+
+    expect(picker).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens the file picker directly when the session is saved', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveProjectAs(user, 'Mon projet')
+    await screen.findByText('Enregistré')
+    const picker = vi.spyOn(HTMLInputElement.prototype, 'click')
+
+    await user.click(screen.getByRole('button', { name: 'Importer' }))
+
+    expect(picker).toHaveBeenCalledTimes(1)
+  })
+
+  it('disarms the armed import when focus leaves the button', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    await user.click(screen.getByRole('button', { name: 'Importer' }))
+
+    // Kept on fireEvent: only the blur itself is under test here.
+    fireEvent.blur(
+      screen.getByRole('button', {
+        name: "Confirmer l'import — la session actuelle sera remplacée"
+      })
+    )
+
+    expect(
+      screen.getByRole('button', { name: 'Importer' })
+    ).toBeInTheDocument()
+  })
+
+  /** Fire a cancelable beforeunload and report whether the guard blocked it. */
+  function unloadPrevented(): boolean {
+    const event = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(event)
+    return event.defaultPrevented
+  }
+
+  it('blocks the page unload while the loaded track is not saved', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    expect(unloadPrevented()).toBe(true)
+  })
+
+  it('lets the page unload once the session is saved', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await user.click(screen.getByRole('button', { name: '+ Repère' }))
+    await saveProjectAs(user, 'Mon projet')
+    await screen.findByText('Enregistré')
+
+    expect(unloadPrevented()).toBe(false)
+  })
+
+  it('opens a saved project directly when the session holds no unsaved work', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveProjectAs(user, 'Mon projet')
+
+    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+
+    // No « Confirmer ? » step: the open starts at once and closes the dialog.
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+  })
+
   it('announces the rebuild while a project opens', async () => {
     const working = fakeProjectStores()
     let release: (() => void) | undefined
@@ -967,9 +1077,6 @@ describe('WorkstationShell', () => {
     gateNext = true
     await user.click(screen.getByRole('button', { name: 'Projets' }))
     await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
-    await user.click(
-      screen.getByRole('button', { name: "Confirmer l'ouverture de Projet lent" })
-    )
 
     expect(
       await screen.findByText('Ouverture de « Projet lent »…')

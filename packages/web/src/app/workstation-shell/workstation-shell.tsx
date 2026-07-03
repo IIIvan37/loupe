@@ -41,6 +41,7 @@ import { ViewportControls } from '../waveform/viewport-controls.tsx'
 import { WaveformView } from '../waveform/waveform-view.tsx'
 import { ZoomStage } from '../waveform/zoom-stage.tsx'
 import { useProjectSession } from './use-project-session.ts'
+import { useUnloadGuard } from './use-unload-guard.ts'
 import styles from './workstation-shell.module.css'
 
 /** Help rows derived once from the shipped layout — never drift from the keys. */
@@ -153,6 +154,9 @@ export function WorkstationShell({
 
   const isLoaded = importState.status === 'loaded'
 
+  // Reload/close would silently drop unsaved work — let the browser confirm.
+  useUnloadGuard(session.unsavedWork)
+
   // Global keyboard layout — only live once a track is loaded.
   useKeyboardShortcuts(
     {
@@ -210,6 +214,7 @@ export function WorkstationShell({
           serverHealth === 'checking' ? undefined : SERVER_STATUS[serverHealth]
         }
         onImport={() => fileInputRef.current?.click()}
+        importNeedsConfirm={session.unsavedWork}
         onExportStems={handleExportStems}
         canExport={stemsReady}
         onShowShortcuts={() => setShortcutsOpen(true)}
@@ -254,7 +259,7 @@ export function WorkstationShell({
             : undefined
         }
         openingId={session.openingId}
-        confirmBeforeOpen={isLoaded}
+        confirmBeforeOpen={session.unsavedWork}
       />
       <input
         ref={fileInputRef}
