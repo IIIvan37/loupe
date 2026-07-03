@@ -43,6 +43,10 @@ export function LoopBar({
   onRemove
 }: LoopBarProps) {
   const { t } = useLingui()
+  const saveRegionLabel = t({
+    id: 'loops.save-region',
+    message: 'Enregistrer la boucle'
+  })
   return (
     <Cluster gap="var(--space-xs)" align="center">
       <span className={styles.label}>
@@ -66,19 +70,10 @@ export function LoopBar({
           {!isSaved && (
             <>
               <NameEditor
-                title={t({
-                  id: 'loops.save-region',
-                  message: 'Enregistrer la boucle'
-                })}
+                title={saveRegionLabel}
                 triggerClassName={cx(styles.action)}
-                triggerLabel={t({
-                  id: 'loops.save-region',
-                  message: 'Enregistrer la boucle'
-                })}
-                triggerContent={t({
-                  id: 'loops.save-region',
-                  message: 'Enregistrer la boucle'
-                })}
+                triggerLabel={saveRegionLabel}
+                triggerContent={saveRegionLabel}
                 submitLabel={t({ id: 'common.save', message: 'Enregistrer' })}
                 initialName=""
                 onSubmit={(name) => onSaveRegion(name, region)}

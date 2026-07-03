@@ -2,7 +2,6 @@ import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useRef } from 'react'
-import { i18n } from '../../i18n/i18n.ts'
 import type { ServerHealth } from '../../projects/use-server-health.ts'
 import { Header } from '../header/header.tsx'
 import { AlertBanner } from '../ui/alert-banner.tsx'
@@ -114,7 +113,7 @@ export function ShellHeader({
             ? undefined
             : {
                 tone: SERVER_STATUS[serverHealth].tone,
-                label: i18n._(SERVER_STATUS[serverHealth].label)
+                label: t(SERVER_STATUS[serverHealth].label)
               }
         }
         onImport={() => fileInputRef.current?.click()}

@@ -72,6 +72,7 @@ function SaveControls({
   saving
 }: SaveControlsProps) {
   const { t } = useLingui()
+  const saveLabel = t({ id: 'common.save', message: 'Enregistrer' })
   if (!canSave) {
     return (
       <button
@@ -116,7 +117,7 @@ function SaveControls({
             message: 'Renommer le projet'
           })}
           triggerContent="✎"
-          submitLabel={t({ id: 'common.save', message: 'Enregistrer' })}
+          submitLabel={saveLabel}
           initialName={saveName}
           onSubmit={onSaveProject}
         />
@@ -131,8 +132,8 @@ function SaveControls({
         id: 'header.save-project',
         message: 'Enregistrer le projet'
       })}
-      triggerContent={t({ id: 'common.save', message: 'Enregistrer' })}
-      submitLabel={t({ id: 'common.save', message: 'Enregistrer' })}
+      triggerContent={saveLabel}
+      submitLabel={saveLabel}
       initialName={saveName}
       onSubmit={onSaveProject}
     />

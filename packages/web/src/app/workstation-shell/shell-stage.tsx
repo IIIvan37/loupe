@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/react/macro'
 import type { ComponentProps } from 'react'
 import { StemHeaders } from '../mixer/stem-headers.tsx'
 import { StemLanes } from '../mixer/stem-lanes.tsx'
@@ -60,7 +61,9 @@ export function ShellStage({
         </div>
         {isLoaded && (
           <>
-            <div className={styles.mixLabel}>Mix</div>
+            <div className={styles.mixLabel}>
+              <Trans id="mixer.mix-label">Mix</Trans>
+            </div>
             <StemHeaders
               channels={mixer.channels}
               onSetGain={mixer.setGain}
