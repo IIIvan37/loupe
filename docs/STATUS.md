@@ -24,7 +24,7 @@
 - **Jalon 3 (« Projets ») core slices are merged** (J3.1–J3.4 + races +
   active-loop fix + UX session state). Remaining Jalon 3 work is polish
   (project rename, blob GC, `separator-server/` → `server/`).
-- **Now — tempo/pitch/zoom persistence slice (2026-07-03)**: the playback
+- **Latest — tempo/pitch/zoom persistence slice (2026-07-03, merged)**: the playback
   tuning (`timeRatio`/`pitchSemitones`/`zoom`) now round-trips through
   save/open and feeds the dirty fingerprint — the « real fix » the
   dirty-session-guard session flagged. Pure core `ProjectTuning` on
@@ -37,7 +37,8 @@
   Review found & fixed a real bug: importing a new file left the previous
   track's tempo/pitch (only zoom reset) — now `importFile` resets both, before
   `restoreTuning` on the open path. Gate green, **438 tests**, core mutation
-  95.79 % (`project.ts` 100 %). **Browser-verify pending — on the Mac.** See
+  95.79 % (`project.ts` 100 %). **Merged (PR #38), browser-verified on the
+  Mac.** See
   [2026-07-03-persist-tempo-pitch-zoom](sessions/2026-07-03-persist-tempo-pitch-zoom.md).
 - **Earlier — i18n slice (2026-07-03)**: all web UI copy goes through **Lingui**
   (canonical workflow: macros with explicit semantic ids, French source
@@ -78,10 +79,10 @@
   guard), and the playhead can no longer paint above dialogs (stage
   `isolation`). Browser-verified on the real project.
   See [2026-07-03-ui-polish](sessions/2026-07-03-ui-polish.md).
-- **Branch**: `feat/persist-tempo-pitch-zoom` (gate-green, 438 tests) — **PR to
-  open**, browser-verify on the Mac before merge. Earlier: `feat/i18n-messages`
-  **merged (PR #37)** and `feat/dirty-session-guard` **merged (PR #36)**;
-  `feat/ui-polish` **merged (PR #35)**.
+- **Branch**: `main` — `feat/persist-tempo-pitch-zoom` **merged (PR #38)**,
+  browser-verified on the Mac. Earlier: `feat/i18n-messages` **merged (PR #37)**
+  and `feat/dirty-session-guard` **merged (PR #36)**; `feat/ui-polish`
+  **merged (PR #35)**.
 - **Earlier**: `feat/ux-session-state` (**merged, PR #34**) — five
   user-reported UX gaps: active-loop chip highlighted (`aria-current`), the
   header « Exporter » wired to the zip export (mixer duplicate removed), a
@@ -175,9 +176,7 @@
 
 ## Next step
 
-**Open the `feat/persist-tempo-pitch-zoom` PR and browser-verify it on the Mac
-(slow/pitch/zoom → save → reload → reopen → same tuning + « Enregistré »), then
-merge.** Then pick the next slice. Candidates, by user value:
+**Pick the next slice.** Candidates, by user value:
 - UX backlog: real tempo detection, speed trainer, undo.
 - Jalon 3 polish: project rename, blob GC, `separator-server/` → `server/`.
 - Perf: off-thread zip/encode — the export measurably freezes the UI a few
