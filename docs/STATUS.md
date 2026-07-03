@@ -24,7 +24,21 @@
 - **Jalon 3 (« Projets ») core slices are merged** (J3.1–J3.4 + races +
   active-loop fix + UX session state). Remaining Jalon 3 work is polish
   (project rename, blob GC, `separator-server/` → `server/`).
-- **Now — dirty-session guard slice (2026-07-03)**: the first UX-backlog
+- **Now — i18n slice (2026-07-03)**: all web UI copy goes through **Lingui**
+  (canonical workflow: macros with explicit semantic ids, French source
+  catalog `packages/web/src/locales/fr/messages.po`, compiled on import —
+  no generated files in git), copy reworded to **infinitive forms**, and
+  the specs now **test by key** (`i18n._('id', values)` +
+  `I18nTestingProvider`, Lingui's official no-mock pattern) so copy changes
+  never break tests. Same branch: `WorkstationShell` exploded into view
+  regions (ShellHeader/ShellDialogs/ShellMain/ShellStage, shell = hooks +
+  composition). Toolchain: plugin-react v6 silently dropped the babel
+  option (macros leaked into the bundle) → pinned v5; vitest gets a
+  dedicated babel macro pass; `i18n:extract` script wires
+  `--overwrite --clean`. Gate green, 425 tests. **Stacked on the
+  dirty-session-guard branch — PR to open after #36.** See
+  [2026-07-03-i18n-lingui](sessions/2026-07-03-i18n-lingui.md).
+- **Earlier — dirty-session guard slice (2026-07-03)**: the first UX-backlog
   item after the polish pass. One predicate — `unsavedWork` (saved project →
   signature drift; otherwise → a loaded track is itself unsaved work) — now
   guards the three destructive paths uniformly: « Importer » arms a two-step
@@ -49,9 +63,9 @@
   guard), and the playhead can no longer paint above dialogs (stage
   `isolation`). Browser-verified on the real project.
   See [2026-07-03-ui-polish](sessions/2026-07-03-ui-polish.md).
-- **Branch**: `feat/dirty-session-guard` (gate-green, 425 tests). PR to
-  open; browser-verify on the Mac before merge. Earlier: `feat/ui-polish`
-  **merged (PR #35)**.
+- **Branch**: `feat/i18n-messages` (gate-green, 425 tests), stacked on
+  `feat/dirty-session-guard` (**PR #36 open** — browser-verify on the Mac
+  before merge). Earlier: `feat/ui-polish` **merged (PR #35)**.
 - **Earlier**: `feat/ux-session-state` (**merged, PR #34**) — five
   user-reported UX gaps: active-loop chip highlighted (`aria-current`), the
   header « Exporter » wired to the zip export (mixer duplicate removed), a
@@ -145,8 +159,9 @@
 
 ## Next step
 
-**Open the `feat/dirty-session-guard` PR, browser-verify on the Mac, merge.**
-Then pick the next slice. Candidates, by user value:
+**Browser-verify PR #36 (dirty-session guard) on the Mac and merge it, then
+retarget/merge the stacked i18n PR.** Then pick the next slice. Candidates,
+by user value:
 - UX backlog: real tempo detection, tempo/pitch/zoom persistence (also the
   real fix for the fingerprint's tempo/pitch blind spot), speed trainer, undo.
 - Jalon 3 polish: project rename, blob GC, `separator-server/` → `server/`.
@@ -237,6 +252,15 @@ mixer (J2.4) then export (J2.6). See
 ## Session journal
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
+
+- [2026-07-03 — i18n-lingui](sessions/2026-07-03-i18n-lingui.md) —
+  User-driven evolution: all web copy through Lingui (explicit ids, .po
+  source of truth, infinitive French), specs test by key under the real
+  i18n instance (official Lingui pattern, no mocking), WorkstationShell
+  split into view regions. plugin-react v6 babel-option regression found
+  (macro runtime shipped in the bundle) → pinned v5; vitest babel macro
+  pass; extract --overwrite gotcha documented. Gate green, 425 tests,
+  mutation skipped (core untouched). Browser-verify pending (Mac).
 
 - [2026-07-03 — dirty-session-guard](sessions/2026-07-03-dirty-session-guard.md) —
   UX-backlog slice: uniform unsaved-work guard. `unsavedWork` predicate
