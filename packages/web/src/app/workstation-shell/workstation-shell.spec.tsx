@@ -809,6 +809,9 @@ describe('WorkstationShell', () => {
 
     await user.click(screen.getByRole('button', { name: 'Projets' }))
     await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(
+      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+    )
 
     // The region must come back armed, exactly as the user left it.
     expect(
@@ -827,6 +830,9 @@ describe('WorkstationShell', () => {
     await importTrack(user, 'autre.wav')
     await user.click(screen.getByRole('button', { name: 'Projets' }))
     await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(
+      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+    )
 
     // The region is back but still in play-through mode, as it was saved.
     expect(
@@ -843,6 +849,9 @@ describe('WorkstationShell', () => {
     await importTrack(user, 'autre.wav')
     await user.click(screen.getByRole('button', { name: 'Projets' }))
     await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(
+      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+    )
 
     // The region is armed AND recognised as the saved « Refrain »: offering
     // « Enregistrer la boucle » again would invite a duplicate.
@@ -866,6 +875,9 @@ describe('WorkstationShell', () => {
 
     await user.click(screen.getByRole('button', { name: 'Projets' }))
     await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(
+      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+    )
 
     // The reopened project must bring its saved loop back.
     expect(
@@ -935,10 +947,9 @@ describe('WorkstationShell', () => {
     expect(await screen.findByText('Enregistré')).toBeInTheDocument()
   })
 
-  it('arms the import button for confirmation when the session holds unsaved work', async () => {
+  it('arms the import button for confirmation while the loaded track is not saved', async () => {
     const { user } = renderShell()
     await importTrack(user)
-    await user.click(screen.getByRole('button', { name: '+ Repère' }))
 
     await user.click(screen.getByRole('button', { name: 'Importer' }))
 
@@ -952,7 +963,6 @@ describe('WorkstationShell', () => {
   it('keeps the file picker closed until the armed import is confirmed', async () => {
     const { user } = renderShell()
     await importTrack(user)
-    await user.click(screen.getByRole('button', { name: '+ Repère' }))
     const picker = vi.spyOn(HTMLInputElement.prototype, 'click')
 
     await user.click(screen.getByRole('button', { name: 'Importer' }))
@@ -963,7 +973,6 @@ describe('WorkstationShell', () => {
   it('opens the file picker once the armed import is confirmed', async () => {
     const { user } = renderShell()
     await importTrack(user)
-    await user.click(screen.getByRole('button', { name: '+ Repère' }))
     const picker = vi.spyOn(HTMLInputElement.prototype, 'click')
 
     await user.click(screen.getByRole('button', { name: 'Importer' }))
@@ -976,9 +985,11 @@ describe('WorkstationShell', () => {
     expect(picker).toHaveBeenCalledTimes(1)
   })
 
-  it('opens the file picker directly while the session holds nothing unsaved', async () => {
-    const { user } = renderShell()
+  it('opens the file picker directly when the session is saved', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
+    await saveProjectAs(user, 'Mon projet')
+    await screen.findByText('Enregistré')
     const picker = vi.spyOn(HTMLInputElement.prototype, 'click')
 
     await user.click(screen.getByRole('button', { name: 'Importer' }))
@@ -989,7 +1000,6 @@ describe('WorkstationShell', () => {
   it('disarms the armed import when focus leaves the button', async () => {
     const { user } = renderShell()
     await importTrack(user)
-    await user.click(screen.getByRole('button', { name: '+ Repère' }))
     await user.click(screen.getByRole('button', { name: 'Importer' }))
 
     // Kept on fireEvent: only the blur itself is under test here.
@@ -1011,10 +1021,9 @@ describe('WorkstationShell', () => {
     return event.defaultPrevented
   }
 
-  it('blocks the page unload while the session holds unsaved work', async () => {
+  it('blocks the page unload while the loaded track is not saved', async () => {
     const { user } = renderShell()
     await importTrack(user)
-    await user.click(screen.getByRole('button', { name: '+ Repère' }))
 
     expect(unloadPrevented()).toBe(true)
   })

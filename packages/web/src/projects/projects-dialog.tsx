@@ -1,11 +1,8 @@
 import type { Project } from '@app/core'
-import { useEffect, useRef, useState } from 'react'
 import { AppDialog } from '../app/ui/app-dialog.tsx'
+import { useTwoStepConfirm } from '../app/ui/use-two-step-confirm.ts'
 import { cx } from '../lib/cx.ts'
 import styles from './projects-dialog.module.css'
-
-/** How long an armed « Confirmer ? » stays armed before reverting. */
-const CONFIRM_REVERT_MS = 4000
 
 /** The row action awaiting its second, confirming click. */
 interface PendingConfirm {
@@ -97,30 +94,19 @@ export function ProjectsDialog({
   openingId,
   confirmBeforeOpen
 }: ProjectsDialogProps) {
-  const [confirm, setConfirm] = useState<PendingConfirm | null>(null)
-  const revertTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
-  )
-
-  function disarm(): void {
-    clearTimeout(revertTimer.current)
-    setConfirm(null)
-  }
+  const { pending: confirm, arm: armPending, disarm } = useTwoStepConfirm<
+    PendingConfirm
+  >()
 
   function arm(id: string, action: PendingConfirm['action']): void {
-    clearTimeout(revertTimer.current)
-    setConfirm({ id, action })
-    revertTimer.current = setTimeout(() => setConfirm(null), CONFIRM_REVERT_MS)
+    armPending({ id, action })
   }
 
   // A closed dialog forgets any armed confirmation — adjusted during render so
   // a reopen never flashes a stale « Confirmer ? » (no effect round-trip).
   if (!open && confirm !== null) {
-    setConfirm(null)
+    disarm()
   }
-
-  // Clear the revert timer on unmount so it never fires into a gone component.
-  useEffect(() => () => clearTimeout(revertTimer.current), [])
 
   const locked = openingId !== undefined
 

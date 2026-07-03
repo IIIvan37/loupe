@@ -12,6 +12,8 @@ export function useUnloadGuard(enabled: boolean): void {
     }
     const guard = (event: BeforeUnloadEvent): void => {
       event.preventDefault()
+      // Some engines only surface the native prompt when returnValue is set.
+      event.returnValue = true
     }
     window.addEventListener('beforeunload', guard)
     return () => window.removeEventListener('beforeunload', guard)

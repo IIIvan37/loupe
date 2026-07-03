@@ -1,11 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
 import { NameEditor } from '../ui/name-editor.tsx'
+import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
 import styles from './header.module.css'
-
-/** How long the armed « Confirmer ? » stays armed before reverting. */
-const CONFIRM_REVERT_MS = 4000
 
 interface DetectedReadout {
   readonly id: string
@@ -139,28 +136,23 @@ interface ImportButtonProps {
  * elements would drop focus), which reverts on blur or after a few seconds.
  */
 function ImportButton({ onImport, needsConfirm }: ImportButtonProps) {
-  const [armed, setArmed] = useState(false)
-  const revertTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
-  )
+  const confirm = useTwoStepConfirm<true>()
+  const armed = confirm.pending !== null
 
-  // Clear the revert timer on unmount so it never fires into a gone component.
-  useEffect(() => () => clearTimeout(revertTimer.current), [])
-
-  function disarm(): void {
-    clearTimeout(revertTimer.current)
-    setArmed(false)
+  // The session settled (e.g. a save landed) while armed — the destructive
+  // warning no longer applies; drop it during render, no effect round-trip.
+  if (armed && !needsConfirm) {
+    confirm.disarm()
   }
 
   function onClick(): void {
     if (armed) {
-      disarm()
+      confirm.disarm()
       onImport()
       return
     }
     if (needsConfirm) {
-      setArmed(true)
-      revertTimer.current = setTimeout(() => setArmed(false), CONFIRM_REVERT_MS)
+      confirm.arm(true)
       return
     }
     onImport()
@@ -177,7 +169,7 @@ function ImportButton({ onImport, needsConfirm }: ImportButtonProps) {
           : undefined
       }
       title={armed ? 'La session actuelle sera remplacée' : undefined}
-      onBlur={armed ? disarm : undefined}
+      onBlur={armed ? confirm.disarm : undefined}
       onClick={onClick}
     >
       {armed ? 'Confirmer ?' : 'Importer'}
