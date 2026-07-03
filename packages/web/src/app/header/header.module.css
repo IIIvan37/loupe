@@ -124,6 +124,17 @@
   border-color: var(--amber-deep);
 }
 
+/* The import button's second step — replacing an unsaved session is
+   destructive, so it takes the same red-ish face as the dialog confirms. */
+.confirmAction {
+  padding: var(--space-2xs) var(--space-m);
+  border-radius: var(--radius);
+  border: 1px solid var(--stem-vocals);
+  background: transparent;
+  color: var(--stem-vocals);
+  font-weight: 600;
+}
+
 .iconAction {
   display: inline-flex;
   align-items: center;
@@ -144,7 +155,8 @@
 
 /* Visible keyboard focus on every header action (same ring as the baseline). */
 .secondaryAction:focus-visible,
-.iconAction:focus-visible {
+.iconAction:focus-visible,
+.confirmAction:focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: 2px;
 }

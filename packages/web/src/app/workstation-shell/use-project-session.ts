@@ -1,6 +1,9 @@
 import type { LoopRegion, Project, ProjectDeps } from '@app/core'
 import { type ChangeEvent, useRef, useState } from 'react'
-import { sessionSignature } from '../../projects/session-signature.ts'
+import {
+  EMPTY_SESSION_SIGNATURE,
+  sessionSignature
+} from '../../projects/session-signature.ts'
 import { type Projects, useProjects } from '../../projects/use-projects.ts'
 import {
   restoreSession,
@@ -41,6 +44,12 @@ export interface ProjectSession {
   readonly currentProject: Project | undefined
   /** Whether the session holds changes its saved project does not. */
   readonly dirty: boolean
+  /**
+   * Whether discarding the session would lose work: changes a saved project
+   * does not hold, or content of a never-saved session. The one predicate
+   * every destructive path (import, reload, project open) guards on.
+   */
+  readonly unsavedWork: boolean
   readonly handleSave: (name: string) => void
   readonly handleOpen: (id: string) => Promise<void>
   readonly onFilePicked: (event: ChangeEvent<HTMLInputElement>) => void
@@ -168,18 +177,26 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     (p) => p.id === projects.currentId
   )
 
+  // Dirty = the session drifted from its saved project. Muted while an open
+  // is still rebuilding (the live state settles asynchronously).
+  const live = liveSignature()
+  const dirty =
+    currentProject !== undefined &&
+    savedSignature !== undefined &&
+    openingId === undefined &&
+    live !== savedSignature
+
   return {
     projects,
     trackName,
     openingId,
     currentProject,
-    // Dirty = the session drifted from its saved project. Muted while an open
-    // is still rebuilding (the live state settles asynchronously).
-    dirty:
-      currentProject !== undefined &&
-      savedSignature !== undefined &&
+    dirty,
+    // With a saved project, drift is what a discard would lose; without one,
+    // any signed content is work only this live session holds.
+    unsavedWork:
       openingId === undefined &&
-      liveSignature() !== savedSignature,
+      (currentProject !== undefined ? dirty : live !== EMPTY_SESSION_SIGNATURE),
     handleSave,
     handleOpen,
     onFilePicked

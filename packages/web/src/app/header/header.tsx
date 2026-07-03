@@ -1,7 +1,11 @@
+import { useEffect, useRef, useState } from 'react'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
 import { NameEditor } from '../ui/name-editor.tsx'
 import styles from './header.module.css'
+
+/** How long the armed « Confirmer ? » stays armed before reverting. */
+const CONFIRM_REVERT_MS = 4000
 
 interface DetectedReadout {
   readonly id: string
@@ -23,6 +27,8 @@ interface HeaderProps {
   readonly serverStatus?: ServerStatus | undefined
   /** Open the file picker. The smart shell owns the actual import. */
   readonly onImport: () => void
+  /** Ask before importing: the session holds work a new track would discard. */
+  readonly importNeedsConfirm?: boolean | undefined
   /** Download the separated stems as one zip. The shell owns the export. */
   readonly onExportStems: () => void
   /** Whether there are stems to export (a separation is ready). */
@@ -122,6 +128,63 @@ function SaveControls({
   )
 }
 
+interface ImportButtonProps {
+  readonly onImport: () => void
+  readonly needsConfirm: boolean
+}
+
+/**
+ * The single import entry point, guarded: while the session holds unsaved
+ * work the first click arms a « Confirmer ? » on the same element (swapping
+ * elements would drop focus), which reverts on blur or after a few seconds.
+ */
+function ImportButton({ onImport, needsConfirm }: ImportButtonProps) {
+  const [armed, setArmed] = useState(false)
+  const revertTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  )
+
+  // Clear the revert timer on unmount so it never fires into a gone component.
+  useEffect(() => () => clearTimeout(revertTimer.current), [])
+
+  function disarm(): void {
+    clearTimeout(revertTimer.current)
+    setArmed(false)
+  }
+
+  function onClick(): void {
+    if (armed) {
+      disarm()
+      onImport()
+      return
+    }
+    if (needsConfirm) {
+      setArmed(true)
+      revertTimer.current = setTimeout(() => setArmed(false), CONFIRM_REVERT_MS)
+      return
+    }
+    onImport()
+  }
+
+  return (
+    <button
+      type="button"
+      className={armed ? styles.confirmAction : styles.primaryAction}
+      data-on-amber={armed ? undefined : ''}
+      aria-label={
+        armed
+          ? "Confirmer l'import — la session actuelle sera remplacée"
+          : undefined
+      }
+      title={armed ? 'La session actuelle sera remplacée' : undefined}
+      onBlur={armed ? disarm : undefined}
+      onClick={onClick}
+    >
+      {armed ? 'Confirmer ?' : 'Importer'}
+    </button>
+  )
+}
+
 /**
  * Dumb presentational header, one place per kind of information: the document
  * (title, artist, detected values, saved/busy state) on the left with the logo;
@@ -136,6 +199,7 @@ export function Header({
   detected,
   serverStatus,
   onImport,
+  importNeedsConfirm,
   onExportStems,
   canExport,
   onShowShortcuts,
@@ -192,14 +256,10 @@ export function Header({
         >
           ?
         </button>
-        <button
-          type="button"
-          className={styles.primaryAction}
-          data-on-amber=""
-          onClick={onImport}
-        >
-          Importer
-        </button>
+        <ImportButton
+          onImport={onImport}
+          needsConfirm={importNeedsConfirm === true}
+        />
         <button
           type="button"
           className={styles.secondaryAction}

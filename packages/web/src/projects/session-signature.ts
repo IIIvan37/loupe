@@ -51,3 +51,10 @@ export function sessionSignature(session: SignedSession): string {
       : null
   })
 }
+
+/** What a session with nothing worth keeping signs as — the baseline the
+ * destructive-path guards (import, reload, project open) compare against. */
+export const EMPTY_SESSION_SIGNATURE: string = sessionSignature({
+  loops: [],
+  markers: []
+})
