@@ -8,8 +8,10 @@ import {
   type ProjectActiveLoop,
   type ProjectSeparation,
   type ProjectStamp,
+  type ProjectTuning,
   projectFromSession,
-  type SessionSnapshot
+  type SessionSnapshot,
+  tuningOrDefault
 } from './project.ts'
 
 const source = {
@@ -78,6 +80,21 @@ describe('projectFromSession', () => {
     expect('activeLoop' in project).toBe(false)
   })
 
+  it('carries the playback tuning through when present', () => {
+    const tuning: ProjectTuning = {
+      timeRatio: 0.85,
+      pitchSemitones: -2,
+      zoom: 3
+    }
+    const project = projectFromSession(snapshot({ tuning }), stamp)
+    expect(project.tuning).toEqual(tuning)
+  })
+
+  it('omits tuning when the session carries none', () => {
+    const project = projectFromSession(snapshot(), stamp)
+    expect('tuning' in project).toBe(false)
+  })
+
   it('omits separation for an unseparated session', () => {
     const project = projectFromSession(snapshot(), stamp)
     expect(project.separation).toBeUndefined()
@@ -116,6 +133,21 @@ describe('projectFromSession', () => {
         expect(project.markers).toBe(snap.markers)
       })
     )
+  })
+})
+
+describe('tuningOrDefault', () => {
+  it('fills in the neutral tuning for a manifest that predates the field', () => {
+    expect(tuningOrDefault(undefined)).toEqual({
+      timeRatio: 1,
+      pitchSemitones: 0,
+      zoom: 1
+    })
+  })
+
+  it('returns a persisted tuning unchanged', () => {
+    const tuning: ProjectTuning = { timeRatio: 0.7, pitchSemitones: 2, zoom: 4 }
+    expect(tuningOrDefault(tuning)).toBe(tuning)
   })
 })
 

@@ -950,6 +950,71 @@ describe('WorkstationShell', () => {
     expect(await screen.findByText(i18n._('header.saved'))).toBeInTheDocument()
   })
 
+  it('resets the tempo to 100 % when a new file is imported', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    // Range slider: user-event cannot drive <input type="range">.
+    fireEvent.change(screen.getByLabelText(i18n._('transport.tempo-slider')), {
+      target: { value: '70' }
+    })
+
+    // A fresh, unrelated track must not inherit the previous track's tempo.
+    await importTrack(user, 'autre.wav')
+
+    const tempo = screen.getByLabelText(
+      i18n._('transport.tempo-slider')
+    ) as HTMLInputElement
+    expect(tempo.value).toBe('100')
+  })
+
+  it('flips to « Non enregistré » when the tempo changes', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveProjectAs(user, 'Mon projet')
+    await screen.findByText(i18n._('header.saved'))
+
+    // Range slider: user-event cannot drive <input type="range">.
+    fireEvent.change(screen.getByLabelText(i18n._('transport.tempo-slider')), {
+      target: { value: '85' }
+    })
+
+    expect(await screen.findByText(i18n._('header.unsaved'))).toBeInTheDocument()
+  })
+
+  it('restores the saved tempo and zoom when a project is reopened', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    fireEvent.change(screen.getByLabelText(i18n._('transport.tempo-slider')), {
+      target: { value: '85' }
+    })
+    fireEvent.change(screen.getByLabelText(i18n._('waveform.zoom-slider')), {
+      target: { value: '3' }
+    })
+    await saveProjectAs(user, 'Mon projet')
+
+    // Move on to a fresh track and drift the tuning away from the saved one.
+    await importTrack(user, 'autre.wav')
+    fireEvent.change(screen.getByLabelText(i18n._('transport.tempo-slider')), {
+      target: { value: '110' }
+    })
+
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
+    await user.click(
+      screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
+    )
+
+    // The reopened project practises at its saved tempo and magnification.
+    const tempo = screen.getByLabelText(
+      i18n._('transport.tempo-slider')
+    ) as HTMLInputElement
+    await waitFor(() => expect(tempo.value).toBe('85'))
+    expect(
+      (screen.getByLabelText(i18n._('waveform.zoom-slider')) as HTMLInputElement).value
+    ).toBe('3')
+  })
+
   it('arms the import button for confirmation while the loaded track is not saved', async () => {
     const { user } = renderShell()
     await importTrack(user)

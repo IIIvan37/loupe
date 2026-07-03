@@ -7,8 +7,10 @@ import {
   type MixerState,
   type OpenProjectResult,
   type ProjectActiveLoop,
+  type ProjectTuning,
   type SaveProjectInput,
-  type SeparatedStem
+  type SeparatedStem,
+  tuningOrDefault
 } from '@app/core'
 import type { Loops } from '../loops/use-loops.ts'
 import type { Markers } from '../markers/use-markers.ts'
@@ -25,6 +27,8 @@ export interface SessionSnapshot {
   readonly markers: MarkerList
   /** The armed A/B region — the loupe — when one is set. */
   readonly activeLoop?: ProjectActiveLoop
+  /** The playback tuning (tempo/pitch/zoom) — always live, always saved. */
+  readonly tuning: ProjectTuning
   /** The separation half, only once the stems are ready and mixing. */
   readonly separation?: {
     readonly sources: readonly SeparatedStem[]
@@ -50,6 +54,7 @@ export function sessionSaveInput(
     },
     loops: session.loops,
     markers: session.markers,
+    tuning: session.tuning,
     ...(session.activeLoop === undefined
       ? {}
       : { activeLoop: session.activeLoop }),
@@ -97,6 +102,8 @@ export interface SessionRestoreDeps {
     active: ProjectActiveLoop,
     savedLoopId: string | null
   ) => void
+  /** Seat the persisted tuning (tempo/pitch/zoom) on the live controls. */
+  readonly restoreTuning: (tuning: ProjectTuning) => void
   readonly separation: Separation
   readonly mixer: Mixer
 }
@@ -122,6 +129,9 @@ export async function restoreSession(
   }
   deps.markers.restore(opened.project.markers)
   deps.loops.restore(opened.project.loops)
+  // A manifest that predates the tuning field means neutral settings — seat
+  // them too, so the previous session's tempo/pitch never bleeds in.
+  deps.restoreTuning(tuningOrDefault(opened.project.tuning))
   const active = opened.project.activeLoop
   if (active) {
     // If the region matches a library loop exactly, it WAS that loop: relink,

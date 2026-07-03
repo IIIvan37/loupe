@@ -125,9 +125,10 @@ export type {
   ProjectSource,
   ProjectStamp,
   ProjectStem,
+  ProjectTuning,
   SessionSnapshot
 } from './domain/project.ts'
-export { projectFromSession } from './domain/project.ts'
+export { projectFromSession, tuningOrDefault } from './domain/project.ts'
 export type {
   SeparationAction,
   SeparationPhase,

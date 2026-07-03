@@ -124,6 +124,18 @@ describe('saveProject', () => {
     expect(store.saved.get('p1')?.activeLoop).toEqual(activeLoop)
   })
 
+  it('persists the playback tuning (tempo, pitch, zoom) into the manifest', async () => {
+    const store = fakeProjectStore()
+    const tuning = { timeRatio: 0.85, pitchSemitones: -2, zoom: 3 }
+
+    await saveProject(
+      { ...saveInput, tuning },
+      { store, audio: fakeAudioStore() }
+    )
+
+    expect(store.saved.get('p1')?.tuning).toEqual(tuning)
+  })
+
   it('stores each stem behind its own ref and keeps the mixer', async () => {
     const store = fakeProjectStore()
     const audio = fakeAudioStore()

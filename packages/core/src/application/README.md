@@ -9,7 +9,7 @@ The single place to look before adding a feature, so ports and use-cases get
 |----------|-----------|-------|
 | `loadTrack` | `(input, deps) => Promise<LoadTrackResult>` | Slices 1–2 — decode bytes once via `AudioFileDecoder`, summarise into a `Track` (mono mix → `Waveform` peaks + duration), and load the same PCM into the `PlaybackEngine`. Also returns the decoded PCM so separation reuses the same audio (no second decode). |
 | `separateTrack` | `(input, deps) => Promise<SeparateTrackResult>` | Slice J2.1 — hand the loaded PCM to the `StemSeparator` port and summarise each isolated stem into a render-ready `StemTrack` (`StemSet`); progress streams to an optional sink. Input is the SAME `DecodedAudio` the player loaded. **J2.3**: also runs adaptive detection — each stem carries a `confidence` and a `present` flag derived from its energy, so the UI can mask near-silent stems. |
-| `saveProject` | `(input, deps) => Promise<SaveProjectResult>` | Slice J3.2 — persist the session as a project: `put` the heavy audio (source + stem WAV bytes) into `ProjectAudioStore` to mint refs, assemble the light `Project` via `projectFromSession`, `save` the manifest through `ProjectStore`. An inconsistent separation (mixer channels ≠ stems, `mixerMatchesStems`) is rejected before any byte is stored. Saving over an existing id is an update (`createdAt` survives, `updatedAt` = `stamp.now`). Also persists the armed A/B region (`ProjectActiveLoop` — the loupe, with its wrap choice), which needs no name to be worth keeping. |
+| `saveProject` | `(input, deps) => Promise<SaveProjectResult>` | Slice J3.2 — persist the session as a project: `put` the heavy audio (source + stem WAV bytes) into `ProjectAudioStore` to mint refs, assemble the light `Project` via `projectFromSession`, `save` the manifest through `ProjectStore`. An inconsistent separation (mixer channels ≠ stems, `mixerMatchesStems`) is rejected before any byte is stored. Saving over an existing id is an update (`createdAt` survives, `updatedAt` = `stamp.now`). Also persists the armed A/B region (`ProjectActiveLoop` — the loupe, with its wrap choice), which needs no name to be worth keeping, and the playback tuning (`ProjectTuning` — tempo/pitch/zoom as the user left them; `tuningOrDefault` reads an absent field on an old manifest as neutral). |
 | `listProjects` | `(deps) => Promise<ListProjectsResult>` | Slice J3.2 — the saved manifests, most recently updated first. |
 | `openProject` | `(input, deps) => Promise<OpenProjectResult>` | Slice J3.2 — load a manifest and resolve every `AudioRef` back to bytes (source + stems) so the caller can rebuild the working session; unknown id / dangling ref → error `Result`. |
 | `deleteProject` | `(input, deps) => Promise<DeleteProjectResult>` | Slice J3.2 — remove a manifest. Its blobs become unreachable; reclaiming them is the audio-store adapter's business (later GC). |
@@ -81,7 +81,9 @@ The single place to look before adding a feature, so ports and use-cases get
 > Pure project domain — Slice J3.1: `projectFromSession`
 > assembles a `Project` (id/name/timestamps + `ProjectSource`, `LoopLibrary`,
 > `MarkerList`, optional `ProjectActiveLoop` = the armed A/B region + wrap
-> choice, optional `ProjectSeparation` = stems + `MixerState`) from a
+> choice, optional `ProjectTuning` = tempo/pitch/zoom (with `tuningOrDefault`
+> normalising manifests that predate the field to neutral), optional
+> `ProjectSeparation` = stems + `MixerState`) from a
 > `SessionSnapshot` and a caller-minted `ProjectStamp` (`id`/`name`/`now` — the
 > core owns no clock or id generator). Heavy audio never enters the model: the
 > source and each stem hold only an `AudioRef`, an opaque pointer a

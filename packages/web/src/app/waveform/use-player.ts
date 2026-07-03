@@ -240,6 +240,10 @@ export function usePlayer(
           setLoadedAudio(result.audio)
           setLoadedBytes(retained)
           setLoopRegionState(undefined)
+          // A fresh, unrelated track starts at its own tempo/pitch — the
+          // previous track's tuning must not bleed in (and get saved with it).
+          setTimeRatio(1)
+          setPitchSemitones(0)
           dispatch({
             type: 'load',
             durationSeconds: result.track.durationSeconds

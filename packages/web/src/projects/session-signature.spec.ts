@@ -67,6 +67,22 @@ describe('sessionSignature', () => {
     expect(sessionSignature(edited)).not.toBe(sessionSignature(base))
   })
 
+  it('changes when the tuning (tempo/pitch/zoom) changes', () => {
+    const slowed: SignedSession = {
+      ...base,
+      tuning: { timeRatio: 0.85, pitchSemitones: 0, zoom: 1 }
+    }
+    expect(sessionSignature(slowed)).not.toBe(sessionSignature(base))
+  })
+
+  it('signs a manifest that predates tuning like the explicit neutral one', () => {
+    const neutral: SignedSession = {
+      ...base,
+      tuning: { timeRatio: 1, pitchSemitones: 0, zoom: 1 }
+    }
+    expect(sessionSignature(neutral)).toBe(sessionSignature(base))
+  })
+
   it('tells a session without loupe or separation apart from one with', () => {
     const bare: SignedSession = { loops: [], markers: [] }
     expect(sessionSignature(bare)).not.toBe(sessionSignature(base))

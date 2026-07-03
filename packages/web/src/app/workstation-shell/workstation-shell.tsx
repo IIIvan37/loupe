@@ -104,11 +104,18 @@ export function WorkstationShell({
     stemsReady,
     loopRegion,
     loopEnabled,
+    tuning: { timeRatio, pitchSemitones, zoom: viewport.zoom },
     markers,
     loops,
     restoreActiveLoop: (active, savedLoopId) => {
       restoreLoop(active.region, active.enabled)
       loopEditing.restore(savedLoopId)
+    },
+    restoreTuning: (tuning) => {
+      // The player setters re-clamp, so a hand-edited manifest stays in range.
+      setTimeRatio(tuning.timeRatio)
+      setPitchSemitones(tuning.pitchSemitones)
+      viewport.setZoom(tuning.zoom)
     },
     separation,
     mixer,
