@@ -1,4 +1,7 @@
 import type { Command, KeyBindings, KeyChord } from '@app/core'
+import type { MessageDescriptor } from '@lingui/core'
+import { msg } from '@lingui/core/macro'
+import { i18n } from '../../i18n/i18n.ts'
 
 /** One row in the shortcuts help: the key glyph(s) and what they do. */
 export interface ShortcutHint {
@@ -17,21 +20,29 @@ const MODIFIERS: ReadonlyArray<{
   { held: 'ctrl', glyph: '⌃' }
 ]
 
-/** Readable glyphs for the named (non-letter) physical codes we bind. */
+/** Locale-neutral glyphs for the named (non-letter) physical codes we bind. */
 const CODE_GLYPHS: Readonly<Record<string, string>> = {
-  Space: 'Espace',
   ArrowLeft: '←',
   ArrowRight: '→',
   ArrowUp: '↑',
   ArrowDown: '↓',
   Equal: '+',
-  Minus: '−',
-  Enter: 'Entrée',
-  Escape: 'Échap'
+  Minus: '−'
+}
+
+/** Translatable names for the physical codes whose label is a word. */
+const CODE_NAMES: Readonly<Record<string, MessageDescriptor>> = {
+  Space: msg({ id: 'shortcuts.key-space', message: 'Espace' }),
+  Enter: msg({ id: 'shortcuts.key-enter', message: 'Entrée' }),
+  Escape: msg({ id: 'shortcuts.key-escape', message: 'Échap' })
 }
 
 /** The visible key for a chord's physical code (layout-independent). */
 function codeLabel(code: string): string {
+  const named = CODE_NAMES[code]
+  if (named !== undefined) {
+    return i18n._(named)
+  }
   const glyph = CODE_GLYPHS[code]
   if (glyph !== undefined) {
     return glyph
@@ -62,21 +73,43 @@ function formatChord(chord: KeyChord): string {
   return parts.join(' + ')
 }
 
-/** French sentence describing what a resolved command does. */
+const PLAY_PAUSE = msg({
+  id: 'shortcuts.play-pause',
+  message: 'Lecture / Pause'
+})
+const SEEK_BACK = msg({
+  id: 'shortcuts.seek-back',
+  message: 'Reculer de {seconds} s'
+})
+const SEEK_FORWARD = msg({
+  id: 'shortcuts.seek-forward',
+  message: 'Avancer de {seconds} s'
+})
+const ZOOM_IN = msg({ id: 'shortcuts.zoom-in', message: 'Zoom avant' })
+const ZOOM_OUT = msg({ id: 'shortcuts.zoom-out', message: 'Zoom arrière' })
+const ADD_MARKER = msg({
+  id: 'shortcuts.add-marker',
+  message: 'Ajouter un repère'
+})
+
+/** Localised sentence describing what a resolved command does. */
 function describeCommand(command: Command): string {
   switch (command.type) {
     case 'togglePlayback':
-      return 'Lecture / Pause'
-    case 'seekBy':
-      return command.seconds < 0
-        ? `Reculer de ${Math.abs(command.seconds)} s`
-        : `Avancer de ${command.seconds} s`
+      return i18n._(PLAY_PAUSE)
+    case 'seekBy': {
+      const descriptor = command.seconds < 0 ? SEEK_BACK : SEEK_FORWARD
+      const seconds = Math.abs(command.seconds)
+      // The macro always emits a message; the fallback only satisfies the types.
+      const message = descriptor.message ?? descriptor.id
+      return i18n._(descriptor.id, { seconds }, { message })
+    }
     case 'zoomIn':
-      return 'Zoom avant'
+      return i18n._(ZOOM_IN)
     case 'zoomOut':
-      return 'Zoom arrière'
+      return i18n._(ZOOM_OUT)
     case 'addMarker':
-      return 'Ajouter un repère'
+      return i18n._(ADD_MARKER)
   }
 }
 

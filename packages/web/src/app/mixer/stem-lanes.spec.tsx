@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import { render, screen } from '@testing-library/react'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import type { MixerChannelView } from './use-mixer.ts'
 import { StemLanes } from './stem-lanes.tsx'
 
@@ -24,7 +25,12 @@ function channel(
 
 describe('StemLanes', () => {
   it('renders an aligned waveform lane per stem', () => {
-    render(<StemLanes channels={[channel('voix', 'Voix'), channel('basse', 'Basse')]} />)
+    render(
+      <StemLanes
+        channels={[channel('voix', 'Voix'), channel('basse', 'Basse')]}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
     expect(screen.getByRole('img', { name: /Voix/ })).toBeInTheDocument()
     expect(screen.getByRole('img', { name: /Basse/ })).toBeInTheDocument()
   })
@@ -36,7 +42,8 @@ describe('StemLanes', () => {
           channel('voix', 'Voix', { level: 1 }),
           channel('basse', 'Basse', { level: 0 })
         ]}
-      />
+      />,
+      { wrapper: I18nTestingProvider }
     )
     // The fade lives on the envelope wrapper (the div inside each lane).
     const waves = container.querySelectorAll('li > div')
@@ -46,7 +53,9 @@ describe('StemLanes', () => {
   })
 
   it('renders nothing without channels', () => {
-    const { container } = render(<StemLanes channels={[]} />)
+    const { container } = render(<StemLanes channels={[]} />, {
+      wrapper: I18nTestingProvider
+    })
     expect(container).toBeEmptyDOMElement()
   })
 })

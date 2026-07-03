@@ -6,7 +6,15 @@ import {
   moveMarker,
   removeMarker
 } from '@app/core'
+import { msg } from '@lingui/core/macro'
 import { useState } from 'react'
+import { i18n } from '../../i18n/i18n.ts'
+
+// The auto label minted for a fresh marker: « Repère 1 », « Repère 2 », …
+const defaultMarkerName = msg({
+  id: 'markers.default-name',
+  message: 'Repère {number}'
+})
 
 export interface Markers {
   readonly markers: MarkerList
@@ -35,7 +43,12 @@ export function useMarkers(): Markers {
       const marker: Marker = {
         id: crypto.randomUUID(),
         timeSeconds,
-        label: `Repère ${current.length + 1}`
+        // Resolved at runtime; msg() above is what extraction sees.
+        label: i18n._(
+          defaultMarkerName.id,
+          { number: current.length + 1 },
+          { message: defaultMarkerName.message ?? defaultMarkerName.id }
+        )
       }
       return addMarker(current, marker)
     })

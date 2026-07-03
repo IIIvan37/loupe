@@ -1,3 +1,4 @@
+import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
 import styles from './transport-bar.module.css'
@@ -37,13 +38,14 @@ export function TransportBar({
   onTempoChange,
   onPitchChange
 }: TransportBarProps) {
+  const { t } = useLingui()
   return (
     <footer className={styles.bar}>
       <Cluster gap="var(--space-s)" align="center">
         <button
           type="button"
           className={styles.control}
-          aria-label="Début"
+          aria-label={t({ id: 'transport.start', message: 'Début' })}
           disabled={!canPlay}
           onClick={onSeekToStart}
         >
@@ -53,7 +55,11 @@ export function TransportBar({
           type="button"
           className={cx(styles.control, styles.play)}
           data-on-amber=""
-          aria-label={isPlaying ? 'Pause' : 'Lecture'}
+          aria-label={
+            isPlaying
+              ? t({ id: 'transport.pause', message: 'Pause' })
+              : t({ id: 'transport.play', message: 'Lecture' })
+          }
           aria-pressed={isPlaying}
           disabled={!canPlay}
           onClick={onPlayPause}
@@ -63,7 +69,7 @@ export function TransportBar({
         <button
           type="button"
           className={styles.control}
-          aria-label="Fin"
+          aria-label={t({ id: 'transport.end', message: 'Fin' })}
           disabled={!canPlay}
           onClick={onSeekToEnd}
         >
@@ -78,32 +84,48 @@ export function TransportBar({
 
       <Cluster gap="var(--space-l)" align="center">
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>Tempo (sans toucher au pitch)</span>
+          <span className={styles.fieldLabel}>
+            <Trans id="transport.tempo-label">Tempo (sans toucher au pitch)</Trans>
+          </span>
           <input
             type="range"
             data-accent="amber"
             min={50}
             max={150}
             value={tempoPercent}
-            aria-label="Tempo en pourcentage"
+            aria-label={t({
+              id: 'transport.tempo-slider',
+              message: 'Tempo en pourcentage'
+            })}
             disabled={!canPlay}
-            title="Double-clic pour revenir à 100 %"
+            title={t({
+              id: 'transport.tempo-reset',
+              message: 'Double-clic pour revenir à 100 %'
+            })}
             onChange={(event) => onTempoChange(event.target.valueAsNumber)}
             onDoubleClick={() => onTempoChange(100)}
           />
           <span className={styles.fieldValue}>{tempoPercent} %</span>
         </label>
         <label className={styles.field}>
-          <span className={styles.fieldLabel}>Hauteur</span>
+          <span className={styles.fieldLabel}>
+            <Trans id="transport.pitch-label">Hauteur</Trans>
+          </span>
           <input
             type="range"
             data-accent="amber"
             min={-12}
             max={12}
             value={pitchSemitones}
-            aria-label="Hauteur en demi-tons"
+            aria-label={t({
+              id: 'transport.pitch-slider',
+              message: 'Hauteur en demi-tons'
+            })}
             disabled={!canPlay}
-            title="Double-clic pour revenir à 0"
+            title={t({
+              id: 'transport.pitch-reset',
+              message: 'Double-clic pour revenir à 0'
+            })}
             onChange={(event) => onPitchChange(event.target.valueAsNumber)}
             onDoubleClick={() => onPitchChange(0)}
           />

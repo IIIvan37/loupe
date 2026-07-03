@@ -4,6 +4,8 @@ import type { MarkerList } from '@app/core'
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeAll, vi } from 'vitest'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
+import { i18n } from '../../i18n/i18n.ts'
 import { MarkerRail } from './marker-rail.tsx'
 
 const markers: MarkerList = [
@@ -26,12 +28,15 @@ function renderRail(overrides: Partial<Parameters<typeof MarkerRail>[0]> = {}) {
       onSeek={noop}
       onMove={noop}
       {...overrides}
-    />
+    />,
+    { wrapper: I18nTestingProvider }
   )
   // Ratios are measured against the timeline root (the rail's container).
   const timeline = view.container.firstElementChild as HTMLElement
   timeline.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
-  const tag = screen.getByRole('button', { name: 'Aller à Repère 1' })
+  const tag = screen.getByRole('button', {
+    name: i18n._('markers.go-to', { name: 'Repère 1' })
+  })
   return { ...view, tag }
 }
 
@@ -40,7 +45,11 @@ describe('MarkerRail', () => {
     const user = userEvent.setup()
     const onSeek = vi.fn()
     renderRail({ onSeek })
-    await user.click(screen.getByRole('button', { name: 'Aller à Repère 1' }))
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('markers.go-to', { name: 'Repère 1' })
+      })
+    )
     expect(onSeek).toHaveBeenCalledWith(5)
   })
 
@@ -51,10 +60,13 @@ describe('MarkerRail', () => {
         durationSeconds={0}
         onSeek={noop}
         onMove={noop}
-      />
+      />,
+      { wrapper: I18nTestingProvider }
     )
     expect(
-      screen.queryByRole('button', { name: 'Aller à Repère 1' })
+      screen.queryByRole('button', {
+        name: i18n._('markers.go-to', { name: 'Repère 1' })
+      })
     ).not.toBeInTheDocument()
   })
 

@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/react/macro'
 import { Popover } from '@base-ui-components/react/popover'
 import { type KeyboardEvent, type ReactNode, useState } from 'react'
 import { cx } from '../../lib/cx.ts'
@@ -68,7 +69,9 @@ export function NameEditor({
           <Popover.Popup className={cx(styles.popup)}>
             <Popover.Title className={cx(styles.title)}>{title}</Popover.Title>
             <label className={cx(styles.field)}>
-              <span className={cx(styles.label)}>Nom</span>
+              <span className={cx(styles.label)}>
+                <Trans id="common.name">Nom</Trans>
+              </span>
               <input
                 className={cx(styles.input)}
                 type="text"
@@ -78,7 +81,9 @@ export function NameEditor({
               />
             </label>
             <div className={cx(styles.actions)}>
-              <Popover.Close className={cx(styles.ghost)}>Annuler</Popover.Close>
+              <Popover.Close className={cx(styles.ghost)}>
+                <Trans id="common.cancel">Annuler</Trans>
+              </Popover.Close>
               <button
                 type="button"
                 className={cx(styles.submit)}

@@ -4,6 +4,8 @@ import type { MarkerList } from '@app/core'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
+import { i18n } from '../../i18n/i18n.ts'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { AnalysisPanel } from './analysis-panel.tsx'
 
 const markers: MarkerList = [
@@ -22,7 +24,8 @@ describe('AnalysisPanel', () => {
         onSeekMarker={onSeekMarker}
         onRenameMarker={noop}
         onRemoveMarker={noop}
-      />
+      />,
+      { wrapper: I18nTestingProvider }
     )
     // A beat marker has no rail tag, so the inspector is its only seek path.
     // The seek row carries the timecode; the remove button does not.
@@ -39,13 +42,20 @@ describe('AnalysisPanel', () => {
         onSeekMarker={noop}
         onRenameMarker={onRenameMarker}
         onRemoveMarker={noop}
-      />
+      />,
+      { wrapper: I18nTestingProvider }
     )
-    await user.click(screen.getByRole('button', { name: 'Renommer Repère 1' }))
-    const input = screen.getByLabelText('Nom')
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('markers.rename-named', { name: 'Repère 1' })
+      })
+    )
+    const input = screen.getByLabelText(i18n._('common.name'))
     await user.clear(input)
     await user.type(input, 'Intro')
-    await user.click(screen.getByRole('button', { name: 'Renommer' }))
+    await user.click(
+      screen.getByRole('button', { name: i18n._('common.rename') })
+    )
     expect(onRenameMarker).toHaveBeenCalledWith('a', 'Intro')
   })
 
@@ -58,9 +68,14 @@ describe('AnalysisPanel', () => {
         onSeekMarker={noop}
         onRenameMarker={noop}
         onRemoveMarker={onRemoveMarker}
-      />
+      />,
+      { wrapper: I18nTestingProvider }
     )
-    await user.click(screen.getByRole('button', { name: 'Supprimer Repère 1' }))
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('markers.remove-named', { name: 'Repère 1' })
+      })
+    )
     expect(onRemoveMarker).toHaveBeenCalledWith('a')
   })
 
@@ -71,8 +86,9 @@ describe('AnalysisPanel', () => {
         onSeekMarker={noop}
         onRenameMarker={noop}
         onRemoveMarker={noop}
-      />
+      />,
+      { wrapper: I18nTestingProvider }
     )
-    expect(screen.getByText(/Aucun repère/)).toBeInTheDocument()
+    expect(screen.getByText(i18n._('analysis.no-markers'))).toBeInTheDocument()
   })
 })

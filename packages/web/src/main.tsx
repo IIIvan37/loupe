@@ -1,3 +1,4 @@
+import { I18nProvider } from '@lingui/react'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@fontsource/inter/400.css'
@@ -9,6 +10,7 @@ import '@fontsource/space-grotesk/500.css'
 import './styles/tokens.css'
 import './styles/global.css'
 import { WorkstationShell } from './app/workstation-shell/workstation-shell.tsx'
+import { i18n } from './i18n/i18n.ts'
 
 const container = document.getElementById('root')
 if (!container) {
@@ -17,6 +19,8 @@ if (!container) {
 
 createRoot(container).render(
   <StrictMode>
-    <WorkstationShell />
+    <I18nProvider i18n={i18n}>
+      <WorkstationShell />
+    </I18nProvider>
   </StrictMode>
 )

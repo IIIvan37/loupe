@@ -57,6 +57,14 @@ can't see.
 ## Conventions
 
 - Code comments and test names in **English**. File names **kebab-case**.
+- **UI copy goes through Lingui** (`packages/web` only): explicit semantic ids
+  (`t({ id: 'header.import', message: 'Importer' })`, `<Trans id="…">`), French
+  source catalog `packages/web/src/locales/fr/messages.po`, **infinitive forms**
+  (no tutoiement/vouvoiement). After changing copy run
+  `pnpm --filter @app/web i18n:extract` (it overwrites the source-locale msgstr —
+  required whenever a message changes). Specs never hardcode copy: they resolve
+  keys via `i18n._('id', values)` under the `I18nTestingProvider` wrapper (see
+  the `react-testing-patterns` and `lingui-best-practices` skills).
 - **Conventional Commits** (enforced by commitlint + the husky `commit-msg` hook).
 - **Each feature gets its own branch**, merged via PR — never commit a feature
   directly to `main` (enforced by `.claude/hooks/block-commit-on-main.sh`).

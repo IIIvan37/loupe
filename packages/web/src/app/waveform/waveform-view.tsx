@@ -1,3 +1,4 @@
+import { Trans, useLingui } from '@lingui/react/macro'
 import type { LoopRegion } from '@app/core'
 import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react'
 import { clamp01 } from '../../lib/clamp01.ts'
@@ -50,6 +51,7 @@ export function WaveformView({
   onSelectRegion,
   onAdjustRegion
 }: WaveformViewProps) {
+  const { t } = useLingui()
   const containerRef = useRef<HTMLDivElement>(null)
   const [drag, setDrag] = useState<Drag | null>(null)
 
@@ -168,11 +170,17 @@ export function WaveformView({
     case 'idle':
       return (
         <p className={styles.hint}>
-          Importe un fichier audio pour afficher sa forme d'onde.
+          <Trans id="waveform.import-hint">
+            Importer un fichier audio pour afficher sa forme d'onde.
+          </Trans>
         </p>
       )
     case 'loading':
-      return <p className={styles.hint}>Décodage…</p>
+      return (
+        <p className={styles.hint}>
+          <Trans id="waveform.decoding">Décodage…</Trans>
+        </p>
+      )
     case 'error':
       return (
         <p role="alert" className={styles.error}>
@@ -202,12 +210,19 @@ export function WaveformView({
           <button
             type="button"
             className={styles.surface}
-            aria-label="Forme d'onde : clic pour se positionner, glisser pour boucler"
+            aria-label={t({
+              id: 'waveform.surface',
+              message:
+                "Forme d'onde : clic pour se positionner, glisser pour boucler"
+            })}
             onPointerDown={beginSelect}
           >
             <WaveformCanvas
               waveform={state.track.waveform}
-              label="Forme d'onde de la piste"
+              label={t({
+                id: 'waveform.track-image',
+                message: "Forme d'onde de la piste"
+              })}
             />
           </button>
 
@@ -240,7 +255,10 @@ export function WaveformView({
                 type="button"
                 className={styles.handle}
                 style={{ left: `${region.start * 100}%` }}
-                aria-label="Déplacer le début de la boucle"
+                aria-label={t({
+                  id: 'waveform.move-loop-start',
+                  message: 'Déplacer le début de la boucle'
+                })}
                 onPointerDown={(event) => beginEdge(event, 'start', region)}
                 onPointerMove={(event) => moveEdge('start', event.clientX)}
                 onKeyDown={(event) => onHandleKeyDown(event, 'start', region)}
@@ -249,7 +267,10 @@ export function WaveformView({
                 type="button"
                 className={styles.handle}
                 style={{ left: `${region.end * 100}%` }}
-                aria-label="Déplacer la fin de la boucle"
+                aria-label={t({
+                  id: 'waveform.move-loop-end',
+                  message: 'Déplacer la fin de la boucle'
+                })}
                 onPointerDown={(event) => beginEdge(event, 'end', region)}
                 onPointerMove={(event) => moveEdge('end', event.clientX)}
                 onKeyDown={(event) => onHandleKeyDown(event, 'end', region)}

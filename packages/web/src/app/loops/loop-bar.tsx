@@ -1,4 +1,5 @@
 import type { LoopLibrary, LoopRegion, NamedLoop } from '@app/core'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
 import { NameEditor } from '../ui/name-editor.tsx'
@@ -41,9 +42,12 @@ export function LoopBar({
   onActivate,
   onRemove
 }: LoopBarProps) {
+  const { t } = useLingui()
   return (
     <Cluster gap="var(--space-xs)" align="center">
-      <span className={styles.label}>Boucles</span>
+      <span className={styles.label}>
+        <Trans id="loops.section-label">Boucles</Trans>
+      </span>
 
       {region && (
         <>
@@ -53,16 +57,29 @@ export function LoopBar({
             aria-pressed={loopEnabled}
             onClick={onToggleLoop}
           >
-            {loopEnabled ? '⟳ Boucle active' : '⟳ Boucle inactive'}
+            {loopEnabled ? (
+              <Trans id="loops.active">⟳ Boucle active</Trans>
+            ) : (
+              <Trans id="loops.inactive">⟳ Boucle inactive</Trans>
+            )}
           </button>
           {!isSaved && (
             <>
               <NameEditor
-                title="Enregistrer la boucle"
+                title={t({
+                  id: 'loops.save-region',
+                  message: 'Enregistrer la boucle'
+                })}
                 triggerClassName={cx(styles.action)}
-                triggerLabel="Enregistrer la boucle"
-                triggerContent="Enregistrer la boucle"
-                submitLabel="Enregistrer"
+                triggerLabel={t({
+                  id: 'loops.save-region',
+                  message: 'Enregistrer la boucle'
+                })}
+                triggerContent={t({
+                  id: 'loops.save-region',
+                  message: 'Enregistrer la boucle'
+                })}
+                submitLabel={t({ id: 'common.save', message: 'Enregistrer' })}
                 initialName=""
                 onSubmit={(name) => onSaveRegion(name, region)}
               />
@@ -73,45 +90,61 @@ export function LoopBar({
                 className={styles.ghost}
                 onClick={onClearRegion}
               >
-                Effacer
+                <Trans id="loops.clear-region">Effacer</Trans>
               </button>
             </>
           )}
         </>
       )}
 
-      {library.map((loop) => (
-        <span
-          key={loop.id}
-          className={cx(styles.saved, loop.id === activeLoopId && styles.savedActive)}
-        >
-          <button
-            type="button"
-            className={styles.recall}
-            aria-current={loop.id === activeLoopId ? 'true' : undefined}
-            onClick={() => onActivate(loop)}
+      {library.map((loop) => {
+        // Bind to a local so the extracted ICU placeholder reads as {name}.
+        const name = loop.name
+        return (
+          <span
+            key={loop.id}
+            className={cx(
+              styles.saved,
+              loop.id === activeLoopId && styles.savedActive
+            )}
           >
-            {loop.name}
-          </button>
-          <NameEditor
-            title="Renommer la boucle"
-            triggerClassName={cx(styles.edit)}
-            triggerLabel={`Renommer ${loop.name}`}
-            triggerContent="✎"
-            submitLabel="Renommer"
-            initialName={loop.name}
-            onSubmit={(name) => onUpdateLoop({ ...loop, name })}
-          />
-          <button
-            type="button"
-            className={styles.remove}
-            aria-label={`Supprimer ${loop.name}`}
-            onClick={() => onRemove(loop.id)}
-          >
-            ✕
-          </button>
-        </span>
-      ))}
+            <button
+              type="button"
+              className={styles.recall}
+              aria-current={loop.id === activeLoopId ? 'true' : undefined}
+              onClick={() => onActivate(loop)}
+            >
+              {loop.name}
+            </button>
+            <NameEditor
+              title={t({
+                id: 'loops.rename-title',
+                message: 'Renommer la boucle'
+              })}
+              triggerClassName={cx(styles.edit)}
+              triggerLabel={t({
+                id: 'loops.rename-named',
+                message: `Renommer ${name}`
+              })}
+              triggerContent="✎"
+              submitLabel={t({ id: 'common.rename', message: 'Renommer' })}
+              initialName={loop.name}
+              onSubmit={(nextName) => onUpdateLoop({ ...loop, name: nextName })}
+            />
+            <button
+              type="button"
+              className={styles.remove}
+              aria-label={t({
+                id: 'loops.remove-named',
+                message: `Supprimer ${name}`
+              })}
+              onClick={() => onRemove(loop.id)}
+            >
+              ✕
+            </button>
+          </span>
+        )
+      })}
     </Cluster>
   )
 }

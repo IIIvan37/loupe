@@ -4,6 +4,8 @@ import type { SeparationState, StemSet } from '@app/core'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
+import { i18n } from '../../i18n/i18n.ts'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { SeparationPanel } from './separation-panel.tsx'
 
 const emptyTrack = { sampleRate: 4, durationSeconds: 1, waveform: { peaks: [] } }
@@ -39,7 +41,8 @@ function renderPanel(
       canSeparate
       onSeparate={() => {}}
       {...props}
-    />
+    />,
+    { wrapper: I18nTestingProvider }
   )
 }
 
@@ -48,34 +51,38 @@ describe('SeparationPanel', () => {
     const user = userEvent.setup()
     const onSeparate = vi.fn()
     renderPanel({ status: 'idle' }, { onSeparate })
-    await user.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
+    await user.click(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    )
     expect(onSeparate).toHaveBeenCalledOnce()
   })
 
   it('disables the action until a track is loaded', () => {
     renderPanel({ status: 'idle' }, { canSeparate: false })
     expect(
-      screen.getByRole('button', { name: 'Séparer les pistes' })
+      screen.getByRole('button', { name: i18n._('separation.separate') })
     ).toBeDisabled()
   })
 
   it('shows the running phase and progress, hiding the action', () => {
     renderPanel({ status: 'separating', progress: 0.4 })
-    expect(screen.getByText('Séparation des pistes…')).toBeInTheDocument()
+    expect(
+      screen.getByText(i18n._('separation.separating'))
+    ).toBeInTheDocument()
     expect(screen.getByRole('progressbar')).toHaveAttribute('value', '40')
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('names the masked stems on the not-detected line when ready', () => {
     renderPanel({ status: 'ready', progress: 1, stems })
-    expect(screen.getByText('Non détectés')).toBeInTheDocument()
+    expect(screen.getByText(i18n._('separation.undetected'))).toBeInTheDocument()
     expect(screen.getByText('Guitare')).toBeInTheDocument()
   })
 
   it('hides the separate action once the stems are ready', () => {
     renderPanel({ status: 'ready', progress: 1, stems })
     expect(
-      screen.queryByRole('button', { name: 'Séparer les pistes' })
+      screen.queryByRole('button', { name: i18n._('separation.separate') })
     ).not.toBeInTheDocument()
   })
 
@@ -95,8 +102,12 @@ describe('SeparationPanel', () => {
     const user = userEvent.setup()
     const onSeparate = vi.fn()
     renderPanel({ status: 'error', error: 'moteur indisponible' }, { onSeparate })
-    expect(screen.getByRole('alert')).toHaveTextContent('moteur indisponible')
-    await user.click(screen.getByRole('button', { name: 'Réessayer' }))
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      i18n._('separation.failed', { error: 'moteur indisponible' })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('separation.retry') })
+    )
     expect(onSeparate).toHaveBeenCalledOnce()
   })
 })

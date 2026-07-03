@@ -8,7 +8,7 @@ import {
   type StemSeparator,
   type TrackMetadataReader
 } from '@app/core'
-import { useMemo, useRef, useState } from 'react'
+import { type ComponentProps, useMemo, useRef, useState } from 'react'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
@@ -41,6 +41,10 @@ import { ViewportControls } from '../waveform/viewport-controls.tsx'
 import { WaveformView } from '../waveform/waveform-view.tsx'
 import { ZoomStage } from '../waveform/zoom-stage.tsx'
 import { useProjectSession } from './use-project-session.ts'
+import type { MessageDescriptor } from '@lingui/core'
+import { msg } from '@lingui/core/macro'
+import { useLingui } from '@lingui/react/macro'
+import { i18n } from '../../i18n/i18n.ts'
 import { useUnloadGuard } from './use-unload-guard.ts'
 import styles from './workstation-shell.module.css'
 
@@ -56,11 +60,26 @@ const DETECTED: readonly never[] = []
 /** How each probed health state reads in the header. */
 const SERVER_STATUS: Record<
   Exclude<ServerHealth, 'checking'>,
-  { readonly tone: 'offline' | 'degraded' | 'ready'; readonly label: string }
+  {
+    readonly tone: 'offline' | 'degraded' | 'ready'
+    readonly label: MessageDescriptor
+  }
 > = {
-  offline: { tone: 'offline', label: 'Serveur hors ligne' },
-  'no-separation': { tone: 'degraded', label: 'Séparation indisponible' },
-  ready: { tone: 'ready', label: 'Serveur prêt' }
+  offline: {
+    tone: 'offline',
+    label: msg({ id: 'header.server-offline', message: 'Serveur hors ligne' })
+  },
+  'no-separation': {
+    tone: 'degraded',
+    label: msg({
+      id: 'header.server-no-separation',
+      message: 'Séparation indisponible'
+    })
+  },
+  ready: {
+    tone: 'ready',
+    label: msg({ id: 'header.server-ready', message: 'Serveur prêt' })
+  }
 }
 
 interface WorkstationShellProps {
@@ -73,6 +92,88 @@ interface WorkstationShellProps {
   readonly projectStores?: ProjectDeps
   /** Injected in tests; the health poll defaults to the real global fetch. */
   readonly healthFetch?: typeof fetch
+}
+
+interface ShellStageProps {
+  readonly isLoaded: boolean
+  readonly positionRatio: number
+  readonly durationSeconds: number
+  readonly viewport: ReturnType<typeof useViewport>
+  readonly mixer: ReturnType<typeof useMixer>
+  readonly onDownloadStem: (id: string) => void
+  readonly markers: ReturnType<typeof useMarkers>
+  readonly loopEditing: ReturnType<typeof useLoopEditing>
+  readonly mainViewState: ComponentProps<typeof WaveformView>['state']
+  readonly loopRegion: ComponentProps<typeof WaveformView>['loopRegion']
+  readonly loopEnabled: boolean
+  readonly onSeekSeconds: (seconds: number) => void
+  readonly onSeekRatio: (ratio: number) => void
+}
+
+/**
+ * The zoomable stage: a fixed gutter (zoom controls + per-stem headers)
+ * row-aligned with the scrollable lanes (marker rail, waveform, stem lanes).
+ */
+function ShellStage({
+  isLoaded,
+  positionRatio,
+  durationSeconds,
+  viewport,
+  mixer,
+  onDownloadStem,
+  markers,
+  loopEditing,
+  mainViewState,
+  loopRegion,
+  loopEnabled,
+  onSeekSeconds,
+  onSeekRatio
+}: ShellStageProps) {
+  return (
+    <div className={styles.stage}>
+      <div className={styles.gutter}>
+        <div className={styles.gutterRuler}>
+          <ViewportControls
+            zoom={viewport.zoom}
+            disabled={!isLoaded}
+            onZoomIn={viewport.zoomIn}
+            onZoomOut={viewport.zoomOut}
+            onSetZoom={viewport.setZoom}
+          />
+        </div>
+        {isLoaded && (
+          <>
+            <div className={styles.mixLabel}>Mix</div>
+            <StemHeaders
+              channels={mixer.channels}
+              onSetGain={mixer.setGain}
+              onToggleMute={mixer.toggleMute}
+              onToggleSolo={mixer.toggleSolo}
+              onDownloadStem={onDownloadStem}
+            />
+          </>
+        )}
+      </div>
+      <ZoomStage zoom={viewport.zoom} positionRatio={positionRatio}>
+        <MarkerRail
+          markers={markers.markers}
+          durationSeconds={durationSeconds}
+          onSeek={onSeekSeconds}
+          onMove={markers.move}
+        />
+        <WaveformView
+          state={mainViewState}
+          loopRegion={loopRegion}
+          loopEnabled={loopEnabled}
+          durationSeconds={durationSeconds}
+          onSeek={onSeekRatio}
+          onSelectRegion={loopEditing.selectRegion}
+          onAdjustRegion={loopEditing.adjustRegion}
+        />
+        <StemLanes channels={mixer.channels} />
+      </ZoomStage>
+    </div>
+  )
 }
 
 /**
@@ -89,6 +190,7 @@ export function WorkstationShell({
   projectStores,
   healthFetch
 }: WorkstationShellProps) {
+  const { t } = useLingui()
   // One stem engine shared by the mixer (gains + loading) and the transport.
   const stemPlayback = useMemo(
     () => stemEngine ?? createWebAudioStemPlayback(),
@@ -184,11 +286,12 @@ export function WorkstationShell({
   const openingProject = projects.projects.find(
     (p) => p.id === session.openingId
   )
+  const name = openingProject?.name
   const busyMessage =
     projects.busy === 'save'
-      ? 'Enregistrement du projet…'
-      : openingProject !== undefined
-        ? `Ouverture de « ${openingProject.name} »…`
+      ? t({ id: 'header.saving', message: 'Enregistrement du projet…' })
+      : name !== undefined
+        ? t({ id: 'header.opening', message: `Ouverture de « ${name} »…` })
         : undefined
 
   // Once the stems are mixing, the main view shows the audible mix (recomputed as
@@ -204,14 +307,25 @@ export function WorkstationShell({
   return (
     <div className={styles.shell}>
       <Header
-        title={metadata.title ?? trackName ?? 'Aucun morceau'}
+        title={
+          metadata.title ??
+          trackName ??
+          t({ id: 'header.no-track', message: 'Aucun morceau' })
+        }
         artist={
           metadata.artist ??
-          (trackName ? 'Artiste inconnu' : 'Importe un fichier audio')
+          (trackName
+            ? t({ id: 'header.unknown-artist', message: 'Artiste inconnu' })
+            : t({ id: 'header.import-file', message: 'Importer un fichier audio' }))
         }
         detected={DETECTED}
         serverStatus={
-          serverHealth === 'checking' ? undefined : SERVER_STATUS[serverHealth]
+          serverHealth === 'checking'
+            ? undefined
+            : {
+                tone: SERVER_STATUS[serverHealth].tone,
+                label: i18n._(SERVER_STATUS[serverHealth].label)
+              }
         }
         onImport={() => fileInputRef.current?.click()}
         importNeedsConfirm={session.unsavedWork}
@@ -255,7 +369,11 @@ export function WorkstationShell({
         onDelete={(id) => void projects.remove(id)}
         errorMessage={
           projects.listError
-            ? 'Serveur injoignable — vérifie que le serveur local est lancé'
+            ? t({
+                id: 'projects.unreachable',
+                message:
+                  'Serveur injoignable — vérifier que le serveur local est lancé'
+              })
             : undefined
         }
         openingId={session.openingId}
@@ -266,7 +384,7 @@ export function WorkstationShell({
         type="file"
         accept="audio/*"
         className={styles.fileInput}
-        aria-label="Importer un fichier audio"
+        aria-label={t({ id: 'header.import-file', message: 'Importer un fichier audio' })}
         onChange={session.onFilePicked}
       />
 
@@ -277,49 +395,21 @@ export function WorkstationShell({
               disabled={!isLoaded}
               onAdd={() => markers.addAt(transport.positionSeconds)}
             />
-            <div className={styles.stage}>
-              <div className={styles.gutter}>
-                <div className={styles.gutterRuler}>
-                  <ViewportControls
-                    zoom={viewport.zoom}
-                    disabled={!isLoaded}
-                    onZoomIn={viewport.zoomIn}
-                    onZoomOut={viewport.zoomOut}
-                    onSetZoom={viewport.setZoom}
-                  />
-                </div>
-                {isLoaded && (
-                  <>
-                    <div className={styles.mixLabel}>Mix</div>
-                    <StemHeaders
-                      channels={mixer.channels}
-                      onSetGain={mixer.setGain}
-                      onToggleMute={mixer.toggleMute}
-                      onToggleSolo={mixer.toggleSolo}
-                      onDownloadStem={separation.downloadStem}
-                    />
-                  </>
-                )}
-              </div>
-              <ZoomStage zoom={viewport.zoom} positionRatio={positionRatio}>
-                <MarkerRail
-                  markers={markers.markers}
-                  durationSeconds={transport.durationSeconds}
-                  onSeek={seekToSeconds}
-                  onMove={markers.move}
-                />
-                <WaveformView
-                  state={mainViewState}
-                  loopRegion={loopRegion}
-                  loopEnabled={loopEnabled}
-                  durationSeconds={transport.durationSeconds}
-                  onSeek={seekToRatio}
-                  onSelectRegion={loopEditing.selectRegion}
-                  onAdjustRegion={loopEditing.adjustRegion}
-                />
-                <StemLanes channels={mixer.channels} />
-              </ZoomStage>
-            </div>
+            <ShellStage
+              isLoaded={isLoaded}
+              positionRatio={positionRatio}
+              durationSeconds={transport.durationSeconds}
+              viewport={viewport}
+              mixer={mixer}
+              onDownloadStem={separation.downloadStem}
+              markers={markers}
+              loopEditing={loopEditing}
+              mainViewState={mainViewState}
+              loopRegion={loopRegion}
+              loopEnabled={loopEnabled}
+              onSeekSeconds={seekToSeconds}
+              onSeekRatio={seekToRatio}
+            />
             <LoopBar
               region={loopRegion}
               isSaved={loopEditing.isSaved}

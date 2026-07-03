@@ -4,6 +4,8 @@ import type { LoopLibrary, LoopRegion } from '@app/core'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
+import { i18n } from '../../i18n/i18n.ts'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { LoopBar } from './loop-bar.tsx'
 
 const library: LoopLibrary = [
@@ -27,7 +29,8 @@ function renderBar(overrides: Partial<Parameters<typeof LoopBar>[0]> = {}) {
       onActivate={noop}
       onRemove={noop}
       {...overrides}
-    />
+    />,
+    { wrapper: I18nTestingProvider }
   )
 }
 
@@ -35,7 +38,7 @@ describe('LoopBar', () => {
   it('offers save/clear only when a region is selected', () => {
     const { rerender } = renderBar()
     expect(
-      screen.queryByRole('button', { name: 'Enregistrer la boucle' })
+      screen.queryByRole('button', { name: i18n._('loops.save-region') })
     ).not.toBeInTheDocument()
 
     rerender(
@@ -54,7 +57,7 @@ describe('LoopBar', () => {
       />
     )
     expect(
-      screen.getByRole('button', { name: 'Enregistrer la boucle' })
+      screen.getByRole('button', { name: i18n._('loops.save-region') })
     ).toBeInTheDocument()
   })
 
@@ -79,19 +82,19 @@ describe('LoopBar', () => {
   })
 
   it('drops save and clear when the active region is an already-saved loop', () => {
-    // A saved loop is active → no duplicate save, and no "Effacer": the loop is
-    // removed from its chip (✕) instead.
+    // A saved loop is active → no duplicate save, and no clear action: the loop
+    // is removed from its chip (✕) instead.
     renderBar({ region: library[0]?.region, isSaved: true, library })
 
     expect(
-      screen.queryByRole('button', { name: 'Enregistrer la boucle' })
+      screen.queryByRole('button', { name: i18n._('loops.save-region') })
     ).not.toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: 'Effacer' })
+      screen.queryByRole('button', { name: i18n._('loops.clear-region') })
     ).not.toBeInTheDocument()
     // Only the loop toggle stays among the active-region controls.
     expect(
-      screen.getByRole('button', { name: /Boucle active/ })
+      screen.getByRole('button', { name: i18n._('loops.active') })
     ).toBeInTheDocument()
   })
 
@@ -100,7 +103,7 @@ describe('LoopBar', () => {
     const onToggleLoop = vi.fn()
     const { rerender } = renderBar({ region, loopEnabled: true, onToggleLoop })
 
-    const toggle = screen.getByRole('button', { name: /Boucle active/ })
+    const toggle = screen.getByRole('button', { name: i18n._('loops.active') })
     expect(toggle).toHaveAttribute('aria-pressed', 'true')
     await user.click(toggle)
     expect(onToggleLoop).toHaveBeenCalledOnce()
@@ -121,7 +124,7 @@ describe('LoopBar', () => {
       />
     )
     expect(
-      screen.getByRole('button', { name: /Boucle inactive/ })
+      screen.getByRole('button', { name: i18n._('loops.inactive') })
     ).toHaveAttribute('aria-pressed', 'false')
   })
 
@@ -131,12 +134,12 @@ describe('LoopBar', () => {
     renderBar({ region, onSaveRegion })
 
     await user.click(
-      screen.getByRole('button', { name: 'Enregistrer la boucle' })
+      screen.getByRole('button', { name: i18n._('loops.save-region') })
     )
-    const input = screen.getByLabelText('Nom')
+    const input = screen.getByLabelText(i18n._('common.name'))
     await user.clear(input)
     await user.type(input, 'Refrain')
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await user.click(screen.getByRole('button', { name: i18n._('common.save') }))
 
     expect(onSaveRegion).toHaveBeenCalledWith('Refrain', region)
   })
@@ -146,11 +149,17 @@ describe('LoopBar', () => {
     const onUpdateLoop = vi.fn()
     renderBar({ library, onUpdateLoop })
 
-    await user.click(screen.getByRole('button', { name: 'Renommer Verse' }))
-    const input = screen.getByLabelText('Nom')
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('loops.rename-named', { name: 'Verse' })
+      })
+    )
+    const input = screen.getByLabelText(i18n._('common.name'))
     await user.clear(input)
     await user.type(input, 'Couplet')
-    await user.click(screen.getByRole('button', { name: 'Renommer' }))
+    await user.click(
+      screen.getByRole('button', { name: i18n._('common.rename') })
+    )
 
     expect(onUpdateLoop).toHaveBeenCalledWith({
       id: 'a',
@@ -168,7 +177,11 @@ describe('LoopBar', () => {
     await user.click(screen.getByRole('button', { name: 'Verse' }))
     expect(onActivate).toHaveBeenCalledWith(library[0])
 
-    await user.click(screen.getByRole('button', { name: 'Supprimer Verse' }))
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('loops.remove-named', { name: 'Verse' })
+      })
+    )
     expect(onRemove).toHaveBeenCalledWith('a')
   })
 })

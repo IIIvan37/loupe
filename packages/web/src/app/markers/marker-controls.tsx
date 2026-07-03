@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import styles from './marker-controls.module.css'
 
@@ -10,14 +11,16 @@ interface MarkerControlsProps {
 export function MarkerControls({ disabled, onAdd }: MarkerControlsProps) {
   return (
     <Cluster gap="var(--space-xs)" align="center">
-      <span className={styles.label}>Repères</span>
+      <span className={styles.label}>
+        <Trans id="markers.section-label">Repères</Trans>
+      </span>
       <button
         type="button"
         className={styles.add}
         disabled={disabled}
         onClick={onAdd}
       >
-        + Repère
+        <Trans id="markers.add">+ Repère</Trans>
       </button>
     </Cluster>
   )

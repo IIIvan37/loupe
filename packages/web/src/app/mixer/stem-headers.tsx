@@ -1,4 +1,5 @@
 import { MAX_GAIN_DB, MIN_GAIN_DB } from '@app/core'
+import { useLingui } from '@lingui/react/macro'
 import { cx } from '../../lib/cx.ts'
 import { stemColor } from '../stems/stem-color.ts'
 import type { MixerChannelView } from './use-mixer.ts'
@@ -36,70 +37,90 @@ export function StemHeaders({
   onToggleSolo,
   onDownloadStem
 }: StemHeadersProps) {
+  const { t } = useLingui()
   if (channels.length === 0) {
     return null
   }
 
   return (
-    <ul className={styles.headers} aria-label="Mixer">
-      {channels.map(({ stem, gainDb, muted, soloed }) => (
-        <li key={stem.id} className={styles.header}>
-          <div className={styles.identity}>
-            <span
-              className={styles.swatch}
-              style={{ backgroundColor: stemColor(stem.id) }}
-              aria-hidden="true"
-            />
-            <span
-              className={styles.label}
-              title={`Confiance de détection : ${Math.round(stem.confidence * 100)} %`}
-            >
-              {stem.label}
-            </span>
-            <button
-              type="button"
-              className={styles.download}
-              aria-label={`Télécharger ${stem.label} en WAV`}
-              onClick={() => onDownloadStem(stem.id)}
-            >
-              WAV ↓
-            </button>
-          </div>
-          <div className={styles.controls}>
-            <button
-              type="button"
-              className={cx(styles.toggle, muted && styles.muted)}
-              aria-label={`Couper ${stem.label}`}
-              aria-pressed={muted}
-              onClick={() => onToggleMute(stem.id)}
-            >
-              M
-            </button>
-            <button
-              type="button"
-              className={cx(styles.toggle, soloed && styles.soloed)}
-              aria-label={`Isoler ${stem.label}`}
-              aria-pressed={soloed}
-              onClick={() => onToggleSolo(stem.id)}
-            >
-              S
-            </button>
-            <input
-              type="range"
-              className={styles.fader}
-              data-accent="amber"
-              data-compact=""
-              min={MIN_GAIN_DB}
-              max={MAX_GAIN_DB}
-              step={1}
-              value={gainDb}
-              aria-label={`Volume ${stem.label}`}
-              onChange={(event) => onSetGain(stem.id, event.target.valueAsNumber)}
-            />
-            <span className={styles.db}>{formatDb(gainDb)}</span>
-          </div>
-        </li>
-      ))}
+    <ul
+      className={styles.headers}
+      aria-label={t({ id: 'mixer.region-label', message: 'Mixer' })}
+    >
+      {channels.map(({ stem, gainDb, muted, soloed }) => {
+        // Bound locally so the ICU placeholders keep readable names.
+        const name = stem.label
+        const percent = Math.round(stem.confidence * 100)
+        return (
+          <li key={stem.id} className={styles.header}>
+            <div className={styles.identity}>
+              <span
+                className={styles.swatch}
+                style={{ backgroundColor: stemColor(stem.id) }}
+                aria-hidden="true"
+              />
+              <span
+                className={styles.label}
+                title={t({
+                  id: 'mixer.confidence',
+                  message: `Confiance de détection : ${percent} %`
+                })}
+              >
+                {stem.label}
+              </span>
+              <button
+                type="button"
+                className={styles.download}
+                aria-label={t({
+                  id: 'mixer.download-wav',
+                  message: `Télécharger ${name} en WAV`
+                })}
+                onClick={() => onDownloadStem(stem.id)}
+              >
+                WAV ↓
+              </button>
+            </div>
+            <div className={styles.controls}>
+              <button
+                type="button"
+                className={cx(styles.toggle, muted && styles.muted)}
+                aria-label={t({ id: 'mixer.mute', message: `Couper ${name}` })}
+                aria-pressed={muted}
+                onClick={() => onToggleMute(stem.id)}
+              >
+                M
+              </button>
+              <button
+                type="button"
+                className={cx(styles.toggle, soloed && styles.soloed)}
+                aria-label={t({ id: 'mixer.solo', message: `Isoler ${name}` })}
+                aria-pressed={soloed}
+                onClick={() => onToggleSolo(stem.id)}
+              >
+                S
+              </button>
+              <input
+                type="range"
+                className={styles.fader}
+                data-accent="amber"
+                data-compact=""
+                min={MIN_GAIN_DB}
+                max={MAX_GAIN_DB}
+                step={1}
+                value={gainDb}
+                aria-label={t({
+                  id: 'mixer.volume',
+                  message: `Volume ${name}`
+                })}
+                onChange={(event) =>
+                  onSetGain(stem.id, event.target.valueAsNumber)
+                }
+              />
+              <span className={styles.db}>{formatDb(gainDb)}</span>
+            </div>
+          </li>
+        )
+      })}
     </ul>
   )
 }

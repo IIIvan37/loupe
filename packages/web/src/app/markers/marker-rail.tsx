@@ -1,3 +1,4 @@
+import { useLingui } from '@lingui/react/macro'
 import { formatTimecode, type Marker, type MarkerList } from '@app/core'
 import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react'
 import { clamp01 } from '../../lib/clamp01.ts'
@@ -40,6 +41,7 @@ export function MarkerRail({
   onSeek,
   onMove
 }: MarkerRailProps) {
+  const { t } = useLingui()
   const containerRef = useRef<HTMLDivElement>(null)
   const [drag, setDrag] = useState<Drag | null>(null)
 
@@ -120,6 +122,7 @@ export function MarkerRail({
             drag?.id === marker.id
               ? drag.current
               : marker.timeSeconds / durationSeconds
+          const name = marker.label
           return (
             <span
               key={marker.id}
@@ -130,8 +133,14 @@ export function MarkerRail({
               <button
                 type="button"
                 className={styles.tag}
-                aria-label={`Aller à ${marker.label}`}
-                title="Clic : se positionner — glisser ou ←/→ : déplacer"
+                aria-label={t({
+                  id: 'markers.go-to',
+                  message: `Aller à ${name}`
+                })}
+                title={t({
+                  id: 'markers.drag-hint',
+                  message: 'Clic : se positionner — glisser ou ←/→ : déplacer'
+                })}
                 onPointerDown={(event) => beginDrag(event, marker.id)}
                 onPointerMove={onPointerMove}
                 onPointerUp={(event) => endDrag(event, marker)}

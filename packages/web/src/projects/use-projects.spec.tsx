@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 import type { Project, ProjectDeps, SaveProjectInput } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { i18n } from '../i18n/i18n.ts'
+import { I18nTestingProvider } from '../i18n/i18n-testing-provider.tsx'
 import { useProjects } from './use-projects.ts'
 
 /** In-memory fakes for both project ports, optionally pre-seeded. */
@@ -49,7 +51,7 @@ const input: Omit<SaveProjectInput, 'stamp'> = {
 
 describe('useProjects', () => {
   it('saves the session as a fresh project and lists it as current', async () => {
-    const { result } = renderHook(() => useProjects(fakeStores()))
+    const { result } = renderHook(() => useProjects(fakeStores()), { wrapper: I18nTestingProvider })
 
     await act(async () => {
       await result.current.save('Mon projet', input)
@@ -62,7 +64,7 @@ describe('useProjects', () => {
   })
 
   it('re-saves over the current project instead of minting a new one', async () => {
-    const { result } = renderHook(() => useProjects(fakeStores()))
+    const { result } = renderHook(() => useProjects(fakeStores()), { wrapper: I18nTestingProvider })
 
     await act(async () => {
       await result.current.save('Première prise', input)
@@ -79,13 +81,13 @@ describe('useProjects', () => {
 
   it('opens a saved project, making it current and returning the session', async () => {
     const stores = fakeStores()
-    const { result } = renderHook(() => useProjects(stores))
+    const { result } = renderHook(() => useProjects(stores), { wrapper: I18nTestingProvider })
     await act(async () => {
       await result.current.save('Mon projet', input)
     })
     const savedId = result.current.currentId as string
 
-    const { result: fresh } = renderHook(() => useProjects(stores))
+    const { result: fresh } = renderHook(() => useProjects(stores), { wrapper: I18nTestingProvider })
     let opened: Awaited<ReturnType<typeof fresh.current.open>> | undefined
     await act(async () => {
       opened = await fresh.current.open(savedId)
@@ -97,7 +99,7 @@ describe('useProjects', () => {
 
   it('detaches the current project so the next save mints a fresh id', async () => {
     const stores = fakeStores()
-    const { result } = renderHook(() => useProjects(stores))
+    const { result } = renderHook(() => useProjects(stores), { wrapper: I18nTestingProvider })
     await act(async () => {
       await result.current.save('Premier morceau', input)
     })
@@ -113,7 +115,7 @@ describe('useProjects', () => {
 
   it('keeps both projects when saving after a detach', async () => {
     const stores = fakeStores()
-    const { result } = renderHook(() => useProjects(stores))
+    const { result } = renderHook(() => useProjects(stores), { wrapper: I18nTestingProvider })
     await act(async () => {
       await result.current.save('Premier morceau', input)
     })
@@ -139,7 +141,7 @@ describe('useProjects', () => {
           })
       }
     }
-    const { result } = renderHook(() => useProjects(gated))
+    const { result } = renderHook(() => useProjects(gated), { wrapper: I18nTestingProvider })
 
     let pending: Promise<unknown> | undefined
     act(() => {
@@ -157,7 +159,7 @@ describe('useProjects', () => {
 
   it('does not re-attach when an open resolves after a detach', async () => {
     const stores = fakeStores()
-    const { result } = renderHook(() => useProjects(stores))
+    const { result } = renderHook(() => useProjects(stores), { wrapper: I18nTestingProvider })
     await act(async () => {
       await result.current.save('Mon projet', input)
     })
@@ -174,7 +176,7 @@ describe('useProjects', () => {
       },
       audio: stores.audio
     }
-    const { result: fresh } = renderHook(() => useProjects(gated))
+    const { result: fresh } = renderHook(() => useProjects(gated), { wrapper: I18nTestingProvider })
 
     let pending: Promise<unknown> | undefined
     act(() => {
@@ -190,7 +192,7 @@ describe('useProjects', () => {
   })
 
   it('removes a project; removing the current one clears the current id', async () => {
-    const { result } = renderHook(() => useProjects(fakeStores()))
+    const { result } = renderHook(() => useProjects(fakeStores()), { wrapper: I18nTestingProvider })
     await act(async () => {
       await result.current.save('Mon projet', input)
     })
@@ -205,7 +207,7 @@ describe('useProjects', () => {
   })
 
   it('flags a failing listing so the dialog can say the server is unreachable', async () => {
-    const { result } = renderHook(() => useProjects(brokenStores()))
+    const { result } = renderHook(() => useProjects(brokenStores()), { wrapper: I18nTestingProvider })
 
     await act(async () => {
       await result.current.refresh()
@@ -230,7 +232,7 @@ describe('useProjects', () => {
       },
       audio: working.audio
     }
-    const { result } = renderHook(() => useProjects(stores))
+    const { result } = renderHook(() => useProjects(stores), { wrapper: I18nTestingProvider })
 
     await act(async () => {
       await result.current.refresh()
@@ -245,13 +247,13 @@ describe('useProjects', () => {
   })
 
   it('words a save failure for the user, dismissible from the banner', async () => {
-    const { result } = renderHook(() => useProjects(brokenStores()))
+    const { result } = renderHook(() => useProjects(brokenStores()), { wrapper: I18nTestingProvider })
 
     await act(async () => {
       await result.current.save('Mon projet', input)
     })
     expect(result.current.error).toBe(
-      "Impossible d'enregistrer le projet : server down"
+      i18n._('projects.save-failed', { error: 'server down' })
     )
 
     act(() => result.current.dismissError())
@@ -259,20 +261,20 @@ describe('useProjects', () => {
   })
 
   it('words an open failure and a delete failure for the user', async () => {
-    const { result } = renderHook(() => useProjects(brokenStores()))
+    const { result } = renderHook(() => useProjects(brokenStores()), { wrapper: I18nTestingProvider })
 
     await act(async () => {
       await result.current.open('missing')
     })
     expect(result.current.error).toBe(
-      "Impossible d'ouvrir le projet : server down"
+      i18n._('projects.open-failed', { error: 'server down' })
     )
 
     await act(async () => {
       await result.current.remove('missing')
     })
     expect(result.current.error).toBe(
-      'Impossible de supprimer le projet : server down'
+      i18n._('projects.delete-failed', { error: 'server down' })
     )
   })
 
@@ -289,7 +291,7 @@ describe('useProjects', () => {
           })
       }
     }
-    const { result } = renderHook(() => useProjects(stores))
+    const { result } = renderHook(() => useProjects(stores), { wrapper: I18nTestingProvider })
 
     let pending: Promise<unknown> | undefined
     act(() => {
@@ -307,7 +309,7 @@ describe('useProjects', () => {
 
   it('reports an open in flight as busy, then idle again', async () => {
     const stores = fakeStores()
-    const { result } = renderHook(() => useProjects(stores))
+    const { result } = renderHook(() => useProjects(stores), { wrapper: I18nTestingProvider })
     await act(async () => {
       await result.current.save('Mon projet', input)
     })
@@ -324,7 +326,7 @@ describe('useProjects', () => {
       },
       audio: stores.audio
     }
-    const { result: fresh } = renderHook(() => useProjects(gated))
+    const { result: fresh } = renderHook(() => useProjects(gated), { wrapper: I18nTestingProvider })
 
     let pending: Promise<unknown> | undefined
     act(() => {
