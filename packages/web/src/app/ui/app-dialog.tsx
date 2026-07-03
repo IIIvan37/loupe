@@ -1,3 +1,4 @@
+import { Trans } from '@lingui/react/macro'
 import { Dialog } from '@base-ui-components/react/dialog'
 import type { ReactNode } from 'react'
 import { cx } from '../../lib/cx.ts'
@@ -32,7 +33,9 @@ export function AppDialog({
             {description}
           </Dialog.Description>
           {children}
-          <Dialog.Close className={cx(styles.close)}>Fermer</Dialog.Close>
+          <Dialog.Close className={cx(styles.close)}>
+            <Trans id="common.close">Fermer</Trans>
+          </Dialog.Close>
         </Dialog.Popup>
       </Dialog.Portal>
     </Dialog.Root>

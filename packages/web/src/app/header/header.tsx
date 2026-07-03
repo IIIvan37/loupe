@@ -1,3 +1,4 @@
+import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
 import { NameEditor } from '../ui/name-editor.tsx'
@@ -70,15 +71,20 @@ function SaveControls({
   hasProject,
   saving
 }: SaveControlsProps) {
+  const { t } = useLingui()
+  const saveLabel = t({ id: 'common.save', message: 'Enregistrer' })
   if (!canSave) {
     return (
       <button
         type="button"
         className={styles.secondaryAction}
         disabled
-        title="Importe un morceau pour pouvoir l'enregistrer"
+        title={t({
+          id: 'header.save-needs-track',
+          message: "Importer un morceau pour pouvoir l'enregistrer"
+        })}
       >
-        Enregistrer
+        <Trans id="common.save">Enregistrer</Trans>
       </button>
     )
   }
@@ -86,7 +92,7 @@ function SaveControls({
     // The header's state chip narrates the save; the button just locks.
     return (
       <button type="button" className={styles.secondaryAction} disabled>
-        Enregistrer
+        <Trans id="common.save">Enregistrer</Trans>
       </button>
     )
   }
@@ -98,14 +104,20 @@ function SaveControls({
           className={styles.secondaryAction}
           onClick={() => onSaveProject(saveName)}
         >
-          Enregistrer
+          <Trans id="common.save">Enregistrer</Trans>
         </button>
         <NameEditor
-          title="Enregistrer sous un autre nom"
+          title={t({
+            id: 'header.save-as',
+            message: 'Enregistrer sous un autre nom'
+          })}
           triggerClassName={cx(styles.iconAction)}
-          triggerLabel="Renommer le projet"
+          triggerLabel={t({
+            id: 'header.rename-project',
+            message: 'Renommer le projet'
+          })}
           triggerContent="✎"
-          submitLabel="Enregistrer"
+          submitLabel={saveLabel}
           initialName={saveName}
           onSubmit={onSaveProject}
         />
@@ -114,11 +126,14 @@ function SaveControls({
   }
   return (
     <NameEditor
-      title="Enregistrer le projet"
+      title={t({ id: 'header.save-project', message: 'Enregistrer le projet' })}
       triggerClassName={cx(styles.secondaryAction)}
-      triggerLabel="Enregistrer le projet"
-      triggerContent="Enregistrer"
-      submitLabel="Enregistrer"
+      triggerLabel={t({
+        id: 'header.save-project',
+        message: 'Enregistrer le projet'
+      })}
+      triggerContent={saveLabel}
+      submitLabel={saveLabel}
       initialName={saveName}
       onSubmit={onSaveProject}
     />
@@ -136,6 +151,7 @@ interface ImportButtonProps {
  * elements would drop focus), which reverts on blur or after a few seconds.
  */
 function ImportButton({ onImport, needsConfirm }: ImportButtonProps) {
+  const { t } = useLingui()
   const confirm = useTwoStepConfirm<true>()
   const armed = confirm.pending !== null
 
@@ -165,14 +181,26 @@ function ImportButton({ onImport, needsConfirm }: ImportButtonProps) {
       data-on-amber={armed ? undefined : ''}
       aria-label={
         armed
-          ? "Confirmer l'import — la session actuelle sera remplacée"
+          ? t({
+              id: 'header.import-confirm',
+              message: "Confirmer l'import — la session actuelle sera remplacée"
+            })
           : undefined
       }
-      title={armed ? 'La session actuelle sera remplacée' : undefined}
+      title={
+        armed
+          ? t({
+              id: 'session.replaced',
+              message: 'La session actuelle sera remplacée'
+            })
+          : undefined
+      }
       onBlur={armed ? confirm.disarm : undefined}
       onClick={onClick}
     >
-      {armed ? 'Confirmer ?' : 'Importer'}
+      {armed
+        ? t({ id: 'common.confirm', message: 'Confirmer ?' })
+        : t({ id: 'header.import', message: 'Importer' })}
     </button>
   )
 }
@@ -204,11 +232,13 @@ export function Header({
   busyMessage,
   onShowProjects
 }: HeaderProps) {
+  const { t } = useLingui()
   // The one document-state chip: a running operation narrates itself; otherwise
   // the saved/dirty read-out (which only means something once a project exists).
-  const sessionState =
-    busyMessage ??
-    (hasProject ? (dirty ? '● Non enregistré' : 'Enregistré') : undefined)
+  const savedState = dirty
+    ? t({ id: 'header.unsaved', message: '● Non enregistré' })
+    : t({ id: 'header.saved', message: 'Enregistré' })
+  const sessionState = busyMessage ?? (hasProject ? savedState : undefined)
 
   return (
     <header className={styles.header}>
@@ -242,8 +272,11 @@ export function Header({
         <button
           type="button"
           className={styles.iconAction}
-          aria-label="Afficher les raccourcis clavier"
-          title="Raccourcis clavier"
+          aria-label={t({
+            id: 'header.show-shortcuts',
+            message: 'Afficher les raccourcis clavier'
+          })}
+          title={t({ id: 'header.shortcuts-tip', message: 'Raccourcis clavier' })}
           onClick={onShowShortcuts}
         >
           ?
@@ -258,12 +291,18 @@ export function Header({
           disabled={!canExport}
           title={
             canExport
-              ? 'Télécharger les stems en ZIP'
-              : 'Sépare les pistes pour exporter les stems'
+              ? t({
+                  id: 'header.export-ready',
+                  message: 'Télécharger les stems en ZIP'
+                })
+              : t({
+                  id: 'header.export-needs-stems',
+                  message: 'Séparer les pistes pour exporter les stems'
+                })
           }
           onClick={onExportStems}
         >
-          Exporter
+          <Trans id="header.export">Exporter</Trans>
         </button>
         {onSaveProject && (
           <SaveControls
@@ -280,7 +319,7 @@ export function Header({
             className={styles.secondaryAction}
             onClick={onShowProjects}
           >
-            Projets
+            <Trans id="header.projects">Projets</Trans>
           </button>
         )}
         {serverStatus && (

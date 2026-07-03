@@ -4,6 +4,8 @@ import type { Project } from '@app/core'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
+import { i18n } from '../i18n/i18n.ts'
+import { I18nTestingProvider } from '../i18n/i18n-testing-provider.tsx'
 import { ProjectsDialog } from './projects-dialog.tsx'
 
 // Midday UTC, so the local date is 12/05/2026 in any nearby timezone.
@@ -32,7 +34,8 @@ function renderDialog(overrides: DialogProps = {}) {
       onOpen={() => {}}
       onDelete={() => {}}
       {...overrides}
-    />
+    />,
+    { wrapper: I18nTestingProvider }
   )
 }
 
@@ -65,19 +68,18 @@ describe('ProjectsDialog', () => {
 
   it('shows the empty state when there is nothing saved', () => {
     renderDialog({ projects: [] })
-    expect(screen.getByText('Aucun projet enregistré')).toBeInTheDocument()
+    expect(screen.getByText(i18n._('projects.empty'))).toBeInTheDocument()
   })
 
   it('shows the unreachable-server message instead of the empty state', () => {
     renderDialog({
       projects: [],
-      errorMessage:
-        'Serveur injoignable — vérifie que le serveur local est lancé'
+      errorMessage: i18n._('projects.unreachable')
     })
 
     expect(screen.getByRole('alert')).toHaveTextContent('Serveur injoignable')
     expect(
-      screen.queryByText('Aucun projet enregistré')
+      screen.queryByText(i18n._('projects.empty'))
     ).not.toBeInTheDocument()
   })
 
@@ -86,7 +88,7 @@ describe('ProjectsDialog', () => {
     const onOpen = vi.fn()
     await renderDialogSettled({ onOpen })
 
-    await user.click(screen.getByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: i18n._('projects.open') }))
     expect(onOpen).toHaveBeenCalledWith('p1')
   })
 
@@ -95,14 +97,14 @@ describe('ProjectsDialog', () => {
     const onOpen = vi.fn()
     await renderDialogSettled({ onOpen, confirmBeforeOpen: true })
 
-    await user.click(screen.getByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: i18n._('projects.open') }))
     expect(onOpen).not.toHaveBeenCalled()
     expect(
-      screen.getByText('La session actuelle sera remplacée')
+      screen.getByText(i18n._('session.replaced'))
     ).toBeInTheDocument()
 
     await user.click(
-      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+      screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
     )
     expect(onOpen).toHaveBeenCalledWith('p1')
   })
@@ -113,13 +115,13 @@ describe('ProjectsDialog', () => {
     await renderDialogSettled({ onDelete })
 
     await user.click(
-      screen.getByRole('button', { name: 'Supprimer Mon projet' })
+      screen.getByRole('button', { name: i18n._('projects.delete-named', { name: 'Mon projet' }) })
     )
     expect(onDelete).not.toHaveBeenCalled()
 
     await user.click(
       screen.getByRole('button', {
-        name: 'Confirmer la suppression de Mon projet'
+        name: i18n._('projects.confirm-delete', { name: 'Mon projet' })
       })
     )
     expect(onDelete).toHaveBeenCalledWith('p1')
@@ -132,18 +134,18 @@ describe('ProjectsDialog', () => {
 
     // user-event limitation: user.click hangs under vi.useFakeTimers (its
     // internal waits never resolve on the fake clock), so fireEvent stays here.
-    fireEvent.click(screen.getByRole('button', { name: 'Supprimer Mon projet' }))
+    fireEvent.click(screen.getByRole('button', { name: i18n._('projects.delete-named', { name: 'Mon projet' }) }))
     act(() => {
       vi.advanceTimersByTime(4000)
     })
 
     expect(
       screen.queryByRole('button', {
-        name: 'Confirmer la suppression de Mon projet'
+        name: i18n._('projects.confirm-delete', { name: 'Mon projet' })
       })
     ).not.toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Supprimer Mon projet' })
+      screen.getByRole('button', { name: i18n._('projects.delete-named', { name: 'Mon projet' }) })
     ).toBeInTheDocument()
     vi.useRealTimers()
   })
@@ -153,31 +155,31 @@ describe('ProjectsDialog', () => {
     await renderDialogSettled()
 
     await user.click(
-      screen.getByRole('button', { name: 'Supprimer Mon projet' })
+      screen.getByRole('button', { name: i18n._('projects.delete-named', { name: 'Mon projet' }) })
     )
     fireEvent.blur(
       screen.getByRole('button', {
-        name: 'Confirmer la suppression de Mon projet'
+        name: i18n._('projects.confirm-delete', { name: 'Mon projet' })
       })
     )
 
     expect(
-      screen.getByRole('button', { name: 'Supprimer Mon projet' })
+      screen.getByRole('button', { name: i18n._('projects.delete-named', { name: 'Mon projet' }) })
     ).toBeInTheDocument()
   })
 
   it('marks the opening row and locks every action while it loads', () => {
     renderDialog({ openingId: 'p1' })
 
-    const opening = screen.getByRole('button', { name: 'Ouverture…' })
+    const opening = screen.getByRole('button', { name: i18n._('projects.opening-row') })
     expect(opening).toBeDisabled()
     expect(
-      screen.getByRole('button', { name: 'Supprimer Mon projet' })
+      screen.getByRole('button', { name: i18n._('projects.delete-named', { name: 'Mon projet' }) })
     ).toBeDisabled()
   })
 
   it('renders nothing while closed', () => {
     renderDialog({ open: false })
-    expect(screen.queryByText('Projets')).not.toBeInTheDocument()
+    expect(screen.queryByText(i18n._('projects.title'))).not.toBeInTheDocument()
   })
 })

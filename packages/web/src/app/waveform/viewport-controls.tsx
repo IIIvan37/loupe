@@ -1,3 +1,4 @@
+import { useLingui } from '@lingui/react/macro'
 import { MAX_ZOOM, MIN_ZOOM, ZOOM_STEP } from '@app/core'
 import styles from './viewport-controls.module.css'
 
@@ -29,13 +30,14 @@ export function ViewportControls({
   onZoomOut,
   onSetZoom
 }: ViewportControlsProps) {
+  const { t } = useLingui()
   return (
     <div className={styles.tools}>
       <span className={styles.level}>{formatZoom(zoom)}</span>
       <button
         type="button"
         className={styles.tick}
-        aria-label="Dézoomer"
+        aria-label={t({ id: 'waveform.zoom-out', message: 'Dézoomer' })}
         disabled={disabled || zoom <= MIN_ZOOM}
         onClick={onZoomOut}
       >
@@ -49,14 +51,17 @@ export function ViewportControls({
         max={MAX_ZOOM}
         step={ZOOM_STEP}
         value={zoom}
-        aria-label="Zoom de la forme d'onde"
+        aria-label={t({
+          id: 'waveform.zoom-slider',
+          message: "Zoom de la forme d'onde"
+        })}
         disabled={disabled}
         onChange={(event) => onSetZoom(event.target.valueAsNumber)}
       />
       <button
         type="button"
         className={styles.tick}
-        aria-label="Zoomer"
+        aria-label={t({ id: 'waveform.zoom-in', message: 'Zoomer' })}
         disabled={disabled || zoom >= MAX_ZOOM}
         onClick={onZoomIn}
       >

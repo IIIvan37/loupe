@@ -17,11 +17,33 @@ state, CSS classes, or which hooks were called. One assertion per test
 
 ## Queries — priority order
 
-Prefer the highest available: `getByRole` (with the French accessible name,
-e.g. `{ name: 'Enregistrer le projet' }`) → `getByLabelText` →
-`getByText` → `getByDisplayValue`. `getByTestId` is a design smell here:
-every control in this app has a role and a French label — if a test needs a
-test id, fix the component's semantics instead.
+Prefer the highest available: `getByRole` → `getByLabelText` → `getByText` →
+`getByDisplayValue`. `getByTestId` is a design smell here: every control in
+this app has a role and a French label — if a test needs a test id, fix the
+component's semantics instead.
+
+**Never hardcode French copy in a query — resolve the Lingui key.** All UI
+strings live in the catalog (`src/locales/fr/messages.po`) under explicit
+semantic ids; specs import the real `i18n` and resolve:
+
+```tsx
+import { i18n } from '../../i18n/i18n.ts'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
+
+render(<X />, { wrapper: I18nTestingProvider })          // components using t/Trans
+renderHook(() => useX(), { wrapper: I18nTestingProvider }) // hooks using useLingui
+
+screen.getByRole('button', { name: i18n._('header.import') })
+screen.getByRole('button', {
+  name: i18n._('projects.confirm-open', { name: 'Mon projet' })
+})
+```
+
+The wrapper is Lingui's official testing pattern (real instance, loaded
+catalog — no mocking): interpolation is exercised for real and a copy change
+never breaks a spec. If `i18n._('some.id')` returns the id itself, the catalog
+lacks the entry — run `pnpm --filter @app/web i18n:extract` (with source-locale
+overwrite) rather than hardcoding the string.
 
 For portals/dialogs (Base UI), query via `screen` (whole document), never via
 `container`.

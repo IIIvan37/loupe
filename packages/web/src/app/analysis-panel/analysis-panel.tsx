@@ -1,4 +1,5 @@
 import { formatTimecode, type MarkerList } from '@app/core'
+import { Trans, useLingui } from '@lingui/react/macro'
 import { Tabs } from '@base-ui-components/react/tabs'
 import { cx } from '../../lib/cx.ts'
 import { NameEditor } from '../ui/name-editor.tsx'
@@ -23,67 +24,92 @@ export function AnalysisPanel({
   onRenameMarker,
   onRemoveMarker
 }: AnalysisPanelProps) {
+  const { t } = useLingui()
   return (
     <aside className={styles.panel}>
       <Tabs.Root defaultValue="reperes">
         <Tabs.List className={cx(styles.list)}>
           <Tabs.Tab value="spectre" className={cx(styles.tab)}>
-            Spectre
+            <Trans id="analysis.tab-spectrum">Spectre</Trans>
           </Tabs.Tab>
           <Tabs.Tab value="reperes" className={cx(styles.tab)}>
-            Repères
+            <Trans id="analysis.tab-markers">Repères</Trans>
           </Tabs.Tab>
           <Tabs.Tab value="notes" className={cx(styles.tab)}>
-            Notes
+            <Trans id="analysis.tab-notes">Notes</Trans>
           </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="spectre" className={cx(styles.tabPanel)}>
-          L'analyse spectrale arrivera avec la détection (jalon ultérieur).
+          <Trans id="analysis.spectrum-placeholder">
+            L'analyse spectrale arrivera avec la détection (jalon ultérieur).
+          </Trans>
         </Tabs.Panel>
 
         <Tabs.Panel value="reperes" className={cx(styles.tabPanel)}>
           {markers.length === 0 ? (
-            <p>Aucun repère. Ajoute-en depuis la barre de repères.</p>
+            <p>
+              <Trans id="analysis.no-markers">
+                Aucun repère. En ajouter depuis la barre de repères.
+              </Trans>
+            </p>
           ) : (
             <ul className={styles.markerList}>
-              {markers.map((marker) => (
-                <li key={marker.id} className={styles.markerItem}>
-                  <button
-                    type="button"
-                    className={styles.markerRow}
-                    onClick={() => onSeekMarker(marker.timeSeconds)}
-                  >
-                    <span className={styles.markerTime}>
-                      {formatTimecode(marker.timeSeconds)}
-                    </span>
-                    <span className={styles.markerName}>{marker.label}</span>
-                  </button>
-                  <NameEditor
-                    title="Renommer le repère"
-                    triggerClassName={cx(styles.markerEdit)}
-                    triggerLabel={`Renommer ${marker.label}`}
-                    triggerContent="✎"
-                    submitLabel="Renommer"
-                    initialName={marker.label}
-                    onSubmit={(label) => onRenameMarker(marker.id, label)}
-                  />
-                  <button
-                    type="button"
-                    className={styles.markerRemove}
-                    aria-label={`Supprimer ${marker.label}`}
-                    onClick={() => onRemoveMarker(marker.id)}
-                  >
-                    ✕
-                  </button>
-                </li>
-              ))}
+              {markers.map((marker) => {
+                // Bind to a local so the extracted ICU placeholder reads as {name}.
+                const name = marker.label
+                return (
+                  <li key={marker.id} className={styles.markerItem}>
+                    <button
+                      type="button"
+                      className={styles.markerRow}
+                      onClick={() => onSeekMarker(marker.timeSeconds)}
+                    >
+                      <span className={styles.markerTime}>
+                        {formatTimecode(marker.timeSeconds)}
+                      </span>
+                      <span className={styles.markerName}>{marker.label}</span>
+                    </button>
+                    <NameEditor
+                      title={t({
+                        id: 'markers.rename-title',
+                        message: 'Renommer le repère'
+                      })}
+                      triggerClassName={cx(styles.markerEdit)}
+                      triggerLabel={t({
+                        id: 'markers.rename-named',
+                        message: `Renommer ${name}`
+                      })}
+                      triggerContent="✎"
+                      submitLabel={t({
+                        id: 'common.rename',
+                        message: 'Renommer'
+                      })}
+                      initialName={marker.label}
+                      onSubmit={(label) => onRenameMarker(marker.id, label)}
+                    />
+                    <button
+                      type="button"
+                      className={styles.markerRemove}
+                      aria-label={t({
+                        id: 'markers.remove-named',
+                        message: `Supprimer ${name}`
+                      })}
+                      onClick={() => onRemoveMarker(marker.id)}
+                    >
+                      ✕
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </Tabs.Panel>
 
         <Tabs.Panel value="notes" className={cx(styles.tabPanel)}>
-          Les annotations textuelles arriveront plus tard.
+          <Trans id="analysis.notes-placeholder">
+            Les annotations textuelles arriveront plus tard.
+          </Trans>
         </Tabs.Panel>
       </Tabs.Root>
     </aside>

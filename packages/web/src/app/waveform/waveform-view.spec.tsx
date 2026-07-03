@@ -4,6 +4,8 @@ import type { LoopRegion, Track } from '@app/core'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeAll, vi } from 'vitest'
 
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
+import { i18n } from '../../i18n/i18n.ts'
 import { WaveformView } from './waveform-view.tsx'
 
 const track: Track = {
@@ -33,10 +35,11 @@ function renderLoaded(
       onSelectRegion={noop}
       onAdjustRegion={noop}
       {...overrides}
-    />
+    />,
+    { wrapper: I18nTestingProvider }
   )
   // Ratios are measured against the positioning container (the surface's parent).
-  const surface = screen.getByRole('button', { name: /Forme d'onde :/ })
+  const surface = screen.getByRole('button', { name: i18n._('waveform.surface') })
   const container = surface.parentElement as HTMLElement
   container.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
   return { ...view, surface, container }
@@ -53,9 +56,12 @@ describe('WaveformView', () => {
         onSeek={noop}
         onSelectRegion={noop}
         onAdjustRegion={noop}
-      />
+      />,
+      { wrapper: I18nTestingProvider }
     )
-    expect(screen.getByText(/Importe un fichier audio/)).toBeInTheDocument()
+    expect(
+      screen.getByText(i18n._('waveform.import-hint'))
+    ).toBeInTheDocument()
   })
 
   it('seeks on a click (no drag)', () => {
@@ -85,7 +91,9 @@ describe('WaveformView', () => {
   it('shows the A/B edit handles only when a loop is active', () => {
     const { rerender } = renderLoaded()
     expect(
-      screen.queryByRole('button', { name: 'Déplacer le début de la boucle' })
+      screen.queryByRole('button', {
+        name: i18n._('waveform.move-loop-start')
+      })
     ).not.toBeInTheDocument()
 
     const loopRegion: LoopRegion = { startSeconds: 2, endSeconds: 8 }
@@ -101,7 +109,9 @@ describe('WaveformView', () => {
       />
     )
     expect(
-      screen.getByRole('button', { name: 'Déplacer le début de la boucle' })
+      screen.getByRole('button', {
+        name: i18n._('waveform.move-loop-start')
+      })
     ).toBeInTheDocument()
   })
 
@@ -112,7 +122,7 @@ describe('WaveformView', () => {
       onAdjustRegion
     })
     const endHandle = screen.getByRole('button', {
-      name: 'Déplacer la fin de la boucle'
+      name: i18n._('waveform.move-loop-end')
     })
     fireEvent.pointerDown(endHandle, { button: 0, clientX: 80 })
     fireEvent.pointerMove(endHandle, { clientX: 50 })
@@ -127,7 +137,7 @@ describe('WaveformView', () => {
       onAdjustRegion
     })
     const startHandle = screen.getByRole('button', {
-      name: 'Déplacer le début de la boucle'
+      name: i18n._('waveform.move-loop-start')
     })
     fireEvent.keyDown(startHandle, { key: 'ArrowRight' })
     // start 0.2 + 0.01 nudge → 0.21, end unchanged at 0.8.
@@ -139,7 +149,7 @@ describe('WaveformView', () => {
   it('renders the waveform image once loaded', () => {
     renderLoaded()
     expect(
-      screen.getByRole('img', { name: "Forme d'onde de la piste" })
+      screen.getByRole('img', { name: i18n._('waveform.track-image') })
     ).toBeInTheDocument()
   })
 })

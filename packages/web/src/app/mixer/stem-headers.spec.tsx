@@ -3,6 +3,8 @@ import '@testing-library/jest-dom/vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
+import { i18n } from '../../i18n/i18n.ts'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import type { MixerChannelView } from './use-mixer.ts'
 import { StemHeaders } from './stem-headers.tsx'
 
@@ -36,7 +38,8 @@ function renderHeaders(
       onToggleSolo={() => {}}
       onDownloadStem={() => {}}
       {...props}
-    />
+    />,
+    { wrapper: I18nTestingProvider }
   )
 }
 
@@ -50,7 +53,7 @@ describe('StemHeaders', () => {
   it('carries the machine confidence as the label tooltip', () => {
     renderHeaders([channel('voix', 'Voix')])
     expect(screen.getByText('Voix')).toHaveAccessibleDescription(
-      'Confiance de détection : 90 %'
+      i18n._('mixer.confidence', { percent: 90 })
     )
   })
 
@@ -58,7 +61,9 @@ describe('StemHeaders', () => {
     const user = userEvent.setup()
     const onToggleMute = vi.fn()
     renderHeaders([channel('voix', 'Voix', { muted: true })], { onToggleMute })
-    const button = screen.getByRole('button', { name: 'Couper Voix' })
+    const button = screen.getByRole('button', {
+      name: i18n._('mixer.mute', { name: 'Voix' })
+    })
     expect(button).toHaveAttribute('aria-pressed', 'true')
     await user.click(button)
     expect(onToggleMute).toHaveBeenCalledWith('voix')
@@ -68,7 +73,9 @@ describe('StemHeaders', () => {
     const user = userEvent.setup()
     const onToggleSolo = vi.fn()
     renderHeaders([channel('voix', 'Voix', { soloed: true })], { onToggleSolo })
-    const button = screen.getByRole('button', { name: 'Isoler Voix' })
+    const button = screen.getByRole('button', {
+      name: i18n._('mixer.solo', { name: 'Voix' })
+    })
     expect(button).toHaveAttribute('aria-pressed', 'true')
     await user.click(button)
     expect(onToggleSolo).toHaveBeenCalledWith('voix')
@@ -78,9 +85,12 @@ describe('StemHeaders', () => {
     const onSetGain = vi.fn()
     renderHeaders([channel('voix', 'Voix')], { onSetGain })
     // fireEvent kept: user-event cannot drive <input type="range">.
-    fireEvent.change(screen.getByRole('slider', { name: 'Volume Voix' }), {
-      target: { value: '-6' }
-    })
+    fireEvent.change(
+      screen.getByRole('slider', {
+        name: i18n._('mixer.volume', { name: 'Voix' })
+      }),
+      { target: { value: '-6' } }
+    )
     expect(onSetGain).toHaveBeenCalledWith('voix', -6)
   })
 
@@ -94,7 +104,9 @@ describe('StemHeaders', () => {
     const onDownloadStem = vi.fn()
     renderHeaders([channel('basse', 'Basse')], { onDownloadStem })
     await user.click(
-      screen.getByRole('button', { name: 'Télécharger Basse en WAV' })
+      screen.getByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Basse' })
+      })
     )
     expect(onDownloadStem).toHaveBeenCalledWith('basse')
   })

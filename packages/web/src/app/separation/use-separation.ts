@@ -12,6 +12,7 @@ import {
   separationReducer,
   stemExportFilename
 } from '@app/core'
+import { useLingui } from '@lingui/react/macro'
 import { useMemo, useReducer, useRef, useState } from 'react'
 import { createSeparator } from '../../audio/create-separator.ts'
 import { downloadBlob } from '../../audio/download-blob.ts'
@@ -77,6 +78,7 @@ export function useSeparation(
   separator?: StemSeparator,
   archive?: ArchiveWriter
 ): Separation {
+  const { t } = useLingui()
   const engine = useMemo(() => separator ?? createSeparator(), [separator])
   const [state, dispatch] = useReducer(separationReducer, initialSeparation)
   // A monotonic token per run: a slow separation that finishes after a new
@@ -185,7 +187,14 @@ export function useSeparation(
           new Blob([result.archive], { type: 'application/zip' })
         )
       } else {
-        setExportError(`L'export a échoué : ${result.error}`)
+        // The raw port error stays untranslated; only the frame is copy.
+        const error = result.error
+        setExportError(
+          t({
+            id: 'separation.export-failed',
+            message: `L'export a échoué : ${error}`
+          })
+        )
       }
     }
   }

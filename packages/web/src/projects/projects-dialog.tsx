@@ -1,3 +1,4 @@
+import { Trans, useLingui } from '@lingui/react/macro'
 import type { Project } from '@app/core'
 import { AppDialog } from '../app/ui/app-dialog.tsx'
 import { useTwoStepConfirm } from '../app/ui/use-two-step-confirm.ts'
@@ -74,7 +75,7 @@ function RowAction({
       onBlur={armed ? onDisarm : undefined}
       onClick={armed ? confirm : idle.onClick}
     >
-      {armed ? 'Confirmer ?' : idle.label}
+      {armed ? <Trans id="common.confirm">Confirmer ?</Trans> : idle.label}
     </button>
   )
 }
@@ -94,6 +95,7 @@ export function ProjectsDialog({
   openingId,
   confirmBeforeOpen
 }: ProjectsDialogProps) {
+  const { t } = useLingui()
   const { pending: confirm, arm: armPending, disarm } = useTwoStepConfirm<
     PendingConfirm
   >()
@@ -111,7 +113,9 @@ export function ProjectsDialog({
   const locked = openingId !== undefined
 
   function openLabel(project: Project): string {
-    return openingId === project.id ? 'Ouverture…' : 'Ouvrir'
+    return openingId === project.id
+      ? t({ id: 'projects.opening-row', message: 'Ouverture…' })
+      : t({ id: 'projects.open', message: 'Ouvrir' })
   }
 
   function onOpenClick(id: string): void {
@@ -126,20 +130,26 @@ export function ProjectsDialog({
     <AppDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Projets"
-      description="Reprends un projet enregistré là où tu l'as laissé."
+      title={t({ id: 'projects.title', message: 'Projets' })}
+      description={t({
+        id: 'projects.description',
+        message: 'Reprendre un projet enregistré là où il a été laissé.'
+      })}
     >
       {errorMessage !== undefined ? (
         <p className={cx(styles.error)} role="alert">
           {errorMessage}
         </p>
       ) : projects.length === 0 ? (
-        <p className={cx(styles.empty)}>Aucun projet enregistré</p>
+        <p className={cx(styles.empty)}>
+          <Trans id="projects.empty">Aucun projet enregistré</Trans>
+        </p>
       ) : (
         <ul className={cx(styles.list)}>
           {projects.map((project) => {
             const armedAction =
               confirm?.id === project.id ? confirm.action : null
+            const name = project.name
             return (
               <li key={project.id} className={cx(styles.row)}>
                 <span className={cx(styles.name)}>{project.name}</span>
@@ -148,7 +158,9 @@ export function ProjectsDialog({
                 </span>
                 {armedAction === 'open' && (
                   <span className={cx(styles.confirmNote)}>
-                    La session actuelle sera remplacée
+                    <Trans id="session.replaced">
+                      La session actuelle sera remplacée
+                    </Trans>
                   </span>
                 )}
                 <RowAction
@@ -159,7 +171,10 @@ export function ProjectsDialog({
                     className: styles.open,
                     onClick: () => onOpenClick(project.id)
                   }}
-                  confirmAriaLabel={`Confirmer l'ouverture de ${project.name}`}
+                  confirmAriaLabel={t({
+                    id: 'projects.confirm-open',
+                    message: `Confirmer l'ouverture de ${name}`
+                  })}
                   onConfirm={() => onOpen(project.id)}
                   onDisarm={disarm}
                 />
@@ -167,12 +182,18 @@ export function ProjectsDialog({
                   armed={armedAction === 'delete'}
                   disabled={locked}
                   idle={{
-                    label: 'Supprimer',
-                    ariaLabel: `Supprimer ${project.name}`,
+                    label: t({ id: 'common.delete', message: 'Supprimer' }),
+                    ariaLabel: t({
+                      id: 'projects.delete-named',
+                      message: `Supprimer ${name}`
+                    }),
                     className: styles.delete,
                     onClick: () => arm(project.id, 'delete')
                   }}
-                  confirmAriaLabel={`Confirmer la suppression de ${project.name}`}
+                  confirmAriaLabel={t({
+                    id: 'projects.confirm-delete',
+                    message: `Confirmer la suppression de ${name}`
+                  })}
                   onConfirm={() => onDelete(project.id)}
                   onDisarm={disarm}
                 />

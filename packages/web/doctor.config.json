@@ -4,6 +4,10 @@
       {
         "files": ["public/**"],
         "rules": ["deslop/unused-file"]
+      },
+      {
+        "files": ["src/i18n/i18n-testing-provider.tsx"],
+        "rules": ["deslop/unused-file"]
       }
     ]
   }

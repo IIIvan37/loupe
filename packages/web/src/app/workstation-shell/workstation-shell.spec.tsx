@@ -20,6 +20,8 @@ import {
 } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
 import { beforeAll, vi } from 'vitest'
+import { i18n } from '../../i18n/i18n.ts'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { WorkstationShell } from './workstation-shell.tsx'
 
 beforeAll(() => {
@@ -151,7 +153,7 @@ function healthFetch(device: string | null | 'unreachable'): typeof fetch {
 
 /** The waveform stage button (click to seek, drag to loop). */
 function waveformSurface(): HTMLElement {
-  return screen.getByRole('button', { name: /Forme d'onde :/ })
+  return screen.getByRole('button', { name: i18n._('waveform.surface') })
 }
 
 /**
@@ -182,19 +184,20 @@ function renderShell(
       // A probe that never answers keeps the header status silent by default.
       healthFetch={(() => new Promise(() => {})) as typeof fetch}
       {...overrides}
-    />
+    />,
+    { wrapper: I18nTestingProvider }
   )
   return { engine, user, ...utils }
 }
 
 async function importTrack(user: UserEvent, fileName?: string): Promise<void> {
   await user.upload(
-    screen.getByLabelText('Importer un fichier audio'),
+    screen.getByLabelText(i18n._('header.import-file')),
     audioFile(fileName)
   )
   await waitFor(() => {
     expect(
-      screen.getByRole('img', { name: "Forme d'onde de la piste" })
+      screen.getByRole('img', { name: i18n._('waveform.track-image') })
     ).toBeInTheDocument()
   })
 }
@@ -202,9 +205,9 @@ async function importTrack(user: UserEvent, fileName?: string): Promise<void> {
 /** Drag 20%→60% of the 10 s timeline and save the region as a named loop. */
 async function saveNamedLoop(user: UserEvent, name: string): Promise<void> {
   pointerGesture(20, 60)
-  await user.click(screen.getByRole('button', { name: 'Enregistrer la boucle' }))
-  await user.type(screen.getByLabelText('Nom'), name)
-  await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+  await user.click(screen.getByRole('button', { name: i18n._('loops.save-region') }))
+  await user.type(screen.getByLabelText(i18n._('common.name')), name)
+  await user.click(screen.getByRole('button', { name: i18n._('common.save') }))
 }
 
 describe('WorkstationShell', () => {
@@ -223,8 +226,8 @@ describe('WorkstationShell', () => {
 
   it('exposes the analysis tabs', () => {
     renderShell()
-    expect(screen.getByRole('tab', { name: 'Spectre' })).toBeInTheDocument()
-    expect(screen.getByRole('tab', { name: 'Repères' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: i18n._('analysis.tab-spectrum') })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: i18n._('analysis.tab-markers') })).toBeInTheDocument()
   })
 
   it('shows no detected key/tempo chips (no real detection yet)', () => {
@@ -236,11 +239,11 @@ describe('WorkstationShell', () => {
   it('disables play until a track is loaded, then enables it with the duration', async () => {
     const { container, user } = renderShell()
 
-    expect(screen.getByRole('button', { name: 'Lecture' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: i18n._('transport.play') })).toBeDisabled()
 
     await importTrack(user)
 
-    expect(screen.getByRole('button', { name: 'Lecture' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: i18n._('transport.play') })).toBeEnabled()
     // Scope to the transport — the ruler also prints timecodes.
     const footer = container.querySelector('footer') as HTMLElement
     expect(within(footer).getByText('0:10')).toBeInTheDocument()
@@ -255,7 +258,7 @@ describe('WorkstationShell', () => {
         })
     }
     const { user, container } = renderShell({ decoder })
-    const input = screen.getByLabelText('Importer un fichier audio')
+    const input = screen.getByLabelText(i18n._('header.import-file'))
     await user.upload(input, audioFile('lent.wav'))
     await user.upload(input, audioFile('rapide.wav'))
 
@@ -281,7 +284,7 @@ describe('WorkstationShell', () => {
     const { user } = renderShell({ decoder })
 
     await user.upload(
-      screen.getByLabelText('Importer un fichier audio'),
+      screen.getByLabelText(i18n._('header.import-file')),
       audioFile()
     )
     await waitFor(() => {
@@ -293,13 +296,13 @@ describe('WorkstationShell', () => {
     const { engine, user } = renderShell()
     await importTrack(user)
 
-    await user.click(screen.getByRole('button', { name: 'Lecture' }))
+    await user.click(screen.getByRole('button', { name: i18n._('transport.play') }))
     expect(engine.play).toHaveBeenCalledOnce()
 
-    const pauseButton = screen.getByRole('button', { name: 'Pause' })
+    const pauseButton = screen.getByRole('button', { name: i18n._('transport.pause') })
     await user.click(pauseButton)
     expect(engine.pause).toHaveBeenCalledOnce()
-    expect(screen.getByRole('button', { name: 'Lecture' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: i18n._('transport.play') })).toBeInTheDocument()
   })
 
   it('jumps to the start and end of the timeline via the transport buttons', async () => {
@@ -307,10 +310,10 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     act(() => engine.emit(5))
 
-    await user.click(screen.getByRole('button', { name: 'Fin' }))
+    await user.click(screen.getByRole('button', { name: i18n._('transport.end') }))
     expect(engine.seekTo).toHaveBeenLastCalledWith(10)
 
-    await user.click(screen.getByRole('button', { name: 'Début' }))
+    await user.click(screen.getByRole('button', { name: i18n._('transport.start') }))
     expect(engine.seekTo).toHaveBeenLastCalledWith(0)
   })
 
@@ -337,7 +340,7 @@ describe('WorkstationShell', () => {
 
     // Importing leaves focus on the "Importer" button; Space must still toggle
     // playback rather than being swallowed as the button's own activation.
-    const importButton = screen.getByRole('button', { name: 'Importer' })
+    const importButton = screen.getByRole('button', { name: i18n._('header.import') })
     importButton.focus()
     fireEvent.keyDown(importButton, { code: 'Space' })
     expect(engine.play).toHaveBeenCalledOnce()
@@ -382,7 +385,7 @@ describe('WorkstationShell', () => {
     // Bound by character ('m'), not physical position — works on any layout.
     fireEvent.keyDown(document.body, { key: 'm', code: 'Semicolon' })
 
-    const goto = screen.getByRole('button', { name: 'Aller à Repère 1' })
+    const goto = screen.getByRole('button', { name: i18n._('markers.go-to', { name: i18n._('markers.default-name', { number: 1 }) }) })
     await user.click(goto)
     expect(engine.seekTo).toHaveBeenLastCalledWith(5)
   })
@@ -394,7 +397,7 @@ describe('WorkstationShell', () => {
     act(() => engine.emit(5))
     fireEvent.keyDown(document.body, { key: 'm', code: 'Semicolon' })
 
-    const goto = screen.getByRole('button', { name: 'Aller à Repère 1' })
+    const goto = screen.getByRole('button', { name: i18n._('markers.go-to', { name: i18n._('markers.default-name', { number: 1 }) }) })
     // One nudge is 1% of the 10 s timeline; clicking then seeks to 5.1 s.
     fireEvent.keyDown(goto, { key: 'ArrowRight' })
     await user.click(goto)
@@ -408,7 +411,7 @@ describe('WorkstationShell', () => {
     act(() => engine.emit(5))
     fireEvent.keyDown(document.body, { key: 'm', code: 'Semicolon' })
 
-    const goto = screen.getByRole('button', { name: 'Aller à Repère 1' })
+    const goto = screen.getByRole('button', { name: i18n._('markers.go-to', { name: i18n._('markers.default-name', { number: 1 }) }) })
     engine.seekTo.mockClear()
     // The tag owns the arrow (it nudges the marker); the ←/→ seek shortcut
     // bound to the same physical key must stand back.
@@ -423,17 +426,17 @@ describe('WorkstationShell', () => {
     act(() => engine.emit(5))
     fireEvent.keyDown(document.body, { key: 'm', code: 'Semicolon' })
 
-    await user.click(screen.getByRole('button', { name: 'Renommer Repère 1' }))
-    await user.clear(screen.getByLabelText('Nom'))
-    await user.type(screen.getByLabelText('Nom'), 'Pont')
-    await user.click(screen.getByRole('button', { name: 'Renommer' }))
+    await user.click(screen.getByRole('button', { name: i18n._('markers.rename-named', { name: i18n._('markers.default-name', { number: 1 }) }) }))
+    await user.clear(screen.getByLabelText(i18n._('common.name')))
+    await user.type(screen.getByLabelText(i18n._('common.name')), 'Pont')
+    await user.click(screen.getByRole('button', { name: i18n._('common.rename') }))
 
     // The rail tag follows the new label; the old one is gone.
     expect(
-      screen.getByRole('button', { name: 'Aller à Pont' })
+      screen.getByRole('button', { name: i18n._('markers.go-to', { name: 'Pont' }) })
     ).toBeInTheDocument()
     expect(
-      screen.queryByRole('button', { name: 'Aller à Repère 1' })
+      screen.queryByRole('button', { name: i18n._('markers.go-to', { name: i18n._('markers.default-name', { number: 1 }) }) })
     ).not.toBeInTheDocument()
   })
 
@@ -468,7 +471,7 @@ describe('WorkstationShell', () => {
     await importTrack(user)
 
     // Range slider: user-event cannot drive <input type="range">.
-    fireEvent.change(screen.getByLabelText('Tempo en pourcentage'), {
+    fireEvent.change(screen.getByLabelText(i18n._('transport.tempo-slider')), {
       target: { value: '75' }
     })
     // 75 % → ratio 0.75.
@@ -480,7 +483,7 @@ describe('WorkstationShell', () => {
     await importTrack(user)
 
     // Range slider: user-event cannot drive <input type="range">.
-    fireEvent.change(screen.getByLabelText('Hauteur en demi-tons'), {
+    fireEvent.change(screen.getByLabelText(i18n._('transport.pitch-slider')), {
       target: { value: '5' }
     })
     expect(engine.setPitchSemitones).toHaveBeenCalledWith(5)
@@ -488,8 +491,8 @@ describe('WorkstationShell', () => {
 
   it('disables the tempo and pitch sliders until a track is loaded', () => {
     renderShell()
-    expect(screen.getByLabelText('Tempo en pourcentage')).toBeDisabled()
-    expect(screen.getByLabelText('Hauteur en demi-tons')).toBeDisabled()
+    expect(screen.getByLabelText(i18n._('transport.tempo-slider'))).toBeDisabled()
+    expect(screen.getByLabelText(i18n._('transport.pitch-slider'))).toBeDisabled()
   })
 
   it('adds a marker at the playhead and seeks back to it', async () => {
@@ -497,15 +500,15 @@ describe('WorkstationShell', () => {
     await importTrack(user)
 
     act(() => engine.emit(5))
-    await user.click(screen.getByRole('button', { name: '+ Repère' }))
+    await user.click(screen.getByRole('button', { name: i18n._('markers.add') }))
 
-    const goto = screen.getByRole('button', { name: 'Aller à Repère 1' })
+    const goto = screen.getByRole('button', { name: i18n._('markers.go-to', { name: i18n._('markers.default-name', { number: 1 }) }) })
     await user.click(goto)
     expect(engine.seekTo).toHaveBeenCalledWith(5)
 
-    await user.click(screen.getByRole('button', { name: 'Supprimer Repère 1' }))
+    await user.click(screen.getByRole('button', { name: i18n._('markers.remove-named', { name: i18n._('markers.default-name', { number: 1 }) }) }))
     expect(
-      screen.queryByRole('button', { name: 'Aller à Repère 1' })
+      screen.queryByRole('button', { name: i18n._('markers.go-to', { name: i18n._('markers.default-name', { number: 1 }) }) })
     ).not.toBeInTheDocument()
   })
 
@@ -513,20 +516,20 @@ describe('WorkstationShell', () => {
     const { user } = renderShell()
     await importTrack(user)
 
-    await user.click(screen.getByRole('button', { name: '+ Repère' }))
+    await user.click(screen.getByRole('button', { name: i18n._('markers.add') }))
     expect(
-      screen.getByRole('button', { name: 'Aller à Repère 1' })
+      screen.getByRole('button', { name: i18n._('markers.go-to', { name: i18n._('markers.default-name', { number: 1 }) }) })
     ).toBeInTheDocument()
 
     await importTrack(user)
     expect(
-      screen.queryByRole('button', { name: 'Aller à Repère 1' })
+      screen.queryByRole('button', { name: i18n._('markers.go-to', { name: i18n._('markers.default-name', { number: 1 }) }) })
     ).not.toBeInTheDocument()
   })
 
   it('disables marker controls until a track is loaded', () => {
     renderShell()
-    expect(screen.getByRole('button', { name: '+ Repère' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: i18n._('markers.add') })).toBeDisabled()
   })
 
   it('seeks the engine when the waveform is clicked', async () => {
@@ -556,7 +559,7 @@ describe('WorkstationShell', () => {
 
     await saveNamedLoop(user, 'Pont')
     expect(
-      screen.queryByRole('button', { name: 'Enregistrer la boucle' })
+      screen.queryByRole('button', { name: i18n._('loops.save-region') })
     ).not.toBeInTheDocument()
 
     // Drag the end handle inward: the saved loop updates rather than spawning a
@@ -565,14 +568,14 @@ describe('WorkstationShell', () => {
     const container = waveformSurface().parentElement as HTMLElement
     container.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
     const endHandle = screen.getByRole('button', {
-      name: 'Déplacer la fin de la boucle'
+      name: i18n._('waveform.move-loop-end')
     })
     fireEvent.pointerDown(endHandle, { button: 0, clientX: 60 })
     fireEvent.pointerMove(endHandle, { clientX: 40 })
     fireEvent.pointerUp(container, { button: 0, clientX: 40 })
 
     expect(
-      screen.queryByRole('button', { name: 'Enregistrer la boucle' })
+      screen.queryByRole('button', { name: i18n._('loops.save-region') })
     ).not.toBeInTheDocument()
     expect(await screen.findAllByRole('button', { name: 'Pont' })).toHaveLength(1)
   })
@@ -584,14 +587,14 @@ describe('WorkstationShell', () => {
     await saveNamedLoop(user, 'Refrain')
     // The region belongs to a saved loop now, so the save action is gone.
     expect(
-      screen.queryByRole('button', { name: 'Enregistrer la boucle' })
+      screen.queryByRole('button', { name: i18n._('loops.save-region') })
     ).not.toBeInTheDocument()
 
     // Removing that loop orphans the region — it must read as unsaved again.
-    await user.click(screen.getByRole('button', { name: 'Supprimer Refrain' }))
+    await user.click(screen.getByRole('button', { name: i18n._('loops.remove-named', { name: 'Refrain' }) }))
 
     expect(
-      await screen.findByRole('button', { name: 'Enregistrer la boucle' })
+      await screen.findByRole('button', { name: i18n._('loops.save-region') })
     ).toBeInTheDocument()
   })
 
@@ -620,7 +623,7 @@ describe('WorkstationShell', () => {
     expect(engine.seekTo).toHaveBeenLastCalledWith(2)
 
     // Turn looping off: the same overshoot must now play straight through.
-    await user.click(screen.getByRole('button', { name: /Boucle active/ }))
+    await user.click(screen.getByRole('button', { name: i18n._('loops.active') }))
     engine.seekTo.mockClear()
     act(() => engine.emit(7))
     expect(engine.seekTo).not.toHaveBeenCalled()
@@ -650,22 +653,22 @@ describe('WorkstationShell', () => {
 
     // The action is disabled until a track is loaded.
     expect(
-      screen.getByRole('button', { name: 'Séparer les pistes' })
+      screen.getByRole('button', { name: i18n._('separation.separate') })
     ).toBeDisabled()
 
     await importTrack(user)
-    await user.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
+    await user.click(screen.getByRole('button', { name: i18n._('separation.separate') }))
 
     // The stems land in the mixer: one fader (and lane) per separated stem.
     expect(
-      await screen.findByRole('slider', { name: 'Volume Voix' })
+      await screen.findByRole('slider', { name: i18n._('mixer.volume', { name: 'Voix' }) })
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('slider', { name: 'Volume Basse' })
+      screen.getByRole('slider', { name: i18n._('mixer.volume', { name: 'Basse' }) })
     ).toBeInTheDocument()
     // The action is gone once the stems are ready.
     expect(
-      screen.queryByRole('button', { name: 'Séparer les pistes' })
+      screen.queryByRole('button', { name: i18n._('separation.separate') })
     ).not.toBeInTheDocument()
   })
 
@@ -673,40 +676,40 @@ describe('WorkstationShell', () => {
     const { user } = renderShell({ separator: failingSeparator })
     await importTrack(user)
 
-    await user.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
+    await user.click(screen.getByRole('button', { name: i18n._('separation.separate') }))
 
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent('moteur indisponible')
     expect(
-      screen.getByRole('button', { name: 'Réessayer' })
+      screen.getByRole('button', { name: i18n._('separation.retry') })
     ).toBeInTheDocument()
   })
 
   it('reports the server health in the header once probed', async () => {
     renderShell({ healthFetch: healthFetch('cuda') })
-    expect(await screen.findByText('Serveur prêt')).toBeInTheDocument()
+    expect(await screen.findByText(i18n._('header.server-ready'))).toBeInTheDocument()
   })
 
   it('tells apart an unreachable server from one without separation', async () => {
     renderShell({ healthFetch: healthFetch('unreachable') })
-    expect(await screen.findByText('Serveur hors ligne')).toBeInTheDocument()
+    expect(await screen.findByText(i18n._('header.server-offline'))).toBeInTheDocument()
 
     renderShell({ healthFetch: healthFetch(null) })
     expect(
-      await screen.findByText('Séparation indisponible')
+      await screen.findByText(i18n._('header.server-no-separation'))
     ).toBeInTheDocument()
   })
 
   /** First save through the header popover, under the given name. */
   async function saveProjectAs(user: UserEvent, name: string): Promise<void> {
     await user.click(
-      screen.getByRole('button', { name: 'Enregistrer le projet' })
+      screen.getByRole('button', { name: i18n._('header.save-project') })
     )
-    await user.clear(screen.getByLabelText('Nom'))
-    await user.type(screen.getByLabelText('Nom'), name)
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await user.clear(screen.getByLabelText(i18n._('common.name')))
+    await user.type(screen.getByLabelText(i18n._('common.name')), name)
+    await user.click(screen.getByRole('button', { name: i18n._('common.save') }))
     // The one-click re-save appears once the project exists.
-    await screen.findByRole('button', { name: 'Renommer le projet' })
+    await screen.findByRole('button', { name: i18n._('header.rename-project') })
   }
 
   it('surfaces a failed save as a dismissible alert banner', async () => {
@@ -714,18 +717,18 @@ describe('WorkstationShell', () => {
     await importTrack(user)
 
     await user.click(
-      screen.getByRole('button', { name: 'Enregistrer le projet' })
+      screen.getByRole('button', { name: i18n._('header.save-project') })
     )
-    await user.clear(screen.getByLabelText('Nom'))
-    await user.type(screen.getByLabelText('Nom'), 'Mon projet')
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await user.clear(screen.getByLabelText(i18n._('common.name')))
+    await user.type(screen.getByLabelText(i18n._('common.name')), 'Mon projet')
+    await user.click(screen.getByRole('button', { name: i18n._('common.save') }))
 
     const alert = await screen.findByRole('alert')
     expect(alert).toHaveTextContent(
       "Impossible d'enregistrer le projet : server down"
     )
 
-    await user.click(screen.getByRole('button', { name: "Fermer l'alerte" }))
+    await user.click(screen.getByRole('button', { name: i18n._('alerts.close') }))
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
@@ -735,13 +738,13 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Mon projet')
 
     // One direct click — no popover asks for the name again.
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
+    await user.click(screen.getByRole('button', { name: i18n._('common.save') }))
     expect(screen.queryByLabelText('Nom')).not.toBeInTheDocument()
 
     // Still a single project, under the same name.
-    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
     expect(await screen.findByText('Mon projet')).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Ouvrir' })).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: i18n._('projects.open') })).toHaveLength(1)
   })
 
   it('detaches the session from the saved project when a new file is imported', async () => {
@@ -754,7 +757,7 @@ describe('WorkstationShell', () => {
     await importTrack(user)
 
     expect(
-      screen.getByRole('button', { name: 'Enregistrer le projet' })
+      screen.getByRole('button', { name: i18n._('header.save-project') })
     ).toBeInTheDocument()
   })
 
@@ -766,9 +769,9 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     await saveProjectAs(user, 'Deuxième morceau')
 
-    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
     expect(
-      await screen.findAllByRole('button', { name: 'Ouvrir' })
+      await screen.findAllByRole('button', { name: i18n._('projects.open') })
     ).toHaveLength(2)
   })
 
@@ -777,23 +780,23 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     await saveProjectAs(user, 'Mon projet')
     // Drift from the saved project — the session now holds unsaved work.
-    await user.click(screen.getByRole('button', { name: '+ Repère' }))
+    await user.click(screen.getByRole('button', { name: i18n._('markers.add') }))
 
-    await user.click(screen.getByRole('button', { name: 'Projets' }))
-    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
     // The session would be replaced — the row asks for a confirmation first.
     expect(
-      screen.getByText('La session actuelle sera remplacée')
+      screen.getByText(i18n._('session.replaced'))
     ).toBeInTheDocument()
     await user.click(
       screen.getByRole('button', {
-        name: "Confirmer l'ouverture de Mon projet"
+        name: i18n._('projects.confirm-open', { name: 'Mon projet' })
       })
     )
     await waitFor(() => {
       expect(
-        screen.queryByRole('button', { name: 'Ouvrir' })
+        screen.queryByRole('button', { name: i18n._('projects.open') })
       ).not.toBeInTheDocument()
     })
   })
@@ -807,15 +810,15 @@ describe('WorkstationShell', () => {
 
     await importTrack(user, 'autre.wav')
 
-    await user.click(screen.getByRole('button', { name: 'Projets' }))
-    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
-      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+      screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
     )
 
     // The region must come back armed, exactly as the user left it.
     expect(
-      await screen.findByRole('button', { name: '⟳ Boucle active' })
+      await screen.findByRole('button', { name: i18n._('loops.active') })
     ).toBeInTheDocument()
   })
 
@@ -824,19 +827,19 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     pointerGesture(20, 60)
     // Turn the wrap-around off before saving: play-through mode.
-    await user.click(screen.getByRole('button', { name: '⟳ Boucle active' }))
+    await user.click(screen.getByRole('button', { name: i18n._('loops.active') }))
     await saveProjectAs(user, 'Mon projet')
 
     await importTrack(user, 'autre.wav')
-    await user.click(screen.getByRole('button', { name: 'Projets' }))
-    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
-      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+      screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
     )
 
     // The region is back but still in play-through mode, as it was saved.
     expect(
-      await screen.findByRole('button', { name: '⟳ Boucle inactive' })
+      await screen.findByRole('button', { name: i18n._('loops.inactive') })
     ).toBeInTheDocument()
   })
 
@@ -847,17 +850,17 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Mon projet')
 
     await importTrack(user, 'autre.wav')
-    await user.click(screen.getByRole('button', { name: 'Projets' }))
-    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
-      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+      screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
     )
 
     // The region is armed AND recognised as the saved « Refrain »: offering
     // « Enregistrer la boucle » again would invite a duplicate.
-    await screen.findByRole('button', { name: '⟳ Boucle active' })
+    await screen.findByRole('button', { name: i18n._('loops.active') })
     expect(
-      screen.queryByRole('button', { name: 'Enregistrer la boucle' })
+      screen.queryByRole('button', { name: i18n._('loops.save-region') })
     ).not.toBeInTheDocument()
   })
 
@@ -873,10 +876,10 @@ describe('WorkstationShell', () => {
       screen.queryByRole('button', { name: 'Refrain' })
     ).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Projets' }))
-    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
-      screen.getByRole('button', { name: "Confirmer l'ouverture de Mon projet" })
+      screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
     )
 
     // The reopened project must bring its saved loop back.
@@ -908,10 +911,10 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Projet A')
 
     gateNext = true
-    await user.click(screen.getByRole('button', { name: 'Projets' }))
-    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     // The open hangs on the gated store; leave the dialog, import a new file.
-    await user.click(screen.getByRole('button', { name: 'Fermer' }))
+    await user.click(screen.getByRole('button', { name: i18n._('common.close') }))
     await importTrack(user, 'nouveau.wav')
 
     await act(async () => {
@@ -926,10 +929,10 @@ describe('WorkstationShell', () => {
     const { user } = renderShell({ separator: fakeSeparator() })
     await importTrack(user)
 
-    const exportButton = screen.getByRole('button', { name: 'Exporter' })
+    const exportButton = screen.getByRole('button', { name: i18n._('header.export') })
     expect(exportButton).toBeDisabled()
 
-    await user.click(screen.getByRole('button', { name: 'Séparer les pistes' }))
+    await user.click(screen.getByRole('button', { name: i18n._('separation.separate') }))
     await waitFor(() => expect(exportButton).toBeEnabled())
   })
 
@@ -937,25 +940,25 @@ describe('WorkstationShell', () => {
     const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
     await saveProjectAs(user, 'Mon projet')
-    expect(await screen.findByText('Enregistré')).toBeInTheDocument()
+    expect(await screen.findByText(i18n._('header.saved'))).toBeInTheDocument()
 
     // Any persisted-state change drifts the session from its saved project.
-    await user.click(screen.getByRole('button', { name: '+ Repère' }))
-    expect(await screen.findByText('● Non enregistré')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: i18n._('markers.add') }))
+    expect(await screen.findByText(i18n._('header.unsaved'))).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Enregistrer' }))
-    expect(await screen.findByText('Enregistré')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: i18n._('common.save') }))
+    expect(await screen.findByText(i18n._('header.saved'))).toBeInTheDocument()
   })
 
   it('arms the import button for confirmation while the loaded track is not saved', async () => {
     const { user } = renderShell()
     await importTrack(user)
 
-    await user.click(screen.getByRole('button', { name: 'Importer' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.import') }))
 
     expect(
       screen.getByRole('button', {
-        name: "Confirmer l'import — la session actuelle sera remplacée"
+        name: i18n._('header.import-confirm')
       })
     ).toBeInTheDocument()
   })
@@ -965,7 +968,7 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     const picker = vi.spyOn(HTMLInputElement.prototype, 'click')
 
-    await user.click(screen.getByRole('button', { name: 'Importer' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.import') }))
 
     expect(picker).not.toHaveBeenCalled()
   })
@@ -975,10 +978,10 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     const picker = vi.spyOn(HTMLInputElement.prototype, 'click')
 
-    await user.click(screen.getByRole('button', { name: 'Importer' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.import') }))
     await user.click(
       screen.getByRole('button', {
-        name: "Confirmer l'import — la session actuelle sera remplacée"
+        name: i18n._('header.import-confirm')
       })
     )
 
@@ -989,10 +992,10 @@ describe('WorkstationShell', () => {
     const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
     await saveProjectAs(user, 'Mon projet')
-    await screen.findByText('Enregistré')
+    await screen.findByText(i18n._('header.saved'))
     const picker = vi.spyOn(HTMLInputElement.prototype, 'click')
 
-    await user.click(screen.getByRole('button', { name: 'Importer' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.import') }))
 
     expect(picker).toHaveBeenCalledTimes(1)
   })
@@ -1000,17 +1003,17 @@ describe('WorkstationShell', () => {
   it('disarms the armed import when focus leaves the button', async () => {
     const { user } = renderShell()
     await importTrack(user)
-    await user.click(screen.getByRole('button', { name: 'Importer' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.import') }))
 
     // Kept on fireEvent: only the blur itself is under test here.
     fireEvent.blur(
       screen.getByRole('button', {
-        name: "Confirmer l'import — la session actuelle sera remplacée"
+        name: i18n._('header.import-confirm')
       })
     )
 
     expect(
-      screen.getByRole('button', { name: 'Importer' })
+      screen.getByRole('button', { name: i18n._('header.import') })
     ).toBeInTheDocument()
   })
 
@@ -1031,9 +1034,9 @@ describe('WorkstationShell', () => {
   it('lets the page unload once the session is saved', async () => {
     const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
-    await user.click(screen.getByRole('button', { name: '+ Repère' }))
+    await user.click(screen.getByRole('button', { name: i18n._('markers.add') }))
     await saveProjectAs(user, 'Mon projet')
-    await screen.findByText('Enregistré')
+    await screen.findByText(i18n._('header.saved'))
 
     expect(unloadPrevented()).toBe(false)
   })
@@ -1043,8 +1046,8 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     await saveProjectAs(user, 'Mon projet')
 
-    await user.click(screen.getByRole('button', { name: 'Projets' }))
-    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
     // No « Confirmer ? » step: the open starts at once and closes the dialog.
     await waitFor(() => {
@@ -1075,11 +1078,11 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Projet lent')
 
     gateNext = true
-    await user.click(screen.getByRole('button', { name: 'Projets' }))
-    await user.click(await screen.findByRole('button', { name: 'Ouvrir' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
     expect(
-      await screen.findByText('Ouverture de « Projet lent »…')
+      await screen.findByText(i18n._('header.opening', { name: 'Projet lent' }))
     ).toBeInTheDocument()
 
     await act(async () => {
@@ -1087,7 +1090,7 @@ describe('WorkstationShell', () => {
     })
     await waitFor(() => {
       expect(
-        screen.queryByText('Ouverture de « Projet lent »…')
+        screen.queryByText(i18n._('header.opening', { name: 'Projet lent' }))
       ).not.toBeInTheDocument()
     })
   })
@@ -1105,11 +1108,11 @@ describe('WorkstationShell', () => {
   it('says the server is unreachable when the projects listing fails', async () => {
     const { user } = renderShell({ projectStores: brokenProjectStores() })
 
-    await user.click(screen.getByRole('button', { name: 'Projets' }))
+    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
 
     expect(
       await screen.findByText(
-        'Serveur injoignable — vérifie que le serveur local est lancé'
+        i18n._('projects.unreachable')
       )
     ).toBeInTheDocument()
   })

@@ -1,3 +1,4 @@
+import { useLingui } from '@lingui/react/macro'
 import { cx } from '../../lib/cx.ts'
 import { AppDialog } from '../ui/app-dialog.tsx'
 import type { ShortcutHint } from './shortcut-hints.ts'
@@ -18,12 +19,16 @@ export function ShortcutsDialog({
   onOpenChange,
   hints
 }: ShortcutsDialogProps) {
+  const { t } = useLingui()
   return (
     <AppDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Raccourcis clavier"
-      description="Disponibles une fois un morceau chargé."
+      title={t({ id: 'shortcuts.title', message: 'Raccourcis clavier' })}
+      description={t({
+        id: 'shortcuts.availability',
+        message: 'Disponibles une fois un morceau chargé.'
+      })}
     >
       <dl className={cx(styles.list)}>
         {hints.map((hint) => (

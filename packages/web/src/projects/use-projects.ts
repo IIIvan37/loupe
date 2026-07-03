@@ -8,6 +8,7 @@ import {
   type SaveProjectInput,
   saveProject
 } from '@app/core'
+import { useLingui } from '@lingui/react/macro'
 import { useMemo, useRef, useState } from 'react'
 import { createProjectStores } from './create-project-stores.ts'
 
@@ -53,6 +54,7 @@ export interface Projects {
  * default to the local-server HTTP adapters and are injected in tests.
  */
 export function useProjects(stores?: ProjectDeps): Projects {
+  const { t } = useLingui()
   const deps = useMemo(() => stores ?? createProjectStores(), [stores])
   const [projects, setProjects] = useState<readonly Project[]>([])
   const [currentId, setCurrentId] = useState<string | undefined>(undefined)
@@ -100,7 +102,13 @@ export function useProjects(stores?: ProjectDeps): Projects {
         await refresh()
         return result.project
       }
-      setError(`Impossible d'enregistrer le projet : ${result.error}`)
+      const error = result.error
+      setError(
+        t({
+          id: 'projects.save-failed',
+          message: `Impossible d'enregistrer le projet : ${error}`
+        })
+      )
       return undefined
     } finally {
       setBusy(null)
@@ -118,7 +126,13 @@ export function useProjects(stores?: ProjectDeps): Projects {
         }
         setError(undefined)
       } else {
-        setError(`Impossible d'ouvrir le projet : ${result.error}`)
+        const error = result.error
+        setError(
+          t({
+            id: 'projects.open-failed',
+            message: `Impossible d'ouvrir le projet : ${error}`
+          })
+        )
       }
       return result
     } finally {
@@ -137,7 +151,13 @@ export function useProjects(stores?: ProjectDeps): Projects {
       setError(undefined)
       await refresh()
     } else {
-      setError(`Impossible de supprimer le projet : ${result.error}`)
+      const error = result.error
+      setError(
+        t({
+          id: 'projects.delete-failed',
+          message: `Impossible de supprimer le projet : ${error}`
+        })
+      )
     }
   }
 

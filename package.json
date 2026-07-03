@@ -31,9 +31,13 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@babel/core": "^8.0.1",
     "@biomejs/biome": "^2.2.4",
     "@commitlint/cli": "^21.1.0",
     "@commitlint/config-conventional": "^21.1.0",
+    "@lingui/babel-plugin-lingui-macro": "^6.4.0",
+    "@lingui/conf": "^6.4.0",
+    "@lingui/vite-plugin": "^6.4.0",
     "@softarc/sheriff-core": "^0.19.6",
     "@stryker-mutator/core": "^9.6.1",
     "@stryker-mutator/vitest-runner": "^9.6.1",

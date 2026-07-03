@@ -3,6 +3,8 @@ import '@testing-library/jest-dom/vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
+import { i18n } from '../../i18n/i18n.ts'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { NameEditor } from './name-editor.tsx'
 
 function renderEditor(overrides: Partial<Parameters<typeof NameEditor>[0]> = {}) {
@@ -17,7 +19,8 @@ function renderEditor(overrides: Partial<Parameters<typeof NameEditor>[0]> = {})
       initialName="Avant"
       onSubmit={onSubmit}
       {...overrides}
-    />
+    />,
+    { wrapper: I18nTestingProvider }
   )
   return { onSubmit }
 }
@@ -28,7 +31,7 @@ describe('NameEditor', () => {
     const { onSubmit } = renderEditor()
     await user.click(screen.getByRole('button', { name: 'Renommer la chose' }))
 
-    const input = screen.getByLabelText('Nom')
+    const input = screen.getByLabelText(i18n._('common.name'))
     expect(input).toHaveValue('Avant')
     await user.clear(input)
     await user.type(input, '  Après  ')
@@ -41,7 +44,7 @@ describe('NameEditor', () => {
     const user = userEvent.setup()
     const { onSubmit } = renderEditor()
     await user.click(screen.getByRole('button', { name: 'Renommer la chose' }))
-    const input = screen.getByLabelText('Nom')
+    const input = screen.getByLabelText(i18n._('common.name'))
     await user.clear(input)
     await user.type(input, 'Après')
     fireEvent.keyDown(input, { key: 'Enter' })
@@ -54,7 +57,9 @@ describe('NameEditor', () => {
     await user.click(screen.getByRole('button', { name: 'Renommer la chose' }))
     const submit = screen.getByRole('button', { name: 'Renommer' })
     expect(submit).toBeDisabled()
-    fireEvent.keyDown(screen.getByLabelText('Nom'), { key: 'Enter' })
+    fireEvent.keyDown(screen.getByLabelText(i18n._('common.name')), {
+      key: 'Enter'
+    })
     expect(onSubmit).not.toHaveBeenCalled()
   })
 })

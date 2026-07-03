@@ -3,6 +3,8 @@ import '@testing-library/jest-dom/vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
+import { i18n } from '../../i18n/i18n.ts'
 import { ViewportControls } from './viewport-controls.tsx'
 
 const noop = () => {}
@@ -18,7 +20,8 @@ function renderControls(
       onZoomOut={noop}
       onSetZoom={noop}
       {...overrides}
-    />
+    />,
+    { wrapper: I18nTestingProvider }
   )
 }
 
@@ -38,26 +41,36 @@ describe('ViewportControls', () => {
     const onZoomIn = vi.fn()
     const onZoomOut = vi.fn()
     renderControls({ zoom: 3, onZoomIn, onZoomOut })
-    await user.click(screen.getByRole('button', { name: 'Zoomer' }))
-    await user.click(screen.getByRole('button', { name: 'Dézoomer' }))
+    await user.click(
+      screen.getByRole('button', { name: i18n._('waveform.zoom-in') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('waveform.zoom-out') })
+    )
     expect(onZoomIn).toHaveBeenCalled()
     expect(onZoomOut).toHaveBeenCalled()
   })
 
   it('cannot zoom out past 1×', () => {
     renderControls({ zoom: 1 })
-    expect(screen.getByRole('button', { name: 'Dézoomer' })).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: i18n._('waveform.zoom-out') })
+    ).toBeDisabled()
   })
 
   it('cannot zoom in past 6×', () => {
     renderControls({ zoom: 6 })
-    expect(screen.getByRole('button', { name: 'Zoomer' })).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: i18n._('waveform.zoom-in') })
+    ).toBeDisabled()
   })
 
   it('sets an absolute zoom level from the slider', () => {
     const onSetZoom = vi.fn()
     renderControls({ onSetZoom })
-    const slider = screen.getByRole('slider', { name: "Zoom de la forme d'onde" })
+    const slider = screen.getByRole('slider', {
+      name: i18n._('waveform.zoom-slider')
+    })
     // fireEvent kept: user-event cannot drive <input type="range">.
     fireEvent.change(slider, { target: { value: '4' } })
     expect(onSetZoom).toHaveBeenCalledWith(4)
@@ -65,10 +78,14 @@ describe('ViewportControls', () => {
 
   it('disables every control until a track is loaded', () => {
     renderControls({ zoom: 3, disabled: true })
-    expect(screen.getByRole('button', { name: 'Zoomer' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Dézoomer' })).toBeDisabled()
     expect(
-      screen.getByRole('slider', { name: "Zoom de la forme d'onde" })
+      screen.getByRole('button', { name: i18n._('waveform.zoom-in') })
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: i18n._('waveform.zoom-out') })
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('slider', { name: i18n._('waveform.zoom-slider') })
     ).toBeDisabled()
   })
 })

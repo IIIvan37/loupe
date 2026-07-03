@@ -1,15 +1,25 @@
 import { defaultKeyBindings, type KeyBindings } from '@app/core'
+import { i18n } from '../../i18n/i18n.ts'
 import { describeKeyBindings } from './shortcut-hints.ts'
 
 describe('describeKeyBindings', () => {
-  it('turns the shipped layout into readable French hints', () => {
+  it('turns the shipped layout into readable localized hints', () => {
     expect(describeKeyBindings(defaultKeyBindings)).toEqual([
-      { keys: 'Espace', description: 'Lecture / Pause' },
-      { keys: '←', description: 'Reculer de 5 s' },
-      { keys: '→', description: 'Avancer de 5 s' },
-      { keys: '+', description: 'Zoom avant' },
-      { keys: '-', description: 'Zoom arrière' },
-      { keys: 'M', description: 'Ajouter un repère' }
+      {
+        keys: i18n._('shortcuts.key-space'),
+        description: i18n._('shortcuts.play-pause')
+      },
+      {
+        keys: '←',
+        description: i18n._('shortcuts.seek-back', { seconds: 5 })
+      },
+      {
+        keys: '→',
+        description: i18n._('shortcuts.seek-forward', { seconds: 5 })
+      },
+      { keys: '+', description: i18n._('shortcuts.zoom-in') },
+      { keys: '-', description: i18n._('shortcuts.zoom-out') },
+      { keys: 'M', description: i18n._('shortcuts.add-marker') }
     ])
   })
 
@@ -22,7 +32,7 @@ describe('describeKeyBindings', () => {
     ]
     expect(describeKeyBindings(bindings)[0]).toEqual({
       keys: '→',
-      description: 'Avancer de 12 s'
+      description: i18n._('shortcuts.seek-forward', { seconds: 12 })
     })
   })
 

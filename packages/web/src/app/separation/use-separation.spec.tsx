@@ -8,6 +8,8 @@ import type {
 } from '@app/core'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
+import { i18n } from '../../i18n/i18n.ts'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { useSeparation } from './use-separation.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
@@ -34,7 +36,9 @@ const stems: SeparatedStem[] = [{ id: 'voix', label: 'Voix', audio }]
 describe('useSeparation', () => {
   it('runs a separation to completion and exposes the stems', async () => {
     const { separator, finish } = deferredSeparator()
-    const { result } = renderHook(() => useSeparation(separator))
+    const { result } = renderHook(() => useSeparation(separator), {
+      wrapper: I18nTestingProvider
+    })
 
     act(() => {
       void result.current.separate(audio)
@@ -50,7 +54,9 @@ describe('useSeparation', () => {
 
   it('rebuilds the ready state from persisted stems without the separator', async () => {
     const { separator } = deferredSeparator()
-    const { result } = renderHook(() => useSeparation(separator))
+    const { result } = renderHook(() => useSeparation(separator), {
+      wrapper: I18nTestingProvider
+    })
 
     let restored: Awaited<ReturnType<typeof result.current.restore>>
     await act(async () => {
@@ -66,7 +72,9 @@ describe('useSeparation', () => {
 
   it('ignores a stale run that finishes after a reset', async () => {
     const { separator, finish } = deferredSeparator()
-    const { result } = renderHook(() => useSeparation(separator))
+    const { result } = renderHook(() => useSeparation(separator), {
+      wrapper: I18nTestingProvider
+    })
 
     // Start a run, then reset (as a new import does) before it resolves.
     act(() => {
@@ -121,7 +129,9 @@ describe('useSeparation — exportStems (the aligned stem folder)', () => {
 
   async function readyHook(archive: ArchiveWriter, ready: SeparatedStem[]) {
     const { separator } = deferredSeparator()
-    const { result } = renderHook(() => useSeparation(separator, archive))
+    const { result } = renderHook(() => useSeparation(separator, archive), {
+      wrapper: I18nTestingProvider
+    })
     await act(async () => {
       await result.current.restore(audio, ready)
     })
@@ -188,7 +198,9 @@ describe('useSeparation — exportStems (the aligned stem folder)', () => {
     await act(async () => {
       await result.current.exportStems('Mon morceau')
     })
-    expect(result.current.exportError).toBe("L'export a échoué : zip failed")
+    expect(result.current.exportError).toBe(
+      i18n._('separation.export-failed', { error: 'zip failed' })
+    )
   })
 
   it('dismisses the export error on demand', async () => {

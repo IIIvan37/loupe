@@ -1,0 +1,588 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-07-03 11:36+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: fr\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#. js-lingui-explicit-id
+#: src/app/ui/alert-banner.tsx:22
+msgid "alerts.close"
+msgstr "Fermer l'alerte"
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:52
+msgid "analysis.no-markers"
+msgstr "Aucun repère. En ajouter depuis la barre de repères."
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:110
+msgid "analysis.notes-placeholder"
+msgstr "Les annotations textuelles arriveront plus tard."
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:44
+msgid "analysis.spectrum-placeholder"
+msgstr "L'analyse spectrale arrivera avec la détection (jalon ultérieur)."
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:36
+msgid "analysis.tab-markers"
+msgstr "Repères"
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:39
+msgid "analysis.tab-notes"
+msgstr "Notes"
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:33
+msgid "analysis.tab-spectrum"
+msgstr "Spectre"
+
+#. js-lingui-explicit-id
+#: src/app/ui/name-editor.tsx:85
+msgid "common.cancel"
+msgstr "Annuler"
+
+#. js-lingui-explicit-id
+#: src/app/ui/app-dialog.tsx:37
+msgid "common.close"
+msgstr "Fermer"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:202
+#: src/projects/projects-dialog.tsx:78
+msgid "common.confirm"
+msgstr "Confirmer ?"
+
+#. js-lingui-explicit-id
+#: src/projects/projects-dialog.tsx:185
+msgid "common.delete"
+msgstr "Supprimer"
+
+#. js-lingui-explicit-id
+#: src/app/ui/name-editor.tsx:73
+msgid "common.name"
+msgstr "Nom"
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:84
+#: src/app/loops/loop-bar.tsx:125
+msgid "common.rename"
+msgstr "Renommer"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:75
+#: src/app/header/header.tsx:87
+#: src/app/header/header.tsx:95
+#: src/app/header/header.tsx:107
+#: src/app/loops/loop-bar.tsx:77
+msgid "common.save"
+msgstr "Enregistrer"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:305
+msgid "header.export"
+msgstr "Exporter"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:298
+msgid "header.export-needs-stems"
+msgstr "Séparer les pistes pour exporter les stems"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:294
+msgid "header.export-ready"
+msgstr "Télécharger les stems en ZIP"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:203
+msgid "header.import"
+msgstr "Importer"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:184
+msgid "header.import-confirm"
+msgstr "Confirmer l'import — la session actuelle sera remplacée"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-header.tsx:105
+#: src/app/workstation-shell/shell-header.tsx:147
+msgid "header.import-file"
+msgstr "Importer un fichier audio"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-header.tsx:99
+msgid "header.no-track"
+msgstr "Aucun morceau"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-header.tsx:90
+msgid "header.opening"
+msgstr "Ouverture de « {name} »…"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:322
+msgid "header.projects"
+msgstr "Projets"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:115
+msgid "header.rename-project"
+msgstr "Renommer le projet"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:110
+msgid "header.save-as"
+msgstr "Enregistrer sous un autre nom"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:82
+msgid "header.save-needs-track"
+msgstr "Importer un morceau pour pouvoir l'enregistrer"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:129
+#: src/app/header/header.tsx:131
+msgid "header.save-project"
+msgstr "Enregistrer le projet"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:240
+msgid "header.saved"
+msgstr "Enregistré"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-header.tsx:88
+msgid "header.saving"
+msgstr "Enregistrement du projet…"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-header.tsx:31
+msgid "header.server-no-separation"
+msgstr "Séparation indisponible"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-header.tsx:27
+msgid "header.server-offline"
+msgstr "Serveur hors ligne"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-header.tsx:38
+msgid "header.server-ready"
+msgstr "Serveur prêt"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:279
+msgid "header.shortcuts-tip"
+msgstr "Raccourcis clavier"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:275
+msgid "header.show-shortcuts"
+msgstr "Afficher les raccourcis clavier"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-header.tsx:104
+msgid "header.unknown-artist"
+msgstr "Artiste inconnu"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:239
+msgid "header.unsaved"
+msgstr "● Non enregistré"
+
+#. js-lingui-explicit-id
+#: src/app/loops/loop-bar.tsx:65
+msgid "loops.active"
+msgstr "⟳ Boucle active"
+
+#. js-lingui-explicit-id
+#: src/app/loops/loop-bar.tsx:88
+msgid "loops.clear-region"
+msgstr "Effacer"
+
+#. js-lingui-explicit-id
+#: src/app/loops/loop-bar.tsx:67
+msgid "loops.inactive"
+msgstr "⟳ Boucle inactive"
+
+#. js-lingui-explicit-id
+#: src/app/loops/loop-bar.tsx:132
+msgid "loops.remove-named"
+msgstr "Supprimer {name}"
+
+#. js-lingui-explicit-id
+#: src/app/loops/loop-bar.tsx:120
+msgid "loops.rename-named"
+msgstr "Renommer {name}"
+
+#. js-lingui-explicit-id
+#: src/app/loops/loop-bar.tsx:115
+msgid "loops.rename-title"
+msgstr "Renommer la boucle"
+
+#. js-lingui-explicit-id
+#: src/app/loops/loop-bar.tsx:46
+msgid "loops.save-region"
+msgstr "Enregistrer la boucle"
+
+#. js-lingui-explicit-id
+#: src/app/loops/loop-bar.tsx:53
+msgid "loops.section-label"
+msgstr "Boucles"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:23
+msgid "markers.add"
+msgstr "+ Repère"
+
+#. js-lingui-explicit-id
+#: src/app/markers/use-markers.ts:14
+msgid "markers.default-name"
+msgstr "Repère {number}"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-rail.tsx:140
+msgid "markers.drag-hint"
+msgstr "Clic : se positionner — glisser ou ←/→ : déplacer"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-rail.tsx:136
+msgid "markers.go-to"
+msgstr "Aller à {name}"
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:94
+msgid "markers.remove-named"
+msgstr "Supprimer {name}"
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:79
+msgid "markers.rename-named"
+msgstr "Renommer {name}"
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:74
+msgid "markers.rename-title"
+msgstr "Renommer le repère"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:15
+msgid "markers.section-label"
+msgstr "Repères"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:64
+msgid "mixer.confidence"
+msgstr "Confiance de détection : {percent} %"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:74
+msgid "mixer.download-wav"
+msgstr "Télécharger {name} en WAV"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-stage.tsx:65
+msgid "mixer.mix-label"
+msgstr "Mix"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:87
+msgid "mixer.mute"
+msgstr "Couper {name}"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:48
+msgid "mixer.region-label"
+msgstr "Mixer"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:96
+msgid "mixer.solo"
+msgstr "Isoler {name}"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:111
+msgid "mixer.volume"
+msgstr "Volume {name}"
+
+#. js-lingui-explicit-id
+#: src/projects/projects-dialog.tsx:193
+msgid "projects.confirm-delete"
+msgstr "Confirmer la suppression de {name}"
+
+#. js-lingui-explicit-id
+#: src/projects/projects-dialog.tsx:174
+msgid "projects.confirm-open"
+msgstr "Confirmer l'ouverture de {name}"
+
+#. js-lingui-explicit-id
+#: src/projects/use-projects.ts:156
+msgid "projects.delete-failed"
+msgstr "Impossible de supprimer le projet : {error}"
+
+#. js-lingui-explicit-id
+#: src/projects/projects-dialog.tsx:186
+msgid "projects.delete-named"
+msgstr "Supprimer {name}"
+
+#. js-lingui-explicit-id
+#: src/projects/projects-dialog.tsx:134
+msgid "projects.description"
+msgstr "Reprendre un projet enregistré là où il a été laissé."
+
+#. js-lingui-explicit-id
+#: src/projects/projects-dialog.tsx:145
+msgid "projects.empty"
+msgstr "Aucun projet enregistré"
+
+#. js-lingui-explicit-id
+#: src/projects/projects-dialog.tsx:118
+msgid "projects.open"
+msgstr "Ouvrir"
+
+#. js-lingui-explicit-id
+#: src/projects/use-projects.ts:131
+msgid "projects.open-failed"
+msgstr "Impossible d'ouvrir le projet : {error}"
+
+#. js-lingui-explicit-id
+#: src/projects/projects-dialog.tsx:117
+msgid "projects.opening-row"
+msgstr "Ouverture…"
+
+#. js-lingui-explicit-id
+#: src/projects/use-projects.ts:107
+msgid "projects.save-failed"
+msgstr "Impossible d'enregistrer le projet : {error}"
+
+#. js-lingui-explicit-id
+#: src/projects/projects-dialog.tsx:133
+msgid "projects.title"
+msgstr "Projets"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-dialogs.tsx:45
+msgid "projects.unreachable"
+msgstr "Serveur injoignable — vérifier que le serveur local est lancé"
+
+#. js-lingui-explicit-id
+#: src/app/separation/separation-panel.tsx:12
+msgid "separation.analysing"
+msgstr "Analyse du mix…"
+
+#. js-lingui-explicit-id
+#: src/app/separation/use-separation.ts:193
+msgid "separation.export-failed"
+msgstr "L'export a échoué : {error}"
+
+#. js-lingui-explicit-id
+#: src/app/separation/separation-panel.tsx:92
+msgid "separation.failed"
+msgstr "La séparation a échoué : {error}"
+
+#. js-lingui-explicit-id
+#: src/app/separation/separation-panel.tsx:103
+msgid "separation.idle-hint"
+msgstr "Les pistes séparées (voix, batterie, basse…) s'alignent sous la forme d'onde, chacune avec ses propres contrôles."
+
+#. js-lingui-explicit-id
+#: src/app/separation/separation-panel.tsx:62
+msgid "separation.ready"
+msgstr "Pistes séparées"
+
+#. js-lingui-explicit-id
+#: src/app/separation/separation-panel.tsx:55
+msgid "separation.region-label"
+msgstr "Séparation des pistes"
+
+#. js-lingui-explicit-id
+#: src/app/separation/separation-panel.tsx:72
+msgid "separation.retry"
+msgstr "Réessayer"
+
+#. js-lingui-explicit-id
+#: src/app/separation/separation-panel.tsx:73
+msgid "separation.separate"
+msgstr "Séparer les pistes"
+
+#. js-lingui-explicit-id
+#: src/app/separation/separation-panel.tsx:13
+msgid "separation.separating"
+msgstr "Séparation des pistes…"
+
+#. js-lingui-explicit-id
+#: src/app/separation/separation-panel.tsx:122
+msgid "separation.undetected"
+msgstr "Non détectés"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:192
+#: src/projects/projects-dialog.tsx:161
+msgid "session.replaced"
+msgstr "La session actuelle sera remplacée"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:90
+msgid "shortcuts.add-marker"
+msgstr "Ajouter un repère"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcuts-dialog.tsx:28
+msgid "shortcuts.availability"
+msgstr "Disponibles une fois un morceau chargé."
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:36
+msgid "shortcuts.key-enter"
+msgstr "Entrée"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:37
+msgid "shortcuts.key-escape"
+msgstr "Échap"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:35
+msgid "shortcuts.key-space"
+msgstr "Espace"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:76
+msgid "shortcuts.play-pause"
+msgstr "Lecture / Pause"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:80
+msgid "shortcuts.seek-back"
+msgstr "Reculer de {seconds} s"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:84
+msgid "shortcuts.seek-forward"
+msgstr "Avancer de {seconds} s"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcuts-dialog.tsx:27
+msgid "shortcuts.title"
+msgstr "Raccourcis clavier"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:88
+msgid "shortcuts.zoom-in"
+msgstr "Zoom avant"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:89
+msgid "shortcuts.zoom-out"
+msgstr "Zoom arrière"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:72
+msgid "transport.end"
+msgstr "Fin"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:60
+msgid "transport.pause"
+msgstr "Pause"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:112
+msgid "transport.pitch-label"
+msgstr "Hauteur"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:125
+msgid "transport.pitch-reset"
+msgstr "Double-clic pour revenir à 0"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:120
+msgid "transport.pitch-slider"
+msgstr "Hauteur en demi-tons"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:61
+msgid "transport.play"
+msgstr "Lecture"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:48
+msgid "transport.start"
+msgstr "Début"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:88
+msgid "transport.tempo-label"
+msgstr "Tempo (sans toucher au pitch)"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:101
+msgid "transport.tempo-reset"
+msgstr "Double-clic pour revenir à 100 %"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:96
+msgid "transport.tempo-slider"
+msgstr "Tempo en pourcentage"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/waveform-view.tsx:181
+msgid "waveform.decoding"
+msgstr "Décodage…"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/waveform-view.tsx:173
+msgid "waveform.import-hint"
+msgstr "Importer un fichier audio pour afficher sa forme d'onde."
+
+#. js-lingui-explicit-id
+#: src/app/waveform/waveform-view.tsx:270
+msgid "waveform.move-loop-end"
+msgstr "Déplacer la fin de la boucle"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/waveform-view.tsx:258
+msgid "waveform.move-loop-start"
+msgstr "Déplacer le début de la boucle"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-lanes.tsx:42
+msgid "waveform.stem-image"
+msgstr "Forme d'onde de {name}"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/waveform-view.tsx:213
+msgid "waveform.surface"
+msgstr "Forme d'onde : clic pour se positionner, glisser pour boucler"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/waveform-view.tsx:222
+msgid "waveform.track-image"
+msgstr "Forme d'onde de la piste"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/viewport-controls.tsx:64
+msgid "waveform.zoom-in"
+msgstr "Zoomer"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/viewport-controls.tsx:40
+msgid "waveform.zoom-out"
+msgstr "Dézoomer"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/viewport-controls.tsx:54
+msgid "waveform.zoom-slider"
+msgstr "Zoom de la forme d'onde"
