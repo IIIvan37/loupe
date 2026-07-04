@@ -6,6 +6,7 @@ import type {
   StemSeparator
 } from '@app/core'
 import { decodeWav, encodeWav } from '@app/core'
+import { streamNdjson } from './read-ndjson.ts'
 
 /** One NDJSON line the server streams during a separation. */
 type SeparationEvent =
@@ -19,38 +20,6 @@ type SeparationEvent =
       readonly stems: ReadonlyArray<{ id: string; label: string; url: string }>
     }
   | { readonly type: 'error'; readonly message: string }
-
-/** Yield decoded NDJSON lines from a streaming response body. */
-async function* readEvents(
-  body: ReadableStream<Uint8Array>
-): AsyncGenerator<SeparationEvent> {
-  const reader = body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-  for (;;) {
-    // Stream reads are inherently sequential — each chunk must be awaited before
-    // the next, so this cannot be parallelised.
-    // react-doctor-disable-next-line react-doctor/async-await-in-loop
-    const { done, value } = await reader.read()
-    buffer += decoder.decode(value, { stream: !done })
-    const lines = buffer.split('\n')
-    // The last element is the trailing partial line; keep it for the next chunk.
-    buffer = lines.pop() ?? ''
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if (trimmed) {
-        yield JSON.parse(trimmed) as SeparationEvent
-      }
-    }
-    if (done) {
-      const tail = buffer.trim()
-      if (tail) {
-        yield JSON.parse(tail) as SeparationEvent
-      }
-      return
-    }
-  }
-}
 
 async function fetchStem(
   baseUrl: string,
@@ -87,19 +56,9 @@ export function createHttpSeparator(baseUrl: string): StemSeparator {
         throw new Error(`separation request failed: HTTP ${response.status}`)
       }
 
-      let done: Extract<SeparationEvent, { type: 'done' }> | undefined
-      for await (const event of readEvents(response.body)) {
-        if (event.type === 'progress') {
-          onProgress({ phase: event.phase, fraction: event.fraction })
-        } else if (event.type === 'error') {
-          throw new Error(event.message)
-        } else {
-          done = event
-        }
-      }
-      if (!done) {
-        throw new Error('separation ended without a result')
-      }
+      const done = await streamNdjson<SeparationEvent>(response.body, (event) =>
+        onProgress({ phase: event.phase, fraction: event.fraction })
+      )
 
       return Promise.all(done.stems.map((stem) => fetchStem(baseUrl, stem)))
     }

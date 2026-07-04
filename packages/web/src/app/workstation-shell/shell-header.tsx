@@ -4,6 +4,7 @@ import { useLingui } from '@lingui/react/macro'
 import { useRef } from 'react'
 import type { ServerHealth } from '../../projects/use-server-health.ts'
 import { Header } from '../header/header.tsx'
+import type { UrlImport } from '../header/use-import-from-url.ts'
 import { AlertBanner } from '../ui/alert-banner.tsx'
 import type { ProjectSession } from './use-project-session.ts'
 import styles from './workstation-shell.module.css'
@@ -46,6 +47,8 @@ interface ShellHeaderProps {
   }
   readonly serverHealth: ServerHealth
   readonly session: ProjectSession
+  /** The URL-import lifecycle: progress narrated in the state chip, errors below. */
+  readonly urlImport: UrlImport
   readonly isLoaded: boolean
   readonly stemsReady: boolean
   readonly onExportStems: () => void
@@ -65,6 +68,7 @@ export function ShellHeader({
   metadata,
   serverHealth,
   session,
+  urlImport,
   isLoaded,
   stemsReady,
   onExportStems,
@@ -77,6 +81,17 @@ export function ShellHeader({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { projects, trackName, currentProject } = session
 
+  // A running URL download narrates itself in the state chip, phase by phase.
+  const downloadMessage =
+    urlImport.progress === undefined
+      ? undefined
+      : urlImport.progress.phase === 'downloading'
+        ? t({
+            id: 'header.downloading',
+            message: `Téléchargement… ${Math.round(urlImport.progress.fraction * 100)} %`
+          })
+        : t({ id: 'header.transcoding', message: "Extraction de l'audio…" })
+
   // The long operations get one visible status strip (the dialog may be
   // closed while an open is still rebuilding the session).
   const openingProject = projects.projects.find(
@@ -84,11 +99,12 @@ export function ShellHeader({
   )
   const name = openingProject?.name
   const busyMessage =
-    projects.busy === 'save'
+    downloadMessage ??
+    (projects.busy === 'save'
       ? t({ id: 'header.saving', message: 'Enregistrement du projet…' })
       : name !== undefined
         ? t({ id: 'header.opening', message: `Ouverture de « ${name} »…` })
-        : undefined
+        : undefined)
 
   return (
     <>
@@ -117,6 +133,8 @@ export function ShellHeader({
               }
         }
         onImport={() => fileInputRef.current?.click()}
+        onImportUrl={urlImport.submit}
+        urlImportBusy={urlImport.running}
         importNeedsConfirm={session.unsavedWork}
         onExportStems={onExportStems}
         canExport={stemsReady}
@@ -130,6 +148,12 @@ export function ShellHeader({
         busyMessage={busyMessage}
         onShowProjects={onShowProjects}
       />
+      {urlImport.error !== undefined && (
+        <AlertBanner
+          message={urlImport.error}
+          onDismiss={urlImport.dismissError}
+        />
+      )}
       {projects.error !== undefined && (
         <AlertBanner
           message={projects.error}

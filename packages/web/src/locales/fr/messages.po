@@ -49,6 +49,7 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
+#: src/app/header/import-menu.tsx:160
 #: src/app/ui/name-editor.tsx:85
 msgid "common.cancel"
 msgstr "Annuler"
@@ -59,7 +60,7 @@ msgid "common.close"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:202
+#: src/app/header/import-menu.tsx:110
 #: src/projects/projects-dialog.tsx:78
 msgid "common.confirm"
 msgstr "Confirmer ?"
@@ -81,123 +82,164 @@ msgid "common.rename"
 msgstr "Renommer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:75
-#: src/app/header/header.tsx:87
-#: src/app/header/header.tsx:95
-#: src/app/header/header.tsx:107
+#: src/app/header/header.tsx:79
+#: src/app/header/header.tsx:91
+#: src/app/header/header.tsx:99
+#: src/app/header/header.tsx:111
 #: src/app/loops/loop-bar.tsx:77
 msgid "common.save"
 msgstr "Enregistrer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:305
+#. placeholder {0}: Math.round(urlImport.progress.fraction * 100)
+#: src/app/workstation-shell/shell-header.tsx:89
+msgid "header.downloading"
+msgstr "Téléchargement… {0} %"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:248
 msgid "header.export"
 msgstr "Exporter"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:298
+#: src/app/header/header.tsx:241
 msgid "header.export-needs-stems"
 msgstr "Séparer les pistes pour exporter les stems"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:294
+#: src/app/header/header.tsx:237
 msgid "header.export-ready"
 msgstr "Télécharger les stems en ZIP"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:203
+#: src/app/header/import-menu.tsx:111
 msgid "header.import"
 msgstr "Importer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:184
+#: src/app/header/import-menu.tsx:93
 msgid "header.import-confirm"
 msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:105
-#: src/app/workstation-shell/shell-header.tsx:147
+#: src/app/workstation-shell/shell-header.tsx:121
+#: src/app/workstation-shell/shell-header.tsx:171
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:99
+#: src/app/header/import-menu.tsx:121
+msgid "header.import-from-file"
+msgstr "Fichier…"
+
+#. js-lingui-explicit-id
+#: src/app/header/import-menu.tsx:128
+msgid "header.import-from-url"
+msgstr "Depuis une URL…"
+
+#. js-lingui-explicit-id
+#: src/app/header/import-menu.tsx:151
+msgid "header.import-url-field"
+msgstr "Lien du morceau"
+
+#. js-lingui-explicit-id
+#: src/app/header/import-menu.tsx:143
+msgid "header.import-url-hint"
+msgstr "YouTube · SoundCloud"
+
+#. js-lingui-explicit-id
+#: src/app/header/import-menu.tsx:167
+msgid "header.import-url-submit"
+msgstr "Importer le lien"
+
+#. js-lingui-explicit-id
+#: src/app/header/import-menu.tsx:140
+msgid "header.import-url-title"
+msgstr "Importer depuis une URL"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-header.tsx:115
 msgid "header.no-track"
 msgstr "Aucun morceau"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:90
+#: src/app/workstation-shell/shell-header.tsx:106
 msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:322
+#: src/app/header/header.tsx:265
 msgid "header.projects"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:115
+#: src/app/header/header.tsx:119
 msgid "header.rename-project"
 msgstr "Renommer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:110
+#: src/app/header/header.tsx:114
 msgid "header.save-as"
 msgstr "Enregistrer sous un autre nom"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:82
+#: src/app/header/header.tsx:86
 msgid "header.save-needs-track"
 msgstr "Importer un morceau pour pouvoir l'enregistrer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:129
-#: src/app/header/header.tsx:131
+#: src/app/header/header.tsx:133
+#: src/app/header/header.tsx:135
 msgid "header.save-project"
 msgstr "Enregistrer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:240
+#: src/app/header/header.tsx:181
 msgid "header.saved"
 msgstr "Enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:88
+#: src/app/workstation-shell/shell-header.tsx:104
 msgid "header.saving"
 msgstr "Enregistrement du projet…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:31
+#: src/app/workstation-shell/shell-header.tsx:32
 msgid "header.server-no-separation"
 msgstr "Séparation indisponible"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:27
+#: src/app/workstation-shell/shell-header.tsx:28
 msgid "header.server-offline"
 msgstr "Serveur hors ligne"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:38
+#: src/app/workstation-shell/shell-header.tsx:39
 msgid "header.server-ready"
 msgstr "Serveur prêt"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:279
+#: src/app/header/header.tsx:220
 msgid "header.shortcuts-tip"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:275
+#: src/app/header/header.tsx:216
 msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:104
+#: src/app/workstation-shell/shell-header.tsx:93
+msgid "header.transcoding"
+msgstr "Extraction de l'audio…"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-header.tsx:120
 msgid "header.unknown-artist"
 msgstr "Artiste inconnu"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:239
+#: src/app/header/header.tsx:180
 msgid "header.unsaved"
 msgstr "● Non enregistré"
 
@@ -427,7 +469,7 @@ msgid "separation.undetected"
 msgstr "Non détectés"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:192
+#: src/app/header/import-menu.tsx:101
 #: src/projects/projects-dialog.tsx:161
 msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
@@ -559,37 +601,38 @@ msgid "transport.tempo-slider"
 msgstr "Tempo en pourcentage"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:184
+#: src/app/waveform/waveform-view.tsx:201
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:176
+#: src/app/waveform/waveform-view.tsx:193
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:286
+#: src/app/waveform/waveform-view.tsx:328
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:274
+#: src/app/waveform/waveform-view.tsx:316
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
 #. js-lingui-explicit-id
 #: src/app/mixer/stem-lanes.tsx:42
+#: src/app/waveform/waveform-view.tsx:255
 msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:216
+#: src/app/waveform/waveform-view.tsx:233
 msgid "waveform.surface"
 msgstr "Forme d'onde : clic pour se positionner, glisser pour boucler"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:225
+#: src/app/waveform/waveform-view.tsx:266
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 

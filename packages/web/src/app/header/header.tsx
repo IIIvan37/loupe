@@ -2,8 +2,8 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
 import { NameEditor } from '../ui/name-editor.tsx'
-import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
 import styles from './header.module.css'
+import { ImportMenu } from './import-menu.tsx'
 
 interface DetectedReadout {
   readonly id: string
@@ -25,6 +25,10 @@ interface HeaderProps {
   readonly serverStatus?: ServerStatus | undefined
   /** Open the file picker. The smart shell owns the actual import. */
   readonly onImport: () => void
+  /** Start importing a track from a media URL. The shell owns the download. */
+  readonly onImportUrl: (url: string) => void
+  /** Whether a URL download is in flight — the URL submit locks. */
+  readonly urlImportBusy?: boolean | undefined
   /** Ask before importing: the session holds work a new track would discard. */
   readonly importNeedsConfirm?: boolean | undefined
   /** Download the separated stems as one zip. The shell owns the export. */
@@ -140,71 +144,6 @@ function SaveControls({
   )
 }
 
-interface ImportButtonProps {
-  readonly onImport: () => void
-  readonly needsConfirm: boolean
-}
-
-/**
- * The single import entry point, guarded: while the session holds unsaved
- * work the first click arms a « Confirmer ? » on the same element (swapping
- * elements would drop focus), which reverts on blur or after a few seconds.
- */
-function ImportButton({ onImport, needsConfirm }: ImportButtonProps) {
-  const { t } = useLingui()
-  const confirm = useTwoStepConfirm<true>()
-  const armed = confirm.pending !== null
-
-  // The session settled (e.g. a save landed) while armed — the destructive
-  // warning no longer applies; drop it during render, no effect round-trip.
-  if (armed && !needsConfirm) {
-    confirm.disarm()
-  }
-
-  function onClick(): void {
-    if (armed) {
-      confirm.disarm()
-      onImport()
-      return
-    }
-    if (needsConfirm) {
-      confirm.arm(true)
-      return
-    }
-    onImport()
-  }
-
-  return (
-    <button
-      type="button"
-      className={armed ? styles.confirmAction : styles.primaryAction}
-      data-on-amber={armed ? undefined : ''}
-      aria-label={
-        armed
-          ? t({
-              id: 'header.import-confirm',
-              message: "Confirmer l'import — la session actuelle sera remplacée"
-            })
-          : undefined
-      }
-      title={
-        armed
-          ? t({
-              id: 'session.replaced',
-              message: 'La session actuelle sera remplacée'
-            })
-          : undefined
-      }
-      onBlur={armed ? confirm.disarm : undefined}
-      onClick={onClick}
-    >
-      {armed
-        ? t({ id: 'common.confirm', message: 'Confirmer ?' })
-        : t({ id: 'header.import', message: 'Importer' })}
-    </button>
-  )
-}
-
 /**
  * Dumb presentational header, one place per kind of information: the document
  * (title, artist, detected values, saved/busy state) on the left with the logo;
@@ -219,6 +158,8 @@ export function Header({
   detected,
   serverStatus,
   onImport,
+  onImportUrl,
+  urlImportBusy,
   importNeedsConfirm,
   onExportStems,
   canExport,
@@ -281,8 +222,10 @@ export function Header({
         >
           ?
         </button>
-        <ImportButton
-          onImport={onImport}
+        <ImportMenu
+          onImportFile={onImport}
+          onImportUrl={onImportUrl}
+          urlBusy={urlImportBusy === true}
           needsConfirm={importNeedsConfirm === true}
         />
         <button

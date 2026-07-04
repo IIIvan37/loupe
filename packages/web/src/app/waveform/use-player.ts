@@ -51,8 +51,15 @@ export interface Player {
   readonly timeRatio: number
   /** Pitch shift in whole semitones (0 = original key). */
   readonly pitchSemitones: number
-  /** Import a file; resolves with its decoded PCM (undefined on failure). */
-  readonly importFile: (file: File) => Promise<DecodedAudio | undefined>
+  /**
+   * Import a file; resolves with its decoded PCM (undefined on failure).
+   * `fallbackMetadata` seeds title/artist when the file carries no embedded
+   * tags (e.g. a URL download supplying the source's own metadata).
+   */
+  readonly importFile: (
+    file: File,
+    fallbackMetadata?: TrackMetadata
+  ) => Promise<DecodedAudio | undefined>
   readonly togglePlayback: () => void
   /** Seek to a fraction (0–1) of the timeline — what a waveform click yields. */
   readonly seekToRatio: (ratio: number) => void
@@ -193,11 +200,17 @@ export function usePlayer(
     dispatch({ type: 'pause' })
   }, [stemsActive, playback, stemPlayback])
 
-  async function importFile(file: File): Promise<DecodedAudio | undefined> {
+  async function importFile(
+    file: File,
+    fallbackMetadata?: TrackMetadata
+  ): Promise<DecodedAudio | undefined> {
     importIdRef.current += 1
     const importId = importIdRef.current
     setImportState({ status: 'loading' })
-    setMetadata(NO_METADATA)
+    // Show the fallback (a URL download's own title/artist) straight away; the
+    // tag read below overrides only the fields it actually finds.
+    const fallback = fallbackMetadata ?? NO_METADATA
+    setMetadata(fallback)
     setLoadedAudio(undefined)
     setLoadedBytes(undefined)
     try {
@@ -206,13 +219,16 @@ export function usePlayer(
       // They are what a saved project stores as the source audio.
       const retained = bytes.slice(0)
       // Read tags best-effort and in parallel, from a copy — decoding may detach
-      // the original buffer. A tagless/unreadable file just keeps empty fields,
-      // and a read from a superseded import is ignored.
+      // the original buffer. Embedded tags win; the fallback fills what they
+      // omit. A read from a superseded import is ignored.
       reader
         .read(retained.slice(0))
         .then((meta) => {
           if (importIdRef.current === importId) {
-            setMetadata(meta)
+            setMetadata({
+              title: meta.title ?? fallback.title,
+              artist: meta.artist ?? fallback.artist
+            })
           }
         })
         .catch(() => {})

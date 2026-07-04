@@ -1,0 +1,64 @@
+.menu {
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  padding: var(--space-2xs);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.item {
+  padding: var(--space-2xs) var(--space-s);
+  border-radius: var(--radius);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: default;
+}
+
+.item:hover {
+  background: var(--panel-2);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: -2px;
+}
+
+.popup {
+  composes: popup from '../ui/popover-form.module.css';
+  width: min(22rem, calc(100vw - var(--space-l)));
+}
+
+.title {
+  composes: title from '../ui/popover-form.module.css';
+}
+
+.hint {
+  margin-top: calc(-1 * var(--space-2xs));
+  color: var(--dim);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.input {
+  composes: input from '../ui/popover-form.module.css';
+  width: 100%;
+}
+
+.actions {
+  composes: actions from '../ui/popover-form.module.css';
+  margin-top: var(--space-s);
+}
+
+.ghost {
+  composes: ghost from '../ui/popover-form.module.css';
+}
+
+.submit {
+  composes: submit from '../ui/popover-form.module.css';
+}

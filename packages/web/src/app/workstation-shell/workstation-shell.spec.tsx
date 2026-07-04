@@ -8,7 +8,9 @@ import type {
   ProjectDeps,
   StemPlaybackEngine,
   StemSeparator,
-  TrackMetadataReader
+  TrackMetadataReader,
+  TrackSource,
+  TrackSourceMetadata
 } from '@app/core'
 import {
   act,
@@ -94,6 +96,21 @@ function fakeSeparator(): StemSeparator {
         { id: 'voix', label: 'Voix', audio },
         { id: 'basse', label: 'Basse', audio }
       ]
+    }
+  }
+}
+
+/** Immediate fake track source: emits one progress event, returns bytes + metadata. */
+function fakeTrackSource(
+  metadata: Partial<TrackSourceMetadata> = {}
+): TrackSource {
+  return {
+    fetch: async (_url, onProgress) => {
+      onProgress({ phase: 'downloading', fraction: 1 })
+      return {
+        bytes: new Uint8Array([1, 2, 3, 4]).buffer,
+        metadata: { title: 'Ma vidéo', ...metadata }
+      }
     }
   }
 }
@@ -1229,23 +1246,31 @@ describe('WorkstationShell', () => {
     const picker = vi.spyOn(HTMLInputElement.prototype, 'click')
 
     await user.click(screen.getByRole('button', { name: i18n._('header.import') }))
+    // The confirming click opens the import menu; « Fichier… » then picks.
     await user.click(
       screen.getByRole('button', {
         name: i18n._('header.import-confirm')
       })
     )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('header.import-from-file') })
+    )
 
     expect(picker).toHaveBeenCalledTimes(1)
   })
 
-  it('opens the file picker directly when the session is saved', async () => {
+  it('opens the file picker from the menu when the session is saved', async () => {
     const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
     await saveProjectAs(user, 'Mon projet')
     await screen.findByText(i18n._('header.saved'))
     const picker = vi.spyOn(HTMLInputElement.prototype, 'click')
 
+    // A clean session opens the menu straight away — no confirmation step.
     await user.click(screen.getByRole('button', { name: i18n._('header.import') }))
+    await user.click(
+      screen.getByRole('button', { name: i18n._('header.import-from-file') })
+    )
 
     expect(picker).toHaveBeenCalledTimes(1)
   })
@@ -1265,6 +1290,63 @@ describe('WorkstationShell', () => {
     expect(
       screen.getByRole('button', { name: i18n._('header.import') })
     ).toBeInTheDocument()
+  })
+
+  /** Open the import menu and its « Depuis une URL… » popover, then fill the link. */
+  async function fillImportUrl(user: UserEvent, url: string): Promise<void> {
+    await user.click(screen.getByRole('button', { name: i18n._('header.import') }))
+    await user.click(
+      screen.getByRole('button', { name: i18n._('header.import-from-url') })
+    )
+    await user.type(screen.getByLabelText(i18n._('header.import-url-field')), url)
+  }
+
+  it('imports a track from a URL through the menu', async () => {
+    const { user } = renderShell({
+      trackSource: fakeTrackSource({ artist: 'Une chaîne' })
+    })
+    await fillImportUrl(user, 'https://youtu.be/abc')
+    await user.click(
+      screen.getByRole('button', { name: i18n._('header.import-url-submit') })
+    )
+
+    // The track loads through the same decode path; its title and artist come
+    // from the source metadata (the file carries no embedded tags here).
+    await waitFor(() => {
+      expect(
+        screen.getByRole('img', { name: i18n._('waveform.track-image') })
+      ).toBeInTheDocument()
+    })
+    expect(screen.getByText('Ma vidéo')).toBeInTheDocument()
+    expect(await screen.findByText('Une chaîne')).toBeInTheDocument()
+  })
+
+  it('surfaces a URL download failure in an alert', async () => {
+    const trackSource: TrackSource = {
+      fetch: async () => {
+        throw new Error('vidéo introuvable')
+      }
+    }
+    const { user } = renderShell({ trackSource })
+    await fillImportUrl(user, 'https://youtu.be/abc')
+    await user.click(
+      screen.getByRole('button', { name: i18n._('header.import-url-submit') })
+    )
+
+    expect(await screen.findByText('vidéo introuvable')).toBeInTheDocument()
+  })
+
+  it('rejects an unsupported URL before any download', async () => {
+    const fetchSpy = vi.fn()
+    const { user } = renderShell({ trackSource: { fetch: fetchSpy } })
+    await fillImportUrl(user, 'https://example.com/song')
+    await user.click(
+      screen.getByRole('button', { name: i18n._('header.import-url-submit') })
+    )
+
+    // The application policy rejects it as a Result — the port is never called.
+    expect(await screen.findByText(/example\.com/)).toBeInTheDocument()
+    expect(fetchSpy).not.toHaveBeenCalled()
   })
 
   /** Fire a cancelable beforeunload and report whether the guard blocked it. */
