@@ -42,7 +42,8 @@
   → 120 BPM + muted click, unmute + save (manifest holds bpm + 23-beat grid +
   `metronome{muted:false}`), reopen → restored un-muted with **zero second
   `/tempo` call** (network-traced). Gate green, **493 tests**, core mutation
-  94.25 % (`project.ts` 100 %). **PR to open against `main`.** See
+  94.25 % (`project.ts` 100 %). **Merged (PR #41), browser-verified on the Mac.**
+  See
   [2026-07-04-metronome-persistence](sessions/2026-07-04-metronome-persistence.md).
 - **Earlier — metronome-stem slice (2026-07-04, merged PR #40)**: the metronome as a configurable
   mixer stem, built on tempo detection. Pure `synthesizeClickTrack` (click PCM
@@ -128,8 +129,8 @@
   guard), and the playhead can no longer paint above dialogs (stage
   `isolation`). Browser-verified on the real project.
   See [2026-07-03-ui-polish](sessions/2026-07-03-ui-polish.md).
-- **Branch**: `feat/metronome-persistence` (gate-green, 493 tests, off `main`) —
-  **PR to open against `main`**. Earlier: `feat/metronome-stem` **merged (PR #40)**;
+- **Branch**: `main` — `feat/metronome-persistence` **merged (PR #41)**.
+  Earlier: `feat/metronome-stem` **merged (PR #40)**;
   `feat/tempo-detection` **merged (PR #39)**; `feat/persist-tempo-pitch-zoom` **merged (PR #38)**;
   `feat/i18n-messages` **merged (PR #37)**; `feat/dirty-session-guard`
   **merged (PR #36)**; `feat/ui-polish` **merged (PR #35)**.
@@ -226,8 +227,8 @@
 
 ## Next step
 
-**Open the `feat/metronome-persistence` PR against `main`** (gate-green, 502
-tests, browser-verified). Then pick the next slice, by user value:
+**Pick the next slice** (metronome-persistence merged, PR #41). Candidates by
+user value:
 - UX backlog: speed trainer, undo.
 - Jalon 3 polish: project rename, blob GC, `separator-server/` → `server/`.
 - Perf: off-thread zip/encode — the export measurably freezes the UI a few
