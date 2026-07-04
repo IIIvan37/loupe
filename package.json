@@ -9,7 +9,7 @@
   "packageManager": "pnpm@10.11.0",
   "scripts": {
     "dev": "concurrently -k -n server,web -c blue,green \"pnpm dev:server\" \"pnpm dev:web\"",
-    "dev:server": "cd separator-server && .venv/bin/uvicorn app.main:app --port 8000",
+    "dev:server": "cd server && .venv/bin/uvicorn app.main:app --port 8000",
     "dev:web": "VITE_SEPARATOR_URL=http://localhost:8000 pnpm --filter @app/web dev",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p packages/web/tsconfig.json",
     "test": "vitest run",

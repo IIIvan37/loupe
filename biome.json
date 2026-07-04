@@ -41,7 +41,7 @@
       "!**/reports",
       "!**/.stryker-tmp",
       "!**/public",
-      "!separator-server"
+      "!server"
     ],
     "ignoreUnknown": true
   },
