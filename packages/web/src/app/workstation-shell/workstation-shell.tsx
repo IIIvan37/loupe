@@ -5,6 +5,7 @@ import {
   type ProjectDeps,
   type StemPlaybackEngine,
   type StemSeparator,
+  type TempoDetector,
   type TrackMetadataReader
 } from '@app/core'
 import { useMemo, useState } from 'react'
@@ -17,6 +18,7 @@ import { useLoops } from '../loops/use-loops.ts'
 import { useMarkers } from '../markers/use-markers.ts'
 import { useMixer } from '../mixer/use-mixer.ts'
 import { useSeparation } from '../separation/use-separation.ts'
+import { useTempo } from '../tempo/use-tempo.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
 import { useViewport } from '../waveform/use-viewport.ts'
@@ -34,6 +36,7 @@ interface WorkstationShellProps {
   readonly stemEngine?: StemPlaybackEngine
   readonly metadataReader?: TrackMetadataReader
   readonly separator?: StemSeparator
+  readonly tempoDetector?: TempoDetector
   readonly projectStores?: ProjectDeps
   /** Injected in tests; the health poll defaults to the real global fetch. */
   readonly healthFetch?: typeof fetch
@@ -52,6 +55,7 @@ export function WorkstationShell({
   stemEngine,
   metadataReader,
   separator,
+  tempoDetector,
   projectStores,
   healthFetch
 }: WorkstationShellProps) {
@@ -85,6 +89,7 @@ export function WorkstationShell({
     restoreLoop
   } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsReady)
   const markers = useMarkers()
+  const tempo = useTempo(tempoDetector)
   const loops = useLoops()
   const loopEditing = useLoopEditing(loops, {
     durationSeconds: transport.durationSeconds,
@@ -120,6 +125,7 @@ export function WorkstationShell({
     separation,
     mixer,
     viewport,
+    tempo,
     onRestoreStarted: () => setProjectsOpen(false)
   })
 
@@ -196,6 +202,13 @@ export function WorkstationShell({
         loops={loops}
         loopEditing={loopEditing}
         separation={separation}
+        tempo={tempo}
+        onDetectTempo={() => {
+          if (loadedAudio) {
+            void tempo.detect(loadedAudio)
+          }
+        }}
+        canDetectTempo={isLoaded && loadedAudio !== undefined}
         mainViewState={mainViewState}
         loopRegion={loopRegion}
         loopEnabled={loopEnabled}

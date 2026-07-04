@@ -1,5 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import type { LoopRegion } from '@app/core'
+import type { BeatGrid, LoopRegion } from '@app/core'
 import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react'
 import { clamp01 } from '../../lib/clamp01.ts'
 import type { ImportState } from './use-player.ts'
@@ -12,6 +12,8 @@ interface WaveformViewProps {
   readonly loopRegion: LoopRegion | undefined
   /** Whether the region loops: dims outside when on, just outlines it when off. */
   readonly loopEnabled: boolean
+  /** The detected beat grid, drawn as vertical lines (downbeats stronger). */
+  readonly beatGrid: BeatGrid
   readonly durationSeconds: number
   /** Click (no drag) seeks to a fraction (0–1) of the timeline. */
   readonly onSeek: (ratio: number) => void
@@ -46,6 +48,7 @@ export function WaveformView({
   state,
   loopRegion,
   loopEnabled,
+  beatGrid,
   durationSeconds,
   onSeek,
   onSelectRegion,
@@ -225,6 +228,19 @@ export function WaveformView({
               })}
             />
           </button>
+
+          {durationSeconds > 0 &&
+            beatGrid.map((beat) => (
+              <span
+                key={beat.timeSeconds}
+                className={beat.downbeat ? styles.downbeat : styles.beat}
+                style={{
+                  left: `${clamp01(beat.timeSeconds / durationSeconds) * 100}%`
+                }}
+                data-beat={beat.downbeat ? 'downbeat' : 'beat'}
+                aria-hidden="true"
+              />
+            ))}
 
           {region && (
             <>

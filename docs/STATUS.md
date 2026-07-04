@@ -24,7 +24,23 @@
 - **Jalon 3 (« Projets ») core slices are merged** (J3.1–J3.4 + races +
   active-loop fix + UX session state). Remaining Jalon 3 work is polish
   (project rename, blob GC, `separator-server/` → `server/`).
-- **Latest — tempo/pitch/zoom persistence slice (2026-07-03, merged)**: the playback
+- **Now — real tempo detection slice (2026-07-03)**: a full hexagonal vertical
+  slice, server-side (`librosa`) per the locked decision. Pure core: driven
+  port `TempoDetector` + `detectTempo` use-case + pure `buildBeatGrid`
+  (downbeat-flagged `BeatGrid`, `DEFAULT_BEATS_PER_BAR = 4`). Web:
+  `createHttpTempoDetector` (`POST /tempo` → `{ bpm, beats }`), `useTempo` hook
+  (run-id guard, reset on fresh track), a `TempoPanel` (« Détecter le tempo » →
+  « NNN BPM ») and a **beat-grid overlay** on the waveform (downbeats stronger).
+  Server: new `app/tempo.py` running librosa's beat tracker off the event loop,
+  lazy/optional like separation (503 without librosa). Found & fixed a real
+  server bug (median onset aggregation collapsed the estimate to 0 BPM at
+  44.1 kHz → compute the mean onset envelope explicitly). High-effort review
+  fixed 3 items (JSON validation, event-loop block, unused `Beat` export). Gate
+  green, **463 tests**, core mutation 95.75 % (`tempo.ts`/`detect-tempo.ts`
+  100 %). DSP validated locally on synthetic clicks; **browser-verify pending on
+  the Mac.** See
+  [2026-07-03-tempo-detection](sessions/2026-07-03-tempo-detection.md).
+- **Earlier — tempo/pitch/zoom persistence slice (2026-07-03, merged)**: the playback
   tuning (`timeRatio`/`pitchSemitones`/`zoom`) now round-trips through
   save/open and feeds the dirty fingerprint — the « real fix » the
   dirty-session-guard session flagged. Pure core `ProjectTuning` on
@@ -79,10 +95,11 @@
   guard), and the playhead can no longer paint above dialogs (stage
   `isolation`). Browser-verified on the real project.
   See [2026-07-03-ui-polish](sessions/2026-07-03-ui-polish.md).
-- **Branch**: `main` — `feat/persist-tempo-pitch-zoom` **merged (PR #38)**,
-  browser-verified on the Mac. Earlier: `feat/i18n-messages` **merged (PR #37)**
-  and `feat/dirty-session-guard` **merged (PR #36)**; `feat/ui-polish`
-  **merged (PR #35)**.
+- **Branch**: `feat/tempo-detection` (gate-green, 463 tests) — **PR to open**,
+  browser-verify on the Mac (server up, `librosa` installed) before merge.
+  Earlier: `feat/persist-tempo-pitch-zoom` **merged (PR #38)**;
+  `feat/i18n-messages` **merged (PR #37)**; `feat/dirty-session-guard`
+  **merged (PR #36)**; `feat/ui-polish` **merged (PR #35)**.
 - **Earlier**: `feat/ux-session-state` (**merged, PR #34**) — five
   user-reported UX gaps: active-loop chip highlighted (`aria-current`), the
   header « Exporter » wired to the zip export (mixer duplicate removed), a
@@ -176,8 +193,12 @@
 
 ## Next step
 
-**Pick the next slice.** Candidates, by user value:
-- UX backlog: real tempo detection, speed trainer, undo.
+**Build the metronome-stem slice (user request): synthesize a click aligned to
+the detected `BeatGrid` — accented downbeats — as a playable/mixable stem;
+likely add a `ProjectTempo` field so the analysis persists.** Then open the
+`feat/tempo-detection` PR and browser-verify both on the Mac (server up,
+`librosa` installed). Other candidates, by user value:
+- UX backlog: speed trainer, undo.
 - Jalon 3 polish: project rename, blob GC, `separator-server/` → `server/`.
 - Perf: off-thread zip/encode — the export measurably freezes the UI a few
   seconds on a 4-min track (main-thread encode+zip, ~229 MB).
@@ -267,6 +288,16 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-03 — tempo-detection](sessions/2026-07-03-tempo-detection.md) —
+  UX-backlog slice: real tempo detection, server-side (librosa) behind a new
+  `TempoDetector` port. Pure core (`detectTempo` + `buildBeatGrid`), web
+  adapter + `useTempo` hook, a `TempoPanel` BPM read-out and a beat-grid
+  overlay on the waveform (downbeats stronger). New `app/tempo.py` runs the
+  beat tracker off the event loop, lazy/optional (503 without librosa). Fixed a
+  real server bug (median onset aggregation → 0 BPM at 44.1 kHz). Review fixed 3
+  items. Gate green, 463 tests, core mutation 95.75 % (new files 100 %). DSP
+  validated on synthetic clicks; browser-verify pending (Mac). Follow-ups: the
+  user-requested metronome stem, and tempo persistence (`ProjectTempo`).
 - [2026-07-03 — persist-tempo-pitch-zoom](sessions/2026-07-03-persist-tempo-pitch-zoom.md) —
   UX-backlog slice: the playback tuning (tempo/pitch/zoom) round-trips through
   save/open and feeds the dirty fingerprint. Pure `ProjectTuning` +

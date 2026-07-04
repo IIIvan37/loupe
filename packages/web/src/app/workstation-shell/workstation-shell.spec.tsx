@@ -230,10 +230,55 @@ describe('WorkstationShell', () => {
     expect(screen.getByRole('tab', { name: i18n._('analysis.tab-markers') })).toBeInTheDocument()
   })
 
-  it('shows no detected key/tempo chips (no real detection yet)', () => {
+  it('shows no key chip and no tempo until a track is analysed', () => {
     renderShell()
+    // Key detection is not built; tempo is a user action, not shown up front.
     expect(screen.queryByText('Tonalité')).not.toBeInTheDocument()
-    expect(screen.queryByText('96 BPM')).not.toBeInTheDocument()
+    expect(screen.queryByText(/BPM/)).not.toBeInTheDocument()
+  })
+
+  it('reads out the detected BPM and draws the beat grid after detection', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 128, beatsSeconds: [0, 0.47, 0.94] })
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+
+    await user.click(screen.getByRole('button', { name: i18n._('tempo.detect') }))
+
+    expect(await screen.findByText('128 BPM')).toBeInTheDocument()
+    expect(document.querySelectorAll('[data-beat]')).toHaveLength(3)
+  })
+
+  it('surfaces a tempo detection failure as an alert', async () => {
+    const detector = {
+      detect: async () => {
+        throw new Error('serveur injoignable')
+      }
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+
+    await user.click(screen.getByRole('button', { name: i18n._('tempo.detect') }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'serveur injoignable'
+    )
+  })
+
+  it('forgets the detected tempo when a new file is imported', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 100, beatsSeconds: [0, 0.6] })
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+    await user.click(screen.getByRole('button', { name: i18n._('tempo.detect') }))
+    await screen.findByText('100 BPM')
+
+    await importTrack(user, 'autre.wav')
+
+    expect(screen.queryByText('100 BPM')).not.toBeInTheDocument()
+    expect(document.querySelectorAll('[data-beat]')).toHaveLength(0)
   })
 
   it('disables play until a track is loaded, then enables it with the duration', async () => {

@@ -13,6 +13,7 @@ The single place to look before adding a feature, so ports and use-cases get
 | `listProjects` | `(deps) => Promise<ListProjectsResult>` | Slice J3.2 — the saved manifests, most recently updated first. |
 | `openProject` | `(input, deps) => Promise<OpenProjectResult>` | Slice J3.2 — load a manifest and resolve every `AudioRef` back to bytes (source + stems) so the caller can rebuild the working session; unknown id / dangling ref → error `Result`. |
 | `deleteProject` | `(input, deps) => Promise<DeleteProjectResult>` | Slice J3.2 — remove a manifest. Its blobs become unreachable; reclaiming them is the audio-store adapter's business (later GC). |
+| `detectTempo` | `(input, deps) => Promise<DetectTempoResult>` | UX-backlog — hand the loaded PCM to the `TempoDetector` port and fold its beat instants into a downbeat-flagged `BeatGrid` (`buildBeatGrid`, meter assumed constant, grouped from the first beat) alongside the BPM. Input is the SAME `DecodedAudio` the player loaded. |
 | `exportStems` | `(input, deps) => Promise<ExportStemsResult>` | Slice J2.6 — export tier A: encode the given stems (the caller picks which, e.g. only the present ones; numbering follows the input order) as numbered 16-bit WAVs (`01_Voix.wav`…) padded to one shared duration (t=0 aligned), and bundle them through the `ArchiveWriter` port into the archive the caller downloads. |
 
 > Pure transport domain (no use-case, driven by the UI): `transportReducer` /
@@ -98,6 +99,7 @@ The single place to look before adding a feature, so ports and use-cases get
 | `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode` + SoundTouch worklet for tempo/pitch) |
 | `StemPlaybackEngine` | driven | `web`: `createWebAudioStemPlayback` — synchronised multitrack playback (J2.4): a `GainNode` per stem summed into one SoundTouch master bus (tempo/pitch on the mix), `setGain` driven by the mixer's `effectiveGains` |
 | `TrackMetadataReader` | driven | `web`: `createMusicMetadataReader` (music-metadata; best-effort ID3/etc. tags) |
+| `TempoDetector` | driven | `web`: `createHttpTempoDetector` against the local server (mix → WAV POST `/tempo` → JSON `{ bpm, beatsSeconds }`, a beat tracker running librosa). A cloud API or an in-browser worker could be later adapters on the same port. |
 | `StemSeparator` | driven | `web`: `createHttpSeparator` against a local **FastAPI + Demucs** backend (mix → WAV POST → streamed NDJSON progress → fetch + `decodeWav` stems — J2.2b). The earlier in-browser WASM engines (demucs.cpp GGML / onnxruntime-web) hit a quality+speed wall and were removed; a cloud API could be a later adapter on the same port. |
 | `ProjectStore` | driven | `web`: `createHttpProjectStore` against the local server (J3.3 — JSON manifests under `LOUPE_DATA_DIR`). Light manifests: `list` / `load` (undefined for unknown id) / `save` / `delete`. |
 | `ProjectAudioStore` | driven | `web`: `createHttpProjectAudioStore` (J3.3 — content-addressed sha256 blobs on the local server). Heavy bytes: `put` mints the `AudioRef` (its spelling is the adapter's business), `get` resolves it (undefined for unknown ref). |

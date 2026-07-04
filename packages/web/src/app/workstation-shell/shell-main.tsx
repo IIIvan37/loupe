@@ -9,6 +9,8 @@ import type { useMarkers } from '../markers/use-markers.ts'
 import type { useMixer } from '../mixer/use-mixer.ts'
 import { SeparationPanel } from '../separation/separation-panel.tsx'
 import type { useSeparation } from '../separation/use-separation.ts'
+import { TempoPanel } from '../tempo/tempo-panel.tsx'
+import type { useTempo } from '../tempo/use-tempo.ts'
 import type { useViewport } from '../waveform/use-viewport.ts'
 import type { WaveformView } from '../waveform/waveform-view.tsx'
 import { ShellStage } from './shell-stage.tsx'
@@ -25,6 +27,9 @@ interface ShellMainProps {
   readonly loops: ReturnType<typeof useLoops>
   readonly loopEditing: ReturnType<typeof useLoopEditing>
   readonly separation: ReturnType<typeof useSeparation>
+  readonly tempo: ReturnType<typeof useTempo>
+  readonly onDetectTempo: () => void
+  readonly canDetectTempo: boolean
   readonly mainViewState: ComponentProps<typeof WaveformView>['state']
   readonly loopRegion: ComponentProps<typeof WaveformView>['loopRegion']
   readonly loopEnabled: boolean
@@ -50,6 +55,9 @@ export function ShellMain({
   loops,
   loopEditing,
   separation,
+  tempo,
+  onDetectTempo,
+  canDetectTempo,
   mainViewState,
   loopRegion,
   loopEnabled,
@@ -76,12 +84,22 @@ export function ShellMain({
             onDownloadStem={separation.downloadStem}
             markers={markers}
             loopEditing={loopEditing}
+            beatGrid={tempo.analysis?.grid ?? []}
             mainViewState={mainViewState}
             loopRegion={loopRegion}
             loopEnabled={loopEnabled}
             onSeekSeconds={onSeekSeconds}
             onSeekRatio={onSeekRatio}
           />
+          {isLoaded && (
+            <TempoPanel
+              bpm={tempo.analysis?.bpm}
+              detecting={tempo.detecting}
+              error={tempo.error}
+              canDetect={canDetectTempo}
+              onDetect={onDetectTempo}
+            />
+          )}
           <LoopBar
             region={loopRegion}
             isSaved={loopEditing.isSaved}
