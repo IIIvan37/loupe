@@ -55,6 +55,8 @@ be set up first.
 | `POST /separate` | Body = mix as a 16-bit PCM WAV (`audio/wav`). Responds `application/x-ndjson`, one JSON object per line. |
 | `GET /stems/{job}/{stem}.wav` | The isolated stem produced by a prior `/separate`. |
 | `POST /tempo` | Body = mix as a 16-bit PCM WAV (`audio/wav`). Responds `application/json`: `{"bpm": float, "beats": [seconds, …]}` from a librosa beat tracker. Independent of the Demucs stack — needs only librosa; a host without it answers `503`. |
+| `POST /audio`, `GET`/`HEAD /audio/{ref}`, `GET`/`PUT`/`DELETE /projects/{id}`, `GET /projects` | Project storage — content-addressed audio blobs + opaque JSON manifests (the core's `ProjectStore` / `ProjectAudioStore` ports). Always on, no ML stack needed. See `app/projects.py`. |
+| `POST /gc` | Reclaim orphaned audio blobs — scans every manifest for referenced refs and deletes the blobs none point at. Responds `{"deleted", "reclaimedBytes", "kept"}` (or `{"skipped": true, …}` if a manifest is unreadable — it never deletes on incomplete info). Also runs automatically on server boot. Run when idle. |
 | `GET /health` | Liveness + which model/device is loaded. |
 
 `/separate` streamed lines:
@@ -77,3 +79,7 @@ Stem ids/labels (`voix`, `batterie`, `basse`, `autres`) match the core's
 - Jobs are written under the OS temp dir and live until the process exits — fine
   for single-user localhost; add cleanup/TTL before any shared deployment.
 - No auth / rate limiting: intended for `localhost` only.
+- Orphaned audio blobs (from re-saves and project deletes) are reclaimed by the
+  manifest-scan GC — automatically on boot, or on demand via `POST /gc`.
+- Tests: `pip install -r requirements-dev.txt` then `.venv/bin/python -m pytest`
+  (covers the GC; the ML endpoints stay manual).

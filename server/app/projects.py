@@ -10,12 +10,14 @@ Implements the HTTP contract the web `http-project-store` /
     GET    /projects/{id}    -> manifest (404 if unknown)
     PUT    /projects/{id}    body = manifest JSON -> 204
     DELETE /projects/{id}    -> 204 (idempotent)
+    POST   /gc               -> {"deleted", "reclaimedBytes", "kept"} sweep
 
 Audio refs are content-addressed (sha256 of the bytes): re-saving the same
 audio re-points at the existing blob instead of duplicating it, and orphaned
-blobs stay collectible by a manifest-scan GC — exactly what the core's
-`ProjectAudioStore` doc asks of adapters. Manifests are opaque JSON: the core
-owns the `Project` shape, this server only files it. Single-user, localhost.
+blobs (from re-saves and deletes) are reclaimed by the manifest-scan GC
+(`collect_garbage`) — exactly what the core's `ProjectAudioStore` doc asks of
+adapters. Manifests are opaque JSON: the core owns the `Project` shape, this
+server only files it. Single-user, localhost.
 """
 
 from __future__ import annotations
@@ -24,7 +26,9 @@ import hashlib
 import json
 import os
 import re
+from collections.abc import Iterable
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, Response
 
@@ -136,3 +140,73 @@ async def delete_project(project_id: str) -> Response:
     path = _project_path(project_id)
     path.unlink(missing_ok=True)
     return Response(status_code=204)
+
+
+def referenced_refs(manifests: Iterable[Any]) -> set[str]:
+    """Every audio ref the given manifests point at.
+
+    Manifests stay opaque: an audio ref is any sha256-shaped string anywhere in
+    the JSON (the source, each stem, and any future ref-bearing field), so this
+    never needs to know the `Project` shape. Nothing else in a manifest is a
+    64-char hex string, so there are no false positives.
+    """
+    refs: set[str] = set()
+
+    def walk(node: Any) -> None:
+        if isinstance(node, str):
+            if _REF_PATTERN.match(node):
+                refs.add(node)
+        elif isinstance(node, dict):
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+
+    for manifest in manifests:
+        walk(manifest)
+    return refs
+
+
+def collect_garbage() -> dict:
+    """Reclaim content-addressed blobs no manifest references.
+
+    A manifest-scan GC, exactly what the core's `ProjectAudioStore` doc defers
+    to the adapter: gather every ref the manifests use, delete every blob whose
+    name is not among them. **Conservative** — if any manifest can't be parsed
+    we abort without deleting a thing, since we cannot account for its refs and
+    would risk erasing live audio. Run when idle: a blob just uploaded but not
+    yet named by a saved manifest would look orphaned.
+    """
+    manifests: list[Any] = []
+    unreadable = 0
+    if PROJECTS_DIR.is_dir():
+        for path in sorted(PROJECTS_DIR.glob("*.json")):
+            try:
+                manifests.append(json.loads(path.read_text("utf-8")))
+            except (OSError, ValueError):
+                unreadable += 1
+    if unreadable:
+        return {"deleted": 0, "reclaimedBytes": 0, "skipped": True,
+                "unreadableManifests": unreadable}
+
+    live = referenced_refs(manifests)
+    deleted = 0
+    reclaimed = 0
+    if AUDIO_DIR.is_dir():
+        for path in AUDIO_DIR.iterdir():
+            # Only touch our own content-addressed blobs; leave .tmp files and
+            # anything else the store did not name with a bare sha256.
+            if not (path.is_file() and _REF_PATTERN.match(path.name)):
+                continue
+            if path.name not in live:
+                reclaimed += path.stat().st_size
+                path.unlink(missing_ok=True)
+                deleted += 1
+    return {"deleted": deleted, "reclaimedBytes": reclaimed, "kept": len(live)}
+
+
+@router.post("/gc")
+async def gc() -> dict:
+    """Sweep orphaned audio blobs. Idempotent; safe to call when idle."""
+    return collect_garbage()
