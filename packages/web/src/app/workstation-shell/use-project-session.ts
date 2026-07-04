@@ -5,7 +5,8 @@ import type {
   Project,
   ProjectDeps,
   ProjectTempo,
-  ProjectTuning
+  ProjectTuning,
+  TrackSourceMetadata
 } from '@app/core'
 import { type ChangeEvent, useRef, useState } from 'react'
 import { sessionSignature } from '../../projects/session-signature.ts'
@@ -65,6 +66,14 @@ export interface ProjectSession {
   readonly handleSave: (name: string) => void
   readonly handleOpen: (id: string) => Promise<void>
   readonly onFilePicked: (event: ChangeEvent<HTMLInputElement>) => void
+  /**
+   * Import a track fetched from a URL: same detach-and-refresh path as a picked
+   * file, seeding the title from the source metadata, then decoding the bytes.
+   */
+  readonly importDownloaded: (
+    bytes: ArrayBuffer,
+    metadata: TrackSourceMetadata
+  ) => void
 }
 
 /**
@@ -215,20 +224,43 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     }
   }
 
+  /**
+   * The shared prelude every fresh import runs before decoding: detach from the
+   * saved project (a save must mint a new one), forget the saved fingerprint,
+   * re-enable auto-detect, and clear the timeline under the new title.
+   */
+  function beginImport(name: string): void {
+    // Detach: saving the new track must not overwrite the open project.
+    sessionEpochRef.current += 1
+    projects.detach()
+    setSavedSignature(undefined)
+    // A fresh import must auto-detect: clear any pending open-restore guard.
+    deps.setSuppressAutoDetect(false)
+    startFreshTrack(name)
+  }
+
   function onFilePicked(event: ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0]
     if (file) {
-      // Detach: saving the new track must not overwrite the open project.
-      sessionEpochRef.current += 1
-      projects.detach()
-      setSavedSignature(undefined)
-      // A fresh import must auto-detect: clear any pending open-restore guard.
-      deps.setSuppressAutoDetect(false)
-      startFreshTrack(trackTitle(file.name))
+      beginImport(trackTitle(file.name))
       void deps.importFile(file)
     }
     // Clear it so re-picking the same file fires `change` again.
     event.target.value = ''
+  }
+
+  function importDownloaded(
+    bytes: ArrayBuffer,
+    metadata: TrackSourceMetadata
+  ): void {
+    const title = metadata.title.trim() || 'Sans titre'
+    beginImport(title)
+    // Reuse the exact file-decode path: wrap the fetched bytes as a File so the
+    // player decodes them and reads any embedded tags just like a picked file.
+    // The source's own title/artist (e.g. the uploader) seed the header when the
+    // downloaded file carries no embedded tags.
+    const file = new File([bytes], `${title}.m4a`, { type: 'audio/mp4' })
+    void deps.importFile(file, { title, artist: metadata.artist })
   }
 
   const currentProject = projects.projects.find(
@@ -257,6 +289,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       (currentProject !== undefined ? dirty : deps.loadedBytes !== undefined),
     handleSave,
     handleOpen,
-    onFilePicked
+    onFilePicked,
+    importDownloaded
   }
 }

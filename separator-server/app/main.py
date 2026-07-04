@@ -1,6 +1,6 @@
 """Local server for loupe: project storage + Demucs separation.
 
-Three independent capability groups behind one process:
+Four independent capability groups behind one process:
 
 - `projects` (always on): project manifests + content-addressed audio blobs —
   the server side of the core's `ProjectStore` / `ProjectAudioStore` ports.
@@ -11,6 +11,10 @@ Three independent capability groups behind one process:
 - `tempo` (when librosa is installed): the `/tempo` beat-tracking contract.
   Also imported lazily — a host without librosa still serves the rest, and
   `/tempo` answers with a 503 the client surfaces as an error.
+- `download` (when yt-dlp is installed): the `/download` NDJSON contract that
+  fetches a track from a media URL (YouTube / SoundCloud). Imported lazily — a
+  host without yt-dlp still serves the rest, and `/download` answers with an
+  NDJSON error line.
 
 Single-user, localhost — no auth. Run with `uvicorn app.main:app --port 8000`.
 """
@@ -63,6 +67,21 @@ except Exception as exc:  # noqa: BLE001 - librosa missing on this host
         raise HTTPException(status_code=503, detail=_tempo_unavailable)
 else:
     app.include_router(tempo_router)
+
+try:
+    from .download import router as download_router
+except Exception as exc:  # noqa: BLE001 - yt-dlp missing on this host
+    _download_unavailable = f"track download unavailable on this host: {exc}"
+
+    @app.post("/download")
+    async def download() -> StreamingResponse:
+        """Honour the NDJSON contract so the web client shows a clean error."""
+        line = json.dumps({"type": "error", "message": _download_unavailable}) + "\n"
+        return StreamingResponse(
+            iter([line.encode("utf-8")]), media_type="application/x-ndjson"
+        )
+else:
+    app.include_router(download_router)
 
 
 @app.get("/health")

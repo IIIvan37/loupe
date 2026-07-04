@@ -45,6 +45,33 @@
   94.25 % (`project.ts` 100 %). **Merged (PR #41), browser-verified on the Mac.**
   See
   [2026-07-04-metronome-persistence](sessions/2026-07-04-metronome-persistence.md).
+- **Now — import-from-url slice (2026-07-04), FULL vertical slice**: import a track
+  from a media **URL** (YouTube / SoundCloud). Core (prior session): driven port
+  **`TrackSource`** + use-case **`importFromUrl`** + policy **`isSupportedSourceUrl`**.
+  **This session** landed the adapter, server and UI:
+  - **Web adapter `createHttpTrackSource`** speaks the NDJSON contract
+    (`POST /download {url}` → progress → `GET /audio/{ref}`); a generic
+    **`streamNdjson`** now backs both the download and separation adapters (the
+    duplicated stream loop removed).
+  - **Server `download.py`**: yt-dlp on a worker thread → NDJSON (mirrors
+    `/separate`), `bestaudio[ext=m4a]` (no ffmpeg), host allowlist mirroring the
+    core, auto-retry + `pip -U yt-dlp` on failure, bytes parked via the shared
+    `projects.store_audio()`. Lazy-imported with an NDJSON-error fallback; app
+    builds + serves the fallback with yt-dlp absent (verified).
+  - **UI — « Menu sur Importer »** (approach confirmed with the user): a menu
+    (« Fichier… » / « Depuis une URL… ») on the import trigger; the URL item opens
+    a link popover. Guard on menu-open (one « Confirmer ? » covers both paths).
+    `useImportFromUrl` hook → `session.importDownloaded` (reuses the file-decode
+    path via a `File`). Download progress narrated in the header **state chip**,
+    errors via the **AlertBanner**. Built on Base UI **Popover** (Menu doesn't
+    drive under jsdom). Popover-form CSS deduped into `popover-form.module.css`.
+  - Gate green, **527 tests**; mutation **skipped** (core untouched this session).
+  **Browser-verified end-to-end** (Mac, yt-dlp 2026.06.09 in the venv): « Depuis
+  une URL… » → « Me at the zoo » loaded (artist « jawed » from the uploader, 0:19,
+  waveform, tempo 117 BPM), network all 200, console clean. **PR being opened**.
+  On branch `feat/import-from-url`. See
+  [2026-07-04-import-from-url-adapter-ui](sessions/2026-07-04-import-from-url-adapter-ui.md)
+  and [2026-07-04-import-from-url-core](sessions/2026-07-04-import-from-url-core.md).
 - **Earlier — metronome-stem slice (2026-07-04, merged PR #40)**: the metronome as a configurable
   mixer stem, built on tempo detection. Pure `synthesizeClickTrack` (click PCM
   from a `BeatGrid`, accented downbeats) + mixer `addChannel`/`removeChannel` +
@@ -317,11 +344,28 @@ mixer (J2.4) then export (J2.6). See
 | J3.2 | Ports `ProjectStore` / `ProjectAudioStore` + use-cases `saveProject` / `listProjects` / `openProject` / `deleteProject` (fake adapters, mixer↔stems invariant enforced) | ✅ |
 | J3.3 | Real adapter + UI (Save / list / Open) — **decided: extended HTTP server** (content-addressed blobs; storage works without torch) | ✅ |
 | J3.4 | Per-project loops — localStorage `LoopStore` removed; loops are session state, persisted only via the manifest | ✅ |
+| J4.1 | Import from a media URL (YouTube / SoundCloud) — `TrackSource` port + `importFromUrl` (core) + HTTP adapter + yt-dlp server + « Menu sur Importer » UI. Real download browser-verify + PR pending | 🚧 |
 
 ## Session journal
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-04 — import-from-url-adapter-ui](sessions/2026-07-04-import-from-url-adapter-ui.md) —
+  The adapter + server + UI half of J4.1, making it a full vertical slice. Web
+  `createHttpTrackSource` (NDJSON `POST /download` → `GET /audio/{ref}`) on a new
+  shared generic `streamNdjson` (separation adapter refactored onto it too).
+  Server `download.py` runs yt-dlp on a worker thread → NDJSON, `bestaudio[ext=m4a]`
+  (no ffmpeg), host allowlist, auto-retry + `pip -U yt-dlp` on failure, bytes via
+  the shared `store_audio()`; lazy with an NDJSON-error fallback. UI: « Menu sur
+  Importer » (Fichier… / Depuis une URL…) on a Base UI Popover, guard on menu-open,
+  `useImportFromUrl` → `session.importDownloaded` (reuses the file-decode path),
+  progress in the state chip, errors in the AlertBanner; popover-form CSS deduped.
+  Gate green, 527 tests, mutation skipped (core untouched). Real yt-dlp
+  browser-verify + PR pending. On `feat/import-from-url`.
+- [2026-07-04 — import-from-url-core](sessions/2026-07-04-import-from-url-core.md) —
+  Core slice: `TrackSource` port + `importFromUrl` use-case + `isSupportedSourceUrl`
+  policy. yt-dlp over play-dl; NDJSON + content-addressed store + m4a/AAC contract
+  fixed. Gate green, 512 tests, core mutation 94.52 % (both new files 100 %).
 - [2026-07-04 — metronome-persistence](sessions/2026-07-04-metronome-persistence.md) —
   The detected tempo + metronome persist with the project. Pure `ProjectTempo`
   (bpm + beat grid + the metronome's mixer settings) on `Project`; reopen restores

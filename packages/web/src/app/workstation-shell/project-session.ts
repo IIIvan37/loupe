@@ -12,6 +12,7 @@ import {
   type SaveProjectInput,
   type SeparatedStem,
   type TempoAnalysis,
+  type TrackMetadata,
   tuningOrDefault
 } from '@app/core'
 import type { Loops } from '../loops/use-loops.ts'
@@ -102,7 +103,10 @@ function mixedStems(
 
 /** The session surfaces an open rebuilds, after the shell wiped the slate. */
 export interface SessionRestoreDeps {
-  readonly importFile: (file: File) => Promise<DecodedAudio | undefined>
+  readonly importFile: (
+    file: File,
+    fallbackMetadata?: TrackMetadata
+  ) => Promise<DecodedAudio | undefined>
   readonly markers: Markers
   readonly loops: Loops
   /**

@@ -54,9 +54,13 @@ def _project_path(project_id: str) -> Path:
     return PROJECTS_DIR / f"{project_id}.json"
 
 
-@router.post("/audio")
-async def put_audio(request: Request) -> dict:
-    data = await request.body()
+def store_audio(data: bytes) -> str:
+    """Park bytes in the content-addressed store, returning their sha256 ref.
+
+    The single seam other capability groups (e.g. `download`) reuse so a fetched
+    track lands in the SAME `/audio` store the web client `GET`s from — never a
+    forked second store. Idempotent: identical bytes re-point at the one blob.
+    """
     ref = hashlib.sha256(data).hexdigest()
     path = _audio_path(ref)
     if not path.exists():  # content-addressed: same bytes -> same file
@@ -64,7 +68,13 @@ async def put_audio(request: Request) -> dict:
         tmp = path.with_suffix(".tmp")
         tmp.write_bytes(data)
         tmp.replace(path)  # atomic: never expose a half-written blob
-    return {"ref": ref}
+    return ref
+
+
+@router.post("/audio")
+async def put_audio(request: Request) -> dict:
+    data = await request.body()
+    return {"ref": store_audio(data)}
 
 
 @router.get("/audio/{ref}")

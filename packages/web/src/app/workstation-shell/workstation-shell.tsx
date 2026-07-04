@@ -10,6 +10,7 @@ import {
   synthesizeClickTrack,
   type TempoDetector,
   type TrackMetadataReader,
+  type TrackSource,
   UNITY_GAIN_DB
 } from '@app/core'
 import {
@@ -22,6 +23,7 @@ import { downloadBlob } from '../../audio/download-blob.ts'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import { exportBaseName } from '../../lib/export-base-name.ts'
 import { useServerHealth } from '../../projects/use-server-health.ts'
+import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
@@ -48,6 +50,7 @@ interface WorkstationShellProps {
   readonly metadataReader?: TrackMetadataReader
   readonly separator?: StemSeparator
   readonly tempoDetector?: TempoDetector
+  readonly trackSource?: TrackSource
   readonly projectStores?: ProjectDeps
   /** Injected in tests; the health poll defaults to the real global fetch. */
   readonly healthFetch?: typeof fetch
@@ -67,6 +70,7 @@ export function WorkstationShell({
   metadataReader,
   separator,
   tempoDetector,
+  trackSource,
   projectStores,
   healthFetch
 }: WorkstationShellProps) {
@@ -153,6 +157,9 @@ export function WorkstationShell({
     onRestoreStarted: () => setProjectsOpen(false)
   })
 
+  // Importing from a URL reuses the exact file-decode path once the bytes land.
+  const urlImport = useImportFromUrl(session.importDownloaded, trackSource)
+
   const isLoaded = importState.status === 'loaded'
 
   // Auto-detect the tempo the moment a track's PCM lands (import or project
@@ -238,6 +245,7 @@ export function WorkstationShell({
         metadata={metadata}
         serverHealth={serverHealth}
         session={session}
+        urlImport={urlImport}
         isLoaded={isLoaded}
         stemsReady={stemsReady}
         onExportStems={handleExportStems}
