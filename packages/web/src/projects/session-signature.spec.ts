@@ -87,4 +87,32 @@ describe('sessionSignature', () => {
     const bare: SignedSession = { loops: [], markers: [] }
     expect(sessionSignature(bare)).not.toBe(sessionSignature(base))
   })
+
+  it('changes when the metronome mute or fader changes', () => {
+    const muted: SignedSession = {
+      ...base,
+      tempo: {
+        metronome: { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+      }
+    }
+    const heard: SignedSession = {
+      ...base,
+      tempo: {
+        metronome: { id: 'metronome', gainDb: 0, muted: false, soloed: false }
+      }
+    }
+    expect(sessionSignature(muted)).not.toBe(sessionSignature(heard))
+  })
+
+  it('signs an absent metronome like the default muted one (fresh detection)', () => {
+    // A manifest with no tempo reopens and re-detects to the default-muted
+    // metronome — the two must sign identically so it reads « Enregistré ».
+    const defaulted: SignedSession = {
+      ...base,
+      tempo: {
+        metronome: { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+      }
+    }
+    expect(sessionSignature(defaulted)).toBe(sessionSignature(base))
+  })
 })

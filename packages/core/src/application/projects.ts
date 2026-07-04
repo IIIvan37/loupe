@@ -7,6 +7,7 @@ import {
   type ProjectActiveLoop,
   type ProjectStamp,
   type ProjectStem,
+  type ProjectTempo,
   type ProjectTuning,
   projectFromSession
 } from '../domain/project.ts'
@@ -43,6 +44,8 @@ export interface SaveProjectInput {
   readonly activeLoop?: ProjectActiveLoop
   /** The playback tuning (tempo/pitch/zoom) as the user left it. */
   readonly tuning?: ProjectTuning
+  /** The detected tempo + metronome settings, once a tempo is known. */
+  readonly tempo?: ProjectTempo
   readonly separation?: {
     readonly stems: readonly SaveProjectStem[]
     readonly mixer: MixerState
@@ -94,6 +97,7 @@ export async function saveProject(
         markers: input.markers,
         activeLoop: input.activeLoop,
         tuning: input.tuning,
+        tempo: input.tempo,
         ...(separation === undefined || stems === undefined
           ? {}
           : { separation: { stems, mixer: separation.mixer } })

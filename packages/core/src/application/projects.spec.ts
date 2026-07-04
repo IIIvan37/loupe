@@ -136,6 +136,30 @@ describe('saveProject', () => {
     expect(store.saved.get('p1')?.tuning).toEqual(tuning)
   })
 
+  it('persists the tempo analysis and metronome settings into the manifest', async () => {
+    const store = fakeProjectStore()
+    const tempo = {
+      bpm: 96,
+      grid: [
+        { timeSeconds: 0, downbeat: true },
+        { timeSeconds: 0.625, downbeat: false }
+      ],
+      metronome: {
+        id: 'metronome',
+        gainDb: -3,
+        muted: false,
+        soloed: false
+      }
+    }
+
+    await saveProject(
+      { ...saveInput, tempo },
+      { store, audio: fakeAudioStore() }
+    )
+
+    expect(store.saved.get('p1')?.tempo).toEqual(tempo)
+  })
+
   it('stores each stem behind its own ref and keeps the mixer', async () => {
     const store = fakeProjectStore()
     const audio = fakeAudioStore()

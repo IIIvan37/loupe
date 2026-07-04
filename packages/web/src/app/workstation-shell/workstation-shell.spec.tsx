@@ -270,6 +270,79 @@ describe('WorkstationShell', () => {
     ).toBeInTheDocument()
   })
 
+  it('seats a freshly detected metronome muted by default', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+
+    // Unlike the other voices, the click starts muted — hear it by unmuting.
+    const mute = await screen.findByRole('button', {
+      name: i18n._('mixer.mute', { name: 'Métronome' })
+    })
+    expect(mute).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('restores the tempo and metronome on reopen without re-detecting', async () => {
+    const detect = vi.fn(async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] }))
+    const { user } = renderShell({
+      projectStores: fakeProjectStores(),
+      tempoDetector: { detect }
+    })
+    await importTrack(user)
+    await screen.findByText('120 BPM')
+    await saveProjectAs(user, 'Avec métronome')
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('header.projects') })
+    )
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('projects.open') })
+    )
+
+    // The BPM and the click stem are back — seated from the manifest, so the
+    // detector is never asked a second time (no server on reopen).
+    expect(await screen.findByText('120 BPM')).toBeInTheDocument()
+    expect(
+      await screen.findByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Métronome' })
+      })
+    ).toBeInTheDocument()
+    expect(detect).toHaveBeenCalledTimes(1)
+  })
+
+  it('restores the metronome mute state the user saved, over the default', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+    }
+    const { user } = renderShell({
+      projectStores: fakeProjectStores(),
+      tempoDetector: detector
+    })
+    await importTrack(user)
+    // Unmute the click (muted by default), then save that choice.
+    const mute = await screen.findByRole('button', {
+      name: i18n._('mixer.mute', { name: 'Métronome' })
+    })
+    await user.click(mute)
+    expect(mute).toHaveAttribute('aria-pressed', 'false')
+    await saveProjectAs(user, 'Clic activé')
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('header.projects') })
+    )
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('projects.open') })
+    )
+
+    // The click comes back un-muted — the saved setting won over the default.
+    const restored = await screen.findByRole('button', {
+      name: i18n._('mixer.mute', { name: 'Métronome' })
+    })
+    expect(restored).toHaveAttribute('aria-pressed', 'false')
+  })
+
   it('keeps the separated stems AND the metronome after separating', async () => {
     const detector = {
       detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })

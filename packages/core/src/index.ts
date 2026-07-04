@@ -136,6 +136,7 @@ export type {
   ProjectSource,
   ProjectStamp,
   ProjectStem,
+  ProjectTempo,
   ProjectTuning,
   SessionSnapshot
 } from './domain/project.ts'

@@ -1,91 +1,111 @@
 import type {
   BeatGrid,
   DecodedAudio,
+  MixerChannel,
+  MixerState,
   SeparatedStem,
   StemTrack
 } from '@app/core'
+import { UNITY_GAIN_DB } from '@app/core'
 import { useRef, useState } from 'react'
-import { buildTrackStem } from '../mixer/track-stem.ts'
+import { buildTrackStem, TRACK_STEM_ID } from '../mixer/track-stem.ts'
 import type { Mixer } from '../mixer/use-mixer.ts'
 import { buildMetronomeStem } from './metronome-stem.ts'
 
 export interface MetronomeDeps {
   readonly mixer: Mixer
-  /** The loaded PCM (sample rate + length source), undefined before import. */
-  readonly loadedAudio: DecodedAudio | undefined
-  readonly durationSeconds: number
 }
 
 export interface Metronome {
   readonly enabled: boolean
   /**
    * Seat the click on an un-separated track: it joins the whole track (brought
-   * in as a « Piste » stem) so the click has something to play against. Called
-   * from the auto-detection handler.
+   * in as a « Piste » stem) so the click has something to play against. The
+   * click channel carries explicit settings — muted by default on a fresh
+   * detection, or the saved settings when restoring a project.
    */
-  readonly enable: (grid: BeatGrid) => void
+  readonly enable: (
+    grid: BeatGrid,
+    audio: DecodedAudio,
+    metronome: MixerChannel
+  ) => void
   /**
-   * Seat the click alongside a fresh separation, loading the stems and the click
-   * together in one pass (so the separated stems are never overwritten). Called
-   * from the separation handler.
+   * Seat the click alongside a separation, loading the stems and the click
+   * together in one pass (so the separated stems are never overwritten). The
+   * base channels are the stems' own settings (unity for a fresh separation, the
+   * saved mixer when restoring); the click carries its settings on top.
    */
   readonly attach: (
     grid: BeatGrid,
     stems: readonly StemTrack[],
-    sources: readonly SeparatedStem[]
+    sources: readonly SeparatedStem[],
+    audio: DecodedAudio,
+    baseMixer: MixerState,
+    metronome: MixerChannel
   ) => void
   /** Forget the click (a fresh track); the shell clears the mixer separately. */
   readonly reset: () => void
+}
+
+/** Whole-track length in seconds from the decoded PCM (the click spans it). */
+function durationOf(audio: DecodedAudio): number {
+  return (audio.channels[0]?.length ?? 0) / audio.sampleRate
+}
+
+/** A stem that plays untouched at its separated level. */
+function unityChannel(id: string): MixerChannel {
+  return { id, gainDb: UNITY_GAIN_DB, muted: false, soloed: false }
 }
 
 /**
  * Smart hook: the metronome as a mixer stem. Once the tempo is known the click
  * is always shown — the shell seats it from the detection handler (`enable`,
  * un-separated) or the separation handler (`attach`, joining the stems). Each
- * path does a single `mixer.load` so nothing it just loaded gets overwritten.
- * It then behaves like any other stem (fader, mute/solo, lane, WAV) and follows
- * tempo on the shared master bus. Deps are read through a ref so the seating
- * calls, fired from async handlers, always see the live audio.
+ * path does a single `mixer.restore` with explicit per-channel settings, so the
+ * click lands at exactly the level/mute it should (muted by default, or the
+ * restored value) without a second dispatch that could race the load. It then
+ * behaves like any other stem (fader, mute/solo, lane, WAV) and follows tempo on
+ * the shared master bus. The mixer is read through a ref so the seating calls,
+ * fired from async handlers, always drive the live one.
  */
 export function useMetronome(deps: MetronomeDeps): Metronome {
-  const depsRef = useRef(deps)
-  depsRef.current = deps
+  const mixerRef = useRef(deps.mixer)
+  mixerRef.current = deps.mixer
   const [enabled, setEnabled] = useState(false)
 
-  function enable(grid: BeatGrid): void {
-    const live = depsRef.current
-    if (!live.loadedAudio) {
-      return
-    }
-    const metro = buildMetronomeStem(
-      grid,
-      live.durationSeconds,
-      live.loadedAudio.sampleRate
-    )
+  function enable(
+    grid: BeatGrid,
+    audio: DecodedAudio,
+    metronome: MixerChannel
+  ): void {
+    const metro = buildMetronomeStem(grid, durationOf(audio), audio.sampleRate)
     // The click needs the track itself in the mix, so bring the whole track in
     // as one stem and seat the click beside it.
-    const track = buildTrackStem(live.loadedAudio)
-    live.mixer.load([track.stem, metro.stem], [track.source, metro.source])
+    const track = buildTrackStem(audio)
+    mixerRef.current.restore(
+      [track.stem, metro.stem],
+      [track.source, metro.source],
+      [unityChannel(TRACK_STEM_ID), metronome]
+    )
     setEnabled(true)
   }
 
   function attach(
     grid: BeatGrid,
     stems: readonly StemTrack[],
-    sources: readonly SeparatedStem[]
+    sources: readonly SeparatedStem[],
+    audio: DecodedAudio,
+    baseMixer: MixerState,
+    metronome: MixerChannel
   ): void {
-    const live = depsRef.current
-    if (!live.loadedAudio) {
-      return
-    }
-    const metro = buildMetronomeStem(
-      grid,
-      live.durationSeconds,
-      live.loadedAudio.sampleRate
-    )
+    const metro = buildMetronomeStem(grid, durationOf(audio), audio.sampleRate)
     // Load the separation stems AND the click in one pass — a two-step load then
     // add would let the freshly loaded stems be clobbered by a stale render.
-    live.mixer.load([...stems, metro.stem], [...sources, metro.source])
+    mixerRef.current.restore(
+      [...stems, metro.stem],
+      [...sources, metro.source],
+      [...baseMixer, metronome]
+    )
     setEnabled(true)
   }
 

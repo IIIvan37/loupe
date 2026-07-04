@@ -8,6 +8,7 @@ import {
   type ProjectActiveLoop,
   type ProjectSeparation,
   type ProjectStamp,
+  type ProjectTempo,
   type ProjectTuning,
   projectFromSession,
   type SessionSnapshot,
@@ -93,6 +94,24 @@ describe('projectFromSession', () => {
   it('omits tuning when the session carries none', () => {
     const project = projectFromSession(snapshot(), stamp)
     expect('tuning' in project).toBe(false)
+  })
+
+  it('carries the tempo analysis and metronome settings through when present', () => {
+    const tempo: ProjectTempo = {
+      bpm: 120,
+      grid: [
+        { timeSeconds: 0, downbeat: true },
+        { timeSeconds: 0.5, downbeat: false }
+      ],
+      metronome: { id: 'metronome', gainDb: -6, muted: false, soloed: false }
+    }
+    const project = projectFromSession(snapshot({ tempo }), stamp)
+    expect(project.tempo).toEqual(tempo)
+  })
+
+  it('omits tempo when the session carries none', () => {
+    const project = projectFromSession(snapshot(), stamp)
+    expect('tempo' in project).toBe(false)
   })
 
   it('omits separation for an unseparated session', () => {

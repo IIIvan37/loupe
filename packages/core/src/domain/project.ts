@@ -1,7 +1,8 @@
 import type { LoopLibrary } from './loop-library.ts'
 import type { LoopRegion } from './loop-region.ts'
 import type { MarkerList } from './marker-list.ts'
-import type { MixerState } from './mixer.ts'
+import type { MixerChannel, MixerState } from './mixer.ts'
+import type { BeatGrid } from './tempo.ts'
 
 /**
  * An opaque pointer to audio bytes that live outside the hexagon — the original
@@ -52,6 +53,20 @@ export interface ProjectTuning {
 }
 
 /**
+ * The tempo half of a project: the detected analysis (BPM + downbeat-flagged
+ * beat grid) so a reopen restores the beat grid and re-synthesises the metronome
+ * click without re-running detection, plus the metronome stem's own mixer
+ * settings (dB / mute / solo) as the user left them. The click PCM itself is
+ * never stored — it is re-synthesised from the grid and the re-imported audio.
+ */
+export interface ProjectTempo {
+  readonly bpm: number
+  readonly grid: BeatGrid
+  /** The metronome mixer channel as the user left it (its id is the caller's). */
+  readonly metronome: MixerChannel
+}
+
+/**
  * The separation half of a project: the stems produced plus the mixer settings
  * over them. The mixer's channels line up with the stems (one channel per stem
  * id). Present only once the track has been separated; absent otherwise.
@@ -81,6 +96,8 @@ export interface Project {
   readonly activeLoop?: ProjectActiveLoop
   /** The playback tuning at save time; absent on manifests that predate it. */
   readonly tuning?: ProjectTuning
+  /** The detected tempo + metronome settings; absent until a tempo is known. */
+  readonly tempo?: ProjectTempo
   /** Present once the track has been separated. */
   readonly separation?: ProjectSeparation
 }
@@ -133,6 +150,7 @@ export interface SessionSnapshot {
    * `projectFromSession` owns the single guard that omits the key. */
   readonly activeLoop?: ProjectActiveLoop | undefined
   readonly tuning?: ProjectTuning | undefined
+  readonly tempo?: ProjectTempo | undefined
   readonly separation?: ProjectSeparation
 }
 
@@ -166,6 +184,7 @@ export function projectFromSession(
       ? {}
       : { activeLoop: session.activeLoop }),
     ...(session.tuning === undefined ? {} : { tuning: session.tuning }),
+    ...(session.tempo === undefined ? {} : { tempo: session.tempo }),
     ...(session.separation === undefined
       ? {}
       : { separation: session.separation })

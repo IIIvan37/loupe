@@ -7,15 +7,23 @@ import {
   type MixerState,
   type OpenProjectResult,
   type ProjectActiveLoop,
+  type ProjectTempo,
   type ProjectTuning,
   type SaveProjectInput,
   type SeparatedStem,
+  type TempoAnalysis,
   tuningOrDefault
 } from '@app/core'
 import type { Loops } from '../loops/use-loops.ts'
 import type { Markers } from '../markers/use-markers.ts'
 import type { Mixer } from '../mixer/use-mixer.ts'
-import type { Separation } from '../separation/use-separation.ts'
+import type {
+  Separation,
+  SeparationResult
+} from '../separation/use-separation.ts'
+import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
+import type { Metronome } from '../tempo/use-metronome.ts'
+import type { Tempo } from '../tempo/use-tempo.ts'
 
 /** The live session pieces a save snapshots. */
 export interface SessionSnapshot {
@@ -29,6 +37,8 @@ export interface SessionSnapshot {
   readonly activeLoop?: ProjectActiveLoop
   /** The playback tuning (tempo/pitch/zoom) — always live, always saved. */
   readonly tuning: ProjectTuning
+  /** The detected tempo + metronome settings, once a tempo is known. */
+  readonly tempo?: ProjectTempo
   /** The separation half, only once the stems are ready and mixing. */
   readonly separation?: {
     readonly sources: readonly SeparatedStem[]
@@ -55,6 +65,7 @@ export function sessionSaveInput(
     loops: session.loops,
     markers: session.markers,
     tuning: session.tuning,
+    ...(session.tempo === undefined ? {} : { tempo: session.tempo }),
     ...(session.activeLoop === undefined
       ? {}
       : { activeLoop: session.activeLoop }),
@@ -106,6 +117,16 @@ export interface SessionRestoreDeps {
   readonly restoreTuning: (tuning: ProjectTuning) => void
   readonly separation: Separation
   readonly mixer: Mixer
+  /** Seat/analyse the tempo (persisted → `set`, old manifest → `detect`). */
+  readonly tempo: Pick<Tempo, 'analysis' | 'detect' | 'set' | 'reset'>
+  /** Seat the metronome click alongside the restored session. */
+  readonly metronome: Pick<Metronome, 'enable' | 'attach' | 'reset'>
+  /**
+   * Arm/disarm the shell's one-shot auto-detect guard: `true` before an open
+   * re-imports its bytes (the open owns tempo/metronome seating), `false` on a
+   * fresh user import (which must detect). See the shell's auto-detect effect.
+   */
+  readonly setSuppressAutoDetect: (suppress: boolean) => void
 }
 
 /**
@@ -118,13 +139,18 @@ export async function restoreSession(
   opened: Extract<OpenProjectResult, { ok: true }>,
   deps: SessionRestoreDeps
 ): Promise<void> {
+  // The open owns tempo + metronome seating: suppress the shell's auto-detect
+  // so it does not also fire on the re-imported audio and race this restore.
+  deps.setSuppressAutoDetect(true)
   const audio = await deps.importFile(
     new File([opened.sourceBytes], opened.project.name)
   )
   // No audio means the re-import was superseded by a newer user import (or
   // failed): the session belongs to that newer track now — restoring the old
   // project's loops/markers onto it would corrupt what a later save persists.
+  // Disarm the guard so that newer track still auto-detects (it owns the flag).
   if (!audio) {
+    deps.setSuppressAutoDetect(false)
     return
   }
   deps.markers.restore(opened.project.markers)
@@ -143,18 +169,65 @@ export async function restoreSession(
     )
     deps.restoreActiveLoop(active, origin?.id ?? null)
   }
+
   const saved = opened.project.separation
-  if (!saved || opened.stems.length === 0) {
+  const separated = saved !== undefined && opened.stems.length > 0
+  // Rebuild the separation stems (if any) before seating the metronome, so the
+  // click can join them in a single mixer load.
+  let restored: SeparationResult | undefined
+  if (separated) {
+    const labelById = new Map(saved.stems.map((stem) => [stem.id, stem.label]))
+    const sources: readonly SeparatedStem[] = opened.stems.map((stem) => ({
+      id: stem.id,
+      label: labelById.get(stem.id) ?? stem.id,
+      audio: decodeWav(stem.bytes)
+    }))
+    restored = await deps.separation.restore(audio, sources)
+  }
+
+  // The stored stems could not be rebuilt (corrupt WAV) or a newer action
+  // superseded the restore — seat nothing rather than a tempo over an empty mix.
+  if (separated && !restored) {
     return
   }
-  const labelById = new Map(saved.stems.map((stem) => [stem.id, stem.label]))
-  const sources: readonly SeparatedStem[] = opened.stems.map((stem) => ({
-    id: stem.id,
-    label: labelById.get(stem.id) ?? stem.id,
-    audio: decodeWav(stem.bytes)
-  }))
-  const restored = await deps.separation.restore(audio, sources)
-  if (restored) {
+
+  // Seat the click in the right shape: alongside restored stems (`attach`), or
+  // on top of the whole track when un-separated (`enable`).
+  const seatMetronome = (
+    analysis: TempoAnalysis,
+    metronome = DEFAULT_METRONOME_CHANNEL
+  ): void => {
+    if (separated && restored) {
+      deps.metronome.attach(
+        analysis.grid,
+        restored.stems,
+        restored.sources,
+        audio,
+        saved.mixer,
+        metronome
+      )
+    } else if (!separated) {
+      deps.metronome.enable(analysis.grid, audio, metronome)
+    }
+  }
+
+  const persisted = opened.project.tempo
+  if (persisted) {
+    // Fast path: tempo + metronome come straight from the manifest — no server.
+    deps.tempo.set({ bpm: persisted.bpm, grid: persisted.grid })
+    seatMetronome(persisted, persisted.metronome)
+    return
+  }
+
+  // Old manifest that predates the tempo field: show the restored stems now,
+  // then detect the tempo WITHOUT blocking the restore (the « opening » state
+  // must not hang on the tempo server) and seat a muted click when it lands.
+  if (separated && restored) {
     deps.mixer.restore(restored.stems, restored.sources, saved.mixer)
   }
+  void deps.tempo.detect(audio).then((analysis) => {
+    if (analysis) {
+      seatMetronome(analysis)
+    }
+  })
 }

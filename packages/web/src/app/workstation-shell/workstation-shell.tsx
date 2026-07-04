@@ -2,15 +2,20 @@ import {
   type AudioFileDecoder,
   encodeWav,
   formatTimecode,
+  type MixerState,
   type PlaybackEngine,
   type ProjectDeps,
   type StemPlaybackEngine,
   type StemSeparator,
   synthesizeClickTrack,
   type TempoDetector,
-  type TrackMetadataReader
+  type TrackMetadataReader,
+  UNITY_GAIN_DB
 } from '@app/core'
-import { METRONOME_ID } from '../tempo/metronome-stem.ts'
+import {
+  DEFAULT_METRONOME_CHANNEL,
+  METRONOME_ID
+} from '../tempo/metronome-stem.ts'
 import { TRACK_STEM_ID } from '../mixer/track-stem.ts'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { downloadBlob } from '../../audio/download-blob.ts'
@@ -101,11 +106,7 @@ export function WorkstationShell({
   } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsActive)
   const markers = useMarkers()
   const tempo = useTempo(tempoDetector)
-  const metronome = useMetronome({
-    mixer,
-    loadedAudio,
-    durationSeconds: transport.durationSeconds
-  })
+  const metronome = useMetronome({ mixer })
   const loops = useLoops()
   const loopEditing = useLoopEditing(loops, {
     durationSeconds: transport.durationSeconds,
@@ -116,6 +117,9 @@ export function WorkstationShell({
   const serverHealth = useServerHealth({ fetchImpl: healthFetch })
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [projectsOpen, setProjectsOpen] = useState(false)
+  // One-shot guard: an open arms it before re-importing its bytes so the
+  // auto-detect effect below skips that audio (the open seats tempo itself).
+  const suppressAutoDetectRef = useRef(false)
   // The whole project ↔ session lifecycle (save/open/detach-on-import).
   const session = useProjectSession({
     stores: projectStores,
@@ -143,6 +147,9 @@ export function WorkstationShell({
     viewport,
     tempo,
     metronome,
+    setSuppressAutoDetect: (suppress) => {
+      suppressAutoDetectRef.current = suppress
+    },
     onRestoreStarted: () => setProjectsOpen(false)
   })
 
@@ -157,9 +164,15 @@ export function WorkstationShell({
     if (!audio) {
       return
     }
+    // An open owns tempo/metronome seating for its restored audio — skip it here.
+    if (suppressAutoDetectRef.current) {
+      suppressAutoDetectRef.current = false
+      return
+    }
     void tempo.detect(audio).then((analysis) => {
       if (analysis) {
-        metronome.enable(analysis.grid)
+        // A freshly detected click joins the un-separated track muted by default.
+        metronome.enable(analysis.grid, audio, DEFAULT_METRONOME_CHANNEL)
       }
     })
   }
@@ -274,11 +287,26 @@ export function WorkstationShell({
               }
               // Load the stems (and, if the tempo is known, the always-on click
               // alongside them) in one pass, so neither overwrites the other.
-              if (tempo.analysis) {
+              if (tempo.analysis && loadedAudio) {
+                // Fresh stems start at unity; carry the metronome's current
+                // settings (muted by default, or whatever the user set). Only
+                // PRESENT stems get a channel — same as `mixer.load`, so the
+                // masked ones never become phantom channels the save persists.
+                const baseMixer: MixerState = result.stems.flatMap((stem) =>
+                  stem.present
+                    ? [{ id: stem.id, gainDb: UNITY_GAIN_DB, muted: false, soloed: false }]
+                    : []
+                )
+                const metronomeChannel =
+                  mixer.state.find((channel) => channel.id === METRONOME_ID) ??
+                  DEFAULT_METRONOME_CHANNEL
                 metronome.attach(
                   tempo.analysis.grid,
                   result.stems,
-                  result.sources
+                  result.sources,
+                  loadedAudio,
+                  baseMixer,
+                  metronomeChannel
                 )
               } else {
                 mixer.load(result.stems, result.sources)
