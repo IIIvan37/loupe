@@ -66,9 +66,14 @@ its doc defers this to "a manifest-scan GC" in the adapter.
   Rename-server & GC touched no mutated package → skipped.
 - biome / sheriff / knip / jscpd: ✅ (15-clone jscpd baseline unchanged).
 
+## Update (close)
+All three merged (#43, #44, #45) and **browser-verified** on the Mac. #45 was
+rebased onto the renamed `server/` after #43/#44 merged (git rename-mapped the
+diff); the local venv now lives at `server/.venv`. Jalon 3 polish is complete.
+
 ## State to resume from
-- **Single next action**: merge PRs #43 → #44 → #45 (any order — independent, all
-  off `main`), then pick the next slice.
+- **Single next action**: pick the next slice (off-thread zip/encode, speed
+  trainer / undo, or Jalon 4 export-MIDI-per-stem).
 - Gotchas / half-done edits:
   - **venv location follows the branch.** PRs #44/#45 are off `main` (dir is
     `separator-server/`, venv at `separator-server/.venv`). PR #43 renames it to

@@ -22,9 +22,9 @@
   Details in
   [2026-07-02-jalon2-export-verify](sessions/2026-07-02-jalon2-export-verify.md).
 - **Jalon 3 (« Projets ») core slices are merged** (J3.1–J3.4 + races +
-  active-loop fix + UX session state). **Jalon 3 polish is done (2026-07-04)**:
-  `separator-server/` → `server/` rename (**PR #43 merged**), rename a saved
-  project (**PR #44 merged**), and blob GC (**PR #45 open**, rebased onto the
+  active-loop fix + UX session state). **Jalon 3 polish is complete (2026-07-04)
+  — all three merged + browser-verified**: `separator-server/` → `server/` rename
+  (PR #43), rename a saved project (PR #44), and blob GC (PR #45, rebased onto the
   renamed `server/`). See
   [2026-07-04-jalon3-polish](sessions/2026-07-04-jalon3-polish.md).
 - **Now — metronome-persistence slice (2026-07-04)**: the detected tempo +
@@ -257,19 +257,17 @@
 
 ## Next step
 
-**Merge PR #45 (blob GC), then pick the next slice** (PRs #43 + #44 already
-merged; #45 was rebased onto the renamed `server/` after the merges — note the
-local venv now lives at `server/.venv`). Candidates by user value:
+**Pick the next slice.** Jalon 3 polish is fully merged + browser-verified (PRs
+#43/#44/#45); the local venv now lives at `server/.venv`. Candidates by user
+value:
 - UX backlog: speed trainer, undo.
 - Perf: off-thread zip/encode — the export measurably freezes the UI a few
   seconds on a 4-min track (main-thread encode+zip, ~229 MB).
 - **Jalon 4**: export MIDI per stem (basic-pitch), starting bass + monophonic —
   the headline audio→notation differentiator.
 
-**Jalon 3 polish is done** (rename `server/`, project rename, blob GC).
-Follow-ups from that batch: browser-verify the project rename on the Mac (low
-risk); no UI trigger for GC yet (boot sweep + `POST /gc`); after #43 merges the
-local venv must be recreated/repatched under `server/.venv`.
+Small follow-up from the polish batch: no UI trigger for GC yet (runs on server
+boot + `POST /gc`) — add a button only if wanted.
 - Follow-up (small, documented): old *separated* manifests re-`attach` stems on
   the fire-and-forget detect, reverting fader edits made in the detection window
   — self-heals on save; fix only if it bites.
@@ -355,7 +353,7 @@ mixer (J2.4) then export (J2.6). See
 | J3.3 | Real adapter + UI (Save / list / Open) — **decided: extended HTTP server** (content-addressed blobs; storage works without torch) | ✅ |
 | J3.4 | Per-project loops — localStorage `LoopStore` removed; loops are session state, persisted only via the manifest | ✅ |
 | J4.1 | Import from a media URL (YouTube / SoundCloud) — `TrackSource` port + `importFromUrl` (core) + HTTP adapter + yt-dlp server + « Menu sur Importer » UI. Merged (PR #42) | ✅ |
-| J3.5 | Jalon 3 polish — `separator-server/` → `server/` rename (#43), rename a saved project (#44), blob GC (#45). PRs open | 🚧 |
+| J3.5 | Jalon 3 polish — `separator-server/` → `server/` rename (#43), rename a saved project (#44), blob GC (#45). Merged + browser-verified | ✅ |
 
 ## Session journal
 
