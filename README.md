@@ -13,10 +13,12 @@ core**, **strict TDD**, and a **blocking quality gate**.
   `src/index.ts` is the only public surface adapters import.
 - **`packages/web`** — the React adapter: Web Audio / localStorage / file ports
   behind the core's interfaces, smart hooks + dumb components, the workstation UI.
-- **`separator-server/`** — a standalone **FastAPI + Demucs** backend (PyTorch,
-  GPU-capable), deliberately outside the monorepo/hexagon. It implements the
-  `StemSeparator` port over an HTTP/NDJSON contract; the web app's default `'http'`
-  engine talks to it. See [separator-server/README.md](separator-server/README.md).
+- **`server/`** — a standalone **FastAPI** backend (PyTorch, GPU-capable),
+  deliberately outside the monorepo/hexagon. It hosts project storage plus the
+  heavy jobs — Demucs separation, librosa tempo detection, yt-dlp URL download —
+  behind HTTP/NDJSON contracts, implementing the core's driven ports (e.g.
+  `StemSeparator`); the web app's default `'http'` adapters talk to it. See
+  [server/README.md](server/README.md).
 
 Layering is enforced three ways: the package graph (`@app/core` pure ← `web`
 adapter), **Sheriff** (`sheriff.config.ts`) on the module graph, and **Biome**
@@ -60,7 +62,7 @@ packages/core/src/domain        pure model
 packages/core/src/application   use-cases + ports (the registry README lives here)
 packages/core/src/index.ts      the only public surface adapters import
 packages/web/src                the React adapter + workstation UI
-separator-server                standalone FastAPI + Demucs backend (StemSeparator over HTTP)
+server                          standalone FastAPI backend (storage + separation/tempo/download over HTTP)
 .claude/skills                  the method, as Claude Code skills
 docs/STATUS.md, docs/sessions   resumable project state
 ```

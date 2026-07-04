@@ -1,6 +1,8 @@
-# loupe separator-server
+# loupe server
 
-A local separation backend for loupe: runs the full **Demucs `htdemucs_6s`**
+The local backend for loupe: hosts project storage and the heavy audio jobs the
+browser can't do well — **Demucs** separation, **librosa** tempo detection, and
+**yt-dlp** URL download. Its headline job runs the full **Demucs `htdemucs_6s`**
 model (PyTorch, GPU when available) and streams stems back to the web app. It
 exists because the in-browser WASM engines hit a quality/speed wall — server-side
 PyTorch has no such ceiling. The 6-source model splits **guitar** and **piano**
@@ -43,7 +45,7 @@ pnpm dev          # = concurrently: dev:server (uvicorn) + dev:web (Vite)
 ```
 
 `pnpm dev:server` / `pnpm dev:web` run them individually. `dev:server` calls the
-venv's uvicorn directly (`separator-server/.venv/bin/uvicorn`), so the venv must
+venv's uvicorn directly (`server/.venv/bin/uvicorn`), so the venv must
 be set up first.
 
 ## HTTP contract
