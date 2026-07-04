@@ -173,3 +173,41 @@ export interface ArchiveFile {
 export interface ArchiveWriter {
   write(files: readonly ArchiveFile[]): Promise<Uint8Array<ArrayBuffer>>
 }
+
+/** Metadata a media source reports, used to pre-fill the imported project's name. */
+export interface TrackSourceMetadata {
+  readonly title: string
+  /** Track length in seconds, when the source reports it. */
+  readonly durationSeconds?: number
+  /** The uploading artist/channel, when the source reports it. */
+  readonly artist?: string
+}
+
+/** A downloaded track: the encoded audio bytes (feed straight into `loadTrack`) + its metadata. */
+export interface FetchedTrack {
+  readonly bytes: ArrayBuffer
+  readonly metadata: TrackSourceMetadata
+}
+
+/** A progress update from a running download: which phase, and how far in. */
+export interface DownloadProgress {
+  /** `downloading` = pulling bytes over the network; `transcoding` = extracting audio. */
+  readonly phase: 'downloading' | 'transcoding'
+  /** Completion of the current phase in [0, 1]. */
+  readonly fraction: number
+}
+
+/**
+ * Driven port: fetch a track from a media URL (YouTube / SoundCloud) as encoded
+ * audio bytes + metadata. Long-running and progressive — it streams
+ * phase/fraction through `onProgress`. Implemented by an adapter (web: an HTTP
+ * NDJSON client against the local server running yt-dlp); the pure core never
+ * knows the transport, nor that the bytes were parked in a content-addressed
+ * store on the way. A cloud API could be a later adapter on the same port.
+ */
+export interface TrackSource {
+  fetch(
+    url: string,
+    onProgress: (progress: DownloadProgress) => void
+  ): Promise<FetchedTrack>
+}

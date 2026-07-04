@@ -14,6 +14,12 @@ export type {
 } from './application/export-stems.ts'
 export { exportStems } from './application/export-stems.ts'
 export type {
+  ImportFromUrlDeps,
+  ImportFromUrlInput,
+  ImportFromUrlResult
+} from './application/import-from-url.ts'
+export { importFromUrl } from './application/import-from-url.ts'
+export type {
   LoadTrackDeps,
   LoadTrackInput,
   LoadTrackResult
@@ -25,6 +31,8 @@ export type {
   AudioFileDecoder,
   DecodedAudio,
   DetectedTempo,
+  DownloadProgress,
+  FetchedTrack,
   PlaybackEngine,
   ProjectAudioStore,
   ProjectStore,
@@ -35,7 +43,9 @@ export type {
   StemSource,
   TempoDetector,
   TrackMetadata,
-  TrackMetadataReader
+  TrackMetadataReader,
+  TrackSource,
+  TrackSourceMetadata
 } from './application/ports.ts'
 export type {
   DeleteProjectResult,
