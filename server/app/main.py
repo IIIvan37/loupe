@@ -21,15 +21,29 @@ Single-user, localhost — no auth. Run with `uvicorn app.main:app --port 8000`.
 
 from __future__ import annotations
 
+import contextlib
 import json
+from collections.abc import AsyncIterator
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+from .projects import collect_garbage
 from .projects import router as projects_router
 
-app = FastAPI(title="loupe server")
+
+@contextlib.asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Reclaim orphaned audio blobs on boot — the one moment nothing is in
+    flight, so a manifest-scan GC can never race an upload. Best-effort: a
+    failed sweep must not stop the server from serving."""
+    with contextlib.suppress(Exception):
+        collect_garbage()
+    yield
+
+
+app = FastAPI(title="loupe server", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
