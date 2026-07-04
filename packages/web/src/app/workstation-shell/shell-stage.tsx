@@ -89,6 +89,12 @@ export function ShellStage({
           loopRegion={loopRegion}
           loopEnabled={loopEnabled}
           beatGrid={beatGrid}
+          mixLayers={mixer.channels.map((channel) => ({
+            id: channel.stem.id,
+            label: channel.stem.label,
+            waveform: channel.stem.track.waveform,
+            level: channel.level
+          }))}
           durationSeconds={durationSeconds}
           onSeek={onSeekRatio}
           onSelectRegion={loopEditing.selectRegion}

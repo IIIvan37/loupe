@@ -180,6 +180,51 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
       emit()
     },
 
+    async addStem(source: StemSource): Promise<void> {
+      await ensureStretch()
+      const ctx = audioContext()
+      const gain = ctx.createGain()
+      gain.gain.value = desiredGains.get(source.id) ?? 1
+      gain.connect(outputNode())
+      const stem: StemNode = {
+        id: source.id,
+        buffer: makeBuffer(source.audio),
+        gain,
+        source: undefined
+      }
+      stems.push(stem)
+      durationSeconds = Math.max(durationSeconds, stem.buffer.duration)
+      // Joining a running mix: start this one buffer at the live position so it
+      // lines up with the others (never index 0, so it never owns the end).
+      if (isPlaying) {
+        const node = ctx.createBufferSource()
+        node.buffer = stem.buffer
+        node.playbackRate.value = timeRatio
+        node.connect(stem.gain)
+        node.start(0, position())
+        stem.source = node
+      }
+      emit()
+    },
+
+    removeStem(id: string): void {
+      const index = stems.findIndex((stem) => stem.id === id)
+      if (index === -1) {
+        return
+      }
+      const [removed] = stems.splice(index, 1)
+      if (removed?.source) {
+        removed.source.onended = null
+        removed.source.stop()
+        removed.source.disconnect()
+      }
+      removed?.gain.disconnect()
+      durationSeconds = stems.reduce(
+        (max, stem) => Math.max(max, stem.buffer.duration),
+        0
+      )
+    },
+
     play(): void {
       if (stems.length === 0 || isPlaying) {
         return

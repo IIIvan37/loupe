@@ -28,8 +28,8 @@ interface ShellMainProps {
   readonly loopEditing: ReturnType<typeof useLoopEditing>
   readonly separation: ReturnType<typeof useSeparation>
   readonly tempo: ReturnType<typeof useTempo>
-  readonly onDetectTempo: () => void
-  readonly canDetectTempo: boolean
+  /** Download one mixer lane as a WAV (synthetic lanes + separated stems). */
+  readonly onDownloadStem: (id: string) => void
   readonly mainViewState: ComponentProps<typeof WaveformView>['state']
   readonly loopRegion: ComponentProps<typeof WaveformView>['loopRegion']
   readonly loopEnabled: boolean
@@ -56,8 +56,7 @@ export function ShellMain({
   loopEditing,
   separation,
   tempo,
-  onDetectTempo,
-  canDetectTempo,
+  onDownloadStem,
   mainViewState,
   loopRegion,
   loopEnabled,
@@ -81,7 +80,7 @@ export function ShellMain({
             durationSeconds={durationSeconds}
             viewport={viewport}
             mixer={mixer}
-            onDownloadStem={separation.downloadStem}
+            onDownloadStem={onDownloadStem}
             markers={markers}
             loopEditing={loopEditing}
             beatGrid={tempo.analysis?.grid ?? []}
@@ -96,8 +95,6 @@ export function ShellMain({
               bpm={tempo.analysis?.bpm}
               detecting={tempo.detecting}
               error={tempo.error}
-              canDetect={canDetectTempo}
-              onDetect={onDetectTempo}
             />
           )}
           <LoopBar

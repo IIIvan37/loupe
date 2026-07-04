@@ -57,7 +57,7 @@ describe('useTempo', () => {
         })
     }
     const { result } = renderHook(() => useTempo(gated))
-    let pending: Promise<void> | undefined
+    let pending: Promise<unknown> | undefined
     act(() => {
       pending = result.current.detect(audio)
     })

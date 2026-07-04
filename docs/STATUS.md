@@ -24,7 +24,20 @@
 - **Jalon 3 (« Projets ») core slices are merged** (J3.1–J3.4 + races +
   active-loop fix + UX session state). Remaining Jalon 3 work is polish
   (project rename, blob GC, `separator-server/` → `server/`).
-- **Now — real tempo detection slice (2026-07-03)**: a full hexagonal vertical
+- **Now — metronome-stem slice (2026-07-04)**: the metronome as a configurable
+  mixer stem, built on tempo detection. Pure `synthesizeClickTrack` (click PCM
+  from a `BeatGrid`, accented downbeats) + mixer `addChannel`/`removeChannel` +
+  `StemPlaybackEngine.addStem`/`removeStem`. The click rides the mixer like any
+  stem (lane, colour, dB fader, mute/solo, WAV) and follows tempo. UX iterated
+  live with the user: **tempo auto-detected on import** (no button), the stem
+  **auto-shown once the tempo is known** (no toggle), the **beat grid toned
+  down**, and the **mix drawn per-voice in colour + transparency** (not one
+  amber envelope). Un-separated = « Piste » + « Métronome » two-lane mix.
+  Browser-verified (incl. the « separating hid the stems » regression fixed via
+  a single-pass `attach`). Gate green, **478 tests**, core mutation 94.22 %.
+  **PR to open, stacked on PR #39.** See
+  [2026-07-04-metronome-stem](sessions/2026-07-04-metronome-stem.md).
+- **Earlier — real tempo detection slice (2026-07-03)**: a full hexagonal vertical
   slice, server-side (`librosa`) per the locked decision. Pure core: driven
   port `TempoDetector` + `detectTempo` use-case + pure `buildBeatGrid`
   (downbeat-flagged `BeatGrid`, `DEFAULT_BEATS_PER_BAR = 4`). Web:
@@ -95,9 +108,9 @@
   guard), and the playhead can no longer paint above dialogs (stage
   `isolation`). Browser-verified on the real project.
   See [2026-07-03-ui-polish](sessions/2026-07-03-ui-polish.md).
-- **Branch**: `feat/tempo-detection` (gate-green, 463 tests) — **PR to open**,
-  browser-verify on the Mac (server up, `librosa` installed) before merge.
-  Earlier: `feat/persist-tempo-pitch-zoom` **merged (PR #38)**;
+- **Branch**: `feat/metronome-stem` (gate-green, 478 tests), stacked on
+  `feat/tempo-detection` (**PR #39 open**) — open its PR, then retarget to `main`
+  once #39 merges. Earlier: `feat/persist-tempo-pitch-zoom` **merged (PR #38)**;
   `feat/i18n-messages` **merged (PR #37)**; `feat/dirty-session-guard`
   **merged (PR #36)**; `feat/ui-polish` **merged (PR #35)**.
 - **Earlier**: `feat/ux-session-state` (**merged, PR #34**) — five
@@ -288,6 +301,15 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-04 — metronome-stem](sessions/2026-07-04-metronome-stem.md) —
+  The metronome as a configurable mixer stem (click PCM synthesised from the
+  detected `BeatGrid`): its own lane, colour, dB fader, mute/solo, WAV; follows
+  tempo on the master bus. Pure `synthesizeClickTrack` + mixer add/remove
+  channel + stem-engine add/remove stem. UX iterated live: auto-detect on
+  import, auto-shown, faint beat grid, per-voice coloured/transparent mix.
+  Browser-verified; « separating hid the stems » regression fixed (single-pass
+  `attach`). Gate green, 478 tests, core mutation 94.22 %. PR to open (stacked
+  on #39). Follow-up: persistence (`ProjectTempo` + metronome settings).
 - [2026-07-03 — tempo-detection](sessions/2026-07-03-tempo-detection.md) —
   UX-backlog slice: real tempo detection, server-side (librosa) behind a new
   `TempoDetector` port. Pure core (`detectTempo` + `buildBeatGrid`), web

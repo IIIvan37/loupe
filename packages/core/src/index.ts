@@ -100,6 +100,8 @@ export {
   moveMarker,
   removeMarker
 } from './domain/marker-list.ts'
+export type { ClickTrackOptions } from './domain/metronome.ts'
+export { synthesizeClickTrack } from './domain/metronome.ts'
 export type {
   ChannelGain,
   MixerAction,
@@ -147,6 +149,7 @@ export type {
 export { initialSeparation, separationReducer } from './domain/separation.ts'
 export { stemExportFilename } from './domain/stem-export.ts'
 export type { StemSet, StemTrack } from './domain/stem-set.ts'
+export { buildStemTrack } from './domain/stem-set.ts'
 export type { BeatGrid } from './domain/tempo.ts'
 export { formatTimecode } from './domain/timecode.ts'
 export type { Track } from './domain/track.ts'

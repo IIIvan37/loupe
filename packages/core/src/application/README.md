@@ -57,8 +57,16 @@ The single place to look before adding a feature, so ports and use-cases get
 > other) but a track rarely uses them all; detection masks the near-silent ones.
 > `separateTrack` runs it so every `StemTrack` carries its verdict.
 >
+> Pure metronome domain — metronome slice: `synthesizeClickTrack(beats,
+> durationSeconds, sampleRate)` renders a `BeatGrid` into a mono click PCM (a
+> short decaying sine per beat, downbeats louder/higher, overlaps summed then
+> clamped). The web wraps it into a mixer stem (`buildStemTrack`) so the click
+> is configured like any other voice.
+>
 > Pure mixer domain — Slice J2.4: `mixerReducer` / `emptyMixer` drive the
-> `MixerState` (one `MixerChannel` per stem: `gainDb` + `muted` + `soloed`);
+> `MixerState` (one `MixerChannel` per stem: `gainDb` + `muted` + `soloed`;
+> `addChannel` / `removeChannel` let a stem join or leave the mix — the
+> metronome slice);
 > `effectiveGains` folds the solo/mute rules into one linear gain per channel
 > (mute silences itself, any solo silences the non-soloed, mute wins), the value
 > both the gain graph and the fading waveforms read. `clampGainDb` /
@@ -97,7 +105,7 @@ The single place to look before adding a feature, so ports and use-cases get
 |------|------|----------------|
 | `AudioFileDecoder` | driven | `web`: `createWebAudioDecoder` (`decodeAudioData`) |
 | `PlaybackEngine` | driven | `web`: `createWebAudioPlayback` (`AudioBufferSourceNode` + SoundTouch worklet for tempo/pitch) |
-| `StemPlaybackEngine` | driven | `web`: `createWebAudioStemPlayback` — synchronised multitrack playback (J2.4): a `GainNode` per stem summed into one SoundTouch master bus (tempo/pitch on the mix), `setGain` driven by the mixer's `effectiveGains` |
+| `StemPlaybackEngine` | driven | `web`: `createWebAudioStemPlayback` — synchronised multitrack playback (J2.4): a `GainNode` per stem summed into one SoundTouch master bus (tempo/pitch on the mix), `setGain` driven by the mixer's `effectiveGains`. `addStem` / `removeStem` join or drop one stem on the running mix (metronome slice) |
 | `TrackMetadataReader` | driven | `web`: `createMusicMetadataReader` (music-metadata; best-effort ID3/etc. tags) |
 | `TempoDetector` | driven | `web`: `createHttpTempoDetector` against the local server (mix → WAV POST `/tempo` → JSON `{ bpm, beatsSeconds }`, a beat tracker running librosa). A cloud API or an in-browser worker could be later adapters on the same port. |
 | `StemSeparator` | driven | `web`: `createHttpSeparator` against a local **FastAPI + Demucs** backend (mix → WAV POST → streamed NDJSON progress → fetch + `decodeWav` stems — J2.2b). The earlier in-browser WASM engines (demucs.cpp GGML / onnxruntime-web) hit a quality+speed wall and were removed; a cloud API could be a later adapter on the same port. |

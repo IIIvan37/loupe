@@ -1,14 +1,19 @@
 import {
   type AudioFileDecoder,
+  encodeWav,
   formatTimecode,
   type PlaybackEngine,
   type ProjectDeps,
   type StemPlaybackEngine,
   type StemSeparator,
+  synthesizeClickTrack,
   type TempoDetector,
   type TrackMetadataReader
 } from '@app/core'
-import { useMemo, useState } from 'react'
+import { METRONOME_ID } from '../tempo/metronome-stem.ts'
+import { TRACK_STEM_ID } from '../mixer/track-stem.ts'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { downloadBlob } from '../../audio/download-blob.ts'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import { exportBaseName } from '../../lib/export-base-name.ts'
 import { useServerHealth } from '../../projects/use-server-health.ts'
@@ -18,6 +23,7 @@ import { useLoops } from '../loops/use-loops.ts'
 import { useMarkers } from '../markers/use-markers.ts'
 import { useMixer } from '../mixer/use-mixer.ts'
 import { useSeparation } from '../separation/use-separation.ts'
+import { useMetronome } from '../tempo/use-metronome.ts'
 import { useTempo } from '../tempo/use-tempo.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
@@ -66,8 +72,13 @@ export function WorkstationShell({
   )
   const separation = useSeparation(separator)
   const mixer = useMixer(stemPlayback)
-  const stemsReady =
-    separation.state.status === 'ready' && mixer.channels.length > 0
+  // Separation has produced stems (drives the header export + what a save
+  // persists). The metronome can join the mix without a separation, so this is
+  // NOT the same as "the mix is active".
+  const stemsReady = separation.state.status === 'ready'
+  // The multitrack engine drives the transport whenever the mixer holds any
+  // stem — separation stems, or the track + metronome when un-separated.
+  const stemsActive = mixer.channels.length > 0
   const {
     importState,
     loadedAudio,
@@ -87,9 +98,14 @@ export function WorkstationShell({
     loopEnabled,
     toggleLoop,
     restoreLoop
-  } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsReady)
+  } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsActive)
   const markers = useMarkers()
   const tempo = useTempo(tempoDetector)
+  const metronome = useMetronome({
+    mixer,
+    loadedAudio,
+    durationSeconds: transport.durationSeconds
+  })
   const loops = useLoops()
   const loopEditing = useLoopEditing(loops, {
     durationSeconds: transport.durationSeconds,
@@ -126,10 +142,30 @@ export function WorkstationShell({
     mixer,
     viewport,
     tempo,
+    metronome,
     onRestoreStarted: () => setProjectsOpen(false)
   })
 
   const isLoaded = importState.status === 'loaded'
+
+  // Auto-detect the tempo the moment a track's PCM lands (import or project
+  // open) and seat the always-on metronome from the result — no button. Held in
+  // a ref so the effect keys on `loadedAudio` alone yet always calls the live
+  // detect/enable (both read fresh state internally).
+  const autoDetectRef = useRef<(audio: typeof loadedAudio) => void>(() => {})
+  autoDetectRef.current = (audio) => {
+    if (!audio) {
+      return
+    }
+    void tempo.detect(audio).then((analysis) => {
+      if (analysis) {
+        metronome.enable(analysis.grid)
+      }
+    })
+  }
+  useEffect(() => {
+    autoDetectRef.current(loadedAudio)
+  }, [loadedAudio])
 
   // Reload/close would silently drop unsaved work — let the browser confirm.
   useUnloadGuard(session.unsavedWork)
@@ -156,15 +192,32 @@ export function WorkstationShell({
     void separation.exportStems(exportBaseName(metadata.title, session.trackName))
   }
 
-  // Once the stems are mixing, the main view shows the audible mix (recomputed as
-  // the faders/solo/mute change); otherwise it shows the imported track itself.
-  const mainViewState =
-    stemsReady && importState.status === 'loaded'
-      ? {
-          status: 'loaded' as const,
-          track: { ...importState.track, waveform: mixer.mixWaveform }
-        }
-      : importState
+  // Download one mixer lane as a WAV. The synthetic lanes (the click, and the
+  // whole track when un-separated) are rendered on the fly; a separated stem
+  // defers to the separation's own numbered download.
+  const handleDownloadStem = (id: string) => {
+    const base = exportBaseName(metadata.title, session.trackName)
+    if (id === METRONOME_ID && tempo.analysis && loadedAudio) {
+      const samples = synthesizeClickTrack({
+        beats: tempo.analysis.grid,
+        durationSeconds: transport.durationSeconds,
+        sampleRate: loadedAudio.sampleRate
+      })
+      const wav = encodeWav([samples], loadedAudio.sampleRate)
+      downloadBlob(`${base}_metronome.wav`, new Blob([wav], { type: 'audio/wav' }))
+      return
+    }
+    if (id === TRACK_STEM_ID && loadedAudio) {
+      const wav = encodeWav(loadedAudio.channels, loadedAudio.sampleRate)
+      downloadBlob(`${base}_piste.wav`, new Blob([wav], { type: 'audio/wav' }))
+      return
+    }
+    separation.downloadStem(id)
+  }
+
+  // While any stem drives the mix, each stem is drawn into the main view in its
+  // own colour (see `mixLayers`); an un-separated track shows its one waveform.
+  const mainViewState = importState
 
   return (
     <div className={styles.shell}>
@@ -203,12 +256,7 @@ export function WorkstationShell({
         loopEditing={loopEditing}
         separation={separation}
         tempo={tempo}
-        onDetectTempo={() => {
-          if (loadedAudio) {
-            void tempo.detect(loadedAudio)
-          }
-        }}
-        canDetectTempo={isLoaded && loadedAudio !== undefined}
+        onDownloadStem={handleDownloadStem}
         mainViewState={mainViewState}
         loopRegion={loopRegion}
         loopEnabled={loopEnabled}
@@ -220,11 +268,22 @@ export function WorkstationShell({
           if (loadedAudio) {
             // Wire the mixer right where the stems are produced — no effect
             // watching props (the audio engine sync belongs to this event).
-            void separation
-              .separate(loadedAudio)
-              .then(
-                (result) => result && mixer.load(result.stems, result.sources)
-              )
+            void separation.separate(loadedAudio).then((result) => {
+              if (!result) {
+                return
+              }
+              // Load the stems (and, if the tempo is known, the always-on click
+              // alongside them) in one pass, so neither overwrites the other.
+              if (tempo.analysis) {
+                metronome.attach(
+                  tempo.analysis.grid,
+                  result.stems,
+                  result.sources
+                )
+              } else {
+                mixer.load(result.stems, result.sources)
+              }
+            })
           }
         }}
       />

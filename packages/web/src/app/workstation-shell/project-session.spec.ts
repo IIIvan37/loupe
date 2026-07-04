@@ -138,9 +138,10 @@ describe('restoreSession', () => {
       mixer: {
         channels: [],
         state: [],
-        mixWaveform: { peaks: [] },
         load: vi.fn(),
         restore: vi.fn(),
+        addStem: vi.fn(),
+        removeStem: vi.fn(),
         reset: vi.fn(),
         setGain: vi.fn(),
         toggleMute: vi.fn(),

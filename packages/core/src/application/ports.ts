@@ -112,6 +112,10 @@ export interface StemSource {
 export interface StemPlaybackEngine {
   /** Load the stems as the current multitrack source, ready from the start. */
   load(stems: readonly StemSource[]): Promise<void>
+  /** Add one stem to the running mix, joining in sync at the current position. */
+  addStem(stem: StemSource): Promise<void>
+  /** Drop one stem from the mix, leaving the rest playing. */
+  removeStem(id: string): void
   play(): void
   pause(): void
   seekTo(seconds: number): void

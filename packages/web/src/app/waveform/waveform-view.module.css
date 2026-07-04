@@ -16,6 +16,13 @@
   touch-action: none;
 }
 
+/* One coloured stem envelope overlaid in the mix; they stack in the surface. */
+.layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 /* The clickable seek surface; fills the container, drives click + drag-select. */
 .surface {
   position: absolute;
@@ -37,22 +44,24 @@
   pointer-events: none;
 }
 
-/* A detected beat line; downbeats (bar starts) are drawn stronger. */
+/* A detected beat line: a faint grid that stays behind the waveform. Downbeats
+ * (bar starts) are a touch stronger, but everything is kept low-contrast so the
+ * audio, not the grid, is what reads. */
 .beat {
   position: absolute;
   inset-block: 0;
   width: 1px;
   transform: translateX(-50%);
-  background: color-mix(in srgb, var(--dim) 40%, transparent);
+  background: color-mix(in srgb, var(--dim) 12%, transparent);
   pointer-events: none;
 }
 
 .downbeat {
   position: absolute;
   inset-block: 0;
-  width: 2px;
+  width: 1px;
   transform: translateX(-50%);
-  background: color-mix(in srgb, var(--dim) 85%, transparent);
+  background: color-mix(in srgb, var(--dim) 28%, transparent);
   pointer-events: none;
 }
 
