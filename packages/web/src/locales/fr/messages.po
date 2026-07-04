@@ -335,7 +335,7 @@ msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-stage.tsx:68
+#: src/app/workstation-shell/shell-stage.tsx:84
 msgid "mixer.mix-label"
 msgstr "Mix"
 
@@ -370,7 +370,7 @@ msgid "projects.confirm-open"
 msgstr "Confirmer l'ouverture de {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/use-projects.ts:177
+#: src/projects/use-projects.ts:180
 msgid "projects.delete-failed"
 msgstr "Impossible de supprimer le projet : {error}"
 
@@ -410,7 +410,7 @@ msgid "projects.rename"
 msgstr "Renommer"
 
 #. js-lingui-explicit-id
-#: src/projects/use-projects.ts:156
+#: src/projects/use-projects.ts:159
 msgid "projects.rename-failed"
 msgstr "Impossible de renommer le projet : {error}"
 
@@ -622,38 +622,42 @@ msgid "transport.tempo-slider"
 msgstr "Tempo en pourcentage"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:201
+#: src/app/waveform/waveform-view.tsx:192
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:193
+#: src/app/waveform/waveform-view.tsx:184
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:328
+#: src/app/waveform/waveform-view.tsx:234
+msgid "waveform.mix-image"
+msgstr "Forme d'onde du mix"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/waveform-view.tsx:304
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:316
+#: src/app/waveform/waveform-view.tsx:292
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
 #. js-lingui-explicit-id
 #: src/app/mixer/stem-lanes.tsx:42
-#: src/app/waveform/waveform-view.tsx:255
 msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:233
+#: src/app/waveform/waveform-view.tsx:224
 msgid "waveform.surface"
 msgstr "Forme d'onde : clic pour se positionner, glisser pour boucler"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:266
+#: src/app/waveform/waveform-view.tsx:242
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 

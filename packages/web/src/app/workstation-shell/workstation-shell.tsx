@@ -235,8 +235,8 @@ export function WorkstationShell({
     separation.downloadStem(id)
   }
 
-  // While any stem drives the mix, each stem is drawn into the main view in its
-  // own colour (see `mixLayers`); an un-separated track shows its one waveform.
+  // The main view shows the summed mix envelope once separated (see the stage's
+  // `mixWaveform`); an un-separated track shows its one waveform.
   const mainViewState = importState
 
   return (

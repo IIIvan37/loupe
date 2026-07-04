@@ -1,6 +1,6 @@
 import { Trans } from '@lingui/react/macro'
-import type { BeatGrid } from '@app/core'
-import type { ComponentProps } from 'react'
+import { type BeatGrid, combineWaveforms } from '@app/core'
+import { type ComponentProps, useMemo } from 'react'
 import { StemHeaders } from '../mixer/stem-headers.tsx'
 import { StemLanes } from '../mixer/stem-lanes.tsx'
 import type { useMixer } from '../mixer/use-mixer.ts'
@@ -50,6 +50,22 @@ export function ShellStage({
   onSeekSeconds,
   onSeekRatio
 }: ShellStageProps) {
+  // Fold the present stems back into one envelope — the waveform of the audible
+  // mix, each stem weighted by its effective gain so muting/soloing reshapes it.
+  // Undefined for an un-separated track (the view then shows its lone waveform).
+  const mixWaveform = useMemo(
+    () =>
+      mixer.channels.length === 0
+        ? undefined
+        : combineWaveforms(
+            mixer.channels.map((channel) => ({
+              waveform: channel.stem.track.waveform,
+              gain: channel.gain
+            }))
+          ),
+    [mixer.channels]
+  )
+
   return (
     <div className={styles.stage}>
       <div className={styles.gutter}>
@@ -89,12 +105,7 @@ export function ShellStage({
           loopRegion={loopRegion}
           loopEnabled={loopEnabled}
           beatGrid={beatGrid}
-          mixLayers={mixer.channels.map((channel) => ({
-            id: channel.stem.id,
-            label: channel.stem.label,
-            waveform: channel.stem.track.waveform,
-            level: channel.level
-          }))}
+          mixWaveform={mixWaveform}
           durationSeconds={durationSeconds}
           onSeek={onSeekRatio}
           onSelectRegion={loopEditing.selectRegion}

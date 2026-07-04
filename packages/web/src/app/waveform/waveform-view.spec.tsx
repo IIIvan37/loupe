@@ -31,7 +31,7 @@ function renderLoaded(
       loopRegion={undefined}
       loopEnabled
       beatGrid={[]}
-      mixLayers={[]}
+      mixWaveform={undefined}
       durationSeconds={10}
       onSeek={noop}
       onSelectRegion={noop}
@@ -55,7 +55,7 @@ describe('WaveformView', () => {
         loopRegion={undefined}
         loopEnabled
         beatGrid={[]}
-        mixLayers={[]}
+        mixWaveform={undefined}
         durationSeconds={0}
         onSeek={noop}
         onSelectRegion={noop}
@@ -107,7 +107,7 @@ describe('WaveformView', () => {
         loopRegion={loopRegion}
         loopEnabled
         beatGrid={[]}
-        mixLayers={[]}
+        mixWaveform={undefined}
         durationSeconds={10}
         onSeek={noop}
         onSelectRegion={noop}
@@ -176,26 +176,15 @@ describe('WaveformView', () => {
     ).toBeInTheDocument()
   })
 
-  it('draws one coloured envelope per mix layer instead of the single one', () => {
-    renderLoaded({
-      mixLayers: [
-        { id: 'voix', label: 'Voix', waveform: track.waveform, level: 1 },
-        { id: 'metronome', label: 'Métronome', waveform: track.waveform, level: 0.5 }
-      ]
-    })
-    // The stems' own images replace the single track envelope.
+  it('draws a single mix envelope when given a combined mix waveform', () => {
+    renderLoaded({ mixWaveform: { peaks: [{ min: -0.5, max: 0.5 }] } })
+    // The one summed mix envelope replaces the un-separated track envelope;
+    // the individual stems live in their own lanes, not overlaid here.
     expect(
       screen.queryByRole('img', { name: i18n._('waveform.track-image') })
     ).not.toBeInTheDocument()
     expect(
-      screen.getByRole('img', {
-        name: i18n._('waveform.stem-image', { name: 'Voix' })
-      })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('img', {
-        name: i18n._('waveform.stem-image', { name: 'Métronome' })
-      })
+      screen.getByRole('img', { name: i18n._('waveform.mix-image') })
     ).toBeInTheDocument()
   })
 })
