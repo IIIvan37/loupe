@@ -344,7 +344,7 @@ msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-stage.tsx:84
+#: src/app/workstation-shell/shell-stage.tsx:88
 msgid "mixer.mix-label"
 msgstr "Mix"
 
@@ -362,6 +362,11 @@ msgstr "Mixer"
 #: src/app/mixer/stem-headers.tsx:96
 msgid "mixer.solo"
 msgstr "Isoler {name}"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/undetected-stems.tsx:26
+msgid "mixer.undetected"
+msgstr "Non détectés"
 
 #. js-lingui-explicit-id
 #: src/app/mixer/stem-headers.tsx:111
@@ -459,19 +464,14 @@ msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:92
+#: src/app/separation/separation-panel.tsx:87
 msgid "separation.failed"
 msgstr "La séparation a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:103
+#: src/app/separation/separation-panel.tsx:96
 msgid "separation.idle-hint"
 msgstr "Les pistes séparées (voix, batterie, basse…) s'alignent sous la forme d'onde, chacune avec ses propres contrôles."
-
-#. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:62
-msgid "separation.ready"
-msgstr "Pistes séparées"
 
 #. js-lingui-explicit-id
 #: src/app/separation/separation-panel.tsx:55
@@ -479,12 +479,12 @@ msgid "separation.region-label"
 msgstr "Séparation des pistes"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:72
+#: src/app/separation/separation-panel.tsx:68
 msgid "separation.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:73
+#: src/app/separation/separation-panel.tsx:69
 msgid "separation.separate"
 msgstr "Séparer les pistes"
 
@@ -492,11 +492,6 @@ msgstr "Séparer les pistes"
 #: src/app/separation/separation-panel.tsx:13
 msgid "separation.separating"
 msgstr "Séparation des pistes…"
-
-#. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:122
-msgid "separation.undetected"
-msgstr "Non détectés"
 
 #. js-lingui-explicit-id
 #: src/app/header/import-menu.tsx:101

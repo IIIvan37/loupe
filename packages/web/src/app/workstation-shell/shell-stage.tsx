@@ -3,6 +3,7 @@ import { type BeatGrid, combineWaveforms } from '@app/core'
 import { type ComponentProps, useMemo } from 'react'
 import { StemHeaders } from '../mixer/stem-headers.tsx'
 import { StemLanes } from '../mixer/stem-lanes.tsx'
+import { UndetectedStems } from '../mixer/undetected-stems.tsx'
 import type { useMixer } from '../mixer/use-mixer.ts'
 import type { useMarkers } from '../markers/use-markers.ts'
 import { MarkerRail } from '../markers/marker-rail.tsx'
@@ -19,6 +20,8 @@ interface ShellStageProps {
   readonly durationSeconds: number
   readonly viewport: ReturnType<typeof useViewport>
   readonly mixer: ReturnType<typeof useMixer>
+  /** Stems the separation masked as near-silent — named in the gutter. */
+  readonly undetectedStems: readonly { readonly id: string; readonly label: string }[]
   readonly onDownloadStem: (id: string) => void
   readonly markers: ReturnType<typeof useMarkers>
   readonly loopEditing: ReturnType<typeof useLoopEditing>
@@ -40,6 +43,7 @@ export function ShellStage({
   durationSeconds,
   viewport,
   mixer,
+  undetectedStems,
   onDownloadStem,
   markers,
   loopEditing,
@@ -90,6 +94,7 @@ export function ShellStage({
               onToggleSolo={mixer.toggleSolo}
               onDownloadStem={onDownloadStem}
             />
+            <UndetectedStems stems={undetectedStems} />
           </>
         )}
       </div>

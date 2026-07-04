@@ -1,4 +1,4 @@
-import type { SeparationState, StemSet } from '@app/core'
+import type { SeparationState } from '@app/core'
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -24,11 +24,12 @@ interface SeparationPanelProps {
 }
 
 /**
- * Dumb presentational panel for the import → separation moment: a single action
- * on the loaded track, a progress read-out while it runs, then — once ready —
- * the « Non détectés » line for the stems detection masked. The present stems
- * are the mixer's job (faders, waveforms). No second import: it acts on the
- * audio already in the player.
+ * Dumb presentational affordance for the import → separation moment: a single
+ * action on the loaded track and a progress read-out while it runs. Sits at the
+ * top of the column, near the import. Once the stems are ready they become the
+ * mixer (faders, waveforms, lanes) and the « Non détectés » caption lives in the
+ * mixer gutter, so this panel steps aside entirely. No second import: it acts on
+ * the audio already in the player.
  */
 export function SeparationPanel({
   state,
@@ -39,13 +40,12 @@ export function SeparationPanel({
   const isRunning = state.status === 'analysing' || state.status === 'separating'
   const percent = Math.round(state.progress * 100)
   const error = state.error
-  // Offer the action only while there is something to do: hide it once the stems
-  // are ready (a re-run needs a fresh import), keep it as a retry on failure.
-  const canAct = !isRunning && state.status !== 'ready'
 
-  // Once ready the stems live in the timeline (lanes + gutter headers); with
-  // no masked stem to report either, the whole section would just dangle.
-  if (state.status === 'ready' && state.stems.every((stem) => stem.present)) {
+  // Once ready the stems ARE the mixer (lanes + gutter headers, with the
+  // « Non détectés » caption among them), so the affordance has nothing left
+  // to show. Offer the action only while there is something to do: separate
+  // when idle, retry on failure.
+  if (state.status === 'ready') {
     return null
   }
 
@@ -57,23 +57,18 @@ export function SeparationPanel({
         message: 'Séparation des pistes'
       })}
     >
-      <div className={styles.head}>
-        <span className={styles.label}>
-          <Trans id="separation.ready">Pistes séparées</Trans>
-        </span>
-        {canAct && (
-          <button
-            type="button"
-            className={styles.action}
-            disabled={!canSeparate}
-            onClick={onSeparate}
-          >
-            {state.status === 'error'
-              ? t({ id: 'separation.retry', message: 'Réessayer' })
-              : t({ id: 'separation.separate', message: 'Séparer les pistes' })}
-          </button>
-        )}
-      </div>
+      {!isRunning && (
+        <button
+          type="button"
+          className={styles.action}
+          disabled={!canSeparate}
+          onClick={onSeparate}
+        >
+          {state.status === 'error'
+            ? t({ id: 'separation.retry', message: 'Réessayer' })
+            : t({ id: 'separation.separate', message: 'Séparer les pistes' })}
+        </button>
+      )}
 
       {isRunning && (
         <div className={styles.progress}>
@@ -96,8 +91,6 @@ export function SeparationPanel({
         </p>
       )}
 
-      {state.status === 'ready' && <UndetectedLine stems={state.stems} />}
-
       {state.status === 'idle' && (
         <p className={styles.hint}>
           <Trans id="separation.idle-hint">
@@ -107,21 +100,5 @@ export function SeparationPanel({
         </p>
       )}
     </section>
-  )
-}
-
-/** Name the stems adaptive detection masked as near-silent (nothing if none). */
-function UndetectedLine({ stems }: { readonly stems: StemSet }) {
-  const absent = stems.filter((stem) => !stem.present)
-  if (absent.length === 0) {
-    return null
-  }
-  return (
-    <p className={styles.undetected}>
-      <span className={styles.undetectedLabel}>
-        <Trans id="separation.undetected">Non détectés</Trans>
-      </span>{' '}
-      <span>{absent.map((stem) => stem.label).join(' · ')}</span>
-    </p>
   )
 }

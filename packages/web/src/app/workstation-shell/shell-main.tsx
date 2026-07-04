@@ -66,10 +66,23 @@ export function ShellMain({
   canSeparate,
   onSeparate
 }: ShellMainProps) {
+  // Stems the separation masked as near-silent — captioned in the mixer gutter.
+  const undetectedStems =
+    separation.state.status === 'ready'
+      ? separation.state.stems.filter((stem) => !stem.present)
+      : []
+
   return (
     <div className={styles.body}>
       <main className={styles.main}>
         <Stack gap="var(--space-m)">
+          {/* The import → stems bridge sits at the top, by the import moment;
+              once ready it steps aside and the stems become the mixer. */}
+          <SeparationPanel
+            state={separation.state}
+            canSeparate={canSeparate}
+            onSeparate={onSeparate}
+          />
           <MarkerControls
             disabled={!isLoaded}
             onAdd={() => markers.addAt(positionSeconds)}
@@ -80,6 +93,7 @@ export function ShellMain({
             durationSeconds={durationSeconds}
             viewport={viewport}
             mixer={mixer}
+            undetectedStems={undetectedStems}
             onDownloadStem={onDownloadStem}
             markers={markers}
             loopEditing={loopEditing}
@@ -104,11 +118,6 @@ export function ShellMain({
             onToggleLoop={onToggleLoop}
             onSaveRegion={loopEditing.saveRegion}
             onClearRegion={loopEditing.clearRegion}
-          />
-          <SeparationPanel
-            state={separation.state}
-            canSeparate={canSeparate}
-            onSeparate={onSeparate}
           />
         </Stack>
       </main>
