@@ -22,8 +22,10 @@
   Details in
   [2026-07-02-jalon2-export-verify](sessions/2026-07-02-jalon2-export-verify.md).
 - **Jalon 3 (« Projets ») core slices are merged** (J3.1–J3.4 + races +
-  active-loop fix + UX session state). Remaining Jalon 3 work is polish
-  (project rename, blob GC, `separator-server/` → `server/`).
+  active-loop fix + UX session state). **Jalon 3 polish is done (2026-07-04) —
+  three PRs open**: `separator-server/` → `server/` rename (#43), rename a saved
+  project (#44), and blob GC (#45). See
+  [2026-07-04-jalon3-polish](sessions/2026-07-04-jalon3-polish.md).
 - **Now — metronome-persistence slice (2026-07-04)**: the detected tempo +
   metronome now **persist with the project**. New pure `ProjectTempo`
   (`bpm` + downbeat-flagged `BeatGrid` + the metronome's `MixerChannel`) on
@@ -254,12 +256,18 @@
 
 ## Next step
 
-**Pick the next slice** (metronome-persistence merged, PR #41). Candidates by
-user value:
+**Merge the three Jalon 3 polish PRs (#43 → #44 → #45, independent), then pick
+the next slice.** Candidates by user value:
 - UX backlog: speed trainer, undo.
-- Jalon 3 polish: project rename, blob GC, `separator-server/` → `server/`.
 - Perf: off-thread zip/encode — the export measurably freezes the UI a few
   seconds on a 4-min track (main-thread encode+zip, ~229 MB).
+- **Jalon 4**: export MIDI per stem (basic-pitch), starting bass + monophonic —
+  the headline audio→notation differentiator.
+
+**Jalon 3 polish is done** (rename `server/`, project rename, blob GC).
+Follow-ups from that batch: browser-verify the project rename on the Mac (low
+risk); no UI trigger for GC yet (boot sweep + `POST /gc`); after #43 merges the
+local venv must be recreated/repatched under `server/.venv`.
 - Follow-up (small, documented): old *separated* manifests re-`attach` stems on
   the fire-and-forget detect, reverting fader edits made in the detection window
   — self-heals on save; fix only if it bites.
@@ -344,12 +352,25 @@ mixer (J2.4) then export (J2.6). See
 | J3.2 | Ports `ProjectStore` / `ProjectAudioStore` + use-cases `saveProject` / `listProjects` / `openProject` / `deleteProject` (fake adapters, mixer↔stems invariant enforced) | ✅ |
 | J3.3 | Real adapter + UI (Save / list / Open) — **decided: extended HTTP server** (content-addressed blobs; storage works without torch) | ✅ |
 | J3.4 | Per-project loops — localStorage `LoopStore` removed; loops are session state, persisted only via the manifest | ✅ |
-| J4.1 | Import from a media URL (YouTube / SoundCloud) — `TrackSource` port + `importFromUrl` (core) + HTTP adapter + yt-dlp server + « Menu sur Importer » UI. Real download browser-verify + PR pending | 🚧 |
+| J4.1 | Import from a media URL (YouTube / SoundCloud) — `TrackSource` port + `importFromUrl` (core) + HTTP adapter + yt-dlp server + « Menu sur Importer » UI. Merged (PR #42) | ✅ |
+| J3.5 | Jalon 3 polish — `separator-server/` → `server/` rename (#43), rename a saved project (#44), blob GC (#45). PRs open | 🚧 |
 
 ## Session journal
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-04 — jalon3-polish](sessions/2026-07-04-jalon3-polish.md) —
+  The three deferred Jalon 3 polish items, each its own branch/PR.
+  **(1) `separator-server/` → `server/` rename** (#43): the backend outgrew its
+  name; `git mv` + in-place venv-path patch + config/README updates. **(2) Rename
+  a saved project** (#44): thin slice — core `renameProject` (load → trim → save,
+  refs untouched, no server change), `useProjects.rename`, a « Renommer »
+  `NameEditor` popover per row (reuses the loop/marker rename popover); mutation
+  killed all 24 of its mutants. **(3) Blob GC** (#45): server-side manifest-scan
+  `collect_garbage` (schema-agnostic — any sha256-shaped string is a live ref;
+  conservative — aborts if a manifest is unreadable), `POST /gc` + a lifespan boot
+  sweep; new pytest infra (6 GC cases), live-verified. Gates green. PRs open, not
+  yet merged.
 - [2026-07-04 — import-from-url-adapter-ui](sessions/2026-07-04-import-from-url-adapter-ui.md) —
   The adapter + server + UI half of J4.1, making it a full vertical slice. Web
   `createHttpTrackSource` (NDJSON `POST /download` → `GET /audio/{ref}`) on a new
