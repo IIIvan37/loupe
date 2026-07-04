@@ -2,14 +2,28 @@ import {
   type BeatGrid,
   buildStemTrack,
   type DecodedAudio,
+  type MixerChannel,
   type SeparatedStem,
   type StemTrack,
-  synthesizeClickTrack
+  synthesizeClickTrack,
+  UNITY_GAIN_DB
 } from '@app/core'
 
 /** The stem id/label the metronome click occupies in the mixer. */
 export const METRONOME_ID = 'metronome'
 const METRONOME_LABEL = 'Métronome'
+
+/**
+ * A fresh metronome joins the mix muted — unlike every other voice, the click is
+ * off by default; unmute the lane to hear it. Reopening a saved project restores
+ * the settings the user actually left instead of this default.
+ */
+export const DEFAULT_METRONOME_CHANNEL: MixerChannel = {
+  id: METRONOME_ID,
+  gainDb: UNITY_GAIN_DB,
+  muted: true,
+  soloed: false
+}
 
 /** Peak resolution of the click lane — matches the separation stems'. */
 const BUCKET_COUNT = 1200

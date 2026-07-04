@@ -6,8 +6,10 @@ import {
   type MixerState,
   type OpenProjectResult,
   type Project,
+  type ProjectTempo,
   type SeparatedStem,
-  type StemSet
+  type StemSet,
+  type TempoAnalysis
 } from '@app/core'
 import { describe, expect, it, vi } from 'vitest'
 import type { Loops } from '../loops/use-loops.ts'
@@ -17,6 +19,7 @@ import type {
   Separation,
   SeparationResult
 } from '../separation/use-separation.ts'
+import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
 import { restoreSession, sessionSaveInput } from './project-session.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
@@ -51,6 +54,24 @@ describe('sessionSaveInput', () => {
       tuning
     })
     expect(input.tuning).toEqual(tuning)
+  })
+
+  it('carries the tempo analysis and metronome settings into the save input', () => {
+    const tempo: ProjectTempo = {
+      bpm: 96,
+      grid: [{ timeSeconds: 0, downbeat: true }],
+      metronome: { id: 'metronome', gainDb: -3, muted: false, soloed: false }
+    }
+    const input = sessionSaveInput({
+      bytes: new ArrayBuffer(4),
+      title: 'Song',
+      artist: 'Band',
+      loops: [],
+      markers: [],
+      tuning: neutralTuning,
+      tempo
+    })
+    expect(input.tempo).toEqual(tempo)
   })
 
   it('persists only the stems the mixer holds a channel for, as WAV bytes', () => {
@@ -98,7 +119,10 @@ describe('restoreSession', () => {
     }
   }
 
-  function fakeDeps(restored: SeparationResult | undefined) {
+  function fakeDeps(
+    restored: SeparationResult | undefined,
+    detected: TempoAnalysis | undefined = undefined
+  ) {
     return {
       importFile: vi.fn(async () => audio),
       markers: {
@@ -124,6 +148,18 @@ describe('restoreSession', () => {
       } satisfies Loops,
       restoreActiveLoop: vi.fn(),
       restoreTuning: vi.fn(),
+      tempo: {
+        analysis: undefined,
+        detect: vi.fn(async () => detected),
+        set: vi.fn(),
+        reset: vi.fn()
+      },
+      metronome: {
+        enable: vi.fn(),
+        attach: vi.fn(),
+        reset: vi.fn()
+      },
+      setSuppressAutoDetect: vi.fn(),
       separation: {
         state: initialSeparation,
         sources: [],
@@ -277,6 +313,119 @@ describe('restoreSession', () => {
     await restoreSession(opened, deps)
 
     expect(deps.restoreTuning).toHaveBeenCalledWith(neutralTuning)
+  })
+
+  it('suppresses the shell auto-detect while the open owns tempo seating', async () => {
+    const deps = fakeDeps(undefined)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: baseProject,
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    expect(deps.setSuppressAutoDetect).toHaveBeenCalledWith(true)
+  })
+
+  const savedTempo: ProjectTempo = {
+    bpm: 120,
+    grid: [
+      { timeSeconds: 0, downbeat: true },
+      { timeSeconds: 0.5, downbeat: false }
+    ],
+    metronome: { id: 'metronome', gainDb: -6, muted: false, soloed: false }
+  }
+
+  it('restores the persisted tempo and seats an un-separated metronome', async () => {
+    const deps = fakeDeps(undefined)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: { ...baseProject, tempo: savedTempo },
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    // Seated from the manifest — no detection (no server).
+    expect(deps.tempo.set).toHaveBeenCalledWith({
+      bpm: savedTempo.bpm,
+      grid: savedTempo.grid
+    })
+    expect(deps.tempo.detect).not.toHaveBeenCalled()
+    expect(deps.metronome.enable).toHaveBeenCalledWith(
+      savedTempo.grid,
+      audio,
+      savedTempo.metronome
+    )
+  })
+
+  it('attaches the metronome onto the restored stems for a separated project', async () => {
+    const stems: StemSet = [
+      {
+        id: 'voix',
+        label: 'Voix',
+        track: { sampleRate: 4, durationSeconds: 1, waveform: { peaks: [] } },
+        confidence: 1,
+        present: true
+      }
+    ]
+    const restored: SeparationResult = { stems, sources: [voix] }
+    const deps = fakeDeps(restored)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: { ...project, tempo: savedTempo },
+      sourceBytes: new ArrayBuffer(4),
+      stems: [
+        {
+          id: 'voix',
+          bytes: encodeWav(audio.channels, audio.sampleRate)
+            .buffer as ArrayBuffer
+        }
+      ]
+    }
+
+    await restoreSession(opened, deps)
+
+    // The click joins the stems in one pass; the plain mixer.restore is not used.
+    expect(deps.metronome.attach).toHaveBeenCalledWith(
+      savedTempo.grid,
+      restored.stems,
+      restored.sources,
+      audio,
+      savedMixer,
+      savedTempo.metronome
+    )
+    expect(deps.mixer.restore).not.toHaveBeenCalled()
+  })
+
+  it('detects the tempo for an old manifest and seats a muted metronome', async () => {
+    const detected: TempoAnalysis = {
+      bpm: 100,
+      grid: [{ timeSeconds: 0, downbeat: true }]
+    }
+    const deps = fakeDeps(undefined, detected)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: baseProject,
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    expect(deps.tempo.detect).toHaveBeenCalledWith(audio)
+    // Detection is fire-and-forget (it must not block the open) — the click
+    // seats muted by default once it lands.
+    await vi.waitFor(() => {
+      expect(deps.metronome.enable).toHaveBeenCalledWith(
+        detected.grid,
+        audio,
+        DEFAULT_METRONOME_CHANNEL
+      )
+    })
   })
 
   it('leaves the loupe alone when the project saved none', async () => {

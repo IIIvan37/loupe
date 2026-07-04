@@ -20,6 +20,11 @@ export interface Tempo {
    * (e.g. seat the metronome stem), or undefined if detection failed/was stale.
    */
   readonly detect: (audio: DecodedAudio) => Promise<TempoAnalysis | undefined>
+  /**
+   * Seat a persisted analysis directly (opening a saved project) — no detection,
+   * no server. Supersedes any in-flight detect so its late result can't win.
+   */
+  readonly set: (analysis: TempoAnalysis) => void
   /** Forget the analysis — a fresh track has its own tempo. */
   readonly reset: () => void
 }
@@ -57,6 +62,15 @@ export function useTempo(detector?: TempoDetector): Tempo {
     return undefined
   }
 
+  function set(next: TempoAnalysis): void {
+    // Supersede any in-flight detect (bump the token) so its late result can't
+    // overwrite the persisted analysis we are seating here.
+    runIdRef.current++
+    setDetecting(false)
+    setError(undefined)
+    setAnalysis(next)
+  }
+
   function reset(): void {
     // Abandon any in-flight run so its late result can't repopulate the state.
     runIdRef.current++
@@ -65,5 +79,5 @@ export function useTempo(detector?: TempoDetector): Tempo {
     setError(undefined)
   }
 
-  return { analysis, detecting, error, detect, reset }
+  return { analysis, detecting, error, detect, set, reset }
 }

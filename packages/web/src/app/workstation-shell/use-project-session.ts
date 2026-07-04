@@ -1,15 +1,20 @@
 import type {
   LoopRegion,
+  MixerChannel,
   MixerState,
   Project,
   ProjectDeps,
+  ProjectTempo,
   ProjectTuning
 } from '@app/core'
 import { type ChangeEvent, useRef, useState } from 'react'
 import { sessionSignature } from '../../projects/session-signature.ts'
 import { type Projects, useProjects } from '../../projects/use-projects.ts'
 import { TRACK_STEM_ID } from '../mixer/track-stem.ts'
-import { METRONOME_ID } from '../tempo/metronome-stem.ts'
+import {
+  DEFAULT_METRONOME_CHANNEL,
+  METRONOME_ID
+} from '../tempo/metronome-stem.ts'
 import {
   restoreSession,
   type SessionRestoreDeps,
@@ -37,10 +42,6 @@ export interface ProjectSessionDeps extends SessionRestoreDeps {
   /** The live playback tuning (tempo/pitch/zoom) — saved and fingerprinted. */
   readonly tuning: ProjectTuning
   readonly viewport: { readonly reset: () => void }
-  /** The tempo analysis is per-track — a fresh track forgets it. */
-  readonly tempo: { readonly reset: () => void }
-  /** The metronome is per-track — a fresh track drops the click. */
-  readonly metronome: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
 }
@@ -113,8 +114,33 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     )
   }
 
+  /** The metronome's live mixer channel, once the click has been seated. */
+  function metronomeChannel(): MixerChannel | undefined {
+    return deps.mixer.state.find((channel) => channel.id === METRONOME_ID)
+  }
+
+  /**
+   * The tempo half of the session as a save persists it: the detected analysis
+   * plus the metronome's live mixer settings. Present only once a tempo is known.
+   */
+  function liveTempo(): ProjectTempo | undefined {
+    const analysis = deps.tempo.analysis
+    if (analysis === undefined) {
+      return undefined
+    }
+    return {
+      bpm: analysis.bpm,
+      grid: analysis.grid,
+      metronome: metronomeChannel() ?? DEFAULT_METRONOME_CHANNEL
+    }
+  }
+
   /** The live session's persisted-state fingerprint (heavy audio excluded). */
   function liveSignature(): string {
+    // Sign the metronome on the SAME condition a save persists it (a known
+    // tempo, via `liveTempo`), so the two sides never disagree on whether a
+    // metronome is part of the session.
+    const tempo = liveTempo()
     return sessionSignature({
       loops: deps.loops.library,
       markers: deps.markers.markers,
@@ -123,6 +149,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
           ? undefined
           : { region: deps.loopRegion, enabled: deps.loopEnabled },
       tuning: deps.tuning,
+      tempo: tempo ? { metronome: tempo.metronome } : undefined,
       separation: deps.stemsReady ? { mixer: separationMixer() } : undefined
     })
   }
@@ -132,6 +159,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     if (!deps.loadedBytes) {
       return
     }
+    const tempo = liveTempo()
     const input = sessionSaveInput({
       bytes: deps.loadedBytes,
       title: deps.metadata.title ?? trackName ?? undefined,
@@ -139,6 +167,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       loops: deps.loops.library,
       markers: deps.markers.markers,
       tuning: deps.tuning,
+      ...(tempo === undefined ? {} : { tempo }),
       ...(deps.loopRegion === undefined
         ? {}
         : {
@@ -193,6 +222,8 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       sessionEpochRef.current += 1
       projects.detach()
       setSavedSignature(undefined)
+      // A fresh import must auto-detect: clear any pending open-restore guard.
+      deps.setSuppressAutoDetect(false)
       startFreshTrack(trackTitle(file.name))
       void deps.importFile(file)
     }
