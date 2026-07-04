@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
-import { LoopBar } from '../loops/loop-bar.tsx'
+import { LoopControls } from '../loops/loop-controls.tsx'
 import type { useLoopEditing } from '../loops/use-loop-editing.ts'
 import type { useLoops } from '../loops/use-loops.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
@@ -97,18 +97,13 @@ export function ShellMain({
               error={tempo.error}
             />
           )}
-          <LoopBar
+          <LoopControls
             region={loopRegion}
             isSaved={loopEditing.isSaved}
-            activeLoopId={loopEditing.activeLoopId}
             loopEnabled={loopEnabled}
             onToggleLoop={onToggleLoop}
-            library={loops.library}
             onSaveRegion={loopEditing.saveRegion}
-            onUpdateLoop={loops.update}
             onClearRegion={loopEditing.clearRegion}
-            onActivate={loopEditing.activate}
-            onRemove={loopEditing.remove}
           />
           <SeparationPanel
             state={separation.state}
@@ -123,6 +118,11 @@ export function ShellMain({
         onSeekMarker={onSeekSeconds}
         onRenameMarker={markers.rename}
         onRemoveMarker={markers.remove}
+        loops={loops.library}
+        activeLoopId={loopEditing.activeLoopId}
+        onActivateLoop={loopEditing.activate}
+        onUpdateLoop={loops.update}
+        onRemoveLoop={loopEditing.remove}
       />
     </div>
   )

@@ -19,32 +19,42 @@ msgid "alerts.close"
 msgstr "Fermer l'alerte"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:52
+#: src/app/analysis-panel/analysis-panel.tsx:114
+msgid "analysis.no-loops"
+msgstr "Aucune boucle. En enregistrer une depuis une sélection A/B sur la forme d'onde."
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:75
 msgid "analysis.no-markers"
 msgstr "Aucun repère. En ajouter depuis la barre de repères."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:110
+#: src/app/analysis-panel/analysis-panel.tsx:155
 msgid "analysis.notes-placeholder"
 msgstr "Les annotations textuelles arriveront plus tard."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:44
+#: src/app/analysis-panel/analysis-panel.tsx:67
 msgid "analysis.spectrum-placeholder"
 msgstr "L'analyse spectrale arrivera avec la détection (jalon ultérieur)."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:36
+#: src/app/analysis-panel/analysis-panel.tsx:59
+msgid "analysis.tab-loops"
+msgstr "Boucles"
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:56
 msgid "analysis.tab-markers"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:39
+#: src/app/analysis-panel/analysis-panel.tsx:62
 msgid "analysis.tab-notes"
 msgstr "Notes"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:33
+#: src/app/analysis-panel/analysis-panel.tsx:53
 msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
@@ -76,8 +86,7 @@ msgid "common.name"
 msgstr "Nom"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:84
-#: src/app/loops/loop-bar.tsx:125
+#: src/app/analysis-panel/analysis-panel.tsx:208
 #: src/projects/projects-dialog.tsx:183
 msgid "common.rename"
 msgstr "Renommer"
@@ -87,7 +96,7 @@ msgstr "Renommer"
 #: src/app/header/header.tsx:91
 #: src/app/header/header.tsx:99
 #: src/app/header/header.tsx:111
-#: src/app/loops/loop-bar.tsx:77
+#: src/app/loops/loop-controls.tsx:69
 msgid "common.save"
 msgstr "Enregistrer"
 
@@ -245,42 +254,42 @@ msgid "header.unsaved"
 msgstr "● Non enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:65
+#: src/app/loops/loop-controls.tsx:57
 msgid "loops.active"
 msgstr "⟳ Boucle active"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:88
+#: src/app/loops/loop-controls.tsx:76
 msgid "loops.clear-region"
 msgstr "Effacer"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:67
+#: src/app/loops/loop-controls.tsx:59
 msgid "loops.inactive"
 msgstr "⟳ Boucle inactive"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:132
+#: src/app/analysis-panel/analysis-panel.tsx:142
 msgid "loops.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:120
+#: src/app/analysis-panel/analysis-panel.tsx:135
 msgid "loops.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:115
+#: src/app/analysis-panel/analysis-panel.tsx:131
 msgid "loops.rename-title"
 msgstr "Renommer la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:46
+#: src/app/loops/loop-controls.tsx:36
 msgid "loops.save-region"
 msgstr "Enregistrer la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:53
+#: src/app/loops/loop-controls.tsx:48
 msgid "loops.section-label"
 msgstr "Boucles"
 
@@ -305,17 +314,17 @@ msgid "markers.go-to"
 msgstr "Aller à {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:94
+#: src/app/analysis-panel/analysis-panel.tsx:99
 msgid "markers.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:79
+#: src/app/analysis-panel/analysis-panel.tsx:94
 msgid "markers.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:74
+#: src/app/analysis-panel/analysis-panel.tsx:90
 msgid "markers.rename-title"
 msgstr "Renommer le repère"
 

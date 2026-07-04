@@ -232,6 +232,21 @@ async function saveNamedLoop(user: UserEvent, name: string): Promise<void> {
   await user.click(screen.getByRole('button', { name: i18n._('common.save') }))
 }
 
+/** Open the sidebar « Boucles » tab where the saved-loop library lives. */
+async function openLoops(user: UserEvent): Promise<void> {
+  await user.click(
+    screen.getByRole('tab', { name: i18n._('analysis.tab-loops') })
+  )
+}
+
+/**
+ * A saved loop's recall button: its name is « time-range + name », so exclude
+ * the sibling rename/remove buttons that only carry the name after a verb.
+ */
+function savedLoop(name: string): RegExp {
+  return new RegExp(`^(?!Renommer|Supprimer).*${name}$`)
+}
+
 describe('WorkstationShell', () => {
   // Picker tests spy on HTMLInputElement.prototype.click — restore even when
   // an assertion failed mid-test, so no spy (or its counts) leaks onward.
@@ -250,6 +265,7 @@ describe('WorkstationShell', () => {
     renderShell()
     expect(screen.getByRole('tab', { name: i18n._('analysis.tab-spectrum') })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: i18n._('analysis.tab-markers') })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: i18n._('analysis.tab-loops') })).toBeInTheDocument()
   })
 
   it('shows no key chip and no tempo until a track is analysed', () => {
@@ -750,7 +766,8 @@ describe('WorkstationShell', () => {
     // The 20%→60% drag on a 10 s timeline saves the loop [2 s, 6 s].
     await saveNamedLoop(user, 'Mon passage')
 
-    const recall = await screen.findByRole('button', { name: 'Mon passage' })
+    await openLoops(user)
+    const recall = await screen.findByRole('button', { name: savedLoop('Mon passage') })
     await user.click(recall)
     expect(engine.seekTo).toHaveBeenCalledWith(2)
   })
@@ -779,7 +796,8 @@ describe('WorkstationShell', () => {
     expect(
       screen.queryByRole('button', { name: i18n._('loops.save-region') })
     ).not.toBeInTheDocument()
-    expect(await screen.findAllByRole('button', { name: 'Pont' })).toHaveLength(1)
+    await openLoops(user)
+    expect(await screen.findAllByRole('button', { name: savedLoop('Pont') })).toHaveLength(1)
   })
 
   it('lets the region be saved again after its saved loop is removed', async () => {
@@ -793,6 +811,7 @@ describe('WorkstationShell', () => {
     ).not.toBeInTheDocument()
 
     // Removing that loop orphans the region — it must read as unsaved again.
+    await openLoops(user)
     await user.click(screen.getByRole('button', { name: i18n._('loops.remove-named', { name: 'Refrain' }) }))
 
     expect(
@@ -805,13 +824,14 @@ describe('WorkstationShell', () => {
     await importTrack(user)
 
     await saveNamedLoop(user, 'Refrain')
-    await screen.findByRole('button', { name: 'Refrain' })
+    await openLoops(user)
+    await screen.findByRole('button', { name: savedLoop('Refrain') })
 
     // A new track gets a fresh timeline — the old loops don't belong to it.
     await importTrack(user, 'autre.wav')
 
     expect(
-      screen.queryByRole('button', { name: 'Refrain' })
+      screen.queryByRole('button', { name: savedLoop('Refrain') })
     ).not.toBeInTheDocument()
   })
 
@@ -1074,8 +1094,9 @@ describe('WorkstationShell', () => {
 
     // Move on to a fresh track — its session starts without the loop.
     await importTrack(user, 'autre.wav')
+    await openLoops(user)
     expect(
-      screen.queryByRole('button', { name: 'Refrain' })
+      screen.queryByRole('button', { name: savedLoop('Refrain') })
     ).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
@@ -1086,7 +1107,7 @@ describe('WorkstationShell', () => {
 
     // The reopened project must bring its saved loop back.
     expect(
-      await screen.findByRole('button', { name: 'Refrain' })
+      await screen.findByRole('button', { name: savedLoop('Refrain') })
     ).toBeInTheDocument()
   })
 
@@ -1432,8 +1453,9 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     await saveNamedLoop(user, 'Refrain')
 
+    await openLoops(user)
     expect(
-      await screen.findByRole('button', { name: 'Refrain' })
+      await screen.findByRole('button', { name: savedLoop('Refrain') })
     ).toHaveAttribute('aria-current', 'true')
   })
 
