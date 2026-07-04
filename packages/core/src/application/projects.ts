@@ -177,6 +177,37 @@ export async function openProject(
   }
 }
 
+export type RenameProjectResult =
+  | { readonly ok: true; readonly project: Project }
+  | { readonly ok: false; readonly error: string }
+
+/**
+ * Rename a stored project. Loads its manifest, gives it the trimmed name and
+ * `now` as the new `updatedAt`, and re-saves — audio refs are untouched, so no
+ * byte moves. A blank name and an unknown id are error `Result`s. The name and
+ * clock are injected; the pure core owns neither.
+ */
+export async function renameProject(
+  input: { readonly id: string; readonly name: string; readonly now: number },
+  deps: { readonly store: ProjectStore }
+): Promise<RenameProjectResult> {
+  const name = input.name.trim()
+  if (name === '') {
+    return { ok: false, error: 'A project name cannot be empty' }
+  }
+  try {
+    const existing = await deps.store.load(input.id)
+    if (existing === undefined) {
+      return { ok: false, error: `Unknown project "${input.id}"` }
+    }
+    const project = { ...existing, name, updatedAt: input.now }
+    await deps.store.save(project)
+    return { ok: true, project }
+  } catch (e) {
+    return { ok: false, error: errorMessage(e) }
+  }
+}
+
 export type DeleteProjectResult =
   | { readonly ok: true }
   | { readonly ok: false; readonly error: string }

@@ -61,12 +61,12 @@ msgstr "Fermer"
 
 #. js-lingui-explicit-id
 #: src/app/header/import-menu.tsx:110
-#: src/projects/projects-dialog.tsx:78
+#: src/projects/projects-dialog.tsx:81
 msgid "common.confirm"
 msgstr "Confirmer ?"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:185
+#: src/projects/projects-dialog.tsx:209
 msgid "common.delete"
 msgstr "Supprimer"
 
@@ -78,6 +78,7 @@ msgstr "Nom"
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:84
 #: src/app/loops/loop-bar.tsx:125
+#: src/projects/projects-dialog.tsx:183
 msgid "common.rename"
 msgstr "Renommer"
 
@@ -359,62 +360,82 @@ msgid "mixer.volume"
 msgstr "Volume {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:193
+#: src/projects/projects-dialog.tsx:217
 msgid "projects.confirm-delete"
 msgstr "Confirmer la suppression de {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:174
+#: src/projects/projects-dialog.tsx:198
 msgid "projects.confirm-open"
 msgstr "Confirmer l'ouverture de {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/use-projects.ts:156
+#: src/projects/use-projects.ts:177
 msgid "projects.delete-failed"
 msgstr "Impossible de supprimer le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:186
+#: src/projects/projects-dialog.tsx:210
 msgid "projects.delete-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:134
+#: src/projects/projects-dialog.tsx:138
 msgid "projects.description"
 msgstr "Reprendre un projet enregistré là où il a été laissé."
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:145
+#: src/projects/projects-dialog.tsx:149
 msgid "projects.empty"
 msgstr "Aucun projet enregistré"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:118
+#: src/projects/projects-dialog.tsx:122
 msgid "projects.open"
 msgstr "Ouvrir"
 
 #. js-lingui-explicit-id
-#: src/projects/use-projects.ts:131
+#: src/projects/use-projects.ts:134
 msgid "projects.open-failed"
 msgstr "Impossible d'ouvrir le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:117
+#: src/projects/projects-dialog.tsx:121
 msgid "projects.opening-row"
 msgstr "Ouverture…"
 
 #. js-lingui-explicit-id
-#: src/projects/use-projects.ts:107
+#: src/projects/projects-dialog.tsx:181
+msgid "projects.rename"
+msgstr "Renommer"
+
+#. js-lingui-explicit-id
+#: src/projects/use-projects.ts:156
+msgid "projects.rename-failed"
+msgstr "Impossible de renommer le projet : {error}"
+
+#. js-lingui-explicit-id
+#: src/projects/projects-dialog.tsx:176
+msgid "projects.rename-named"
+msgstr "Renommer {name}"
+
+#. js-lingui-explicit-id
+#: src/projects/projects-dialog.tsx:171
+msgid "projects.rename-title"
+msgstr "Renommer le projet"
+
+#. js-lingui-explicit-id
+#: src/projects/use-projects.ts:110
 msgid "projects.save-failed"
 msgstr "Impossible d'enregistrer le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:133
+#: src/projects/projects-dialog.tsx:137
 msgid "projects.title"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-dialogs.tsx:45
+#: src/app/workstation-shell/shell-dialogs.tsx:46
 msgid "projects.unreachable"
 msgstr "Serveur injoignable — vérifier que le serveur local est lancé"
 
@@ -470,7 +491,7 @@ msgstr "Non détectés"
 
 #. js-lingui-explicit-id
 #: src/app/header/import-menu.tsx:101
-#: src/projects/projects-dialog.tsx:161
+#: src/projects/projects-dialog.tsx:165
 msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
 

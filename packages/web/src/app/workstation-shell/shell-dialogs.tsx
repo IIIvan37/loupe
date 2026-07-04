@@ -39,6 +39,7 @@ export function ShellDialogs({
         onOpenChange={onProjectsOpenChange}
         projects={projects.projects}
         onOpen={(id) => void session.handleOpen(id)}
+        onRename={(id, name) => void projects.rename(id, name)}
         onDelete={(id) => void projects.remove(id)}
         errorMessage={
           projects.listError

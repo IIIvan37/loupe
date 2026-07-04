@@ -53,6 +53,7 @@ export type {
   OpenedStem,
   OpenProjectResult,
   ProjectDeps,
+  RenameProjectResult,
   SaveProjectInput,
   SaveProjectResult,
   SaveProjectStem
@@ -61,6 +62,7 @@ export {
   deleteProject,
   listProjects,
   openProject,
+  renameProject,
   saveProject
 } from './application/projects.ts'
 export type {
