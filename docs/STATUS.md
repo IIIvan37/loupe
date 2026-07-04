@@ -45,6 +45,20 @@
   94.25 % (`project.ts` 100 %). **Merged (PR #41), browser-verified on the Mac.**
   See
   [2026-07-04-metronome-persistence](sessions/2026-07-04-metronome-persistence.md).
+- **Now — import-from-url slice (2026-07-04), core layer only**: import a track
+  from a media **URL** (YouTube / SoundCloud). New driven port **`TrackSource`**
+  ("URL → encoded audio bytes + metadata, progress streamed") + use-case
+  **`importFromUrl`** (validates the URL, returns `{bytes, metadata}` for
+  `loadTrack`) + application policy **`isSupportedSourceUrl`**. Feasibility settled:
+  **yt-dlp** (Python, actively maintained), **not play-dl** (Node/unmaintained);
+  Spotify/Deezer dropped (DRM). Contract: **NDJSON** streamed (mirrors `/separate`),
+  audio parked in the content-addressed `/audio` store → `done{ref, …}`, format
+  **m4a/AAC**. Gate green, **512 tests**, core mutation **94.52 %** (both new files
+  **100 %**). **Remaining in the slice**: web adapter `createHttpTrackSource`,
+  server `download.py` (yt-dlp group + nightly-upgrade-on-failure), and the UI
+  (URL field + progress + name pre-fill — approach/mockup check first). On branch
+  `feat/import-from-url`; **PR not yet opened**. See
+  [2026-07-04-import-from-url-core](sessions/2026-07-04-import-from-url-core.md).
 - **Earlier — metronome-stem slice (2026-07-04, merged PR #40)**: the metronome as a configurable
   mixer stem, built on tempo detection. Pure `synthesizeClickTrack` (click PCM
   from a `BeatGrid`, accented downbeats) + mixer `addChannel`/`removeChannel` +
