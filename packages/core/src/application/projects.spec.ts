@@ -6,6 +6,7 @@ import {
   deleteProject,
   listProjects,
   openProject,
+  renameProject,
   saveProject
 } from './projects.ts'
 
@@ -316,6 +317,76 @@ describe('deleteProject', () => {
 
   it('reports a failing store as an error result', async () => {
     const result = await deleteProject({ id: 'p1' }, { store: failingStore })
+    expect(result).toEqual({ ok: false, error: 'disk full' })
+  })
+})
+
+describe('renameProject', () => {
+  it('renames a stored project, bumping updatedAt and leaving everything else', async () => {
+    const store = fakeProjectStore()
+    const audio = fakeAudioStore()
+    await saveProject(saveInputWithSeparation, { store, audio })
+    const before = store.saved.get('p1')
+
+    const result = await renameProject(
+      { id: 'p1', name: 'Renamed', now: 4000 },
+      { store }
+    )
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.project).toEqual({
+      ...before,
+      name: 'Renamed',
+      updatedAt: 4000
+    })
+    expect(result.project.createdAt).toBe(1000)
+    expect(store.saved.get('p1')).toEqual(result.project)
+  })
+
+  it('trims the new name', async () => {
+    const store = fakeProjectStore()
+    await saveProject(saveInput, { store, audio: fakeAudioStore() })
+
+    const result = await renameProject(
+      { id: 'p1', name: '  Spaced  ', now: 4000 },
+      { store }
+    )
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.project.name).toBe('Spaced')
+  })
+
+  it('rejects a blank name without touching the store', async () => {
+    const store = fakeProjectStore()
+    await saveProject(saveInput, { store, audio: fakeAudioStore() })
+
+    const result = await renameProject(
+      { id: 'p1', name: '   ', now: 4000 },
+      { store }
+    )
+
+    expect(result).toEqual({
+      ok: false,
+      error: 'A project name cannot be empty'
+    })
+    expect(store.saved.get('p1')?.name).toBe('My song')
+  })
+
+  it('reports an unknown id as an error result', async () => {
+    const result = await renameProject(
+      { id: 'nope', name: 'X', now: 4000 },
+      { store: fakeProjectStore() }
+    )
+    expect(result).toEqual({ ok: false, error: 'Unknown project "nope"' })
+  })
+
+  it('reports a failing store as an error result', async () => {
+    const result = await renameProject(
+      { id: 'p1', name: 'X', now: 4000 },
+      { store: failingStore }
+    )
     expect(result).toEqual({ ok: false, error: 'disk full' })
   })
 })

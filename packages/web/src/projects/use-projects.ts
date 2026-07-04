@@ -5,6 +5,7 @@ import {
   openProject,
   type Project,
   type ProjectDeps,
+  renameProject,
   type SaveProjectInput,
   saveProject
 } from '@app/core'
@@ -37,6 +38,8 @@ export interface Projects {
   ) => Promise<Project | undefined>
   /** Open a project; the caller rebuilds the session from the result. */
   readonly open: (id: string) => Promise<OpenProjectResult>
+  /** Rename a stored project in place; the listing refreshes on success. */
+  readonly rename: (id: string, name: string) => Promise<void>
   readonly remove: (id: string) => Promise<void>
   /**
    * Forget the current project without touching the store — the session no
@@ -140,6 +143,27 @@ export function useProjects(stores?: ProjectDeps): Projects {
     }
   }
 
+  async function rename(id: string, name: string): Promise<void> {
+    const result = await renameProject(
+      { id, name, now: Date.now() },
+      {
+        store: deps.store
+      }
+    )
+    if (result.ok) {
+      setError(undefined)
+      await refresh()
+    } else {
+      const error = result.error
+      setError(
+        t({
+          id: 'projects.rename-failed',
+          message: `Impossible de renommer le projet : ${error}`
+        })
+      )
+    }
+  }
+
   async function remove(id: string): Promise<void> {
     const result = await deleteProject({ id }, { store: deps.store })
     if (result.ok) {
@@ -171,6 +195,7 @@ export function useProjects(stores?: ProjectDeps): Projects {
     refresh,
     save,
     open,
+    rename,
     remove,
     detach: detachSession
   }

@@ -32,6 +32,7 @@ function renderDialog(overrides: DialogProps = {}) {
       onOpenChange={() => {}}
       projects={PROJECTS}
       onOpen={() => {}}
+      onRename={() => {}}
       onDelete={() => {}}
       {...overrides}
     />,
@@ -166,6 +167,28 @@ describe('ProjectsDialog', () => {
     expect(
       screen.getByRole('button', { name: i18n._('projects.delete-named', { name: 'Mon projet' }) })
     ).toBeInTheDocument()
+  })
+
+  it('renames a project through the name popover, pre-filled with its name', async () => {
+    const user = userEvent.setup()
+    const onRename = vi.fn()
+    await renderDialogSettled({ onRename })
+
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('projects.rename-named', { name: 'Mon projet' })
+      })
+    )
+    const field = screen.getByRole('textbox', { name: i18n._('common.name') })
+    expect(field).toHaveValue('Mon projet')
+
+    await user.clear(field)
+    await user.type(field, 'Nouveau nom')
+    await user.click(
+      screen.getByRole('button', { name: i18n._('common.rename') })
+    )
+
+    expect(onRename).toHaveBeenCalledWith('p1', 'Nouveau nom')
   })
 
   it('marks the opening row and locks every action while it loads', () => {

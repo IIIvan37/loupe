@@ -206,6 +206,33 @@ describe('useProjects', () => {
     expect(result.current.currentId).toBeUndefined()
   })
 
+  it('renames a project in place and refreshes the listing', async () => {
+    const stores = fakeStores()
+    const { result } = renderHook(() => useProjects(stores), { wrapper: I18nTestingProvider })
+    await act(async () => {
+      await result.current.save('Ancien nom', input)
+    })
+    const savedId = result.current.currentId as string
+
+    await act(async () => {
+      await result.current.rename(savedId, 'Nouveau nom')
+    })
+
+    expect(result.current.projects[0]?.name).toBe('Nouveau nom')
+    expect(result.current.error).toBeUndefined()
+  })
+
+  it('words a rename failure for the user', async () => {
+    const { result } = renderHook(() => useProjects(brokenStores()), { wrapper: I18nTestingProvider })
+
+    await act(async () => {
+      await result.current.rename('missing', 'X')
+    })
+    expect(result.current.error).toBe(
+      i18n._('projects.rename-failed', { error: 'server down' })
+    )
+  })
+
   it('flags a failing listing so the dialog can say the server is unreachable', async () => {
     const { result } = renderHook(() => useProjects(brokenStores()), { wrapper: I18nTestingProvider })
 

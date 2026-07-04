@@ -1,6 +1,7 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import type { Project } from '@app/core'
 import { AppDialog } from '../app/ui/app-dialog.tsx'
+import { NameEditor } from '../app/ui/name-editor.tsx'
 import { useTwoStepConfirm } from '../app/ui/use-two-step-confirm.ts'
 import { cx } from '../lib/cx.ts'
 import styles from './projects-dialog.module.css'
@@ -17,6 +18,8 @@ interface ProjectsDialogProps {
   readonly projects: readonly Project[]
   /** Open the picked project. The smart shell rebuilds the session. */
   readonly onOpen: (id: string) => void
+  /** Rename the picked project in place (trimmed, non-empty). */
+  readonly onRename: (id: string, name: string) => void
   readonly onDelete: (id: string) => void
   /** Shown instead of the listing when the last refresh failed. */
   readonly errorMessage?: string | undefined
@@ -90,6 +93,7 @@ export function ProjectsDialog({
   onOpenChange,
   projects,
   onOpen,
+  onRename,
   onDelete,
   errorMessage,
   openingId,
@@ -163,6 +167,26 @@ export function ProjectsDialog({
                     </Trans>
                   </span>
                 )}
+                <NameEditor
+                  title={t({
+                    id: 'projects.rename-title',
+                    message: 'Renommer le projet'
+                  })}
+                  triggerClassName={cx(styles.rename)}
+                  triggerLabel={t({
+                    id: 'projects.rename-named',
+                    message: `Renommer ${name}`
+                  })}
+                  triggerContent={
+                    <Trans id="projects.rename">Renommer</Trans>
+                  }
+                  submitLabel={t({
+                    id: 'common.rename',
+                    message: 'Renommer'
+                  })}
+                  initialName={project.name}
+                  onSubmit={(next) => onRename(project.id, next)}
+                />
                 <RowAction
                   armed={armedAction === 'open'}
                   disabled={locked}

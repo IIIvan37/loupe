@@ -50,6 +50,7 @@
 }
 
 .open,
+.rename,
 .delete {
   padding: var(--space-3xs) var(--space-xs);
   border: 1px solid var(--line);
@@ -59,9 +60,14 @@
   font-size: 0.8rem;
 }
 
-.open:hover {
+.open:hover,
+.rename:hover {
   border-color: var(--line-strong);
   background: var(--panel-2);
+}
+
+.rename {
+  color: var(--dim);
 }
 
 .delete {
@@ -90,6 +96,7 @@
 
 /* Visible keyboard focus on every row action (same ring as the app baseline). */
 .open:focus-visible,
+.rename:focus-visible,
 .delete:focus-visible,
 .confirmAction:focus-visible {
   outline: 2px solid var(--amber);
