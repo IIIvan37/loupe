@@ -24,7 +24,27 @@
 - **Jalon 3 (« Projets ») core slices are merged** (J3.1–J3.4 + races +
   active-loop fix + UX session state). Remaining Jalon 3 work is polish
   (project rename, blob GC, `separator-server/` → `server/`).
-- **Now — metronome-stem slice (2026-07-04)**: the metronome as a configurable
+- **Now — metronome-persistence slice (2026-07-04)**: the detected tempo +
+  metronome now **persist with the project**. New pure `ProjectTempo`
+  (`bpm` + downbeat-flagged `BeatGrid` + the metronome's `MixerChannel`) on
+  `Project`/`SessionSnapshot`, threaded through `projectFromSession`/`saveProject`;
+  reopening restores the grid, BPM read-out and click **without the server** (the
+  click PCM is re-synthesised). The metronome now seats **muted by default** on a
+  fresh detection (unlike other voices); persistence wins over the default. The
+  **open owns tempo/metronome seating** — a one-shot suppress flag makes the shell
+  auto-detect import-only (also fixing a latent open-path race where auto-detect
+  could clobber restored stems); old manifests detect fire-and-forget so
+  « ouverture » never hangs on the server. `sessionSignature` signs the metronome
+  settings with a default-muted neutraliser so a reopened project reads
+  « Enregistré ». High-effort review fixed 4 items (phantom masked-stem channels,
+  live/saved signature asymmetry, BPM-over-empty-mixer on a failed rebuild,
+  suppress-latch on the superseded return). **Browser-verified end-to-end**: import
+  → 120 BPM + muted click, unmute + save (manifest holds bpm + 23-beat grid +
+  `metronome{muted:false}`), reopen → restored un-muted with **zero second
+  `/tempo` call** (network-traced). Gate green, **493 tests**, core mutation
+  94.25 % (`project.ts` 100 %). **PR to open against `main`.** See
+  [2026-07-04-metronome-persistence](sessions/2026-07-04-metronome-persistence.md).
+- **Earlier — metronome-stem slice (2026-07-04, merged PR #40)**: the metronome as a configurable
   mixer stem, built on tempo detection. Pure `synthesizeClickTrack` (click PCM
   from a `BeatGrid`, accented downbeats) + mixer `addChannel`/`removeChannel` +
   `StemPlaybackEngine.addStem`/`removeStem`. The click rides the mixer like any
@@ -108,9 +128,9 @@
   guard), and the playhead can no longer paint above dialogs (stage
   `isolation`). Browser-verified on the real project.
   See [2026-07-03-ui-polish](sessions/2026-07-03-ui-polish.md).
-- **Branch**: `feat/metronome-stem` (gate-green, 478 tests), stacked on
-  `feat/tempo-detection` (**PR #39 open**) — open its PR, then retarget to `main`
-  once #39 merges. Earlier: `feat/persist-tempo-pitch-zoom` **merged (PR #38)**;
+- **Branch**: `feat/metronome-persistence` (gate-green, 493 tests, off `main`) —
+  **PR to open against `main`**. Earlier: `feat/metronome-stem` **merged (PR #40)**;
+  `feat/tempo-detection` **merged (PR #39)**; `feat/persist-tempo-pitch-zoom` **merged (PR #38)**;
   `feat/i18n-messages` **merged (PR #37)**; `feat/dirty-session-guard`
   **merged (PR #36)**; `feat/ui-polish` **merged (PR #35)**.
 - **Earlier**: `feat/ux-session-state` (**merged, PR #34**) — five
@@ -206,15 +226,15 @@
 
 ## Next step
 
-**Build the metronome-stem slice (user request): synthesize a click aligned to
-the detected `BeatGrid` — accented downbeats — as a playable/mixable stem;
-likely add a `ProjectTempo` field so the analysis persists.** Then open the
-`feat/tempo-detection` PR and browser-verify both on the Mac (server up,
-`librosa` installed). Other candidates, by user value:
+**Open the `feat/metronome-persistence` PR against `main`** (gate-green, 502
+tests, browser-verified). Then pick the next slice, by user value:
 - UX backlog: speed trainer, undo.
 - Jalon 3 polish: project rename, blob GC, `separator-server/` → `server/`.
 - Perf: off-thread zip/encode — the export measurably freezes the UI a few
   seconds on a 4-min track (main-thread encode+zip, ~229 MB).
+- Follow-up (small, documented): old *separated* manifests re-`attach` stems on
+  the fire-and-forget detect, reverting fader edits made in the detection window
+  — self-heals on save; fix only if it bites.
 
 ### Earlier — J3.3 browser-verify note
 
@@ -301,6 +321,19 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-04 — metronome-persistence](sessions/2026-07-04-metronome-persistence.md) —
+  The detected tempo + metronome persist with the project. Pure `ProjectTempo`
+  (bpm + beat grid + the metronome's mixer settings) on `Project`; reopen restores
+  the grid/BPM/click with **no server** (the click is re-synthesised). The click
+  seats **muted by default** (persistence wins over it); the open owns
+  tempo/metronome seating via a one-shot suppress flag (also fixing a latent
+  auto-detect-clobbers-stems race); old manifests detect fire-and-forget. Signature
+  neutralises an absent metronome to default-muted → reopened projects read
+  « Enregistré ». Review fixed 4 items (phantom masked-stem channels, live/saved
+  signature asymmetry, BPM-over-empty-mix, suppress latch). Browser-verified:
+  import → muted 120 BPM click, unmute+save, reopen → restored un-muted, zero
+  second `/tempo`. Gate green, 493 tests, core mutation 94.25 % (`project.ts`
+  100 %). PR to open.
 - [2026-07-04 — metronome-stem](sessions/2026-07-04-metronome-stem.md) —
   The metronome as a configurable mixer stem (click PCM synthesised from the
   detected `BeatGrid`): its own lane, colour, dB fader, mute/solo, WAV; follows
