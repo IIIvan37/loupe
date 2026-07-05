@@ -31,7 +31,7 @@
   from download filenames. Server pytest **49 passed**, web **548 passed**;
   loopback flow verified 200 on real uvicorn. Gate green, mutation skipped.
   **Lot B started (pyright, not mypy; +B.3 humble-object convention). Lot B.1
-  done** on branch `test/server-pytest-breadth`: broadened server pytest —
+  done** on branch `test/server-pytest-breadth` (PR #54): broadened server pytest —
   `projects.py` **100 %**, `main.py` **100 %**, `download.py` **86 %** (target ≥80 %
   met), via torch-free minimal-app / fake-`_extract` / `sys.modules`-hidden-ML
   tests; **70 passed, 79 % total**. `separation`/`tempo` stay low by design (torch/
