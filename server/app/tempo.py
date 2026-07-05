@@ -72,6 +72,4 @@ async def tempo(request: Request) -> dict:
         # Log the detail server-side; keep the client message generic so librosa
         # internals / paths don't leak (esp. reachable cross-origin).
         logger.exception("tempo analysis failed")
-        raise HTTPException(
-            status_code=400, detail="could not analyse audio"
-        ) from exc
+        raise HTTPException(status_code=400, detail="could not analyse audio") from exc

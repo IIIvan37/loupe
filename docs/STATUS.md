@@ -35,9 +35,18 @@
   `projects.py` **100 %**, `main.py` **100 %**, `download.py` **86 %** (target ≥80 %
   met), via torch-free minimal-app / fake-`_extract` / `sys.modules`-hidden-ML
   tests; **70 passed, 79 % total**. `separation`/`tempo` stay low by design (torch/
-  librosa humble objects). **Next: B.2** (ruff + pyright + a `server` CI job — the
-  server is still outside CI). See
+  librosa humble objects). See
   [2026-07-05-server-pytest-breadth](sessions/2026-07-05-server-pytest-breadth.md).
+  **Lot B.2 done** on branch `ci/server-lint-types-ci` (PR #55): the server now has its own
+  **blocking gate, run torch-free** — `pyproject.toml` (ruff + pyright-basic +
+  pytest/coverage 80 % floor), a new **`server` CI job** (ruff → format → pyright →
+  pytest), pinned `requirements.txt` + a light torch-free `requirements-dev.txt`.
+  The ML humble objects (`separation`/`tempo`) are excluded from pyright+coverage
+  and covered manually. Validated in a throwaway torch-free venv: **70 passed,
+  94.96 %**, pyright **0 errors**. The last structural gap (server outside CI) is
+  closed. **Next: B.3** (write the humble-object convention + extract remaining
+  testable pockets), then **Lot C** (produit). See
+  [2026-07-05-server-lint-types-ci](sessions/2026-07-05-server-lint-types-ci.md).
 - **Prior — housekeeping pass (2026-07-05)**: four user asks on one branch
   `refactor/dry-tabs-coverage`. **(1) DRY** — knip already clean; jscpd **14 → 7
   clones, 1.26 % → 0.68 %** by extracting the real duplication: pure TDD-tested

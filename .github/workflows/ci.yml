@@ -27,6 +27,32 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm gate
 
+  server:
+    name: Server (lint · types · tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: server/requirements-dev.txt
+      # Torch-free by design: requirements-dev.txt omits the heavy ML stack, so
+      # the run is fast and never downloads Demucs weights. The ML humble objects
+      # (separation.py / tempo.py) are excluded from ruff-types/coverage and
+      # exercised only via their absent-capability fallback.
+      - run: python -m venv .venv
+      - run: .venv/bin/pip install --upgrade pip
+      - run: .venv/bin/pip install -r requirements-dev.txt
+      - run: .venv/bin/ruff check app tests
+      - run: .venv/bin/ruff format --check app tests
+      - run: .venv/bin/pyright
+      - run: .venv/bin/python -m pytest
+
   commitlint:
     name: Commit messages
     runs-on: ubuntu-latest
