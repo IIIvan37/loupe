@@ -61,6 +61,7 @@ msgstr "Spectre"
 #. js-lingui-explicit-id
 #: src/app/header/import-menu.tsx:160
 #: src/app/ui/name-editor.tsx:85
+#: src/app/workstation-shell/confirm-import-dialog.tsx:55
 msgid "common.cancel"
 msgstr "Annuler"
 
@@ -101,8 +102,44 @@ msgid "common.save"
 msgstr "Enregistrer"
 
 #. js-lingui-explicit-id
+#. placeholder {0}: fileName ?? ''
+#: src/app/workstation-shell/confirm-import-dialog.tsx:44
+msgid "drop.confirm-body"
+msgstr "« {0} » remplacera le travail non enregistré."
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/confirm-import-dialog.tsx:62
+msgid "drop.confirm-import"
+msgstr "Importer"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/confirm-import-dialog.tsx:41
+msgid "drop.confirm-title"
+msgstr "Remplacer la session ?"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/workstation-shell.tsx:272
+msgid "drop.overlay"
+msgstr "Déposez le fichier audio pour l'importer"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/empty-state.tsx:28
+msgid "empty.headline"
+msgstr "Glissez un fichier audio ici"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/empty-state.tsx:38
+msgid "empty.import"
+msgstr "Importer un fichier"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/empty-state.tsx:31
+msgid "empty.sub"
+msgstr "WAV, MP3, FLAC, M4A…"
+
+#. js-lingui-explicit-id
 #. placeholder {0}: Math.round(urlImport.progress.fraction * 100)
-#: src/app/workstation-shell/shell-header.tsx:89
+#: src/app/workstation-shell/shell-header.tsx:88
 msgid "header.downloading"
 msgstr "Téléchargement… {0} %"
 
@@ -132,8 +169,8 @@ msgid "header.import-confirm"
 msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:121
-#: src/app/workstation-shell/shell-header.tsx:171
+#: src/app/workstation-shell/shell-header.tsx:120
+#: src/app/workstation-shell/workstation-shell.tsx:175
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
@@ -168,12 +205,12 @@ msgid "header.import-url-title"
 msgstr "Importer depuis une URL"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:115
+#: src/app/workstation-shell/shell-header.tsx:114
 msgid "header.no-track"
 msgstr "Aucun morceau"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:106
+#: src/app/workstation-shell/shell-header.tsx:105
 msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
@@ -209,22 +246,22 @@ msgid "header.saved"
 msgstr "Enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:104
+#: src/app/workstation-shell/shell-header.tsx:103
 msgid "header.saving"
 msgstr "Enregistrement du projet…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:32
+#: src/app/workstation-shell/shell-header.tsx:30
 msgid "header.server-no-separation"
 msgstr "Séparation indisponible"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:28
+#: src/app/workstation-shell/shell-header.tsx:26
 msgid "header.server-offline"
 msgstr "Serveur hors ligne"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:39
+#: src/app/workstation-shell/shell-header.tsx:37
 msgid "header.server-ready"
 msgstr "Serveur prêt"
 
@@ -239,12 +276,12 @@ msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:93
+#: src/app/workstation-shell/shell-header.tsx:92
 msgid "header.transcoding"
 msgstr "Extraction de l'audio…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:120
+#: src/app/workstation-shell/shell-header.tsx:119
 msgid "header.unknown-artist"
 msgstr "Artiste inconnu"
 
@@ -304,12 +341,12 @@ msgid "markers.default-name"
 msgstr "Repère {number}"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-rail.tsx:140
+#: src/app/markers/marker-rail.tsx:137
 msgid "markers.drag-hint"
 msgstr "Clic : se positionner — glisser ou ←/→ : déplacer"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-rail.tsx:136
+#: src/app/markers/marker-rail.tsx:133
 msgid "markers.go-to"
 msgstr "Aller à {name}"
 
@@ -626,27 +663,27 @@ msgid "transport.tempo-slider"
 msgstr "Tempo en pourcentage"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:192
+#: src/app/waveform/waveform-view.tsx:189
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:184
+#: src/app/waveform/waveform-view.tsx:181
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:234
+#: src/app/waveform/waveform-view.tsx:231
 msgid "waveform.mix-image"
 msgstr "Forme d'onde du mix"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:304
+#: src/app/waveform/waveform-view.tsx:301
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:292
+#: src/app/waveform/waveform-view.tsx:289
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
@@ -656,12 +693,12 @@ msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:224
+#: src/app/waveform/waveform-view.tsx:221
 msgid "waveform.surface"
 msgstr "Forme d'onde : clic pour se positionner, glisser pour boucler"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:242
+#: src/app/waveform/waveform-view.tsx:239
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 

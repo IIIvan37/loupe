@@ -1,0 +1,82 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xl);
+  min-height: 0;
+  padding: var(--space-2xl) var(--space-l);
+  text-align: center;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-s);
+  max-width: 32rem;
+  padding: var(--space-2xl);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.badge {
+  font-size: 2.5rem;
+  line-height: 1;
+  color: var(--amber);
+}
+
+.headline {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sub {
+  margin: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.action {
+  composes: amberButton from '../ui/controls.module.css';
+  margin-top: var(--space-s);
+  padding: var(--space-xs) var(--space-l);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2xs) var(--space-m);
+  margin: 0;
+  color: var(--dim);
+  font-size: 0.8rem;
+}
+
+.row {
+  display: contents;
+}
+
+.kbd {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: var(--space-3xs) var(--space-2xs);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.desc {
+  margin: 0;
+  text-align: start;
+}
