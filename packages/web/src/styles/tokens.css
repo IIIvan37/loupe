@@ -64,6 +64,15 @@
   --z-dialog: 30; /* modal backdrop + popup */
   --z-popover: 40; /* menus, popover forms — above dialogs (may nest in one) */
 
+  /* Motion — micro-transitions for the overlays (dialogs, popovers, menus, the
+     alert banner). Discreet and quick; `fast` for the light popovers, `med` for
+     the modal dialog and the banner. The ease-out curve appears briskly then
+     settles. The global `prefers-reduced-motion` reset (global.css) neutralises
+     every one of these, so no per-rule guard is needed. */
+  --motion-fast: 130ms;
+  --motion-med: 180ms;
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
   /* Spacing scale (Every Layout — modular, owned by primitives) */
   --space-3xs: 0.125rem;
   --space-2xs: 0.25rem;

@@ -3,6 +3,7 @@
 }
 
 .menu {
+  composes: motion from '../ui/popover-form.module.css';
   display: flex;
   flex-direction: column;
   min-width: 12rem;

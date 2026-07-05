@@ -1,3 +1,13 @@
+/* The banner is mounted (not toggled by Base UI), so it only animates in: a
+   short slide-down + fade as it pushes into the layout. The global
+   prefers-reduced-motion reset collapses the duration for those who opt out. */
+@keyframes alert-in {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
 /* Error accent: the red-ish token the separation error already uses. */
 .banner {
   display: flex;
@@ -8,6 +18,7 @@
   border-block-end: 1px solid var(--stem-vocals);
   color: var(--stem-vocals);
   font-size: var(--font-size-s);
+  animation: alert-in var(--motion-med) var(--motion-ease);
 }
 
 .message {
