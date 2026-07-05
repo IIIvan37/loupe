@@ -15,6 +15,20 @@ hexagon**. The web app talks to it only through the HTTP contract below, behind
 the `StemSeparator` port — so it could be reimplemented in any language without
 the web side noticing.
 
+### Convention — humble objects
+
+The server is an **adapter**, not a hexagon, so its discipline isn't "pure domain"
+but the **humble object** pattern: the *decidable* logic — validation, policy,
+parsing, naming/ordering, math — lives in **torch/yt-dlp-free modules** that are
+unit-tested and type-checked (`limits`, `netguard`, `stems_store`, `stem_manifest`,
+`projects`, and pure helpers like `download.progress_fraction` / `_is_supported`).
+The modules that import the heavy stacks (`separation.py` → torch/demucs,
+`tempo.py` → librosa) stay **thin shells**: decode → call the library → hand the
+result to a pure helper → write. They're excluded from pyright + coverage and
+verified manually. **When you add server logic, put the decidable part in a
+torch-free module** — don't grow the ML shells. It's what keeps the fast,
+torch-free CI meaningful.
+
 ## Run
 
 ```sh
