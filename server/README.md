@@ -86,8 +86,11 @@ Stem ids/labels (`voix`, `batterie`, `basse`, `autres`) match the core's
     the same browser can't read our responses.
   - **Host** header is validated (`LOUPE_ALLOWED_HOSTS`, default
     `localhost,127.0.0.1`) to blunt DNS-rebinding. Point the web app elsewhere by
-    setting both vars; never bind `--host 0.0.0.0` (an unauthenticated,
-    file-writing server on the LAN).
+    setting both vars.
+  - **Loopback-only**: requests that didn't land on the loopback interface are
+    refused (403), read from the actual local socket — so a `--host 0.0.0.0`
+    mistake can't expose this file-writing server to the LAN even with a forged
+    Host header.
   - **Body-size caps** refuse oversized uploads before buffering
     (`LOUPE_MAX_UPLOAD_MB`, default `500`, for audio/`/separate`/`/tempo`;
     `LOUPE_MAX_MANIFEST_MB`, default `16`, for manifests) → 413.
