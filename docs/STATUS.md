@@ -12,7 +12,7 @@
   🔴 critical runtime `pip install -U yt-dlp` from the download path
   (attacker-triggerable RCE) — see
   [2026-07-05-server-no-runtime-pip](sessions/2026-07-05-server-no-runtime-pip.md).
-  **Lot A.2 done** on branch `fix/server-cors-host`: scoped CORS to the dev origin
+  **Lot A.2 done** on branch `fix/server-cors-host` (PR #49): scoped CORS to the dev origin
   (`LOUPE_ALLOWED_ORIGINS`) + `TrustedHostMiddleware` (`LOUPE_ALLOWED_HOSTS`)
   against DNS-rebinding — no more wildcard CORS on the unauthenticated localhost
   server. Server pytest **21 passed**, verified on real uvicorn (foreign origin
