@@ -70,16 +70,37 @@ export default defineConfig({
         '**/index.ts',
         '**/main.ts',
         '**/main.tsx',
-        '**/*.d.ts'
+        '**/*.d.ts',
+        // Browser-runtime humble objects and composition roots: they touch Web
+        // Audio (AudioContext / AudioWorklet / decodeAudioData) or trigger a
+        // browser download — none of which jsdom can drive. Verified in a real
+        // browser, not by unit tests, so they are kept out of the coverage metric
+        // rather than dragging it down with unreachable lines.
+        '**/audio/web-audio-playback.ts',
+        '**/audio/web-audio-stem-playback.ts',
+        '**/audio/web-audio-shared.ts',
+        '**/audio/web-audio-decoder.ts',
+        '**/audio/download-blob.ts',
+        '**/audio/create-separator.ts',
+        '**/audio/create-tempo-detector.ts',
+        '**/audio/create-track-source.ts',
+        '**/audio/music-metadata-reader.ts'
       ],
-      // TDD strict: the pure core is meant to stay fully covered. Thresholds gate
-      // `core` only; web adapters are exercised through component/integration tests.
+      // TDD strict: the pure core stays fully covered; the web adapters/UI are
+      // exercised through component/integration tests. Both are gated (the
+      // untestable Web Audio adapters above are excluded, not tolerated).
       thresholds: {
         'packages/core/src/**': {
           statements: 90,
           branches: 85,
           functions: 90,
           lines: 90
+        },
+        'packages/web/src/**': {
+          statements: 85,
+          branches: 80,
+          functions: 85,
+          lines: 85
         }
       }
     }
