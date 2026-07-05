@@ -37,7 +37,7 @@ single reactive envelope.
 ## Not done / remaining
 
 - **Browser verification of #2/#3** not run this session (user chose
-  report + PR first). #1 was browser-verified by the user mid-session. #2 is
+  report + PR first); **PR #46 opened.** #1 was browser-verified by the user mid-session. #2 is
   structural + well covered by tests; #3's gutter caption needs a real
   separation with a masked (near-silent) stem to see live — the fake separator in
   tests returns present stems only, so the caption path is covered by the

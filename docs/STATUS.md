@@ -17,7 +17,7 @@
   to the top (import moment) and step aside once ready; the « Non détectés »
   caption moves into the mixer gutter (new `UndetectedStems`). Gate green, **537
   tests**; mutation **skipped** (core untouched — `combineWaveforms` pre-existed).
-  #1 browser-verified by the user; #2/#3 report+PR first. **PR being opened.** See
+  #1 browser-verified by the user; #2/#3 report+PR first. **PR #46 opened.** See
   [2026-07-04-ui-workstation-clarity](sessions/2026-07-04-ui-workstation-clarity.md).
 - **Phase**: **Jalon 2 (« Séparation IA ») — separation runs on a local server**
   (PR #19 merged). The in-browser WASM engines hit a quality/speed ceiling; a
@@ -383,7 +383,7 @@ Dated reports under [docs/sessions/](sessions/). Most recent on top.
   action + progress relocate to the top of the column and step aside once ready;
   the « Non détectés » caption moves into the mixer gutter (`UndetectedStems`).
   Gate green, 537 tests, mutation skipped (core untouched). #1 browser-verified by
-  the user. PR being opened on `refactor/ui-workstation-clarity`.
+  the user. PR #46 on `refactor/ui-workstation-clarity`.
 - [2026-07-04 — jalon3-polish](sessions/2026-07-04-jalon3-polish.md) —
   The three deferred Jalon 3 polish items, each its own branch/PR.
   **(1) `separator-server/` → `server/` rename** (#43): the backend outgrew its
