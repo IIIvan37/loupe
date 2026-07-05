@@ -4,6 +4,23 @@
 
 ## Where we are
 
+- **Now — housekeeping pass (2026-07-05)**: four user asks on one branch
+  `refactor/dry-tabs-coverage`. **(1) DRY** — knip already clean; jscpd **14 → 7
+  clones, 1.26 % → 0.68 %** by extracting the real duplication: pure TDD-tested
+  `lib/pointer-ratio.ts` (the waveform/marker-rail `clientX→0–1` map),
+  `audio/web-audio-shared.ts` (`audioBufferFrom` + `loadSoundTouchNode`, shared by
+  both playback engines; dead `applyParams` dropped), and `app/ui/controls.module.css`
+  (three button skins `amberButton`/`ghostButton`/`quietButton` that five files now
+  `composes:` instead of copy-pasting). **(2) Tabs** — the analysis-panel sidebar
+  tabs get hover/focus/transition + an underline pulled onto the list baseline.
+  **(3) UI patterns → `app/ui/`** — `controls.module.css` is the concrete home;
+  `EntryRow`/`.label`/app-bar noted as single-use, not extracted. **(4) Coverage
+  gated** — new **85/80** threshold on `packages/web/src/**`; the untestable Web
+  Audio humble objects + composition roots are *excluded* (jsdom can't drive them,
+  verified in-browser), lifting the measured figure **~81 % → 94.8 %**. Gate green,
+  **542 tests**, web build green (confirms `composes:` resolves); mutation skipped
+  (core untouched). PR to open. See
+  [2026-07-05-dry-tabs-coverage](sessions/2026-07-05-dry-tabs-coverage.md).
 - **Now — UI clarity pass (2026-07-04)**: user-driven polish on the workstation
   before the next roadmap slice, three refactors on one branch
   `refactor/ui-workstation-clarity`. **(1) Mix legibility** — the main « Mix »
@@ -374,6 +391,17 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-05 — dry-tabs-coverage](sessions/2026-07-05-dry-tabs-coverage.md) —
+  Housekeeping pass (one branch) from four user asks. **DRY**: jscpd 14 → 7 clones
+  (1.26 % → 0.68 %) via `lib/pointer-ratio.ts` (TDD), `audio/web-audio-shared.ts`
+  (`audioBufferFrom` + `loadSoundTouchNode`), and `app/ui/controls.module.css`
+  (`amberButton`/`ghostButton`/`quietButton` composed by five files). **Tabs**:
+  analysis-panel sidebar tabs get hover/focus/transition + baseline-aligned
+  underline. **UI patterns**: `controls.module.css` is the shared home;
+  `EntryRow`/`.label`/app-bar noted, not extracted (single-use). **Coverage**: web
+  gated at 85/80, untestable Web Audio adapters + composition roots excluded → 81 %
+  → 94.8 %. Gate green, 542 tests, web build green; mutation skipped (core
+  untouched). PR to open on `refactor/dry-tabs-coverage`.
 - [2026-07-04 — ui-workstation-clarity](sessions/2026-07-04-ui-workstation-clarity.md) —
   User-driven UI clarity pass, three refactors on one branch. **(1)** Main « Mix »
   lane = one summed `combineWaveforms` envelope (gain-weighted, live to mute/solo)

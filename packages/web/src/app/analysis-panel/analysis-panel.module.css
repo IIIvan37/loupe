@@ -7,7 +7,7 @@
 
 .list {
   display: flex;
-  gap: var(--space-m);
+  gap: var(--space-s);
   border-block-end: 1px solid var(--line);
 }
 
@@ -15,14 +15,34 @@
   appearance: none;
   background: none;
   border: none;
-  padding: var(--space-xs) 0;
+  /* Pull the underline down onto the list's baseline so selected/hover read as
+     one continuous rule rather than a floating 2px bar. */
+  margin-block-end: -1px;
+  padding: var(--space-xs) var(--space-2xs);
   color: var(--dim);
+  font-size: 0.8rem;
+  letter-spacing: 0.01em;
   border-block-end: 2px solid transparent;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.tab:hover {
+  color: var(--text);
+  border-block-end-color: var(--line-strong);
 }
 
 .tab[data-selected] {
   color: var(--text);
   border-block-end-color: var(--amber);
+}
+
+/* Visible keyboard focus (baseline ring). */
+.tab:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
 }
 
 .tabPanel {

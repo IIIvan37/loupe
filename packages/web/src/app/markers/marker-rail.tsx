@@ -2,6 +2,7 @@ import { useLingui } from '@lingui/react/macro'
 import { formatTimecode, type Marker, type MarkerList } from '@app/core'
 import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react'
 import { clamp01 } from '../../lib/clamp01.ts'
+import { pointerRatio } from '../../lib/pointer-ratio.ts'
 import styles from './marker-rail.module.css'
 
 interface MarkerRailProps {
@@ -47,11 +48,7 @@ export function MarkerRail({
 
   /** The pointer's position along the rail as a 0–1 ratio, or null. */
   function ratioFrom(clientX: number): number | null {
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect || rect.width <= 0) {
-      return null
-    }
-    return clamp01((clientX - rect.left) / rect.width)
+    return pointerRatio(containerRef.current?.getBoundingClientRect(), clientX)
   }
 
   function beginDrag(event: PointerEvent<HTMLButtonElement>, id: string): void {

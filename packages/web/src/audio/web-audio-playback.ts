@@ -1,10 +1,8 @@
 import type { DecodedAudio, PlaybackEngine } from '@app/core'
 import type { SoundTouchNode } from '@soundtouchjs/audio-worklet'
+import { audioBufferFrom, loadSoundTouchNode } from './web-audio-shared.ts'
 
 type PositionListener = (seconds: number) => void
-
-/** SoundTouch worklet processor (pure JS), copied to `public/`. */
-const SOUNDTOUCH_PROCESSOR_URL = '/soundtouch-processor.js'
 
 /**
  * Driven adapter for the `PlaybackEngine` port. Plays decoded audio through an
@@ -45,35 +43,16 @@ export function createWebAudioPlayback(): PlaybackEngine {
     if (stretch) {
       return
     }
-    const ctx = audioContext()
-    try {
-      // Loaded lazily (browser only): the worklet class extends AudioWorkletNode,
-      // which does not exist in the test/node path.
-      const { SoundTouchNode } = await import('@soundtouchjs/audio-worklet')
-      await SoundTouchNode.register(ctx, SOUNDTOUCH_PROCESSOR_URL)
-      const node = new SoundTouchNode({ context: ctx })
-      node.connect(ctx.destination)
-      applyParams(node)
-      stretch = node
-    } catch {
-      // No worklet → basic playback still works (source → destination), only the
-      // tempo/pitch controls go inert. Verified/fixed in the browser.
-      stretch = undefined
-    }
+    // No worklet → basic playback still works (source → destination), only the
+    // tempo/pitch controls go inert. Verified/fixed in the browser.
+    stretch = await loadSoundTouchNode(audioContext(), {
+      timeRatio,
+      pitchSemitones
+    })
   }
 
   function outputNode(): AudioNode {
     return stretch ?? audioContext().destination
-  }
-
-  function applyParams(node: SoundTouchNode | undefined): void {
-    if (!node) {
-      return
-    }
-    // Mirror the source rate so the processor cancels its pitch effect, then set
-    // the wanted shift in semitones.
-    node.playbackRate.value = timeRatio
-    node.pitchSemitones.value = pitchSemitones
   }
 
   function positionOf(buf: AudioBuffer): number {
@@ -142,20 +121,7 @@ export function createWebAudioPlayback(): PlaybackEngine {
       isPlaying = false
       startOffset = 0
       await ensureStretch()
-      const channelCount = Math.max(audio.channels.length, 1)
-      const frames = Math.max(audio.channels[0]?.length ?? 0, 1)
-      const buf = audioContext().createBuffer(
-        channelCount,
-        frames,
-        audio.sampleRate
-      )
-      audio.channels.forEach((channel, index) => {
-        buf.copyToChannel(
-          Float32Array.from(channel as ArrayLike<number>),
-          index
-        )
-      })
-      buffer = buf
+      buffer = audioBufferFrom(audioContext(), audio)
       emit()
     },
 
