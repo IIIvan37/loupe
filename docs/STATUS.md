@@ -4,7 +4,26 @@
 
 ## Where we are
 
-- **Now — Lot C.2 done (2026-07-05)** on branch `feat/web-responsive-tactile`
+- **Now — Lot C.3 done (2026-07-05)** on branch `feat/web-design-system-tokens`
+  (off `main`): the **design-system completion** — CSS-only, no core. Added to
+  [tokens.css](../packages/web/src/styles/tokens.css) and propagated: an **8-step
+  modular type scale** (`--font-size-2xs…2xl`) replacing all **62** hard-coded rem
+  `font-size` declarations (17 near-duplicate literals consolidated, ≤1px shifts,
+  user chose consolidation over faithful aliasing); **elevation** `--shadow-1`
+  (menus/popovers) / `--shadow-2` (dialogs) — dialogs/popovers had *no* shadow
+  before; a **z-index scale** `--z-playhead:10 / overlay:20 / dialog:30 /
+  popover:40`; and a **radius scale** `--radius-xs/s/(6px)/l/pill` (only three
+  `50%` round ratios left). A **user-reported z-index regression** surfaced the
+  real Base UI gotcha: in `Portal > Positioner > Popup`, z-index must sit on the
+  **Positioner** (positioned) — the Popup is `static` so its z-index is inert; a
+  shared `.positioner` class fixes the « Renommer »-behind-projects-dialog stack.
+  Gate **green — 573 tests**, coverage unchanged (94.88 %/87.29 %),
+  `check:design` green; mutation skipped (no core). Browser-verified offline
+  (dialog shadow + Positioner `z-index:40` over dialog `30`); the server-backed
+  projects-rename flow is left to re-test with the server up. **Next: Lot C.4**
+  (unify buttons + inline SVG icons).
+  See [2026-07-05-web-design-system-tokens](sessions/2026-07-05-web-design-system-tokens.md).
+- **Prior — Lot C.2 done (2026-07-05)** on branch `feat/web-responsive-tactile`
   (PR #58, stacked on C.1 `feat/web-dnd-empty-state`, PR #57): the **responsive &
   tactile pass**, CSS-only (no core), done the **Every Layout way — intrinsic, not
   breakpoint-driven**. Starting point: one layout media query (900px), every touch
