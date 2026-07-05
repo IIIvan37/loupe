@@ -99,6 +99,14 @@ Stem ids/labels (`voix`, `batterie`, `basse`, `autres`) match the core's
   - Client error messages are generic; full detail is logged server-side.
 - Orphaned audio blobs (from re-saves and project deletes) are reclaimed by the
   manifest-scan GC — automatically on boot, or on demand via `POST /gc`.
-- Tests: `pip install -r requirements-dev.txt` then `.venv/bin/python -m pytest`
-  (covers storage/GC, CORS+Host, body caps, and the stem store — all torch-free;
-  the ML inference itself stays manual).
+- Quality (mirrors the `server` CI job, all **torch-free** —
+  `pip install -r requirements-dev.txt` deliberately omits the ML stack):
+  - `.venv/bin/ruff check app tests` + `ruff format --check app tests`
+  - `.venv/bin/pyright`
+  - `.venv/bin/python -m pytest` (coverage floor 80 %, config in `pyproject.toml`)
+
+  Covers storage/GC, CORS+Host+loopback, body caps, the stem store, and the
+  download NDJSON — all without torch. `separation.py` / `tempo.py` are the
+  torch/librosa **humble objects**: excluded from pyright + coverage and exercised
+  only through their absent-capability fallback; the real inference/DSP stays
+  manual. To run those locally, also `pip install -r requirements.txt`.
