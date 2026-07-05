@@ -295,8 +295,10 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 
 - [x] A.1 · [x] A.2 · [x] A.3 · [x] A.4 — **Lot A complet**
 - [x] B.1 · [x] B.2 · [ ] B.3
-- [ ] C.1 · [x] C.2 · [ ] C.3 · [ ] C.4 · [ ] C.5 — C.1 in review (PR #57); C.2
-  done (PR #58, `feat/web-responsive-tactile`, stacked on C.1) — **intrinsic**
-  (Every Layout Sidebar + `clamp()`, no viewport media queries)
+- [x] C.1 · [x] C.2 · [x] C.3 · [ ] C.4 · [ ] C.5 — C.1 (PR #57) + C.2 (PR #58)
+  merged. C.3 done on `feat/web-design-system-tokens`: type scale (8 steps,
+  62 rem literals tokenised), `--shadow-1/2` elevation, `--z-*` stacking,
+  `--radius-*`. Base UI z-index gotcha fixed (goes on the Positioner, not the
+  static Popup)
 - [ ] D.1 · [ ] D.2 · [ ] D.3
 - [ ] E.1 · [ ] E.2 · [ ] E.3 · [ ] E.4

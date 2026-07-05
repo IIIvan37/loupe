@@ -65,7 +65,7 @@ export function NameEditor({
         {triggerContent}
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Positioner sideOffset={6}>
+        <Popover.Positioner className={cx(styles.positioner)} sideOffset={6}>
           <Popover.Popup className={cx(styles.popup)}>
             <Popover.Title className={cx(styles.title)}>{title}</Popover.Title>
             <label className={cx(styles.field)}>

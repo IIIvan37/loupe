@@ -57,7 +57,7 @@
 
 .time {
   font-family: var(--font-mono);
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   margin-inline-start: var(--space-s);
 }
 
@@ -78,13 +78,13 @@
 
 .fieldLabel {
   color: var(--dim);
-  font-size: 0.65rem;
+  font-size: var(--font-size-2xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 .fieldValue {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
   color: var(--amber);
 }

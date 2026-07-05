@@ -111,7 +111,7 @@ export function ImportMenu({
             : t({ id: 'header.import', message: 'Importer' })}
         </Popover.Trigger>
         <Popover.Portal>
-          <Popover.Positioner sideOffset={6}>
+          <Popover.Positioner className={cx(styles.positioner)} sideOffset={6}>
             <Popover.Popup className={cx(styles.menu)}>
               <button
                 type="button"
@@ -134,7 +134,11 @@ export function ImportMenu({
 
       <Popover.Root open={urlOpen} onOpenChange={setUrlOpen}>
         <Popover.Portal>
-          <Popover.Positioner anchor={triggerRef} sideOffset={6}>
+          <Popover.Positioner
+            className={cx(styles.positioner)}
+            anchor={triggerRef}
+            sideOffset={6}
+          >
             <Popover.Popup className={cx(styles.popup)}>
               <Popover.Title className={cx(styles.title)}>
                 <Trans id="header.import-url-title">Importer depuis une URL</Trans>

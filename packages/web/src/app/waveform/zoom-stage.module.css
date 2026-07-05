@@ -17,7 +17,7 @@
 
 .scroll::-webkit-scrollbar-thumb {
   background: var(--line);
-  border-radius: 9px;
+  border-radius: var(--radius-l);
 }
 
 /* Width is the timeline scaled by the zoom; all layers stack inside it. */
@@ -33,5 +33,5 @@
   margin-inline-start: -1px;
   background: var(--amber);
   pointer-events: none;
-  z-index: 4;
+  z-index: var(--z-playhead);
 }

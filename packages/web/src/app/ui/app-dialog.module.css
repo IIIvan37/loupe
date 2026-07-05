@@ -1,6 +1,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
+  z-index: var(--z-dialog);
   background: rgb(0 0 0 / 0.55);
 }
 
@@ -8,24 +9,26 @@
   position: fixed;
   top: 50%;
   left: 50%;
+  z-index: var(--z-dialog);
   transform: translate(-50%, -50%);
   width: min(28rem, calc(100vw - var(--space-l)));
   padding: var(--space-l);
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
 }
 
 .title {
   font-family: var(--font-logo);
-  font-size: 1.1rem;
+  font-size: var(--font-size-l);
   font-weight: 600;
 }
 
 .description {
   margin-block-start: var(--space-2xs);
   color: var(--dim);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
 }
 
 .close {

@@ -3,7 +3,7 @@
   padding: var(--space-2xs) var(--space-xs);
   border-block-start: 1px solid var(--line-soft);
   color: var(--faint);
-  font-size: 0.65rem;
+  font-size: var(--font-size-2xs);
   line-height: 1.4;
 }
 

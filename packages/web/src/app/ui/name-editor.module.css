@@ -1,3 +1,7 @@
+.positioner {
+  composes: positioner from './popover-form.module.css';
+}
+
 .popup {
   composes: popup from './popover-form.module.css';
   width: min(18rem, calc(100vw - var(--space-l)));
@@ -15,7 +19,7 @@
 
 .label {
   color: var(--dim);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }

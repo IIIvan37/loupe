@@ -10,7 +10,7 @@
   width: 2.25rem;
   color: var(--dim);
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: var(--font-size-2xs);
   text-align: right;
 }
 
@@ -23,10 +23,10 @@
   width: 20px;
   height: 20px;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--radius-s);
   background: var(--panel-2);
   color: var(--dim);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
   line-height: 1;
 }
 

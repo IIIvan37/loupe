@@ -1,6 +1,6 @@
 .label {
   color: var(--dim);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
