@@ -24,7 +24,7 @@
   client-facing errors (full detail logged server-side). Server pytest **36
   passed**; verified on real uvicorn (2 MB over a 1 MB cap → 413, malformed
   `/stems` → 404, jobs dir 0700). Gate green, mutation skipped (no core).
-  **Lot A.4 done — Lot A COMPLETE** on branch `fix/server-loopback-and-filename`:
+  **Lot A.4 done — Lot A COMPLETE** on branch `fix/server-loopback-and-filename` (PR #51):
   `LoopbackOnlyMiddleware` (torch-free `netguard`) refuses non-loopback requests at
   the socket level (a `--host 0.0.0.0` mistake can't reach the LAN even with a
   forged Host), and web `exportBaseName` strips path-sep/reserved/control chars
