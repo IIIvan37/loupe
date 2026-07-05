@@ -78,7 +78,15 @@ Stem ids/labels (`voix`, `batterie`, `basse`, `autres`) match the core's
   (one update per audio segment), so granularity scales with track length.
 - Jobs are written under the OS temp dir and live until the process exits — fine
   for single-user localhost; add cleanup/TTL before any shared deployment.
-- No auth / rate limiting: intended for `localhost` only.
+- No auth / rate limiting: intended for `localhost` only. Two guards enforce
+  that trust model, both env-overridable but locked to loopback by default:
+  - **CORS** is scoped to the dev origin (`LOUPE_ALLOWED_ORIGINS`, default
+    `http://localhost:5173,http://127.0.0.1:5173`), never `*` — a random page in
+    the same browser can't read our responses.
+  - **Host** header is validated (`LOUPE_ALLOWED_HOSTS`, default
+    `localhost,127.0.0.1`) to blunt DNS-rebinding. Point the web app elsewhere by
+    setting both vars; never bind `--host 0.0.0.0` (an unauthenticated,
+    file-writing server on the LAN).
 - Orphaned audio blobs (from re-saves and project deletes) are reclaimed by the
   manifest-scan GC — automatically on boot, or on demand via `POST /gc`.
 - Tests: `pip install -r requirements-dev.txt` then `.venv/bin/python -m pytest`

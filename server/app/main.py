@@ -17,20 +17,41 @@ Four independent capability groups behind one process:
   NDJSON error line.
 
 Single-user, localhost — no auth. Run with `uvicorn app.main:app --port 8000`.
+
+The trust model is "only the local loupe web app talks to this server":
+- **CORS** is restricted to the dev origin(s) (`LOUPE_ALLOWED_ORIGINS`,
+  default `http://localhost:5173` + the 127.0.0.1 variant), never `*` — so a
+  random page the user has open in the same browser cannot read our responses.
+- **Host** header is validated (`LOUPE_ALLOWED_HOSTS`, default `localhost` +
+  `127.0.0.1`) to blunt DNS-rebinding, which would otherwise let an attacker
+  origin reach us over the loopback despite CORS.
+Both are env-overridable so an operator can point the web app at a different
+host, but the defaults are locked to the loopback dev setup.
 """
 
 from __future__ import annotations
 
 import contextlib
 import json
+import os
 from collections.abc import AsyncIterator
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .projects import collect_garbage
 from .projects import router as projects_router
+
+_DEFAULT_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+_DEFAULT_HOSTS = "localhost,127.0.0.1"
+
+
+def _env_list(name: str, default: str) -> list[str]:
+    """Comma-separated env var → trimmed, non-empty entries (falls back to default)."""
+    raw = os.environ.get(name, default)
+    return [item.strip() for item in raw.split(",") if item.strip()]
 
 
 @contextlib.asynccontextmanager
@@ -44,11 +65,17 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="loupe server", lifespan=lifespan)
+# Host check first (outermost) so a rebinding request is rejected before anything
+# else runs; then CORS scoped to the dev origin.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_env_list("LOUPE_ALLOWED_ORIGINS", _DEFAULT_ORIGINS),
     allow_methods=["*"],
     allow_headers=["*"],
+)
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=_env_list("LOUPE_ALLOWED_HOSTS", _DEFAULT_HOSTS),
 )
 app.include_router(projects_router)
 

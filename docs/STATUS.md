@@ -8,13 +8,17 @@
   evaluation (fonctionnalité / qualité / UX-UI / sécurité), a guiding plan landed
   at [roadmap-excellence.md](roadmap-excellence.md) — 5 lots (A sécurité serveur,
   B discipline serveur, C fossé produit, D fonctionnalités, E dette), PR-sized
-  slices, `main` doc-only. **Lot A.1 done** on branch `fix/server-no-runtime-pip`:
-  removed the 🔴 critical runtime `pip install -U yt-dlp` from the download path
-  (attacker-triggerable RCE) — a `DownloadError` now surfaces a manual-upgrade
-  hint instead of self-installing; new server pytest locks the invariant + adds
-  host-allowlist coverage (**15 passed**). Gate green; mutation skipped (no core).
-  **PR #48 opened. Next: A.2** (CORS `*` → dev origin + `Host` validation). See
+  slices, `main` doc-only. **Lot A.1 done (PR #48, merged)**: removed the
+  🔴 critical runtime `pip install -U yt-dlp` from the download path
+  (attacker-triggerable RCE) — see
   [2026-07-05-server-no-runtime-pip](sessions/2026-07-05-server-no-runtime-pip.md).
+  **Lot A.2 done** on branch `fix/server-cors-host` (PR #49): scoped CORS to the dev origin
+  (`LOUPE_ALLOWED_ORIGINS`) + `TrustedHostMiddleware` (`LOUPE_ALLOWED_HOSTS`)
+  against DNS-rebinding — no more wildcard CORS on the unauthenticated localhost
+  server. Server pytest **21 passed**, verified on real uvicorn (foreign origin
+  gets no CORS header, bad Host → 400); gate green, mutation skipped (no core).
+  **Next: A.3** (request-size caps, stems-temp TTL/0700, generic errors). See
+  [2026-07-05-server-cors-host](sessions/2026-07-05-server-cors-host.md).
 - **Prior — housekeeping pass (2026-07-05)**: four user asks on one branch
   `refactor/dry-tabs-coverage`. **(1) DRY** — knip already clean; jscpd **14 → 7
   clones, 1.26 % → 0.68 %** by extracting the real duplication: pure TDD-tested
