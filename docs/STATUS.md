@@ -44,9 +44,18 @@
   The ML humble objects (`separation`/`tempo`) are excluded from pyright+coverage
   and covered manually. Validated in a throwaway torch-free venv: **70 passed,
   94.96 %**, pyright **0 errors**. The last structural gap (server outside CI) is
-  closed. **Next: B.3** (write the humble-object convention + extract remaining
-  testable pockets), then **Lot C** (produit). See
+  closed. See
   [2026-07-05-server-lint-types-ci](sessions/2026-07-05-server-lint-types-ci.md).
+  **Lot B.3 done — Lot B COMPLETE** on branch `refactor/server-humble-objects`:
+  extracted the last testable logic from the ML shells — new torch-free
+  `stem_manifest` (source ordering + id/label/url) and `download.progress_fraction`
+  — and wrote the **humble-object convention** into `server/README.md`. Server
+  **80 passed, 96.83 %** (download 90 %, `stem_manifest` 100 %), pyright 0 errors.
+  Behaviour-preserving (unit-proven), so no full separation re-run. **Next: Lot C**
+  (produit) — **C.1** DnD + empty-state, the first visible win. Also **held**:
+  Dependabot **PR #53** (`@vitejs/plugin-react` v6, breaking Babel→oxc) deferred —
+  see roadmap « Reporté / veille ». See
+  [2026-07-05-server-humble-objects](sessions/2026-07-05-server-humble-objects.md).
 - **Prior — housekeeping pass (2026-07-05)**: four user asks on one branch
   `refactor/dry-tabs-coverage`. **(1) DRY** — knip already clean; jscpd **14 → 7
   clones, 1.26 % → 0.68 %** by extracting the real duplication: pure TDD-tested
