@@ -7,7 +7,7 @@
   background: var(--panel);
   border-block-end: 1px solid var(--stem-vocals);
   color: var(--stem-vocals);
-  font-size: 0.85rem;
+  font-size: var(--font-size-s);
 }
 
 .message {
@@ -26,7 +26,7 @@
   border-radius: var(--radius);
   background: transparent;
   color: var(--stem-vocals);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
 }
 
 .close:hover {

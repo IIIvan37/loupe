@@ -14,7 +14,7 @@
 .logo {
   font-family: var(--font-logo);
   font-weight: 500;
-  font-size: 1.25rem;
+  font-size: var(--font-size-l);
   letter-spacing: 0.02em;
 }
 
@@ -26,7 +26,7 @@
 
 .title {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--font-size-m);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -34,7 +34,7 @@
 
 .artist {
   color: var(--dim);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -51,7 +51,7 @@
 
 .readoutLabel {
   color: var(--dim);
-  font-size: 0.65rem;
+  font-size: var(--font-size-2xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -60,7 +60,7 @@
 .readoutValue {
   font-family: var(--font-mono);
   color: var(--teal);
-  font-size: 0.85rem;
+  font-size: var(--font-size-s);
 }
 
 /* Server health: a small coloured dot + label, dim like other metadata,
@@ -73,7 +73,7 @@
   padding-inline-start: var(--space-s);
   border-inline-start: 1px solid var(--line);
   color: var(--dim);
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   white-space: nowrap;
 }
 
@@ -187,7 +187,7 @@
 /* Document-state chip next to the title: dim when in sync, amber when the
    session drifted, teal while a long operation narrates itself. */
 .saveState {
-  font-size: 0.72rem;
+  font-size: var(--font-size-xs);
   color: var(--dim);
   white-space: nowrap;
 }

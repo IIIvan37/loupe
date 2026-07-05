@@ -13,7 +13,7 @@
   justify-content: space-between;
   color: var(--faint);
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: var(--font-size-2xs);
 }
 
 .tick {
@@ -45,10 +45,10 @@
 .tag {
   padding: 1px 5px;
   border: 1px solid var(--amber-deep);
-  border-radius: 4px;
+  border-radius: var(--radius-s);
   background: var(--panel);
   color: var(--amber);
-  font-size: 0.625rem;
+  font-size: var(--font-size-2xs);
   white-space: nowrap;
 }
 

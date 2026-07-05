@@ -72,7 +72,7 @@
   height: var(--waveform-height);
   padding: var(--space-2xs) var(--space-xs);
   color: var(--dim);
-  font-size: 0.65rem;
+  font-size: var(--font-size-2xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -82,7 +82,7 @@
 .dropOverlay {
   position: fixed;
   inset: 0;
-  z-index: 5;
+  z-index: var(--z-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -97,7 +97,7 @@
   border-radius: var(--radius);
   background: var(--panel);
   color: var(--text);
-  font-size: 1.2rem;
+  font-size: var(--font-size-l);
   font-weight: 600;
 }
 

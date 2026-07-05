@@ -29,11 +29,11 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
   color: var(--text);
 }
 
 .action {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--font-size-m);
 }

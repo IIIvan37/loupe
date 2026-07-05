@@ -1,3 +1,7 @@
+.positioner {
+  composes: positioner from '../ui/popover-form.module.css';
+}
+
 .menu {
   display: flex;
   flex-direction: column;
@@ -6,6 +10,7 @@
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
 }
 
 .item {
@@ -14,7 +19,7 @@
   border: 0;
   background: transparent;
   color: var(--text);
-  font-size: 0.85rem;
+  font-size: var(--font-size-s);
   text-align: left;
   cursor: default;
 }
@@ -40,7 +45,7 @@
 .hint {
   margin-top: calc(-1 * var(--space-2xs));
   color: var(--dim);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }

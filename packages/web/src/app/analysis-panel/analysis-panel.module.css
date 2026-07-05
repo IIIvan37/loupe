@@ -21,7 +21,7 @@
   margin-block-end: -1px;
   padding: var(--space-xs) var(--space-2xs);
   color: var(--dim);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
   letter-spacing: 0.01em;
   border-block-end: 2px solid transparent;
   cursor: pointer;
@@ -49,7 +49,7 @@
 .tabPanel {
   padding-block-start: var(--space-m);
   color: var(--dim);
-  font-size: 0.85rem;
+  font-size: var(--font-size-s);
 }
 
 /* Shared list of navigable entries (markers, saved loops). */
@@ -97,7 +97,7 @@
   border-radius: var(--radius);
   background: var(--panel-2);
   color: var(--faint);
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
 }
 
 .entryEdit:hover {
@@ -113,10 +113,10 @@
 .entryTime {
   color: var(--amber);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
 }
 
 .entryName {
   color: var(--dim);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
 }

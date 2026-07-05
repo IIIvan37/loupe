@@ -1,6 +1,6 @@
 .label {
   color: var(--dim);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -8,20 +8,20 @@
 .action {
   composes: amberButton from '../ui/controls.module.css';
   padding: var(--space-2xs) var(--space-s);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
 }
 
 .ghost {
   composes: ghostButton from '../ui/controls.module.css';
   padding: var(--space-2xs) var(--space-s);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
 }
 
 /* Loop on/off: outlined when inactive, amber-filled when looping. */
 .toggle {
   composes: ghostButton from '../ui/controls.module.css';
   padding: var(--space-2xs) var(--space-s);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
 }
 
 .toggleOn {

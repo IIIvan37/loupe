@@ -2,6 +2,14 @@
    shell, its title, a text field, and the cancel/submit action row. Consumers
    `composes:` these and layer on their own widths/extras. */
 
+/* The Base UI Positioner is the element that carries `position: fixed` (Floating
+   UI), so it — not the static Popup inside it — owns the stacking context. The
+   z-index MUST live here for the popover to float above an open dialog it was
+   triggered from (e.g. « Renommer » inside the projects dialog). */
+.positioner {
+  z-index: var(--z-popover);
+}
+
 .popup {
   display: flex;
   flex-direction: column;
@@ -10,11 +18,12 @@
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
 }
 
 .title {
   font-family: var(--font-logo);
-  font-size: 0.95rem;
+  font-size: var(--font-size-m);
   font-weight: 600;
 }
 
@@ -24,7 +33,7 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   color: var(--text);
-  font-size: 0.85rem;
+  font-size: var(--font-size-s);
 }
 
 .actions {
@@ -36,14 +45,14 @@
 .ghost {
   composes: ghostButton from './controls.module.css';
   padding: var(--space-2xs) var(--space-s);
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
 }
 
 .submit {
   composes: amberButton from './controls.module.css';
   padding: var(--space-2xs) var(--space-m);
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: var(--font-size-s);
 }
 
 .submit:disabled {

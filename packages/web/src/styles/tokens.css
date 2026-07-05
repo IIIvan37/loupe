@@ -36,6 +36,34 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --font-logo: 'Space Grotesk', var(--font-ui);
 
+  /* Type scale — modular, 8 steps. The dense workstation lives at the small end
+     (`s` is by far the most common), so the scale is weighted downward rather
+     than around 1rem. Near-duplicate literals (0.6/0.62/0.625/0.65 …) collapse
+     to the nearest step: one place owns each size, ±≤1px from the old values. */
+  --font-size-2xs: 0.65rem; /* dense meta: rail tags, faders, chips */
+  --font-size-xs: 0.75rem; /* captions, kbd, secondary labels */
+  --font-size-s: 0.8rem; /* body of controls & panels (default) */
+  --font-size-m: 0.9rem; /* comfortable body, list rows */
+  --font-size-base: 1rem; /* transport timecode, base text */
+  --font-size-l: 1.2rem; /* section / dialog titles */
+  --font-size-xl: 1.35rem; /* empty-state heading */
+  --font-size-2xl: 2.5rem; /* empty-state hero glyph */
+
+  /* Elevation — two steps only. `1` lifts light overlays (menus, popovers) off
+     the panel; `2` is the modal dialog sitting above a dimmed backdrop. Tuned
+     for the dark UI: deep, low-spread, so the ombre reads without a halo. */
+  --shadow-1: 0 4px 12px rgb(0 0 0 / 0.35);
+  --shadow-2: 0 12px 32px rgb(0 0 0 / 0.5);
+
+  /* Stacking order — one scale, so overlays never fight by accident. Gaps of 10
+     leave room to slot a layer in without renumbering. Popovers sit ABOVE
+     dialogs on purpose: a menu / rename popover is often triggered from *inside*
+     a dialog (e.g. « Renommer » in the projects dialog) and must float over it. */
+  --z-playhead: 10; /* the moving cursor, above the waveform */
+  --z-overlay: 20; /* full-viewport drop layer */
+  --z-dialog: 30; /* modal backdrop + popup */
+  --z-popover: 40; /* menus, popover forms — above dialogs (may nest in one) */
+
   /* Spacing scale (Every Layout — modular, owned by primitives) */
   --space-3xs: 0.125rem;
   --space-2xs: 0.25rem;
@@ -46,7 +74,13 @@
   --space-xl: 2rem;
   --space-2xl: 3rem;
 
+  /* Corner radius scale. `--radius` (6px) stays the default; the extremes cover
+     tiny inset chips, the zoom pill's softer corner, and fully-round pills. */
+  --radius-xs: 2px;
+  --radius-s: 4px;
   --radius: 6px;
+  --radius-l: 9px;
+  --radius-pill: 999px;
 
   /* Minimum comfortable tap size on touch devices (WCAG 2.5.5 target size).
      Applied only under `@media (pointer: coarse)` so the dense desktop layout
