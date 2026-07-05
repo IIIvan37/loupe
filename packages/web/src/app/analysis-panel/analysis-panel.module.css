@@ -31,7 +31,8 @@
   font-size: 0.85rem;
 }
 
-.markerList {
+/* Shared list of navigable entries (markers, saved loops). */
+.entryList {
   list-style: none;
   padding: 0;
   display: flex;
@@ -39,13 +40,13 @@
   gap: var(--space-2xs);
 }
 
-.markerItem {
+.entryItem {
   display: flex;
   align-items: stretch;
   gap: var(--space-2xs);
 }
 
-.markerRow {
+.entryRow {
   display: flex;
   gap: var(--space-s);
   align-items: baseline;
@@ -58,12 +59,18 @@
   text-align: start;
 }
 
-.markerRow:hover {
+.entryRow:hover {
   background: var(--panel-3);
 }
 
-.markerEdit,
-.markerRemove {
+/* The loop the active region came from — amber ring = the current setting. */
+.entryActive {
+  outline: 1px solid var(--amber);
+  outline-offset: -1px;
+}
+
+.entryEdit,
+.entryRemove {
   padding: 0 var(--space-xs);
   border: 0;
   border-radius: var(--radius);
@@ -72,23 +79,23 @@
   font-size: 0.75rem;
 }
 
-.markerEdit:hover {
+.entryEdit:hover {
   color: var(--amber);
   background: var(--panel-3);
 }
 
-.markerRemove:hover {
+.entryRemove:hover {
   color: var(--text);
   background: var(--panel-3);
 }
 
-.markerTime {
+.entryTime {
   color: var(--amber);
   font-family: var(--font-mono);
   font-size: 0.75rem;
 }
 
-.markerName {
+.entryName {
   color: var(--dim);
   font-size: 0.8rem;
 }

@@ -4,20 +4,8 @@
   gap: var(--space-xs);
 }
 
-.head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.label {
-  color: var(--dim);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
 .action {
+  align-self: flex-start;
   padding: var(--space-2xs) var(--space-s);
   border-radius: var(--radius);
   border: 1px solid var(--line);
@@ -80,19 +68,6 @@
   margin: 0;
   font-size: 0.8rem;
   color: var(--stem-vocals);
-}
-
-.undetected {
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--dim);
-}
-
-.undetectedLabel {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.7rem;
-  color: var(--dim);
 }
 
 /* Idle: one quiet line instead of an empty frame — the lanes appear in the

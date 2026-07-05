@@ -16,13 +16,6 @@
   touch-action: none;
 }
 
-/* One coloured stem envelope overlaid in the mix; they stack in the surface. */
-.layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
 /* The clickable seek surface; fills the container, drives click + drag-select. */
 .surface {
   position: absolute;

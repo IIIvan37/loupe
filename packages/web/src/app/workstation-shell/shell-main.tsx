@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
-import { LoopBar } from '../loops/loop-bar.tsx'
+import { LoopControls } from '../loops/loop-controls.tsx'
 import type { useLoopEditing } from '../loops/use-loop-editing.ts'
 import type { useLoops } from '../loops/use-loops.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
@@ -66,10 +66,23 @@ export function ShellMain({
   canSeparate,
   onSeparate
 }: ShellMainProps) {
+  // Stems the separation masked as near-silent — captioned in the mixer gutter.
+  const undetectedStems =
+    separation.state.status === 'ready'
+      ? separation.state.stems.filter((stem) => !stem.present)
+      : []
+
   return (
     <div className={styles.body}>
       <main className={styles.main}>
         <Stack gap="var(--space-m)">
+          {/* The import → stems bridge sits at the top, by the import moment;
+              once ready it steps aside and the stems become the mixer. */}
+          <SeparationPanel
+            state={separation.state}
+            canSeparate={canSeparate}
+            onSeparate={onSeparate}
+          />
           <MarkerControls
             disabled={!isLoaded}
             onAdd={() => markers.addAt(positionSeconds)}
@@ -80,6 +93,7 @@ export function ShellMain({
             durationSeconds={durationSeconds}
             viewport={viewport}
             mixer={mixer}
+            undetectedStems={undetectedStems}
             onDownloadStem={onDownloadStem}
             markers={markers}
             loopEditing={loopEditing}
@@ -97,23 +111,13 @@ export function ShellMain({
               error={tempo.error}
             />
           )}
-          <LoopBar
+          <LoopControls
             region={loopRegion}
             isSaved={loopEditing.isSaved}
-            activeLoopId={loopEditing.activeLoopId}
             loopEnabled={loopEnabled}
             onToggleLoop={onToggleLoop}
-            library={loops.library}
             onSaveRegion={loopEditing.saveRegion}
-            onUpdateLoop={loops.update}
             onClearRegion={loopEditing.clearRegion}
-            onActivate={loopEditing.activate}
-            onRemove={loopEditing.remove}
-          />
-          <SeparationPanel
-            state={separation.state}
-            canSeparate={canSeparate}
-            onSeparate={onSeparate}
           />
         </Stack>
       </main>
@@ -123,6 +127,11 @@ export function ShellMain({
         onSeekMarker={onSeekSeconds}
         onRenameMarker={markers.rename}
         onRemoveMarker={markers.remove}
+        loops={loops.library}
+        activeLoopId={loopEditing.activeLoopId}
+        onActivateLoop={loopEditing.activate}
+        onUpdateLoop={loops.update}
+        onRemoveLoop={loopEditing.remove}
       />
     </div>
   )

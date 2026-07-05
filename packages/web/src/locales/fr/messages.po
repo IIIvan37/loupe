@@ -19,32 +19,42 @@ msgid "alerts.close"
 msgstr "Fermer l'alerte"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:52
+#: src/app/analysis-panel/analysis-panel.tsx:114
+msgid "analysis.no-loops"
+msgstr "Aucune boucle. En enregistrer une depuis une sélection A/B sur la forme d'onde."
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:75
 msgid "analysis.no-markers"
 msgstr "Aucun repère. En ajouter depuis la barre de repères."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:110
+#: src/app/analysis-panel/analysis-panel.tsx:155
 msgid "analysis.notes-placeholder"
 msgstr "Les annotations textuelles arriveront plus tard."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:44
+#: src/app/analysis-panel/analysis-panel.tsx:67
 msgid "analysis.spectrum-placeholder"
 msgstr "L'analyse spectrale arrivera avec la détection (jalon ultérieur)."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:36
+#: src/app/analysis-panel/analysis-panel.tsx:59
+msgid "analysis.tab-loops"
+msgstr "Boucles"
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:56
 msgid "analysis.tab-markers"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:39
+#: src/app/analysis-panel/analysis-panel.tsx:62
 msgid "analysis.tab-notes"
 msgstr "Notes"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:33
+#: src/app/analysis-panel/analysis-panel.tsx:53
 msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
@@ -76,8 +86,7 @@ msgid "common.name"
 msgstr "Nom"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:84
-#: src/app/loops/loop-bar.tsx:125
+#: src/app/analysis-panel/analysis-panel.tsx:208
 #: src/projects/projects-dialog.tsx:183
 msgid "common.rename"
 msgstr "Renommer"
@@ -87,7 +96,7 @@ msgstr "Renommer"
 #: src/app/header/header.tsx:91
 #: src/app/header/header.tsx:99
 #: src/app/header/header.tsx:111
-#: src/app/loops/loop-bar.tsx:77
+#: src/app/loops/loop-controls.tsx:69
 msgid "common.save"
 msgstr "Enregistrer"
 
@@ -245,42 +254,42 @@ msgid "header.unsaved"
 msgstr "● Non enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:65
+#: src/app/loops/loop-controls.tsx:57
 msgid "loops.active"
 msgstr "⟳ Boucle active"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:88
+#: src/app/loops/loop-controls.tsx:76
 msgid "loops.clear-region"
 msgstr "Effacer"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:67
+#: src/app/loops/loop-controls.tsx:59
 msgid "loops.inactive"
 msgstr "⟳ Boucle inactive"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:132
+#: src/app/analysis-panel/analysis-panel.tsx:142
 msgid "loops.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:120
+#: src/app/analysis-panel/analysis-panel.tsx:135
 msgid "loops.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:115
+#: src/app/analysis-panel/analysis-panel.tsx:131
 msgid "loops.rename-title"
 msgstr "Renommer la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:46
+#: src/app/loops/loop-controls.tsx:36
 msgid "loops.save-region"
 msgstr "Enregistrer la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-bar.tsx:53
+#: src/app/loops/loop-controls.tsx:48
 msgid "loops.section-label"
 msgstr "Boucles"
 
@@ -305,17 +314,17 @@ msgid "markers.go-to"
 msgstr "Aller à {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:94
+#: src/app/analysis-panel/analysis-panel.tsx:99
 msgid "markers.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:79
+#: src/app/analysis-panel/analysis-panel.tsx:94
 msgid "markers.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:74
+#: src/app/analysis-panel/analysis-panel.tsx:90
 msgid "markers.rename-title"
 msgstr "Renommer le repère"
 
@@ -335,7 +344,7 @@ msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-stage.tsx:68
+#: src/app/workstation-shell/shell-stage.tsx:88
 msgid "mixer.mix-label"
 msgstr "Mix"
 
@@ -355,6 +364,11 @@ msgid "mixer.solo"
 msgstr "Isoler {name}"
 
 #. js-lingui-explicit-id
+#: src/app/mixer/undetected-stems.tsx:26
+msgid "mixer.undetected"
+msgstr "Non détectés"
+
+#. js-lingui-explicit-id
 #: src/app/mixer/stem-headers.tsx:111
 msgid "mixer.volume"
 msgstr "Volume {name}"
@@ -370,7 +384,7 @@ msgid "projects.confirm-open"
 msgstr "Confirmer l'ouverture de {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/use-projects.ts:177
+#: src/projects/use-projects.ts:180
 msgid "projects.delete-failed"
 msgstr "Impossible de supprimer le projet : {error}"
 
@@ -410,7 +424,7 @@ msgid "projects.rename"
 msgstr "Renommer"
 
 #. js-lingui-explicit-id
-#: src/projects/use-projects.ts:156
+#: src/projects/use-projects.ts:159
 msgid "projects.rename-failed"
 msgstr "Impossible de renommer le projet : {error}"
 
@@ -450,19 +464,14 @@ msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:92
+#: src/app/separation/separation-panel.tsx:87
 msgid "separation.failed"
 msgstr "La séparation a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:103
+#: src/app/separation/separation-panel.tsx:96
 msgid "separation.idle-hint"
 msgstr "Les pistes séparées (voix, batterie, basse…) s'alignent sous la forme d'onde, chacune avec ses propres contrôles."
-
-#. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:62
-msgid "separation.ready"
-msgstr "Pistes séparées"
 
 #. js-lingui-explicit-id
 #: src/app/separation/separation-panel.tsx:55
@@ -470,12 +479,12 @@ msgid "separation.region-label"
 msgstr "Séparation des pistes"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:72
+#: src/app/separation/separation-panel.tsx:68
 msgid "separation.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:73
+#: src/app/separation/separation-panel.tsx:69
 msgid "separation.separate"
 msgstr "Séparer les pistes"
 
@@ -483,11 +492,6 @@ msgstr "Séparer les pistes"
 #: src/app/separation/separation-panel.tsx:13
 msgid "separation.separating"
 msgstr "Séparation des pistes…"
-
-#. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:122
-msgid "separation.undetected"
-msgstr "Non détectés"
 
 #. js-lingui-explicit-id
 #: src/app/header/import-menu.tsx:101
@@ -622,38 +626,42 @@ msgid "transport.tempo-slider"
 msgstr "Tempo en pourcentage"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:201
+#: src/app/waveform/waveform-view.tsx:192
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:193
+#: src/app/waveform/waveform-view.tsx:184
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:328
+#: src/app/waveform/waveform-view.tsx:234
+msgid "waveform.mix-image"
+msgstr "Forme d'onde du mix"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/waveform-view.tsx:304
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:316
+#: src/app/waveform/waveform-view.tsx:292
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
 #. js-lingui-explicit-id
 #: src/app/mixer/stem-lanes.tsx:42
-#: src/app/waveform/waveform-view.tsx:255
 msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:233
+#: src/app/waveform/waveform-view.tsx:224
 msgid "waveform.surface"
 msgstr "Forme d'onde : clic pour se positionner, glisser pour boucler"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:266
+#: src/app/waveform/waveform-view.tsx:242
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 

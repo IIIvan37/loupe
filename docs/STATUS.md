@@ -4,6 +4,21 @@
 
 ## Where we are
 
+- **Now — UI clarity pass (2026-07-04)**: user-driven polish on the workstation
+  before the next roadmap slice, three refactors on one branch
+  `refactor/ui-workstation-clarity`. **(1) Mix legibility** — the main « Mix »
+  lane draws **one summed envelope** (the unused pure `combineWaveforms`,
+  gain-weighted so mute/solo reshape it live) instead of stacking every stem as
+  a translucent overlay; the per-stem lanes stay below. **(2) Saved loops →
+  sidebar** — split the loop bar: live A/B controls stay inline (`LoopControls`),
+  the saved-loop library becomes a « Boucles » tab beside « Repères » (shared
+  `EntryRow`); fills the half-empty sidebar and makes loops/markers consistent
+  siblings. **(3) Separation relocated** — the « Séparer » action + progress move
+  to the top (import moment) and step aside once ready; the « Non détectés »
+  caption moves into the mixer gutter (new `UndetectedStems`). Gate green, **537
+  tests**; mutation **skipped** (core untouched — `combineWaveforms` pre-existed).
+  #1 browser-verified by the user; #2/#3 report+PR first. **PR #46 opened.** See
+  [2026-07-04-ui-workstation-clarity](sessions/2026-07-04-ui-workstation-clarity.md).
 - **Phase**: **Jalon 2 (« Séparation IA ») — separation runs on a local server**
   (PR #19 merged). The in-browser WASM engines hit a quality/speed ceiling; a
   local **FastAPI + Demucs** backend implements the `StemSeparator` port behind an
@@ -359,6 +374,16 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-04 — ui-workstation-clarity](sessions/2026-07-04-ui-workstation-clarity.md) —
+  User-driven UI clarity pass, three refactors on one branch. **(1)** Main « Mix »
+  lane = one summed `combineWaveforms` envelope (gain-weighted, live to mute/solo)
+  instead of stacked translucent stems; lanes stay below. **(2)** Saved loops move
+  to a « Boucles » sidebar tab (shared `EntryRow` with markers); live A/B controls
+  stay inline as `LoopControls`; `loop-bar` → `loop-controls`. **(3)** Separation
+  action + progress relocate to the top of the column and step aside once ready;
+  the « Non détectés » caption moves into the mixer gutter (`UndetectedStems`).
+  Gate green, 537 tests, mutation skipped (core untouched). #1 browser-verified by
+  the user. PR #46 on `refactor/ui-workstation-clarity`.
 - [2026-07-04 — jalon3-polish](sessions/2026-07-04-jalon3-polish.md) —
   The three deferred Jalon 3 polish items, each its own branch/PR.
   **(1) `separator-server/` → `server/` rename** (#43): the backend outgrew its

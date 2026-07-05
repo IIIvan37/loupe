@@ -2,19 +2,9 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import type { BeatGrid, LoopRegion, Waveform } from '@app/core'
 import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react'
 import { clamp01 } from '../../lib/clamp01.ts'
-import { stemColorVar } from '../stems/stem-color.ts'
 import type { ImportState } from './use-player.ts'
 import { WaveformCanvas } from './waveform-canvas.tsx'
 import styles from './waveform-view.module.css'
-
-/** One stem's envelope drawn into the mix in its own colour, faded by level. */
-export interface MixLayer {
-  readonly id: string
-  readonly label: string
-  readonly waveform: Waveform
-  /** Effective level in [0, 1] — drives the layer's opacity (muted = faint). */
-  readonly level: number
-}
 
 interface WaveformViewProps {
   readonly state: ImportState
@@ -25,11 +15,12 @@ interface WaveformViewProps {
   /** The detected beat grid, drawn as vertical lines (downbeats stronger). */
   readonly beatGrid: BeatGrid
   /**
-   * The stems making up the mix, each drawn in its own colour and transparency
-   * so the voices read apart. When present they replace the single envelope;
-   * empty for an un-separated track (which shows its one amber waveform).
+   * The summed mix envelope — the stems folded back into one waveform of the
+   * audible mix (muting a stem carves it out here). Replaces the single track
+   * envelope once separated; undefined for an un-separated track (which shows
+   * its one amber waveform). The individual stems live in their own lanes.
    */
-  readonly mixLayers: readonly MixLayer[]
+  readonly mixWaveform: Waveform | undefined
   readonly durationSeconds: number
   /** Click (no drag) seeks to a fraction (0–1) of the timeline. */
   readonly onSeek: (ratio: number) => void
@@ -65,7 +56,7 @@ export function WaveformView({
   loopRegion,
   loopEnabled,
   beatGrid,
-  mixLayers,
+  mixWaveform,
   durationSeconds,
   onSeek,
   onSelectRegion,
@@ -237,29 +228,14 @@ export function WaveformView({
             })}
             onPointerDown={beginSelect}
           >
-            {mixLayers.length > 0 ? (
-              mixLayers.map((layer) => {
-                // Bound locally so the ICU placeholder keeps a readable name.
-                const name = layer.label
-                return (
-                  <span
-                    key={layer.id}
-                    className={styles.layer}
-                    // A bit of transparency so overlapping voices blend; fade
-                    // further with the level so muting reads here too.
-                    style={{ opacity: 0.2 + 0.55 * layer.level }}
-                  >
-                    <WaveformCanvas
-                      waveform={layer.waveform}
-                      colorVar={stemColorVar(layer.id)}
-                      label={t({
-                        id: 'waveform.stem-image',
-                        message: `Forme d'onde de ${name}`
-                      })}
-                    />
-                  </span>
-                )
-              })
+            {mixWaveform ? (
+              <WaveformCanvas
+                waveform={mixWaveform}
+                label={t({
+                  id: 'waveform.mix-image',
+                  message: "Forme d'onde du mix"
+                })}
+              />
             ) : (
               <WaveformCanvas
                 waveform={state.track.waveform}

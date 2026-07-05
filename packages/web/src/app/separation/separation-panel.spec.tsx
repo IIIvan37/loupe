@@ -73,28 +73,11 @@ describe('SeparationPanel', () => {
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
-  it('names the masked stems on the not-detected line when ready', () => {
-    renderPanel({ status: 'ready', progress: 1, stems })
-    expect(screen.getByText(i18n._('separation.undetected'))).toBeInTheDocument()
-    expect(screen.getByText('Guitare')).toBeInTheDocument()
-  })
-
-  it('hides the separate action once the stems are ready', () => {
-    renderPanel({ status: 'ready', progress: 1, stems })
-    expect(
-      screen.queryByRole('button', { name: i18n._('separation.separate') })
-    ).not.toBeInTheDocument()
-  })
-
-  it('disappears entirely once ready with nothing to report', () => {
-    const present = stems.filter((s) => s.present)
-    const { container } = renderPanel({
-      status: 'ready',
-      progress: 1,
-      stems: present
-    })
-    // The stems live in the timeline (lanes + headers); a bare section
-    // title with nothing under it would just dangle.
+  it('steps aside entirely once the stems are ready', () => {
+    // The stems become the mixer (lanes + gutter headers) and the « Non
+    // détectés » caption moves to the gutter, so this affordance has nothing
+    // left to show — masked stems present or not.
+    const { container } = renderPanel({ status: 'ready', progress: 1, stems })
     expect(container).toBeEmptyDOMElement()
   })
 
