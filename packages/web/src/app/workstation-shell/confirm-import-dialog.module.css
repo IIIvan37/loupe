@@ -1,0 +1,17 @@
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-s);
+  margin-block-start: var(--space-l);
+}
+
+.cancel {
+  composes: ghostButton from '../ui/controls.module.css';
+  padding: var(--space-2xs) var(--space-m);
+}
+
+.confirm {
+  composes: amberButton from '../ui/controls.module.css';
+  padding: var(--space-2xs) var(--space-m);
+  font-weight: 600;
+}

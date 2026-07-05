@@ -58,6 +58,30 @@
   letter-spacing: 0.08em;
 }
 
+/* Full-viewport cue while a file is dragged over the app. Sits above the shell
+   content; portalled dialogs (rendered at <body>) still layer above it. */
+.dropOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background: rgb(0 0 0 / 0.6);
+  pointer-events: none;
+}
+
+.dropOverlayInner {
+  padding: var(--space-2xl);
+  border: 2px dashed var(--amber);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
 /* The single import control lives in the header; this input is its hidden target. */
 .fileInput {
   position: absolute;

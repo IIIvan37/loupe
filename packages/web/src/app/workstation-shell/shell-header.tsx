@@ -1,13 +1,11 @@
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
-import { useRef } from 'react'
 import type { ServerHealth } from '../../projects/use-server-health.ts'
 import { Header } from '../header/header.tsx'
 import type { UrlImport } from '../header/use-import-from-url.ts'
 import { AlertBanner } from '../ui/alert-banner.tsx'
 import type { ProjectSession } from './use-project-session.ts'
-import styles from './workstation-shell.module.css'
 
 /**
  * No real key/tempo detection yet — show nothing rather than a hardcoded lie.
@@ -51,6 +49,8 @@ interface ShellHeaderProps {
   readonly urlImport: UrlImport
   readonly isLoaded: boolean
   readonly stemsReady: boolean
+  /** Open the file picker — the shell owns the hidden input, shared with the drop hero. */
+  readonly onImport: () => void
   readonly onExportStems: () => void
   readonly onShowShortcuts: () => void
   readonly onShowProjects: () => void
@@ -60,9 +60,8 @@ interface ShellHeaderProps {
 }
 
 /**
- * The header region: document identity + actions, the error banners right
- * under it, and the hidden file input the « Importer » button drives — the
- * single import entry point lives here.
+ * The header region: document identity + actions, and the error banners right
+ * under it. The « Importer » button drives the shell's shared file picker.
  */
 export function ShellHeader({
   metadata,
@@ -71,6 +70,7 @@ export function ShellHeader({
   urlImport,
   isLoaded,
   stemsReady,
+  onImport,
   onExportStems,
   onShowShortcuts,
   onShowProjects,
@@ -78,7 +78,6 @@ export function ShellHeader({
   onDismissExportError
 }: ShellHeaderProps) {
   const { t } = useLingui()
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const { projects, trackName, currentProject } = session
 
   // A running URL download narrates itself in the state chip, phase by phase.
@@ -132,7 +131,7 @@ export function ShellHeader({
                 label: t(SERVER_STATUS[serverHealth].label)
               }
         }
-        onImport={() => fileInputRef.current?.click()}
+        onImport={onImport}
         onImportUrl={urlImport.submit}
         urlImportBusy={urlImport.running}
         importNeedsConfirm={session.unsavedWork}
@@ -163,17 +162,6 @@ export function ShellHeader({
       {exportError !== undefined && (
         <AlertBanner message={exportError} onDismiss={onDismissExportError} />
       )}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="audio/*"
-        className={styles.fileInput}
-        aria-label={t({
-          id: 'header.import-file',
-          message: 'Importer un fichier audio'
-        })}
-        onChange={session.onFilePicked}
-      />
     </>
   )
 }

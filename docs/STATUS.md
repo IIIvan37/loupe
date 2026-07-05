@@ -4,7 +4,23 @@
 
 ## Where we are
 
-- **Now — durcissement & excellence roadmap (2026-07-05)**: after a four-axis
+- **Now — Lot C.1 done (2026-07-05)** on branch `feat/web-dnd-empty-state` (off
+  `main`): the first visible win of Lot C. **Native OS-file drag-and-drop** +
+  a real first-run **empty-state** hero, no DnD library. After weighing the
+  widget-DnD libs (they don't solve OS file drop) and `react-dropzone` (a dep for
+  ~40 lines), chose the native API: a pure `pick-audio-file` guard + humble
+  `use-file-drop` (dragenter/leave depth counter) → the picker's exact import
+  path (`session.importPickedFile`); a full-viewport drop overlay; a drop-confirm
+  **dialog** for unsaved work (a one-shot drop can't ride the header's two-step);
+  and an `EmptyState` (dashed drop-zone, format hint, « Importer » CTA, live
+  keyboard layout) shown while `idle` — `loading`/`error`/`loaded` keep the
+  workstation. Extracted `ShellDropLayer` + `useSeparateAndLoad` to keep the shell
+  under the maintainability threshold. Gate **green — 573 tests**, coverage web
+  94.88 %/87.29 %, react-doctor 0; mutation skipped (no core). Browser-verified
+  end-to-end (drop imports; overlay + confirm show). Pre-existing project-reopen
+  test flake noted (present on `main` too). **Next: Lot C.2** (responsive/tactile).
+  See [2026-07-05-web-dnd-empty-state](sessions/2026-07-05-web-dnd-empty-state.md).
+- **Prior — durcissement & excellence roadmap (2026-07-05)**: after a four-axis
   evaluation (fonctionnalité / qualité / UX-UI / sécurité), a guiding plan landed
   at [roadmap-excellence.md](roadmap-excellence.md) — 5 lots (A sécurité serveur,
   B discipline serveur, C fossé produit, D fonctionnalités, E dette), PR-sized

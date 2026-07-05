@@ -217,9 +217,12 @@ async function importTrack(user: UserEvent, fileName?: string): Promise<void> {
     screen.getByLabelText(i18n._('header.import-file')),
     audioFile(fileName)
   )
+  // Wait on the waveform surface (present in the loaded state for both the track
+  // and the summed-mix image) — the track image is transient once a resolving
+  // tempo detector loads the metronome and the view switches to the mix.
   await waitFor(() => {
     expect(
-      screen.getByRole('img', { name: i18n._('waveform.track-image') })
+      screen.getByRole('button', { name: i18n._('waveform.surface') })
     ).toBeInTheDocument()
   })
 }
@@ -261,11 +264,22 @@ describe('WorkstationShell', () => {
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
   })
 
-  it('exposes the analysis tabs', () => {
-    renderShell()
+  it('exposes the analysis tabs once a track is loaded', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
     expect(screen.getByRole('tab', { name: i18n._('analysis.tab-spectrum') })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: i18n._('analysis.tab-markers') })).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: i18n._('analysis.tab-loops') })).toBeInTheDocument()
+  })
+
+  it('shows the empty-state drop hero before any track is loaded', () => {
+    renderShell()
+    // The workstation is replaced by a first-run hero prompting a drop/import,
+    // not a greyed-out shell — the analysis workspace only appears once loaded.
+    expect(screen.getByText(i18n._('empty.headline'))).toBeInTheDocument()
+    expect(
+      screen.queryByRole('tab', { name: i18n._('analysis.tab-markers') })
+    ).not.toBeInTheDocument()
   })
 
   it('shows no key chip and no tempo until a track is analysed', () => {
@@ -745,9 +759,17 @@ describe('WorkstationShell', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('disables marker controls until a track is loaded', () => {
-    renderShell()
-    expect(screen.getByRole('button', { name: i18n._('markers.add') })).toBeDisabled()
+  it('offers no marker controls until a track is loaded, then enables them', async () => {
+    const { user } = renderShell()
+    // Before import the workstation (and its marker controls) is not shown —
+    // the empty-state hero stands in its place.
+    expect(
+      screen.queryByRole('button', { name: i18n._('markers.add') })
+    ).not.toBeInTheDocument()
+    await importTrack(user)
+    expect(
+      screen.getByRole('button', { name: i18n._('markers.add') })
+    ).toBeEnabled()
   })
 
   it('seeks the engine when the waveform is clicked', async () => {
@@ -873,10 +895,10 @@ describe('WorkstationShell', () => {
   it('separates the loaded track on demand and lists the stems', async () => {
     const { user } = renderShell({ separator: fakeSeparator() })
 
-    // The action is disabled until a track is loaded.
+    // The action does not exist until a track is loaded (empty-state stands in).
     expect(
-      screen.getByRole('button', { name: i18n._('separation.separate') })
-    ).toBeDisabled()
+      screen.queryByRole('button', { name: i18n._('separation.separate') })
+    ).not.toBeInTheDocument()
 
     await importTrack(user)
     await user.click(screen.getByRole('button', { name: i18n._('separation.separate') }))
@@ -1468,6 +1490,100 @@ describe('WorkstationShell', () => {
       await screen.findByText(
         i18n._('projects.unreachable')
       )
+    ).toBeInTheDocument()
+  })
+
+  // ── Native OS-file drop ──────────────────────────────────────────────────
+  // The shell is the full-surface drop target; a dropped audio file rides the
+  // exact import path the picker uses, guarded by the same unsaved-work confirm.
+
+  /** The shell's root element — where the drop handlers live. */
+  function shellRoot(): HTMLElement {
+    return screen.getByRole('banner').parentElement as HTMLElement
+  }
+
+  /** A file-carrying drag/drop init, as an OS file drag produces. */
+  function fileTransfer(files: File[]) {
+    return { dataTransfer: { files, types: ['Files'] } }
+  }
+
+  it('shows a drop overlay while a file is dragged over the app', () => {
+    renderShell()
+    const root = shellRoot()
+    expect(screen.queryByText(i18n._('drop.overlay'))).not.toBeInTheDocument()
+
+    fireEvent.dragEnter(root, fileTransfer([audioFile()]))
+    expect(screen.getByText(i18n._('drop.overlay'))).toBeInTheDocument()
+
+    fireEvent.dragLeave(root, fileTransfer([audioFile()]))
+    expect(screen.queryByText(i18n._('drop.overlay'))).not.toBeInTheDocument()
+  })
+
+  it('imports a dropped audio file through the picker path', async () => {
+    renderShell()
+    const file = audioFile('glisse.wav')
+
+    fireEvent.dragEnter(shellRoot(), fileTransfer([file]))
+    fireEvent.drop(shellRoot(), fileTransfer([file]))
+
+    // Same decode path as the picker → the waveform surface appears.
+    expect(
+      await screen.findByRole('button', { name: i18n._('waveform.surface') })
+    ).toBeInTheDocument()
+  })
+
+  it('ignores a dropped non-audio file — no import', () => {
+    renderShell()
+    const png = new File([new Uint8Array([1])], 'cover.png', { type: 'image/png' })
+
+    fireEvent.drop(shellRoot(), fileTransfer([png]))
+
+    // The empty-state hero is untouched — nothing was imported.
+    expect(screen.getByText(i18n._('empty.headline'))).toBeInTheDocument()
+  })
+
+  it('confirms before a dropped file replaces unsaved work, then imports on confirm', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    // A loaded-but-unsaved track: the drop must ask before replacing it.
+    fireEvent.drop(shellRoot(), fileTransfer([audioFile('remplace.wav')]))
+    expect(
+      await screen.findByText(i18n._('drop.confirm-title'))
+    ).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('drop.confirm-import') })
+    )
+
+    // The confirmation clears and the new track loads.
+    await waitFor(() => {
+      expect(
+        screen.queryByText(i18n._('drop.confirm-title'))
+      ).not.toBeInTheDocument()
+    })
+    expect(
+      screen.getByRole('button', { name: i18n._('waveform.surface') })
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the current session when a drop confirmation is cancelled', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    fireEvent.drop(shellRoot(), fileTransfer([audioFile('remplace.wav')]))
+    await user.click(
+      screen.getByRole('button', { name: i18n._('common.cancel') })
+    )
+
+    // The prompt is gone and the original track is still loaded.
+    await waitFor(() => {
+      expect(
+        screen.queryByText(i18n._('drop.confirm-title'))
+      ).not.toBeInTheDocument()
+    })
+    expect(
+      screen.getByRole('button', { name: i18n._('waveform.surface') })
     ).toBeInTheDocument()
   })
 })

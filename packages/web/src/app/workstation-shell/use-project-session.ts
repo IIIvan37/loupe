@@ -67,6 +67,11 @@ export interface ProjectSession {
   readonly handleOpen: (id: string) => Promise<void>
   readonly onFilePicked: (event: ChangeEvent<HTMLInputElement>) => void
   /**
+   * Import a dropped OS file: the same detach-and-refresh path as the picker,
+   * driven by a `File` (a drag never touches the hidden input).
+   */
+  readonly importPickedFile: (file: File) => void
+  /**
    * Import a track fetched from a URL: same detach-and-refresh path as a picked
    * file, seeding the title from the source metadata, then decoding the bytes.
    */
@@ -239,11 +244,15 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     startFreshTrack(name)
   }
 
+  function importPickedFile(file: File): void {
+    beginImport(trackTitle(file.name))
+    void deps.importFile(file)
+  }
+
   function onFilePicked(event: ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0]
     if (file) {
-      beginImport(trackTitle(file.name))
-      void deps.importFile(file)
+      importPickedFile(file)
     }
     // Clear it so re-picking the same file fires `change` again.
     event.target.value = ''
@@ -290,6 +299,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     handleSave,
     handleOpen,
     onFilePicked,
+    importPickedFile,
     importDownloaded
   }
 }

@@ -1,8 +1,8 @@
 import {
   type AudioFileDecoder,
+  defaultKeyBindings,
   encodeWav,
   formatTimecode,
-  type MixerState,
   type PlaybackEngine,
   type ProjectDeps,
   type StemPlaybackEngine,
@@ -10,9 +10,9 @@ import {
   synthesizeClickTrack,
   type TempoDetector,
   type TrackMetadataReader,
-  type TrackSource,
-  UNITY_GAIN_DB
+  type TrackSource
 } from '@app/core'
+import { useLingui } from '@lingui/react/macro'
 import {
   DEFAULT_METRONOME_CHANNEL,
   METRONOME_ID
@@ -24,6 +24,7 @@ import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.
 import { exportBaseName } from '../../lib/export-base-name.ts'
 import { useServerHealth } from '../../projects/use-server-health.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
+import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
 import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
@@ -35,12 +36,20 @@ import { useTempo } from '../tempo/use-tempo.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
 import { useViewport } from '../waveform/use-viewport.ts'
+import { EmptyState } from './empty-state.tsx'
 import { ShellDialogs } from './shell-dialogs.tsx'
+import { ShellDropLayer } from './shell-drop-layer.tsx'
 import { ShellHeader } from './shell-header.tsx'
 import { ShellMain } from './shell-main.tsx'
+import { useDropImport } from './use-drop-import.ts'
+import { useFileDrop } from './use-file-drop.ts'
 import { useProjectSession } from './use-project-session.ts'
+import { useSeparateAndLoad } from './use-separate-and-load.ts'
 import { useUnloadGuard } from './use-unload-guard.ts'
 import styles from './workstation-shell.module.css'
+
+/** The visible keyboard layout, derived once — the empty-state hero shows it. */
+const SHORTCUT_HINTS = describeKeyBindings(defaultKeyBindings)
 
 interface WorkstationShellProps {
   /** Ports injected in tests; default to the real Web Audio adapters. */
@@ -160,7 +169,25 @@ export function WorkstationShell({
   // Importing from a URL reuses the exact file-decode path once the bytes land.
   const urlImport = useImportFromUrl(session.importDownloaded, trackSource)
 
+  const { t } = useLingui()
   const isLoaded = importState.status === 'loaded'
+  const i18nImportLabel = t({
+    id: 'header.import-file',
+    message: 'Importer un fichier audio'
+  })
+
+  // The one hidden file input, shared by the header's « Importer » and the
+  // empty-state hero (a drag never touches it — it carries a File directly).
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const openFilePicker = () => fileInputRef.current?.click()
+
+  // Native OS-file drop: a dropped audio file imports through the picker's exact
+  // path, guarded by the same unsaved-work confirmation as the button.
+  const dropImport = useDropImport(session.importPickedFile, session.unsavedWork)
+  const { isDraggingFile, dropHandlers } = useFileDrop(dropImport.onDropFile)
+
+  // Separate the loaded track and wire the stems (+ metronome) into the mixer.
+  const separateAndLoad = useSeparateAndLoad({ separation, tempo, mixer, metronome })
 
   // Auto-detect the tempo the moment a track's PCM lands (import or project
   // open) and seat the always-on metronome from the result — no button. Held in
@@ -240,7 +267,16 @@ export function WorkstationShell({
   const mainViewState = importState
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shell} {...dropHandlers}>
+      <ShellDropLayer
+        fileInputRef={fileInputRef}
+        onFilePicked={session.onFilePicked}
+        importLabel={i18nImportLabel}
+        isDraggingFile={isDraggingFile}
+        pendingName={dropImport.pendingName}
+        onConfirm={dropImport.confirm}
+        onCancel={dropImport.cancel}
+      />
       <ShellHeader
         metadata={metadata}
         serverHealth={serverHealth}
@@ -248,6 +284,7 @@ export function WorkstationShell({
         urlImport={urlImport}
         isLoaded={isLoaded}
         stemsReady={stemsReady}
+        onImport={openFilePicker}
         onExportStems={handleExportStems}
         onShowShortcuts={() => setShortcutsOpen(true)}
         onShowProjects={() => {
@@ -265,9 +302,12 @@ export function WorkstationShell({
         session={session}
       />
 
-      <ShellMain
-        isLoaded={isLoaded}
-        positionRatio={positionRatio}
+      {importState.status === 'idle' ? (
+        <EmptyState onImport={openFilePicker} shortcuts={SHORTCUT_HINTS} />
+      ) : (
+        <ShellMain
+          isLoaded={isLoaded}
+          positionRatio={positionRatio}
         positionSeconds={transport.positionSeconds}
         durationSeconds={transport.durationSeconds}
         markers={markers}
@@ -287,42 +327,11 @@ export function WorkstationShell({
         canSeparate={isLoaded && loadedAudio !== undefined}
         onSeparate={() => {
           if (loadedAudio) {
-            // Wire the mixer right where the stems are produced — no effect
-            // watching props (the audio engine sync belongs to this event).
-            void separation.separate(loadedAudio).then((result) => {
-              if (!result) {
-                return
-              }
-              // Load the stems (and, if the tempo is known, the always-on click
-              // alongside them) in one pass, so neither overwrites the other.
-              if (tempo.analysis && loadedAudio) {
-                // Fresh stems start at unity; carry the metronome's current
-                // settings (muted by default, or whatever the user set). Only
-                // PRESENT stems get a channel — same as `mixer.load`, so the
-                // masked ones never become phantom channels the save persists.
-                const baseMixer: MixerState = result.stems.flatMap((stem) =>
-                  stem.present
-                    ? [{ id: stem.id, gainDb: UNITY_GAIN_DB, muted: false, soloed: false }]
-                    : []
-                )
-                const metronomeChannel =
-                  mixer.state.find((channel) => channel.id === METRONOME_ID) ??
-                  DEFAULT_METRONOME_CHANNEL
-                metronome.attach(
-                  tempo.analysis.grid,
-                  result.stems,
-                  result.sources,
-                  loadedAudio,
-                  baseMixer,
-                  metronomeChannel
-                )
-              } else {
-                mixer.load(result.stems, result.sources)
-              }
-            })
+            separateAndLoad(loadedAudio)
           }
         }}
-      />
+        />
+      )}
 
       <TransportBar
         position={formatTimecode(transport.positionSeconds)}
