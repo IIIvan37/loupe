@@ -4,7 +4,27 @@
 
 ## Where we are
 
-- **Now — Lot C.1 done (2026-07-05)** on branch `feat/web-dnd-empty-state` (off
+- **Now — Lot C.2 done (2026-07-05)** on branch `feat/web-responsive-tactile`
+  (PR #58, stacked on C.1 `feat/web-dnd-empty-state`, PR #57): the **responsive &
+  tactile pass**, CSS-only (no core), done the **Every Layout way — intrinsic, not
+  breakpoint-driven**. Starting point: one layout media query (900px), every touch
+  target 18–36px. Now the app has **zero viewport media queries**: the **header**
+  and **transport bar** reflow via `Cluster` (`flex-wrap`); the body two-column ⇄
+  stacked flip is an Every Layout **Sidebar** (the panel keeps `--panel-width`
+  beside the main via `flex-basis` and wraps below once the main can't hold its
+  60 % `min-inline-size` — geometry reproduces the old 900px collapse at ~888px);
+  the track gutter is fluid `clamp(132px, 40vw, 200px)` and page padding
+  `clamp(space-s, 2.5vw, space-l)`. The only query left is the **`(pointer:
+  coarse)`** feature query for tap-target sizing (an input-modality signal, no
+  intrinsic equivalent): 44px hit areas via two composable `::after` expanders in
+  `controls.module.css` (`touchTarget` 44×44; `touchTargetTall` 44px-tall for the
+  tight gutter). Gate **green — 573 tests**, coverage unchanged (94.88 %/87.29 %),
+  **jscpd 7 clones**; mutation skipped (no core). **Browser-verified** across
+  360/700/880/1000/1440px: page horizontal overflow **0** everywhere; Sidebar
+  flips to stacked at ~888px; coarse-pointer transport/header controls measured at
+  44×44. **Next: Lot C.3** (design system — typo/elevation/z-index).
+  See [2026-07-05-web-responsive-tactile](sessions/2026-07-05-web-responsive-tactile.md).
+- **Prior — Lot C.1 done (2026-07-05)** on branch `feat/web-dnd-empty-state` (off
   `main`): the first visible win of Lot C. **Native OS-file drag-and-drop** +
   a real first-run **empty-state** hero, no DnD library. After weighing the
   widget-DnD libs (they don't solve OS file drop) and `react-dropzone` (a dep for

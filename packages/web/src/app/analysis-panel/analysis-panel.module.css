@@ -12,6 +12,7 @@
 }
 
 .tab {
+  composes: touchTarget from '../ui/controls.module.css';
   appearance: none;
   background: none;
   border: none;

@@ -53,6 +53,11 @@ can't see.
   [packages/core/src/application/README.md](packages/core/src/application/README.md).
 - **Close every step** with `/session-report` (updates `docs/STATUS.md` + a dated
   report under `docs/sessions/`). The report ships **inside** the feature's PR.
+- **Confirm the approach before coding a UI slice.** When a slice has a mockup or
+  an interaction constraint (zoom model, scroll behaviour, layout), state the
+  intended approach in 2–3 lines and check it against the mockup **before** writing
+  the acceptance test. This is where reworks come from — e.g. a pan-slider zoom
+  model shipped instead of the mockup's zoom-scale + native-scroll design.
 
 ## Conventions
 

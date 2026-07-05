@@ -15,6 +15,7 @@
 }
 
 .tick {
+  composes: touchTargetTall from '../ui/controls.module.css';
   display: flex;
   align-items: center;
   justify-content: center;

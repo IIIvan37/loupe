@@ -295,6 +295,8 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 
 - [x] A.1 · [x] A.2 · [x] A.3 · [x] A.4 — **Lot A complet**
 - [x] B.1 · [x] B.2 · [ ] B.3
-- [ ] C.1 · [ ] C.2 · [ ] C.3 · [ ] C.4 · [ ] C.5
+- [ ] C.1 · [x] C.2 · [ ] C.3 · [ ] C.4 · [ ] C.5 — C.1 in review (PR #57); C.2
+  done (PR #58, `feat/web-responsive-tactile`, stacked on C.1) — **intrinsic**
+  (Every Layout Sidebar + `clamp()`, no viewport media queries)
 - [ ] D.1 · [ ] D.2 · [ ] D.3
 - [ ] E.1 · [ ] E.2 · [ ] E.3 · [ ] E.4

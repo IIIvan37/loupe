@@ -6,15 +6,34 @@
   color: var(--text);
 }
 
+/* Every Layout "Sidebar": the analysis panel keeps `--panel-width` beside the
+   main column and wraps below it — intrinsically, by available space — once the
+   main can no longer hold its `min-inline-size` share. No viewport breakpoint:
+   the ~60 % threshold reproduces the old 900px collapse from the geometry
+   (0.6·W + panel = W ⇒ W ≈ panel / 0.4). */
 .body {
-  display: grid;
-  grid-template-columns: 1fr 360px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
   min-height: 0;
 }
 
 .main {
-  padding: var(--space-l);
+  flex-grow: 999;
+  flex-basis: 0;
+  min-inline-size: 60%;
+  /* Fluid page padding — generous on desktop, tight on phones. */
+  padding: clamp(var(--space-s), 2.5vw, var(--space-l));
   overflow: auto;
+}
+
+/* The Sidebar's fixed side: the panel column, allowed to grow to fill the row
+   when it wraps to full width. The single-cell grid stretches the panel to the
+   slot in both axes so its full-height divider still reaches top to bottom. */
+.panelSlot {
+  display: grid;
+  flex-grow: 1;
+  flex-basis: var(--panel-width);
 }
 
 /* The timeline frame, DAW style: the fixed track-header gutter beside the
@@ -95,8 +114,3 @@
   border: 0;
 }
 
-@media (max-width: 900px) {
-  .body {
-    grid-template-columns: 1fr;
-  }
-}

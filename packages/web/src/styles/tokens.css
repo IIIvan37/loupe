@@ -48,6 +48,11 @@
 
   --radius: 6px;
 
+  /* Minimum comfortable tap size on touch devices (WCAG 2.5.5 target size).
+     Applied only under `@media (pointer: coarse)` so the dense desktop layout
+     keeps its compact controls; touch expands the hit area, not the visuals. */
+  --touch-target: 44px;
+
   /* Timeline layout — shared so the ruler, waveform and zoom pill stay in sync.
      The stem-lane pair keeps the fixed gutter (track headers) and the zoomable
      lanes aligned row by row: change one side, the other follows. */
@@ -55,5 +60,25 @@
   --waveform-height: 134px;
   --stem-lane-height: 48px;
   --stem-lane-gap: 2px;
-  --track-gutter-width: 200px;
+
+  /* Track-header gutter width. Fluid (Every Layout: respond to space, not a
+     breakpoint) — it narrows on small screens so the timeline breathes, and
+     caps at 200px on wide ones. No media query. */
+  --track-gutter-width: clamp(132px, 40vw, 200px);
+
+  /* The analysis-panel column's ideal width. Consumed as the Sidebar flex-basis
+     in the shell body: the panel keeps this width beside the main and wraps
+     below it — intrinsically, by available space — when they can't both fit. */
+  --panel-width: 360px;
 }
+
+/*
+ * Responsiveness here is INTRINSIC, not breakpoint-driven (this app is built on
+ * Every Layout). There are no viewport media queries: the header and transport
+ * bar reflow via `Cluster` (`flex-wrap`); the body two-column ⇄ stacked flip is
+ * an Every Layout Sidebar (flex-basis + a wrap threshold, see
+ * `workstation-shell.module.css`); fixed dimensions that need to shrink use
+ * `clamp()` (above). The only media query left is the touch feature query
+ * `@media (pointer: coarse)` for tap-target sizing — an input-modality signal,
+ * not a viewport breakpoint, with no intrinsic-layout equivalent.
+ */

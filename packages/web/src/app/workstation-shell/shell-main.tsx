@@ -122,17 +122,19 @@ export function ShellMain({
         </Stack>
       </main>
 
-      <AnalysisPanel
-        markers={markers.markers}
-        onSeekMarker={onSeekSeconds}
-        onRenameMarker={markers.rename}
-        onRemoveMarker={markers.remove}
-        loops={loops.library}
-        activeLoopId={loopEditing.activeLoopId}
-        onActivateLoop={loopEditing.activate}
-        onUpdateLoop={loops.update}
-        onRemoveLoop={loopEditing.remove}
-      />
+      <div className={styles.panelSlot}>
+        <AnalysisPanel
+          markers={markers.markers}
+          onSeekMarker={onSeekSeconds}
+          onRenameMarker={markers.rename}
+          onRemoveMarker={markers.remove}
+          loops={loops.library}
+          activeLoopId={loopEditing.activeLoopId}
+          onActivateLoop={loopEditing.activate}
+          onUpdateLoop={loops.update}
+          onRemoveLoop={loopEditing.remove}
+        />
+      </div>
     </div>
   )
 }
