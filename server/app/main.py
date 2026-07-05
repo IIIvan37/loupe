@@ -41,6 +41,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from .netguard import LoopbackOnlyMiddleware
 from .projects import collect_garbage
 from .projects import router as projects_router
 
@@ -77,6 +78,10 @@ app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=_env_list("LOUPE_ALLOWED_HOSTS", _DEFAULT_HOSTS),
 )
+# Outermost: refuse a request that didn't land on loopback before anything else,
+# so a `--host 0.0.0.0` mistake can't expose the server to the LAN even if the
+# Host header is forged.
+app.add_middleware(LoopbackOnlyMiddleware)
 app.include_router(projects_router)
 
 try:
