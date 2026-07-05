@@ -26,6 +26,7 @@ arbitrary URL.
 from __future__ import annotations
 
 import json
+import logging
 import queue
 import tempfile
 import threading
@@ -39,6 +40,7 @@ from fastapi.responses import StreamingResponse
 
 from .projects import store_audio
 
+logger = logging.getLogger("loupe.download")
 router = APIRouter()
 
 # Mirror of the core's supported-source policy: only these hosts (and their
@@ -109,8 +111,9 @@ def _download(url: str, out_dir: Path, events: "queue.Queue") -> None:
                 "run `pip install -U yt-dlp` in the server venv and retry",
             )
         )
-    except Exception as exc:  # noqa: BLE001 - surfaced to the client
-        events.put(("error", str(exc)))
+    except Exception:  # noqa: BLE001 - logged server-side, generic to the client
+        logger.exception("download failed")
+        events.put(("error", "download failed"))
 
 
 def _download_stream(url: str) -> Iterator[bytes]:

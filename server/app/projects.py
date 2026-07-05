@@ -32,6 +32,8 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, Response
 
+from .limits import MAX_MANIFEST_BYTES, MAX_UPLOAD_BYTES, read_capped_body
+
 DATA_DIR = Path(
     os.environ.get("LOUPE_DATA_DIR", Path.home() / ".loupe")
 ).expanduser()
@@ -77,7 +79,7 @@ def store_audio(data: bytes) -> str:
 
 @router.post("/audio")
 async def put_audio(request: Request) -> dict:
-    data = await request.body()
+    data = await read_capped_body(request, MAX_UPLOAD_BYTES)
     return {"ref": store_audio(data)}
 
 
@@ -123,7 +125,7 @@ async def get_project(project_id: str) -> Response:
 @router.put("/projects/{project_id}", status_code=204)
 async def save_project(project_id: str, request: Request) -> Response:
     path = _project_path(project_id)
-    data = await request.body()
+    data = await read_capped_body(request, MAX_MANIFEST_BYTES)
     try:
         json.loads(data)  # opaque but must at least be JSON
     except ValueError as exc:

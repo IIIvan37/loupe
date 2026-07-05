@@ -17,6 +17,7 @@ Single-user, localhost — no auth.
 from __future__ import annotations
 
 import io
+import logging
 import wave
 
 import librosa
@@ -24,6 +25,9 @@ import numpy as np
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 
+from .limits import MAX_UPLOAD_BYTES, read_capped_body
+
+logger = logging.getLogger("loupe.tempo")
 router = APIRouter()
 
 
@@ -59,12 +63,15 @@ def _analyse(data: bytes) -> dict:
 
 @router.post("/tempo")
 async def tempo(request: Request) -> dict:
-    data = await request.body()
+    data = await read_capped_body(request, MAX_UPLOAD_BYTES)
     try:
         # Off the event loop: librosa is CPU-bound, and blocking here would stall
         # concurrent requests (e.g. the web app's /health poll) for seconds.
         return await run_in_threadpool(_analyse, data)
     except Exception as exc:  # malformed upload / analysis failure
+        # Log the detail server-side; keep the client message generic so librosa
+        # internals / paths don't leak (esp. reachable cross-origin).
+        logger.exception("tempo analysis failed")
         raise HTTPException(
-            status_code=400, detail=f"could not analyse audio: {exc}"
+            status_code=400, detail="could not analyse audio"
         ) from exc

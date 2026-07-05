@@ -19,10 +19,11 @@ from __future__ import annotations
 
 import io
 import json
+import logging
 import os
 import queue
-import tempfile
 import threading
+import time
 import types
 import uuid
 import wave
@@ -38,6 +39,11 @@ from demucs.apply import apply_model
 from demucs.pretrained import get_model
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, StreamingResponse
+
+from . import stems_store
+from .limits import MAX_UPLOAD_BYTES, read_capped_body
+
+logger = logging.getLogger("loupe.separation")
 
 # Demucs 4's `apply_model` has no fraction callback, but it advances a tqdm bar
 # per audio segment (`apply.py` ~line 248). We subclass tqdm to report each
@@ -94,8 +100,14 @@ model = get_model(MODEL_NAME)
 model.to(device)
 model.eval()
 
-JOBS_DIR = Path(tempfile.gettempdir()) / "loupe-stems"
-JOBS_DIR.mkdir(parents=True, exist_ok=True)
+stems_store.ensure_jobs_dir()
+
+# Serialise the actual inference: each `apply_model` pins the GPU/CPU, so
+# concurrent /separate calls (trivially reachable in a browser) would thrash the
+# device or OOM it. One at a time by default; env-tunable.
+_sep_raw = os.environ.get("LOUPE_MAX_CONCURRENT_SEPARATIONS", "1")
+_sep_slots = max(1, int(_sep_raw)) if _sep_raw.isdigit() else 1
+_sep_semaphore = threading.BoundedSemaphore(_sep_slots)
 
 
 def _load_mix(data: bytes) -> torch.Tensor:
@@ -142,11 +154,12 @@ def _run_separation(mix: torch.Tensor, events: "queue.Queue") -> None:
     """
     _progress.sink = lambda fraction: events.put(("progress", fraction))
     try:
-        with torch.no_grad():
+        with _sep_semaphore, torch.no_grad():
             stems = apply_model(model, mix[None], device=device, progress=True)[0]
         events.put(("done", stems))
-    except Exception as exc:  # noqa: BLE001 - surfaced to the client
-        events.put(("error", str(exc)))
+    except Exception:  # noqa: BLE001 - logged server-side, generic to the client
+        logger.exception("separation failed")
+        events.put(("error", "separation failed"))
     finally:
         _progress.sink = None
 
@@ -161,8 +174,14 @@ def _separate_stream(data: bytes, base_url: str) -> Iterator[bytes]:
 
     try:
         mix = _load_mix(data)
-    except Exception as exc:  # malformed upload
-        yield _event({"type": "error", "message": f"could not decode WAV: {exc}"})
+    except Exception:  # malformed upload
+        logger.exception("could not decode separation input")
+        yield _event(
+            {
+                "type": "error",
+                "message": "could not decode audio (expected 16-bit PCM WAV)",
+            }
+        )
         return
 
     yield _event({"type": "progress", "phase": "separating", "fraction": 0.0})
@@ -187,9 +206,9 @@ def _separate_stream(data: bytes, base_url: str) -> Iterator[bytes]:
             stems = payload
             break
 
+    stems_store.sweep_old_jobs(time.time())  # reclaim WAVs past their TTL
     job = uuid.uuid4().hex
-    job_dir = JOBS_DIR / job
-    job_dir.mkdir(parents=True, exist_ok=True)
+    job_dir = stems_store.new_job_dir(job)
     sources = list(model.sources)
     ordered = sorted(
         sources,
@@ -211,7 +230,7 @@ def _separate_stream(data: bytes, base_url: str) -> Iterator[bytes]:
 
 @router.post("/separate")
 async def separate(request: Request) -> StreamingResponse:
-    data = await request.body()
+    data = await read_capped_body(request, MAX_UPLOAD_BYTES)
     base_url = str(request.base_url)  # ends with '/'
     return StreamingResponse(
         _separate_stream(data, base_url),
@@ -221,8 +240,8 @@ async def separate(request: Request) -> StreamingResponse:
 
 @router.get("/stems/{job}/{stem}.wav")
 async def stem(job: str, stem: str) -> FileResponse:
-    path = JOBS_DIR / job / f"{stem}.wav"
-    if not path.is_file():
+    path = stems_store.resolve_stem_path(job, stem)
+    if path is None:
         raise HTTPException(status_code=404, detail="stem not found")
     return FileResponse(path, media_type="audio/wav")
 
