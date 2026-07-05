@@ -258,15 +258,29 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 
 ---
 
+## Reporté / veille
+
+- **`@vitejs/plugin-react` v5 → v6** (Dependabot **PR #53**, tenue ouverte comme
+  rappel). v6 est un **major cassant** : le plugin abandonne Babel pour oxc/
+  Rolldown et **supprime l'option `babel`** — or notre seul usage est d'injecter le
+  **macro Lingui** (`@lingui/babel-plugin-lingui-macro`). La voie v6 impose un pass
+  séparé `@rolldown/plugin-babel`, aujourd'hui **v0.2.3, pré-1.0, sans types**
+  (que le gate typecheck). **Décision (2026-07-05) : rester sur 5.x**, aucun
+  bénéfice fonctionnel, migration à faire en **slice dédiée** quand
+  `@rolldown/plugin-babel` sera mûr/typé (ou basculer sur le plugin SWC Lingui),
+  **avec browser-verify que l'i18n compile encore**. Ne pas merger #53 tel quel.
+
+---
+
 ## Ordre recommandé (les prochaines PR)
 
 1. ~~**A.1** — supprimer le pip runtime~~ ✅ (PR #48)
 2. ~~**A.2** — CORS + Host~~ ✅ (PR #49)
 3. ~~**A.3** — caps ressources + durcissement temp~~ ✅ (PR #50)
 4. ~~**A.4** — loopback-only + noms de fichiers~~ ✅ (PR #51) — **Lot A complet**
-5. **B.1** — pytest serveur *(en cours)*
-6. **B.2** — gate & CI Python (ruff + pyright)
-7. **B.3** — acter la convention humble object
+5. ~~**B.1** — pytest serveur~~ ✅ (PR #54)
+6. ~~**B.2** — gate & CI Python (ruff + pyright)~~ ✅ (PR #55)
+7. **B.3** — acter la convention humble object *(léger)*
 8. **C.1** — DnD + empty-state *(premier gain produit visible)*
 9. **C.3** — design system (typo/élévation/z-index)
 10. **C.2** — responsive/tactile
@@ -280,7 +294,7 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 ### Suivi
 
 - [x] A.1 · [x] A.2 · [x] A.3 · [x] A.4 — **Lot A complet**
-- [ ] B.1 · [ ] B.2 · [ ] B.3
+- [x] B.1 · [x] B.2 · [ ] B.3
 - [ ] C.1 · [ ] C.2 · [ ] C.3 · [ ] C.4 · [ ] C.5
 - [ ] D.1 · [ ] D.2 · [ ] D.3
 - [ ] E.1 · [ ] E.2 · [ ] E.3 · [ ] E.4
