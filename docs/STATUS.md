@@ -24,9 +24,15 @@
   client-facing errors (full detail logged server-side). Server pytest **36
   passed**; verified on real uvicorn (2 MB over a 1 MB cap → 413, malformed
   `/stems` → 404, jobs dir 0700). Gate green, mutation skipped (no core).
-  **Next: A.4** (loopback-binding assertion + `exportBaseName` sanitising), then
-  **Lot B** (server pytest breadth + ruff/mypy + CI job). See
-  [2026-07-05-server-resource-limits](sessions/2026-07-05-server-resource-limits.md).
+  **Lot A.4 done — Lot A COMPLETE** on branch `fix/server-loopback-and-filename` (PR #51):
+  `LoopbackOnlyMiddleware` (torch-free `netguard`) refuses non-loopback requests at
+  the socket level (a `--host 0.0.0.0` mistake can't reach the LAN even with a
+  forged Host), and web `exportBaseName` strips path-sep/reserved/control chars
+  from download filenames. Server pytest **49 passed**, web **548 passed**;
+  loopback flow verified 200 on real uvicorn. Gate green, mutation skipped.
+  **Next: Lot B** (broaden server pytest + ruff/mypy + a `server` CI job — the
+  server is still outside the gate/CI). See
+  [2026-07-05-server-loopback-and-filename](sessions/2026-07-05-server-loopback-and-filename.md).
 - **Prior — housekeeping pass (2026-07-05)**: four user asks on one branch
   `refactor/dry-tabs-coverage`. **(1) DRY** — knip already clean; jscpd **14 → 7
   clones, 1.26 % → 0.68 %** by extracting the real duplication: pure TDD-tested
