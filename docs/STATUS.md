@@ -46,7 +46,7 @@
   94.96 %**, pyright **0 errors**. The last structural gap (server outside CI) is
   closed. See
   [2026-07-05-server-lint-types-ci](sessions/2026-07-05-server-lint-types-ci.md).
-  **Lot B.3 done — Lot B COMPLETE** on branch `refactor/server-humble-objects`:
+  **Lot B.3 done — Lot B COMPLETE** on branch `refactor/server-humble-objects` (PR #56):
   extracted the last testable logic from the ML shells — new torch-free
   `stem_manifest` (source ordering + id/label/url) and `download.progress_fraction`
   — and wrote the **humble-object convention** into `server/README.md`. Server
