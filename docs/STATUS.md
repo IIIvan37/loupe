@@ -30,9 +30,14 @@
   forged Host), and web `exportBaseName` strips path-sep/reserved/control chars
   from download filenames. Server pytest **49 passed**, web **548 passed**;
   loopback flow verified 200 on real uvicorn. Gate green, mutation skipped.
-  **Next: Lot B** (broaden server pytest + ruff/mypy + a `server` CI job — the
-  server is still outside the gate/CI). See
-  [2026-07-05-server-loopback-and-filename](sessions/2026-07-05-server-loopback-and-filename.md).
+  **Lot B started (pyright, not mypy; +B.3 humble-object convention). Lot B.1
+  done** on branch `test/server-pytest-breadth`: broadened server pytest —
+  `projects.py` **100 %**, `main.py` **100 %**, `download.py` **86 %** (target ≥80 %
+  met), via torch-free minimal-app / fake-`_extract` / `sys.modules`-hidden-ML
+  tests; **70 passed, 79 % total**. `separation`/`tempo` stay low by design (torch/
+  librosa humble objects). **Next: B.2** (ruff + pyright + a `server` CI job — the
+  server is still outside CI). See
+  [2026-07-05-server-pytest-breadth](sessions/2026-07-05-server-pytest-breadth.md).
 - **Prior — housekeeping pass (2026-07-05)**: four user asks on one branch
   `refactor/dry-tabs-coverage`. **(1) DRY** — knip already clean; jscpd **14 → 7
   clones, 1.26 % → 0.68 %** by extracting the real duplication: pure TDD-tested
