@@ -2,6 +2,7 @@ import type { LoopRegion } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
+import { Icon } from '../ui/icon.tsx'
 import { NameEditor } from '../ui/name-editor.tsx'
 import styles from './loop-controls.module.css'
 
@@ -53,10 +54,11 @@ export function LoopControls({
         aria-pressed={loopEnabled}
         onClick={onToggleLoop}
       >
+        <Icon name="loop" />
         {loopEnabled ? (
-          <Trans id="loops.active">⟳ Boucle active</Trans>
+          <Trans id="loops.active">Boucle active</Trans>
         ) : (
-          <Trans id="loops.inactive">⟳ Boucle inactive</Trans>
+          <Trans id="loops.inactive">Boucle inactive</Trans>
         )}
       </button>
       {!isSaved && (

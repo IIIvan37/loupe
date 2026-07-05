@@ -20,6 +20,9 @@
 /* Loop on/off: outlined when inactive, amber-filled when looping. */
 .toggle {
   composes: ghostButton from '../ui/controls.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
   padding: var(--space-2xs) var(--space-s);
   font-size: var(--font-size-s);
 }

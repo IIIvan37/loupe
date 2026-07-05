@@ -1,6 +1,7 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
+import { Icon } from '../ui/icon.tsx'
 import styles from './transport-bar.module.css'
 
 interface TransportBarProps {
@@ -49,7 +50,7 @@ export function TransportBar({
           disabled={!canPlay}
           onClick={onSeekToStart}
         >
-          ⏮
+          <Icon name="skip-back" />
         </button>
         <button
           type="button"
@@ -64,7 +65,7 @@ export function TransportBar({
           disabled={!canPlay}
           onClick={onPlayPause}
         >
-          {isPlaying ? '⏸' : '▶'}
+          <Icon name={isPlaying ? 'pause' : 'play'} />
         </button>
         <button
           type="button"
@@ -73,7 +74,7 @@ export function TransportBar({
           disabled={!canPlay}
           onClick={onSeekToEnd}
         >
-          ⏭
+          <Icon name="skip-forward" />
         </button>
         <span className={styles.time}>
           <span className={styles.position}>{position}</span>

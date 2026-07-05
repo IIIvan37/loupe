@@ -1,5 +1,6 @@
 import { useLingui } from '@lingui/react/macro'
 import { cx } from '../../lib/cx.ts'
+import { Icon } from './icon.tsx'
 import styles from './alert-banner.module.css'
 
 interface AlertBannerProps {
@@ -22,7 +23,7 @@ export function AlertBanner({ message, onDismiss }: AlertBannerProps) {
         aria-label={t({ id: 'alerts.close', message: "Fermer l'alerte" })}
         onClick={onDismiss}
       >
-        ✕
+        <Icon name="close" />
       </button>
     </div>
   )
