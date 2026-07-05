@@ -29,21 +29,8 @@
 }
 
 .close {
+  composes: amberButton from './controls.module.css';
   margin-block-start: var(--space-l);
   padding: var(--space-2xs) var(--space-m);
-  background: var(--amber);
-  border: 1px solid var(--amber);
-  border-radius: var(--radius);
-  color: var(--bg);
   font-weight: 600;
-}
-
-.close:hover {
-  background: var(--amber-deep);
-  border-color: var(--amber-deep);
-}
-
-/* Keep the focus ring contrasting on the amber fill. */
-.close:focus-visible {
-  outline-color: var(--text);
 }

@@ -1,0 +1,52 @@
+/* Reusable control-skin primitives, composed by dialogs, popovers and inline
+   control rows so the amber-filled action and the outlined ghost button wear the
+   same skin everywhere. Consumers `composes:` these and add their own dimensions
+   (padding, font-weight, margins). */
+
+.amberButton {
+  border-radius: var(--radius);
+  border: 1px solid var(--amber);
+  background: var(--amber);
+  color: var(--bg);
+}
+
+.amberButton:hover:not(:disabled) {
+  background: var(--amber-deep);
+  border-color: var(--amber-deep);
+}
+
+/* Keep the focus ring contrasting on the amber fill. */
+.amberButton:focus-visible {
+  outline-color: var(--text);
+}
+
+.ghostButton {
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--dim);
+}
+
+.ghostButton:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+/* Quiet neutral button (add marker, run separation): panel fill, no accent. */
+.quietButton {
+  padding: var(--space-2xs) var(--space-s);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.quietButton:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--panel-3);
+}
+
+.quietButton:disabled {
+  opacity: 0.5;
+}

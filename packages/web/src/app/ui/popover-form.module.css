@@ -34,37 +34,16 @@
 }
 
 .ghost {
+  composes: ghostButton from './controls.module.css';
   padding: var(--space-2xs) var(--space-s);
-  border-radius: var(--radius);
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--dim);
   font-size: 0.8rem;
-}
-
-.ghost:hover {
-  border-color: var(--line-strong);
-  color: var(--text);
 }
 
 .submit {
+  composes: amberButton from './controls.module.css';
   padding: var(--space-2xs) var(--space-m);
-  border-radius: var(--radius);
-  border: 1px solid var(--amber);
-  background: var(--amber);
-  color: var(--bg);
   font-weight: 600;
   font-size: 0.8rem;
-}
-
-.submit:hover:not(:disabled) {
-  background: var(--amber-deep);
-  border-color: var(--amber-deep);
-}
-
-/* Keep the focus ring contrasting on the amber fill. */
-.submit:focus-visible {
-  outline-color: var(--text);
 }
 
 .submit:disabled {
