@@ -25,11 +25,8 @@ arbitrary URL.
 
 from __future__ import annotations
 
-import importlib
 import json
 import queue
-import subprocess
-import sys
 import tempfile
 import threading
 from pathlib import Path
@@ -76,19 +73,6 @@ def _make_options(out_dir: Path, on_progress) -> dict:
     }
 
 
-def _upgrade_yt_dlp() -> None:
-    """Best-effort self-heal: YouTube changes break extraction until yt-dlp
-    catches up, so on a failure we pull the latest (nightly) build and reload it.
-    A reload picks up new extractor code for the retry in most cases; a stubborn
-    break resolves on the next process start. Impure and server-only — this never
-    reaches the pure core."""
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "-U", "--quiet", "yt-dlp"],
-        check=False,
-    )
-    importlib.reload(yt_dlp)
-
-
 def _extract(url: str, out_dir: Path, on_progress) -> dict:
     """Download the track once, returning yt-dlp's info dict."""
     with yt_dlp.YoutubeDL(_make_options(out_dir, on_progress)) as ydl:
@@ -100,8 +84,10 @@ def _download(url: str, out_dir: Path, events: "queue.Queue") -> None:
 
     yt-dlp's progress hook fires on the same thread; we translate it into
     `downloading` fractions. A `('done', info)` or `('error', message)` tuple
-    ends the stream. On an extraction failure we upgrade yt-dlp once and retry —
-    the standard remedy when a service changes its player.
+    ends the stream. A stale extractor (a service changed its player) surfaces a
+    clear message telling the operator to run `pip install -U yt-dlp` themselves —
+    a request never triggers a package install (that would be remote code pulled
+    over the network and executed in-process).
     """
 
     def on_progress(status: dict) -> None:
@@ -113,12 +99,16 @@ def _download(url: str, out_dir: Path, events: "queue.Queue") -> None:
             events.put(("progress", min(1.0, done / total)))
 
     try:
-        try:
-            info = _extract(url, out_dir, on_progress)
-        except yt_dlp.utils.DownloadError:
-            _upgrade_yt_dlp()
-            info = _extract(url, out_dir, on_progress)
+        info = _extract(url, out_dir, on_progress)
         events.put(("done", info))
+    except yt_dlp.utils.DownloadError:
+        events.put(
+            (
+                "error",
+                "download failed — the extractor may be out of date; "
+                "run `pip install -U yt-dlp` in the server venv and retry",
+            )
+        )
     except Exception as exc:  # noqa: BLE001 - surfaced to the client
         events.put(("error", str(exc)))
 
