@@ -3,6 +3,14 @@
   inset: 0;
   z-index: var(--z-dialog);
   background: rgb(0 0 0 / 0.55);
+  transition: opacity var(--motion-med) var(--motion-ease);
+}
+
+/* Base UI keeps the element mounted through the exit by flipping
+   data-starting-style / data-ending-style; the backdrop fades both ways. */
+.backdrop[data-starting-style],
+.backdrop[data-ending-style] {
+  opacity: 0;
 }
 
 .popup {
@@ -17,6 +25,16 @@
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow-2);
+  transition:
+    opacity var(--motion-med) var(--motion-ease),
+    transform var(--motion-med) var(--motion-ease);
+}
+
+/* Fade + a slight scale, keeping the centring translate in every state. */
+.popup[data-starting-style],
+.popup[data-ending-style] {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.96);
 }
 
 .title {

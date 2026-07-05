@@ -4,7 +4,29 @@
 
 ## Where we are
 
-- **Now — Lot C.4 done (2026-07-05)** on branch `feat/web-unify-buttons-icons`
+- **Now — Lot C.5 done (2026-07-05)** on branch `feat/web-overlay-micromotion`
+  (off `main`, C.4 merged as PR #60): **micro-motion for the overlays** — CSS-only,
+  no core, no new component. New **motion tokens** in
+  [tokens.css](../packages/web/src/styles/tokens.css) (`--motion-fast:130ms` light
+  popovers / `--motion-med:180ms` dialog+banner / `--motion-ease` ease-out); the
+  existing global `prefers-reduced-motion` reset already neutralises them, so no
+  per-rule guard. **Dialogs** ([app-dialog.module.css](../packages/web/src/app/ui/app-dialog.module.css),
+  shared by projects/shortcuts/confirm-import): backdrop **fades**, popup
+  **fades+scales `0.96→1`** via Base UI `data-starting/ending-style`, keeping the
+  centring `translate(-50%,-50%)` in every state. **Popovers/menu**: a shared
+  `.motion` class in [popover-form.module.css](../packages/web/src/app/ui/popover-form.module.css)
+  (fade + `translateY(-4px)`) `composes:`d by the rename/URL forms **and** the
+  import menu — defined once, jscpd flat. **Alert banner** (a plain mounted div, not
+  a Base UI overlay): entrance-only `@keyframes alert-in` slide-down+fade. Gate
+  **green — 573 tests**, coverage unchanged (94.89 %/87.29 %), **jscpd 5 clones**
+  (unchanged); mutation skipped (no core). **Browser-verified** offline: dialog
+  transition `0.18s`, popover `0.13s`, and the **exit is animated then unmounts
+  cleanly** (dialog stays mounted through the 180ms exit, gone after 400ms — no
+  stuck-overlay). Left un-animated on purpose: the live drag drop-overlay, and the
+  banner's exit. **Lot C is essentially complete (C.1–C.5); next: Lot D** (D.1
+  undo/redo, D.2 « Séparer »↔server health, or D.3 missing feedbacks). See
+  [2026-07-05-web-overlay-micromotion](sessions/2026-07-05-web-overlay-micromotion.md).
+- **Prior — Lot C.4 done (2026-07-05)** on branch `feat/web-unify-buttons-icons`
   (off `main`): **unify the button system + an inline SVG icon set** — CSS-only +
   one small presentational component, no core. The header stopped re-defining its
   own amber/ghost faces: `.primaryAction` now `composes: amberButton`,
@@ -520,6 +542,18 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-05 — web-overlay-micromotion](sessions/2026-07-05-web-overlay-micromotion.md) —
+  Lot C.5: micro-motion for the overlays (CSS-only, no core). Motion tokens
+  (`--motion-fast`/`med` + ease-out) in `tokens.css`; the global
+  `prefers-reduced-motion` reset neutralises them (no per-rule guard). Dialog:
+  backdrop fade + popup fade/scale `0.96→1` via Base UI `data-starting/ending-style`,
+  centring transform preserved (shared by projects/shortcuts/confirm-import).
+  Popovers + import menu: a shared `.motion` class `composes:`d once (fade +
+  `translateY(-4px)`), jscpd flat. Alert banner: entrance-only `@keyframes` slide+fade.
+  Gate green, 573 tests, coverage unchanged, jscpd 5 clones (unchanged); mutation
+  skipped (no core). Browser-verified: transitions apply (dialog 0.18s, popover
+  0.13s) and the dialog exit animates then unmounts cleanly (no stuck overlay). PR
+  to open on `feat/web-overlay-micromotion`.
 - [2026-07-05 — web-unify-buttons-icons](sessions/2026-07-05-web-unify-buttons-icons.md) —
   Lot C.4: unify the button system + inline SVG icons (CSS + one presentational
   component, no core). Header stops re-defining amber/ghost — `.primaryAction`

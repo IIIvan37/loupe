@@ -10,7 +10,24 @@
   z-index: var(--z-popover);
 }
 
+/* Entrance/exit micro-motion shared by every popover surface (the rename / URL
+   forms, the import menu). Base UI keeps the element mounted through the exit by
+   flipping data-starting-style / data-ending-style; we fade and lift a few px so
+   the surface reads as dropping from its anchor. Composed, not copied. */
+.motion {
+  transition:
+    opacity var(--motion-fast) var(--motion-ease),
+    transform var(--motion-fast) var(--motion-ease);
+}
+
+.motion[data-starting-style],
+.motion[data-ending-style] {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
 .popup {
+  composes: motion;
   display: flex;
   flex-direction: column;
   gap: var(--space-s);
