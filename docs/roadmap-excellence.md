@@ -295,10 +295,11 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 
 - [x] A.1 · [x] A.2 · [x] A.3 · [x] A.4 — **Lot A complet**
 - [x] B.1 · [x] B.2 · [ ] B.3
-- [x] C.1 · [x] C.2 · [x] C.3 · [ ] C.4 · [ ] C.5 — C.1 (PR #57) + C.2 (PR #58)
-  merged. C.3 done on `feat/web-design-system-tokens`: type scale (8 steps,
-  62 rem literals tokenised), `--shadow-1/2` elevation, `--z-*` stacking,
-  `--radius-*`. Base UI z-index gotcha fixed (goes on the Positioner, not the
-  static Popup)
+- [x] C.1 · [x] C.2 · [x] C.3 · [x] C.4 · [ ] C.5 — C.1 (PR #57) + C.2 (PR #58) +
+  C.3 (PR #59) merged. C.4 done on `feat/web-unify-buttons-icons`: header
+  `.primaryAction`/`.iconAction` compose the shared `amberButton`/`ghostButton`
+  skins, per-button focus-visible blocks (header + transport) deleted as global
+  duplicates, and a new inline-SVG `Icon` component replaces the text glyphs
+  (`⏮ ▶ ⏸ ⏭ ✎ ✕ ⟳`). jscpd 6 → 5 clones; a11y preserved
 - [ ] D.1 · [ ] D.2 · [ ] D.3
 - [ ] E.1 · [ ] E.2 · [ ] E.3 · [ ] E.4
