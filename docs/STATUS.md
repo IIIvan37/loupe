@@ -4,7 +4,18 @@
 
 ## Where we are
 
-- **Now — housekeeping pass (2026-07-05)**: four user asks on one branch
+- **Now — durcissement & excellence roadmap (2026-07-05)**: after a four-axis
+  evaluation (fonctionnalité / qualité / UX-UI / sécurité), a guiding plan landed
+  at [roadmap-excellence.md](roadmap-excellence.md) — 5 lots (A sécurité serveur,
+  B discipline serveur, C fossé produit, D fonctionnalités, E dette), PR-sized
+  slices, `main` doc-only. **Lot A.1 done** on branch `fix/server-no-runtime-pip`:
+  removed the 🔴 critical runtime `pip install -U yt-dlp` from the download path
+  (attacker-triggerable RCE) — a `DownloadError` now surfaces a manual-upgrade
+  hint instead of self-installing; new server pytest locks the invariant + adds
+  host-allowlist coverage (**15 passed**). Gate green; mutation skipped (no core).
+  **PR #48 opened. Next: A.2** (CORS `*` → dev origin + `Host` validation). See
+  [2026-07-05-server-no-runtime-pip](sessions/2026-07-05-server-no-runtime-pip.md).
+- **Prior — housekeeping pass (2026-07-05)**: four user asks on one branch
   `refactor/dry-tabs-coverage`. **(1) DRY** — knip already clean; jscpd **14 → 7
   clones, 1.26 % → 0.68 %** by extracting the real duplication: pure TDD-tested
   `lib/pointer-ratio.ts` (the waveform/marker-rail `clientX→0–1` map),
