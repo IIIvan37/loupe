@@ -37,7 +37,7 @@
   tests; **70 passed, 79 % total**. `separation`/`tempo` stay low by design (torch/
   librosa humble objects). See
   [2026-07-05-server-pytest-breadth](sessions/2026-07-05-server-pytest-breadth.md).
-  **Lot B.2 done** on branch `ci/server-lint-types-ci`: the server now has its own
+  **Lot B.2 done** on branch `ci/server-lint-types-ci` (PR #55): the server now has its own
   **blocking gate, run torch-free** — `pyproject.toml` (ruff + pyright-basic +
   pytest/coverage 80 % floor), a new **`server` CI job** (ruff → format → pyright →
   pytest), pinned `requirements.txt` + a light torch-free `requirements-dev.txt`.
