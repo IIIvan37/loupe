@@ -34,9 +34,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 
 from .limits import MAX_MANIFEST_BYTES, MAX_UPLOAD_BYTES, read_capped_body
 
-DATA_DIR = Path(
-    os.environ.get("LOUPE_DATA_DIR", Path.home() / ".loupe")
-).expanduser()
+DATA_DIR = Path(os.environ.get("LOUPE_DATA_DIR", Path.home() / ".loupe")).expanduser()
 AUDIO_DIR = DATA_DIR / "audio"
 PROJECTS_DIR = DATA_DIR / "projects"
 
@@ -189,8 +187,12 @@ def collect_garbage() -> dict:
             except (OSError, ValueError):
                 unreadable += 1
     if unreadable:
-        return {"deleted": 0, "reclaimedBytes": 0, "skipped": True,
-                "unreadableManifests": unreadable}
+        return {
+            "deleted": 0,
+            "reclaimedBytes": 0,
+            "skipped": True,
+            "unreadableManifests": unreadable,
+        }
 
     live = referenced_refs(manifests)
     deleted = 0

@@ -27,8 +27,8 @@ import time
 import types
 import uuid
 import wave
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 import demucs.apply
 import numpy as np
@@ -61,7 +61,7 @@ class _ProgressTqdm(tqdm.tqdm):
         return result
 
 
-demucs.apply.tqdm = types.SimpleNamespace(tqdm=_ProgressTqdm)
+demucs.apply.tqdm = types.SimpleNamespace(tqdm=_ProgressTqdm)  # pyright: ignore[reportPrivateImportUsage]
 
 # `htdemucs_6s` is the 6-source model: it splits guitar and piano out of the
 # "other" bucket, which is what makes the app's adaptive instrument detection
@@ -121,9 +121,7 @@ def _load_mix(data: bytes) -> torch.Tensor:
     samples = np.frombuffer(raw, dtype="<i2").astype(np.float32) / 32768.0
     waveform = torch.from_numpy(samples.reshape(-1, channel_count).T.copy())
     if sample_rate != TARGET_SAMPLE_RATE:
-        waveform = torchaudio.functional.resample(
-            waveform, sample_rate, TARGET_SAMPLE_RATE
-        )
+        waveform = torchaudio.functional.resample(waveform, sample_rate, TARGET_SAMPLE_RATE)
     if waveform.shape[0] == 1:  # mono -> stereo, the shape htdemucs expects
         waveform = waveform.repeat(2, 1)
     return waveform
@@ -145,7 +143,7 @@ def _event(payload: dict) -> bytes:
     return (json.dumps(payload) + "\n").encode("utf-8")
 
 
-def _run_separation(mix: torch.Tensor, events: "queue.Queue") -> None:
+def _run_separation(mix: torch.Tensor, events: queue.Queue) -> None:
     """Separate on a worker thread, pushing genuine progress onto `events`.
 
     The thread-local `sink` is read by the patched tqdm (same thread), turning
@@ -186,19 +184,15 @@ def _separate_stream(data: bytes, base_url: str) -> Iterator[bytes]:
 
     yield _event({"type": "progress", "phase": "separating", "fraction": 0.0})
 
-    events: "queue.Queue" = queue.Queue()
-    worker = threading.Thread(
-        target=_run_separation, args=(mix, events), daemon=True
-    )
+    events: queue.Queue = queue.Queue()
+    worker = threading.Thread(target=_run_separation, args=(mix, events), daemon=True)
     worker.start()
 
     stems = None
     while True:
         kind, payload = events.get()
         if kind == "progress":
-            yield _event(
-                {"type": "progress", "phase": "separating", "fraction": payload}
-            )
+            yield _event({"type": "progress", "phase": "separating", "fraction": payload})
         elif kind == "error":
             yield _event({"type": "error", "message": payload})
             return
@@ -212,9 +206,7 @@ def _separate_stream(data: bytes, base_url: str) -> Iterator[bytes]:
     sources = list(model.sources)
     ordered = sorted(
         sources,
-        key=lambda name: DISPLAY_ORDER.index(name)
-        if name in DISPLAY_ORDER
-        else len(DISPLAY_ORDER),
+        key=lambda name: DISPLAY_ORDER.index(name) if name in DISPLAY_ORDER else len(DISPLAY_ORDER),
     )
     manifest = []
     for name in ordered:
@@ -244,4 +236,3 @@ async def stem(job: str, stem: str) -> FileResponse:
     if path is None:
         raise HTTPException(status_code=404, detail="stem not found")
     return FileResponse(path, media_type="audio/wav")
-

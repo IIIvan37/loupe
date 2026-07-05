@@ -20,9 +20,7 @@ def test_loopback_hosts_are_accepted(host):
     assert is_loopback_host(host) is True
 
 
-@pytest.mark.parametrize(
-    "host", ["0.0.0.0", "192.168.1.10", "8.8.8.8", "example.com", "", None]
-)
+@pytest.mark.parametrize("host", ["0.0.0.0", "192.168.1.10", "8.8.8.8", "example.com", "", None])
 def test_non_loopback_hosts_are_rejected(host):
     assert is_loopback_host(host) is False
 

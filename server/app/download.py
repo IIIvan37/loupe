@@ -30,8 +30,8 @@ import logging
 import queue
 import tempfile
 import threading
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 from urllib.parse import urlparse
 
 import yt_dlp
@@ -77,11 +77,13 @@ def _make_options(out_dir: Path, on_progress) -> dict:
 
 def _extract(url: str, out_dir: Path, on_progress) -> dict:
     """Download the track once, returning yt-dlp's info dict."""
-    with yt_dlp.YoutubeDL(_make_options(out_dir, on_progress)) as ydl:
-        return ydl.extract_info(url, download=True)
+    # yt-dlp types its options as a private TypedDict and returns a private
+    # `_InfoDict`; we treat both as plain dicts at the boundary.
+    with yt_dlp.YoutubeDL(_make_options(out_dir, on_progress)) as ydl:  # pyright: ignore[reportArgumentType]
+        return ydl.extract_info(url, download=True)  # pyright: ignore[reportReturnType]
 
 
-def _download(url: str, out_dir: Path, events: "queue.Queue") -> None:
+def _download(url: str, out_dir: Path, events: queue.Queue) -> None:
     """Fetch on a worker thread, pushing progress onto `events`.
 
     yt-dlp's progress hook fires on the same thread; we translate it into
@@ -103,7 +105,7 @@ def _download(url: str, out_dir: Path, events: "queue.Queue") -> None:
     try:
         info = _extract(url, out_dir, on_progress)
         events.put(("done", info))
-    except yt_dlp.utils.DownloadError:
+    except yt_dlp.utils.DownloadError:  # pyright: ignore[reportAttributeAccessIssue]
         events.put(
             (
                 "error",
@@ -131,19 +133,15 @@ def _download_stream(url: str) -> Iterator[bytes]:
 
     with tempfile.TemporaryDirectory(prefix="loupe-download-") as tmp:
         out_dir = Path(tmp)
-        events: "queue.Queue" = queue.Queue()
-        worker = threading.Thread(
-            target=_download, args=(url, out_dir, events), daemon=True
-        )
+        events: queue.Queue = queue.Queue()
+        worker = threading.Thread(target=_download, args=(url, out_dir, events), daemon=True)
         worker.start()
 
         info = None
         while True:
             kind, payload = events.get()
             if kind == "progress":
-                yield _event(
-                    {"type": "progress", "phase": "downloading", "fraction": payload}
-                )
+                yield _event({"type": "progress", "phase": "downloading", "fraction": payload})
             elif kind == "error":
                 yield _event({"type": "error", "message": payload})
                 return

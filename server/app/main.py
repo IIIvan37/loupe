@@ -96,9 +96,7 @@ except Exception as exc:  # noqa: BLE001 - torch missing, weights unreachable…
     async def separate() -> StreamingResponse:
         """Honour the NDJSON contract so the web client shows a clean error."""
         line = json.dumps({"type": "error", "message": _unavailable}) + "\n"
-        return StreamingResponse(
-            iter([line.encode("utf-8")]), media_type="application/x-ndjson"
-        )
+        return StreamingResponse(iter([line.encode("utf-8")]), media_type="application/x-ndjson")
 else:
     app.include_router(separation_router)
 
@@ -123,9 +121,7 @@ except Exception as exc:  # noqa: BLE001 - yt-dlp missing on this host
     async def download() -> StreamingResponse:
         """Honour the NDJSON contract so the web client shows a clean error."""
         line = json.dumps({"type": "error", "message": _download_unavailable}) + "\n"
-        return StreamingResponse(
-            iter([line.encode("utf-8")]), media_type="application/x-ndjson"
-        )
+        return StreamingResponse(iter([line.encode("utf-8")]), media_type="application/x-ndjson")
 else:
     app.include_router(download_router)
 
