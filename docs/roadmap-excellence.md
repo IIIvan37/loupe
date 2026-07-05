@@ -93,29 +93,51 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 > Le serveur (800 LOC, la surface la plus risquée) échappe au standard qui fait
 > la fierté du reste. Ce lot rend le projet **cohérent** : sans lui, le Lot A
 > régressera silencieusement.
+>
+> **Cadrage archi (important).** Le serveur n'est **pas** hexagonal, et c'est
+> voulu : c'est un **adaptateur**, le côté lointain des ports pilotés du cœur
+> (`StemSeparator`, `TempoDetector`, `TrackSource`, `ProjectStore`,
+> `ProjectAudioStore`). L'équivalent serveur de la « pureté domaine » n'est donc
+> pas l'hexagone mais le **humble object** : la logique *décidable* vit dans des
+> modules **sans torch/yt-dlp** (testables + typables), une fine coquille d'I/O
+> les entoure. Le Lot A l'a déjà appliqué (`stems_store`, `limits`, `netguard`).
+> Ce lot outille cette discipline ; B.3 l'acte.
 
 ### B.1 — Suite pytest serveur
 - **But.** Aujourd'hui un seul fichier de test (GC). Couvrir la logique sensible.
 - **Faire.** Tests pour : allowlist d'hôtes (accept/reject, suffix-match,
   `youtube.com.evil.com`), validation ids/refs, `store_audio` (content-addressing,
-  écriture atomique), GC (déjà couvert — garder), parsing NDJSON download,
-  fallback yt-dlp absent. Fakes/monkeypatch pour ne pas dépendre du réseau ni de
-  torch.
+  écriture atomique), CRUD projets via `TestClient`, parsing NDJSON download,
+  fallback yt-dlp/torch absent. Fakes/monkeypatch pour ne dépendre ni du réseau ni
+  de torch. (GC / CORS+Host / caps / stems / netguard : déjà couverts au Lot A —
+  garder.)
 - **Cible.** Couverture serveur mesurée ≥ 80 % sur `app/download.py`,
-  `app/projects.py`, `app/main.py`.
+  `app/projects.py`, `app/main.py` (pytest-cov).
 - **Effort.** ~1–1,5 session.
 
 ### B.2 — Gate & CI Python
 - **But.** Ramener le serveur dans la boucle qualité bloquante.
-- **Faire.** `ruff` (lint+format) + `mypy` (ou `pyright`) sur `server/app` ;
-  `pytest` avec seuil de couverture. Un **job `server` dans
+- **Faire.** `ruff` (lint+format) + **`pyright`** sur `server/app` ; `pytest` avec
+  seuil de couverture. Un **job `server` dans
   [.github/workflows/ci.yml](../.github/workflows/ci.yml)** (setup Python, cache,
-  `pip install -r requirements-dev.txt`, ruff + mypy + pytest). Pin des
+  `pip install -r requirements-dev.txt`, ruff + pyright + pytest). Pin des
   dépendances runtime (`requirements.txt`) sur des versions précises + note de
   procédure de mise à jour manuelle (cohérent avec A.1).
-- **Critères.** CI rouge si un test/lint serveur casse ; badge de couverture
-  serveur.
+- **Critères.** CI rouge si un test/lint/type serveur casse ; couverture serveur
+  rapportée.
 - **Effort.** ~1 session.
+
+### B.3 — Acter la convention « humble object » *(léger)*
+- **But.** Rendre explicite la règle qui a déjà guidé le Lot A, pour que le
+  serveur ne redévie pas vers des gros modules logique+I/O entremêlés.
+- **Faire.** Note dans `server/README.md` : « la logique décidable (validation,
+  policy, parsing, math) vit dans des modules sans torch/yt-dlp, testée au unit ;
+  les modules qui importent torch/yt-dlp restent de fines coquilles d'I/O ».
+  Repérer les poches de logique testable restées dans `separation.py` /
+  `download.py` / `tempo.py` et les extraire si le ROI est là (p. ex. le
+  ré-ordonnancement/mapping des stems, le calcul de progression, le
+  `_is_supported`/policy déjà en partie isolable).
+- **Effort.** ~½ session (peut suivre B.2).
 
 ---
 
@@ -238,16 +260,18 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 
 ## Ordre recommandé (les prochaines PR)
 
-1. **A.1** — supprimer le pip runtime *(critique, borné)*
-2. **A.2** — CORS + Host *(haute)*
-3. **A.3 (+A.4)** — caps ressources + durcissement temp
-4. **B.1** — pytest serveur
-5. **B.2** — gate & CI Python
-6. **C.1** — DnD + empty-state *(premier gain produit visible)*
-7. **C.3** — design system (typo/élévation/z-index)
-8. **C.2** — responsive/tactile
-9. **D.1** — undo/redo
-10. …puis C.4, C.5, D.2, D.3 et le Lot E intercalés.
+1. ~~**A.1** — supprimer le pip runtime~~ ✅ (PR #48)
+2. ~~**A.2** — CORS + Host~~ ✅ (PR #49)
+3. ~~**A.3** — caps ressources + durcissement temp~~ ✅ (PR #50)
+4. ~~**A.4** — loopback-only + noms de fichiers~~ ✅ (PR #51) — **Lot A complet**
+5. **B.1** — pytest serveur *(en cours)*
+6. **B.2** — gate & CI Python (ruff + pyright)
+7. **B.3** — acter la convention humble object
+8. **C.1** — DnD + empty-state *(premier gain produit visible)*
+9. **C.3** — design system (typo/élévation/z-index)
+10. **C.2** — responsive/tactile
+11. **D.1** — undo/redo
+12. …puis C.4, C.5, D.2, D.3 et le Lot E intercalés.
 
 > Chaque slice se ferme par `/session-report` (met à jour `docs/STATUS.md` + un
 > rapport daté sous `docs/sessions/`), gate verte, mutation cœur si le cœur est
@@ -255,8 +279,8 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 
 ### Suivi
 
-- [ ] A.1 · [ ] A.2 · [ ] A.3 · [ ] A.4
-- [ ] B.1 · [ ] B.2
+- [x] A.1 · [x] A.2 · [x] A.3 · [x] A.4 — **Lot A complet**
+- [ ] B.1 · [ ] B.2 · [ ] B.3
 - [ ] C.1 · [ ] C.2 · [ ] C.3 · [ ] C.4 · [ ] C.5
 - [ ] D.1 · [ ] D.2 · [ ] D.3
 - [ ] E.1 · [ ] E.2 · [ ] E.3 · [ ] E.4
