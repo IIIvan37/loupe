@@ -13,7 +13,7 @@
   (attacker-triggerable RCE) — a `DownloadError` now surfaces a manual-upgrade
   hint instead of self-installing; new server pytest locks the invariant + adds
   host-allowlist coverage (**15 passed**). Gate green; mutation skipped (no core).
-  **Next: PR, then A.2** (CORS `*` → dev origin + `Host` validation). See
+  **PR #48 opened. Next: A.2** (CORS `*` → dev origin + `Host` validation). See
   [2026-07-05-server-no-runtime-pip](sessions/2026-07-05-server-no-runtime-pip.md).
 - **Prior — housekeeping pass (2026-07-05)**: four user asks on one branch
   `refactor/dry-tabs-coverage`. **(1) DRY** — knip already clean; jscpd **14 → 7

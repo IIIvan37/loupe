@@ -44,8 +44,8 @@ UX-UI / sécurité). Branch `fix/server-no-runtime-pip`.
   Python).
 
 ## State to resume from
-- **Single next action**: open the PR for this branch (report ships inside), then
-  start **A.2** — replace `allow_origins=["*"]` in
+- **PR #48 opened** for this branch (report ships inside).
+- **Single next action**: start **A.2** — replace `allow_origins=["*"]` in
   [server/app/main.py](../../server/app/main.py) with the dev origin + a `Host`
   validation middleware.
 - Gotchas / half-done edits: none. `CLAUDE.md` shows as modified in `git status`
