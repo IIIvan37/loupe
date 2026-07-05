@@ -1,8 +1,11 @@
 .header {
   display: flex;
+  /* Let the action group drop below the track identity when they can't share
+     a row, rather than overflowing the viewport on narrow screens. */
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-l);
+  gap: var(--space-s) var(--space-l);
   padding: var(--space-s) var(--space-l);
   background: var(--panel);
   border-block-end: 1px solid var(--line);
@@ -93,6 +96,19 @@
   background: var(--stem-guitar);
 }
 
+/* A comfortable tap strip on coarse pointers (the visual button is left as-is). */
+.secondaryAction {
+  composes: touchTarget from '../ui/controls.module.css';
+}
+
+.primaryAction {
+  composes: touchTarget from '../ui/controls.module.css';
+}
+
+.confirmAction {
+  composes: touchTarget from '../ui/controls.module.css';
+}
+
 .secondaryAction,
 .primaryAction {
   padding: var(--space-2xs) var(--space-m);
@@ -136,6 +152,7 @@
 }
 
 .iconAction {
+  composes: touchTarget from '../ui/controls.module.css';
   display: inline-flex;
   align-items: center;
   justify-content: center;

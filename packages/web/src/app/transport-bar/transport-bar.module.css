@@ -1,14 +1,18 @@
 .bar {
   display: flex;
+  /* Below ~700px the two control groups can't share a row — let them stack
+     (transport + time on top, tempo/pitch below) instead of overflowing. */
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-l);
+  gap: var(--space-s) var(--space-l);
   padding: var(--space-s) var(--space-l);
   background: var(--panel);
   border-block-start: 1px solid var(--line);
 }
 
 .control {
+  composes: touchTarget from '../ui/controls.module.css';
   width: 2.25rem;
   height: 2.25rem;
   display: inline-flex;

@@ -50,3 +50,36 @@
 .quietButton:disabled {
   opacity: 0.5;
 }
+
+/* Touch hit-target expanders — composed by small controls so that on coarse
+   pointers the *tappable* region reaches the comfortable minimum without
+   resizing the visual chip (the dense desktop layout is left untouched). The
+   overlay is centered, transparent, and part of the host button, so a tap on it
+   fires the button. `touchTarget` grows both axes (use where controls have room
+   around them); `touchTargetTall` grows height only (use in tight rows where a
+   full-width overlay would overlap the neighbour). */
+.touchTarget,
+.touchTargetTall {
+  position: relative;
+}
+
+@media (pointer: coarse) {
+  .touchTarget::after,
+  .touchTargetTall::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    height: var(--touch-target);
+    transform: translate(-50%, -50%);
+  }
+
+  .touchTarget::after {
+    min-width: 100%;
+    width: var(--touch-target);
+  }
+
+  .touchTargetTall::after {
+    width: 100%;
+  }
+}

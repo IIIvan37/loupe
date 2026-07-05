@@ -45,6 +45,7 @@
 }
 
 .download {
+  composes: touchTargetTall from '../ui/controls.module.css';
   flex: none;
   padding: 0 var(--space-2xs);
   border: 1px solid transparent;
@@ -69,6 +70,7 @@
 }
 
 .toggle {
+  composes: touchTargetTall from '../ui/controls.module.css';
   flex: none;
   display: flex;
   align-items: center;
