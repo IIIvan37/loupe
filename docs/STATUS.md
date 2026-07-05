@@ -17,8 +17,16 @@
   against DNS-rebinding — no more wildcard CORS on the unauthenticated localhost
   server. Server pytest **21 passed**, verified on real uvicorn (foreign origin
   gets no CORS header, bad Host → 400); gate green, mutation skipped (no core).
-  **Next: A.3** (request-size caps, stems-temp TTL/0700, generic errors). See
-  [2026-07-05-server-cors-host](sessions/2026-07-05-server-cors-host.md).
+  **Lot A.3 done** on branch `fix/server-resource-limits`: body-size caps
+  (reject before buffering) on `/audio`/`/separate`/`/tempo`/manifests, a bounded
+  `/separate` concurrency semaphore, a hardened stem temp dir (new torch-free
+  `stems_store`: 0700 dirs + age TTL sweep + path validation), and generic
+  client-facing errors (full detail logged server-side). Server pytest **36
+  passed**; verified on real uvicorn (2 MB over a 1 MB cap → 413, malformed
+  `/stems` → 404, jobs dir 0700). Gate green, mutation skipped (no core).
+  **Next: A.4** (loopback-binding assertion + `exportBaseName` sanitising), then
+  **Lot B** (server pytest breadth + ruff/mypy + CI job). See
+  [2026-07-05-server-resource-limits](sessions/2026-07-05-server-resource-limits.md).
 - **Prior — housekeeping pass (2026-07-05)**: four user asks on one branch
   `refactor/dry-tabs-coverage`. **(1) DRY** — knip already clean; jscpd **14 → 7
   clones, 1.26 % → 0.68 %** by extracting the real duplication: pure TDD-tested

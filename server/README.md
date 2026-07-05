@@ -76,10 +76,11 @@ Stem ids/labels (`voix`, `batterie`, `basse`, `autres`) match the core's
 
 - `separating` progress is derived from Demucs' internal per-segment tqdm bar
   (one update per audio segment), so granularity scales with track length.
-- Jobs are written under the OS temp dir and live until the process exits — fine
-  for single-user localhost; add cleanup/TTL before any shared deployment.
-- No auth / rate limiting: intended for `localhost` only. Two guards enforce
-  that trust model, both env-overridable but locked to loopback by default:
+- Stem jobs are written to a **private** (`0700`) dir under the OS temp dir and
+  swept by age on each separation (`LOUPE_STEMS_TTL_SECONDS`, default `3600`), so
+  WAVs don't accumulate and other local users can't read them.
+- No auth / rate limiting: intended for `localhost` only. Guards enforce that
+  trust model, all env-overridable but locked down by default:
   - **CORS** is scoped to the dev origin (`LOUPE_ALLOWED_ORIGINS`, default
     `http://localhost:5173,http://127.0.0.1:5173`), never `*` — a random page in
     the same browser can't read our responses.
@@ -87,7 +88,14 @@ Stem ids/labels (`voix`, `batterie`, `basse`, `autres`) match the core's
     `localhost,127.0.0.1`) to blunt DNS-rebinding. Point the web app elsewhere by
     setting both vars; never bind `--host 0.0.0.0` (an unauthenticated,
     file-writing server on the LAN).
+  - **Body-size caps** refuse oversized uploads before buffering
+    (`LOUPE_MAX_UPLOAD_MB`, default `500`, for audio/`/separate`/`/tempo`;
+    `LOUPE_MAX_MANIFEST_MB`, default `16`, for manifests) → 413.
+  - **/separate concurrency** is bounded (`LOUPE_MAX_CONCURRENT_SEPARATIONS`,
+    default `1`) so parallel inferences can't thrash the device.
+  - Client error messages are generic; full detail is logged server-side.
 - Orphaned audio blobs (from re-saves and project deletes) are reclaimed by the
   manifest-scan GC — automatically on boot, or on demand via `POST /gc`.
 - Tests: `pip install -r requirements-dev.txt` then `.venv/bin/python -m pytest`
-  (covers the GC; the ML endpoints stay manual).
+  (covers storage/GC, CORS+Host, body caps, and the stem store — all torch-free;
+  the ML inference itself stays manual).
