@@ -96,21 +96,14 @@
   background: var(--stem-guitar);
 }
 
-/* A comfortable tap strip on coarse pointers (the visual button is left as-is). */
+/* The header actions wear the shared control skins (single source of truth in
+   controls.module.css) plus a comfortable tap strip on coarse pointers; each
+   adds only its own dimensions. The neutral outlined face (.secondaryAction) and
+   the destructive confirm (.confirmAction) are the header's own — they aren't
+   the amber/ghost skins, so they stay local. The keyboard focus ring is the
+   global :focus-visible / [data-on-amber] baseline (no per-button re-declare). */
 .secondaryAction {
   composes: touchTarget from '../ui/controls.module.css';
-}
-
-.primaryAction {
-  composes: touchTarget from '../ui/controls.module.css';
-}
-
-.confirmAction {
-  composes: touchTarget from '../ui/controls.module.css';
-}
-
-.secondaryAction,
-.primaryAction {
   padding: var(--space-2xs) var(--space-m);
   border-radius: var(--radius);
   border: 1px solid var(--line);
@@ -129,20 +122,15 @@
 }
 
 .primaryAction {
-  background: var(--amber);
-  border-color: var(--amber);
-  color: var(--bg);
+  composes: amberButton touchTarget from '../ui/controls.module.css';
+  padding: var(--space-2xs) var(--space-m);
   font-weight: 600;
-}
-
-.primaryAction:hover {
-  background: var(--amber-deep);
-  border-color: var(--amber-deep);
 }
 
 /* The import button's second step — replacing an unsaved session is
    destructive, so it takes the same red-ish face as the dialog confirms. */
 .confirmAction {
+  composes: touchTarget from '../ui/controls.module.css';
   padding: var(--space-2xs) var(--space-m);
   border-radius: var(--radius);
   border: 1px solid var(--stem-vocals);
@@ -152,36 +140,13 @@
 }
 
 .iconAction {
-  composes: touchTarget from '../ui/controls.module.css';
+  composes: ghostButton touchTarget from '../ui/controls.module.css';
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--dim);
   font-weight: 600;
-}
-
-.iconAction:hover {
-  color: var(--text);
-  border-color: var(--line-strong);
-}
-
-/* Visible keyboard focus on every header action (same ring as the baseline). */
-.secondaryAction:focus-visible,
-.iconAction:focus-visible,
-.confirmAction:focus-visible {
-  outline: 2px solid var(--amber);
-  outline-offset: 2px;
-}
-
-/* Keep the focus ring contrasting on the amber fill. */
-.primaryAction:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
 }
 
 /* Document-state chip next to the title: dim when in sync, amber when the

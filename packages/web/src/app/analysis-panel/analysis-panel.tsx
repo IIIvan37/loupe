@@ -7,6 +7,7 @@ import {
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Tabs } from '@base-ui-components/react/tabs'
 import { cx } from '../../lib/cx.ts'
+import { Icon } from '../ui/icon.tsx'
 import { NameEditor } from '../ui/name-editor.tsx'
 import styles from './analysis-panel.module.css'
 
@@ -204,7 +205,7 @@ function EntryRow({
         title={renameTitle}
         triggerClassName={cx(styles.entryEdit)}
         triggerLabel={renameLabel}
-        triggerContent="✎"
+        triggerContent={<Icon name="edit" />}
         submitLabel={t({ id: 'common.rename', message: 'Renommer' })}
         initialName={name}
         onSubmit={onRename}
@@ -215,7 +216,7 @@ function EntryRow({
         aria-label={removeLabel}
         onClick={onRemove}
       >
-        ✕
+        <Icon name="close" />
       </button>
     </li>
   )

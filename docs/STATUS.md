@@ -4,7 +4,29 @@
 
 ## Where we are
 
-- **Now — Lot C.3 done (2026-07-05)** on branch `feat/web-design-system-tokens`
+- **Now — Lot C.4 done (2026-07-05)** on branch `feat/web-unify-buttons-icons`
+  (off `main`): **unify the button system + an inline SVG icon set** — CSS-only +
+  one small presentational component, no core. The header stopped re-defining its
+  own amber/ghost faces: `.primaryAction` now `composes: amberButton`,
+  `.iconAction` `composes: ghostButton` (from the shared
+  [controls.module.css](../packages/web/src/app/ui/controls.module.css)); only the
+  genuinely distinct `.secondaryAction` (neutral outlined) and `.confirmAction`
+  (destructive import step) stay local. The per-button `:focus-visible` blocks in
+  **both** header and transport were deleted — byte-for-byte copies of the global
+  `:focus-visible`/`[data-on-amber]` baseline — removing the shared CSS clone. New
+  [icon.tsx](../packages/web/src/app/ui/icon.tsx): a 24×24 `currentColor`,
+  `aria-hidden`, `em`-sized `Icon` (filled transport marks + stroked
+  edit/close/loop) replaces every fragile text glyph (`⏮ ▶ ⏸ ⏭ ✎ ✕ ⟳`) across
+  transport-bar, header, alert-banner, analysis-panel and loop-controls; the `⟳`
+  left the Lingui `loops.active`/`inactive` messages (catalog re-extracted). a11y
+  intact (hosts keep their labels; the loop toggle's name stays « Boucle active »).
+  Gate **green — 573 tests**, coverage unchanged (94.89 %/87.29 %), **jscpd 6 → 5
+  clones**; mutation skipped (no core). **Browser-verified** offline (transport
+  icons crisp, header reads as one system, all 7 glyphs render). Left as text on
+  purpose: header `?` and zoom `−`/`+` (outside C.4's scope). **Next: Lot C.5**
+  (overlay micro-motion). See
+  [2026-07-05-web-unify-buttons-icons](sessions/2026-07-05-web-unify-buttons-icons.md).
+- **Prior — Lot C.3 done (2026-07-05)** on branch `feat/web-design-system-tokens`
   (off `main`): the **design-system completion** — CSS-only, no core. Added to
   [tokens.css](../packages/web/src/styles/tokens.css) and propagated: an **8-step
   modular type scale** (`--font-size-2xs…2xl`) replacing all **62** hard-coded rem
@@ -498,6 +520,18 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-05 — web-unify-buttons-icons](sessions/2026-07-05-web-unify-buttons-icons.md) —
+  Lot C.4: unify the button system + inline SVG icons (CSS + one presentational
+  component, no core). Header stops re-defining amber/ghost — `.primaryAction`
+  composes `amberButton`, `.iconAction` composes `ghostButton`; only the distinct
+  `.secondaryAction`/`.confirmAction` stay local. Per-button `:focus-visible`
+  blocks in header + transport deleted (global-baseline duplicates), killing the
+  shared CSS clone. New `Icon` (24×24 `currentColor`, `aria-hidden`, `em`-sized;
+  filled transport marks + stroked edit/close/loop) replaces the text glyphs
+  `⏮ ▶ ⏸ ⏭ ✎ ✕ ⟳` across transport/header/alert/analysis/loop; `⟳` left the Lingui
+  loop messages (re-extracted). a11y preserved. Gate green, 573 tests, jscpd
+  6 → 5; mutation skipped (no core). Browser-verified. PR to open on
+  `feat/web-unify-buttons-icons`.
 - [2026-07-05 — dry-tabs-coverage](sessions/2026-07-05-dry-tabs-coverage.md) —
   Housekeeping pass (one branch) from four user asks. **DRY**: jscpd 14 → 7 clones
   (1.26 % → 0.68 %) via `lib/pointer-ratio.ts` (TDD), `audio/web-audio-shared.ts`

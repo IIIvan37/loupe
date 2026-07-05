@@ -1,6 +1,7 @@
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
+import { Icon } from '../ui/icon.tsx'
 import { NameEditor } from '../ui/name-editor.tsx'
 import styles from './header.module.css'
 import { ImportMenu } from './import-menu.tsx'
@@ -120,7 +121,7 @@ function SaveControls({
             id: 'header.rename-project',
             message: 'Renommer le projet'
           })}
-          triggerContent="✎"
+          triggerContent={<Icon name="edit" />}
           submitLabel={saveLabel}
           initialName={saveName}
           onSubmit={onSaveProject}
