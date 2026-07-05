@@ -42,6 +42,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 
 from . import stems_store
 from .limits import MAX_UPLOAD_BYTES, read_capped_body
+from .stem_manifest import build_manifest
 
 logger = logging.getLogger("loupe.separation")
 
@@ -70,22 +71,6 @@ demucs.apply.tqdm = types.SimpleNamespace(tqdm=_ProgressTqdm)  # pyright: ignore
 # stem in 6s is weaker/experimental. Override with DEMUCS_MODEL.
 MODEL_NAME = os.environ.get("DEMUCS_MODEL", "htdemucs_6s")
 TARGET_SAMPLE_RATE = 44100
-
-# Map Demucs' source names to the musician-friendly ids/labels the UI expects.
-# The web reserves a colour per id (voix/batterie/basse/guitare/claviers/autres).
-STEM_META: dict[str, tuple[str, str]] = {
-    "vocals": ("voix", "Voix"),
-    "drums": ("batterie", "Batterie"),
-    "bass": ("basse", "Basse"),
-    "guitar": ("guitare", "Guitare"),
-    "piano": ("claviers", "Claviers"),
-    "other": ("autres", "Autres"),
-}
-
-# Musician-friendly display order. Demucs' native order differs per model
-# (4s: [drums, bass, other, vocals]; 6s adds guitar, piano), so we re-order to a
-# stable UI layout. Sources absent from the loaded model are simply skipped.
-DISPLAY_ORDER = ["vocals", "drums", "bass", "guitar", "piano", "other"]
 
 router = APIRouter()
 
@@ -204,18 +189,11 @@ def _separate_stream(data: bytes, base_url: str) -> Iterator[bytes]:
     job = uuid.uuid4().hex
     job_dir = stems_store.new_job_dir(job)
     sources = list(model.sources)
-    ordered = sorted(
-        sources,
-        key=lambda name: DISPLAY_ORDER.index(name) if name in DISPLAY_ORDER else len(DISPLAY_ORDER),
-    )
     manifest = []
-    for name in ordered:
-        stem_id, label = STEM_META.get(name, (name, name.title()))
-        path = job_dir / f"{stem_id}.wav"
-        _save_wav(path, stems[sources.index(name)], TARGET_SAMPLE_RATE)
-        manifest.append(
-            {"id": stem_id, "label": label, "url": f"{base_url}stems/{job}/{stem_id}.wav"}
-        )
+    for entry in build_manifest(sources, job, base_url):
+        audio = stems[sources.index(entry.source)]
+        _save_wav(job_dir / f"{entry.id}.wav", audio, TARGET_SAMPLE_RATE)
+        manifest.append({"id": entry.id, "label": entry.label, "url": entry.url})
 
     yield _event({"type": "done", "stems": manifest})
 

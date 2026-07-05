@@ -63,6 +63,21 @@ def _event(payload: dict) -> bytes:
     return (json.dumps(payload) + "\n").encode("utf-8")
 
 
+def progress_fraction(status: dict) -> float | None:
+    """The download completion in [0, 1] from a yt-dlp progress hook.
+
+    None unless we're downloading and have both a total and a done count — a
+    missing/zero total (yt-dlp not yet knowing the size) yields no fraction.
+    """
+    if status.get("status") != "downloading":
+        return None
+    total = status.get("total_bytes") or status.get("total_bytes_estimate")
+    done = status.get("downloaded_bytes")
+    if total and done is not None:
+        return min(1.0, done / total)
+    return None
+
+
 def _make_options(out_dir: Path, on_progress) -> dict:
     """yt-dlp options: audio-only, no playlist, m4a-preferred, progress-hooked."""
     return {
@@ -95,12 +110,9 @@ def _download(url: str, out_dir: Path, events: queue.Queue) -> None:
     """
 
     def on_progress(status: dict) -> None:
-        if status.get("status") != "downloading":
-            return
-        total = status.get("total_bytes") or status.get("total_bytes_estimate")
-        done = status.get("downloaded_bytes")
-        if total and done is not None:
-            events.put(("progress", min(1.0, done / total)))
+        fraction = progress_fraction(status)
+        if fraction is not None:
+            events.put(("progress", fraction))
 
     try:
         info = _extract(url, out_dir, on_progress)
