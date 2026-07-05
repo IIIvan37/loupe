@@ -17,7 +17,7 @@
   against DNS-rebinding — no more wildcard CORS on the unauthenticated localhost
   server. Server pytest **21 passed**, verified on real uvicorn (foreign origin
   gets no CORS header, bad Host → 400); gate green, mutation skipped (no core).
-  **Lot A.3 done** on branch `fix/server-resource-limits`: body-size caps
+  **Lot A.3 done** on branch `fix/server-resource-limits` (PR #50): body-size caps
   (reject before buffering) on `/audio`/`/separate`/`/tempo`/manifests, a bounded
   `/separate` concurrency semaphore, a hardened stem temp dir (new torch-free
   `stems_store`: 0700 dirs + age TTL sweep + path validation), and generic
