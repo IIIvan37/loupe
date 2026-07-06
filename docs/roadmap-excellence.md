@@ -209,24 +209,33 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 
 ## Lot D — Fonctionnalités qui haussent la barre
 
-### D.1 — Undo/redo *(fort levier, quasi gratuit architecturalement)*
-- **But.** Aucun undo ; marqueurs/boucles/mixeur committent immédiatement. Le
-  domaine à **reducers purs** (`transportReducer`, `mixerReducer`,
-  `markerList`, `loopLibrary`) est idéal pour un historique.
-- **Faire.** Slice hexagonale : une pile d'historique pure dans `core`
-  (générique sur un état + action, ou par agrégat), use-case/port si besoin de
-  persistance, adaptateur web + raccourcis `Cmd+Z`/`Cmd+Shift+Z`. TDD strict,
-  property tests (undo∘do = identité).
-- **Critères.** Undo/redo sur marqueurs, boucles, mixeur ; property test
-  d'inversibilité ; **browser-verify**.
+### D.1 — Undo/redo *(reporté → veille, 2026-07-06)*
+- **Décision (2026-07-06) : reporté en veille.** « Quasi gratuit
+  architecturalement » ≠ « fort levier ». loupe est un outil de **pratique**, pas
+  un éditeur de document : l'état éditable (marqueurs, boucles) est petit et
+  **trivial à défaire à la main**, et le **mixeur est une surface de contrôle
+  live** (faders/mute/solo triturés en continu), pas un historique d'édition — un
+  Cmd+Z sur un fader est même contre-intuitif. Le bénéfice utilisateur réel est
+  marginal. À réévaluer **si** une édition destructive coûteuse apparaît un jour
+  (édition d'arrangement, découpe non réversible).
+- **But (si repris).** Aucun undo ; marqueurs/boucles/mixeur committent
+  immédiatement. Le domaine à **reducers purs** (`transportReducer`,
+  `mixerReducer`, `markerList`, `loopLibrary`) est idéal pour un historique.
+- **Faire (si repris).** Slice hexagonale : pile d'historique pure dans `core`
+  (timeline unifiée sur un snapshot {marqueurs+boucles+mixeur}), adaptateur web +
+  raccourcis `Cmd+Z`/`Cmd+Shift+Z`, property tests (undo∘do = identité).
 - **Effort.** ~1,5–2 sessions.
 
-### D.2 — Câbler « Séparer » à la santé serveur
-- **But.** `canSeparate` ne dépend que de l'audio chargé
-  ([workstation-shell.tsx:287](../packages/web/src/app/workstation-shell/workstation-shell.tsx#L287)) ;
-  serveur éteint = clic → attente → erreur.
-- **Faire.** Intégrer `serverHealth` (déjà connu du header) dans l'état du bouton :
-  désactiver + expliquer quand `no-separation`/offline.
+### D.2 — Câbler « Séparer » à la santé serveur ✅ *(2026-07-06)*
+- **But.** `canSeparate` ne dépendait que de l'audio chargé ; serveur éteint =
+  clic → attente → erreur.
+- **Fait.** `serverHealth` (déjà calculé pour le header) threadé jusqu'à
+  `SeparationPanel` via `shell-main`. Le bouton « Séparer » est **désactivé** quand
+  le serveur est `offline`/`no-separation`, avec un **hint actionnable** à la place
+  du silence (« Serveur hors ligne — démarrer le serveur local… » /
+  « Ce serveur ne fournit pas de moteur de séparation. »). `checking` reste actif
+  (transitoire au boot — pas de flash). Web-only, pas de cœur ; 3 specs (offline,
+  no-separation, checking). Gate verte, 576 tests.
 - **Effort.** ~½ session.
 
 ### D.3 — Feedbacks manquants
@@ -284,8 +293,9 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 8. **C.1** — DnD + empty-state *(premier gain produit visible)*
 9. **C.3** — design system (typo/élévation/z-index)
 10. **C.2** — responsive/tactile
-11. **D.1** — undo/redo
-12. …puis C.4, C.5, D.2, D.3 et le Lot E intercalés.
+11. ~~**D.1** — undo/redo~~ — **reporté en veille** (ROI faible, cf. § D.1)
+12. ~~**D.2** — « Séparer » ↔ santé serveur~~ ✅ (2026-07-06)
+13. **D.3** — feedbacks manquants *(prochain)*, puis le Lot E intercalé.
 
 > Chaque slice se ferme par `/session-report` (met à jour `docs/STATUS.md` + un
 > rapport daté sous `docs/sessions/`), gate verte, mutation cœur si le cœur est
@@ -294,12 +304,9 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 ### Suivi
 
 - [x] A.1 · [x] A.2 · [x] A.3 · [x] A.4 — **Lot A complet**
-- [x] B.1 · [x] B.2 · [ ] B.3
-- [x] C.1 · [x] C.2 · [x] C.3 · [x] C.4 · [ ] C.5 — C.1 (PR #57) + C.2 (PR #58) +
-  C.3 (PR #59) merged. C.4 done on `feat/web-unify-buttons-icons`: header
-  `.primaryAction`/`.iconAction` compose the shared `amberButton`/`ghostButton`
-  skins, per-button focus-visible blocks (header + transport) deleted as global
-  duplicates, and a new inline-SVG `Icon` component replaces the text glyphs
-  (`⏮ ▶ ⏸ ⏭ ✎ ✕ ⟳`). jscpd 6 → 5 clones; a11y preserved
-- [ ] D.1 · [ ] D.2 · [ ] D.3
+- [x] B.1 · [x] B.2 · [x] B.3 (PR #56) — **Lot B complet**
+- [x] C.1 (#57) · [x] C.2 (#58) · [x] C.3 (#59) · [x] C.4 (#60) · [x] C.5 (#61) —
+  **Lot C complet**
+- [~] D.1 *(reporté → veille, ROI faible pour un outil de pratique)* · [x] D.2
+  *(2026-07-06, `feat/web-separate-server-health`)* · [ ] D.3
 - [ ] E.1 · [ ] E.2 · [ ] E.3 · [ ] E.4
