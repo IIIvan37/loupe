@@ -8,9 +8,9 @@ Four independent capability groups behind one process:
   contract. Imported lazily so a host without the ML stack (or its weights)
   still serves project storage; `/separate` then answers with an NDJSON error
   line and `/health` reports `"device": null`.
-- `tempo` (when librosa is installed): the `/tempo` beat-tracking contract.
-  Also imported lazily — a host without librosa still serves the rest, and
-  `/tempo` answers with a 503 the client surfaces as an error.
+- `tempo` (when torch/beat_this is installed): the `/tempo` beat + downbeat
+  contract. Also imported lazily — a host without the ML stack still serves the
+  rest, and `/tempo` answers with a 503 the client surfaces as an error.
 - `download` (when yt-dlp is installed): the `/download` NDJSON contract that
   fetches a track from a media URL (YouTube / SoundCloud). Imported lazily — a
   host without yt-dlp still serves the rest, and `/download` answers with an
@@ -102,12 +102,12 @@ else:
 
 try:
     from .tempo import router as tempo_router
-except Exception as exc:  # noqa: BLE001 - librosa missing on this host
+except Exception as exc:  # noqa: BLE001 - torch/beat_this missing on this host
     _tempo_unavailable = f"tempo detection unavailable on this host: {exc}"
 
     @app.post("/tempo")
     async def tempo() -> None:
-        """Honour the contract with a clean error when librosa is absent."""
+        """Honour the contract with a clean error when beat_this is absent."""
         raise HTTPException(status_code=503, detail=_tempo_unavailable)
 else:
     app.include_router(tempo_router)
