@@ -21,9 +21,9 @@ const channelArb = fc.record({
 })
 
 /** A mixer state with unique channel ids (the invariant the reducer keeps). */
-const stateArb: fc.Arbitrary<MixerState> = fc
-  .uniqueArray(channelArb, { selector: (channel) => channel.id })
-  .map((channels) => channels)
+const stateArb: fc.Arbitrary<MixerState> = fc.uniqueArray(channelArb, {
+  selector: (channel) => channel.id
+})
 
 describe('clampGainDb', () => {
   it('passes a level inside the range through unchanged', () => {

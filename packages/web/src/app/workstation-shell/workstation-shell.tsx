@@ -188,6 +188,11 @@ export function WorkstationShell({
 
   // Separate the loaded track and wire the stems (+ metronome) into the mixer.
   const separateAndLoad = useSeparateAndLoad({ separation, tempo, mixer, metronome })
+  const handleSeparate = () => {
+    if (loadedAudio) {
+      separateAndLoad(loadedAudio)
+    }
+  }
 
   // Auto-detect the tempo the moment a track's PCM lands (import or project
   // open) and seat the always-on metronome from the result — no button. Held in
@@ -310,11 +315,7 @@ export function WorkstationShell({
         onSeekRatio={seekToRatio}
         canSeparate={isLoaded && loadedAudio !== undefined}
         serverHealth={serverHealth}
-        onSeparate={() => {
-          if (loadedAudio) {
-            separateAndLoad(loadedAudio)
-          }
-        }}
+        onSeparate={handleSeparate}
         />
       )}
 
