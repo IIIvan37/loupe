@@ -4,7 +4,25 @@
 
 ## Where we are
 
-- **Now — Lot E trio done (2026-07-06)** on branch `refactor/web-complexity-debt`
+- **Now — Lot E complete (2026-07-06)** on branch `refactor/web-split-use-player`
+  (off `main`, trio merged as PR #64): **E.1 — split `use-player.ts`**, the last
+  item of Lot E. The hook (366 lines, 6 anti-stale refs, 5 responsibilities) is
+  now three: **[use-loop.ts](../packages/web/src/app/waveform/use-loop.ts)** owns
+  the A/B loupe state (armed region, wrap flag, re-arm heuristic, persisted
+  restore); **[use-transport-engines.ts](../packages/web/src/app/waveform/use-transport-engines.ts)**
+  owns the two engines under one transport (reducer, `active()` selector, loop
+  wrap-around, single↔stem hand-off + its four transport refs);
+  **[use-player.ts](../packages/web/src/app/waveform/use-player.ts)** keeps just
+  the import flow + tempo/pitch controls and wires them (**269 lines, 1 ref**).
+  Public `Player` surface unchanged (behaviour-preserving); each extracted hook
+  has a colocated renderHook spec (fake engines drive the position stream to prove
+  wrap + hand-off directly). Gate **green — 595 tests** (+8), coverage
+  95.77 %/88.81 %, jscpd 5 clones (unchanged); mutation **skipped** (web-only).
+  **This closes Lot E** — with Lots A–D done (D.1 deferred to veille), the
+  durcissement & excellence roadmap is complete. **Next: a new direction** (see
+  § Next step — Jalon 4 MIDI, off-thread zip/encode perf, or a UX item). See
+  [2026-07-06-web-split-use-player](sessions/2026-07-06-web-split-use-player.md).
+- **Prior — Lot E trio done (2026-07-06)** on branch `refactor/web-complexity-debt`
   (off `main`, D.3 merged as PR #63): **the first half of Lot E** (dette de
   complexité) — three small behaviour-preserving refactors in one PR.
   **(E.2)** a single-source-of-truth `isSyntheticStem` predicate
