@@ -4,7 +4,36 @@
 
 ## Where we are
 
-- **Now — Lot C.5 done (2026-07-05)** on branch `feat/web-overlay-micromotion`
+- **Now — Lot D.3 done (2026-07-06)** on branch `feat/web-feedbacks` (off `main`,
+  C.4/C.5 merged as PR #60/#61): **the missing feedbacks** — web-only bar one core
+  re-export. Three silent moments now confirm themselves, on a new reusable
+  success-toast primitive. (1) **Unsupported-URL guard**: `isSupportedSourceUrl` is
+  now on the core's public surface ([index.ts](../packages/core/src/index.ts)); the
+  URL-import popover ([import-menu.tsx](../packages/web/src/app/header/import-menu.tsx))
+  shows an inline `role="alert"` warning + `aria-invalid` and **disables submit**
+  for a non-supported host — the same predicate the use-case rejects on, so no
+  doomed request leaves (replaces the old submit→error-banner round-trip).
+  (2) **Toast primitive** on **Base UI Toast**: [use-toaster.ts](../packages/web/src/app/ui/use-toaster.ts)
+  owns a **per-instance** manager (`createToastManager`, not a global singleton →
+  no cross-test leak) + `notifySuccess`; [toast-region.tsx](../packages/web/src/app/ui/toast-region.tsx)
+  renders a fixed bottom-right viewport, neutral elevated card, a new **`check`**
+  glyph ([icon.tsx](../packages/web/src/app/ui/icon.tsx)) carrying "success" (no new
+  colour — teal stays "detected"), C.5 `data-starting/ending-style` transitions.
+  Errors keep `AlertBanner`; toasts are the quiet "it worked" channel.
+  (3) **Export + save confirm**: `exportStems`/`downloadStem` return a success
+  boolean ([use-separation.ts](../packages/web/src/app/separation/use-separation.ts));
+  new [use-stem-export.ts](../packages/web/src/app/workstation-shell/use-stem-export.ts)
+  hook toasts « Stems exportés »/« Fichier exporté », and `useProjectSession`'s new
+  `onSaved` toasts « *« Nom » enregistré* ». Extracting the export handlers also
+  cleared a `react-doctor` "large component" warning on `WorkstationShell`. Gate
+  **green — 582 tests**, coverage **95.75 %/95.62 %** (up from 94.8 %), **jscpd 5
+  clones** (unchanged); mutation **skipped** (only a core re-export, no new logic).
+  **Browser-verify still pending — no Chrome on this WSL2 box, to run on the Mac**
+  (Spotify-URL warning, export/save toasts, reduced-motion). **D.1 (undo/redo)
+  deprioritised** this session (low value for the effort). **Next: browser-verify →
+  merge, then D.2** (« Séparer » ↔ server health). See
+  [2026-07-06-web-feedbacks](sessions/2026-07-06-web-feedbacks.md).
+- **Prior — Lot C.5 done (2026-07-05)** on branch `feat/web-overlay-micromotion`
   (off `main`, C.4 merged as PR #60): **micro-motion for the overlays** — CSS-only,
   no core, no new component. New **motion tokens** in
   [tokens.css](../packages/web/src/styles/tokens.css) (`--motion-fast:130ms` light

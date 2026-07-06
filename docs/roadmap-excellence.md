@@ -209,7 +209,13 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 
 ## Lot D — Fonctionnalités qui haussent la barre
 
-### D.1 — Undo/redo *(fort levier, quasi gratuit architecturalement)*
+### D.1 — Undo/redo *(déprioritisé — faible valeur pour l'effort)*
+> **Décision (2026-07-06).** Sorti des priorités. Malgré un coût architectural
+> faible (domaine à reducers purs), la **valeur d'usage réelle est faible** au
+> regard des ~1,5–2 sessions : les actions concernées (marqueurs, boucles,
+> mixeur) sont peu coûteuses à refaire à la main et rarement subies comme des
+> erreurs. Gardé en veille ; à reconsidérer si un besoin utilisateur concret
+> émerge.
 - **But.** Aucun undo ; marqueurs/boucles/mixeur committent immédiatement. Le
   domaine à **reducers purs** (`transportReducer`, `mixerReducer`,
   `markerList`, `loopLibrary`) est idéal pour un historique.
@@ -284,8 +290,9 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 8. **C.1** — DnD + empty-state *(premier gain produit visible)*
 9. **C.3** — design system (typo/élévation/z-index)
 10. **C.2** — responsive/tactile
-11. **D.1** — undo/redo
-12. …puis C.4, C.5, D.2, D.3 et le Lot E intercalés.
+11. **D.3** — feedbacks manquants *(ROI élevé, ½–1 session, réutilise le core)*
+12. …puis C.4, C.5, D.2 et le Lot E intercalés. **D.1 (undo/redo) déprioritisé**
+    (faible valeur pour l'effort — voir la section D.1).
 
 > Chaque slice se ferme par `/session-report` (met à jour `docs/STATUS.md` + un
 > rapport daté sous `docs/sessions/`), gate verte, mutation cœur si le cœur est
@@ -295,11 +302,14 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 
 - [x] A.1 · [x] A.2 · [x] A.3 · [x] A.4 — **Lot A complet**
 - [x] B.1 · [x] B.2 · [ ] B.3
-- [x] C.1 · [x] C.2 · [x] C.3 · [x] C.4 · [ ] C.5 — C.1 (PR #57) + C.2 (PR #58) +
-  C.3 (PR #59) merged. C.4 done on `feat/web-unify-buttons-icons`: header
-  `.primaryAction`/`.iconAction` compose the shared `amberButton`/`ghostButton`
-  skins, per-button focus-visible blocks (header + transport) deleted as global
-  duplicates, and a new inline-SVG `Icon` component replaces the text glyphs
-  (`⏮ ▶ ⏸ ⏭ ✎ ✕ ⟳`). jscpd 6 → 5 clones; a11y preserved
-- [ ] D.1 · [ ] D.2 · [ ] D.3
+- [x] C.1 · [x] C.2 · [x] C.3 · [x] C.4 · [x] C.5 — **Lot C complet** (PR #57–#61).
+  C.4 (PR #60): header skins compose the shared `amberButton`/`ghostButton`,
+  duplicate focus-visible blocks deleted, inline-SVG `Icon` replaces the text
+  glyphs. C.5 (PR #61): overlay micro-motion via Base UI data-attrs
+- [~] D.1 *(déprioritisé — faible valeur)* · [ ] D.2 · [x] D.3 — D.3 on
+  `feat/web-feedbacks`: `isSupportedSourceUrl` exposed → inline unsupported-URL
+  warning + blocked submit; a reusable Base UI success-toast primitive
+  (`useToaster`/`ToastRegion`, per-instance manager, `check` icon); export
+  (zip + WAV) and save now toast. Gate green, 582 tests, coverage 95.6 %;
+  **browser-verify pending (Mac)**
 - [ ] E.1 · [ ] E.2 · [ ] E.3 · [ ] E.4
