@@ -4,7 +4,26 @@
 
 ## Where we are
 
-- **Now — Tempo Lot B part 1 done (2026-07-06)** on branch
+- **Now — Tempo Lot B part 2 done, Lot B COMPLETE (2026-07-06)** on branch
+  `feat/tempo-beat-this-server` (off `main`, part 1 merged as PR #67). The **server
+  DSP swap**: `/tempo` now runs CPJKU's **`beat_this`** transformer (beats **and**
+  downbeats, MIT, robust to tempo/metre changes) instead of librosa's beat tracker,
+  so the `barPosition` machinery shipped in pt.1 detects the **real** metre instead
+  of counting 4/4 from beat 0. New **torch-free humble object**
+  [beat_positions.py](../server/app/beat_positions.py) maps beat_this's two arrays
+  `(beats, downbeats) → [{time, position}]` (nearest-match downbeats, bar numbering,
+  pickup back-count) + a **median-interval** representative bpm — unit-tested
+  **100 %**, pyright-clean. [tempo.py](../server/app/tempo.py) is now the thin torch
+  shell (decode → `Audio2Beats` → pure mapper; model built once/lazily, device
+  auto-picked CUDA/MPS/CPU), behind the same lazy-import **503 fallback** (now
+  torch/beat_this). requirements **+beat-this==1.1.0 −librosa**. Server pytest
+  **91 passed, 97 %**; JS gate **green — 624 tests** (web untouched); mutation
+  **skipped** (server-only Python). **Real-audio verified on the Mac (MPS)**: The
+  Cure – Lullaby → **93.75 BPM**, clean **4/4** (inter-downbeat gaps all 4 beats).
+  **This closes Lot B. Next: open the PR, then Lot C** (tempo-map — variable tempo,
+  `ProjectTempo.segments`, BPM read-out at the playhead). See
+  [2026-07-06-tempo-beat-this-server](sessions/2026-07-06-tempo-beat-this-server.md).
+- **Prior — Tempo Lot B part 1 done (2026-07-06, merged PR #67)** on branch
   `feat/tempo-enriched-contract` (off `main`, Lot A merged as PR #66). The pure,
   testable half of the linchpin: the **enriched `/tempo` contract** carried
   end-to-end. Beats now carry a **`barPosition`** (1 = downbeat) instead of bare
