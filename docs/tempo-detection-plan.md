@@ -1,7 +1,9 @@
 # Plan — Amélioration de la détection de tempo
 
-> Statut : **plan validé, non démarré** (2026-07-06). Découpé en 3 lots, chacun =
-> une branche + PR + `/session-report`.
+> Statut (2026-07-06) : **Lot A ✅** (PR #66) · **Lot B ✅** — contrat enrichi pt.1
+> (PR #67) + swap DSP `beat_this` pt.2 (branche `feat/tempo-beat-this-server`) ·
+> **Lot C** à faire (tempo-map). Découpé en 3 lots, chacun = une branche + PR +
+> `/session-report`.
 
 ## Problèmes à résoudre
 
