@@ -430,6 +430,59 @@ describe('WorkstationShell', () => {
     ).not.toBeInTheDocument()
   })
 
+  /** jsdom implements neither; downloadBlob needs both. */
+  function stubDownload(): void {
+    URL.createObjectURL = vi.fn(() => 'blob:test')
+    URL.revokeObjectURL = vi.fn()
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+  }
+
+  it('confirms a synthetic-lane WAV download (Piste, Métronome) with a toast', async () => {
+    stubDownload()
+    const detector = {
+      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+
+    // The un-separated track exposes its own « Piste » lane plus the click.
+    await user.click(
+      await screen.findByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Piste' })
+      })
+    )
+    expect(
+      await screen.findByText(i18n._('toast.file-exported'))
+    ).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Métronome' })
+      })
+    )
+    expect(
+      await screen.findAllByText(i18n._('toast.file-exported'))
+    ).not.toHaveLength(0)
+  })
+
+  it('confirms a separated-stem WAV download with a toast', async () => {
+    stubDownload()
+    const { user } = renderShell({ separator: fakeSeparator() })
+    await importTrack(user)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    )
+
+    await user.click(
+      await screen.findByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Voix' })
+      })
+    )
+    expect(
+      await screen.findByText(i18n._('toast.file-exported'))
+    ).toBeInTheDocument()
+  })
+
   it('drops the metronome stem when a new file is imported', async () => {
     const detector = {
       detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
@@ -1181,6 +1234,28 @@ describe('WorkstationShell', () => {
     await waitFor(() => expect(exportButton).toBeEnabled())
   })
 
+  it('confirms a successful stem export with a toast', async () => {
+    // jsdom implements neither; downloadBlob needs both.
+    URL.createObjectURL = vi.fn(() => 'blob:test')
+    URL.revokeObjectURL = vi.fn()
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    const { user } = renderShell({ separator: fakeSeparator() })
+    await importTrack(user)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    )
+    const exportButton = screen.getByRole('button', {
+      name: i18n._('header.export')
+    })
+    await waitFor(() => expect(exportButton).toBeEnabled())
+
+    await user.click(exportButton)
+    expect(
+      await screen.findByText(i18n._('toast.stems-exported'))
+    ).toBeInTheDocument()
+  })
+
   it('shows « Enregistré », flips to « Non enregistré » on a change, back on re-save', async () => {
     const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
@@ -1193,6 +1268,18 @@ describe('WorkstationShell', () => {
 
     await user.click(screen.getByRole('button', { name: i18n._('common.save') }))
     expect(await screen.findByText(i18n._('header.saved'))).toBeInTheDocument()
+  })
+
+  it('confirms a successful save with a toast', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveProjectAs(user, 'Mon projet')
+
+    expect(
+      await screen.findByText(
+        i18n._('toast.project-saved', { name: 'Mon projet' })
+      )
+    ).toBeInTheDocument()
   })
 
   it('resets the tempo to 100 % when a new file is imported', async () => {
@@ -1341,7 +1428,10 @@ describe('WorkstationShell', () => {
     await user.click(
       screen.getByRole('button', { name: i18n._('header.import-from-url') })
     )
-    await user.type(screen.getByLabelText(i18n._('header.import-url-field')), url)
+    // Paste (atomic) rather than type char-by-char: no intermediate host flickers
+    // the unsupported warning, and no slow-typing timeout under parallel load.
+    await user.click(screen.getByLabelText(i18n._('header.import-url-field')))
+    await user.paste(url)
   }
 
   it('imports a track from a URL through the menu', async () => {
@@ -1379,16 +1469,22 @@ describe('WorkstationShell', () => {
     expect(await screen.findByText('vidéo introuvable')).toBeInTheDocument()
   })
 
-  it('rejects an unsupported URL before any download', async () => {
+  it('blocks an unsupported URL at the field, before any download', async () => {
     const fetchSpy = vi.fn()
     const { user } = renderShell({ trackSource: { fetch: fetchSpy } })
     await fillImportUrl(user, 'https://example.com/song')
+
+    // The field validates against the same policy the use-case rejects on:
+    // an inline warning, a disabled submit, and no request ever leaves.
+    expect(
+      screen.getByText(i18n._('header.import-url-unsupported'))
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: i18n._('header.import-url-submit') })
+    ).toBeDisabled()
     await user.click(
       screen.getByRole('button', { name: i18n._('header.import-url-submit') })
     )
-
-    // The application policy rejects it as a Result — the port is never called.
-    expect(await screen.findByText(/example\.com/)).toBeInTheDocument()
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
@@ -1425,8 +1521,12 @@ describe('WorkstationShell', () => {
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
     // No « Confirmer ? » step: the open starts at once and closes the dialog.
+    // (Scope to the projects dialog by name — a success toast is itself a
+    // non-modal `role="dialog"` and would otherwise match a bare query.)
     await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('dialog', { name: i18n._('projects.title') })
+      ).not.toBeInTheDocument()
     })
   })
 

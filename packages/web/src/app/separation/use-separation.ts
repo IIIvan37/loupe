@@ -50,16 +50,18 @@ export interface Separation {
     sources: readonly SeparatedStem[]
   ) => Promise<SeparationResult | undefined>
   /**
-   * Download one separated stem as a 16-bit WAV (no-op if its PCM is gone).
-   * Numbered by its position among the PRESENT stems — the same number the
-   * zip export gives it.
+   * Download one separated stem as a 16-bit WAV. Numbered by its position among
+   * the PRESENT stems — the same number the zip export gives it. Returns whether
+   * a file was actually downloaded (false if the stem's PCM is gone).
    */
-  readonly downloadStem: (id: string) => void
+  readonly downloadStem: (id: string) => boolean
   /**
    * Download ALL present stems as one zip of aligned WAVs (`01_Voix.wav`…,
-   * t=0, same duration) named `<baseName>_stems.zip` — export tier A.
+   * t=0, same duration) named `<baseName>_stems.zip` — export tier A. Resolves
+   * with whether the zip was actually downloaded (false on failure or if a
+   * reset/new import superseded the export mid-write).
    */
-  readonly exportStems: (baseName: string) => Promise<void>
+  readonly exportStems: (baseName: string) => Promise<boolean>
   /** Why the last export did not happen — cleared by the next one. */
   readonly exportError: string | undefined
   readonly dismissExportError: () => void
@@ -157,21 +159,22 @@ export function useSeparation(
     return sources.filter((stem) => present.has(stem.id))
   }
 
-  function downloadStem(id: string): void {
+  function downloadStem(id: string): boolean {
     const shown = presentSources()
     const index = shown.findIndex((stem) => stem.id === id)
     const stem = shown[index]
     if (!stem) {
-      return
+      return false
     }
     const wav = encodeWav(stem.audio.channels, stem.audio.sampleRate)
     downloadBlob(
       stemExportFilename(index, stem.label),
       new Blob([wav], { type: 'audio/wav' })
     )
+    return true
   }
 
-  async function exportAllStems(baseName: string): Promise<void> {
+  async function exportAllStems(baseName: string): Promise<boolean> {
     setExportError(undefined)
     const runId = runIdRef.current
     const result = await exportStems(
@@ -180,23 +183,25 @@ export function useSeparation(
     )
     // A reset or a new import during the write supersedes this export: its
     // download and its error belong to the previous session — drop both.
-    if (runIdRef.current === runId) {
-      if (result.ok) {
-        downloadBlob(
-          `${baseName}_stems.zip`,
-          new Blob([result.archive], { type: 'application/zip' })
-        )
-      } else {
-        // The raw port error stays untranslated; only the frame is copy.
-        const error = result.error
-        setExportError(
-          t({
-            id: 'separation.export-failed',
-            message: `L'export a échoué : ${error}`
-          })
-        )
-      }
+    if (runIdRef.current !== runId) {
+      return false
     }
+    if (result.ok) {
+      downloadBlob(
+        `${baseName}_stems.zip`,
+        new Blob([result.archive], { type: 'application/zip' })
+      )
+      return true
+    }
+    // The raw port error stays untranslated; only the frame is copy.
+    const error = result.error
+    setExportError(
+      t({
+        id: 'separation.export-failed',
+        message: `L'export a échoué : ${error}`
+      })
+    )
+    return false
   }
 
   function reset(): void {

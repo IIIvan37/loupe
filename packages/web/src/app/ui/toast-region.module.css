@@ -1,0 +1,69 @@
+.viewport {
+  position: fixed;
+  inset-block-end: var(--space-l);
+  inset-inline-end: var(--space-l);
+  z-index: var(--z-popover);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  width: min(24rem, calc(100vw - var(--space-l) * 2));
+  /* Let clicks fall through the empty gutter; each card re-enables its own. */
+  pointer-events: none;
+}
+
+/* Entrance/exit micro-motion (C.5): Base UI keeps the card mounted through the
+   exit by flipping data-starting-style / data-ending-style; we fade and lift it
+   from the bottom edge. The global prefers-reduced-motion reset neutralises it. */
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  padding: var(--space-s) var(--space-m);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+  color: var(--text);
+  font-size: var(--font-size-s);
+  pointer-events: auto;
+  transition:
+    opacity var(--motion-med) var(--motion-ease),
+    transform var(--motion-med) var(--motion-ease);
+}
+
+.toast[data-starting-style],
+.toast[data-ending-style] {
+  opacity: 0;
+  transform: translateY(var(--space-s));
+}
+
+.icon {
+  flex: none;
+  font-size: 1.1em;
+}
+
+.title {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+.close {
+  display: inline-flex;
+  flex: none;
+  padding: var(--space-3xs);
+  border: none;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--dim);
+  cursor: pointer;
+  transition: color var(--motion-fast) var(--motion-ease);
+}
+
+.close:hover {
+  color: var(--text);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}

@@ -1,6 +1,7 @@
+import { isSupportedSourceUrl } from '@app/core'
 import { Popover } from '@base-ui-components/react/popover'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { type FormEvent, useRef, useState } from 'react'
+import { type FormEvent, useId, useRef, useState } from 'react'
 import { cx } from '../../lib/cx.ts'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
 import headerStyles from './header.module.css'
@@ -38,6 +39,13 @@ export function ImportMenu({
   const [url, setUrl] = useState('')
   const confirm = useTwoStepConfirm<true>()
   const armed = confirm.pending !== null
+  const warningId = useId()
+
+  // Validate against the SAME application policy the use-case rejects on
+  // (`isSupportedSourceUrl`), so the field never lets a doomed request leave.
+  const trimmedUrl = url.trim()
+  const unsupportedUrl = trimmedUrl !== '' && !isSupportedSourceUrl(trimmedUrl)
+  const canSubmitUrl = trimmedUrl !== '' && !urlBusy && !unsupportedUrl
 
   // The session settled while armed (e.g. a save landed) — drop the warning
   // during render, no effect round-trip.
@@ -69,13 +77,12 @@ export function ImportMenu({
     setUrlOpen(true)
   }
 
-  function submitUrl(event: FormEvent): void {
+  function submitUrl(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault()
-    const trimmed = url.trim()
-    if (trimmed === '' || urlBusy) {
+    if (!canSubmitUrl) {
       return
     }
-    onImportUrl(trimmed)
+    onImportUrl(trimmedUrl)
     setUrlOpen(false)
   }
 
@@ -156,9 +163,18 @@ export function ImportMenu({
                     id: 'header.import-url-field',
                     message: 'Lien du morceau'
                   })}
+                  aria-invalid={unsupportedUrl || undefined}
+                  aria-describedby={unsupportedUrl ? warningId : undefined}
                   value={url}
                   onChange={(event) => setUrl(event.target.value)}
                 />
+                {unsupportedUrl && (
+                  <p id={warningId} className={cx(styles.warning)} role="alert">
+                    <Trans id="header.import-url-unsupported">
+                      Hôte non supporté — YouTube ou SoundCloud uniquement
+                    </Trans>
+                  </p>
+                )}
                 <div className={cx(styles.actions)}>
                   <Popover.Close className={cx(styles.ghost)}>
                     <Trans id="common.cancel">Annuler</Trans>
@@ -166,7 +182,7 @@ export function ImportMenu({
                   <button
                     type="submit"
                     className={cx(styles.submit)}
-                    disabled={url.trim() === '' || urlBusy}
+                    disabled={!canSubmitUrl}
                   >
                     <Trans id="header.import-url-submit">Importer le lien</Trans>
                   </button>

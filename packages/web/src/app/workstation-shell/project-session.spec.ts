@@ -165,8 +165,8 @@ describe('restoreSession', () => {
         sources: [],
         separate: vi.fn(async () => undefined),
         restore: vi.fn<Separation['restore']>(async () => restored),
-        downloadStem: vi.fn(),
-        exportStems: vi.fn(async () => undefined),
+        downloadStem: vi.fn(() => false),
+        exportStems: vi.fn(async () => false),
         exportError: undefined,
         dismissExportError: vi.fn(),
         reset: vi.fn()

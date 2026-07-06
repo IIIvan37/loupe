@@ -71,6 +71,7 @@ export type {
   SeparateTrackResult
 } from './application/separate-track.ts'
 export { separateTrack } from './application/separate-track.ts'
+export { isSupportedSourceUrl } from './application/supported-source.ts'
 export type {
   DetectedStem,
   StemEnergy

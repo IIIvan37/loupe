@@ -51,6 +51,12 @@
   letter-spacing: 0.08em;
 }
 
+.warning {
+  margin-top: calc(-1 * var(--space-2xs));
+  color: var(--stem-vocals);
+  font-size: var(--font-size-xs);
+}
+
 .input {
   composes: input from '../ui/popover-form.module.css';
   width: 100%;

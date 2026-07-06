@@ -1,27 +1,19 @@
 import {
   type AudioFileDecoder,
   defaultKeyBindings,
-  encodeWav,
   formatTimecode,
   type PlaybackEngine,
   type ProjectDeps,
   type StemPlaybackEngine,
   type StemSeparator,
-  synthesizeClickTrack,
   type TempoDetector,
   type TrackMetadataReader,
   type TrackSource
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
-import {
-  DEFAULT_METRONOME_CHANNEL,
-  METRONOME_ID
-} from '../tempo/metronome-stem.ts'
-import { TRACK_STEM_ID } from '../mixer/track-stem.ts'
+import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { downloadBlob } from '../../audio/download-blob.ts'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
-import { exportBaseName } from '../../lib/export-base-name.ts'
 import { useServerHealth } from '../../projects/use-server-health.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
@@ -36,6 +28,8 @@ import { useTempo } from '../tempo/use-tempo.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
 import { useViewport } from '../waveform/use-viewport.ts'
+import { ToastRegion } from '../ui/toast-region.tsx'
+import { useToaster } from '../ui/use-toaster.ts'
 import { EmptyState } from './empty-state.tsx'
 import { ShellDialogs } from './shell-dialogs.tsx'
 import { ShellDropLayer } from './shell-drop-layer.tsx'
@@ -45,6 +39,7 @@ import { useDropImport } from './use-drop-import.ts'
 import { useFileDrop } from './use-file-drop.ts'
 import { useProjectSession } from './use-project-session.ts'
 import { useSeparateAndLoad } from './use-separate-and-load.ts'
+import { useStemExport } from './use-stem-export.ts'
 import { useUnloadGuard } from './use-unload-guard.ts'
 import styles from './workstation-shell.module.css'
 
@@ -88,6 +83,8 @@ export function WorkstationShell({
     () => stemEngine ?? createWebAudioStemPlayback(),
     [stemEngine]
   )
+  const { t } = useLingui()
+  const { toaster, notifySuccess } = useToaster()
   const separation = useSeparation(separator)
   const mixer = useMixer(stemPlayback)
   // Separation has produced stems (drives the header export + what a save
@@ -163,13 +160,16 @@ export function WorkstationShell({
     setSuppressAutoDetect: (suppress) => {
       suppressAutoDetectRef.current = suppress
     },
-    onRestoreStarted: () => setProjectsOpen(false)
+    onRestoreStarted: () => setProjectsOpen(false),
+    onSaved: (name) =>
+      notifySuccess(
+        t({ id: 'toast.project-saved', message: `« ${name} » enregistré` })
+      )
   })
 
   // Importing from a URL reuses the exact file-decode path once the bytes land.
   const urlImport = useImportFromUrl(session.importDownloaded, trackSource)
 
-  const { t } = useLingui()
   const isLoaded = importState.status === 'loaded'
   const i18nImportLabel = t({
     id: 'header.import-file',
@@ -234,33 +234,17 @@ export function WorkstationShell({
       ? transport.positionSeconds / transport.durationSeconds
       : 0
 
-  // One export entry point shared by the header and the mixer panel.
-  const handleExportStems = () => {
-    void separation.exportStems(exportBaseName(metadata.title, session.trackName))
-  }
-
-  // Download one mixer lane as a WAV. The synthetic lanes (the click, and the
-  // whole track when un-separated) are rendered on the fly; a separated stem
-  // defers to the separation's own numbered download.
-  const handleDownloadStem = (id: string) => {
-    const base = exportBaseName(metadata.title, session.trackName)
-    if (id === METRONOME_ID && tempo.analysis && loadedAudio) {
-      const samples = synthesizeClickTrack({
-        beats: tempo.analysis.grid,
-        durationSeconds: transport.durationSeconds,
-        sampleRate: loadedAudio.sampleRate
-      })
-      const wav = encodeWav([samples], loadedAudio.sampleRate)
-      downloadBlob(`${base}_metronome.wav`, new Blob([wav], { type: 'audio/wav' }))
-      return
-    }
-    if (id === TRACK_STEM_ID && loadedAudio) {
-      const wav = encodeWav(loadedAudio.channels, loadedAudio.sampleRate)
-      downloadBlob(`${base}_piste.wav`, new Blob([wav], { type: 'audio/wav' }))
-      return
-    }
-    separation.downloadStem(id)
-  }
+  // The two stem-export entry points (+ their success toasts), off the shell.
+  const { exportStems: handleExportStems, downloadStem: handleDownloadStem } =
+    useStemExport({
+      separation,
+      tempo,
+      metadata,
+      trackName: session.trackName,
+      loadedAudio,
+      durationSeconds: transport.durationSeconds,
+      notifySuccess
+    })
 
   // The main view shows the summed mix envelope once separated (see the stage's
   // `mixWaveform`); an un-separated track shows its one waveform.
@@ -346,6 +330,8 @@ export function WorkstationShell({
         onTempoChange={(percent) => setTimeRatio(percent / 100)}
         onPitchChange={setPitchSemitones}
       />
+
+      <ToastRegion toaster={toaster} />
     </div>
   )
 }

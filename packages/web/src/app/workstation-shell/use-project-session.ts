@@ -45,6 +45,8 @@ export interface ProjectSessionDeps extends SessionRestoreDeps {
   readonly viewport: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
+  /** Called with the project name once a save has actually persisted. */
+  readonly onSaved?: (name: string) => void
 }
 
 export interface ProjectSession {
@@ -203,6 +205,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       if (saved) {
         // Sign what was actually persisted — the session now matches it.
         setSavedSignature(sessionSignature(saved))
+        deps.onSaved?.(saved.name)
       }
     })
   }
