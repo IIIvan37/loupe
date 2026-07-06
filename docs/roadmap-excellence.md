@@ -238,12 +238,15 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
   no-separation, checking). Gate verte, 576 tests.
 - **Effort.** ~½ session.
 
-### D.3 — Feedbacks manquants
+### D.3 — Feedbacks manquants ✅ *(2026-07-06)*
 - **But.** Export WAV/ZIP silencieux ; sauvegarde subtile ; URL d'import sans
   validation inline.
-- **Faire.** Toast/confirmation sur export réussi ; hint inline « hôte non
-  supporté » sur l'URL avant l'appel serveur (réutiliser `isSupportedSourceUrl`
-  du core) ; renforcer le signal « Enregistré ».
+- **Fait.** `isSupportedSourceUrl` exposé sur la surface du core → hint inline
+  « hôte non supporté » + submit bloqué sur l'URL avant l'appel serveur ; nouvelle
+  primitive toast succès Base UI (`useToaster`/`ToastRegion`, manager par
+  instance, glyphe `check`) ; export (zip + WAV) et sauvegarde toastent désormais.
+  Web-only (un re-export core). Gate verte, 582 tests, coverage 95.6 % ;
+  **browser-verify en attente (Mac)**.
 - **Effort.** ~½–1 session.
 
 ---
@@ -295,7 +298,8 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 10. **C.2** — responsive/tactile
 11. ~~**D.1** — undo/redo~~ — **reporté en veille** (ROI faible, cf. § D.1)
 12. ~~**D.2** — « Séparer » ↔ santé serveur~~ ✅ (2026-07-06)
-13. **D.3** — feedbacks manquants *(prochain)*, puis le Lot E intercalé.
+13. ~~**D.3** — feedbacks manquants~~ ✅ (2026-07-06, `feat/web-feedbacks`), puis
+    le Lot E intercalé.
 
 > Chaque slice se ferme par `/session-report` (met à jour `docs/STATUS.md` + un
 > rapport daté sous `docs/sessions/`), gate verte, mutation cœur si le cœur est
@@ -308,5 +312,10 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
 - [x] C.1 (#57) · [x] C.2 (#58) · [x] C.3 (#59) · [x] C.4 (#60) · [x] C.5 (#61) —
   **Lot C complet**
 - [~] D.1 *(reporté → veille, ROI faible pour un outil de pratique)* · [x] D.2
-  *(2026-07-06, `feat/web-separate-server-health`)* · [ ] D.3
+  *(2026-07-06, `feat/web-separate-server-health`)* · [x] D.3
+  *(2026-07-06, `feat/web-feedbacks`)* — `isSupportedSourceUrl` exposed → inline
+  unsupported-URL warning + blocked submit; a reusable Base UI success-toast
+  primitive (`useToaster`/`ToastRegion`, per-instance manager, `check` icon);
+  export (zip + WAV) and save now toast. Gate green, 582 tests, coverage 95.6 %;
+  **browser-verify pending (Mac)**
 - [ ] E.1 · [ ] E.2 · [ ] E.3 · [ ] E.4

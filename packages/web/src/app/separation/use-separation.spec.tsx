@@ -147,21 +147,35 @@ describe('useSeparation — exportStems (the aligned stem folder)', () => {
     expect(received.map((f) => f.name)).toEqual(['01_Voix.wav'])
   })
 
-  it('downloads the zip named after the given base name', async () => {
+  it('downloads the zip named after the given base name, reporting success', async () => {
     const result = await readyHook(fakeArchive([]), stems)
+    let ok: boolean | undefined
     await act(async () => {
-      await result.current.exportStems('Mon morceau')
+      ok = await result.current.exportStems('Mon morceau')
     })
     expect(downloaded).toEqual(['Mon morceau_stems.zip'])
+    expect(ok).toBe(true)
   })
 
-  it('numbers a single-stem download exactly like the zip would', async () => {
+  it('numbers a single-stem download exactly like the zip would, reporting success', async () => {
     const result = await readyHook(fakeArchive([]), withMasked)
+    let ok: boolean | undefined
     act(() => {
-      result.current.downloadStem('voix')
+      ok = result.current.downloadStem('voix')
     })
     // Position among the PRESENT stems (01), not among all sources (02).
     expect(downloaded).toEqual(['01_Voix.wav'])
+    expect(ok).toBe(true)
+  })
+
+  it('reports no success when the stem to download is gone', async () => {
+    const result = await readyHook(fakeArchive([]), withMasked)
+    let ok: boolean | undefined
+    act(() => {
+      ok = result.current.downloadStem('does-not-exist')
+    })
+    expect(downloaded).toEqual([])
+    expect(ok).toBe(false)
   })
 
   it('drops an export superseded by a reset (no download, no error)', async () => {
@@ -174,18 +188,20 @@ describe('useSeparation — exportStems (the aligned stem folder)', () => {
     }
     const result = await readyHook(archive, stems)
 
-    let exported: Promise<void> = Promise.resolve()
+    let exported: Promise<boolean> = Promise.resolve(false)
     act(() => {
       exported = result.current.exportStems('Mon morceau')
     })
     act(() => {
       result.current.reset()
     })
+    let ok: boolean | undefined
     await act(async () => {
       finishWrite()
-      await exported
+      ok = await exported
     })
     expect(downloaded).toEqual([])
+    expect(ok).toBe(false)
   })
 
   it('surfaces a failed export as an error message', async () => {
@@ -195,9 +211,11 @@ describe('useSeparation — exportStems (the aligned stem folder)', () => {
       }
     }
     const result = await readyHook(archive, stems)
+    let ok: boolean | undefined
     await act(async () => {
-      await result.current.exportStems('Mon morceau')
+      ok = await result.current.exportStems('Mon morceau')
     })
+    expect(ok).toBe(false)
     expect(result.current.exportError).toBe(
       i18n._('separation.export-failed', { error: 'zip failed' })
     )

@@ -59,7 +59,7 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:164
+#: src/app/header/import-menu.tsx:180
 #: src/app/ui/name-editor.tsx:85
 #: src/app/workstation-shell/confirm-import-dialog.tsx:55
 msgid "common.cancel"
@@ -71,7 +71,7 @@ msgid "common.close"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:110
+#: src/app/header/import-menu.tsx:117
 #: src/projects/projects-dialog.tsx:81
 msgid "common.confirm"
 msgstr "Confirmer ?"
@@ -159,12 +159,12 @@ msgid "header.export-ready"
 msgstr "Télécharger les stems en ZIP"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:111
+#: src/app/header/import-menu.tsx:118
 msgid "header.import"
 msgstr "Importer"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:93
+#: src/app/header/import-menu.tsx:100
 msgid "header.import-confirm"
 msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
@@ -175,34 +175,39 @@ msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:121
+#: src/app/header/import-menu.tsx:128
 msgid "header.import-from-file"
 msgstr "Fichier…"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:128
+#: src/app/header/import-menu.tsx:135
 msgid "header.import-from-url"
 msgstr "Depuis une URL…"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:155
+#: src/app/header/import-menu.tsx:162
 msgid "header.import-url-field"
 msgstr "Lien du morceau"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:147
+#: src/app/header/import-menu.tsx:154
 msgid "header.import-url-hint"
 msgstr "YouTube · SoundCloud"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:171
+#: src/app/header/import-menu.tsx:187
 msgid "header.import-url-submit"
 msgstr "Importer le lien"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:144
+#: src/app/header/import-menu.tsx:151
 msgid "header.import-url-title"
 msgstr "Importer depuis une URL"
+
+#. js-lingui-explicit-id
+#: src/app/header/import-menu.tsx:173
+msgid "header.import-url-unsupported"
+msgstr "Hôte non supporté — YouTube ou SoundCloud uniquement"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:114
@@ -496,7 +501,7 @@ msgid "separation.analysing"
 msgstr "Analyse du mix…"
 
 #. js-lingui-explicit-id
-#: src/app/separation/use-separation.ts:193
+#: src/app/separation/use-separation.ts:199
 msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
@@ -541,7 +546,7 @@ msgid "separation.server-offline"
 msgstr "Serveur hors ligne — démarrer le serveur local pour séparer les pistes."
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:101
+#: src/app/header/import-menu.tsx:108
 #: src/projects/projects-dialog.tsx:165
 msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
@@ -621,6 +626,31 @@ msgstr "Tempo"
 #: src/app/tempo/tempo-panel.tsx:24
 msgid "tempo.region-label"
 msgstr "Tempo"
+
+#. js-lingui-explicit-id
+#: src/app/ui/toast-region.tsx:18
+msgid "toast.dismiss"
+msgstr "Fermer"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/use-stem-export.ts:52
+msgid "toast.file-exported"
+msgstr "Fichier exporté"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/workstation-shell.tsx:166
+msgid "toast.project-saved"
+msgstr "« {name} » enregistré"
+
+#. js-lingui-explicit-id
+#: src/app/ui/toast-region.tsx:38
+msgid "toast.region"
+msgstr "Notifications"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/use-stem-export.ts:48
+msgid "toast.stems-exported"
+msgstr "Stems exportés"
 
 #. js-lingui-explicit-id
 #: src/app/transport-bar/transport-bar.tsx:73
