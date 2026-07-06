@@ -33,6 +33,29 @@
   deprioritised** this session (low value for the effort). **Next: browser-verify →
   merge, then D.2** (« Séparer » ↔ server health). See
   [2026-07-06-web-feedbacks](sessions/2026-07-06-web-feedbacks.md).
+- **Prior — Lot D.2 done (2026-07-06)** on branch `feat/web-separate-server-health`
+  (off `main`, Lot C complete + merged through PR #61): **« Séparer » câblé à la
+  santé serveur** — web-only, no core. The `ServerHealth`
+  (`checking`/`offline`/`no-separation`/`ready`) already computed for the header
+  chip now threads down to `SeparationPanel` via `ShellMain` (new `serverHealth`
+  prop on both). The « Séparer » button **disables** on `offline`/`no-separation`
+  (a `SERVER_BLOCK` descriptor table) and shows an **actionable hint** in place of
+  the old click → wait → error (« Serveur hors ligne — démarrer le serveur
+  local… » / « Ce serveur ne fournit pas de moteur de séparation. »); the idle
+  hint is hidden when a server block shows. `checking` stays enabled (transient at
+  boot — disabling would flash the button off/on). 2 new Lingui ids
+  (`separation.server-offline/-no-separation`, extracted), 3 specs (offline /
+  no-separation / checking). Gate **green — 576 tests**, jscpd 5 clones
+  (unchanged), sheriff/design/dead green; mutation **skipped** (no core).
+  react-doctor **green** (v0.7.1) — a mid-session phantom « 1 a11y warning » was a
+  stale `node_modules` (drifted to react-doctor 0.5.8 vs the lockfile's 0.7.1);
+  `pnpm install` reconciled it, lockfile unchanged.
+  **Browser-verify pending on the Mac** (server off → greyed + offline hint;
+  torch-less server → no-engine hint; ready → enabled). **D.1 undo/redo deferred
+  to « veille »** (product call: low ROI for a practice tool — editable state
+  trivial to redo by hand, mixer is a live control surface). **Next: D.3**
+  (missing feedbacks). See
+  [2026-07-06-web-separate-server-health](sessions/2026-07-06-web-separate-server-health.md).
 - **Prior — Lot C.5 done (2026-07-05)** on branch `feat/web-overlay-micromotion`
   (off `main`, C.4 merged as PR #60): **micro-motion for the overlays** — CSS-only,
   no core, no new component. New **motion tokens** in
@@ -571,6 +594,17 @@ mixer (J2.4) then export (J2.6). See
 
 Dated reports under [docs/sessions/](sessions/). Most recent on top.
 
+- [2026-07-06 — web-separate-server-health](sessions/2026-07-06-web-separate-server-health.md) —
+  Lot D.2: « Séparer » wired to server health (web-only, no core). The
+  `ServerHealth` already computed for the header chip threads to `SeparationPanel`
+  via `ShellMain` (new `serverHealth` prop). The button **disables** on
+  `offline`/`no-separation` and shows an **actionable hint** instead of the old
+  click → wait → error; `checking` stays enabled (no boot flash); the idle hint is
+  hidden under a server block. 2 Lingui ids (extracted), 3 specs. Gate green,
+  576 tests, jscpd 5 (unchanged); mutation skipped (no core). react-doctor 0 real
+  findings (score-API phantom on this WSL2 PC — CI/Mac green). Browser-verify
+  pending on the Mac. **D.1 undo/redo deferred to « veille »** (low ROI for a
+  practice tool). PR to open on `feat/web-separate-server-health`.
 - [2026-07-05 — web-overlay-micromotion](sessions/2026-07-05-web-overlay-micromotion.md) —
   Lot C.5: micro-motion for the overlays (CSS-only, no core). Motion tokens
   (`--motion-fast`/`med` + ease-out) in `tokens.css`; the global

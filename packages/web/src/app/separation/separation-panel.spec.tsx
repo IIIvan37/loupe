@@ -39,6 +39,7 @@ function renderPanel(
     <SeparationPanel
       state={state(partial)}
       canSeparate
+      serverHealth="ready"
       onSeparate={() => {}}
       {...props}
     />,
@@ -62,6 +63,38 @@ describe('SeparationPanel', () => {
     expect(
       screen.getByRole('button', { name: i18n._('separation.separate') })
     ).toBeDisabled()
+  })
+
+  it('disables the action and explains when the server is offline', () => {
+    renderPanel({ status: 'idle' }, { serverHealth: 'offline' })
+    expect(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    ).toBeDisabled()
+    expect(
+      screen.getByText(i18n._('separation.server-offline'))
+    ).toBeInTheDocument()
+  })
+
+  it('disables the action and explains when the server has no separation engine', () => {
+    renderPanel({ status: 'idle' }, { serverHealth: 'no-separation' })
+    expect(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    ).toBeDisabled()
+    expect(
+      screen.getByText(i18n._('separation.server-no-separation'))
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the action available while the server is still being probed', () => {
+    // 'checking' is transient on boot — disabling here would flash the button
+    // off then on. Only the definitive offline/no-separation states block.
+    renderPanel({ status: 'idle' }, { serverHealth: 'checking' })
+    expect(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    ).toBeEnabled()
+    expect(
+      screen.queryByText(i18n._('separation.server-offline'))
+    ).not.toBeInTheDocument()
   })
 
   it('shows the running phase and progress, hiding the action', () => {
