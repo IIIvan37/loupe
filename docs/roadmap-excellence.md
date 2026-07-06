@@ -318,7 +318,15 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
   primitive (`useToaster`/`ToastRegion`, per-instance manager, `check` icon);
   export (zip + WAV) and save now toast. Gate green, 582 tests, coverage 95.6 %;
   **browser-verify pending (Mac)**
-- [ ] E.1 *(next — split `use-player.ts`)* · [x] E.2 · [x] E.3 · [x] E.4
-  *(2026-07-06, `refactor/web-complexity-debt`)* — `isSyntheticStem` shared
-  predicate; `onSeparate` lifted to a named handler; `mixer.spec` no-op removed.
-  Gate green, 587 tests
+- [x] E.1 *(2026-07-06, `refactor/web-split-use-player`)* · [x] E.2 · [x] E.3 ·
+  [x] E.4 *(2026-07-06, `refactor/web-complexity-debt`, PR #64)* — **Lot E complet.**
+  E.1: `use-player.ts` (366 lines, 6 refs) split into `use-loop.ts` (loupe state)
+  + `use-transport-engines.ts` (two engines, wrap, hand-off) + a 269-line
+  `use-player.ts`; +8 unit tests, gate green (595). E.2: `isSyntheticStem` shared
+  predicate; E.3: `onSeparate` lifted to a named handler; E.4: `mixer.spec` no-op
+  removed.
+
+> **Roadmap complete (2026-07-06).** Lots A–E done (D.1 deferred to veille). The
+> project has moved from « prototype d'ingénierie exemplaire » to a hardened,
+> product-grade tool with the server fully inside the quality gate. Next work is a
+> new direction (Jalon 4 MIDI, perf, or UX), tracked in `docs/STATUS.md`.

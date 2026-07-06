@@ -3,7 +3,6 @@ import {
   clampPitchSemitones,
   clampPlaybackRate,
   type DecodedAudio,
-  initialTransport,
   type LoopRegion,
   loadTrack,
   type PlaybackEngine,
@@ -11,26 +10,20 @@ import {
   type Track,
   type TrackMetadata,
   type TrackMetadataReader,
-  type TransportState,
-  transportReducer,
-  wrapToLoop
+  type TransportState
 } from '@app/core'
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { createMusicMetadataReader } from '../../audio/music-metadata-reader.ts'
 import { createWebAudioDecoder } from '../../audio/web-audio-decoder.ts'
 import { createWebAudioPlayback } from '../../audio/web-audio-playback.ts'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
+import { useLoop } from './use-loop.ts'
+import { useTransportEngines } from './use-transport-engines.ts'
 
 const NO_METADATA: TrackMetadata = { title: undefined, artist: undefined }
 
 /** Peak resolution: more buckets than screen pixels, so it stays crisp at 1×. */
 const BUCKET_COUNT = 1200
-
-/** The transport surface both engines share — what the active one is driven by. */
-type TransportControls = Pick<
-  PlaybackEngine,
-  'play' | 'pause' | 'seekTo' | 'setTimeRatio' | 'setPitchSemitones'
->
 
 export type ImportState =
   | { readonly status: 'idle' }
@@ -78,9 +71,11 @@ export interface Player {
 }
 
 /**
- * Smart hook (= driving adapter logic): owns the import flow and the transport
- * state machine, and steers the playback engine port. The decoder and engines
- * default to the real Web Audio adapters and are injected in tests.
+ * Smart hook (= driving adapter logic): owns the import flow and steers the
+ * playback engine port. The transport state machine + engine hand-off live in
+ * {@link useTransportEngines}, and the A/B loop state in {@link useLoop}; this
+ * hook wires them to the import flow and the tempo/pitch controls. The decoder
+ * and engines default to the real Web Audio adapters and are injected in tests.
  *
  * Unified transport: once `stemsActive` is set (the mixer has stems), the same
  * play/pause/seek/tempo/pitch controls drive the multitrack `StemPlaybackEngine`
@@ -116,89 +111,19 @@ export function usePlayer(
   const [loadedBytes, setLoadedBytes] = useState<ArrayBuffer | undefined>(
     undefined
   )
-  const [transport, dispatch] = useReducer(transportReducer, initialTransport)
   const [timeRatio, setTimeRatioState] = useState(1)
   const [pitchSemitones, setPitchSemitonesState] = useState(0)
-  const [loopRegion, setLoopRegionState] = useState<LoopRegion | undefined>(
-    undefined
-  )
-  const [loopEnabled, setLoopEnabledState] = useState(true)
-  // Latest loop + enabled flag kept in refs so the (mount-once) position listener
-  // never closes over stale values.
-  const loopRef = useRef<LoopRegion | undefined>(undefined)
-  loopRef.current = loopRegion
-  const loopEnabledRef = useRef(true)
-  loopEnabledRef.current = loopEnabled
-  // Which engine the transport drives, kept in a ref so the (mount-once) position
-  // listener and the loop wrap-around always steer the live one.
-  const stemsActiveRef = useRef(false)
-  stemsActiveRef.current = stemsActive
-  // The current playhead, so a transport hand-off can settle the new engine there.
-  const positionRef = useRef(0)
-  positionRef.current = transport.positionSeconds
+  const loop = useLoop()
+  const { transport, dispatch, active } = useTransportEngines({
+    playback,
+    stemPlayback,
+    stemsActive,
+    loopRegion: loop.loopRegion,
+    loopEnabled: loop.loopEnabled
+  })
   // Bumped per import so a slow metadata read from a previous file can't land on
   // top of the current one.
   const importIdRef = useRef(0)
-
-  /** The engine the transport currently drives (the stem mix or the track). */
-  const active = (): TransportControls =>
-    stemsActiveRef.current ? stemPlayback : playback
-
-  useEffect(() => {
-    // Both engines stream elapsed position; only the playing one ticks. The
-    // reducer turns it into UI state, the same way whichever drives the transport.
-    const onPosition = (seconds: number) => {
-      const loop = loopRef.current
-      // Guard a degenerate (zero-length) loop, which would otherwise wrap-seek
-      // every frame. Looping must also be enabled — otherwise play straight on.
-      if (
-        loop &&
-        loopEnabledRef.current &&
-        loop.endSeconds > loop.startSeconds &&
-        wrapToLoop(loop, seconds) !== seconds
-      ) {
-        // Reached the loop end → jump back to its start, on the live engine.
-        const engine = stemsActiveRef.current ? stemPlayback : playback
-        engine.seekTo(loop.startSeconds)
-        dispatch({ type: 'seek', toSeconds: loop.startSeconds })
-        return
-      }
-      dispatch({ type: 'tick', atSeconds: seconds })
-    }
-    const unsubscribe = playback.onPositionChange(onPosition)
-    const unsubscribeStems = stemPlayback.onPositionChange(onPosition)
-    // On unmount, stop both engines too: pausing cancels the animation-frame loop
-    // and the sound, so nothing keeps running once the player is gone.
-    return () => {
-      unsubscribe()
-      unsubscribeStems()
-      playback.pause()
-      stemPlayback.pause()
-    }
-  }, [playback, stemPlayback])
-
-  // Whether stems drove the transport on the previous render, so the hand-off
-  // runs only on a real switch — never on mount, where there is nothing to move.
-  const handedToStemsRef = useRef(stemsActive)
-
-  useEffect(() => {
-    if (handedToStemsRef.current === stemsActive) {
-      return
-    }
-    handedToStemsRef.current = stemsActive
-    // Hand the transport between the single track and the stem mix. Settle both
-    // paused at the current playhead on whichever is now active, so the next play
-    // starts cleanly and in the right place.
-    playback.pause()
-    stemPlayback.pause()
-    const at = positionRef.current
-    if (stemsActive) {
-      stemPlayback.seekTo(at)
-    } else {
-      playback.seekTo(at)
-    }
-    dispatch({ type: 'pause' })
-  }, [stemsActive, playback, stemPlayback])
 
   async function importFile(
     file: File,
@@ -255,7 +180,7 @@ export function usePlayer(
           setImportState({ status: 'loaded', track: result.track })
           setLoadedAudio(result.audio)
           setLoadedBytes(retained)
-          setLoopRegionState(undefined)
+          loop.setLoopRegion(undefined)
           // A fresh, unrelated track starts at its own tempo/pitch — the
           // previous track's tuning must not bleed in (and get saved with it).
           setTimeRatio(1)
@@ -321,28 +246,6 @@ export function usePlayer(
     stemPlayback.setPitchSemitones(clamped)
   }
 
-  function setLoopRegion(region: LoopRegion | undefined): void {
-    // Selecting a region where there was none re-arms looping, so a fresh loupe
-    // loops straight away; adjusting an existing region leaves the choice alone.
-    if (loopRegion === undefined && region !== undefined) {
-      setLoopEnabledState(true)
-    }
-    setLoopRegionState(region)
-  }
-
-  function toggleLoop(): void {
-    setLoopEnabledState((enabled) => !enabled)
-  }
-
-  /**
-   * Seat a persisted loupe exactly as saved: region AND wrap choice together,
-   * bypassing the fresh-selection re-arm heuristic of `setLoopRegion`.
-   */
-  function restoreLoop(region: LoopRegion, enabled: boolean): void {
-    setLoopRegionState(region)
-    setLoopEnabledState(enabled)
-  }
-
   return {
     importState,
     loadedAudio,
@@ -351,16 +254,16 @@ export function usePlayer(
     transport,
     timeRatio,
     pitchSemitones,
-    loopRegion,
+    loopRegion: loop.loopRegion,
     importFile,
     togglePlayback,
     seekToRatio,
     seekToSeconds,
     setTimeRatio,
     setPitchSemitones,
-    setLoopRegion,
-    loopEnabled,
-    toggleLoop,
-    restoreLoop
+    setLoopRegion: loop.setLoopRegion,
+    loopEnabled: loop.loopEnabled,
+    toggleLoop: loop.toggleLoop,
+    restoreLoop: loop.restoreLoop
   }
 }
