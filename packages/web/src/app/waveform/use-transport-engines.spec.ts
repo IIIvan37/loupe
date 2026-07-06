@@ -125,7 +125,11 @@ describe('useTransportEngines', () => {
       result.current.dispatch({ type: 'load', durationSeconds: 10 })
       result.current.dispatch({ type: 'seek', toSeconds: 5 })
     })
-    expect(stem.engine.seekTo).not.toHaveBeenCalled() // no hand-off on mount
+    // No hand-off on mount: with stems inactive a spurious mount hand-off would
+    // pause + seek the TRACK engine (the else branch), so assert on that — not on
+    // the stem engine, which a mount hand-off would never touch here.
+    expect(pb.engine.pause).not.toHaveBeenCalled()
+    expect(pb.engine.seekTo).not.toHaveBeenCalled()
 
     rerender({ stemsActive: true, loopRegion: undefined, loopEnabled: true })
 
