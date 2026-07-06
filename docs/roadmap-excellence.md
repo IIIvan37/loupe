@@ -318,4 +318,7 @@ Règle : **A puis B avant tout le reste.** C/D/E peuvent ensuite s'entrelacer.
   primitive (`useToaster`/`ToastRegion`, per-instance manager, `check` icon);
   export (zip + WAV) and save now toast. Gate green, 582 tests, coverage 95.6 %;
   **browser-verify pending (Mac)**
-- [ ] E.1 · [ ] E.2 · [ ] E.3 · [ ] E.4
+- [ ] E.1 *(next — split `use-player.ts`)* · [x] E.2 · [x] E.3 · [x] E.4
+  *(2026-07-06, `refactor/web-complexity-debt`)* — `isSyntheticStem` shared
+  predicate; `onSeparate` lifted to a named handler; `mixer.spec` no-op removed.
+  Gate green, 587 tests
