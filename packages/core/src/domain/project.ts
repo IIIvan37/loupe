@@ -62,6 +62,11 @@ export interface ProjectTuning {
 export interface ProjectTempo {
   readonly bpm: number
   readonly grid: BeatGrid
+  /**
+   * The detected meter (beats per bar). Absent ⇔ common time (4) on manifests
+   * that predate the enriched tempo contract, which had no meter.
+   */
+  readonly beatsPerBar?: number
   /** The metronome mixer channel as the user left it (its id is the caller's). */
   readonly metronome: MixerChannel
   /**

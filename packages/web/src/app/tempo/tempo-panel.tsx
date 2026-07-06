@@ -8,6 +8,8 @@ const MAX_OCTAVE_SHIFT = 2
 interface TempoPanelProps {
   /** The detected tempo in BPM, or undefined until detection succeeds. */
   readonly bpm: number | undefined
+  /** The detected meter (beats per bar), shown beside the BPM once known. */
+  readonly beatsPerBar: number | undefined
   /** Whether the automatic detection is in flight. */
   readonly detecting: boolean
   /** Why the last detection failed, if it did. */
@@ -27,6 +29,7 @@ interface TempoPanelProps {
  */
 export function TempoPanel({
   bpm,
+  beatsPerBar,
   detecting,
   error,
   octaveShift,
@@ -44,6 +47,11 @@ export function TempoPanel({
       {bpm !== undefined && (
         <span className={styles.readout}>
           <Trans id="tempo.bpm">{Math.round(bpm)} BPM</Trans>
+        </span>
+      )}
+      {bpm !== undefined && beatsPerBar !== undefined && (
+        <span className={styles.meter}>
+          <Trans id="tempo.meter">{beatsPerBar} temps</Trans>
         </span>
       )}
       {bpm !== undefined && (

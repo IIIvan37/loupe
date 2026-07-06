@@ -4,7 +4,25 @@
 
 ## Where we are
 
-- **Now — Tempo Lot A done (2026-07-06)** on branch `feat/tempo-octave-toggle`
+- **Now — Tempo Lot B part 1 done (2026-07-06)** on branch
+  `feat/tempo-enriched-contract` (off `main`, Lot A merged as PR #66). The pure,
+  testable half of the linchpin: the **enriched `/tempo` contract** carried
+  end-to-end. Beats now carry a **`barPosition`** (1 = downbeat) instead of bare
+  seconds — new domain `DetectedBeat`; `buildBeatGrid` flags downbeats from the
+  position (robust to pickup/missing beats, no counting from beat 0); new pure
+  **`detectMeter`** = max bar position. `TempoAnalysis`/`ProjectTempo` gain
+  **`beatsPerBar`** (absent ⇔ 4/4 on old manifests; **not** signed — derived, not
+  user-editable). `foldTempoOctave` adapted to **preserve downbeat phase**
+  (carries flags from retained beats, drops the `beatsPerBar` param). The web
+  adapter maps `{beats:[{time,position}]}` and **tolerates the current librosa
+  server** (bare seconds → counted positions) so the branch ships before the
+  server PR. New **meter read-out** (« N temps ») in the tempo panel. Gate
+  **green — 624 tests**; mutation overall **94.92 %**, changed core files
+  (`tempo.ts`/`detect-tempo.ts`/`project.ts`) **100 %**. **Deferred to the next PR
+  (user-confirmed 2-PR split): the server `beat_this` DSP swap** (heavy install +
+  weights, real-audio verify). **Next: open the PR, then the Lot B server half.**
+  See [2026-07-06-tempo-enriched-contract](sessions/2026-07-06-tempo-enriched-contract.md).
+- **Prior — Tempo Lot A done (2026-07-06)** on branch `feat/tempo-octave-toggle`
   (off `main`). First lot of the **tempo-detection upgrade** (plan:
   [tempo-detection-plan.md](tempo-detection-plan.md)): a manual **×2 / ÷2 octave
   correction** for the common octave error (detection locking to the eighth note).

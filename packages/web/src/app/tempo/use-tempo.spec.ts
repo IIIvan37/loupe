@@ -6,8 +6,16 @@ import { useTempo } from './use-tempo.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
-function detectorOf(bpm: number, beatsSeconds: number[]): TempoDetector {
-  return { detect: async () => ({ bpm, beatsSeconds }) }
+function detectorOf(bpm: number, beatTimes: number[]): TempoDetector {
+  return {
+    detect: async () => ({
+      bpm,
+      beats: beatTimes.map((timeSeconds, index) => ({
+        timeSeconds,
+        barPosition: (index % 4) + 1
+      }))
+    })
+  }
 }
 
 describe('useTempo', () => {
@@ -94,7 +102,7 @@ describe('useTempo', () => {
   it('restores a persisted octave shift on set', () => {
     const { result } = renderHook(() => useTempo(detectorOf(120, [])))
     act(() => {
-      result.current.set({ bpm: 60, grid: [] }, -1)
+      result.current.set({ bpm: 60, grid: [], beatsPerBar: 4 }, -1)
     })
     expect(result.current.octaveShift).toBe(-1)
   })
@@ -104,7 +112,8 @@ describe('useTempo', () => {
     const gated: TempoDetector = {
       detect: () =>
         new Promise((resolve) => {
-          release = () => resolve({ bpm: 90, beatsSeconds: [0] })
+          release = () =>
+            resolve({ bpm: 90, beats: [{ timeSeconds: 0, barPosition: 1 }] })
         })
     }
     const { result } = renderHook(() => useTempo(gated))

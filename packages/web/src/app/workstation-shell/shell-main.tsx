@@ -115,6 +115,7 @@ export function ShellMain({
           {isLoaded && (
             <TempoPanel
               bpm={tempo.analysis?.bpm}
+              beatsPerBar={tempo.analysis?.beatsPerBar}
               detecting={tempo.detecting}
               error={tempo.error}
               octaveShift={tempo.octaveShift}

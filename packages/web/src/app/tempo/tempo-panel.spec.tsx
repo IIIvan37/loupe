@@ -12,6 +12,7 @@ function renderPanel(props: Partial<Parameters<typeof TempoPanel>[0]> = {}) {
   render(
     <TempoPanel
       bpm={120}
+      beatsPerBar={4}
       detecting={false}
       error={undefined}
       octaveShift={0}
@@ -50,6 +51,18 @@ describe('TempoPanel', () => {
     expect(
       screen.getByRole('button', { name: i18n._('tempo.halve') })
     ).toBeDisabled()
+  })
+
+  it('shows the detected meter beside the BPM', () => {
+    renderPanel({ beatsPerBar: 3 })
+    expect(screen.getByText(i18n._('tempo.meter', { beatsPerBar: 3 }))).toBeInTheDocument()
+  })
+
+  it('shows no meter until a tempo is known', () => {
+    renderPanel({ bpm: undefined, beatsPerBar: 4 })
+    expect(
+      screen.queryByText(i18n._('tempo.meter', { beatsPerBar: 4 }))
+    ).not.toBeInTheDocument()
   })
 
   it('shows no octave controls until a tempo is known', () => {
