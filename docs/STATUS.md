@@ -4,7 +4,24 @@
 
 ## Where we are
 
-- **Now — Lot D.3 done (2026-07-06)** on branch `feat/web-feedbacks` (off `main`,
+- **Now — Lot E trio done (2026-07-06)** on branch `refactor/web-complexity-debt`
+  (off `main`, D.3 merged as PR #63): **the first half of Lot E** (dette de
+  complexité) — three small behaviour-preserving refactors in one PR.
+  **(E.2)** a single-source-of-truth `isSyntheticStem` predicate
+  ([synthetic-stem.ts](../packages/web/src/app/mixer/synthetic-stem.ts)) for the
+  two mixer channels that aren't part of a saved separation (metronome + un-split
+  « Piste »); `separationMixer()` filters on it instead of an inline dual-id
+  compare. **(E.3)** the inline `onSeparate` arrow lifted out of the JSX into a
+  named `handleSeparate` on the shell. **(E.4)** dropped the no-op
+  `.map((channels) => channels)` in `mixer.spec`. Note: E.2's flagged
+  duplication was already dissolved by prior slices — only the combined filter
+  site remained to collapse. Gate **green — 587 tests**, coverage 95.76 %/88.7 %
+  (unchanged), **jscpd 5 clones** (unchanged); mutation **skipped** (core
+  production code untouched — E.4 edits a test file). **Next: E.1** — split
+  [use-player.ts](../packages/web/src/app/waveform/use-player.ts) (366 lines) on
+  its own branch. See
+  [2026-07-06-web-complexity-debt-trio](sessions/2026-07-06-web-complexity-debt-trio.md).
+- **Prior — Lot D.3 done (2026-07-06)** on branch `feat/web-feedbacks` (off `main`,
   C.4/C.5 merged as PR #60/#61): **the missing feedbacks** — web-only bar one core
   re-export. Three silent moments now confirm themselves, on a new reusable
   success-toast primitive. (1) **Unsupported-URL guard**: `isSupportedSourceUrl` is

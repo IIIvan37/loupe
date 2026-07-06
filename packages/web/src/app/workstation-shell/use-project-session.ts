@@ -11,7 +11,7 @@ import type {
 import { type ChangeEvent, useRef, useState } from 'react'
 import { sessionSignature } from '../../projects/session-signature.ts'
 import { type Projects, useProjects } from '../../projects/use-projects.ts'
-import { TRACK_STEM_ID } from '../mixer/track-stem.ts'
+import { isSyntheticStem } from '../mixer/synthetic-stem.ts'
 import {
   DEFAULT_METRONOME_CHANNEL,
   METRONOME_ID
@@ -125,9 +125,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
    * them is re-synthesised, not stored.
    */
   function separationMixer(): MixerState {
-    return deps.mixer.state.filter(
-      (channel) => channel.id !== METRONOME_ID && channel.id !== TRACK_STEM_ID
-    )
+    return deps.mixer.state.filter((channel) => !isSyntheticStem(channel.id))
   }
 
   /** The metronome's live mixer channel, once the click has been seated. */
