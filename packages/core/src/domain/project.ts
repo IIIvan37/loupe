@@ -64,6 +64,13 @@ export interface ProjectTempo {
   readonly grid: BeatGrid
   /** The metronome mixer channel as the user left it (its id is the caller's). */
   readonly metronome: MixerChannel
+  /**
+   * Manual octave correction applied on top of the detection: +1 per ×2, −1 per
+   * ÷2. The bpm/grid above are already folded; this is kept so a reopen signs
+   * identically (the fold is a user edit) and never re-detects it. Absent ⇔ 0 on
+   * manifests that predate the octave toggle.
+   */
+  readonly octaveShift?: number
 }
 
 /**

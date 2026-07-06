@@ -115,4 +115,24 @@ describe('sessionSignature', () => {
     }
     expect(sessionSignature(defaulted)).toBe(sessionSignature(base))
   })
+
+  it('changes when the octave correction changes', () => {
+    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const detected: SignedSession = { ...base, tempo: { metronome } }
+    const folded: SignedSession = {
+      ...base,
+      tempo: { metronome, octaveShift: -1 }
+    }
+    expect(sessionSignature(folded)).not.toBe(sessionSignature(detected))
+  })
+
+  it('signs an absent octave correction like an explicit zero', () => {
+    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const implicit: SignedSession = { ...base, tempo: { metronome } }
+    const explicit: SignedSession = {
+      ...base,
+      tempo: { metronome, octaveShift: 0 }
+    }
+    expect(sessionSignature(explicit)).toBe(sessionSignature(implicit))
+  })
 })

@@ -150,6 +150,7 @@ describe('restoreSession', () => {
       restoreTuning: vi.fn(),
       tempo: {
         analysis: undefined,
+        octaveShift: 0,
         detect: vi.fn(async () => detected),
         set: vi.fn(),
         reset: vi.fn()
@@ -178,6 +179,7 @@ describe('restoreSession', () => {
         restore: vi.fn(),
         addStem: vi.fn(),
         removeStem: vi.fn(),
+        replaceStem: vi.fn(),
         reset: vi.fn(),
         setGain: vi.fn(),
         toggleMute: vi.fn(),
@@ -349,16 +351,37 @@ describe('restoreSession', () => {
 
     await restoreSession(opened, deps)
 
-    // Seated from the manifest — no detection (no server).
-    expect(deps.tempo.set).toHaveBeenCalledWith({
-      bpm: savedTempo.bpm,
-      grid: savedTempo.grid
-    })
+    // Seated from the manifest — no detection (no server). A manifest without an
+    // octave correction restores at the neutral shift 0.
+    expect(deps.tempo.set).toHaveBeenCalledWith(
+      { bpm: savedTempo.bpm, grid: savedTempo.grid },
+      0
+    )
     expect(deps.tempo.detect).not.toHaveBeenCalled()
     expect(deps.metronome.enable).toHaveBeenCalledWith(
       savedTempo.grid,
       audio,
       savedTempo.metronome
+    )
+  })
+
+  it('restores the persisted octave correction', async () => {
+    const deps = fakeDeps(undefined)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: {
+        ...baseProject,
+        tempo: { ...savedTempo, octaveShift: -1 }
+      },
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    expect(deps.tempo.set).toHaveBeenCalledWith(
+      { bpm: savedTempo.bpm, grid: savedTempo.grid },
+      -1
     )
   })
 

@@ -4,7 +4,23 @@
 
 ## Where we are
 
-- **Now — Lot E complete (2026-07-06)** on branch `refactor/web-split-use-player`
+- **Now — Tempo Lot A done (2026-07-06)** on branch `feat/tempo-octave-toggle`
+  (off `main`). First lot of the **tempo-detection upgrade** (plan:
+  [tempo-detection-plan.md](tempo-detection-plan.md)): a manual **×2 / ÷2 octave
+  correction** for the common octave error (detection locking to the eighth note).
+  Pure core transform **`foldTempoOctave`** ([tempo.ts](../packages/core/src/domain/tempo.ts))
+  folds beat density + rescales bpm; the tempo hook tracks a **±2 octave shift**,
+  re-seats the click via a new mixer **`replaceStem`** primitive
+  ([use-mixer.ts](../packages/web/src/app/mixer/use-mixer.ts)) +
+  metronome **`reseat`**, and persists the fold as **`ProjectTempo.octaveShift`**
+  (first user-editable tempo state → added to `sessionSignature`, absent ⇔ 0).
+  ÷2/×2 buttons in [tempo-panel.tsx](../packages/web/src/app/tempo/tempo-panel.tsx).
+  Gate **green — 617 tests**; mutation **94.89 %** overall, new `tempo.ts`
+  **100 %** (31 mutants). **Next: open the PR, then Lot B** — enrich the `/tempo`
+  contract with per-beat `barPosition` + swap the server DSP to `beat_this`
+  (downbeats/meter + variable tempo). See
+  [2026-07-06-tempo-octave-toggle](sessions/2026-07-06-tempo-octave-toggle.md).
+- **Prior — Lot E complete (2026-07-06)** on branch `refactor/web-split-use-player`
   (off `main`, trio merged as PR #64): **E.1 — split `use-player.ts`**, the last
   item of Lot E. The hook (366 lines, 6 anti-stale refs, 5 responsibilities) is
   now three: **[use-loop.ts](../packages/web/src/app/waveform/use-loop.ts)** owns

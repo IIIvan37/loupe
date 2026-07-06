@@ -2,6 +2,7 @@ import {
   type AudioFileDecoder,
   defaultKeyBindings,
   formatTimecode,
+  type OctaveFactor,
   type PlaybackEngine,
   type ProjectDeps,
   type StemPlaybackEngine,
@@ -219,6 +220,16 @@ export function WorkstationShell({
     autoDetectRef.current(loadedAudio)
   }, [loadedAudio])
 
+  // Fold the tempo an octave (a manual ×2/÷2 fix) and re-render the click for the
+  // folded grid — the BPM read-out and waveform grid follow the analysis on their
+  // own; only the metronome stem needs re-seating.
+  function handleFoldTempo(factor: OctaveFactor): void {
+    const folded = tempo.fold(factor)
+    if (folded && loadedAudio) {
+      metronome.reseat(folded.grid, loadedAudio)
+    }
+  }
+
   // Reload/close would silently drop unsaved work — let the browser confirm.
   useUnloadGuard(session.unsavedWork)
 
@@ -313,6 +324,7 @@ export function WorkstationShell({
         onToggleLoop={toggleLoop}
         onSeekSeconds={seekToSeconds}
         onSeekRatio={seekToRatio}
+        onFoldTempo={handleFoldTempo}
         canSeparate={isLoaded && loadedAudio !== undefined}
         serverHealth={serverHealth}
         onSeparate={handleSeparate}

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { buildBeatGrid, DEFAULT_BEATS_PER_BAR } from './tempo.ts'
+import {
+  buildBeatGrid,
+  DEFAULT_BEATS_PER_BAR,
+  foldTempoOctave
+} from './tempo.ts'
 
 describe('buildBeatGrid', () => {
   it('marks the first beat as a downbeat', () => {
@@ -28,5 +32,54 @@ describe('buildBeatGrid', () => {
 
   it('defaults to a 4-beat bar', () => {
     expect(DEFAULT_BEATS_PER_BAR).toBe(4)
+  })
+})
+
+describe('foldTempoOctave', () => {
+  it('halves the bpm when dividing by two', () => {
+    const folded = foldTempoOctave(
+      { bpm: 120, grid: buildBeatGrid([0, 0.5], 4) },
+      0.5
+    )
+    expect(folded.bpm).toBe(60)
+  })
+
+  it('doubles the bpm when multiplying by two', () => {
+    const folded = foldTempoOctave(
+      { bpm: 120, grid: buildBeatGrid([0, 0.5], 4) },
+      2
+    )
+    expect(folded.bpm).toBe(240)
+  })
+
+  it('drops every other beat when dividing by two', () => {
+    const folded = foldTempoOctave(
+      { bpm: 120, grid: buildBeatGrid([0, 0.5, 1, 1.5, 2], 4) },
+      0.5
+    )
+    expect(folded.grid.map((beat) => beat.timeSeconds)).toEqual([0, 1, 2])
+  })
+
+  it('inserts a beat at each midpoint when multiplying by two', () => {
+    const folded = foldTempoOctave(
+      { bpm: 120, grid: buildBeatGrid([0, 0.5, 1], 4) },
+      2
+    )
+    expect(folded.grid.map((beat) => beat.timeSeconds)).toEqual([
+      0, 0.25, 0.5, 0.75, 1
+    ])
+  })
+
+  it('re-flags downbeats on the folded grid', () => {
+    const folded = foldTempoOctave(
+      { bpm: 120, grid: buildBeatGrid([0, 0.5, 1, 1.5, 2], 4) },
+      2
+    )
+    expect(folded.grid[4]?.downbeat).toBe(true)
+  })
+
+  it('leaves an empty grid empty', () => {
+    const folded = foldTempoOctave({ bpm: 120, grid: [] }, 2)
+    expect(folded.grid).toEqual([])
   })
 })
