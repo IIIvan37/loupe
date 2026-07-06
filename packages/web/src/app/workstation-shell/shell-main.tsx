@@ -7,6 +7,7 @@ import type { useLoops } from '../loops/use-loops.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
 import type { useMarkers } from '../markers/use-markers.ts'
 import type { useMixer } from '../mixer/use-mixer.ts'
+import type { ServerHealth } from '../../projects/use-server-health.ts'
 import { SeparationPanel } from '../separation/separation-panel.tsx'
 import type { useSeparation } from '../separation/use-separation.ts'
 import { TempoPanel } from '../tempo/tempo-panel.tsx'
@@ -37,6 +38,7 @@ interface ShellMainProps {
   readonly onSeekSeconds: (seconds: number) => void
   readonly onSeekRatio: (ratio: number) => void
   readonly canSeparate: boolean
+  readonly serverHealth: ServerHealth
   readonly onSeparate: () => void
 }
 
@@ -64,6 +66,7 @@ export function ShellMain({
   onSeekSeconds,
   onSeekRatio,
   canSeparate,
+  serverHealth,
   onSeparate
 }: ShellMainProps) {
   // Stems the separation masked as near-silent — captioned in the mixer gutter.
@@ -81,6 +84,7 @@ export function ShellMain({
           <SeparationPanel
             state={separation.state}
             canSeparate={canSeparate}
+            serverHealth={serverHealth}
             onSeparate={onSeparate}
           />
           <MarkerControls

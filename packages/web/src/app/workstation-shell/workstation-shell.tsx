@@ -325,6 +325,7 @@ export function WorkstationShell({
         onSeekSeconds={seekToSeconds}
         onSeekRatio={seekToRatio}
         canSeparate={isLoaded && loadedAudio !== undefined}
+        serverHealth={serverHealth}
         onSeparate={() => {
           if (loadedAudio) {
             separateAndLoad(loadedAudio)
