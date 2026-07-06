@@ -608,32 +608,37 @@ msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
 #. placeholder {0}: Math.round(bpm)
-#: src/app/tempo/tempo-panel.tsx:46
+#: src/app/tempo/tempo-panel.tsx:49
 msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:79
+#: src/app/tempo/tempo-panel.tsx:87
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:68
+#: src/app/tempo/tempo-panel.tsx:76
 msgid "tempo.double"
 msgstr "Doubler le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:56
+#: src/app/tempo/tempo-panel.tsx:64
 msgid "tempo.halve"
 msgstr "Diviser le tempo par deux"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:42
+#: src/app/tempo/tempo-panel.tsx:45
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:39
+#: src/app/tempo/tempo-panel.tsx:54
+msgid "tempo.meter"
+msgstr "{beatsPerBar} temps"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:42
 msgid "tempo.region-label"
 msgstr "Tempo"
 

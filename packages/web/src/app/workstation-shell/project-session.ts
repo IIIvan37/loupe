@@ -1,4 +1,5 @@
 import {
+  DEFAULT_BEATS_PER_BAR,
   type DecodedAudio,
   decodeWav,
   encodeWav,
@@ -222,11 +223,14 @@ export async function restoreSession(
   if (persisted) {
     // Fast path: tempo + metronome come straight from the manifest — no server.
     // The persisted bpm/grid are already folded; the shift restores the read-out.
-    deps.tempo.set(
-      { bpm: persisted.bpm, grid: persisted.grid },
-      persisted.octaveShift ?? 0
-    )
-    seatMetronome(persisted, persisted.metronome)
+    // A manifest predating the enriched contract has no meter — default to 4/4.
+    const analysis: TempoAnalysis = {
+      bpm: persisted.bpm,
+      grid: persisted.grid,
+      beatsPerBar: persisted.beatsPerBar ?? DEFAULT_BEATS_PER_BAR
+    }
+    deps.tempo.set(analysis, persisted.octaveShift ?? 0)
+    seatMetronome(analysis, persisted.metronome)
     return
   }
 

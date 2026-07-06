@@ -1,5 +1,6 @@
 import type { AudioRef, Project } from '../domain/project.ts'
 import type { SeparationPhase } from '../domain/separation.ts'
+import type { DetectedBeat } from '../domain/tempo.ts'
 
 /**
  * Raw decoded PCM: one array of samples (normalised to [-1, 1]) per channel,
@@ -140,12 +141,17 @@ export interface StemSeparator {
   ): Promise<readonly SeparatedStem[]>
 }
 
-/** A detector's raw verdict: the track's tempo and the beat instants it found. */
+/**
+ * A detector's raw verdict: the track's representative tempo plus the beats it
+ * found, each carrying its position within the bar (1 = downbeat). The core
+ * derives everything else — the grid, the meter — purely from the positions, so
+ * the DSP stays in the adapter and downbeats no longer have to be guessed.
+ */
 export interface DetectedTempo {
-  /** Estimated tempo in beats per minute. */
+  /** Estimated tempo in beats per minute (representative — a read-out shortcut). */
   readonly bpm: number
-  /** Beat onset times in seconds, in order. */
-  readonly beatsSeconds: readonly number[]
+  /** The detected beats in order, each with its bar position. */
+  readonly beats: readonly DetectedBeat[]
 }
 
 /**

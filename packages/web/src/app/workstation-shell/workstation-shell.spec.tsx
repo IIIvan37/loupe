@@ -40,6 +40,14 @@ const decoded: DecodedAudio = {
 
 const okDecoder: AudioFileDecoder = { decode: async () => decoded }
 
+/** Positioned beats (four to the bar) at the given instants — a fake detector's. */
+function beatsAt(times: readonly number[]) {
+  return times.map((timeSeconds, index) => ({
+    timeSeconds,
+    barPosition: (index % 4) + 1
+  }))
+}
+
 /** Controllable fake of the playback engine port. */
 function fakeEngine() {
   const listeners = new Set<(seconds: number) => void>()
@@ -291,7 +299,7 @@ describe('WorkstationShell', () => {
 
   it('auto-detects the BPM on import and draws the beat grid', async () => {
     const detector = {
-      detect: async () => ({ bpm: 128, beatsSeconds: [0, 0.47, 0.94] })
+      detect: async () => ({ bpm: 128, beats: beatsAt([0, 0.47, 0.94]) })
     }
     const { user } = renderShell({ tempoDetector: detector })
     await importTrack(user)
@@ -303,7 +311,7 @@ describe('WorkstationShell', () => {
 
   it('shows the metronome as a mixer stem automatically once detected', async () => {
     const detector = {
-      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
     }
     const { user } = renderShell({ tempoDetector: detector })
     await importTrack(user)
@@ -319,7 +327,7 @@ describe('WorkstationShell', () => {
 
   it('seats a freshly detected metronome muted by default', async () => {
     const detector = {
-      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
     }
     const { user } = renderShell({ tempoDetector: detector })
     await importTrack(user)
@@ -332,7 +340,7 @@ describe('WorkstationShell', () => {
   })
 
   it('restores the tempo and metronome on reopen without re-detecting', async () => {
-    const detect = vi.fn(async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] }))
+    const detect = vi.fn(async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) }))
     const { user } = renderShell({
       projectStores: fakeProjectStores(),
       tempoDetector: { detect }
@@ -361,7 +369,7 @@ describe('WorkstationShell', () => {
 
   it('restores the metronome mute state the user saved, over the default', async () => {
     const detector = {
-      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
     }
     const { user } = renderShell({
       projectStores: fakeProjectStores(),
@@ -392,7 +400,7 @@ describe('WorkstationShell', () => {
 
   it('keeps the separated stems AND the metronome after separating', async () => {
     const detector = {
-      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
     }
     const { user } = renderShell({
       separator: fakeSeparator(),
@@ -440,7 +448,7 @@ describe('WorkstationShell', () => {
   it('confirms a synthetic-lane WAV download (Piste, Métronome) with a toast', async () => {
     stubDownload()
     const detector = {
-      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
     }
     const { user } = renderShell({ tempoDetector: detector })
     await importTrack(user)
@@ -485,7 +493,7 @@ describe('WorkstationShell', () => {
 
   it('drops the metronome stem when a new file is imported', async () => {
     const detector = {
-      detect: async () => ({ bpm: 120, beatsSeconds: [0, 0.5, 1] })
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
     }
     const { user } = renderShell({ tempoDetector: detector })
     await importTrack(user)

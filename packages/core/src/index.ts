@@ -164,8 +164,18 @@ export { initialSeparation, separationReducer } from './domain/separation.ts'
 export { stemExportFilename } from './domain/stem-export.ts'
 export type { StemSet, StemTrack } from './domain/stem-set.ts'
 export { buildStemTrack } from './domain/stem-set.ts'
-export type { BeatGrid, OctaveFactor, TempoValue } from './domain/tempo.ts'
-export { foldTempoOctave } from './domain/tempo.ts'
+export type {
+  Beat,
+  BeatGrid,
+  DetectedBeat,
+  OctaveFactor,
+  TempoValue
+} from './domain/tempo.ts'
+export {
+  DEFAULT_BEATS_PER_BAR,
+  detectMeter,
+  foldTempoOctave
+} from './domain/tempo.ts'
 export { formatTimecode } from './domain/timecode.ts'
 export type { Track } from './domain/track.ts'
 export type {

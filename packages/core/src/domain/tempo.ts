@@ -1,6 +1,16 @@
 /** The default bar length when no meter is known: common time (4/4). */
 export const DEFAULT_BEATS_PER_BAR = 4
 
+/**
+ * One detected beat: its instant and its position within the bar. Position 1 is
+ * a downbeat (the first beat of a bar); the detector reports it directly, so the
+ * grid no longer has to guess the meter by counting from the first beat.
+ */
+export interface DetectedBeat {
+  readonly timeSeconds: number
+  readonly barPosition: number
+}
+
 /** One beat on the timeline: its instant and whether it starts a bar. */
 export interface Beat {
   readonly timeSeconds: number
@@ -12,19 +22,24 @@ export interface Beat {
 export type BeatGrid = readonly Beat[]
 
 /**
- * Fold detected beat instants into a grid, flagging every `beatsPerBar`-th beat
- * (starting at the first) as a downbeat. Pure — meter is assumed constant since
- * the detector reports beats, not bar lines; grouping from the first beat is the
- * simplest alignment and matches how the first downbeat anchors a practice loop.
+ * Fold positioned beats into a grid, flagging the ones the detector placed at
+ * bar position 1 as downbeats. Pure — the meter is carried per beat (robust to a
+ * pickup bar or a missing beat), not inferred by counting from the first one.
  */
-export function buildBeatGrid(
-  beatsSeconds: readonly number[],
-  beatsPerBar: number
-): BeatGrid {
-  return beatsSeconds.map((timeSeconds, index) => ({
-    timeSeconds,
-    downbeat: index % beatsPerBar === 0
+export function buildBeatGrid(beats: readonly DetectedBeat[]): BeatGrid {
+  return beats.map((beat) => ({
+    timeSeconds: beat.timeSeconds,
+    downbeat: beat.barPosition === 1
   }))
+}
+
+/**
+ * Derive the meter (beats per bar) from positioned beats: the largest bar
+ * position seen. Falls back to common time when the detector reported no beats.
+ */
+export function detectMeter(beats: readonly DetectedBeat[]): number {
+  const max = beats.reduce((seen, beat) => Math.max(seen, beat.barPosition), 0)
+  return max > 0 ? max : DEFAULT_BEATS_PER_BAR
 }
 
 /** A manual octave correction: ×2 doubles the felt tempo, ÷2 halves it. */
@@ -39,32 +54,34 @@ export interface TempoValue {
 /**
  * Correct an octave error by folding the beat density. Dividing by two drops
  * every other beat; multiplying by two inserts a beat at each midpoint. The bpm
- * scales by the same factor and the grid is rebuilt so downbeats re-anchor from
- * the first beat. Pure — the caller supplies the meter (default common time).
+ * scales by the same factor. Downbeat flags are carried from the retained beats
+ * (inserted midpoints are never downbeats), so the felt bar phase stays anchored
+ * to the same instants instead of being re-counted from the first beat.
  */
 export function foldTempoOctave(
   tempo: TempoValue,
-  factor: OctaveFactor,
-  beatsPerBar: number = DEFAULT_BEATS_PER_BAR
+  factor: OctaveFactor
 ): TempoValue {
-  const times = tempo.grid.map((beat) => beat.timeSeconds)
-  const folded = factor === 0.5 ? halveBeats(times) : doubleBeats(times)
-  return { bpm: tempo.bpm * factor, grid: buildBeatGrid(folded, beatsPerBar) }
+  const grid = factor === 0.5 ? halveGrid(tempo.grid) : doubleGrid(tempo.grid)
+  return { bpm: tempo.bpm * factor, grid }
 }
 
-/** Keep every other beat, halving the density. */
-function halveBeats(times: readonly number[]): readonly number[] {
-  return times.filter((_, index) => index % 2 === 0)
+/** Keep every other beat, halving the density and preserving its downbeat flag. */
+function halveGrid(grid: BeatGrid): BeatGrid {
+  return grid.filter((_, index) => index % 2 === 0)
 }
 
-/** Insert a beat at each midpoint, doubling the density. */
-function doubleBeats(times: readonly number[]): readonly number[] {
-  const doubled: number[] = []
-  times.forEach((time, index) => {
-    doubled.push(time)
-    const next = times[index + 1]
+/** Insert a non-downbeat at each midpoint, doubling the density. */
+function doubleGrid(grid: BeatGrid): BeatGrid {
+  const doubled: Beat[] = []
+  grid.forEach((beat, index) => {
+    doubled.push(beat)
+    const next = grid[index + 1]
     if (next !== undefined) {
-      doubled.push((time + next) / 2)
+      doubled.push({
+        timeSeconds: (beat.timeSeconds + next.timeSeconds) / 2,
+        downbeat: false
+      })
     }
   })
   return doubled

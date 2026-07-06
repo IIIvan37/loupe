@@ -352,9 +352,10 @@ describe('restoreSession', () => {
     await restoreSession(opened, deps)
 
     // Seated from the manifest — no detection (no server). A manifest without an
-    // octave correction restores at the neutral shift 0.
+    // octave correction restores at the neutral shift 0; one without a meter
+    // (predating the enriched contract) restores at common time.
     expect(deps.tempo.set).toHaveBeenCalledWith(
-      { bpm: savedTempo.bpm, grid: savedTempo.grid },
+      { bpm: savedTempo.bpm, grid: savedTempo.grid, beatsPerBar: 4 },
       0
     )
     expect(deps.tempo.detect).not.toHaveBeenCalled()
@@ -380,8 +381,28 @@ describe('restoreSession', () => {
     await restoreSession(opened, deps)
 
     expect(deps.tempo.set).toHaveBeenCalledWith(
-      { bpm: savedTempo.bpm, grid: savedTempo.grid },
+      { bpm: savedTempo.bpm, grid: savedTempo.grid, beatsPerBar: 4 },
       -1
+    )
+  })
+
+  it('restores the persisted meter', async () => {
+    const deps = fakeDeps(undefined)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: {
+        ...baseProject,
+        tempo: { ...savedTempo, beatsPerBar: 3 }
+      },
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    expect(deps.tempo.set).toHaveBeenCalledWith(
+      { bpm: savedTempo.bpm, grid: savedTempo.grid, beatsPerBar: 3 },
+      0
     )
   })
 
@@ -427,7 +448,8 @@ describe('restoreSession', () => {
   it('detects the tempo for an old manifest and seats a muted metronome', async () => {
     const detected: TempoAnalysis = {
       bpm: 100,
-      grid: [{ timeSeconds: 0, downbeat: true }]
+      grid: [{ timeSeconds: 0, downbeat: true }],
+      beatsPerBar: 4
     }
     const deps = fakeDeps(undefined, detected)
     const opened: Extract<OpenProjectResult, { ok: true }> = {

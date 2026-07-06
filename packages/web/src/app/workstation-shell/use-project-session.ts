@@ -145,6 +145,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     return {
       bpm: analysis.bpm,
       grid: analysis.grid,
+      beatsPerBar: analysis.beatsPerBar,
       metronome: metronomeChannel() ?? DEFAULT_METRONOME_CHANNEL,
       octaveShift: deps.tempo.octaveShift
     }

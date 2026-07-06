@@ -95,7 +95,12 @@ export function useTempo(detector?: TempoDetector): Tempo {
     if (next === octaveShift) {
       return undefined
     }
-    const folded = foldTempoOctave(analysis, factor)
+    // Folding is an octave correction, not a re-reading of the meter — carry the
+    // detected beatsPerBar through unchanged.
+    const folded: TempoAnalysis = {
+      ...foldTempoOctave(analysis, factor),
+      beatsPerBar: analysis.beatsPerBar
+    }
     setOctaveShift(next)
     setAnalysis(folded)
     return folded

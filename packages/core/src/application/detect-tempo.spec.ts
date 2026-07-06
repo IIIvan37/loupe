@@ -1,20 +1,29 @@
 import { describe, expect, it } from 'vitest'
+import type { DetectedBeat } from '../domain/tempo.ts'
 import { detectTempo } from './detect-tempo.ts'
 import type { DecodedAudio, TempoDetector } from './ports.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
-/** Fake detector: returns a fixed tempo, recording the audio it was handed. */
+/** Four-to-the-bar positioned beats at the given instants. */
+function bar4(times: readonly number[]): readonly DetectedBeat[] {
+  return times.map((timeSeconds, index) => ({
+    timeSeconds,
+    barPosition: (index % 4) + 1
+  }))
+}
+
+/** Fake detector: returns fixed beats, recording the audio it was handed. */
 function fakeDetector(
   bpm: number,
-  beatsSeconds: readonly number[]
+  beats: readonly DetectedBeat[]
 ): TempoDetector & { seen: DecodedAudio | undefined } {
   const state = { seen: undefined as DecodedAudio | undefined }
   return {
     ...state,
     async detect(given) {
       state.seen = given
-      return { bpm, beatsSeconds }
+      return { bpm, beats }
     },
     get seen() {
       return state.seen
@@ -26,16 +35,16 @@ describe('detectTempo', () => {
   it('reports the detected tempo', async () => {
     const result = await detectTempo(
       { audio },
-      { detector: fakeDetector(120, [0, 0.5, 1, 1.5]) }
+      { detector: fakeDetector(120, bar4([0, 0.5, 1, 1.5])) }
     )
     if (!result.ok) throw new Error('expected ok')
     expect(result.analysis.bpm).toBe(120)
   })
 
-  it('builds a beat grid marking every fourth beat as a downbeat', async () => {
+  it('builds a beat grid from the reported bar positions', async () => {
     const result = await detectTempo(
-      { audio, beatsPerBar: 4 },
-      { detector: fakeDetector(120, [0, 0.5, 1, 1.5, 2]) }
+      { audio },
+      { detector: fakeDetector(120, bar4([0, 0.5, 1, 1.5, 2])) }
     )
     if (!result.ok) throw new Error('expected ok')
     expect(result.analysis.grid).toEqual([
@@ -47,14 +56,19 @@ describe('detectTempo', () => {
     ])
   })
 
-  it('defaults to a 4-beat bar when no meter is given', async () => {
+  it('derives the meter from the reported bar positions', async () => {
+    const threeFour: readonly DetectedBeat[] = [
+      { timeSeconds: 0, barPosition: 1 },
+      { timeSeconds: 0.5, barPosition: 2 },
+      { timeSeconds: 1, barPosition: 3 },
+      { timeSeconds: 1.5, barPosition: 1 }
+    ]
     const result = await detectTempo(
       { audio },
-      { detector: fakeDetector(120, [0, 0.5, 1, 1.5, 2]) }
+      { detector: fakeDetector(90, threeFour) }
     )
     if (!result.ok) throw new Error('expected ok')
-    // The 5th beat opens the next bar — only the default (4) makes it a downbeat.
-    expect(result.analysis.grid[4]?.downbeat).toBe(true)
+    expect(result.analysis.beatsPerBar).toBe(3)
   })
 
   it('hands the detector the same PCM it was given', async () => {
