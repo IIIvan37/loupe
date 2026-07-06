@@ -17,6 +17,18 @@
   color: var(--text);
 }
 
+.octave {
+  display: inline-flex;
+  gap: var(--space-2xs);
+}
+
+.octaveButton {
+  composes: ghostButton from '../ui/controls.module.css';
+  padding: var(--space-2xs) var(--space-xs);
+  font-size: var(--font-size-s);
+  font-variant-numeric: tabular-nums;
+}
+
 .error {
   margin-left: auto;
   color: var(--accent);

@@ -50,6 +50,13 @@ export interface Mixer {
   readonly addStem: (stem: StemTrack, source: SeparatedStem) => void
   /** Drop one stem from the mix by id, leaving the rest playing. */
   readonly removeStem: (id: string) => void
+  /**
+   * Swap one present stem's PCM (and lane peaks) for a freshly rendered version
+   * of the same id — e.g. re-seating the metronome click after an octave fold.
+   * The channel is left untouched, so its fader/mute/solo survive; the engine
+   * keeps the gain it holds for that id across the remove/add.
+   */
+  readonly replaceStem: (stem: StemTrack, source: SeparatedStem) => void
   /** Drop every stem (a new import) — empties the mixer and its lanes. */
   readonly reset: () => void
   readonly setGain: (id: string, gainDb: number) => void
@@ -129,6 +136,22 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
     dispatch({ type: 'removeChannel', id })
   }
 
+  function replaceStem(stem: StemTrack, source: SeparatedStem): void {
+    // Only re-seat a stem that is actually mixed; swap its PCM in the engine and
+    // its peaks in the lane, but dispatch no channel action — the reducer keeps
+    // the fader/mute/solo, and the engine restores the gain it holds for this id.
+    setMixable((prev) => {
+      if (!prev.some((entry) => entry.stem.id === stem.id)) {
+        return prev
+      }
+      return prev.map((entry) =>
+        entry.stem.id === stem.id ? { stem, source } : entry
+      )
+    })
+    engine.removeStem(source.id)
+    void engine.addStem({ id: source.id, audio: source.audio })
+  }
+
   function reset(): void {
     setMixable([])
     dispatch({ type: 'reset' })
@@ -174,6 +197,7 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
     restore,
     addStem,
     removeStem,
+    replaceStem,
     reset,
     setGain: (id, gainDb) => apply({ type: 'setGain', id, gainDb }),
     toggleMute: (id) => apply({ type: 'toggleMute', id }),

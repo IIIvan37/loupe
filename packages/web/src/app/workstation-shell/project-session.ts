@@ -122,7 +122,10 @@ export interface SessionRestoreDeps {
   readonly separation: Separation
   readonly mixer: Mixer
   /** Seat/analyse the tempo (persisted → `set`, old manifest → `detect`). */
-  readonly tempo: Pick<Tempo, 'analysis' | 'detect' | 'set' | 'reset'>
+  readonly tempo: Pick<
+    Tempo,
+    'analysis' | 'octaveShift' | 'detect' | 'set' | 'reset'
+  >
   /** Seat the metronome click alongside the restored session. */
   readonly metronome: Pick<Metronome, 'enable' | 'attach' | 'reset'>
   /**
@@ -218,7 +221,11 @@ export async function restoreSession(
   const persisted = opened.project.tempo
   if (persisted) {
     // Fast path: tempo + metronome come straight from the manifest — no server.
-    deps.tempo.set({ bpm: persisted.bpm, grid: persisted.grid })
+    // The persisted bpm/grid are already folded; the shift restores the read-out.
+    deps.tempo.set(
+      { bpm: persisted.bpm, grid: persisted.grid },
+      persisted.octaveShift ?? 0
+    )
     seatMetronome(persisted, persisted.metronome)
     return
   }

@@ -123,6 +123,58 @@ describe('useMixer', () => {
     expect(engine.removeStem).toHaveBeenCalledWith('metronome')
   })
 
+  it('replaces a stem PCM in the engine without touching its channel', () => {
+    const engine = fakeEngine()
+    const { result } = mountLoaded(engine)
+    const audio2 = { sampleRate: 4, channels: [[1, 0, 0, 0]] }
+    act(() => {
+      result.current.addStem(stem('metronome', 'Métronome'), {
+        id: 'metronome',
+        label: 'Métronome',
+        audio
+      })
+    })
+
+    act(() => {
+      result.current.replaceStem(stem('metronome', 'Métronome'), {
+        id: 'metronome',
+        label: 'Métronome',
+        audio: audio2
+      })
+    })
+
+    expect(engine.removeStem).toHaveBeenCalledWith('metronome')
+    expect(engine.addStem).toHaveBeenLastCalledWith({
+      id: 'metronome',
+      audio: audio2
+    })
+  })
+
+  it('keeps a channel mute when its stem PCM is replaced', () => {
+    const engine = fakeEngine()
+    const { result } = mountLoaded(engine)
+    const audio2 = { sampleRate: 4, channels: [[1, 0, 0, 0]] }
+    act(() => {
+      result.current.addStem(stem('metronome', 'Métronome'), {
+        id: 'metronome',
+        label: 'Métronome',
+        audio
+      })
+      result.current.toggleMute('metronome')
+    })
+
+    act(() => {
+      result.current.replaceStem(stem('metronome', 'Métronome'), {
+        id: 'metronome',
+        label: 'Métronome',
+        audio: audio2
+      })
+    })
+
+    const metro = result.current.channels.find((c) => c.stem.id === 'metronome')
+    expect(metro?.muted).toBe(true)
+  })
+
   it('empties the mixer on reset', () => {
     const engine = fakeEngine()
     const { result } = mountLoaded(engine)

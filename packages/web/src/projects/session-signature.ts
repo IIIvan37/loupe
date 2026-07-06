@@ -16,9 +16,13 @@ export interface SignedSession {
   readonly markers: MarkerList
   readonly activeLoop?: ProjectActiveLoop | undefined
   readonly tuning?: ProjectTuning | undefined
-  /** Only the metronome's mixer settings matter to the dirty check — the beat
-   * grid and BPM are derived, never edited, so they stay out of the signature. */
-  readonly tempo?: { readonly metronome: MixerChannel } | undefined
+  /** The metronome's mixer settings plus the manual octave correction — the only
+   * user-editable tempo state. The beat grid and BPM are derived from detection
+   * and the fold, so they stay out of the signature (the octave shift stands in
+   * for the fold). */
+  readonly tempo?:
+    | { readonly metronome: MixerChannel; readonly octaveShift?: number }
+    | undefined
   readonly separation?: { readonly mixer: MixerState } | undefined
 }
 
@@ -36,6 +40,9 @@ export function sessionSignature(session: SignedSession): string {
   // No metronome yet ⇔ a fresh detection would seat the default-muted one, so
   // the two must sign the same or a reopened old project would read dirty.
   const metronome = session.tempo?.metronome ?? DEFAULT_METRONOME_CHANNEL
+  // Absent octave shift (a manifest that predates the toggle, or an untouched
+  // detection) reads as neutral 0, so a reopened old project still signs equal.
+  const octaveShift = session.tempo?.octaveShift ?? 0
   return JSON.stringify({
     loops: session.loops.map((loop) => [
       loop.id,
@@ -57,6 +64,7 @@ export function sessionSignature(session: SignedSession): string {
       : null,
     tuning: [tuning.timeRatio, tuning.pitchSemitones, tuning.zoom],
     metronome: [metronome.gainDb, metronome.muted, metronome.soloed],
+    octaveShift,
     mixer: session.separation
       ? session.separation.mixer.map((channel) => [
           channel.id,

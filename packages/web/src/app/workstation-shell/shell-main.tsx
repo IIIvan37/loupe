@@ -1,3 +1,4 @@
+import type { OctaveFactor } from '@app/core'
 import type { ComponentProps } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
@@ -37,6 +38,8 @@ interface ShellMainProps {
   readonly onToggleLoop: () => void
   readonly onSeekSeconds: (seconds: number) => void
   readonly onSeekRatio: (ratio: number) => void
+  /** Fold the detected tempo an octave (×2 / ÷2) and re-seat the click. */
+  readonly onFoldTempo: (factor: OctaveFactor) => void
   readonly canSeparate: boolean
   readonly serverHealth: ServerHealth
   readonly onSeparate: () => void
@@ -64,6 +67,7 @@ export function ShellMain({
   loopEnabled,
   onToggleLoop,
   onSeekSeconds,
+  onFoldTempo,
   onSeekRatio,
   canSeparate,
   serverHealth,
@@ -113,6 +117,8 @@ export function ShellMain({
               bpm={tempo.analysis?.bpm}
               detecting={tempo.detecting}
               error={tempo.error}
+              octaveShift={tempo.octaveShift}
+              onFold={onFoldTempo}
             />
           )}
           <LoopControls

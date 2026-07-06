@@ -43,6 +43,11 @@ export interface Metronome {
     baseMixer: MixerState,
     metronome: MixerChannel
   ) => void
+  /**
+   * Re-render the click for a folded beat grid (an octave ×2/÷2) and swap it into
+   * the running mix, leaving its channel — and every other stem — untouched.
+   */
+  readonly reseat: (grid: BeatGrid, audio: DecodedAudio) => void
   /** Forget the click (a fresh track); the shell clears the mixer separately. */
   readonly reset: () => void
 }
@@ -109,5 +114,10 @@ export function useMetronome(deps: MetronomeDeps): Metronome {
     setEnabled(true)
   }
 
-  return { enabled, enable, attach, reset: () => setEnabled(false) }
+  function reseat(grid: BeatGrid, audio: DecodedAudio): void {
+    const metro = buildMetronomeStem(grid, durationOf(audio), audio.sampleRate)
+    mixerRef.current.replaceStem(metro.stem, metro.source)
+  }
+
+  return { enabled, enable, attach, reseat, reset: () => setEnabled(false) }
 }

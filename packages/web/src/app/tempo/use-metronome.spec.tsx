@@ -23,6 +23,7 @@ function fakeMixer(): Mixer {
     restore: vi.fn(),
     addStem: vi.fn(),
     removeStem: vi.fn(),
+    replaceStem: vi.fn(),
     reset: vi.fn(),
     setGain: vi.fn(),
     toggleMute: vi.fn(),
@@ -74,5 +75,23 @@ describe('useMetronome', () => {
       .calls[0] as [readonly StemTrack[], unknown, MixerState]
     expect(stems.map((s) => s.id)).toEqual(['voix', METRONOME_ID])
     expect(channels).toEqual([...baseMixer, saved])
+  })
+
+  it('reseat swaps the click stem for the folded grid, keeping its channel', () => {
+    const mixer = fakeMixer()
+    const { result } = renderHook(() => useMetronome({ mixer }))
+    const folded: BeatGrid = [
+      { timeSeconds: 0, downbeat: true },
+      { timeSeconds: 1, downbeat: false }
+    ]
+
+    act(() => {
+      result.current.reseat(folded, audio)
+    })
+
+    expect(mixer.replaceStem).toHaveBeenCalledOnce()
+    const [stem] = (mixer.replaceStem as ReturnType<typeof vi.fn>).mock
+      .calls[0] as [StemTrack, SeparatedStem]
+    expect(stem.id).toBe(METRONOME_ID)
   })
 })

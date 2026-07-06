@@ -170,7 +170,7 @@ msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:120
-#: src/app/workstation-shell/workstation-shell.tsx:174
+#: src/app/workstation-shell/workstation-shell.tsx:175
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
@@ -608,22 +608,32 @@ msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
 #. placeholder {0}: Math.round(bpm)
-#: src/app/tempo/tempo-panel.tsx:31
+#: src/app/tempo/tempo-panel.tsx:46
 msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:36
+#: src/app/tempo/tempo-panel.tsx:79
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:27
+#: src/app/tempo/tempo-panel.tsx:68
+msgid "tempo.double"
+msgstr "Doubler le tempo"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:56
+msgid "tempo.halve"
+msgstr "Diviser le tempo par deux"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:42
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:24
+#: src/app/tempo/tempo-panel.tsx:39
 msgid "tempo.region-label"
 msgstr "Tempo"
 
@@ -638,7 +648,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:166
+#: src/app/workstation-shell/workstation-shell.tsx:167
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
