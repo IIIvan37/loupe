@@ -17,7 +17,6 @@ Single-user, localhost — no auth, jobs kept on disk until the process exits.
 
 from __future__ import annotations
 
-import io
 import json
 import logging
 import os
@@ -41,8 +40,9 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, StreamingResponse
 
 from . import stems_store
-from .limits import MAX_UPLOAD_BYTES, read_capped_body
+from .limits import MAX_UPLOAD_BYTES, concurrency_slots, read_capped_body
 from .stem_manifest import build_manifest
+from .wav_decode import decode_wav
 
 logger = logging.getLogger("loupe.separation")
 
@@ -90,21 +90,15 @@ stems_store.ensure_jobs_dir()
 # Serialise the actual inference: each `apply_model` pins the GPU/CPU, so
 # concurrent /separate calls (trivially reachable in a browser) would thrash the
 # device or OOM it. One at a time by default; env-tunable.
-_sep_raw = os.environ.get("LOUPE_MAX_CONCURRENT_SEPARATIONS", "1")
-_sep_slots = max(1, int(_sep_raw)) if _sep_raw.isdigit() else 1
-_sep_semaphore = threading.BoundedSemaphore(_sep_slots)
+_sep_semaphore = threading.BoundedSemaphore(concurrency_slots("LOUPE_MAX_CONCURRENT_SEPARATIONS"))
 
 
 def _load_mix(data: bytes) -> torch.Tensor:
     """Decode 16-bit PCM WAV bytes into a stereo [channels, frames] tensor at
     44.1 kHz — the exact shape `encodeWav` produces, read with the stdlib so we
     need no audio I/O backend (torchaudio 2.11 dropped its built-in decoder)."""
-    with wave.open(io.BytesIO(data)) as reader:
-        sample_rate = reader.getframerate()
-        channel_count = reader.getnchannels()
-        raw = reader.readframes(reader.getnframes())
-    samples = np.frombuffer(raw, dtype="<i2").astype(np.float32) / 32768.0
-    waveform = torch.from_numpy(samples.reshape(-1, channel_count).T.copy())
+    samples, sample_rate = decode_wav(data)
+    waveform = torch.from_numpy(samples.T.copy())
     if sample_rate != TARGET_SAMPLE_RATE:
         waveform = torchaudio.functional.resample(waveform, sample_rate, TARGET_SAMPLE_RATE)
     if waveform.shape[0] == 1:  # mono -> stereo, the shape htdemucs expects

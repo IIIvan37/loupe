@@ -20,20 +20,19 @@ Single-user, localhost — no auth.
 
 from __future__ import annotations
 
-import io
+import asyncio
 import logging
 import os
 import threading
-import wave
 
-import numpy as np
 import torch
 from beat_this.inference import Audio2Beats
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 
 from .beat_positions import tempo_payload
-from .limits import MAX_UPLOAD_BYTES, read_capped_body
+from .limits import MAX_UPLOAD_BYTES, concurrency_slots, read_capped_body
+from .wav_decode import decode_wav_mono
 
 logger = logging.getLogger("loupe.tempo")
 router = APIRouter()
@@ -59,28 +58,23 @@ else:
 _model: Audio2Beats | None = None
 _model_lock = threading.Lock()
 
+# Bound the inference like /separate does: each beat_this pass pins the
+# GPU/CPU, and `run_in_threadpool` alone would let ~40 run at once. The
+# semaphore is async and taken in the route, so queued requests wait on the
+# event loop — holding no threadpool token and no decoded signal (a threading
+# semaphore inside the worker would pin both while blocked, starving the
+# threadpool the NDJSON streams also run on). One at a time by default;
+# env-tunable.
+_tempo_semaphore = asyncio.Semaphore(concurrency_slots("LOUPE_MAX_CONCURRENT_TEMPO"))
+
 
 def _audio2beats() -> Audio2Beats:
     global _model
     if _model is None:
         with _model_lock:
             if _model is None:
-                _model = Audio2Beats(
-                    checkpoint_path=CHECKPOINT, device=_device, dbn=False
-                )
+                _model = Audio2Beats(checkpoint_path=CHECKPOINT, device=_device, dbn=False)
     return _model
-
-
-def _load_mono(data: bytes) -> tuple[np.ndarray, int]:
-    """Decode 16-bit PCM WAV bytes into a mono float signal + its sample rate."""
-    with wave.open(io.BytesIO(data)) as reader:
-        sample_rate = reader.getframerate()
-        channel_count = reader.getnchannels()
-        raw = reader.readframes(reader.getnframes())
-    samples = np.frombuffer(raw, dtype="<i2").astype(np.float32) / 32768.0
-    if channel_count > 1:
-        samples = samples.reshape(-1, channel_count).mean(axis=1)
-    return samples, sample_rate
 
 
 def _analyse(data: bytes) -> dict:
@@ -91,7 +85,7 @@ def _analyse(data: bytes) -> dict:
     as separate arrays — the pure `tempo_payload` maps them to the enriched
     contract (one bar position per beat) and a median-interval BPM.
     """
-    signal, sample_rate = _load_mono(data)
+    signal, sample_rate = decode_wav_mono(data)
     beats, downbeats = _audio2beats()(signal, sample_rate)
     return tempo_payload(beats.tolist(), downbeats.tolist())
 
@@ -102,7 +96,8 @@ async def tempo(request: Request) -> dict:
     try:
         # Off the event loop: inference is compute-bound, and blocking here would
         # stall concurrent requests (e.g. the web app's /health poll) for seconds.
-        return await run_in_threadpool(_analyse, data)
+        async with _tempo_semaphore:
+            return await run_in_threadpool(_analyse, data)
     except Exception as exc:  # malformed upload / analysis failure
         # Log the detail server-side; keep the client message generic so model
         # internals / paths don't leak (esp. reachable cross-origin).

@@ -32,7 +32,12 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, Response
 
-from .limits import MAX_MANIFEST_BYTES, MAX_UPLOAD_BYTES, read_capped_body
+from .limits import (
+    MAX_MANIFEST_BYTES,
+    MAX_UPLOAD_BYTES,
+    read_capped_body,
+    read_capped_json,
+)
 
 DATA_DIR = Path(os.environ.get("LOUPE_DATA_DIR", Path.home() / ".loupe")).expanduser()
 AUDIO_DIR = DATA_DIR / "audio"
@@ -123,11 +128,8 @@ async def get_project(project_id: str) -> Response:
 @router.put("/projects/{project_id}", status_code=204)
 async def save_project(project_id: str, request: Request) -> Response:
     path = _project_path(project_id)
-    data = await read_capped_body(request, MAX_MANIFEST_BYTES)
-    try:
-        json.loads(data)  # opaque but must at least be JSON
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail="manifest is not JSON") from exc
+    # The manifest is opaque (persisted verbatim) but must at least be JSON.
+    data, _ = await read_capped_json(request, MAX_MANIFEST_BYTES, "manifest is not JSON")
     PROJECTS_DIR.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(".tmp")
     tmp.write_bytes(data)
