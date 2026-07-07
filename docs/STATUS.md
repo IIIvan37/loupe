@@ -4,7 +4,23 @@
 
 ## Where we are
 
-- **Now — évaluation notée v2 (2026-07-06)** : six-axis graded evaluation
+- **Now — Tempo Lot C done, TEMPO PLAN COMPLETE (2026-07-07)** on branch
+  `feat/tempo-map` (off `main`): **variable tempo**. New pure domain
+  `TempoSegment`/`TempoMap` + **`buildTempoMap(grid)`** (gap walk, rupture only
+  when the running-median deviation is **confirmed by the next gap** — a missed
+  beat never splits; segment bpm = median gap; anchor = the beat opening the new
+  spacing) + **`tempoAt(map, seconds)`**, TDD with fast-check pins (±2 % jitter
+  never splits). Web: the tempo panel **follows the playhead** and shows the
+  **min–max range** when the map has >1 segment (steady tracks unchanged);
+  `ShellMain` derives the map from the grid (`useMemo`). **Segments derived, not
+  persisted** (user-confirmed deviation from the plan — the persisted grid is the
+  single source of truth, zero migration, sub-ms derivation). Stale `detectTempo`
+  registry row resynced in passing (eval Lot F.3 item). Gate **green — 651
+  tests**; mutation fresh **95.13 %**, `tempo.ts` **98.02 %** (2 survivors: one
+  float-equivalent, one hand-verified false survivor — attribution artifact).
+  **Next: PR, then roadmap-excellence-2 Lot F** (cap `/download` 🔴 first). See
+  [2026-07-07-tempo-map](sessions/2026-07-07-tempo-map.md).
+- **Prior — évaluation notée v2 (2026-07-06)** : six-axis graded evaluation
   (fonctionnalités 14 / a11y 15 / UX 15 / design 16 / code 17,5 / sécurité 14,5 —
   **15,3/20 global**) run after closing roadmap 1 (Lots A–E) and tempo Lot B
   (PR #67/#68 merged). Output:
