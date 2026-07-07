@@ -1,4 +1,4 @@
-import type { OctaveFactor } from '@app/core'
+import { type OctaveFactor, type TempoMap, tempoAt } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import styles from './tempo-panel.module.css'
 
@@ -10,6 +10,14 @@ interface TempoPanelProps {
   readonly bpm: number | undefined
   /** The detected meter (beats per bar), shown beside the BPM once known. */
   readonly beatsPerBar: number | undefined
+  /**
+   * The tempo over time, derived from the beat grid. More than one segment
+   * means the track changes tempo: the read-out then follows the playhead and
+   * the whole range is shown beside it.
+   */
+  readonly tempoMap: TempoMap
+  /** The playhead instant — drives the read-out when the tempo varies. */
+  readonly positionSeconds: number
   /** Whether the automatic detection is in flight. */
   readonly detecting: boolean
   /** Why the last detection failed, if it did. */
@@ -30,12 +38,20 @@ interface TempoPanelProps {
 export function TempoPanel({
   bpm,
   beatsPerBar,
+  tempoMap,
+  positionSeconds,
   detecting,
   error,
   octaveShift,
   onFold
 }: TempoPanelProps) {
   const { t } = useLingui()
+  // A single segment is a steady track: show the representative bpm. With more,
+  // the read-out follows the playhead and the whole range is shown beside it.
+  const varies = tempoMap.length > 1
+  const felt = varies ? (tempoAt(tempoMap, positionSeconds) ?? bpm) : bpm
+  const min = Math.round(Math.min(...tempoMap.map((s) => s.bpm)))
+  const max = Math.round(Math.max(...tempoMap.map((s) => s.bpm)))
   return (
     <section
       className={styles.panel}
@@ -44,9 +60,16 @@ export function TempoPanel({
       <span className={styles.label}>
         <Trans id="tempo.label">Tempo</Trans>
       </span>
-      {bpm !== undefined && (
+      {felt !== undefined && (
         <span className={styles.readout}>
-          <Trans id="tempo.bpm">{Math.round(bpm)} BPM</Trans>
+          <Trans id="tempo.bpm">{Math.round(felt)} BPM</Trans>
+        </span>
+      )}
+      {varies && (
+        <span className={styles.range}>
+          <Trans id="tempo.range">
+            {min}–{max} BPM
+          </Trans>
         </span>
       )}
       {bpm !== undefined && beatsPerBar !== undefined && (

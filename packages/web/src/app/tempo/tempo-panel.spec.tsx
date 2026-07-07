@@ -13,6 +13,8 @@ function renderPanel(props: Partial<Parameters<typeof TempoPanel>[0]> = {}) {
     <TempoPanel
       bpm={120}
       beatsPerBar={4}
+      tempoMap={[{ fromSeconds: 0, bpm: 120 }]}
+      positionSeconds={0}
       detecting={false}
       error={undefined}
       octaveShift={0}
@@ -69,6 +71,42 @@ describe('TempoPanel', () => {
     renderPanel({ bpm: undefined })
     expect(
       screen.queryByRole('button', { name: i18n._('tempo.double') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('reads the tempo at the playhead when the tempo varies', () => {
+    // Two segments: 120 from 0 s, 90 from 10 s — the playhead sits in the second.
+    renderPanel({
+      tempoMap: [
+        { fromSeconds: 0, bpm: 120 },
+        { fromSeconds: 10, bpm: 90 }
+      ],
+      positionSeconds: 15
+    })
+    expect(screen.getByText(i18n._('tempo.bpm', { 0: 90 }))).toBeInTheDocument()
+  })
+
+  it('shows the tempo range when the tempo varies', () => {
+    renderPanel({
+      tempoMap: [
+        { fromSeconds: 0, bpm: 120 },
+        { fromSeconds: 10, bpm: 90 }
+      ],
+      positionSeconds: 0
+    })
+    expect(
+      screen.getByText(i18n._('tempo.range', { min: 90, max: 120 }))
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the plain read-out when the tempo is steady', () => {
+    renderPanel({
+      bpm: 120,
+      tempoMap: [{ fromSeconds: 0, bpm: 120 }],
+      positionSeconds: 30
+    })
+    expect(
+      screen.queryByText(i18n._('tempo.range', { min: 120, max: 120 }))
     ).not.toBeInTheDocument()
   })
 })

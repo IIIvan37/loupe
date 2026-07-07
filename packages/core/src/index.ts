@@ -169,12 +169,16 @@ export type {
   BeatGrid,
   DetectedBeat,
   OctaveFactor,
+  TempoMap,
+  TempoSegment,
   TempoValue
 } from './domain/tempo.ts'
 export {
+  buildTempoMap,
   DEFAULT_BEATS_PER_BAR,
   detectMeter,
-  foldTempoOctave
+  foldTempoOctave,
+  tempoAt
 } from './domain/tempo.ts'
 export { formatTimecode } from './domain/timecode.ts'
 export type { Track } from './domain/track.ts'

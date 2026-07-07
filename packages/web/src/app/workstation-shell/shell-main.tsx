@@ -1,5 +1,5 @@
-import type { OctaveFactor } from '@app/core'
-import type { ComponentProps } from 'react'
+import { buildTempoMap, type OctaveFactor } from '@app/core'
+import { type ComponentProps, useMemo } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { LoopControls } from '../loops/loop-controls.tsx'
@@ -79,6 +79,11 @@ export function ShellMain({
       ? separation.state.stems.filter((stem) => !stem.present)
       : []
 
+  // The tempo over time, re-derived from the beat grid (the persisted source of
+  // truth) — a linear pass over a few hundred beats, memoised per grid.
+  const grid = tempo.analysis?.grid
+  const tempoMap = useMemo(() => buildTempoMap(grid ?? []), [grid])
+
   return (
     <div className={styles.body}>
       <main className={styles.main}>
@@ -116,6 +121,8 @@ export function ShellMain({
             <TempoPanel
               bpm={tempo.analysis?.bpm}
               beatsPerBar={tempo.analysis?.beatsPerBar}
+              tempoMap={tempoMap}
+              positionSeconds={positionSeconds}
               detecting={tempo.detecting}
               error={tempo.error}
               octaveShift={tempo.octaveShift}
