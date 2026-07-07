@@ -4,7 +4,18 @@
 
 ## Where we are
 
-- **Now — Tempo Lot B part 2 done, Lot B COMPLETE (2026-07-06)** on branch
+- **Now — évaluation notée v2 (2026-07-06)** : six-axis graded evaluation
+  (fonctionnalités 14 / a11y 15 / UX 15 / design 16 / code 17,5 / sécurité 14,5 —
+  **15,3/20 global**) run after closing roadmap 1 (Lots A–E) and tempo Lot B
+  (PR #67/#68 merged). Output:
+  **[roadmap-excellence-2.md](roadmap-excellence-2.md)** — Lots F (hygiène : cap
+  `/download` 🔴, semaphore `/tempo`, 2 stale READMEs, `_load_mono`), G (confiance
+  UX : two-step suppression repère/boucle, culs-de-sac d'erreur, drop muet),
+  H (a11y live-regions), I (speed trainer / tap-tempo / count-in), J (fond de
+  panier). **Sequencing rule: these lots start only after the in-flight tempo plan
+  closes with its Lot C (tempo-map)** — see
+  [tempo-detection-plan.md](tempo-detection-plan.md).
+- **Prior — Tempo Lot B part 2 done, Lot B COMPLETE (2026-07-06, merged PR #68)** on branch
   `feat/tempo-beat-this-server` (off `main`, part 1 merged as PR #67). The **server
   DSP swap**: `/tempo` now runs CPJKU's **`beat_this`** transformer (beats **and**
   downbeats, MIT, robust to tempo/metre changes) instead of librosa's beat tracker,
