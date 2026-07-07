@@ -38,6 +38,7 @@ import yt_dlp
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
+from .limits import MAX_MANIFEST_BYTES, read_capped_json
 from .projects import store_audio
 
 logger = logging.getLogger("loupe.download")
@@ -182,8 +183,8 @@ def _download_stream(url: str) -> Iterator[bytes]:
 
 @router.post("/download")
 async def download(request: Request) -> StreamingResponse:
-    body = await request.json()
-    url = body.get("url", "")
+    _, body = await read_capped_json(request, MAX_MANIFEST_BYTES)
+    url = body.get("url", "") if isinstance(body, dict) else ""
     return StreamingResponse(
         _download_stream(url),
         media_type="application/x-ndjson",

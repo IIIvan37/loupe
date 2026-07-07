@@ -59,3 +59,48 @@ def test_rejects_streamed_oversize_without_length_header():
 def test_default_caps_are_sane():
     assert limits.MAX_UPLOAD_BYTES == 500 * 1024 * 1024
     assert limits.MAX_MANIFEST_BYTES == 16 * 1024 * 1024
+
+
+def test_read_capped_json_returns_bytes_and_parsed_value():
+    req = FakeRequest([b'{"url": "x"}'])
+    data, body = asyncio.run(limits.read_capped_json(req, 100))
+    assert data == b'{"url": "x"}'
+    assert body == {"url": "x"}
+
+
+def test_read_capped_json_rejects_non_json_as_400():
+    req = FakeRequest([b"not json"])
+    with pytest.raises(HTTPException) as excinfo:
+        asyncio.run(limits.read_capped_json(req, 100, "manifest is not JSON"))
+    assert excinfo.value.status_code == 400
+    assert excinfo.value.detail == "manifest is not JSON"
+
+
+def test_read_capped_json_keeps_the_413_cap():
+    req = FakeRequest([b"x" * 50])
+    with pytest.raises(HTTPException) as excinfo:
+        asyncio.run(limits.read_capped_json(req, 10))
+    assert excinfo.value.status_code == 413
+
+
+def test_concurrency_slots_defaults_to_one_without_env(monkeypatch):
+    monkeypatch.delenv("LOUPE_TEST_SLOTS", raising=False)
+    assert limits.concurrency_slots("LOUPE_TEST_SLOTS") == 1
+
+
+def test_concurrency_slots_reads_the_env(monkeypatch):
+    monkeypatch.setenv("LOUPE_TEST_SLOTS", "4")
+    assert limits.concurrency_slots("LOUPE_TEST_SLOTS") == 4
+
+
+def test_concurrency_slots_floors_zero_at_one(monkeypatch):
+    """0 slots would deadlock every request — the bound is never below 1."""
+    monkeypatch.setenv("LOUPE_TEST_SLOTS", "0")
+    assert limits.concurrency_slots("LOUPE_TEST_SLOTS") == 1
+
+
+def test_concurrency_slots_ignores_garbage(monkeypatch):
+    monkeypatch.setenv("LOUPE_TEST_SLOTS", "-2")
+    assert limits.concurrency_slots("LOUPE_TEST_SLOTS") == 1
+    monkeypatch.setenv("LOUPE_TEST_SLOTS", "many")
+    assert limits.concurrency_slots("LOUPE_TEST_SLOTS") == 1

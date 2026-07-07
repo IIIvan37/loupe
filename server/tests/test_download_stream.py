@@ -78,11 +78,41 @@ def test_extraction_failure_is_generic(monkeypatch):
     assert events[-1] == {"type": "error", "message": "download failed"}
 
 
-def test_download_route_returns_ndjson():
+def _client() -> TestClient:
     app = FastAPI()
     app.include_router(download.router)
-    client = TestClient(app)
-    res = client.post("/download", json={"url": "https://evil.example/x"})
+    return TestClient(app)
+
+
+def test_download_route_returns_ndjson():
+    res = _client().post("/download", json={"url": "https://evil.example/x"})
     assert res.status_code == 200
     assert res.headers["content-type"].startswith("application/x-ndjson")
+    assert "unsupported source URL" in res.text
+
+
+def test_download_body_over_cap_is_413(monkeypatch):
+    """/download must reject an oversized body before buffering it (Lot F.1)."""
+    monkeypatch.setattr(download, "MAX_MANIFEST_BYTES", 8)
+    res = _client().post(
+        "/download",
+        content=b'{"url": "' + b"x" * 64 + b'"}',
+        headers={"content-type": "application/json"},
+    )
+    assert res.status_code == 413
+
+
+def test_download_body_not_json_is_400():
+    res = _client().post(
+        "/download",
+        content=b"not json at all",
+        headers={"content-type": "application/json"},
+    )
+    assert res.status_code == 400
+
+
+def test_download_non_object_json_streams_unsupported_error():
+    """A JSON array has no `url` — it must not crash the route."""
+    res = _client().post("/download", json=[1, 2, 3])
+    assert res.status_code == 200
     assert "unsupported source URL" in res.text

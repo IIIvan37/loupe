@@ -4,7 +4,26 @@
 
 ## Where we are
 
-- **Now — Tempo Lot C done, TEMPO PLAN COMPLETE (2026-07-07)** on branch
+- **Now — roadmap-excellence-2 Lot F done (2026-07-07)** on branch
+  `fix/server-hygiene-lot-f` (off `main`, tempo plan closed with PR #69):
+  **hygiène serveur**, the four debts of the 2026-07-06 evaluation. **F.1** the
+  `/download` body rides the shared cap (413/400 via a new
+  `limits.read_capped_json`, also adopted by `projects.save_project` — the
+  cap-then-parse policy has one home); **F.2** beat_this inference bounded like
+  `/separate` (`LOUPE_MAX_CONCURRENT_TEMPO`), deliberately an **asyncio
+  semaphore in the route** so waiters hold no anyio threadpool token and no
+  decoded signal (review-verified against starlette/anyio); **F.4** WAV decode
+  extracted to torch-free tested [wav_decode.py](../server/app/wav_decode.py)
+  (used by both ML shells; non-16-bit WAVs now refused instead of silently
+  misdecoded; numpy pinned explicitly — a **confirmed torch-free-CI breaker**
+  caught in review); **F.3** `server/README.md` resynced (beat_this, enriched
+  contract, new modules, both concurrency vars). Server pytest **108 passed,
+  97.39 %**, pyright 0; JS gate green — **651 tests** (web untouched); mutation
+  skipped (no core). Deferred, documented: `encode_wav` extraction (round-trip
+  pin of `_save_wav`'s scaling), middleware-level default body cap. **Next:
+  open the PR (watch the server CI job), then Lot G** (confiance utilisateur).
+  See [2026-07-07-server-hygiene-lot-f](sessions/2026-07-07-server-hygiene-lot-f.md).
+- **Prior — Tempo Lot C done, TEMPO PLAN COMPLETE (2026-07-07, merged PR #69)** on branch
   `feat/tempo-map` (off `main`): **variable tempo**. New pure domain
   `TempoSegment`/`TempoMap` + **`buildTempoMap(grid)`** (gap walk, rupture only
   when the running-median deviation is **confirmed by the next gap** — a missed

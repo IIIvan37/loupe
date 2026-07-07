@@ -12,3 +12,6 @@ torchaudio==2.11.0
 beat-this==1.1.0
 rotary-embedding-torch==0.9.1
 yt-dlp==2026.6.9
+# Direct dep of the torch-free WAV decoding (app/wav_decode.py) — would arrive
+# transitively via torch, but the app imports it itself.
+numpy==2.4.6
