@@ -4,7 +4,31 @@
 
 ## Where we are
 
-- **Now — roadmap-excellence-2 Lot G done (2026-07-08)** on branch
+- **Now — roadmap-excellence-2 Lot H done (2026-07-08)** on branch
+  `feat/web-a11y-live-regions` (off `main`, Lot G merged as PR #72): **a11y des
+  opérations longues** — séparation et détection tempo sont enfin audibles pour
+  NVDA/VoiceOver. New `app/ui` primitive
+  [live-status.tsx](../packages/web/src/app/ui/live-status.tsx): a persistent
+  visually-hidden `role="status"` region whose text is written **from an
+  effect** (mount empty, mutate after — a live region only announces what
+  changes once it exists). Separation narrates its steps (never the moving
+  percentage) and a new spoken-only `separation.done` « Pistes séparées »
+  survives the panel stepping aside (fragment root); tempo announces
+  « Analyse… » then the representative BPM (detection wins over a held BPM;
+  the playhead-following read-out is deliberately not announced). High-effort
+  review (8 angles) caught **3 real bugs in the first cut**, fixed test-first:
+  TempoPanel mounts at the instant detection starts (initial content is never
+  spoken), completion was unmounted with the panel, and a retry announced the
+  stale BPM. Specs assert the visible channel with a `visibleOnly` ignore
+  (`[role="status"]`) and the announced channel via `getByRole('status')`;
+  the five hardcoded `'NNN BPM'` shell queries now resolve `tempo.bpm`. Gate
+  **green — 678 tests**, coverage 95,73 %/88,75 %, jscpd 5 clones (unchanged,
+  `.fileInput` now composes the shared `srOnly`), react-doctor 0; mutation
+  skipped (no core). Browser-verify skipped on purpose (only a manual
+  VoiceOver pass would show more than jsdom here). **Next: open the PR, then
+  Lot I** (pratique du tempo, ~2–3 sessions). See
+  [2026-07-08-web-a11y-live-regions](sessions/2026-07-08-web-a11y-live-regions.md).
+- **Prior — roadmap-excellence-2 Lot G done (2026-07-08, merged PR #72)** on branch
   `feat/web-user-trust-lot-g` (off `main`, Lot F merged as PR #70): **confiance
   utilisateur**, the three UX frictions, web-only. **G.1** marker/loop removal
   is a two-step « Confirmer ? » on the same relabeled `EntryRow` button
