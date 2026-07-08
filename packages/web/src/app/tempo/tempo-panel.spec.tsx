@@ -19,6 +19,7 @@ function renderPanel(props: Partial<Parameters<typeof TempoPanel>[0]> = {}) {
       error={undefined}
       octaveShift={0}
       onFold={onFold}
+      onRetry={() => {}}
       {...props}
     />,
     { wrapper: I18nTestingProvider }
@@ -97,6 +98,23 @@ describe('TempoPanel', () => {
     expect(
       screen.getByText(i18n._('tempo.range', { min: 90, max: 120 }))
     ).toBeInTheDocument()
+  })
+
+  it('offers to retry when the detection failed', async () => {
+    const user = userEvent.setup()
+    const onRetry = vi.fn()
+    renderPanel({ bpm: undefined, error: 'server unreachable', onRetry })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('tempo.retry') })
+    )
+    expect(onRetry).toHaveBeenCalled()
+  })
+
+  it('offers no retry while the detection has not failed', () => {
+    renderPanel({ error: undefined })
+    expect(
+      screen.queryByRole('button', { name: i18n._('tempo.retry') })
+    ).not.toBeInTheDocument()
   })
 
   it('keeps the plain read-out when the tempo is steady', () => {

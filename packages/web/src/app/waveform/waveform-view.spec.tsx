@@ -2,6 +2,7 @@
 import '@testing-library/jest-dom/vitest'
 import type { LoopRegion, Track } from '@app/core'
 import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeAll, vi } from 'vitest'
 
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
@@ -36,6 +37,7 @@ function renderLoaded(
       onSeek={noop}
       onSelectRegion={noop}
       onAdjustRegion={noop}
+      onReimport={noop}
       {...overrides}
     />,
     { wrapper: I18nTestingProvider }
@@ -45,6 +47,24 @@ function renderLoaded(
   const container = surface.parentElement as HTMLElement
   container.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
   return { ...view, surface, container }
+}
+
+function renderError(onReimport: () => void = noop) {
+  render(
+    <WaveformView
+      state={{ status: 'error', message: 'EncodingError: bad bytes' }}
+      loopRegion={undefined}
+      loopEnabled
+      beatGrid={[]}
+      mixWaveform={undefined}
+      durationSeconds={0}
+      onSeek={noop}
+      onSelectRegion={noop}
+      onAdjustRegion={noop}
+      onReimport={onReimport}
+    />,
+    { wrapper: I18nTestingProvider }
+  )
 }
 
 describe('WaveformView', () => {
@@ -60,12 +80,30 @@ describe('WaveformView', () => {
         onSeek={noop}
         onSelectRegion={noop}
         onAdjustRegion={noop}
+        onReimport={noop}
       />,
       { wrapper: I18nTestingProvider }
     )
     expect(
       screen.getByText(i18n._('waveform.import-hint'))
     ).toBeInTheDocument()
+  })
+
+  it('explains an import failure in plain words', () => {
+    renderError()
+    expect(
+      screen.getByText(i18n._('waveform.import-error'))
+    ).toBeInTheDocument()
+  })
+
+  it('offers to import another file from the error stage', async () => {
+    const user = userEvent.setup()
+    const onReimport = vi.fn()
+    renderError(onReimport)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('waveform.reimport') })
+    )
+    expect(onReimport).toHaveBeenCalled()
   })
 
   it('seeks on a click (no drag)', () => {
@@ -112,6 +150,7 @@ describe('WaveformView', () => {
         onSeek={noop}
         onSelectRegion={noop}
         onAdjustRegion={noop}
+        onReimport={noop}
       />
     )
     expect(

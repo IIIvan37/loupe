@@ -19,42 +19,42 @@ msgid "alerts.close"
 msgstr "Fermer l'alerte"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:115
+#: src/app/analysis-panel/analysis-panel.tsx:126
 msgid "analysis.no-loops"
 msgstr "Aucune boucle. En enregistrer une depuis une sélection A/B sur la forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:76
+#: src/app/analysis-panel/analysis-panel.tsx:80
 msgid "analysis.no-markers"
 msgstr "Aucun repère. En ajouter depuis la barre de repères."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:156
+#: src/app/analysis-panel/analysis-panel.tsx:174
 msgid "analysis.notes-placeholder"
 msgstr "Les annotations textuelles arriveront plus tard."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:68
+#: src/app/analysis-panel/analysis-panel.tsx:72
 msgid "analysis.spectrum-placeholder"
 msgstr "L'analyse spectrale arrivera avec la détection (jalon ultérieur)."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:60
+#: src/app/analysis-panel/analysis-panel.tsx:64
 msgid "analysis.tab-loops"
 msgstr "Boucles"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:57
+#: src/app/analysis-panel/analysis-panel.tsx:61
 msgid "analysis.tab-markers"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:63
+#: src/app/analysis-panel/analysis-panel.tsx:67
 msgid "analysis.tab-notes"
 msgstr "Notes"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:54
+#: src/app/analysis-panel/analysis-panel.tsx:58
 msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
@@ -71,6 +71,7 @@ msgid "common.close"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:258
 #: src/app/header/import-menu.tsx:117
 #: src/projects/projects-dialog.tsx:81
 msgid "common.confirm"
@@ -87,7 +88,7 @@ msgid "common.name"
 msgstr "Nom"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:209
+#: src/app/analysis-panel/analysis-panel.tsx:243
 #: src/projects/projects-dialog.tsx:183
 msgid "common.rename"
 msgstr "Renommer"
@@ -121,6 +122,11 @@ msgstr "Remplacer la session ?"
 #: src/app/workstation-shell/shell-drop-layer.tsx:38
 msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/workstation-shell.tsx:326
+msgid "drop.unsupported"
+msgstr "Format non supporté — déposer un fichier audio."
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/empty-state.tsx:28
@@ -170,7 +176,7 @@ msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:120
-#: src/app/workstation-shell/workstation-shell.tsx:175
+#: src/app/workstation-shell/workstation-shell.tsx:176
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
@@ -306,22 +312,27 @@ msgid "loops.clear-region"
 msgstr "Effacer"
 
 #. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:158
+msgid "loops.confirm-remove"
+msgstr "Confirmer la suppression de {name}"
+
+#. js-lingui-explicit-id
 #: src/app/loops/loop-controls.tsx:61
 msgid "loops.inactive"
 msgstr "Boucle inactive"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:143
+#: src/app/analysis-panel/analysis-panel.tsx:154
 msgid "loops.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:136
+#: src/app/analysis-panel/analysis-panel.tsx:147
 msgid "loops.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:132
+#: src/app/analysis-panel/analysis-panel.tsx:143
 msgid "loops.rename-title"
 msgstr "Renommer la boucle"
 
@@ -341,6 +352,11 @@ msgid "markers.add"
 msgstr "+ Repère"
 
 #. js-lingui-explicit-id
+#: src/app/analysis-panel/analysis-panel.tsx:108
+msgid "markers.confirm-remove"
+msgstr "Confirmer la suppression de {name}"
+
+#. js-lingui-explicit-id
 #: src/app/markers/use-markers.ts:14
 msgid "markers.default-name"
 msgstr "Repère {number}"
@@ -356,17 +372,17 @@ msgid "markers.go-to"
 msgstr "Aller à {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:100
+#: src/app/analysis-panel/analysis-panel.tsx:104
 msgid "markers.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:95
+#: src/app/analysis-panel/analysis-panel.tsx:99
 msgid "markers.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:91
+#: src/app/analysis-panel/analysis-panel.tsx:95
 msgid "markers.rename-title"
 msgstr "Renommer le repère"
 
@@ -386,7 +402,7 @@ msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-stage.tsx:88
+#: src/app/workstation-shell/shell-stage.tsx:91
 msgid "mixer.mix-label"
 msgstr "Mix"
 
@@ -608,44 +624,49 @@ msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
 #. placeholder {0}: Math.round(felt)
-#: src/app/tempo/tempo-panel.tsx:65
+#: src/app/tempo/tempo-panel.tsx:68
 msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:110
+#: src/app/tempo/tempo-panel.tsx:113
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:99
+#: src/app/tempo/tempo-panel.tsx:102
 msgid "tempo.double"
 msgstr "Doubler le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:87
+#: src/app/tempo/tempo-panel.tsx:90
 msgid "tempo.halve"
 msgstr "Diviser le tempo par deux"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:61
+#: src/app/tempo/tempo-panel.tsx:64
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:77
+#: src/app/tempo/tempo-panel.tsx:80
 msgid "tempo.meter"
 msgstr "{beatsPerBar} temps"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:70
+#: src/app/tempo/tempo-panel.tsx:73
 msgid "tempo.range"
 msgstr "{min}–{max} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:58
+#: src/app/tempo/tempo-panel.tsx:61
 msgid "tempo.region-label"
 msgstr "Tempo"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:123
+msgid "tempo.retry"
+msgstr "Réessayer"
 
 #. js-lingui-explicit-id
 #: src/app/ui/toast-region.tsx:18
@@ -658,7 +679,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:167
+#: src/app/workstation-shell/workstation-shell.tsx:168
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
@@ -723,29 +744,39 @@ msgid "transport.tempo-slider"
 msgstr "Tempo en pourcentage"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:189
+#: src/app/waveform/waveform-view.tsx:192
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:181
+#: src/app/waveform/waveform-view.tsx:202
+msgid "waveform.import-error"
+msgstr "L'import a échoué : ce fichier n'a pas pu être lu."
+
+#. js-lingui-explicit-id
+#: src/app/waveform/waveform-view.tsx:184
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:231
+#: src/app/waveform/waveform-view.tsx:249
 msgid "waveform.mix-image"
 msgstr "Forme d'onde du mix"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:301
+#: src/app/waveform/waveform-view.tsx:319
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:289
+#: src/app/waveform/waveform-view.tsx:307
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/waveform-view.tsx:212
+msgid "waveform.reimport"
+msgstr "Importer un autre fichier"
 
 #. js-lingui-explicit-id
 #: src/app/mixer/stem-lanes.tsx:42
@@ -753,12 +784,12 @@ msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:221
+#: src/app/waveform/waveform-view.tsx:239
 msgid "waveform.surface"
 msgstr "Forme d'onde : clic pour se positionner, glisser pour boucler"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:239
+#: src/app/waveform/waveform-view.tsx:257
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 

@@ -29,6 +29,8 @@ interface WaveformViewProps {
   readonly onSelectRegion: (startRatio: number, endRatio: number) => void
   /** Moving a handle (or arrow-nudging it) adjusts the existing region in place. */
   readonly onAdjustRegion: (startRatio: number, endRatio: number) => void
+  /** Open the file picker again — the way out of a failed import. */
+  readonly onReimport: () => void
 }
 
 // Below this drag distance (fraction of the width) a press counts as a click.
@@ -61,7 +63,8 @@ export function WaveformView({
   durationSeconds,
   onSeek,
   onSelectRegion,
-  onAdjustRegion
+  onAdjustRegion,
+  onReimport
 }: WaveformViewProps) {
   const { t } = useLingui()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -190,10 +193,25 @@ export function WaveformView({
         </p>
       )
     case 'error':
+      // Not a dead-end: a plain-words explanation (the decoder's message is
+      // technical and untranslated — kept below as the diagnostic detail) and
+      // the way out, straight back into the file picker.
       return (
-        <p role="alert" className={styles.error}>
-          {state.message}
-        </p>
+        <div className={styles.errorStage}>
+          <p role="alert" className={styles.error}>
+            <Trans id="waveform.import-error">
+              L'import a échoué : ce fichier n'a pas pu être lu.
+            </Trans>
+          </p>
+          <p className={styles.errorDetail}>{state.message}</p>
+          <button
+            type="button"
+            className={styles.reimport}
+            onClick={onReimport}
+          >
+            <Trans id="waveform.reimport">Importer un autre fichier</Trans>
+          </button>
+        </div>
       )
     case 'loaded': {
       const committed = loopRatios(loopRegion, durationSeconds)

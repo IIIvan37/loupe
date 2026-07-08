@@ -26,6 +26,8 @@ interface TempoPanelProps {
   readonly octaveShift: number
   /** Fold the tempo an octave: ×2 doubles the felt tempo, ÷2 halves it. */
   readonly onFold: (factor: OctaveFactor) => void
+  /** Relaunch the detection after a failure — no reimport needed. */
+  readonly onRetry: () => void
 }
 
 /**
@@ -43,7 +45,8 @@ export function TempoPanel({
   detecting,
   error,
   octaveShift,
-  onFold
+  onFold,
+  onRetry
 }: TempoPanelProps) {
   const { t } = useLingui()
   // A single segment is a steady track: show the representative bpm. With more,
@@ -111,9 +114,14 @@ export function TempoPanel({
         </span>
       )}
       {error !== undefined && (
-        <span role="alert" className={styles.error}>
-          {error}
-        </span>
+        <>
+          <span role="alert" className={styles.error}>
+            {error}
+          </span>
+          <button type="button" className={styles.retry} onClick={onRetry}>
+            <Trans id="tempo.retry">Réessayer</Trans>
+          </button>
+        </>
       )}
     </section>
   )

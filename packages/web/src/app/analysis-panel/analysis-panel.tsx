@@ -9,6 +9,7 @@ import { Tabs } from '@base-ui-components/react/tabs'
 import { cx } from '../../lib/cx.ts'
 import { Icon } from '../ui/icon.tsx'
 import { NameEditor } from '../ui/name-editor.tsx'
+import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
 import styles from './analysis-panel.module.css'
 
 interface AnalysisPanelProps {
@@ -46,6 +47,9 @@ export function AnalysisPanel({
   onRemoveLoop
 }: AnalysisPanelProps) {
   const { t } = useLingui()
+  // One armed removal at a time across both lists — ids are prefixed by kind
+  // so a marker and a loop sharing an id can never arm each other.
+  const { pending: armedRemove, arm, disarm } = useTwoStepConfirm<string>()
   return (
     <aside className={styles.panel}>
       <Tabs.Root defaultValue="reperes">
@@ -101,6 +105,13 @@ export function AnalysisPanel({
                       id: 'markers.remove-named',
                       message: `Supprimer ${name}`
                     })}
+                    confirmRemoveLabel={t({
+                      id: 'markers.confirm-remove',
+                      message: `Confirmer la suppression de ${name}`
+                    })}
+                    removeArmed={armedRemove === `marker:${marker.id}`}
+                    onArmRemove={() => arm(`marker:${marker.id}`)}
+                    onDisarmRemove={disarm}
                     onRemove={() => onRemoveMarker(marker.id)}
                   />
                 )
@@ -144,6 +155,13 @@ export function AnalysisPanel({
                       id: 'loops.remove-named',
                       message: `Supprimer ${name}`
                     })}
+                    confirmRemoveLabel={t({
+                      id: 'loops.confirm-remove',
+                      message: `Confirmer la suppression de ${name}`
+                    })}
+                    removeArmed={armedRemove === `loop:${loop.id}`}
+                    onArmRemove={() => arm(`loop:${loop.id}`)}
+                    onDisarmRemove={disarm}
                     onRemove={() => onRemoveLoop(loop.id)}
                   />
                 )
@@ -174,6 +192,12 @@ interface EntryRowProps {
   readonly renameLabel: string
   readonly onRename: (name: string) => void
   readonly removeLabel: string
+  /** aria-label of the armed « Confirmer ? » face. */
+  readonly confirmRemoveLabel: string
+  /** Whether this row's removal awaits its confirming second activation. */
+  readonly removeArmed: boolean
+  readonly onArmRemove: () => void
+  readonly onDisarmRemove: () => void
   readonly onRemove: () => void
 }
 
@@ -187,9 +211,19 @@ function EntryRow({
   renameLabel,
   onRename,
   removeLabel,
+  confirmRemoveLabel,
+  removeArmed,
+  onArmRemove,
+  onDisarmRemove,
   onRemove
 }: EntryRowProps) {
   const { t } = useLingui()
+
+  function confirmRemove(): void {
+    onDisarmRemove()
+    onRemove()
+  }
+
   return (
     <li className={styles.entryItem}>
       <button
@@ -210,13 +244,21 @@ function EntryRow({
         initialName={name}
         onSubmit={onRename}
       />
+      {/* Two-step removal on ONE button element for both faces — swapping
+          elements would drop focus mid-confirmation (see RowAction in the
+          projects dialog, the pattern this mirrors). */}
       <button
         type="button"
-        className={styles.entryRemove}
-        aria-label={removeLabel}
-        onClick={onRemove}
+        className={cx(styles.entryRemove, removeArmed && styles.entryConfirm)}
+        aria-label={removeArmed ? confirmRemoveLabel : removeLabel}
+        onBlur={removeArmed ? onDisarmRemove : undefined}
+        onClick={removeArmed ? confirmRemove : onArmRemove}
       >
-        <Icon name="close" />
+        {removeArmed ? (
+          <Trans id="common.confirm">Confirmer ?</Trans>
+        ) : (
+          <Icon name="close" />
+        )}
       </button>
     </li>
   )

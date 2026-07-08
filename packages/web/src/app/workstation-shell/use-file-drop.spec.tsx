@@ -8,9 +8,17 @@ function audioFile(): File {
   return new File([new Uint8Array([1])], 'take.wav', { type: 'audio/wav' })
 }
 
+const noRejection = () => {}
+
 /** A thin harness: the hook drives a full-surface drop region. */
-function Harness({ onFile }: { readonly onFile: (file: File) => void }) {
-  const { isDraggingFile, dropHandlers } = useFileDrop(onFile)
+function Harness({
+  onFile,
+  onRejected = noRejection
+}: {
+  readonly onFile: (file: File) => void
+  readonly onRejected?: () => void
+}) {
+  const { isDraggingFile, dropHandlers } = useFileDrop(onFile, onRejected)
   return (
     <div data-testid="zone" {...dropHandlers}>
       {isDraggingFile ? 'dragging' : 'idle'}
@@ -87,7 +95,7 @@ describe('useFileDrop', () => {
     expect(zone).toHaveTextContent('idle')
   })
 
-  it('drops a non-audio file silently — no import, flag cleared', () => {
+  it('drops a non-audio file without importing — flag cleared', () => {
     const onFile = vi.fn()
     render(<Harness onFile={onFile} />)
     const zone = screen.getByTestId('zone')
@@ -98,5 +106,36 @@ describe('useFileDrop', () => {
 
     expect(onFile).not.toHaveBeenCalled()
     expect(zone).toHaveTextContent('idle')
+  })
+
+  it('signals the rejection when the dropped files hold no audio', () => {
+    const onRejected = vi.fn()
+    render(<Harness onFile={vi.fn()} onRejected={onRejected} />)
+    const zone = screen.getByTestId('zone')
+    const png = new File([new Uint8Array([1])], 'cover.png', { type: 'image/png' })
+
+    fireEvent.drop(zone, fileTransfer([png]))
+
+    expect(onRejected).toHaveBeenCalled()
+  })
+
+  it('signals no rejection for an accepted audio drop', () => {
+    const onRejected = vi.fn()
+    render(<Harness onFile={vi.fn()} onRejected={onRejected} />)
+    const zone = screen.getByTestId('zone')
+
+    fireEvent.drop(zone, fileTransfer([audioFile()]))
+
+    expect(onRejected).not.toHaveBeenCalled()
+  })
+
+  it('signals no rejection for a drop that carries no files (e.g. text)', () => {
+    const onRejected = vi.fn()
+    render(<Harness onFile={vi.fn()} onRejected={onRejected} />)
+    const zone = screen.getByTestId('zone')
+
+    fireEvent.drop(zone, { dataTransfer: { files: [], types: ['text/plain'] } })
+
+    expect(onRejected).not.toHaveBeenCalled()
   })
 })

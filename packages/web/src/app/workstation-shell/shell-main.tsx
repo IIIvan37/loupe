@@ -40,6 +40,10 @@ interface ShellMainProps {
   readonly onSeekRatio: (ratio: number) => void
   /** Fold the detected tempo an octave (×2 / ÷2) and re-seat the click. */
   readonly onFoldTempo: (factor: OctaveFactor) => void
+  /** Relaunch a failed tempo detection (the panel's « Réessayer »). */
+  readonly onRetryTempo: () => void
+  /** Reopen the file picker — the way out of a failed import. */
+  readonly onReimport: () => void
   readonly canSeparate: boolean
   readonly serverHealth: ServerHealth
   readonly onSeparate: () => void
@@ -68,6 +72,8 @@ export function ShellMain({
   onToggleLoop,
   onSeekSeconds,
   onFoldTempo,
+  onRetryTempo,
+  onReimport,
   onSeekRatio,
   canSeparate,
   serverHealth,
@@ -116,6 +122,7 @@ export function ShellMain({
             loopEnabled={loopEnabled}
             onSeekSeconds={onSeekSeconds}
             onSeekRatio={onSeekRatio}
+            onReimport={onReimport}
           />
           {isLoaded && (
             <TempoPanel
@@ -127,6 +134,7 @@ export function ShellMain({
               error={tempo.error}
               octaveShift={tempo.octaveShift}
               onFold={onFoldTempo}
+              onRetry={onRetryTempo}
             />
           )}
           <LoopControls
