@@ -117,6 +117,63 @@ describe('TempoPanel', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('announces the analysis to screen readers', () => {
+    renderPanel({ bpm: undefined, beatsPerBar: undefined, detecting: true })
+    expect(screen.getByRole('status')).toHaveTextContent(
+      i18n._('tempo.detecting')
+    )
+  })
+
+  it('announces the detected BPM once it lands', () => {
+    const { rerender } = render(
+      <TempoPanel
+        bpm={undefined}
+        beatsPerBar={undefined}
+        tempoMap={[]}
+        positionSeconds={0}
+        detecting={true}
+        error={undefined}
+        octaveShift={0}
+        onFold={() => {}}
+        onRetry={() => {}}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+    rerender(
+      <TempoPanel
+        bpm={120}
+        beatsPerBar={4}
+        tempoMap={[{ fromSeconds: 0, bpm: 120 }]}
+        positionSeconds={0}
+        detecting={false}
+        error={undefined}
+        octaveShift={0}
+        onFold={() => {}}
+        onRetry={() => {}}
+      />
+    )
+    expect(screen.getByRole('status')).toHaveTextContent(
+      i18n._('tempo.bpm', { 0: 120 })
+    )
+  })
+
+  it('keeps the playhead-following read-out out of the live region', () => {
+    // On a varying track the visible read-out follows the playhead; the live
+    // region announces the representative BPM only, or every segment change
+    // during playback would be spoken.
+    renderPanel({
+      bpm: 120,
+      tempoMap: [
+        { fromSeconds: 0, bpm: 120 },
+        { fromSeconds: 10, bpm: 90 }
+      ],
+      positionSeconds: 15
+    })
+    expect(screen.getByRole('status')).toHaveTextContent(
+      i18n._('tempo.bpm', { 0: 120 })
+    )
+  })
+
   it('keeps the plain read-out when the tempo is steady', () => {
     renderPanel({
       bpm: 120,

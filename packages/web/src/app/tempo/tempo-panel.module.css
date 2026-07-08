@@ -53,3 +53,7 @@
   padding: var(--space-2xs) var(--space-xs);
   font-size: var(--font-size-s);
 }
+
+.srStatus {
+  composes: srOnly from '../ui/controls.module.css';
+}

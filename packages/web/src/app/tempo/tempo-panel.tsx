@@ -1,5 +1,6 @@
 import { type OctaveFactor, type TempoMap, tempoAt } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { i18n } from '../../i18n/i18n.ts'
 import styles from './tempo-panel.module.css'
 
 /** The furthest the tempo may be folded from the detection, either way. */
@@ -62,6 +63,17 @@ export function TempoPanel({
     >
       <span className={styles.label}>
         <Trans id="tempo.label">Tempo</Trans>
+      </span>
+      {/* Persistent live region: « Analyse… » when detection starts, the
+          representative BPM when it lands (re-announced on an octave fold).
+          Not the playhead-following read-out — a varying track would be
+          spoken at every segment change during playback. */}
+      <span role="status" className={styles.srStatus}>
+        {bpm !== undefined
+          ? i18n._('tempo.bpm', { 0: Math.round(bpm) })
+          : detecting
+            ? i18n._('tempo.detecting')
+            : undefined}
       </span>
       {felt !== undefined && (
         <span className={styles.readout}>

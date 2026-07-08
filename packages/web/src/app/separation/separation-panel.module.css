@@ -63,3 +63,7 @@
   font-size: var(--font-size-xs);
   color: var(--dim);
 }
+
+.srStatus {
+  composes: srOnly from '../ui/controls.module.css';
+}

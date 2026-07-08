@@ -258,6 +258,10 @@ function savedLoop(name: string): RegExp {
   return new RegExp(`^(?!Renommer|Supprimer).*${name}$`)
 }
 
+/* The tempo read-out is mirrored into a visually-hidden live region for screen
+ * readers; these queries assert the VISIBLE read-out, so skip that channel. */
+const visibleOnly = { ignore: 'script, style, [role="status"]' }
+
 describe('WorkstationShell', () => {
   // Picker tests spy on HTMLInputElement.prototype.click — restore even when
   // an assertion failed mid-test, so no spy (or its counts) leaks onward.
@@ -305,7 +309,7 @@ describe('WorkstationShell', () => {
     await importTrack(user)
 
     // No click of a button — detection runs on its own once the track loads.
-    expect(await screen.findByText('128 BPM')).toBeInTheDocument()
+    expect(await screen.findByText('128 BPM', visibleOnly)).toBeInTheDocument()
     expect(document.querySelectorAll('[data-beat]')).toHaveLength(3)
   })
 
@@ -327,7 +331,7 @@ describe('WorkstationShell', () => {
     await user.click(
       await screen.findByRole('button', { name: i18n._('tempo.retry') })
     )
-    expect(await screen.findByText('128 BPM')).toBeInTheDocument()
+    expect(await screen.findByText('128 BPM', visibleOnly)).toBeInTheDocument()
   })
 
   it('keeps the separated stems when a tempo retry succeeds after separation', async () => {
@@ -358,7 +362,7 @@ describe('WorkstationShell', () => {
     await user.click(
       screen.getByRole('button', { name: i18n._('tempo.retry') })
     )
-    await screen.findByText('120 BPM')
+    await screen.findByText('120 BPM', visibleOnly)
 
     expect(
       screen.getByRole('button', {
@@ -404,7 +408,7 @@ describe('WorkstationShell', () => {
       tempoDetector: { detect }
     })
     await importTrack(user)
-    await screen.findByText('120 BPM')
+    await screen.findByText('120 BPM', visibleOnly)
     await saveProjectAs(user, 'Avec métronome')
 
     await user.click(
@@ -416,7 +420,7 @@ describe('WorkstationShell', () => {
 
     // The BPM and the click stem are back — seated from the manifest, so the
     // detector is never asked a second time (no server on reopen).
-    expect(await screen.findByText('120 BPM')).toBeInTheDocument()
+    expect(await screen.findByText('120 BPM', visibleOnly)).toBeInTheDocument()
     expect(
       await screen.findByRole('button', {
         name: i18n._('mixer.download-wav', { name: 'Métronome' })

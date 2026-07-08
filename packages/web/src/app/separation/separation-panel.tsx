@@ -81,6 +81,13 @@ export function SeparationPanel({
         message: 'Séparation des pistes'
       })}
     >
+      {/* Persistent live region: it must exist BEFORE a run starts or screen
+          readers never hear the step change. Steps only — the moving
+          percentage stays outside to avoid announcement spam. */}
+      <span role="status" className={styles.srStatus}>
+        {isRunning ? i18n._(PROGRESS_LABELS[state.status]) : undefined}
+      </span>
+
       {!isRunning && (
         <button
           type="button"
