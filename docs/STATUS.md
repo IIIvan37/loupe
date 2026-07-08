@@ -22,9 +22,10 @@
   pre-existing slow-detect race), and the drop warning clears once any import
   reaches `loading`. Gate **green — 666 tests**, coverage 95,71 %/88,72 %,
   jscpd 5 clones (unchanged), react-doctor 0; mutation skipped (no core).
-  Browser-verify: quick eye pass pending (armed confirm face, error-stage
-  layout, banner stacking). **Next: open the PR, then Lot H** (a11y live-regions,
-  ~½ session). See
+  Browser-verify **done** (real Chrome): armed confirm face fits the tight
+  rows, error-stage layout clean (reimport exit used live), drop banner shows
+  and clears on the next import. **Next: open the PR, then Lot H** (a11y
+  live-regions, ~½ session). See
   [2026-07-08-web-user-trust-lot-g](sessions/2026-07-08-web-user-trust-lot-g.md).
 - **Prior — roadmap-excellence-2 Lot F done (2026-07-07, merged PR #70)** on branch
   `fix/server-hygiene-lot-f` (off `main`, tempo plan closed with PR #69):
