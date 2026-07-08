@@ -22,10 +22,15 @@ function carriesFiles(event: DragEvent): boolean {
  * Native OS-file-drop as a humble hook: it tracks whether a file is being
  * dragged over the surface (via a dragenter/dragleave depth counter, so
  * crossing into a child never flickers the overlay off) and, on drop, hands the
- * first audio file to `onFile`. Non-file drags and non-audio drops are ignored.
- * All decidable logic lives in the pure `pickAudioFile`.
+ * first audio file to `onFile`. A drop whose files hold no audio signals
+ * `onRejected` (the shell warns); a drop carrying no files at all (dragged
+ * text, links) stays silent. All decidable logic lives in the pure
+ * `pickAudioFile`.
  */
-export function useFileDrop(onFile: (file: File) => void): FileDrop {
+export function useFileDrop(
+  onFile: (file: File) => void,
+  onRejected: () => void
+): FileDrop {
   const [isDraggingFile, setIsDraggingFile] = useState(false)
   // dragenter/dragleave fire per element, including children — count the depth
   // so the overlay only clears when the drag has truly left the surface.
@@ -62,12 +67,19 @@ export function useFileDrop(onFile: (file: File) => void): FileDrop {
       event.preventDefault()
       depth.current = 0
       setIsDraggingFile(false)
-      const file = pickAudioFile(Array.from(event.dataTransfer?.files ?? []))
+      const files = Array.from(event.dataTransfer?.files ?? [])
+      const file = pickAudioFile(files)
       if (file) {
         onFile(file)
+        return
+      }
+      // Only a real file drop warrants the warning — text/link drops are not
+      // an import attempt.
+      if (files.length > 0) {
+        onRejected()
       }
     },
-    [onFile]
+    [onFile, onRejected]
   )
 
   return {

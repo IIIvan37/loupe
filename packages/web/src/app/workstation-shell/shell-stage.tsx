@@ -31,6 +31,8 @@ interface ShellStageProps {
   readonly loopEnabled: boolean
   readonly onSeekSeconds: (seconds: number) => void
   readonly onSeekRatio: (ratio: number) => void
+  /** Reopen the file picker — the error stage's way out of a failed import. */
+  readonly onReimport: () => void
 }
 
 /**
@@ -52,7 +54,8 @@ export function ShellStage({
   loopRegion,
   loopEnabled,
   onSeekSeconds,
-  onSeekRatio
+  onSeekRatio,
+  onReimport
 }: ShellStageProps) {
   // Fold the present stems back into one envelope — the waveform of the audible
   // mix, each stem weighted by its effective gain so muting/soloing reshapes it.
@@ -115,6 +118,7 @@ export function ShellStage({
           onSeek={onSeekRatio}
           onSelectRegion={loopEditing.selectRegion}
           onAdjustRegion={loopEditing.adjustRegion}
+          onReimport={onReimport}
         />
         <StemLanes channels={mixer.channels} />
       </ZoomStage>

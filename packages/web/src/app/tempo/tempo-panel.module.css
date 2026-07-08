@@ -47,3 +47,9 @@
   color: var(--accent);
   font-size: var(--font-size-s);
 }
+
+.retry {
+  composes: ghostButton from '../ui/controls.module.css';
+  padding: var(--space-2xs) var(--space-xs);
+  font-size: var(--font-size-s);
+}

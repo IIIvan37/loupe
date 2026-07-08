@@ -62,7 +62,7 @@ describe('AnalysisPanel', () => {
     expect(onRenameMarker).toHaveBeenCalledWith('a', 'Intro')
   })
 
-  it('removes a marker', async () => {
+  it('arms the marker removal instead of removing on the first click', async () => {
     const user = userEvent.setup()
     const onRemoveMarker = vi.fn()
     renderPanel({ onRemoveMarker })
@@ -71,7 +71,40 @@ describe('AnalysisPanel', () => {
         name: i18n._('markers.remove-named', { name: 'Repère 1' })
       })
     )
+    expect(onRemoveMarker).not.toHaveBeenCalled()
+  })
+
+  it('removes a marker on the confirming second click', async () => {
+    const user = userEvent.setup()
+    const onRemoveMarker = vi.fn()
+    renderPanel({ onRemoveMarker })
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('markers.remove-named', { name: 'Repère 1' })
+      })
+    )
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('markers.confirm-remove', { name: 'Repère 1' })
+      })
+    )
     expect(onRemoveMarker).toHaveBeenCalledWith('a')
+  })
+
+  it('disarms the marker removal when the armed button loses focus', async () => {
+    const user = userEvent.setup()
+    renderPanel()
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('markers.remove-named', { name: 'Repère 1' })
+      })
+    )
+    await user.tab()
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('markers.remove-named', { name: 'Repère 1' })
+      })
+    ).toBeInTheDocument()
   })
 
   it('invites adding markers when there are none', () => {
@@ -120,7 +153,7 @@ describe('AnalysisPanel', () => {
     })
   })
 
-  it('removes a saved loop', async () => {
+  it('arms the loop removal instead of removing on the first click', async () => {
     const user = userEvent.setup()
     const onRemoveLoop = vi.fn()
     renderPanel({ onRemoveLoop })
@@ -130,6 +163,26 @@ describe('AnalysisPanel', () => {
     await user.click(
       screen.getByRole('button', {
         name: i18n._('loops.remove-named', { name: 'Refrain' })
+      })
+    )
+    expect(onRemoveLoop).not.toHaveBeenCalled()
+  })
+
+  it('removes a saved loop on the confirming second click', async () => {
+    const user = userEvent.setup()
+    const onRemoveLoop = vi.fn()
+    renderPanel({ onRemoveLoop })
+    await user.click(
+      screen.getByRole('tab', { name: i18n._('analysis.tab-loops') })
+    )
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('loops.remove-named', { name: 'Refrain' })
+      })
+    )
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('loops.confirm-remove', { name: 'Refrain' })
       })
     )
     expect(onRemoveLoop).toHaveBeenCalledWith('l')

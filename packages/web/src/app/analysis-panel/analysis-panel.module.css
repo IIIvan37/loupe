@@ -110,6 +110,16 @@
   background: var(--panel-3);
 }
 
+/* The armed « Confirmer ? » face — same destructive accent as the projects
+   dialog; an inset outline so arming never shifts the row's geometry. */
+.entryConfirm,
+.entryConfirm:hover {
+  color: var(--stem-vocals);
+  outline: 1px solid var(--stem-vocals);
+  outline-offset: -1px;
+  white-space: nowrap;
+}
+
 .entryTime {
   color: var(--amber);
   font-family: var(--font-mono);

@@ -309,6 +309,64 @@ describe('WorkstationShell', () => {
     expect(document.querySelectorAll('[data-beat]')).toHaveLength(3)
   })
 
+  it('relaunches a failed tempo detection from the panel', async () => {
+    // The first run fails (server unreachable), the retry succeeds.
+    let runs = 0
+    const detector = {
+      detect: async () => {
+        runs += 1
+        if (runs === 1) {
+          throw new Error('server unreachable')
+        }
+        return { bpm: 128, beats: beatsAt([0, 0.47, 0.94]) }
+      }
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('tempo.retry') })
+    )
+    expect(await screen.findByText('128 BPM')).toBeInTheDocument()
+  })
+
+  it('keeps the separated stems when a tempo retry succeeds after separation', async () => {
+    // Detection fails on import; the user separates; only then does a retry
+    // land — the late result must not re-seat the mixer over the stems.
+    let runs = 0
+    const detector = {
+      detect: async () => {
+        runs += 1
+        if (runs === 1) {
+          throw new Error('server unreachable')
+        }
+        return { bpm: 120, beats: beatsAt([0, 0.5, 1]) }
+      }
+    }
+    const { user } = renderShell({
+      separator: fakeSeparator(),
+      tempoDetector: detector
+    })
+    await importTrack(user)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    )
+    await screen.findByRole('button', {
+      name: i18n._('mixer.download-wav', { name: 'Voix' })
+    })
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('tempo.retry') })
+    )
+    await screen.findByText('120 BPM')
+
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Voix' })
+      })
+    ).toBeInTheDocument()
+  })
+
   it('shows the metronome as a mixer stem automatically once detected', async () => {
     const detector = {
       detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
@@ -580,9 +638,13 @@ describe('WorkstationShell', () => {
       screen.getByLabelText(i18n._('header.import-file')),
       audioFile()
     )
+    // The alert speaks plain words; the technical detail stays visible beside it.
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('unsupported format')
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        i18n._('waveform.import-error')
+      )
     })
+    expect(screen.getByText('unsupported format')).toBeInTheDocument()
   })
 
   it('plays and pauses via the transport button, driving the engine', async () => {
@@ -799,7 +861,9 @@ describe('WorkstationShell', () => {
     await user.click(goto)
     expect(engine.seekTo).toHaveBeenCalledWith(5)
 
+    // Removal is a two-step confirm: arm, then confirm on the same button.
     await user.click(screen.getByRole('button', { name: i18n._('markers.remove-named', { name: i18n._('markers.default-name', { number: 1 }) }) }))
+    await user.click(screen.getByRole('button', { name: i18n._('markers.confirm-remove', { name: i18n._('markers.default-name', { number: 1 }) }) }))
     expect(
       screen.queryByRole('button', { name: i18n._('markers.go-to', { name: i18n._('markers.default-name', { number: 1 }) }) })
     ).not.toBeInTheDocument()
@@ -894,8 +958,10 @@ describe('WorkstationShell', () => {
     ).not.toBeInTheDocument()
 
     // Removing that loop orphans the region — it must read as unsaved again.
+    // Removal is a two-step confirm: arm, then confirm on the same button.
     await openLoops(user)
     await user.click(screen.getByRole('button', { name: i18n._('loops.remove-named', { name: 'Refrain' }) }))
+    await user.click(screen.getByRole('button', { name: i18n._('loops.confirm-remove', { name: 'Refrain' }) }))
 
     expect(
       await screen.findByRole('button', { name: i18n._('loops.save-region') })
@@ -1648,6 +1714,40 @@ describe('WorkstationShell', () => {
 
     // The empty-state hero is untouched — nothing was imported.
     expect(screen.getByText(i18n._('empty.headline'))).toBeInTheDocument()
+  })
+
+  it('warns when a drop holds no supported audio file', () => {
+    renderShell()
+    const png = new File([new Uint8Array([1])], 'cover.png', { type: 'image/png' })
+
+    fireEvent.drop(shellRoot(), fileTransfer([png]))
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      i18n._('drop.unsupported')
+    )
+  })
+
+  it('clears the unsupported-drop warning when a picker import starts', async () => {
+    const { user } = renderShell()
+    const png = new File([new Uint8Array([1])], 'cover.png', { type: 'image/png' })
+
+    fireEvent.drop(shellRoot(), fileTransfer([png]))
+    // A successful import through another path supersedes the warning.
+    await importTrack(user)
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('clears the unsupported-drop warning once an audio drop lands', async () => {
+    renderShell()
+    const png = new File([new Uint8Array([1])], 'cover.png', { type: 'image/png' })
+
+    fireEvent.drop(shellRoot(), fileTransfer([png]))
+    fireEvent.drop(shellRoot(), fileTransfer([audioFile('glisse.wav')]))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
   })
 
   it('confirms before a dropped file replaces unsaved work, then imports on confirm', async () => {

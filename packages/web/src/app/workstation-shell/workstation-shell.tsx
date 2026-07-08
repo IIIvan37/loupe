@@ -2,7 +2,6 @@ import {
   type AudioFileDecoder,
   defaultKeyBindings,
   formatTimecode,
-  type OctaveFactor,
   type PlaybackEngine,
   type ProjectDeps,
   type StemPlaybackEngine,
@@ -12,8 +11,7 @@ import {
   type TrackSource
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
-import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import { useServerHealth } from '../../projects/use-server-health.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
@@ -29,6 +27,7 @@ import { useTempo } from '../tempo/use-tempo.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
 import { useViewport } from '../waveform/use-viewport.ts'
+import { AlertBanner } from '../ui/alert-banner.tsx'
 import { ToastRegion } from '../ui/toast-region.tsx'
 import { useToaster } from '../ui/use-toaster.ts'
 import { EmptyState } from './empty-state.tsx'
@@ -41,6 +40,7 @@ import { useFileDrop } from './use-file-drop.ts'
 import { useProjectSession } from './use-project-session.ts'
 import { useSeparateAndLoad } from './use-separate-and-load.ts'
 import { useStemExport } from './use-stem-export.ts'
+import { useTempoDetection } from './use-tempo-detection.ts'
 import { useUnloadGuard } from './use-unload-guard.ts'
 import styles from './workstation-shell.module.css'
 
@@ -128,9 +128,13 @@ export function WorkstationShell({
   const serverHealth = useServerHealth({ fetchImpl: healthFetch })
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [projectsOpen, setProjectsOpen] = useState(false)
-  // One-shot guard: an open arms it before re-importing its bytes so the
-  // auto-detect effect below skips that audio (the open seats tempo itself).
-  const suppressAutoDetectRef = useRef(false)
+  // Auto-detect on a fresh PCM + the panel's retry + the octave fold.
+  const tempoDetection = useTempoDetection({
+    tempo,
+    metronome,
+    loadedAudio,
+    separationOwnsMix: stemsReady
+  })
   // The whole project ↔ session lifecycle (save/open/detach-on-import).
   const session = useProjectSession({
     stores: projectStores,
@@ -158,9 +162,7 @@ export function WorkstationShell({
     viewport,
     tempo,
     metronome,
-    setSuppressAutoDetect: (suppress) => {
-      suppressAutoDetectRef.current = suppress
-    },
+    setSuppressAutoDetect: tempoDetection.suppressNextAutoDetect,
     onRestoreStarted: () => setProjectsOpen(false),
     onSaved: (name) =>
       notifySuccess(
@@ -183,50 +185,26 @@ export function WorkstationShell({
   const openFilePicker = () => fileInputRef.current?.click()
 
   // Native OS-file drop: a dropped audio file imports through the picker's exact
-  // path, guarded by the same unsaved-work confirmation as the button.
+  // path, guarded by the same unsaved-work confirmation as the button. A drop
+  // holding no audio file raises a dismissible warning instead of vanishing
+  // silently; the next accepted drop clears it.
+  const [dropRejected, setDropRejected] = useState(false)
   const dropImport = useDropImport(session.importPickedFile, session.unsavedWork)
-  const { isDraggingFile, dropHandlers } = useFileDrop(dropImport.onDropFile)
+  const { isDraggingFile, dropHandlers } = useFileDrop((file) => {
+    setDropRejected(false)
+    dropImport.onDropFile(file)
+  }, () => setDropRejected(true))
+  // Any import that starts (picker, URL, project open) supersedes the warning —
+  // adjusted during render, like the projects dialog's stale-confirm disarm.
+  if (dropRejected && importState.status === 'loading') {
+    setDropRejected(false)
+  }
 
   // Separate the loaded track and wire the stems (+ metronome) into the mixer.
   const separateAndLoad = useSeparateAndLoad({ separation, tempo, mixer, metronome })
   const handleSeparate = () => {
     if (loadedAudio) {
       separateAndLoad(loadedAudio)
-    }
-  }
-
-  // Auto-detect the tempo the moment a track's PCM lands (import or project
-  // open) and seat the always-on metronome from the result — no button. Held in
-  // a ref so the effect keys on `loadedAudio` alone yet always calls the live
-  // detect/enable (both read fresh state internally).
-  const autoDetectRef = useRef<(audio: typeof loadedAudio) => void>(() => {})
-  autoDetectRef.current = (audio) => {
-    if (!audio) {
-      return
-    }
-    // An open owns tempo/metronome seating for its restored audio — skip it here.
-    if (suppressAutoDetectRef.current) {
-      suppressAutoDetectRef.current = false
-      return
-    }
-    void tempo.detect(audio).then((analysis) => {
-      if (analysis) {
-        // A freshly detected click joins the un-separated track muted by default.
-        metronome.enable(analysis.grid, audio, DEFAULT_METRONOME_CHANNEL)
-      }
-    })
-  }
-  useEffect(() => {
-    autoDetectRef.current(loadedAudio)
-  }, [loadedAudio])
-
-  // Fold the tempo an octave (a manual ×2/÷2 fix) and re-render the click for the
-  // folded grid — the BPM read-out and waveform grid follow the analysis on their
-  // own; only the metronome stem needs re-seating.
-  function handleFoldTempo(factor: OctaveFactor): void {
-    const folded = tempo.fold(factor)
-    if (folded && loadedAudio) {
-      metronome.reseat(folded.grid, loadedAudio)
     }
   }
 
@@ -301,6 +279,15 @@ export function WorkstationShell({
         onProjectsOpenChange={setProjectsOpen}
         session={session}
       />
+      {dropRejected && (
+        <AlertBanner
+          message={t({
+            id: 'drop.unsupported',
+            message: 'Format non supporté — déposer un fichier audio.'
+          })}
+          onDismiss={() => setDropRejected(false)}
+        />
+      )}
 
       {importState.status === 'idle' ? (
         <EmptyState onImport={openFilePicker} shortcuts={SHORTCUT_HINTS} />
@@ -324,7 +311,9 @@ export function WorkstationShell({
         onToggleLoop={toggleLoop}
         onSeekSeconds={seekToSeconds}
         onSeekRatio={seekToRatio}
-        onFoldTempo={handleFoldTempo}
+        onFoldTempo={tempoDetection.fold}
+        onRetryTempo={tempoDetection.retry}
+        onReimport={openFilePicker}
         canSeparate={isLoaded && loadedAudio !== undefined}
         serverHealth={serverHealth}
         onSeparate={handleSeparate}

@@ -8,6 +8,32 @@
   padding: var(--space-m);
 }
 
+/* A failed import: explanation, technical detail, and the reimport way out. */
+.errorStage {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2xs);
+  padding-block-end: var(--space-m);
+}
+
+.errorStage .error {
+  padding-block-end: 0;
+}
+
+.errorDetail {
+  color: var(--faint);
+  font-size: var(--font-size-xs);
+  padding-inline: var(--space-m);
+}
+
+.reimport {
+  composes: ghostButton from '../ui/controls.module.css';
+  margin-inline-start: var(--space-m);
+  padding: var(--space-2xs) var(--space-xs);
+  font-size: var(--font-size-s);
+}
+
 /* Positioning context for the surface, overlays and edit handles. */
 .container {
   position: relative;
