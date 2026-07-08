@@ -4,7 +4,29 @@
 
 ## Where we are
 
-- **Now — roadmap-excellence-2 Lot F done (2026-07-07)** on branch
+- **Now — roadmap-excellence-2 Lot G done (2026-07-08)** on branch
+  `feat/web-user-trust-lot-g` (off `main`, Lot F merged as PR #70): **confiance
+  utilisateur**, the three UX frictions, web-only. **G.1** marker/loop removal
+  is a two-step « Confirmer ? » on the same relabeled `EntryRow` button
+  (`useTwoStepConfirm`, projects-dialog pattern; keys prefixed `marker:`/`loop:`);
+  **G.2** the import error stage speaks plain words + « Importer un autre
+  fichier » (translated headline, decoder detail kept), and a failed tempo
+  detection gets « Réessayer » — the detect→seat-metronome flow now lives in
+  [use-tempo-detection.ts](../packages/web/src/app/workstation-shell/use-tempo-detection.ts)
+  (also clears the react-doctor large-component warning the wiring triggered);
+  **G.3** a drop with no audio file raises a dismissible « Format non supporté »
+  AlertBanner (`useFileDrop` gains a required `onRejected`; text/link drops stay
+  silent). High-effort review fixed **2 real bugs** test-first: a late/retried
+  detection no longer wipes separated stems (`metronome.enable` is un-separated
+  seating only — separation ownership read at **resolve** time, closing a
+  pre-existing slow-detect race), and the drop warning clears once any import
+  reaches `loading`. Gate **green — 666 tests**, coverage 95,71 %/88,72 %,
+  jscpd 5 clones (unchanged), react-doctor 0; mutation skipped (no core).
+  Browser-verify: quick eye pass pending (armed confirm face, error-stage
+  layout, banner stacking). **Next: open the PR, then Lot H** (a11y live-regions,
+  ~½ session). See
+  [2026-07-08-web-user-trust-lot-g](sessions/2026-07-08-web-user-trust-lot-g.md).
+- **Prior — roadmap-excellence-2 Lot F done (2026-07-07, merged PR #70)** on branch
   `fix/server-hygiene-lot-f` (off `main`, tempo plan closed with PR #69):
   **hygiène serveur**, the four debts of the 2026-07-06 evaluation. **F.1** the
   `/download` body rides the shared cap (413/400 via a new
