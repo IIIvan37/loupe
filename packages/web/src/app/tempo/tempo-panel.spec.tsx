@@ -7,37 +7,40 @@ import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { i18n } from '../../i18n/i18n.ts'
 import { TempoPanel } from './tempo-panel.tsx'
 
-function renderPanel(props: Partial<Parameters<typeof TempoPanel>[0]> = {}) {
+type PanelProps = Partial<Parameters<typeof TempoPanel>[0]>
+
+function renderPanel(props: PanelProps = {}) {
   const onFold = vi.fn()
-  render(
-    <TempoPanel
-      bpm={120}
-      beatsPerBar={4}
-      tempoMap={[{ fromSeconds: 0, bpm: 120 }]}
-      positionSeconds={0}
-      detecting={false}
-      error={undefined}
-      octaveShift={0}
-      onFold={onFold}
-      onRetry={() => {}}
-      {...props}
-    />,
-    { wrapper: I18nTestingProvider }
-  )
-  return onFold
+  const defaults: Parameters<typeof TempoPanel>[0] = {
+    bpm: 120,
+    beatsPerBar: 4,
+    tempoMap: [{ fromSeconds: 0, bpm: 120 }],
+    positionSeconds: 0,
+    detecting: false,
+    error: undefined,
+    octaveShift: 0,
+    onFold,
+    onRetry: () => {}
+  }
+  const view = render(<TempoPanel {...defaults} {...props} />, {
+    wrapper: I18nTestingProvider
+  })
+  const rerenderPanel = (next: PanelProps) =>
+    view.rerender(<TempoPanel {...defaults} {...next} />)
+  return { onFold, rerenderPanel }
 }
 
 describe('TempoPanel', () => {
   it('folds up an octave when ×2 is pressed', async () => {
     const user = userEvent.setup()
-    const onFold = renderPanel()
+    const { onFold } = renderPanel()
     await user.click(screen.getByRole('button', { name: i18n._('tempo.double') }))
     expect(onFold).toHaveBeenCalledWith(2)
   })
 
   it('halves the tempo when ÷2 is pressed', async () => {
     const user = userEvent.setup()
-    const onFold = renderPanel()
+    const { onFold } = renderPanel()
     await user.click(screen.getByRole('button', { name: i18n._('tempo.halve') }))
     expect(onFold).toHaveBeenCalledWith(0.5)
   })
@@ -125,35 +128,25 @@ describe('TempoPanel', () => {
   })
 
   it('announces the detected BPM once it lands', () => {
-    const { rerender } = render(
-      <TempoPanel
-        bpm={undefined}
-        beatsPerBar={undefined}
-        tempoMap={[]}
-        positionSeconds={0}
-        detecting={true}
-        error={undefined}
-        octaveShift={0}
-        onFold={() => {}}
-        onRetry={() => {}}
-      />,
-      { wrapper: I18nTestingProvider }
-    )
-    rerender(
-      <TempoPanel
-        bpm={120}
-        beatsPerBar={4}
-        tempoMap={[{ fromSeconds: 0, bpm: 120 }]}
-        positionSeconds={0}
-        detecting={false}
-        error={undefined}
-        octaveShift={0}
-        onFold={() => {}}
-        onRetry={() => {}}
-      />
-    )
+    const { rerenderPanel } = renderPanel({
+      bpm: undefined,
+      beatsPerBar: undefined,
+      tempoMap: [],
+      detecting: true
+    })
+    rerenderPanel({})
     expect(screen.getByRole('status')).toHaveTextContent(
       i18n._('tempo.bpm', { 0: 120 })
+    )
+  })
+
+  it('announces the analysis over a stale BPM when a detection re-runs', () => {
+    // A failed run keeps the previous analysis, so a retry can start while a
+    // BPM is still seated — the region must say the detection is running, not
+    // stay silent on the stale figure.
+    renderPanel({ bpm: 120, detecting: true })
+    expect(screen.getByRole('status')).toHaveTextContent(
+      i18n._('tempo.detecting')
     )
   })
 

@@ -512,9 +512,14 @@ msgid "projects.unreachable"
 msgstr "Serveur injoignable — vérifier que le serveur local est lancé"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:13
+#: src/app/separation/separation-panel.tsx:14
 msgid "separation.analysing"
 msgstr "Analyse du mix…"
+
+#. js-lingui-explicit-id
+#: src/app/separation/separation-panel.tsx:22
+msgid "separation.done"
+msgstr "Pistes séparées"
 
 #. js-lingui-explicit-id
 #: src/app/separation/use-separation.ts:199
@@ -522,42 +527,42 @@ msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:120
+#: src/app/separation/separation-panel.tsx:125
 msgid "separation.failed"
 msgstr "La séparation a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:129
+#: src/app/separation/separation-panel.tsx:134
 msgid "separation.idle-hint"
 msgstr "Les pistes séparées (voix, batterie, basse…) s'alignent sous la forme d'onde, chacune avec ses propres contrôles."
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:79
+#: src/app/separation/separation-panel.tsx:89
 msgid "separation.region-label"
 msgstr "Séparation des pistes"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:99
+#: src/app/separation/separation-panel.tsx:102
 msgid "separation.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:100
+#: src/app/separation/separation-panel.tsx:103
 msgid "separation.separate"
 msgstr "Séparer les pistes"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:14
+#: src/app/separation/separation-panel.tsx:15
 msgid "separation.separating"
 msgstr "Séparation des pistes…"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:40
+#: src/app/separation/separation-panel.tsx:44
 msgid "separation.server-no-separation"
 msgstr "Ce serveur ne fournit pas de moteur de séparation."
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:35
+#: src/app/separation/separation-panel.tsx:39
 msgid "separation.server-offline"
 msgstr "Serveur hors ligne — démarrer le serveur local pour séparer les pistes."
 
@@ -623,51 +628,50 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#. placeholder {0}: Math.round(bpm)
 #. placeholder {0}: Math.round(felt)
-#: src/app/tempo/tempo-panel.tsx:73
-#: src/app/tempo/tempo-panel.tsx:80
+#: src/app/tempo/tempo-panel.tsx:14
+#: src/app/tempo/tempo-panel.tsx:86
 msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:75
-#: src/app/tempo/tempo-panel.tsx:125
+#: src/app/tempo/tempo-panel.tsx:13
+#: src/app/tempo/tempo-panel.tsx:131
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:114
+#: src/app/tempo/tempo-panel.tsx:120
 msgid "tempo.double"
 msgstr "Doubler le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:102
+#: src/app/tempo/tempo-panel.tsx:108
 msgid "tempo.halve"
 msgstr "Diviser le tempo par deux"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:65
+#: src/app/tempo/tempo-panel.tsx:81
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:92
+#: src/app/tempo/tempo-panel.tsx:98
 msgid "tempo.meter"
 msgstr "{beatsPerBar} temps"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:85
+#: src/app/tempo/tempo-panel.tsx:91
 msgid "tempo.range"
 msgstr "{min}–{max} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:62
+#: src/app/tempo/tempo-panel.tsx:78
 msgid "tempo.region-label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:134
+#: src/app/tempo/tempo-panel.tsx:140
 msgid "tempo.retry"
 msgstr "Réessayer"
 
