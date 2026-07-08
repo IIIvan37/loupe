@@ -45,10 +45,16 @@
   undefined` blocks merged into one fragment).
 
 ## Not done / remaining
-- **Browser-verify pending** (jsdom covers the flows; worth a quick eye pass):
-  armed « Confirmer ? » face in the tight sidebar rows, the error-stage layout
-  inside the zoom stage (`.errorStage` renders where the fixed-height waveform
-  container would), banner stacking with the header banners.
+- **Browser-verify done (2026-07-08, real Chrome)** — all three eye-pass items
+  pass: the armed « Confirmer ? » face fits the tight sidebar row (destructive
+  accent, no wrap/clipping, row height unchanged; confirm removes the entry);
+  the error stage lays out cleanly in the zoom stage (plain-words headline,
+  decoder detail, « Importer un autre fichier » — which was used live to load a
+  valid file out of the dead-end); the « Format non supporté » banner slots
+  under the header and **clears when the next import reaches `loading`**
+  (review bug #2 seen live). The tempo « Réessayer » renders beside the raw
+  error in the Tempo strip. Not exercised: stacking with a *second* banner
+  (none can be triggered cheaply — single-banner layout verified).
 - The tempo error message itself is still the raw server/decoder string
   (untranslated) — only import got the plain-words treatment; the roadmap only
   asked for the retry CTA on tempo.
