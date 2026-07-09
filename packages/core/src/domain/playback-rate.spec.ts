@@ -10,6 +10,8 @@ describe('clampPlaybackRate', () => {
   it('passes a rate inside the range through unchanged', () => {
     expect(clampPlaybackRate(1)).toBe(1)
     expect(clampPlaybackRate(0.75)).toBe(0.75)
+    // Fine transcription work sits well below half speed (speed-trainer lot).
+    expect(clampPlaybackRate(0.25)).toBe(0.25)
   })
 
   it('clamps to the supported range', () => {
