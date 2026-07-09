@@ -12,16 +12,11 @@
 }
 
 .field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2xs);
+  composes: field from './popover-form.module.css';
 }
 
 .label {
-  color: var(--dim);
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  composes: label from './popover-form.module.css';
 }
 
 .input {

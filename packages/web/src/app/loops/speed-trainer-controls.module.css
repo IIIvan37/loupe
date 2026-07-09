@@ -1,0 +1,44 @@
+.positioner {
+  composes: positioner from '../ui/popover-form.module.css';
+}
+
+.popup {
+  composes: popup from '../ui/popover-form.module.css';
+  width: min(14rem, calc(100vw - var(--space-l)));
+}
+
+.title {
+  composes: title from '../ui/popover-form.module.css';
+}
+
+.field {
+  composes: field from '../ui/popover-form.module.css';
+}
+
+.label {
+  composes: label from '../ui/popover-form.module.css';
+}
+
+.input {
+  composes: input from '../ui/popover-form.module.css';
+}
+
+.actions {
+  composes: actions from '../ui/popover-form.module.css';
+}
+
+.ghost {
+  composes: ghost from '../ui/popover-form.module.css';
+}
+
+.submit {
+  composes: submit from '../ui/popover-form.module.css';
+}
+
+/* The running read-out sits inline with the loop controls, amber like the
+   earned tempo it narrates. */
+.status {
+  color: var(--amber);
+  font-size: var(--font-size-s);
+  font-variant-numeric: tabular-nums;
+}

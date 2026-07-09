@@ -38,6 +38,12 @@ export function useLoopEditing(
     readonly durationSeconds: number
     readonly setLoopRegion: (region: LoopRegion | undefined) => void
     readonly seekToSeconds: (seconds: number) => void
+    /**
+     * The active region is being REPLACED by a different passage (a fresh
+     * surface drag, a recalled saved loop) — not adjusted in place. The speed
+     * trainer stops here: its ramp belongs to the passage it was armed on.
+     */
+    readonly onRegionReplaced?: () => void
   }
 ): LoopEditing {
   // The saved loop the active region came from. Null for a fresh, unsaved
@@ -53,6 +59,7 @@ export function useLoopEditing(
 
   function selectRegion(startRatio: number, endRatio: number): void {
     setActiveLoopId(null)
+    transport.onRegionReplaced?.()
     transport.setLoopRegion(regionFromRatios(startRatio, endRatio))
   }
 
@@ -76,6 +83,7 @@ export function useLoopEditing(
 
   function activate(loop: NamedLoop): void {
     setActiveLoopId(loop.id)
+    transport.onRegionReplaced?.()
     transport.setLoopRegion(loop.region)
     transport.seekToSeconds(loop.region.startSeconds)
   }

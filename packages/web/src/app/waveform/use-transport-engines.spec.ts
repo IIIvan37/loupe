@@ -112,6 +112,86 @@ describe('useTransportEngines', () => {
     expect(pb.engine.seekTo).not.toHaveBeenCalled()
   })
 
+  it('notifies each completed loop pass, and only those', () => {
+    const pb = fakePlayback()
+    const stem = fakeStemPlayback()
+    const onLoopWrap = vi.fn()
+    const { result } = mount(pb.engine, stem.engine, {
+      stemsActive: false,
+      loopRegion: region(2, 6),
+      loopEnabled: true,
+      onLoopWrap
+    })
+    act(() => result.current.dispatch({ type: 'load', durationSeconds: 10 }))
+
+    // Ordinary ticks inside the loop are not passes.
+    act(() => pb.emit(3))
+    act(() => pb.emit(5))
+    expect(onLoopWrap).not.toHaveBeenCalled()
+
+    act(() => pb.emit(6.5))
+    expect(onLoopWrap).toHaveBeenCalledTimes(1)
+    act(() => pb.emit(6.1))
+    expect(onLoopWrap).toHaveBeenCalledTimes(2)
+  })
+
+  it('pulls a playhead left outside the loop up to its start, earning nothing', () => {
+    const pb = fakePlayback()
+    const stem = fakeStemPlayback()
+    const onLoopWrap = vi.fn()
+    const { result } = mount(pb.engine, stem.engine, {
+      stemsActive: false,
+      loopRegion: region(2, 6),
+      loopEnabled: true,
+      onLoopWrap
+    })
+    act(() => result.current.dispatch({ type: 'load', durationSeconds: 10 }))
+
+    // The cursor sits before the enabled loop (fresh arm, or a click there):
+    // it is repositioned at the loop start — no practice pass was completed.
+    act(() => pb.emit(1))
+
+    expect(pb.engine.seekTo).toHaveBeenCalledWith(2)
+    expect(result.current.transport.positionSeconds).toBe(2)
+    expect(onLoopWrap).not.toHaveBeenCalled()
+  })
+
+  it('wraps a seek far past the loop end without counting a pass', () => {
+    const pb = fakePlayback()
+    const stem = fakeStemPlayback()
+    const onLoopWrap = vi.fn()
+    const { result } = mount(pb.engine, stem.engine, {
+      stemsActive: false,
+      loopRegion: region(2, 6),
+      loopEnabled: true,
+      onLoopWrap
+    })
+    act(() => result.current.dispatch({ type: 'load', durationSeconds: 10 }))
+
+    // A click/scrub at 8 s: the playhead snaps back, but nothing was practised.
+    act(() => pb.emit(8))
+
+    expect(pb.engine.seekTo).toHaveBeenCalledWith(2)
+    expect(onLoopWrap).not.toHaveBeenCalled()
+  })
+
+  it('does not notify a pass when looping is disarmed', () => {
+    const pb = fakePlayback()
+    const stem = fakeStemPlayback()
+    const onLoopWrap = vi.fn()
+    const { result } = mount(pb.engine, stem.engine, {
+      stemsActive: false,
+      loopRegion: region(2, 6),
+      loopEnabled: false,
+      onLoopWrap
+    })
+    act(() => result.current.dispatch({ type: 'load', durationSeconds: 10 }))
+
+    act(() => pb.emit(6.5))
+
+    expect(onLoopWrap).not.toHaveBeenCalled()
+  })
+
   it('hands the playhead to the stem mix on a real switch, not on mount', () => {
     const pb = fakePlayback()
     const stem = fakeStemPlayback()

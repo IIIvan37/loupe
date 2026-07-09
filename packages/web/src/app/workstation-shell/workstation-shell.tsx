@@ -113,7 +113,8 @@ export function WorkstationShell({
     setLoopRegion,
     loopEnabled,
     toggleLoop,
-    restoreLoop
+    restoreLoop,
+    speedTrainer
   } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsActive)
   const markers = useMarkers()
   const tempo = useTempo(tempoDetector)
@@ -122,7 +123,8 @@ export function WorkstationShell({
   const loopEditing = useLoopEditing(loops, {
     durationSeconds: transport.durationSeconds,
     setLoopRegion,
-    seekToSeconds
+    seekToSeconds,
+    onRegionReplaced: speedTrainer.stop
   })
   const viewport = useViewport()
   const serverHealth = useServerHealth({ fetchImpl: healthFetch })
@@ -309,6 +311,7 @@ export function WorkstationShell({
         loopRegion={loopRegion}
         loopEnabled={loopEnabled}
         onToggleLoop={toggleLoop}
+        speedTrainer={speedTrainer}
         onSeekSeconds={seekToSeconds}
         onSeekRatio={seekToRatio}
         onFoldTempo={tempoDetection.fold}

@@ -24,7 +24,11 @@ export function loopContains(region: LoopRegion, seconds: number): boolean {
   return seconds >= region.startSeconds && seconds < region.endSeconds
 }
 
-/** During looped playback: at/after the end, jump back to the start. */
+/**
+ * During looped playback the enabled loop confines the playhead: at/after the
+ * end it wraps back, and a position left BEFORE the loop (a fresh arm ahead
+ * of the cursor, a click outside) is pulled up to the start too.
+ */
 export function wrapToLoop(region: LoopRegion, seconds: number): number {
-  return seconds >= region.endSeconds ? region.startSeconds : seconds
+  return loopContains(region, seconds) ? seconds : region.startSeconds
 }

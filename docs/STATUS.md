@@ -4,7 +4,39 @@
 
 ## Where we are
 
-- **Now — roadmap-excellence-2 Lot H done (2026-07-08)** on branch
+- **Now — roadmap-excellence-2 Lot I.1 done (2026-07-09)** on branch
+  `feat/speed-trainer` (off `main`, Lot H merged as PR #73): **le speed
+  trainer** — pratiquer une boucle lentement et gagner de la vitesse. Pure
+  domain [speed-trainer.ts](../packages/core/src/domain/speed-trainer.ts)
+  (TDD + fast-check pin): percent-grained policy (départ / incrément /
+  répétitions par palier / plafond) normalised on arm — clamped natively in
+  percent space (new `MIN/MAX_TEMPO_PERCENT`, one derivation for slider +
+  form + domain), NaN → full speed, target lifted to the start —
+  `recordLoopPass` stepping every N passes, capped. The transport's wrap
+  branch gains `onLoopWrap`, **gated on `completesLoopPass`** (frame-sized
+  overshoot ≤ 0.5 s — a seek past the loop end wraps but earns nothing);
+  `useSpeedTrainer` (ref-backed, stable identities) lands each earned step on
+  the player; UI = « Rampe de tempo » popover + running read-out/« Arrêter »
+  in the loop controls, steps announced via the Lot-H `LiveStatus`. **The
+  ramp stops when its premise dies** (loupe cleared/replaced — handle
+  adjustments keep it —, looping off, slider takeover, project open) and
+  **stopping restores the tempo memorised at arming** (user decision). Same
+  session, on the user's ear check: **tempo floor 50 % → 40 %**
+  (`MIN_PLAYBACK_RATE` 0.4 — 25 % was shipped first and rejected as too
+  degraded; slider bounds derived), and **an enabled loop now confines the
+  playhead** (`wrapToLoop` pulls a cursor left before the loop up to its
+  start, earning no pass). Also fixed the **pre-existing shell-spec reopen
+  flake** (Base UI dialog initial focus landing mid-test disarmed the armed
+  confirm; new settled `openProjectsDialog` helper, 3× green). High-effort
+  review (8 angles) fixed 5 real issues test-first (seek-counted pass,
+  `Number('')` bypassing the NaN fallback, ramp surviving premise death,
+  float-junk percents, per-frame popover renders). Gate **green — 712
+  tests**, coverage 96,04 %/88,94 %, jscpd 5 clones (unchanged),
+  react-doctor 0; mutation **95,20 %**, `speed-trainer.ts` **100 %** (39
+  mutants). **PR #74 open (CI green). Next: merge, then Lot I.2** (tempo manuel — tap-tempo,
+  saisie BPM, calage de phase). See
+  [2026-07-09-speed-trainer](sessions/2026-07-09-speed-trainer.md).
+- **Prior — roadmap-excellence-2 Lot H done (2026-07-08, merged PR #73)** on branch
   `feat/web-a11y-live-regions` (off `main`, Lot G merged as PR #72): **a11y des
   opérations longues** — séparation et détection tempo sont enfin audibles pour
   NVDA/VoiceOver. New `app/ui` primitive

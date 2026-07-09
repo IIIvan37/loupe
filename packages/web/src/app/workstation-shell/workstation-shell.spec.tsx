@@ -251,6 +251,26 @@ async function openLoops(user: UserEvent): Promise<void> {
 }
 
 /**
+ * Open the « Projets » dialog and let Base UI's deferred initial focus land
+ * INSIDE it before interacting — the same settling as the projects-dialog
+ * spec. That focus lands on an animation frame; in jsdom the frame can fire
+ * MID-TEST, stealing focus from an armed « Confirmer ? » row and disarming it
+ * under the second click (a real browser settles within one frame of opening,
+ * long before a human can click).
+ */
+async function openProjectsDialog(user: UserEvent): Promise<void> {
+  await user.click(
+    screen.getByRole('button', { name: i18n._('header.projects') })
+  )
+  await waitFor(() => {
+    // By name: a Base UI success toast also carries role="dialog".
+    expect(
+      screen.getByRole('dialog', { name: i18n._('projects.title') })
+    ).toContainElement(document.activeElement as HTMLElement | null)
+  })
+}
+
+/**
  * A saved loop's recall button: its name is « time-range + name », so exclude
  * the sibling rename/remove buttons that only carry the name after a verb.
  */
@@ -411,9 +431,7 @@ describe('WorkstationShell', () => {
     await screen.findByText(i18n._('tempo.bpm', { 0: 120 }), visibleOnly)
     await saveProjectAs(user, 'Avec métronome')
 
-    await user.click(
-      screen.getByRole('button', { name: i18n._('header.projects') })
-    )
+    await openProjectsDialog(user)
     await user.click(
       await screen.findByRole('button', { name: i18n._('projects.open') })
     )
@@ -446,9 +464,7 @@ describe('WorkstationShell', () => {
     expect(mute).toHaveAttribute('aria-pressed', 'false')
     await saveProjectAs(user, 'Clic activé')
 
-    await user.click(
-      screen.getByRole('button', { name: i18n._('header.projects') })
-    )
+    await openProjectsDialog(user)
     await user.click(
       await screen.findByRole('button', { name: i18n._('projects.open') })
     )
@@ -923,6 +939,159 @@ describe('WorkstationShell', () => {
     expect(engine.seekTo).toHaveBeenCalledWith(2)
   })
 
+  it('ramps the tempo as loop passes complete (speed trainer)', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+    // Arm the loupe [2 s, 6 s]; the ramp form opens from the loop controls.
+    pointerGesture(20, 60)
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+
+    // Arming seats the default start tempo (70 %) straight away.
+    expect(engine.setTimeRatio).toHaveBeenCalledWith(0.7)
+    expect(screen.getByText('70 %')).toBeInTheDocument()
+
+    // Each completed pass (wrap at the loop end) earns the +5 % step.
+    act(() => engine.emit(6.5))
+    expect(engine.setTimeRatio).toHaveBeenCalledWith(0.75)
+    expect(screen.getByText('75 %')).toBeInTheDocument()
+
+    // Stopping restores the tempo the ramp armed over (100 %) and brings the
+    // arm action back.
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-stop') })
+    )
+    expect(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    ).toBeInTheDocument()
+    expect(engine.setTimeRatio).toHaveBeenCalledWith(1)
+    expect(screen.getByText('100 %')).toBeInTheDocument()
+  })
+
+  it('stops the ramp when the user takes the tempo back on the slider', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    pointerGesture(20, 60)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+    expect(screen.getByText('70 %')).toBeInTheDocument()
+
+    // Dragging the tempo slider is the user taking control back — the ramp
+    // must not lie in the read-out nor snap the tempo down on the next wrap.
+    fireEvent.change(
+      screen.getByLabelText(i18n._('transport.tempo-slider')),
+      { target: { value: '100' } }
+    )
+
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('100 %')).toBeInTheDocument()
+  })
+
+  it('stops the ramp when looping is toggled off (no dead ramp)', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    pointerGesture(20, 60)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+
+    // Play-through mode: no wrap can ever fire, so a « running » ramp would
+    // be a lie. Turning looping off ends the practice and restores the tempo.
+    await user.click(screen.getByRole('button', { name: i18n._('loops.active') }))
+
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('100 %')).toBeInTheDocument()
+    // And the entry point is hidden while looping stays off.
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-open') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('stops the ramp when another passage becomes the loupe', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    pointerGesture(20, 60)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+    expect(
+      screen.getByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).toBeInTheDocument()
+
+    // A fresh drag targets a different passage — the old ramp must not ride it.
+    pointerGesture(10, 30)
+
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('stops the ramp when a saved loop is recalled over it', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    await saveNamedLoop(user, 'Refrain')
+    // Practise a different, throwaway passage.
+    pointerGesture(10, 30)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+
+    await openLoops(user)
+    await user.click(
+      await screen.findByRole('button', { name: savedLoop('Refrain') })
+    )
+
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('stops the ramp when the loupe is cleared', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    pointerGesture(20, 60)
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+    expect(
+      screen.getByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).toBeInTheDocument()
+
+    // Discarding the region ends the practice — there is nothing left to count.
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.clear-region') })
+    )
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).not.toBeInTheDocument()
+  })
+
   it('edits a saved loop in place when its handle moves (no re-save prompt)', async () => {
     const { user } = renderShell()
     await importTrack(user)
@@ -1117,7 +1286,7 @@ describe('WorkstationShell', () => {
     expect(screen.queryByLabelText('Nom')).not.toBeInTheDocument()
 
     // Still a single project, under the same name.
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     expect(await screen.findByText('Mon projet')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: i18n._('projects.open') })).toHaveLength(1)
   })
@@ -1144,7 +1313,7 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     await saveProjectAs(user, 'Deuxième morceau')
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     expect(
       await screen.findAllByRole('button', { name: i18n._('projects.open') })
     ).toHaveLength(2)
@@ -1157,7 +1326,7 @@ describe('WorkstationShell', () => {
     // Drift from the saved project — the session now holds unsaved work.
     await user.click(screen.getByRole('button', { name: i18n._('markers.add') }))
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
     // The session would be replaced — the row asks for a confirmation first.
@@ -1185,7 +1354,7 @@ describe('WorkstationShell', () => {
 
     await importTrack(user, 'autre.wav')
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
       screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
@@ -1206,7 +1375,7 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Mon projet')
 
     await importTrack(user, 'autre.wav')
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
       screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
@@ -1225,7 +1394,7 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Mon projet')
 
     await importTrack(user, 'autre.wav')
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
       screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
@@ -1252,7 +1421,7 @@ describe('WorkstationShell', () => {
       screen.queryByRole('button', { name: savedLoop('Refrain') })
     ).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
       screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
@@ -1287,7 +1456,7 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Projet A')
 
     gateNext = true
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     // The open hangs on the gated store; leave the dialog, import a new file.
     await user.click(screen.getByRole('button', { name: i18n._('common.close') }))
@@ -1409,7 +1578,7 @@ describe('WorkstationShell', () => {
       target: { value: '110' }
     })
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
       screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
@@ -1595,7 +1764,7 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     await saveProjectAs(user, 'Mon projet')
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
     // No « Confirmer ? » step: the open starts at once and closes the dialog.
@@ -1631,7 +1800,7 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Projet lent')
 
     gateNext = true
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
     expect(
@@ -1662,7 +1831,7 @@ describe('WorkstationShell', () => {
   it('says the server is unreachable when the projects listing fails', async () => {
     const { user } = renderShell({ projectStores: brokenProjectStores() })
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
 
     expect(
       await screen.findByText(

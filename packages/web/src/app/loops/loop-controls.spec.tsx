@@ -7,9 +7,15 @@ import { vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { LoopControls } from './loop-controls.tsx'
+import type { SpeedTrainer } from './use-speed-trainer.ts'
 
 const region: LoopRegion = { startSeconds: 2, endSeconds: 6 }
 const noop = () => {}
+
+/** An idle (or running, via `state`) spy double of the speed-trainer hook. */
+function fakeTrainer(state?: SpeedTrainer['state']): SpeedTrainer {
+  return { state, start: vi.fn(), stop: vi.fn(), recordPass: vi.fn() }
+}
 
 function renderControls(
   overrides: Partial<Parameters<typeof LoopControls>[0]> = {}
@@ -22,6 +28,7 @@ function renderControls(
       onToggleLoop={noop}
       onSaveRegion={noop}
       onClearRegion={noop}
+      trainer={fakeTrainer()}
       {...overrides}
     />,
     { wrapper: I18nTestingProvider }
@@ -77,6 +84,7 @@ describe('LoopControls', () => {
         onToggleLoop={onToggleLoop}
         onSaveRegion={noop}
         onClearRegion={noop}
+        trainer={fakeTrainer()}
       />
     )
     expect(
@@ -109,5 +117,95 @@ describe('LoopControls', () => {
       screen.getByRole('button', { name: i18n._('loops.clear-region') })
     )
     expect(onClearRegion).toHaveBeenCalledOnce()
+  })
+
+  it('hides the ramp entry while looping is off (a ramp needs wraps)', () => {
+    renderControls({ loopEnabled: false })
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-open') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('passes an emptied form field to the domain as NaN (full-speed fallback)', async () => {
+    const user = userEvent.setup()
+    const trainer = fakeTrainer()
+    renderControls({ trainer })
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    // Clearing a field must reach startSpeedTrainer as NaN — Number('') is 0,
+    // which would clamp to the 25 % floor instead of the documented fallback.
+    await user.clear(screen.getByLabelText(i18n._('loops.trainer-target')))
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+
+    expect(trainer.start).toHaveBeenCalledWith({
+      startPercent: 70,
+      incrementPercent: 5,
+      passesPerStep: 1,
+      targetPercent: Number.NaN
+    })
+  })
+
+  it('starts the ramp with the policy typed into the form', async () => {
+    const user = userEvent.setup()
+    const trainer = fakeTrainer()
+    renderControls({ trainer })
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    const start = screen.getByLabelText(i18n._('loops.trainer-start-percent'))
+    await user.clear(start)
+    await user.type(start, '60')
+    const passes = screen.getByLabelText(i18n._('loops.trainer-passes'))
+    await user.clear(passes)
+    await user.type(passes, '3')
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+
+    expect(trainer.start).toHaveBeenCalledWith({
+      startPercent: 60,
+      incrementPercent: 5,
+      passesPerStep: 3,
+      targetPercent: 100
+    })
+  })
+
+  it('shows the running ramp and stops it, announced to screen readers', async () => {
+    const user = userEvent.setup()
+    const trainer = fakeTrainer({
+      policy: {
+        startPercent: 70,
+        incrementPercent: 5,
+        passesPerStep: 1,
+        targetPercent: 100
+      },
+      passesInStep: 0,
+      currentPercent: 75
+    })
+    renderControls({ trainer })
+
+    // The read-out is doubled: visible text + the hidden announcement channel.
+    const status = i18n._('loops.trainer-status', {
+      currentPercent: 75,
+      targetPercent: 100
+    })
+    expect(
+      screen.getByText(status, { ignore: 'script, style, [role="status"]' })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent(status)
+    // While running, the configuration entry point steps aside.
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-open') })
+    ).not.toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-stop') })
+    )
+    expect(trainer.stop).toHaveBeenCalledOnce()
   })
 })

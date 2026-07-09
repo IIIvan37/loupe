@@ -56,7 +56,9 @@ describe('wrapToLoop', () => {
     expect(wrapToLoop(region, 3)).toBe(3)
   })
 
-  it('leaves a position before the loop untouched', () => {
-    expect(wrapToLoop(region, 1)).toBe(1)
+  it('pulls a position before the loop up to its start (the loop confines)', () => {
+    // Product rule: while a loop is enabled the playhead belongs to it — a
+    // cursor left (or clicked) outside is repositioned at the loop start.
+    expect(wrapToLoop(region, 1)).toBe(2)
   })
 })
