@@ -1,4 +1,4 @@
-import { MAX_PLAYBACK_RATE, MIN_PLAYBACK_RATE } from '@app/core'
+import { MAX_TEMPO_PERCENT, MIN_TEMPO_PERCENT } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
@@ -92,8 +92,8 @@ export function TransportBar({
           <input
             type="range"
             data-accent="amber"
-            min={MIN_PLAYBACK_RATE * 100}
-            max={MAX_PLAYBACK_RATE * 100}
+            min={MIN_TEMPO_PERCENT}
+            max={MAX_TEMPO_PERCENT}
             value={tempoPercent}
             aria-label={t({
               id: 'transport.tempo-slider',

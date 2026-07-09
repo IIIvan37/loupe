@@ -135,6 +135,25 @@ describe('useTransportEngines', () => {
     expect(onLoopWrap).toHaveBeenCalledTimes(2)
   })
 
+  it('wraps a seek far past the loop end without counting a pass', () => {
+    const pb = fakePlayback()
+    const stem = fakeStemPlayback()
+    const onLoopWrap = vi.fn()
+    const { result } = mount(pb.engine, stem.engine, {
+      stemsActive: false,
+      loopRegion: region(2, 6),
+      loopEnabled: true,
+      onLoopWrap
+    })
+    act(() => result.current.dispatch({ type: 'load', durationSeconds: 10 }))
+
+    // A click/scrub at 8 s: the playhead snaps back, but nothing was practised.
+    act(() => pb.emit(8))
+
+    expect(pb.engine.seekTo).toHaveBeenCalledWith(2)
+    expect(onLoopWrap).not.toHaveBeenCalled()
+  })
+
   it('does not notify a pass when looping is disarmed', () => {
     const pb = fakePlayback()
     const stem = fakeStemPlayback()

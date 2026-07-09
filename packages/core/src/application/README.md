@@ -35,13 +35,17 @@ The single place to look before adding a feature, so ports and use-cases get
 >
 > Pure speed-trainer domain (no use-case/port, UI-driven) — roadmap-2 Lot I.1:
 > `startSpeedTrainer(policy)` / `recordLoopPass(state)` — the practice ramp
-> riding the loupe. Percent-grained tempo (the transport control's grain)
-> climbing `incrementPercent` every `passesPerStep` completed loop passes,
-> capped at `targetPercent`; the policy is normalised on arm (tempos confined
-> to `clampPlaybackRate`'s range, target lifted to the start, increment and
-> cadence floored). The web's `useSpeedTrainer` records each wrap from the
-> transport's position listener (`onLoopWrap`) and applies every earned step
-> through the player's clamped tempo setter.
+> riding the loupe. Percent-grained tempo (the transport control's grain,
+> `MIN/MAX_TEMPO_PERCENT`) climbing `incrementPercent` every `passesPerStep`
+> completed loop passes, capped at `targetPercent`; the policy is normalised
+> on arm (tempos confined to the playable range — clamped natively in percent
+> space, `NaN` reads as full speed —, target lifted to the start, increment
+> and cadence floored). `completesLoopPass(region, seconds)` tells a
+> played-through pass from a corrective wrap after a seek. The web's
+> `useSpeedTrainer` records each completed pass from the transport's position
+> listener (`onLoopWrap`) and lands every earned step on the player; the ramp
+> stops whenever its premise dies — the loupe cleared or replaced, looping
+> toggled off, or the user taking the tempo back on the slider.
 >
 > Pure zoom domain (no use-case/port, UI-driven) — Slice 6: `clampZoom` /
 > `zoomIn` / `zoomOut` over a `MIN_ZOOM…MAX_ZOOM` (1×–6×) scalar in `ZOOM_STEP`

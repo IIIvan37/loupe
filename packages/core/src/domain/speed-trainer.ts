@@ -1,4 +1,5 @@
-import { clampPlaybackRate } from './playback-rate.ts'
+import type { LoopRegion } from './loop-region.ts'
+import { MAX_TEMPO_PERCENT, MIN_TEMPO_PERCENT } from './playback-rate.ts'
 
 /**
  * Speed trainer: practise a loop slow, earn speed. A pure ramp policy — the
@@ -31,9 +32,17 @@ export interface SpeedTrainerState {
 /** The smallest meaningful climb per step, in percent points. */
 const MIN_INCREMENT_PERCENT = 1
 
-/** Confine a tempo percent to the playable range; `NaN` → full speed. */
+/**
+ * Confine a tempo percent to the playable range; `NaN` → full speed. Clamped
+ * natively in percent space — a `/100 … *100` round-trip through the rate
+ * grain is not an identity in IEEE754 (55 → 55.00000000000001) and would leak
+ * float junk into the read-out and the spoken announcement.
+ */
 function clampTempoPercent(percent: number): number {
-  return clampPlaybackRate(percent / 100) * 100
+  if (Number.isNaN(percent)) {
+    return 100
+  }
+  return Math.min(Math.max(percent, MIN_TEMPO_PERCENT), MAX_TEMPO_PERCENT)
 }
 
 /**
@@ -87,4 +96,27 @@ export function recordLoopPass(state: SpeedTrainerState): SpeedTrainerState {
       policy.targetPercent
     )
   }
+}
+
+/**
+ * How far past the loop end a streamed position may land and still count as a
+ * played-through pass. Engines tick once per animation frame, so a real pass
+ * overshoots by a frame's worth of audio (tens of milliseconds, stall-tolerant
+ * at half a second); a click or scrub landing further out is a repositioning,
+ * not a practised repetition.
+ */
+const PASS_OVERSHOOT_SECONDS = 0.5
+
+/**
+ * Whether a streamed position at/after the loop end represents a COMPLETED
+ * pass (played through to the end) rather than a corrective wrap after a
+ * seek past the loop. The transport still wraps the playhead in both cases;
+ * only the ramp's pass count is gated on this.
+ */
+export function completesLoopPass(
+  region: LoopRegion,
+  positionSeconds: number
+): boolean {
+  const overshoot = positionSeconds - region.endSeconds
+  return overshoot >= 0 && overshoot <= PASS_OVERSHOOT_SECONDS
 }

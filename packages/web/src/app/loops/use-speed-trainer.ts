@@ -4,7 +4,7 @@ import {
   type SpeedTrainerState,
   startSpeedTrainer
 } from '@app/core'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 export interface SpeedTrainer {
   /** The running ramp, or undefined when the trainer is off. */
@@ -19,10 +19,15 @@ export interface SpeedTrainer {
 
 /**
  * Smart hook owning the speed-trainer ramp (`startSpeedTrainer` /
- * `recordLoopPass`): the transport's position listener reports each loop wrap
- * through `recordPass`, and every earned step lands on the player through
- * `applyTempoPercent`. That listener is mount-once, so `recordPass` is
- * identity-stable and reads the live state from a ref.
+ * `recordLoopPass`): the transport's position listener reports each completed
+ * pass through `recordPass`, and every earned step lands on the player
+ * through `applyTempoPercent` — inside the handler itself, so the tempo
+ * changes the instant the pass wraps, not a render later. That listener is
+ * mount-once, so `recordPass` reads the live ramp from a ref (`stateRef` is
+ * the source of truth; `useState` mirrors it for render — every transition
+ * must write both). All returned identities are stable: the host re-renders
+ * per animation frame during playback, and an unstable return would defeat
+ * the memoised controls.
  */
 export function useSpeedTrainer(
   applyTempoPercent: (percent: number) => void
@@ -32,17 +37,17 @@ export function useSpeedTrainer(
   const applyRef = useRef(applyTempoPercent)
   applyRef.current = applyTempoPercent
 
-  function start(policy: SpeedTrainerPolicy): void {
+  const start = useCallback((policy: SpeedTrainerPolicy) => {
     const armed = startSpeedTrainer(policy)
     stateRef.current = armed
     setState(armed)
     applyRef.current(armed.currentPercent)
-  }
+  }, [])
 
-  function stop(): void {
+  const stop = useCallback(() => {
     stateRef.current = undefined
     setState(undefined)
-  }
+  }, [])
 
   const recordPass = useCallback(() => {
     const current = stateRef.current
@@ -57,5 +62,8 @@ export function useSpeedTrainer(
     }
   }, [])
 
-  return { state, start, stop, recordPass }
+  return useMemo(
+    () => ({ state, start, stop, recordPass }),
+    [state, start, stop, recordPass]
+  )
 }

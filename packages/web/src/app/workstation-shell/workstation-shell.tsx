@@ -123,7 +123,8 @@ export function WorkstationShell({
   const loopEditing = useLoopEditing(loops, {
     durationSeconds: transport.durationSeconds,
     setLoopRegion,
-    seekToSeconds
+    seekToSeconds,
+    onRegionReplaced: speedTrainer.stop
   })
   const viewport = useViewport()
   const serverHealth = useServerHealth({ fetchImpl: healthFetch })

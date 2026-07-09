@@ -119,6 +119,36 @@ describe('LoopControls', () => {
     expect(onClearRegion).toHaveBeenCalledOnce()
   })
 
+  it('hides the ramp entry while looping is off (a ramp needs wraps)', () => {
+    renderControls({ loopEnabled: false })
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-open') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('passes an emptied form field to the domain as NaN (full-speed fallback)', async () => {
+    const user = userEvent.setup()
+    const trainer = fakeTrainer()
+    renderControls({ trainer })
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    // Clearing a field must reach startSpeedTrainer as NaN — Number('') is 0,
+    // which would clamp to the 25 % floor instead of the documented fallback.
+    await user.clear(screen.getByLabelText(i18n._('loops.trainer-target')))
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+
+    expect(trainer.start).toHaveBeenCalledWith({
+      startPercent: 70,
+      incrementPercent: 5,
+      passesPerStep: 1,
+      targetPercent: Number.NaN
+    })
+  })
+
   it('starts the ramp with the policy typed into the form', async () => {
     const user = userEvent.setup()
     const trainer = fakeTrainer()

@@ -1,7 +1,7 @@
-import { MAX_PLAYBACK_RATE, MIN_PLAYBACK_RATE } from '@app/core'
+import { MAX_TEMPO_PERCENT, MIN_TEMPO_PERCENT } from '@app/core'
 import { Popover } from '@base-ui-components/react/popover'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { useState } from 'react'
+import { type KeyboardEvent, memo, useState } from 'react'
 import { cx } from '../../lib/cx.ts'
 import { LiveStatus } from '../ui/live-status.tsx'
 import styles from './speed-trainer-controls.module.css'
@@ -15,8 +15,13 @@ const DEFAULT_FORM = {
   targetPercent: '100'
 }
 
-const MIN_TEMPO_PERCENT = MIN_PLAYBACK_RATE * 100
-const MAX_TEMPO_PERCENT = MAX_PLAYBACK_RATE * 100
+/**
+ * An emptied field must reach the domain as `NaN` (its documented full-speed
+ * fallback) — `Number('')` is 0, which would clamp to the 25 % floor instead.
+ */
+function fieldNumber(value: string): number {
+  return value.trim() === '' ? Number.NaN : Number(value)
+}
 
 interface SpeedTrainerControlsProps {
   readonly trainer: SpeedTrainer
@@ -28,8 +33,12 @@ interface SpeedTrainerControlsProps {
  * normalises whatever is typed, an emptied field reads as full speed). On: the
  * ramp read-out plus « Arrêter » — the earned tempo stays where the ramp left
  * it. Each earned step is announced through the persistent LiveStatus channel.
+ * Memoised: its host re-renders once per animation frame during playback, and
+ * nothing here changes until the trainer (stable-identity hook) or copy does.
  */
-export function SpeedTrainerControls({ trainer }: SpeedTrainerControlsProps) {
+export const SpeedTrainerControls = memo(function SpeedTrainerControls({
+  trainer
+}: SpeedTrainerControlsProps) {
   const { t } = useLingui()
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState(DEFAULT_FORM)
@@ -44,12 +53,20 @@ export function SpeedTrainerControls({ trainer }: SpeedTrainerControlsProps) {
 
   function start(): void {
     trainer.start({
-      startPercent: Number(form.startPercent),
-      incrementPercent: Number(form.incrementPercent),
-      passesPerStep: Number(form.passesPerStep),
-      targetPercent: Number(form.targetPercent)
+      startPercent: fieldNumber(form.startPercent),
+      incrementPercent: fieldNumber(form.incrementPercent),
+      passesPerStep: fieldNumber(form.passesPerStep),
+      targetPercent: fieldNumber(form.targetPercent)
     })
     setOpen(false)
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
+    // Enter submits, like every sibling popover form (NameEditor, URL import).
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      start()
+    }
   }
 
   const field = (
@@ -67,6 +84,7 @@ export function SpeedTrainerControls({ trainer }: SpeedTrainerControlsProps) {
         max={max}
         value={form[key]}
         onChange={(event) => setForm({ ...form, [key]: event.target.value })}
+        onKeyDown={onKeyDown}
       />
     </label>
   )
@@ -149,4 +167,4 @@ export function SpeedTrainerControls({ trainer }: SpeedTrainerControlsProps) {
       </Popover.Portal>
     </Popover.Root>
   )
-}
+})

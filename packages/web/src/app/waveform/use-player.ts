@@ -120,9 +120,13 @@ export function usePlayer(
   const [timeRatio, setTimeRatioState] = useState(1)
   const [pitchSemitones, setPitchSemitonesState] = useState(0)
   const loop = useLoop()
-  // The ramp applies its earned tempo through the same clamped setter the
-  // slider uses, so both engines stay in step and the read-out follows.
-  const speedTrainer = useSpeedTrainer((percent) => setTimeRatio(percent / 100))
+  // The ramp applies its earned tempo through the same clamped path the
+  // slider uses (engines + read-out follow) — but through the INTERNAL
+  // applier: the public setter is the user taking the tempo back, which
+  // stops the ramp instead of fighting it.
+  const speedTrainer = useSpeedTrainer((percent) =>
+    applyTimeRatio(percent / 100)
+  )
   const { transport, dispatch, active } = useTransportEngines({
     playback,
     stemPlayback,
@@ -241,12 +245,20 @@ export function usePlayer(
     seekToSeconds(clamped * transport.durationSeconds)
   }
 
-  function setTimeRatio(ratio: number): void {
+  function applyTimeRatio(ratio: number): void {
     const clamped = clampPlaybackRate(ratio)
     setTimeRatioState(clamped)
     // Keep both engines in step so tempo survives a transport hand-off.
     playback.setTimeRatio(clamped)
     stemPlayback.setTimeRatio(clamped)
+  }
+
+  function setTimeRatio(ratio: number): void {
+    // A direct tempo change (slider, restore, import reset) takes authority
+    // back from the ramp — a « running » read-out would lie about the tempo,
+    // and the next earned step would snap the user's choice away.
+    speedTrainer.stop()
+    applyTimeRatio(ratio)
   }
 
   function setPitchSemitones(semitones: number): void {
@@ -258,11 +270,28 @@ export function usePlayer(
 
   function setLoopRegion(region: LoopRegion | undefined): void {
     // Clearing the loupe (discard, new import) ends the practice ramp — there
-    // is no loop left to count passes on. Adjusting a region keeps it running.
+    // is no loop left to count passes on. Adjusting a region keeps it running;
+    // REPLACING the passage stops it too, via useLoopEditing's seam.
     if (region === undefined) {
       speedTrainer.stop()
     }
     loop.setLoopRegion(region)
+  }
+
+  function toggleLoop(): void {
+    // Turning looping off is play-through mode: no wrap can ever fire, so a
+    // « running » ramp would sit dead while claiming progress.
+    if (loop.loopEnabled) {
+      speedTrainer.stop()
+    }
+    loop.toggleLoop()
+  }
+
+  function restoreLoop(region: LoopRegion, enabled: boolean): void {
+    // A restored loupe (project open) never inherits the previous session's
+    // ramp, whatever path seated it.
+    speedTrainer.stop()
+    loop.restoreLoop(region, enabled)
   }
 
   return {
@@ -282,8 +311,8 @@ export function usePlayer(
     setPitchSemitones,
     setLoopRegion,
     loopEnabled: loop.loopEnabled,
-    toggleLoop: loop.toggleLoop,
-    restoreLoop: loop.restoreLoop,
+    toggleLoop,
+    restoreLoop,
     speedTrainer
   }
 }

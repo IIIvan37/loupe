@@ -139,7 +139,9 @@ export {
 export {
   clampPlaybackRate,
   MAX_PLAYBACK_RATE,
-  MIN_PLAYBACK_RATE
+  MAX_TEMPO_PERCENT,
+  MIN_PLAYBACK_RATE,
+  MIN_TEMPO_PERCENT
 } from './domain/playback-rate.ts'
 export type {
   AudioRef,
@@ -165,7 +167,11 @@ export type {
   SpeedTrainerPolicy,
   SpeedTrainerState
 } from './domain/speed-trainer.ts'
-export { recordLoopPass, startSpeedTrainer } from './domain/speed-trainer.ts'
+export {
+  completesLoopPass,
+  recordLoopPass,
+  startSpeedTrainer
+} from './domain/speed-trainer.ts'
 export { stemExportFilename } from './domain/stem-export.ts'
 export type { StemSet, StemTrack } from './domain/stem-set.ts'
 export { buildStemTrack } from './domain/stem-set.ts'

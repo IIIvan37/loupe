@@ -971,6 +971,100 @@ describe('WorkstationShell', () => {
     expect(screen.getByText('75 %')).toBeInTheDocument()
   })
 
+  it('stops the ramp when the user takes the tempo back on the slider', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    pointerGesture(20, 60)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+    expect(screen.getByText('70 %')).toBeInTheDocument()
+
+    // Dragging the tempo slider is the user taking control back — the ramp
+    // must not lie in the read-out nor snap the tempo down on the next wrap.
+    fireEvent.change(
+      screen.getByLabelText(i18n._('transport.tempo-slider')),
+      { target: { value: '100' } }
+    )
+
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('100 %')).toBeInTheDocument()
+  })
+
+  it('stops the ramp when looping is toggled off (no dead ramp)', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    pointerGesture(20, 60)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+
+    // Play-through mode: no wrap can ever fire, so a « running » ramp would
+    // be a lie. Turning looping off ends the practice.
+    await user.click(screen.getByRole('button', { name: i18n._('loops.active') }))
+
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).not.toBeInTheDocument()
+    // And the entry point is hidden while looping stays off.
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-open') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('stops the ramp when another passage becomes the loupe', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    pointerGesture(20, 60)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+    expect(
+      screen.getByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).toBeInTheDocument()
+
+    // A fresh drag targets a different passage — the old ramp must not ride it.
+    pointerGesture(10, 30)
+
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('stops the ramp when a saved loop is recalled over it', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    await saveNamedLoop(user, 'Refrain')
+    // Practise a different, throwaway passage.
+    pointerGesture(10, 30)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+
+    await openLoops(user)
+    await user.click(
+      await screen.findByRole('button', { name: savedLoop('Refrain') })
+    )
+
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).not.toBeInTheDocument()
+  })
+
   it('stops the ramp when the loupe is cleared', async () => {
     const { user } = renderShell()
     await importTrack(user)

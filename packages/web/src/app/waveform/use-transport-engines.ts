@@ -1,4 +1,5 @@
 import {
+  completesLoopPass,
   initialTransport,
   type LoopRegion,
   type PlaybackEngine,
@@ -91,8 +92,11 @@ export function useTransportEngines({
         const engine = stemsActiveRef.current ? stemPlayback : playback
         engine.seekTo(loop.startSeconds)
         dispatch({ type: 'seek', toSeconds: loop.startSeconds })
-        // One completed pass — the speed trainer counts these.
-        onLoopWrapRef.current?.()
+        // The speed trainer counts completed passes only — a seek landing far
+        // past the end wraps the playhead but earned nothing.
+        if (completesLoopPass(loop, seconds)) {
+          onLoopWrapRef.current?.()
+        }
         return
       }
       dispatch({ type: 'tick', atSeconds: seconds })
