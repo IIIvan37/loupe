@@ -22,6 +22,7 @@ import { useLoops } from '../loops/use-loops.ts'
 import { useMarkers } from '../markers/use-markers.ts'
 import { useMixer } from '../mixer/use-mixer.ts'
 import { useSeparation } from '../separation/use-separation.ts'
+import { type CountInPlayer, useCountIn } from '../tempo/use-count-in.ts'
 import { useMetronome } from '../tempo/use-metronome.ts'
 import { useTempo } from '../tempo/use-tempo.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
@@ -59,6 +60,8 @@ interface WorkstationShellProps {
   readonly projectStores?: ProjectDeps
   /** Injected in tests; the health poll defaults to the real global fetch. */
   readonly healthFetch?: typeof fetch
+  /** Injected in tests; defaults to the real Web Audio one-shot player. */
+  readonly countInPlayer?: CountInPlayer
 }
 
 /**
@@ -77,7 +80,8 @@ export function WorkstationShell({
   tempoDetector,
   trackSource,
   projectStores,
-  healthFetch
+  healthFetch,
+  countInPlayer
 }: WorkstationShellProps) {
   // One stem engine shared by the mixer (gains + loading) and the transport.
   const stemPlayback = useMemo(
@@ -175,6 +179,20 @@ export function WorkstationShell({
   // Importing from a URL reuses the exact file-decode path once the bytes land.
   const urlImport = useImportFromUrl(session.importDownloaded, trackSource)
 
+  // Every start goes through the count-in: one bar of clicks first when the
+  // click lane is audible, a plain start otherwise. Pause stays immediate.
+  const countIn = useCountIn({
+    canPlay: importState.status === 'loaded',
+    isPlaying: transport.isPlaying,
+    positionSeconds: transport.positionSeconds,
+    timeRatio,
+    analysis: tempo.analysis,
+    metronomeEnabled: metronome.enabled,
+    mixerState: mixer.state,
+    togglePlayback,
+    player: countInPlayer
+  })
+
   const isLoaded = importState.status === 'loaded'
   const i18nImportLabel = t({
     id: 'header.import-file',
@@ -216,7 +234,7 @@ export function WorkstationShell({
   // Global keyboard layout — only live once a track is loaded.
   useKeyboardShortcuts(
     {
-      togglePlayback,
+      togglePlayback: countIn.togglePlayback,
       seekBy: (seconds) => seekToSeconds(transport.positionSeconds + seconds),
       zoomIn: viewport.zoomIn,
       zoomOut: viewport.zoomOut,
@@ -329,9 +347,11 @@ export function WorkstationShell({
       <TransportBar
         position={formatTimecode(transport.positionSeconds)}
         duration={formatTimecode(transport.durationSeconds)}
-        isPlaying={transport.isPlaying}
+        // During the count-in the button reads « pause » — pressing it abandons
+        // the count, exactly what a pause means at that instant.
+        isPlaying={transport.isPlaying || countIn.countingIn}
         canPlay={isLoaded}
-        onPlayPause={togglePlayback}
+        onPlayPause={countIn.togglePlayback}
         onSeekToStart={() => seekToSeconds(0)}
         onSeekToEnd={() => seekToSeconds(transport.durationSeconds)}
         tempoPercent={Math.round(timeRatio * 100)}

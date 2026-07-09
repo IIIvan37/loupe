@@ -76,6 +76,7 @@ export default defineConfig({
         // browser download — none of which jsdom can drive. Verified in a real
         // browser, not by unit tests, so they are kept out of the coverage metric
         // rather than dragging it down with unreachable lines.
+        '**/audio/count-in-player.ts',
         '**/audio/web-audio-playback.ts',
         '**/audio/web-audio-stem-playback.ts',
         '**/audio/web-audio-shared.ts',

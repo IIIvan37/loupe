@@ -1,4 +1,4 @@
-import type { BeatGrid } from './tempo.ts'
+import type { Beat, BeatGrid } from './tempo.ts'
 
 /** How to render a click track from a beat grid. */
 export interface ClickTrackOptions {
@@ -49,4 +49,42 @@ export function synthesizeClickTrack(options: ClickTrackOptions): Float32Array {
   }
 
   return samples
+}
+
+/**
+ * One bar of clicks played before the playhead starts moving: the beats to
+ * click (relative to the count-in start) and how long to hold the transport —
+ * playback begins exactly where the next downbeat would fall.
+ */
+export interface CountIn {
+  readonly beats: BeatGrid
+  readonly durationSeconds: number
+}
+
+/**
+ * Lay out a one-bar count-in at the tempo the player will HEAR: beats every
+ * `60 / (bpm × playbackRate)` seconds (a half-speed practice run counts in at
+ * half speed), the first accented as the bar's « one ». No playable tempo or
+ * rate means no count-in at all; a degenerate meter counts a one-beat bar.
+ */
+export function buildCountIn(
+  bpm: number,
+  beatsPerBar: number,
+  playbackRate = 1
+): CountIn | undefined {
+  if (
+    !Number.isFinite(bpm) ||
+    bpm <= 0 ||
+    !Number.isFinite(playbackRate) ||
+    playbackRate <= 0
+  ) {
+    return undefined
+  }
+  const bar = Math.max(1, Math.floor(beatsPerBar) || 1)
+  const interval = 60 / (bpm * playbackRate)
+  const beats: Beat[] = []
+  for (let k = 0; k < bar; k++) {
+    beats.push({ timeSeconds: k * interval, downbeat: k === 0 })
+  }
+  return { beats, durationSeconds: bar * interval }
 }
