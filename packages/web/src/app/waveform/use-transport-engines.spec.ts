@@ -135,6 +135,27 @@ describe('useTransportEngines', () => {
     expect(onLoopWrap).toHaveBeenCalledTimes(2)
   })
 
+  it('pulls a playhead left outside the loop up to its start, earning nothing', () => {
+    const pb = fakePlayback()
+    const stem = fakeStemPlayback()
+    const onLoopWrap = vi.fn()
+    const { result } = mount(pb.engine, stem.engine, {
+      stemsActive: false,
+      loopRegion: region(2, 6),
+      loopEnabled: true,
+      onLoopWrap
+    })
+    act(() => result.current.dispatch({ type: 'load', durationSeconds: 10 }))
+
+    // The cursor sits before the enabled loop (fresh arm, or a click there):
+    // it is repositioned at the loop start — no practice pass was completed.
+    act(() => pb.emit(1))
+
+    expect(pb.engine.seekTo).toHaveBeenCalledWith(2)
+    expect(result.current.transport.positionSeconds).toBe(2)
+    expect(onLoopWrap).not.toHaveBeenCalled()
+  })
+
   it('wraps a seek far past the loop end without counting a pass', () => {
     const pb = fakePlayback()
     const stem = fakeStemPlayback()
