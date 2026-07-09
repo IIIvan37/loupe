@@ -31,6 +31,8 @@ export interface TransportEnginesParams {
   /** The live A/B loop — playback wraps to its start when it reaches the end. */
   readonly loopRegion: LoopRegion | undefined
   readonly loopEnabled: boolean
+  /** Notified on each wrap-around — one completed loop pass (speed trainer). */
+  readonly onLoopWrap?: () => void
 }
 
 /**
@@ -47,7 +49,8 @@ export function useTransportEngines({
   stemPlayback,
   stemsActive,
   loopRegion,
-  loopEnabled
+  loopEnabled,
+  onLoopWrap
 }: TransportEnginesParams): TransportEngines {
   const [transport, dispatch] = useReducer(transportReducer, initialTransport)
 
@@ -57,6 +60,8 @@ export function useTransportEngines({
   loopRef.current = loopRegion
   const loopEnabledRef = useRef(true)
   loopEnabledRef.current = loopEnabled
+  const onLoopWrapRef = useRef<(() => void) | undefined>(undefined)
+  onLoopWrapRef.current = onLoopWrap
   // Which engine the transport drives, kept in a ref so the (mount-once) position
   // listener and the loop wrap-around always steer the live one.
   const stemsActiveRef = useRef(false)
@@ -86,6 +91,8 @@ export function useTransportEngines({
         const engine = stemsActiveRef.current ? stemPlayback : playback
         engine.seekTo(loop.startSeconds)
         dispatch({ type: 'seek', toSeconds: loop.startSeconds })
+        // One completed pass — the speed trainer counts these.
+        onLoopWrapRef.current?.()
         return
       }
       dispatch({ type: 'tick', atSeconds: seconds })

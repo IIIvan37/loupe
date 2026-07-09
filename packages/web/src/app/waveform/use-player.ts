@@ -17,6 +17,10 @@ import { createMusicMetadataReader } from '../../audio/music-metadata-reader.ts'
 import { createWebAudioDecoder } from '../../audio/web-audio-decoder.ts'
 import { createWebAudioPlayback } from '../../audio/web-audio-playback.ts'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
+import {
+  type SpeedTrainer,
+  useSpeedTrainer
+} from '../loops/use-speed-trainer.ts'
 import { useLoop } from './use-loop.ts'
 import { useTransportEngines } from './use-transport-engines.ts'
 
@@ -68,6 +72,8 @@ export interface Player {
   readonly toggleLoop: () => void
   /** Seat a persisted loupe: region and wrap choice together (project open). */
   readonly restoreLoop: (region: LoopRegion, enabled: boolean) => void
+  /** The speed-trainer ramp riding the loupe (arms, steps on wraps, stops). */
+  readonly speedTrainer: SpeedTrainer
 }
 
 /**
@@ -114,12 +120,16 @@ export function usePlayer(
   const [timeRatio, setTimeRatioState] = useState(1)
   const [pitchSemitones, setPitchSemitonesState] = useState(0)
   const loop = useLoop()
+  // The ramp applies its earned tempo through the same clamped setter the
+  // slider uses, so both engines stay in step and the read-out follows.
+  const speedTrainer = useSpeedTrainer((percent) => setTimeRatio(percent / 100))
   const { transport, dispatch, active } = useTransportEngines({
     playback,
     stemPlayback,
     stemsActive,
     loopRegion: loop.loopRegion,
-    loopEnabled: loop.loopEnabled
+    loopEnabled: loop.loopEnabled,
+    onLoopWrap: speedTrainer.recordPass
   })
   // Bumped per import so a slow metadata read from a previous file can't land on
   // top of the current one.
@@ -180,7 +190,7 @@ export function usePlayer(
           setImportState({ status: 'loaded', track: result.track })
           setLoadedAudio(result.audio)
           setLoadedBytes(retained)
-          loop.setLoopRegion(undefined)
+          setLoopRegion(undefined)
           // A fresh, unrelated track starts at its own tempo/pitch — the
           // previous track's tuning must not bleed in (and get saved with it).
           setTimeRatio(1)
@@ -246,6 +256,15 @@ export function usePlayer(
     stemPlayback.setPitchSemitones(clamped)
   }
 
+  function setLoopRegion(region: LoopRegion | undefined): void {
+    // Clearing the loupe (discard, new import) ends the practice ramp — there
+    // is no loop left to count passes on. Adjusting a region keeps it running.
+    if (region === undefined) {
+      speedTrainer.stop()
+    }
+    loop.setLoopRegion(region)
+  }
+
   return {
     importState,
     loadedAudio,
@@ -261,9 +280,10 @@ export function usePlayer(
     seekToSeconds,
     setTimeRatio,
     setPitchSemitones,
-    setLoopRegion: loop.setLoopRegion,
+    setLoopRegion,
     loopEnabled: loop.loopEnabled,
     toggleLoop: loop.toggleLoop,
-    restoreLoop: loop.restoreLoop
+    restoreLoop: loop.restoreLoop,
+    speedTrainer
   }
 }

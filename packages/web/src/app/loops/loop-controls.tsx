@@ -5,6 +5,8 @@ import { cx } from '../../lib/cx.ts'
 import { Icon } from '../ui/icon.tsx'
 import { NameEditor } from '../ui/name-editor.tsx'
 import styles from './loop-controls.module.css'
+import { SpeedTrainerControls } from './speed-trainer-controls.tsx'
+import type { SpeedTrainer } from './use-speed-trainer.ts'
 
 interface LoopControlsProps {
   /** The active A/B region (drag on the waveform), or undefined when none. */
@@ -17,6 +19,8 @@ interface LoopControlsProps {
   /** Save the active region under a name (a fresh saved loop). */
   readonly onSaveRegion: (name: string, region: LoopRegion) => void
   readonly onClearRegion: () => void
+  /** The speed-trainer ramp riding this loupe. */
+  readonly trainer: SpeedTrainer
 }
 
 /**
@@ -31,7 +35,8 @@ export function LoopControls({
   loopEnabled,
   onToggleLoop,
   onSaveRegion,
-  onClearRegion
+  onClearRegion,
+  trainer
 }: LoopControlsProps) {
   const { t } = useLingui()
   const saveRegionLabel = t({
@@ -61,6 +66,7 @@ export function LoopControls({
           <Trans id="loops.inactive">Boucle inactive</Trans>
         )}
       </button>
+      <SpeedTrainerControls trainer={trainer} />
       {!isSaved && (
         <>
           <NameEditor

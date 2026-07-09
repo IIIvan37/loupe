@@ -112,6 +112,46 @@ describe('useTransportEngines', () => {
     expect(pb.engine.seekTo).not.toHaveBeenCalled()
   })
 
+  it('notifies each completed loop pass, and only those', () => {
+    const pb = fakePlayback()
+    const stem = fakeStemPlayback()
+    const onLoopWrap = vi.fn()
+    const { result } = mount(pb.engine, stem.engine, {
+      stemsActive: false,
+      loopRegion: region(2, 6),
+      loopEnabled: true,
+      onLoopWrap
+    })
+    act(() => result.current.dispatch({ type: 'load', durationSeconds: 10 }))
+
+    // Ordinary ticks inside the loop are not passes.
+    act(() => pb.emit(3))
+    act(() => pb.emit(5))
+    expect(onLoopWrap).not.toHaveBeenCalled()
+
+    act(() => pb.emit(6.5))
+    expect(onLoopWrap).toHaveBeenCalledTimes(1)
+    act(() => pb.emit(6.1))
+    expect(onLoopWrap).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not notify a pass when looping is disarmed', () => {
+    const pb = fakePlayback()
+    const stem = fakeStemPlayback()
+    const onLoopWrap = vi.fn()
+    const { result } = mount(pb.engine, stem.engine, {
+      stemsActive: false,
+      loopRegion: region(2, 6),
+      loopEnabled: false,
+      onLoopWrap
+    })
+    act(() => result.current.dispatch({ type: 'load', durationSeconds: 10 }))
+
+    act(() => pb.emit(6.5))
+
+    expect(onLoopWrap).not.toHaveBeenCalled()
+  })
+
   it('hands the playhead to the stem mix on a real switch, not on mount', () => {
     const pb = fakePlayback()
     const stem = fakeStemPlayback()

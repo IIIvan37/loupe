@@ -939,6 +939,62 @@ describe('WorkstationShell', () => {
     expect(engine.seekTo).toHaveBeenCalledWith(2)
   })
 
+  it('ramps the tempo as loop passes complete (speed trainer)', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+    // Arm the loupe [2 s, 6 s]; the ramp form opens from the loop controls.
+    pointerGesture(20, 60)
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+
+    // Arming seats the default start tempo (70 %) straight away.
+    expect(engine.setTimeRatio).toHaveBeenCalledWith(0.7)
+    expect(screen.getByText('70 %')).toBeInTheDocument()
+
+    // Each completed pass (wrap at the loop end) earns the +5 % step.
+    act(() => engine.emit(6.5))
+    expect(engine.setTimeRatio).toHaveBeenCalledWith(0.75)
+    expect(screen.getByText('75 %')).toBeInTheDocument()
+
+    // Stopping keeps the earned tempo and brings the arm action back.
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-stop') })
+    )
+    expect(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    ).toBeInTheDocument()
+    expect(screen.getByText('75 %')).toBeInTheDocument()
+  })
+
+  it('stops the ramp when the loupe is cleared', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    pointerGesture(20, 60)
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-start') })
+    )
+    expect(
+      screen.getByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).toBeInTheDocument()
+
+    // Discarding the region ends the practice — there is nothing left to count.
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.clear-region') })
+    )
+    expect(
+      screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
+    ).not.toBeInTheDocument()
+  })
+
   it('edits a saved loop in place when its handle moves (no re-save prompt)', async () => {
     const { user } = renderShell()
     await importTrack(user)

@@ -161,6 +161,11 @@ export type {
   SeparationStatus
 } from './domain/separation.ts'
 export { initialSeparation, separationReducer } from './domain/separation.ts'
+export type {
+  SpeedTrainerPolicy,
+  SpeedTrainerState
+} from './domain/speed-trainer.ts'
+export { recordLoopPass, startSpeedTrainer } from './domain/speed-trainer.ts'
 export { stemExportFilename } from './domain/stem-export.ts'
 export type { StemSet, StemTrack } from './domain/stem-set.ts'
 export { buildStemTrack } from './domain/stem-set.ts'

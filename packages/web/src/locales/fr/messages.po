@@ -60,6 +60,7 @@ msgstr "Spectre"
 
 #. js-lingui-explicit-id
 #: src/app/header/import-menu.tsx:180
+#: src/app/loops/speed-trainer-controls.tsx:137
 #: src/app/ui/name-editor.tsx:85
 #: src/app/workstation-shell/confirm-import-dialog.tsx:55
 msgid "common.cancel"
@@ -98,7 +99,7 @@ msgstr "Renommer"
 #: src/app/header/header.tsx:92
 #: src/app/header/header.tsx:100
 #: src/app/header/header.tsx:112
-#: src/app/loops/loop-controls.tsx:71
+#: src/app/loops/loop-controls.tsx:77
 msgid "common.save"
 msgstr "Enregistrer"
 
@@ -124,7 +125,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:284
+#: src/app/workstation-shell/workstation-shell.tsx:285
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -176,7 +177,7 @@ msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:120
-#: src/app/workstation-shell/workstation-shell.tsx:177
+#: src/app/workstation-shell/workstation-shell.tsx:178
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
@@ -302,12 +303,12 @@ msgid "header.unsaved"
 msgstr "● Non enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:59
+#: src/app/loops/loop-controls.tsx:64
 msgid "loops.active"
 msgstr "Boucle active"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:78
+#: src/app/loops/loop-controls.tsx:84
 msgid "loops.clear-region"
 msgstr "Effacer"
 
@@ -317,7 +318,7 @@ msgid "loops.confirm-remove"
 msgstr "Confirmer la suppression de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:61
+#: src/app/loops/loop-controls.tsx:66
 msgid "loops.inactive"
 msgstr "Boucle inactive"
 
@@ -337,14 +338,59 @@ msgid "loops.rename-title"
 msgstr "Renommer la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:37
+#: src/app/loops/loop-controls.tsx:42
 msgid "loops.save-region"
 msgstr "Enregistrer la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:49
+#: src/app/loops/loop-controls.tsx:54
 msgid "loops.section-label"
 msgstr "Boucles"
+
+#. js-lingui-explicit-id
+#: src/app/loops/speed-trainer-controls.tsx:116
+msgid "loops.trainer-increment"
+msgstr "Incrément (%)"
+
+#. js-lingui-explicit-id
+#: src/app/loops/speed-trainer-controls.tsx:100
+msgid "loops.trainer-open"
+msgstr "Rampe de tempo"
+
+#. js-lingui-explicit-id
+#: src/app/loops/speed-trainer-controls.tsx:122
+msgid "loops.trainer-passes"
+msgstr "Répétitions par palier"
+
+#. js-lingui-explicit-id
+#: src/app/loops/speed-trainer-controls.tsx:144
+msgid "loops.trainer-start"
+msgstr "Démarrer"
+
+#. js-lingui-explicit-id
+#: src/app/loops/speed-trainer-controls.tsx:110
+msgid "loops.trainer-start-percent"
+msgstr "Départ (%)"
+
+#. js-lingui-explicit-id
+#: src/app/loops/speed-trainer-controls.tsx:77
+msgid "loops.trainer-status"
+msgstr "Rampe {currentPercent} % → {targetPercent} %"
+
+#. js-lingui-explicit-id
+#: src/app/loops/speed-trainer-controls.tsx:89
+msgid "loops.trainer-stop"
+msgstr "Arrêter la rampe"
+
+#. js-lingui-explicit-id
+#: src/app/loops/speed-trainer-controls.tsx:131
+msgid "loops.trainer-target"
+msgstr "Plafond (%)"
+
+#. js-lingui-explicit-id
+#: src/app/loops/speed-trainer-controls.tsx:106
+msgid "loops.trainer-title"
+msgstr "Rampe de tempo"
 
 #. js-lingui-explicit-id
 #: src/app/markers/marker-controls.tsx:23
@@ -686,7 +732,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:169
+#: src/app/workstation-shell/workstation-shell.tsx:170
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
@@ -701,52 +747,52 @@ msgid "toast.stems-exported"
 msgstr "Stems exportés"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:73
+#: src/app/transport-bar/transport-bar.tsx:74
 msgid "transport.end"
 msgstr "Fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:61
+#: src/app/transport-bar/transport-bar.tsx:62
 msgid "transport.pause"
 msgstr "Pause"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:113
+#: src/app/transport-bar/transport-bar.tsx:114
 msgid "transport.pitch-label"
 msgstr "Hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:126
+#: src/app/transport-bar/transport-bar.tsx:127
 msgid "transport.pitch-reset"
 msgstr "Double-clic pour revenir à 0"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:121
+#: src/app/transport-bar/transport-bar.tsx:122
 msgid "transport.pitch-slider"
 msgstr "Hauteur en demi-tons"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:62
+#: src/app/transport-bar/transport-bar.tsx:63
 msgid "transport.play"
 msgstr "Lecture"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:49
+#: src/app/transport-bar/transport-bar.tsx:50
 msgid "transport.start"
 msgstr "Début"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:89
+#: src/app/transport-bar/transport-bar.tsx:90
 msgid "transport.tempo-label"
 msgstr "Tempo (sans toucher au pitch)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:102
+#: src/app/transport-bar/transport-bar.tsx:103
 msgid "transport.tempo-reset"
 msgstr "Double-clic pour revenir à 100 %"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:97
+#: src/app/transport-bar/transport-bar.tsx:98
 msgid "transport.tempo-slider"
 msgstr "Tempo en pourcentage"
 

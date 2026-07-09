@@ -5,6 +5,7 @@ import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { LoopControls } from '../loops/loop-controls.tsx'
 import type { useLoopEditing } from '../loops/use-loop-editing.ts'
 import type { useLoops } from '../loops/use-loops.ts'
+import type { SpeedTrainer } from '../loops/use-speed-trainer.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
 import type { useMarkers } from '../markers/use-markers.ts'
 import type { useMixer } from '../mixer/use-mixer.ts'
@@ -36,6 +37,8 @@ interface ShellMainProps {
   readonly loopRegion: ComponentProps<typeof WaveformView>['loopRegion']
   readonly loopEnabled: boolean
   readonly onToggleLoop: () => void
+  /** The speed-trainer ramp riding the loupe (loop controls). */
+  readonly speedTrainer: SpeedTrainer
   readonly onSeekSeconds: (seconds: number) => void
   readonly onSeekRatio: (ratio: number) => void
   /** Fold the detected tempo an octave (×2 / ÷2) and re-seat the click. */
@@ -70,6 +73,7 @@ export function ShellMain({
   loopRegion,
   loopEnabled,
   onToggleLoop,
+  speedTrainer,
   onSeekSeconds,
   onFoldTempo,
   onRetryTempo,
@@ -144,6 +148,7 @@ export function ShellMain({
             onToggleLoop={onToggleLoop}
             onSaveRegion={loopEditing.saveRegion}
             onClearRegion={loopEditing.clearRegion}
+            trainer={speedTrainer}
           />
         </Stack>
       </main>
