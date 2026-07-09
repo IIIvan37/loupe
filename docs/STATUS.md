@@ -4,7 +4,35 @@
 
 ## Where we are
 
-- **Now — roadmap-excellence-2 Lot I.1 done (2026-07-09)** on branch
+- **Now — roadmap-excellence-2 Lot I.2 done (2026-07-09)** on branch
+  `feat/manual-tempo` (off `main`, Lot I.1 merged as PR #74): **le tempo
+  manuel** — tap-tempo, saisie BPM et calage de phase, la sortie de secours
+  quand la détection se trompe ou que le serveur est éteint. Pure domain in
+  [tempo.ts](../packages/core/src/domain/tempo.ts): `ManualTempo`
+  (`bpm` + `phaseSeconds` — les deux nombres que l'utilisateur édite, donc
+  exactement ce que la signature signe), `normalizeManualBpm` (NaN/0/négatif
+  → pas un tempo, le reste clampé 20–400), `buildManualGrid` (grille
+  re-dérivée sur toute la piste, instants en produit `phase + k·60/bpm` sans
+  dérive, downbeats comptés à travers l'ancre = temps 1), `appendTap`
+  (fenêtre de 8, reset après 2 s) + `tapTempoBpm` (60 / **médiane** des
+  intervalles). `useTempo` gagne `overrideBpm` (phase conservée, octave
+  remis à zéro, **supplante une détection en vol** — l'utilisateur est une
+  autorité), `alignPhase` (un downbeat exactement sous la tête de lecture)
+  et l'état `manual` (une détection fraîche ou un reset l'efface; un fold
+  par-dessus le suit). TempoPanel: le read-out BPM **devient un champ
+  éditable** (draft qui isole la frappe du read-out par frame; champ vidé →
+  NaN, jamais 0), « Tap » toujours offert, « Caler » dès qu'un tempo existe,
+  badge « Manuel ». Le premier tempo manuel **seat** le métronome (fallback
+  après détection ratée), sinon reseat. Persistance: `ProjectTempo.manual`
+  signé dans `sessionSignature` (absent ⇔ null, les vieux manifests signent
+  égal), restauré par `tempo.set(analysis, shift, manual)`. Stryker a
+  attrapé un vrai bord flottant (phase dénormale → underflow → beat négatif;
+  boucle de correction symétrique + contre-exemples épinglés). Gate
+  **green — 772 tests**, coverage 95,97 %/88,70 %; mutation **94,94 %**,
+  `tempo.ts` 95,08 % (9 survivants équivalents vérifiés à la main).
+  **Next: open the PR, then Lot I.3** (count-in du métronome) ou intercaler
+  un Lot J. See [2026-07-09-manual-tempo](sessions/2026-07-09-manual-tempo.md).
+- **Prior — roadmap-excellence-2 Lot I.1 done (2026-07-09, merged PR #74)** on branch
   `feat/speed-trainer` (off `main`, Lot H merged as PR #73): **le speed
   trainer** — pratiquer une boucle lentement et gagner de la vitesse. Pure
   domain [speed-trainer.ts](../packages/core/src/domain/speed-trainer.ts)
@@ -33,8 +61,7 @@
   float-junk percents, per-frame popover renders). Gate **green — 712
   tests**, coverage 96,04 %/88,94 %, jscpd 5 clones (unchanged),
   react-doctor 0; mutation **95,20 %**, `speed-trainer.ts` **100 %** (39
-  mutants). **PR #74 open (CI green). Next: merge, then Lot I.2** (tempo manuel — tap-tempo,
-  saisie BPM, calage de phase). See
+  mutants). **Merged as PR #74.** See
   [2026-07-09-speed-trainer](sessions/2026-07-09-speed-trainer.md).
 - **Prior — roadmap-excellence-2 Lot H done (2026-07-08, merged PR #73)** on branch
   `feat/web-a11y-live-regions` (off `main`, Lot G merged as PR #72): **a11y des
