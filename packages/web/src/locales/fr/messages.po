@@ -60,7 +60,7 @@ msgstr "Spectre"
 
 #. js-lingui-explicit-id
 #: src/app/header/import-menu.tsx:180
-#: src/app/loops/speed-trainer-controls.tsx:137
+#: src/app/loops/speed-trainer-controls.tsx:155
 #: src/app/ui/name-editor.tsx:85
 #: src/app/workstation-shell/confirm-import-dialog.tsx:55
 msgid "common.cancel"
@@ -99,7 +99,7 @@ msgstr "Renommer"
 #: src/app/header/header.tsx:92
 #: src/app/header/header.tsx:100
 #: src/app/header/header.tsx:112
-#: src/app/loops/loop-controls.tsx:77
+#: src/app/loops/loop-controls.tsx:79
 msgid "common.save"
 msgstr "Enregistrer"
 
@@ -125,7 +125,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:285
+#: src/app/workstation-shell/workstation-shell.tsx:286
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -177,7 +177,7 @@ msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:120
-#: src/app/workstation-shell/workstation-shell.tsx:178
+#: src/app/workstation-shell/workstation-shell.tsx:179
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
@@ -308,7 +308,7 @@ msgid "loops.active"
 msgstr "Boucle active"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:84
+#: src/app/loops/loop-controls.tsx:86
 msgid "loops.clear-region"
 msgstr "Effacer"
 
@@ -348,47 +348,47 @@ msgid "loops.section-label"
 msgstr "Boucles"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:116
+#: src/app/loops/speed-trainer-controls.tsx:134
 msgid "loops.trainer-increment"
 msgstr "Incrément (%)"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:100
+#: src/app/loops/speed-trainer-controls.tsx:118
 msgid "loops.trainer-open"
 msgstr "Rampe de tempo"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:122
+#: src/app/loops/speed-trainer-controls.tsx:140
 msgid "loops.trainer-passes"
 msgstr "Répétitions par palier"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:144
+#: src/app/loops/speed-trainer-controls.tsx:162
 msgid "loops.trainer-start"
 msgstr "Démarrer"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:110
+#: src/app/loops/speed-trainer-controls.tsx:128
 msgid "loops.trainer-start-percent"
 msgstr "Départ (%)"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:77
+#: src/app/loops/speed-trainer-controls.tsx:95
 msgid "loops.trainer-status"
 msgstr "Rampe {currentPercent} % → {targetPercent} %"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:89
+#: src/app/loops/speed-trainer-controls.tsx:107
 msgid "loops.trainer-stop"
 msgstr "Arrêter la rampe"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:131
+#: src/app/loops/speed-trainer-controls.tsx:149
 msgid "loops.trainer-target"
 msgstr "Plafond (%)"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:106
+#: src/app/loops/speed-trainer-controls.tsx:124
 msgid "loops.trainer-title"
 msgstr "Rampe de tempo"
 
@@ -674,52 +674,85 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#. placeholder {0}: Math.round(felt)
-#: src/app/tempo/tempo-panel.tsx:14
-#: src/app/tempo/tempo-panel.tsx:86
+#: src/app/tempo/tempo-panel.tsx:205
+msgid "tempo.align"
+msgstr "Caler la grille sur la tête de lecture"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:210
+msgid "tempo.align-short"
+msgstr "Caler"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:21
 msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:13
-#: src/app/tempo/tempo-panel.tsx:131
+#: src/app/tempo/tempo-panel.tsx:137
+msgid "tempo.bpm-field"
+msgstr "Saisir le tempo (BPM)"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:20
+#: src/app/tempo/tempo-panel.tsx:216
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:120
+#: src/app/tempo/tempo-panel.tsx:180
 msgid "tempo.double"
 msgstr "Doubler le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:108
+#: src/app/tempo/tempo-panel.tsx:168
 msgid "tempo.halve"
 msgstr "Diviser le tempo par deux"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:81
+#: src/app/tempo/tempo-panel.tsx:116
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:98
+#: src/app/tempo/tempo-panel.tsx:146
+msgid "tempo.manual-badge"
+msgstr "Manuel"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:158
 msgid "tempo.meter"
 msgstr "{beatsPerBar} temps"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:91
+#: src/app/tempo/tempo-panel.tsx:151
 msgid "tempo.range"
 msgstr "{min}–{max} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:78
+#: src/app/tempo/tempo-panel.tsx:113
 msgid "tempo.region-label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:140
+#: src/app/tempo/tempo-panel.tsx:225
 msgid "tempo.retry"
 msgstr "Réessayer"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:196
+msgid "tempo.tap"
+msgstr "Taper le tempo"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:198
+msgid "tempo.tap-short"
+msgstr "Tap"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:142
+msgid "tempo.unit"
+msgstr "BPM"
 
 #. js-lingui-explicit-id
 #: src/app/ui/toast-region.tsx:18
@@ -732,7 +765,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:170
+#: src/app/workstation-shell/workstation-shell.tsx:171
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 

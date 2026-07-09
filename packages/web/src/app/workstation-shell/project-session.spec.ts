@@ -151,6 +151,7 @@ describe('restoreSession', () => {
       tempo: {
         analysis: undefined,
         octaveShift: 0,
+        manual: undefined,
         detect: vi.fn(async () => detected),
         set: vi.fn(),
         reset: vi.fn()
@@ -356,7 +357,8 @@ describe('restoreSession', () => {
     // (predating the enriched contract) restores at common time.
     expect(deps.tempo.set).toHaveBeenCalledWith(
       { bpm: savedTempo.bpm, grid: savedTempo.grid, beatsPerBar: 4 },
-      0
+      0,
+      undefined
     )
     expect(deps.tempo.detect).not.toHaveBeenCalled()
     expect(deps.metronome.enable).toHaveBeenCalledWith(
@@ -382,7 +384,8 @@ describe('restoreSession', () => {
 
     expect(deps.tempo.set).toHaveBeenCalledWith(
       { bpm: savedTempo.bpm, grid: savedTempo.grid, beatsPerBar: 4 },
-      -1
+      -1,
+      undefined
     )
   })
 
@@ -402,8 +405,31 @@ describe('restoreSession', () => {
 
     expect(deps.tempo.set).toHaveBeenCalledWith(
       { bpm: savedTempo.bpm, grid: savedTempo.grid, beatsPerBar: 3 },
-      0
+      0,
+      undefined
     )
+  })
+
+  it('restores the persisted manual override', async () => {
+    const deps = fakeDeps(undefined)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: {
+        ...baseProject,
+        tempo: { ...savedTempo, manual: { bpm: 96, phaseSeconds: 0.5 } }
+      },
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    // The override state comes back with the analysis, so further edits
+    // (retype, re-align) continue from it and the session signs equal.
+    expect(deps.tempo.set).toHaveBeenCalledWith(expect.anything(), 0, {
+      bpm: 96,
+      phaseSeconds: 0.5
+    })
   })
 
   it('attaches the metronome onto the restored stems for a separated project', async () => {

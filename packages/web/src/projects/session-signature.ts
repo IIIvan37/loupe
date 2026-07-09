@@ -1,5 +1,6 @@
 import {
   type LoopLibrary,
+  type ManualTempo,
   type MarkerList,
   type MixerChannel,
   type MixerState,
@@ -16,12 +17,17 @@ export interface SignedSession {
   readonly markers: MarkerList
   readonly activeLoop?: ProjectActiveLoop | undefined
   readonly tuning?: ProjectTuning | undefined
-  /** The metronome's mixer settings plus the manual octave correction — the only
-   * user-editable tempo state. The beat grid and BPM are derived from detection
-   * and the fold, so they stay out of the signature (the octave shift stands in
-   * for the fold). */
+  /** The metronome's mixer settings plus the user-editable tempo state: the
+   * manual octave correction and the manual override (typed/tapped/aligned
+   * bpm + phase). The beat grid and BPM are derived from detection, the fold
+   * and the override, so they stay out of the signature (the shift and the
+   * override stand in for them). */
   readonly tempo?:
-    | { readonly metronome: MixerChannel; readonly octaveShift?: number }
+    | {
+        readonly metronome: MixerChannel
+        readonly octaveShift?: number
+        readonly manual?: ManualTempo | undefined
+      }
     | undefined
   readonly separation?: { readonly mixer: MixerState } | undefined
 }
@@ -43,6 +49,9 @@ export function sessionSignature(session: SignedSession): string {
   // Absent octave shift (a manifest that predates the toggle, or an untouched
   // detection) reads as neutral 0, so a reopened old project still signs equal.
   const octaveShift = session.tempo?.octaveShift ?? 0
+  // Absent manual override (a manifest that predates it, or an untouched
+  // detection) reads as null, so a reopened old project still signs equal.
+  const manual = session.tempo?.manual
   return JSON.stringify({
     loops: session.loops.map((loop) => [
       loop.id,
@@ -65,6 +74,7 @@ export function sessionSignature(session: SignedSession): string {
     tuning: [tuning.timeRatio, tuning.pitchSemitones, tuning.zoom],
     metronome: [metronome.gainDb, metronome.muted, metronome.soloed],
     octaveShift,
+    manualTempo: manual ? [manual.bpm, manual.phaseSeconds] : null,
     mixer: session.separation
       ? session.separation.mixer.map((channel) => [
           channel.id,

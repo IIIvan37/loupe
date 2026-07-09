@@ -316,6 +316,9 @@ export function WorkstationShell({
         onSeekRatio={seekToRatio}
         onFoldTempo={tempoDetection.fold}
         onRetryTempo={tempoDetection.retry}
+        onOverrideBpm={tempoDetection.setBpm}
+        onTapTempo={tempoDetection.tap}
+        onAlignTempoPhase={tempoDetection.alignPhase}
         onReimport={openFilePicker}
         canSeparate={isLoaded && loadedAudio !== undefined}
         serverHealth={serverHealth}

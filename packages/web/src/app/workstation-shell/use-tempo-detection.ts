@@ -1,7 +1,8 @@
-import type { DecodedAudio, OctaveFactor } from '@app/core'
+import type { BeatGrid, DecodedAudio, OctaveFactor } from '@app/core'
 import { useEffect, useRef } from 'react'
 import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
 import type { useMetronome } from '../tempo/use-metronome.ts'
+import { useTapTempo } from '../tempo/use-tap-tempo.ts'
 import type { useTempo } from '../tempo/use-tempo.ts'
 
 export interface TempoDetection {
@@ -14,6 +15,17 @@ export interface TempoDetection {
   readonly retry: () => void
   /** Fold the tempo an octave (×2 / ÷2) and re-seat the click for it. */
   readonly fold: (factor: OctaveFactor) => void
+  /** Set the tempo by hand (typed or tapped) and seat the click for it. */
+  readonly setBpm: (bpm: number) => void
+  /** One tap of the tap-tempo sequence — lands on `setBpm` once readable. */
+  readonly tap: () => void
+  /** Anchor a downbeat on the playhead and re-seat the click for the grid. */
+  readonly alignPhase: (playheadSeconds: number) => void
+}
+
+/** Whole-track length in seconds — a manual grid spans all of it. */
+function durationOf(audio: DecodedAudio): number {
+  return (audio.channels[0]?.length ?? 0) / audio.sampleRate
 }
 
 /**
@@ -90,11 +102,48 @@ export function useTempoDetection({
     }
   }
 
+  // Seat the click for a manually set grid: swap it when one is already in the
+  // mix, seat it from scratch when the manual tempo is the FIRST tempo (the
+  // tap/type fallback after a failed detection) — unless a separation owns the
+  // mixer, where `enable` would clobber the stems (same rule as `runDetect`).
+  function seatManualClick(grid: BeatGrid, audio: DecodedAudio): void {
+    if (metronome.enabled) {
+      metronome.reseat(grid, audio)
+    } else if (!separationOwnsMixRef.current) {
+      metronome.enable(grid, audio, DEFAULT_METRONOME_CHANNEL)
+    }
+  }
+
+  function setBpm(bpm: number): void {
+    if (!loadedAudio) {
+      return
+    }
+    const overridden = tempo.overrideBpm(bpm, durationOf(loadedAudio))
+    if (overridden) {
+      seatManualClick(overridden.grid, loadedAudio)
+    }
+  }
+
+  function alignPhase(playheadSeconds: number): void {
+    if (!loadedAudio) {
+      return
+    }
+    const aligned = tempo.alignPhase(playheadSeconds, durationOf(loadedAudio))
+    if (aligned) {
+      seatManualClick(aligned.grid, loadedAudio)
+    }
+  }
+
+  const tap = useTapTempo(setBpm)
+
   return {
     suppressNextAutoDetect: (suppress) => {
       suppressAutoDetectRef.current = suppress
     },
     retry,
-    fold
+    fold,
+    setBpm,
+    tap,
+    alignPhase
   }
 }

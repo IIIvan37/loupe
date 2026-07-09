@@ -147,7 +147,8 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       grid: analysis.grid,
       beatsPerBar: analysis.beatsPerBar,
       metronome: metronomeChannel() ?? DEFAULT_METRONOME_CHANNEL,
-      octaveShift: deps.tempo.octaveShift
+      octaveShift: deps.tempo.octaveShift,
+      ...(deps.tempo.manual === undefined ? {} : { manual: deps.tempo.manual })
     }
   }
 
@@ -166,7 +167,11 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
           : { region: deps.loopRegion, enabled: deps.loopEnabled },
       tuning: deps.tuning,
       tempo: tempo
-        ? { metronome: tempo.metronome, octaveShift: deps.tempo.octaveShift }
+        ? {
+            metronome: tempo.metronome,
+            octaveShift: deps.tempo.octaveShift,
+            manual: deps.tempo.manual
+          }
         : undefined,
       separation: deps.stemsReady ? { mixer: separationMixer() } : undefined
     })

@@ -1,7 +1,11 @@
 import {
+  buildManualGrid,
+  DEFAULT_BEATS_PER_BAR,
   type DecodedAudio,
   detectTempo,
   foldTempoOctave,
+  type ManualTempo,
+  normalizeManualBpm,
   type OctaveFactor,
   type TempoAnalysis,
   type TempoDetector
@@ -38,11 +42,43 @@ export interface Tempo {
    */
   readonly octaveShift: number
   /**
+   * The user-set tempo override (typed, tapped or phase-aligned), or undefined
+   * while the analysis is the untouched detection. Signed with the session —
+   * it is a user edit, unlike the derived detection.
+   */
+  readonly manual: ManualTempo | undefined
+  /**
+   * Replace the tempo with a user-set BPM: the beat grid is rebuilt at that
+   * tempo over the whole track, anchored on the current downbeat phase (or the
+   * track start when nothing was detected). Supersedes any in-flight detection
+   * — the user's number is an authority, not a suggestion. Returns the new
+   * analysis so the caller can re-seat the metronome, or undefined when the
+   * input is not a tempo (NaN, zero, negative — an emptied field stays inert).
+   */
+  readonly overrideBpm: (
+    bpm: number,
+    durationSeconds: number
+  ) => TempoAnalysis | undefined
+  /**
+   * Re-anchor the grid so a downbeat falls exactly on the given instant (the
+   * musician pauses on beat one and calls this). Keeps the current tempo;
+   * undefined when no tempo exists yet to anchor.
+   */
+  readonly alignPhase: (
+    playheadSeconds: number,
+    durationSeconds: number
+  ) => TempoAnalysis | undefined
+  /**
    * Seat a persisted analysis directly (opening a saved project) — no detection,
    * no server. Supersedes any in-flight detect so its late result can't win. The
-   * octave shift restores the fold the user had applied (default 0).
+   * octave shift restores the fold the user had applied (default 0), the manual
+   * override restores the user-set tempo (default none).
    */
-  readonly set: (analysis: TempoAnalysis, octaveShift?: number) => void
+  readonly set: (
+    analysis: TempoAnalysis,
+    octaveShift?: number,
+    manual?: ManualTempo
+  ) => void
   /** Forget the analysis — a fresh track has its own tempo. */
   readonly reset: () => void
 }
@@ -57,6 +93,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
   const engine = useMemo(() => detector ?? createTempoDetector(), [detector])
   const [analysis, setAnalysis] = useState<TempoAnalysis>()
   const [octaveShift, setOctaveShift] = useState(0)
+  const [manual, setManual] = useState<ManualTempo>()
   const [detecting, setDetecting] = useState(false)
   const [error, setError] = useState<string>()
   const runIdRef = useRef(0)
@@ -73,8 +110,10 @@ export function useTempo(detector?: TempoDetector): Tempo {
     if (runIdRef.current === runId) {
       setDetecting(false)
       if (result.ok) {
-        // A fresh detection starts from its own octave — clear any prior fold.
+        // A fresh detection starts from its own octave and supersedes any
+        // manual override — clear the prior fold and the user-set tempo.
         setOctaveShift(0)
+        setManual(undefined)
         setAnalysis(result.analysis)
         return result.analysis
       }
@@ -102,17 +141,76 @@ export function useTempo(detector?: TempoDetector): Tempo {
       beatsPerBar: analysis.beatsPerBar
     }
     setOctaveShift(next)
+    // A fold over a manual override is still a user edit of that override —
+    // its bpm follows so the save persists what the read-out shows.
+    if (manual !== undefined) {
+      setManual({ bpm: folded.bpm, phaseSeconds: manual.phaseSeconds })
+    }
     setAnalysis(folded)
     return folded
   }
 
-  function set(next: TempoAnalysis, shift = 0): void {
+  /** Seat a user-set tempo: rebuild the grid and supersede any in-flight run. */
+  function seatManual(
+    next: ManualTempo,
+    durationSeconds: number
+  ): TempoAnalysis {
+    const beatsPerBar = analysis?.beatsPerBar ?? DEFAULT_BEATS_PER_BAR
+    const overridden: TempoAnalysis = {
+      bpm: next.bpm,
+      grid: buildManualGrid(next, beatsPerBar, durationSeconds),
+      beatsPerBar
+    }
+    // The user's tempo is an authority: a late in-flight detection must not
+    // overwrite it (same token dance as `set`).
+    runIdRef.current++
+    setDetecting(false)
+    setError(undefined)
+    setManual(next)
+    setAnalysis(overridden)
+    return overridden
+  }
+
+  function overrideBpm(
+    bpm: number,
+    durationSeconds: number
+  ): TempoAnalysis | undefined {
+    const normalized = normalizeManualBpm(bpm)
+    if (normalized === undefined) {
+      return undefined
+    }
+    // Keep the grid anchored where it is: the prior override's anchor, else
+    // the detected downbeat phase, else the track start.
+    const phaseSeconds =
+      manual?.phaseSeconds ??
+      analysis?.grid.find((beat) => beat.downbeat)?.timeSeconds ??
+      analysis?.grid[0]?.timeSeconds ??
+      0
+    // A typed tempo is a new authority, not a fold of the detection.
+    setOctaveShift(0)
+    return seatManual({ bpm: normalized, phaseSeconds }, durationSeconds)
+  }
+
+  function alignPhase(
+    playheadSeconds: number,
+    durationSeconds: number
+  ): TempoAnalysis | undefined {
+    // Anchoring needs a tempo to lay out: the override's, else the detection's.
+    const bpm = normalizeManualBpm(manual?.bpm ?? analysis?.bpm ?? Number.NaN)
+    if (bpm === undefined) {
+      return undefined
+    }
+    return seatManual({ bpm, phaseSeconds: playheadSeconds }, durationSeconds)
+  }
+
+  function set(next: TempoAnalysis, shift = 0, override?: ManualTempo): void {
     // Supersede any in-flight detect (bump the token) so its late result can't
     // overwrite the persisted analysis we are seating here.
     runIdRef.current++
     setDetecting(false)
     setError(undefined)
     setOctaveShift(shift)
+    setManual(override)
     setAnalysis(next)
   }
 
@@ -121,9 +219,22 @@ export function useTempo(detector?: TempoDetector): Tempo {
     runIdRef.current++
     setAnalysis(undefined)
     setOctaveShift(0)
+    setManual(undefined)
     setDetecting(false)
     setError(undefined)
   }
 
-  return { analysis, detecting, error, fold, octaveShift, detect, set, reset }
+  return {
+    analysis,
+    detecting,
+    error,
+    fold,
+    octaveShift,
+    manual,
+    overrideBpm,
+    alignPhase,
+    detect,
+    set,
+    reset
+  }
 }

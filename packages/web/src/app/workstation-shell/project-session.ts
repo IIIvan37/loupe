@@ -125,7 +125,7 @@ export interface SessionRestoreDeps {
   /** Seat/analyse the tempo (persisted → `set`, old manifest → `detect`). */
   readonly tempo: Pick<
     Tempo,
-    'analysis' | 'octaveShift' | 'detect' | 'set' | 'reset'
+    'analysis' | 'octaveShift' | 'manual' | 'detect' | 'set' | 'reset'
   >
   /** Seat the metronome click alongside the restored session. */
   readonly metronome: Pick<Metronome, 'enable' | 'attach' | 'reset'>
@@ -229,7 +229,7 @@ export async function restoreSession(
       grid: persisted.grid,
       beatsPerBar: persisted.beatsPerBar ?? DEFAULT_BEATS_PER_BAR
     }
-    deps.tempo.set(analysis, persisted.octaveShift ?? 0)
+    deps.tempo.set(analysis, persisted.octaveShift ?? 0, persisted.manual)
     seatMetronome(analysis, persisted.metronome)
     return
   }

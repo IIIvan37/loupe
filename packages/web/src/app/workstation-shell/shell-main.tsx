@@ -45,6 +45,12 @@ interface ShellMainProps {
   readonly onFoldTempo: (factor: OctaveFactor) => void
   /** Relaunch a failed tempo detection (the panel's « Réessayer »). */
   readonly onRetryTempo: () => void
+  /** Set the tempo by hand from the panel's BPM field. */
+  readonly onOverrideBpm: (bpm: number) => void
+  /** One tap of the panel's tap-tempo sequence. */
+  readonly onTapTempo: () => void
+  /** Anchor a downbeat on the playhead (the panel's « Caler »). */
+  readonly onAlignTempoPhase: (playheadSeconds: number) => void
   /** Reopen the file picker — the way out of a failed import. */
   readonly onReimport: () => void
   readonly canSeparate: boolean
@@ -77,6 +83,9 @@ export function ShellMain({
   onSeekSeconds,
   onFoldTempo,
   onRetryTempo,
+  onOverrideBpm,
+  onTapTempo,
+  onAlignTempoPhase,
   onReimport,
   onSeekRatio,
   canSeparate,
@@ -137,8 +146,12 @@ export function ShellMain({
               detecting={tempo.detecting}
               error={tempo.error}
               octaveShift={tempo.octaveShift}
+              manual={tempo.manual !== undefined}
               onFold={onFoldTempo}
               onRetry={onRetryTempo}
+              onOverrideBpm={onOverrideBpm}
+              onTap={onTapTempo}
+              onAlignPhase={onAlignTempoPhase}
             />
           )}
           <LoopControls

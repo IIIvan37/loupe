@@ -2,7 +2,7 @@ import type { LoopLibrary } from './loop-library.ts'
 import type { LoopRegion } from './loop-region.ts'
 import type { MarkerList } from './marker-list.ts'
 import type { MixerChannel, MixerState } from './mixer.ts'
-import type { BeatGrid } from './tempo.ts'
+import type { BeatGrid, ManualTempo } from './tempo.ts'
 
 /**
  * An opaque pointer to audio bytes that live outside the hexagon — the original
@@ -76,6 +76,14 @@ export interface ProjectTempo {
    * manifests that predate the octave toggle.
    */
   readonly octaveShift?: number
+  /**
+   * The user-set tempo override (typed, tapped or phase-aligned): the bpm and
+   * the downbeat anchor the grid above was rebuilt from. The bpm/grid are
+   * already the override's; this is kept so a reopen restores the override
+   * state (further edits continue from it) and signs it as the user edit it
+   * is. Absent ⇔ the analysis is the untouched detection.
+   */
+  readonly manual?: ManualTempo
 }
 
 /**
