@@ -4,6 +4,7 @@ import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { i18n } from '../../i18n/i18n.ts'
 import type { ServerHealth } from '../../projects/use-server-health.ts'
+import { LiveStatus } from '../ui/live-status.tsx'
 import styles from './separation-panel.module.css'
 
 // Module-level map: lazy descriptors, resolved at render time via i18n._.
@@ -16,6 +17,9 @@ const PROGRESS_LABELS: Readonly<
     message: 'Séparation des pistes…'
   })
 }
+
+/** Spoken (never shown) once the run lands: the stems ARE the visible cue. */
+const DONE_LABEL = msg({ id: 'separation.done', message: 'Pistes séparées' })
 
 interface SeparationPanelProps {
   readonly state: SeparationState
@@ -64,67 +68,77 @@ export function SeparationPanel({
   // 'checking' is transient on boot; only the definitive bad states block, so
   // the button never flashes off then on while the first probe is in flight.
   const serverBlock = SERVER_BLOCK[serverHealth]
-
-  // Once ready the stems ARE the mixer (lanes + gutter headers, with the
-  // « Non détectés » caption among them), so the affordance has nothing left
-  // to show. Offer the action only while there is something to do: separate
-  // when idle, retry on failure.
-  if (state.status === 'ready') {
-    return null
-  }
+  // One resolution feeds both channels (live region + visible progress head).
+  const stepLabel = isRunning ? i18n._(PROGRESS_LABELS[state.status]) : undefined
+  const announced = state.status === 'ready' ? i18n._(DONE_LABEL) : stepLabel
 
   return (
-    <section
-      className={styles.panel}
-      aria-label={t({
-        id: 'separation.region-label',
-        message: 'Séparation des pistes'
-      })}
-    >
-      {!isRunning && (
-        <button
-          type="button"
-          className={styles.action}
-          disabled={!canSeparate || serverBlock !== undefined}
-          onClick={onSeparate}
-        >
-          {state.status === 'error'
-            ? t({ id: 'separation.retry', message: 'Réessayer' })
-            : t({ id: 'separation.separate', message: 'Séparer les pistes' })}
-        </button>
-      )}
+    <>
+      {/* The announcement channel outlives the visible panel: steps while the
+          run is in flight (never the moving percentage — spam), completion
+          once the stems are ready and the section below steps aside. */}
+      <LiveStatus message={announced} />
 
-      {serverBlock !== undefined && <p className={styles.hint}>{t(serverBlock)}</p>}
-
-      {isRunning && (
-        <div className={styles.progress}>
-          <div className={styles.progressHead}>
-            <span>{i18n._(PROGRESS_LABELS[state.status])}</span>
-            <span className={styles.percent}>{percent}%</span>
-          </div>
-          <progress className={styles.bar} value={percent} max={100}>
-            {percent}%
-          </progress>
-        </div>
-      )}
-
-      {state.status === 'error' && (
-        <p className={styles.error} role="alert">
-          {t({
-            id: 'separation.failed',
-            message: `La séparation a échoué : ${error}`
+      {/* Once ready the stems ARE the mixer (lanes + gutter headers, with the
+          « Non détectés » caption among them), so the affordance has nothing
+          left to show. Offer the action only while there is something to do:
+          separate when idle, retry on failure. */}
+      {state.status !== 'ready' && (
+        <section
+          className={styles.panel}
+          aria-label={t({
+            id: 'separation.region-label',
+            message: 'Séparation des pistes'
           })}
-        </p>
-      )}
+        >
+          {!isRunning && (
+            <button
+              type="button"
+              className={styles.action}
+              disabled={!canSeparate || serverBlock !== undefined}
+              onClick={onSeparate}
+            >
+              {state.status === 'error'
+                ? t({ id: 'separation.retry', message: 'Réessayer' })
+                : t({ id: 'separation.separate', message: 'Séparer les pistes' })}
+            </button>
+          )}
 
-      {state.status === 'idle' && serverBlock === undefined && (
-        <p className={styles.hint}>
-          <Trans id="separation.idle-hint">
-            Les pistes séparées (voix, batterie, basse…) s'alignent sous la
-            forme d'onde, chacune avec ses propres contrôles.
-          </Trans>
-        </p>
+          {serverBlock !== undefined && (
+            <p className={styles.hint}>{t(serverBlock)}</p>
+          )}
+
+          {isRunning && (
+            <div className={styles.progress}>
+              <div className={styles.progressHead}>
+                <span>{stepLabel}</span>
+                <span className={styles.percent}>{percent}%</span>
+              </div>
+              <progress className={styles.bar} value={percent} max={100}>
+                {percent}%
+              </progress>
+            </div>
+          )}
+
+          {state.status === 'error' && (
+            <p className={styles.error} role="alert">
+              {t({
+                id: 'separation.failed',
+                message: `La séparation a échoué : ${error}`
+              })}
+            </p>
+          )}
+
+          {state.status === 'idle' && serverBlock === undefined && (
+            <p className={styles.hint}>
+              <Trans id="separation.idle-hint">
+                Les pistes séparées (voix, batterie, basse…) s'alignent sous la
+                forme d'onde, chacune avec ses propres contrôles.
+              </Trans>
+            </p>
+          )}
+        </section>
       )}
-    </section>
+    </>
   )
 }

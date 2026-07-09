@@ -1,9 +1,17 @@
 import { type OctaveFactor, type TempoMap, tempoAt } from '@app/core'
+import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { i18n } from '../../i18n/i18n.ts'
+import { LiveStatus } from '../ui/live-status.tsx'
 import styles from './tempo-panel.module.css'
 
 /** The furthest the tempo may be folded from the detection, either way. */
 const MAX_OCTAVE_SHIFT = 2
+
+// Live-region copy: the same catalog entries as the visible read-out, carried
+// as descriptors so the source message doesn't ride on the JSX alone.
+const STATUS_DETECTING = msg({ id: 'tempo.detecting', message: 'Analyse…' })
+const STATUS_BPM = msg({ id: 'tempo.bpm', message: '{0} BPM' })
 
 interface TempoPanelProps {
   /** The detected tempo in BPM, or undefined until detection succeeds. */
@@ -55,6 +63,15 @@ export function TempoPanel({
   const felt = varies ? (tempoAt(tempoMap, positionSeconds) ?? bpm) : bpm
   const min = Math.round(Math.min(...tempoMap.map((s) => s.bpm)))
   const max = Math.round(Math.max(...tempoMap.map((s) => s.bpm)))
+  // What the screen reader hears. A starting detection wins over a held BPM
+  // (a retry can run while the previous analysis is still seated), and the
+  // representative bpm is announced rather than the playhead-following felt
+  // one — a varying track would be spoken at every segment change.
+  const announced = detecting
+    ? i18n._(STATUS_DETECTING)
+    : bpm !== undefined
+      ? i18n._({ ...STATUS_BPM, values: { 0: Math.round(bpm) } })
+      : undefined
   return (
     <section
       className={styles.panel}
@@ -63,6 +80,7 @@ export function TempoPanel({
       <span className={styles.label}>
         <Trans id="tempo.label">Tempo</Trans>
       </span>
+      <LiveStatus message={announced} />
       {felt !== undefined && (
         <span className={styles.readout}>
           <Trans id="tempo.bpm">{Math.round(felt)} BPM</Trans>

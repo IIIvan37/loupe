@@ -31,11 +31,15 @@ function state(partial: Partial<SeparationState>): SeparationState {
   return { status: 'idle', progress: 0, stems: [], error: undefined, ...partial }
 }
 
+/* The step labels are mirrored into a visually-hidden live region for screen
+ * readers; text queries assert the VISIBLE read-out, so skip that channel. */
+const visibleOnly = { ignore: 'script, style, [role="status"]' }
+
 function renderPanel(
   partial: Partial<SeparationState>,
   props: Partial<Parameters<typeof SeparationPanel>[0]> = {}
 ) {
-  return render(
+  const view = render(
     <SeparationPanel
       state={state(partial)}
       canSeparate
@@ -45,6 +49,16 @@ function renderPanel(
     />,
     { wrapper: I18nTestingProvider }
   )
+  const rerenderPanel = (next: Partial<SeparationState>) =>
+    view.rerender(
+      <SeparationPanel
+        state={state(next)}
+        canSeparate
+        serverHealth="ready"
+        onSeparate={() => {}}
+      />
+    )
+  return { ...view, rerenderPanel }
 }
 
 describe('SeparationPanel', () => {
@@ -100,18 +114,55 @@ describe('SeparationPanel', () => {
   it('shows the running phase and progress, hiding the action', () => {
     renderPanel({ status: 'separating', progress: 0.4 })
     expect(
-      screen.getByText(i18n._('separation.separating'))
+      screen.getByText(i18n._('separation.separating'), visibleOnly)
     ).toBeInTheDocument()
     expect(screen.getByRole('progressbar')).toHaveAttribute('value', '40')
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
+  it('exposes a live status region before a run starts', () => {
+    // A live region only announces content that CHANGES after it mounts, so
+    // the region must already exist (empty) while the panel sits idle.
+    renderPanel({ status: 'idle' })
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+  })
+
+  it('announces the running phase to screen readers', () => {
+    const { rerenderPanel } = renderPanel({ status: 'idle' })
+    rerenderPanel({ status: 'separating', progress: 0.4 })
+    expect(screen.getByRole('status')).toHaveTextContent(
+      i18n._('separation.separating')
+    )
+  })
+
+  it('announces the completion of the run', () => {
+    // The most important announcement of all: the visible panel steps aside
+    // once the stems are ready, but the live region must survive to say so.
+    const { rerenderPanel } = renderPanel({ status: 'separating', progress: 0.9 })
+    rerenderPanel({ status: 'ready', progress: 1, stems })
+    expect(screen.getByRole('status')).toHaveTextContent(
+      i18n._('separation.done')
+    )
+  })
+
+  it('keeps the moving percentage out of the live region', () => {
+    // Steps are announced, the percentage is not — a polite region re-reading
+    // every progress tick would drown the screen reader in numbers.
+    renderPanel({ status: 'separating', progress: 0.4 })
+    expect(screen.getByRole('status')).not.toHaveTextContent('40')
+  })
+
   it('steps aside entirely once the stems are ready', () => {
     // The stems become the mixer (lanes + gutter headers) and the « Non
     // détectés » caption moves to the gutter, so this affordance has nothing
-    // left to show — masked stems present or not.
-    const { container } = renderPanel({ status: 'ready', progress: 1, stems })
-    expect(container).toBeEmptyDOMElement()
+    // left to show — masked stems present or not. Only the invisible live
+    // region stays behind, to announce the completion.
+    renderPanel({ status: 'ready', progress: 1, stems })
+    expect(
+      screen.queryByRole('region', {
+        name: i18n._('separation.region-label')
+      })
+    ).not.toBeInTheDocument()
   })
 
   it('surfaces a failure and offers a retry', async () => {
