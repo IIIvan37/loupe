@@ -9,9 +9,9 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 export interface SpeedTrainer {
   /** The running ramp, or undefined when the trainer is off. */
   readonly state: SpeedTrainerState | undefined
-  /** Arm the ramp: seats its start tempo on the player straight away. */
+  /** Arm the ramp: memorises the current tempo, then seats the start tempo. */
   readonly start: (policy: SpeedTrainerPolicy) => void
-  /** Stop practising — the tempo stays where the ramp left it. */
+  /** Stop practising — restores the tempo memorised at arming. */
   readonly stop: () => void
   /** One completed loop pass (wrap-around). Inert while the trainer is off. */
   readonly recordPass: () => void
@@ -22,22 +22,30 @@ export interface SpeedTrainer {
  * `recordLoopPass`): the transport's position listener reports each completed
  * pass through `recordPass`, and every earned step lands on the player
  * through `applyTempoPercent` — inside the handler itself, so the tempo
- * changes the instant the pass wraps, not a render later. That listener is
- * mount-once, so `recordPass` reads the live ramp from a ref (`stateRef` is
- * the source of truth; `useState` mirrors it for render — every transition
- * must write both). All returned identities are stable: the host re-renders
- * per animation frame during playback, and an unstable return would defeat
- * the memoised controls.
+ * changes the instant the pass wraps, not a render later. Arming memorises
+ * the player's tempo (`currentTempoPercent`) and stopping restores it — the
+ * ramp borrows the tempo, it never keeps it. That listener is mount-once, so
+ * `recordPass` reads the live ramp from a ref (`stateRef` is the source of
+ * truth; `useState` mirrors it for render — every transition must write
+ * both). All returned identities are stable: the host re-renders per
+ * animation frame during playback, and an unstable return would defeat the
+ * memoised controls.
  */
 export function useSpeedTrainer(
-  applyTempoPercent: (percent: number) => void
+  applyTempoPercent: (percent: number) => void,
+  currentTempoPercent: () => number
 ): SpeedTrainer {
   const [state, setState] = useState<SpeedTrainerState | undefined>(undefined)
   const stateRef = useRef<SpeedTrainerState | undefined>(undefined)
   const applyRef = useRef(applyTempoPercent)
   applyRef.current = applyTempoPercent
+  const currentRef = useRef(currentTempoPercent)
+  currentRef.current = currentTempoPercent
+  // The tempo to give back when the practice ends, memorised at arming.
+  const resumePercentRef = useRef(100)
 
   const start = useCallback((policy: SpeedTrainerPolicy) => {
+    resumePercentRef.current = currentRef.current()
     const armed = startSpeedTrainer(policy)
     stateRef.current = armed
     setState(armed)
@@ -45,6 +53,13 @@ export function useSpeedTrainer(
   }, [])
 
   const stop = useCallback(() => {
+    // Restore only when a ramp was actually running: every lifecycle seam
+    // (slider takeover, project open, import) calls stop defensively, and an
+    // idle stop must not re-apply a stale memorised tempo. On a slider
+    // takeover the caller applies the user's choice right after, which wins.
+    if (stateRef.current !== undefined) {
+      applyRef.current(resumePercentRef.current)
+    }
     stateRef.current = undefined
     setState(undefined)
   }, [])

@@ -123,9 +123,11 @@ export function usePlayer(
   // The ramp applies its earned tempo through the same clamped path the
   // slider uses (engines + read-out follow) — but through the INTERNAL
   // applier: the public setter is the user taking the tempo back, which
-  // stops the ramp instead of fighting it.
-  const speedTrainer = useSpeedTrainer((percent) =>
-    applyTimeRatio(percent / 100)
+  // stops the ramp instead of fighting it. Arming memorises the current
+  // tempo; stopping gives it back.
+  const speedTrainer = useSpeedTrainer(
+    (percent) => applyTimeRatio(percent / 100),
+    () => Math.round(timeRatio * 100)
   )
   const { transport, dispatch, active } = useTransportEngines({
     playback,

@@ -961,14 +961,16 @@ describe('WorkstationShell', () => {
     expect(engine.setTimeRatio).toHaveBeenCalledWith(0.75)
     expect(screen.getByText('75 %')).toBeInTheDocument()
 
-    // Stopping keeps the earned tempo and brings the arm action back.
+    // Stopping restores the tempo the ramp armed over (100 %) and brings the
+    // arm action back.
     await user.click(
       screen.getByRole('button', { name: i18n._('loops.trainer-stop') })
     )
     expect(
       screen.getByRole('button', { name: i18n._('loops.trainer-open') })
     ).toBeInTheDocument()
-    expect(screen.getByText('75 %')).toBeInTheDocument()
+    expect(engine.setTimeRatio).toHaveBeenCalledWith(1)
+    expect(screen.getByText('100 %')).toBeInTheDocument()
   })
 
   it('stops the ramp when the user takes the tempo back on the slider', async () => {
@@ -1008,12 +1010,13 @@ describe('WorkstationShell', () => {
     )
 
     // Play-through mode: no wrap can ever fire, so a « running » ramp would
-    // be a lie. Turning looping off ends the practice.
+    // be a lie. Turning looping off ends the practice and restores the tempo.
     await user.click(screen.getByRole('button', { name: i18n._('loops.active') }))
 
     expect(
       screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
     ).not.toBeInTheDocument()
+    expect(screen.getByText('100 %')).toBeInTheDocument()
     // And the entry point is hidden while looping stays off.
     expect(
       screen.queryByRole('button', { name: i18n._('loops.trainer-open') })

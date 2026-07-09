@@ -10,13 +10,15 @@ describe('clampPlaybackRate', () => {
   it('passes a rate inside the range through unchanged', () => {
     expect(clampPlaybackRate(1)).toBe(1)
     expect(clampPlaybackRate(0.75)).toBe(0.75)
-    // Fine transcription work sits well below half speed (speed-trainer lot).
-    expect(clampPlaybackRate(0.25)).toBe(0.25)
+    // Fine transcription work sits below half speed (speed-trainer lot);
+    // 40 % is the floor the ear validated — 25 % was too degraded.
+    expect(clampPlaybackRate(0.4)).toBe(0.4)
   })
 
   it('clamps to the supported range', () => {
     expect(clampPlaybackRate(5)).toBe(MAX_PLAYBACK_RATE)
     expect(clampPlaybackRate(0.01)).toBe(MIN_PLAYBACK_RATE)
+    expect(clampPlaybackRate(0.3)).toBe(MIN_PLAYBACK_RATE)
   })
 
   it('falls back to normal speed for NaN', () => {

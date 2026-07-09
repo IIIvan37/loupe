@@ -1,11 +1,11 @@
 /**
  * Playback tempo as a ratio of the original speed (1 = normal). Independent of
  * pitch — the time-stretch engine changes duration without transposing. The
- * range matches the transport's tempo control (25 %–150 %): SoundTouch keeps
- * stretching below half speed (artefacts grow, but slow enough for fine
- * transcription work — the old 50 % floor was the speed-trainer lot's blocker).
+ * range matches the transport's tempo control (40 %–150 %): the old 50 % floor
+ * was too high for fine transcription work, and 25 % was judged too degraded
+ * by ear (SoundTouch artefacts) — 40 % is the validated compromise.
  */
-export const MIN_PLAYBACK_RATE = 0.25
+export const MIN_PLAYBACK_RATE = 0.4
 export const MAX_PLAYBACK_RATE = 1.5
 
 /**
