@@ -19,18 +19,21 @@
   the player; UI = « Rampe de tempo » popover + running read-out/« Arrêter »
   in the loop controls, steps announced via the Lot-H `LiveStatus`. **The
   ramp stops when its premise dies** (loupe cleared/replaced — handle
-  adjustments keep it —, looping off, slider takeover, project open); the
-  earned tempo always stays. **Tempo floor lowered 50 % → 25 %**
-  (`MIN_PLAYBACK_RATE` 0.25, slider bounds derived — quality at 25 % to
-  judge by ear on the Mac). Also fixed the **pre-existing shell-spec reopen
+  adjustments keep it —, looping off, slider takeover, project open) and
+  **stopping restores the tempo memorised at arming** (user decision). Same
+  session, on the user's ear check: **tempo floor 50 % → 40 %**
+  (`MIN_PLAYBACK_RATE` 0.4 — 25 % was shipped first and rejected as too
+  degraded; slider bounds derived), and **an enabled loop now confines the
+  playhead** (`wrapToLoop` pulls a cursor left before the loop up to its
+  start, earning no pass). Also fixed the **pre-existing shell-spec reopen
   flake** (Base UI dialog initial focus landing mid-test disarmed the armed
   confirm; new settled `openProjectsDialog` helper, 3× green). High-effort
   review (8 angles) fixed 5 real issues test-first (seek-counted pass,
   `Number('')` bypassing the NaN fallback, ramp surviving premise death,
-  float-junk percents, per-frame popover renders). Gate **green — 710
+  float-junk percents, per-frame popover renders). Gate **green — 712
   tests**, coverage 96,04 %/88,94 %, jscpd 5 clones (unchanged),
-  react-doctor 0; mutation **95,22 %**, `speed-trainer.ts` **100 %** (39
-  mutants). **Next: open the PR, then Lot I.2** (tempo manuel — tap-tempo,
+  react-doctor 0; mutation **95,20 %**, `speed-trainer.ts` **100 %** (39
+  mutants). **PR #74 open (CI green). Next: merge, then Lot I.2** (tempo manuel — tap-tempo,
   saisie BPM, calage de phase). See
   [2026-07-09-speed-trainer](sessions/2026-07-09-speed-trainer.md).
 - **Prior — roadmap-excellence-2 Lot H done (2026-07-08, merged PR #73)** on branch
