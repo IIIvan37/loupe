@@ -4,7 +4,40 @@
 
 ## Where we are
 
-- **Now — roadmap-excellence-2 Lot I.2 done (2026-07-09)** on branch
+- **Now — roadmap-excellence-2 Lot I.3 done, LOT I COMPLETE (2026-07-09)** on
+  branch `feat/metronome-count-in` (off `main`, Lot I.2 merged as PR #75): **le
+  count-in du métronome** — une mesure de clics avant le départ de la lecture
+  quand la lane du clic est audible. Pure domain **`buildCountIn`** in
+  [metronome.ts](../packages/core/src/domain/metronome.ts) (TDD + fast-check
+  pin): one bar at the tempo the player will **hear** — interval
+  `60/(bpm × playbackRate)` (a half-speed practice run counts in at half
+  speed), downbeat first, degenerate meter ⇒ one beat, no playable tempo/rate
+  ⇒ no count-in at all. Web hook
+  [use-count-in.ts](../packages/web/src/app/tempo/use-count-in.ts) wraps
+  `togglePlayback`: on play, if the click lane is **audible** (seated + not
+  muted/soloed away, folded via `effectiveGains`) and a tempo exists, one bar
+  of clicks sounds then the transport starts; the bpm is `tempoAt` the
+  playhead (variable-tempo aware). A press during the count abandons it
+  (still paused); pause stays immediate; a replaced/reset tempo (import,
+  detection, project open) abandons a pending count. One-shot adapter
+  [count-in-player.ts](../packages/web/src/audio/count-in-player.ts) (humble
+  object, coverage-excluded): clicks synthesized straight to the destination
+  (outside the mix), deferred start on `onended` **with a wall-clock
+  fallback** (duration + 150 ms) — an autoplay-suspended AudioContext never
+  plays the buffer, and the count-in must degrade to a plain start, not hang
+  the transport (found in browser-verify); the fallback also stops the source
+  so a late-resuming context can't click over playback. Transport button
+  reads « Pause » during the count (pressing cancels). No new copy.
+  Browser-verified (real Chrome): pause face immediate, playhead frozen one
+  bar (~3,4 s at the tempo felt at 0 s of a variable 10–58 BPM detection —
+  not the headline bpm), then clean start; cancel leaves it paused with no
+  late start. Gate **green — 792 tests** (+20), coverage 96,07 %/89 %;
+  mutation **95,09 %**, `buildCountIn` **0 survivant** (the 16 `metronome.ts`
+  survivors are all in the untouched pre-existing `synthesizeClickTrack` DSP
+  — sample-level equivalents). **Next: open the PR, then Lot J** (fond de
+  panier). See
+  [2026-07-09-metronome-count-in](sessions/2026-07-09-metronome-count-in.md).
+- **Prior — roadmap-excellence-2 Lot I.2 done (2026-07-09, merged PR #75)** on branch
   `feat/manual-tempo` (off `main`, Lot I.1 merged as PR #74): **le tempo
   manuel** — tap-tempo, saisie BPM et calage de phase, la sortie de secours
   quand la détection se trompe ou que le serveur est éteint. Pure domain in
