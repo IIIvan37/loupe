@@ -251,6 +251,26 @@ async function openLoops(user: UserEvent): Promise<void> {
 }
 
 /**
+ * Open the « Projets » dialog and let Base UI's deferred initial focus land
+ * INSIDE it before interacting — the same settling as the projects-dialog
+ * spec. That focus lands on an animation frame; in jsdom the frame can fire
+ * MID-TEST, stealing focus from an armed « Confirmer ? » row and disarming it
+ * under the second click (a real browser settles within one frame of opening,
+ * long before a human can click).
+ */
+async function openProjectsDialog(user: UserEvent): Promise<void> {
+  await user.click(
+    screen.getByRole('button', { name: i18n._('header.projects') })
+  )
+  await waitFor(() => {
+    // By name: a Base UI success toast also carries role="dialog".
+    expect(
+      screen.getByRole('dialog', { name: i18n._('projects.title') })
+    ).toContainElement(document.activeElement as HTMLElement | null)
+  })
+}
+
+/**
  * A saved loop's recall button: its name is « time-range + name », so exclude
  * the sibling rename/remove buttons that only carry the name after a verb.
  */
@@ -411,9 +431,7 @@ describe('WorkstationShell', () => {
     await screen.findByText(i18n._('tempo.bpm', { 0: 120 }), visibleOnly)
     await saveProjectAs(user, 'Avec métronome')
 
-    await user.click(
-      screen.getByRole('button', { name: i18n._('header.projects') })
-    )
+    await openProjectsDialog(user)
     await user.click(
       await screen.findByRole('button', { name: i18n._('projects.open') })
     )
@@ -446,9 +464,7 @@ describe('WorkstationShell', () => {
     expect(mute).toHaveAttribute('aria-pressed', 'false')
     await saveProjectAs(user, 'Clic activé')
 
-    await user.click(
-      screen.getByRole('button', { name: i18n._('header.projects') })
-    )
+    await openProjectsDialog(user)
     await user.click(
       await screen.findByRole('button', { name: i18n._('projects.open') })
     )
@@ -1117,7 +1133,7 @@ describe('WorkstationShell', () => {
     expect(screen.queryByLabelText('Nom')).not.toBeInTheDocument()
 
     // Still a single project, under the same name.
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     expect(await screen.findByText('Mon projet')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: i18n._('projects.open') })).toHaveLength(1)
   })
@@ -1144,7 +1160,7 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     await saveProjectAs(user, 'Deuxième morceau')
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     expect(
       await screen.findAllByRole('button', { name: i18n._('projects.open') })
     ).toHaveLength(2)
@@ -1157,7 +1173,7 @@ describe('WorkstationShell', () => {
     // Drift from the saved project — the session now holds unsaved work.
     await user.click(screen.getByRole('button', { name: i18n._('markers.add') }))
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
     // The session would be replaced — the row asks for a confirmation first.
@@ -1185,7 +1201,7 @@ describe('WorkstationShell', () => {
 
     await importTrack(user, 'autre.wav')
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
       screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
@@ -1206,7 +1222,7 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Mon projet')
 
     await importTrack(user, 'autre.wav')
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
       screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
@@ -1225,7 +1241,7 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Mon projet')
 
     await importTrack(user, 'autre.wav')
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
       screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
@@ -1252,7 +1268,7 @@ describe('WorkstationShell', () => {
       screen.queryByRole('button', { name: savedLoop('Refrain') })
     ).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
       screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
@@ -1287,7 +1303,7 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Projet A')
 
     gateNext = true
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     // The open hangs on the gated store; leave the dialog, import a new file.
     await user.click(screen.getByRole('button', { name: i18n._('common.close') }))
@@ -1409,7 +1425,7 @@ describe('WorkstationShell', () => {
       target: { value: '110' }
     })
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
     await user.click(
       screen.getByRole('button', { name: i18n._('projects.confirm-open', { name: 'Mon projet' }) })
@@ -1595,7 +1611,7 @@ describe('WorkstationShell', () => {
     await importTrack(user)
     await saveProjectAs(user, 'Mon projet')
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
     // No « Confirmer ? » step: the open starts at once and closes the dialog.
@@ -1631,7 +1647,7 @@ describe('WorkstationShell', () => {
     await saveProjectAs(user, 'Projet lent')
 
     gateNext = true
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
     expect(
@@ -1662,7 +1678,7 @@ describe('WorkstationShell', () => {
   it('says the server is unreachable when the projects listing fails', async () => {
     const { user } = renderShell({ projectStores: brokenProjectStores() })
 
-    await user.click(screen.getByRole('button', { name: i18n._('header.projects') }))
+    await openProjectsDialog(user)
 
     expect(
       await screen.findByText(
