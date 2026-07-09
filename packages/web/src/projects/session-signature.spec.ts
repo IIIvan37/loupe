@@ -135,4 +135,39 @@ describe('sessionSignature', () => {
     }
     expect(sessionSignature(explicit)).toBe(sessionSignature(implicit))
   })
+
+  it('changes when a manual tempo override is set', () => {
+    // The override is a user edit (typed/tapped/aligned), unlike the derived
+    // detection — setting one must read « Non enregistré ».
+    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const detected: SignedSession = { ...base, tempo: { metronome } }
+    const overridden: SignedSession = {
+      ...base,
+      tempo: { metronome, manual: { bpm: 96, phaseSeconds: 0 } }
+    }
+    expect(sessionSignature(overridden)).not.toBe(sessionSignature(detected))
+  })
+
+  it('changes when the override phase moves', () => {
+    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const anchored: SignedSession = {
+      ...base,
+      tempo: { metronome, manual: { bpm: 96, phaseSeconds: 0 } }
+    }
+    const shifted: SignedSession = {
+      ...base,
+      tempo: { metronome, manual: { bpm: 96, phaseSeconds: 1.25 } }
+    }
+    expect(sessionSignature(shifted)).not.toBe(sessionSignature(anchored))
+  })
+
+  it('signs an absent override like a manifest that predates it', () => {
+    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const old: SignedSession = { ...base, tempo: { metronome } }
+    const explicit: SignedSession = {
+      ...base,
+      tempo: { metronome, manual: undefined }
+    }
+    expect(sessionSignature(explicit)).toBe(sessionSignature(old))
+  })
 })

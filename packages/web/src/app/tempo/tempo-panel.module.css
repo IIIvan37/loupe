@@ -17,6 +17,39 @@
   color: var(--text);
 }
 
+/* The editable BPM field, dressed as the read-out it replaces. */
+.bpmField {
+  width: 4ch;
+  padding: var(--space-2xs) var(--space-2xs);
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  appearance: textfield;
+}
+
+.bpmField::-webkit-outer-spin-button,
+.bpmField::-webkit-inner-spin-button {
+  appearance: none;
+}
+
+.bpmField:hover,
+.bpmField:focus-visible {
+  border-color: var(--line-strong);
+  background: var(--panel-2);
+}
+
+/* The tempo is a user override, not the detection. */
+.manualBadge {
+  color: var(--dim);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .meter {
   color: var(--dim);
   font-variant-numeric: tabular-nums;

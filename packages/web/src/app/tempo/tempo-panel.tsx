@@ -1,6 +1,13 @@
-import { type OctaveFactor, type TempoMap, tempoAt } from '@app/core'
+import {
+  MAX_MANUAL_BPM,
+  MIN_MANUAL_BPM,
+  type OctaveFactor,
+  type TempoMap,
+  tempoAt
+} from '@app/core'
 import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { useState } from 'react'
 import { i18n } from '../../i18n/i18n.ts'
 import { LiveStatus } from '../ui/live-status.tsx'
 import styles from './tempo-panel.module.css'
@@ -32,10 +39,21 @@ interface TempoPanelProps {
   readonly error: string | undefined
   /** How far the tempo has been folded (±2); disables a spent direction. */
   readonly octaveShift: number
+  /** Whether the tempo is a user override (typed/tapped/aligned), not detected. */
+  readonly manual: boolean
   /** Fold the tempo an octave: ×2 doubles the felt tempo, ÷2 halves it. */
   readonly onFold: (factor: OctaveFactor) => void
   /** Relaunch the detection after a failure — no reimport needed. */
   readonly onRetry: () => void
+  /**
+   * Set the tempo by hand. Receives whatever the field held — including NaN
+   * for an emptied field (never 0); the hook rejects non-tempos.
+   */
+  readonly onOverrideBpm: (bpm: number) => void
+  /** One tap of the tap-tempo sequence. */
+  readonly onTap: () => void
+  /** Anchor a downbeat exactly on the given playhead instant. */
+  readonly onAlignPhase: (playheadSeconds: number) => void
 }
 
 /**
@@ -53,10 +71,27 @@ export function TempoPanel({
   detecting,
   error,
   octaveShift,
+  manual,
   onFold,
-  onRetry
+  onRetry,
+  onOverrideBpm,
+  onTap,
+  onAlignPhase
 }: TempoPanelProps) {
   const { t } = useLingui()
+  // What the user is typing, shielding the field from the live read-out until
+  // the edit commits (Enter/blur) or is abandoned (Escape).
+  const [draft, setDraft] = useState<string>()
+
+  // An emptied field commits as NaN, never 0 (`Number('')` is 0 — a floor
+  // tempo out of nowhere); an untouched field commits nothing.
+  function commit(): void {
+    if (draft === undefined) {
+      return
+    }
+    onOverrideBpm(draft.trim() === '' ? Number.NaN : Number(draft))
+    setDraft(undefined)
+  }
   // A single segment is a steady track: show the representative bpm. With more,
   // the read-out follows the playhead and the whole range is shown beside it.
   const varies = tempoMap.length > 1
@@ -81,9 +116,34 @@ export function TempoPanel({
         <Trans id="tempo.label">Tempo</Trans>
       </span>
       <LiveStatus message={announced} />
-      {felt !== undefined && (
-        <span className={styles.readout}>
-          <Trans id="tempo.bpm">{Math.round(felt)} BPM</Trans>
+      <span className={styles.readout}>
+        <input
+          type="number"
+          className={styles.bpmField}
+          inputMode="numeric"
+          min={MIN_MANUAL_BPM}
+          max={MAX_MANUAL_BPM}
+          value={draft ?? (felt === undefined ? '' : Math.round(felt))}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={() => commit()}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              commit()
+            }
+            if (event.key === 'Escape') {
+              setDraft(undefined)
+            }
+          }}
+          aria-label={t({
+            id: 'tempo.bpm-field',
+            message: 'Saisir le tempo (BPM)'
+          })}
+        />
+        <Trans id="tempo.unit">BPM</Trans>
+      </span>
+      {manual && (
+        <span className={styles.manualBadge}>
+          <Trans id="tempo.manual-badge">Manuel</Trans>
         </span>
       )}
       {varies && (
@@ -126,6 +186,31 @@ export function TempoPanel({
           </button>
         </span>
       )}
+      <span className={styles.octave}>
+        {/* The manual path stays offered with no analysis at all — it is the
+            fallback when the detector fails or the server is offline. */}
+        <button
+          type="button"
+          className={styles.octaveButton}
+          onClick={onTap}
+          aria-label={t({ id: 'tempo.tap', message: 'Taper le tempo' })}
+        >
+          <Trans id="tempo.tap-short">Tap</Trans>
+        </button>
+        {bpm !== undefined && (
+          <button
+            type="button"
+            className={styles.octaveButton}
+            onClick={() => onAlignPhase(positionSeconds)}
+            aria-label={t({
+              id: 'tempo.align',
+              message: 'Caler la grille sur la tête de lecture'
+            })}
+          >
+            <Trans id="tempo.align-short">Caler</Trans>
+          </button>
+        )}
+      </span>
       {bpm === undefined && detecting && (
         <span className={styles.readout}>
           <Trans id="tempo.detecting">Analyse…</Trans>

@@ -280,7 +280,14 @@ function savedLoop(name: string): RegExp {
 
 /* The tempo read-out is mirrored into a visually-hidden live region for screen
  * readers; these queries assert the VISIBLE read-out, so skip that channel. */
-const visibleOnly = { ignore: 'script, style, [role="status"]' }
+/** Wait for the tempo read-out (the editable BPM field) to show `bpm`. */
+async function expectBpmReadout(bpm: number): Promise<void> {
+  await waitFor(() =>
+    expect(
+      screen.getByRole('spinbutton', { name: i18n._('tempo.bpm-field') })
+    ).toHaveValue(bpm)
+  )
+}
 
 describe('WorkstationShell', () => {
   // Picker tests spy on HTMLInputElement.prototype.click — restore even when
@@ -329,7 +336,7 @@ describe('WorkstationShell', () => {
     await importTrack(user)
 
     // No click of a button — detection runs on its own once the track loads.
-    expect(await screen.findByText(i18n._('tempo.bpm', { 0: 128 }), visibleOnly)).toBeInTheDocument()
+    await expectBpmReadout(128)
     expect(document.querySelectorAll('[data-beat]')).toHaveLength(3)
   })
 
@@ -351,7 +358,7 @@ describe('WorkstationShell', () => {
     await user.click(
       await screen.findByRole('button', { name: i18n._('tempo.retry') })
     )
-    expect(await screen.findByText(i18n._('tempo.bpm', { 0: 128 }), visibleOnly)).toBeInTheDocument()
+    await expectBpmReadout(128)
   })
 
   it('keeps the separated stems when a tempo retry succeeds after separation', async () => {
@@ -382,13 +389,116 @@ describe('WorkstationShell', () => {
     await user.click(
       screen.getByRole('button', { name: i18n._('tempo.retry') })
     )
-    await screen.findByText(i18n._('tempo.bpm', { 0: 120 }), visibleOnly)
+    await expectBpmReadout(120)
 
     expect(
       screen.getByRole('button', {
         name: i18n._('mixer.download-wav', { name: 'Voix' })
       })
     ).toBeInTheDocument()
+  })
+
+  it('sets the tempo by typing in the BPM field', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 128, beats: beatsAt([0, 0.47, 0.94]) })
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+    await expectBpmReadout(128)
+
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('tempo.bpm-field')
+    })
+    await user.clear(field)
+    await user.type(field, '96{Enter}')
+
+    // The read-out holds the typed tempo, flagged as manual, and the beat
+    // grid is rebuilt at it across the whole 10 s track (96 BPM → 0.625 s
+    // interval → 17 beats).
+    await expectBpmReadout(96)
+    expect(screen.getByText(i18n._('tempo.manual-badge'))).toBeInTheDocument()
+    expect(document.querySelectorAll('[data-beat]')).toHaveLength(17)
+  })
+
+  it('taps a tempo when the detection failed', async () => {
+    const detector = {
+      detect: async () => {
+        throw new Error('server unreachable')
+      }
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+    await screen.findByRole('button', { name: i18n._('tempo.retry') })
+
+    // Three taps half a second apart — the manual fallback when no server.
+    const clock = vi.spyOn(performance, 'now')
+    const tap = screen.getByRole('button', { name: i18n._('tempo.tap') })
+    clock.mockReturnValue(0)
+    await user.click(tap)
+    clock.mockReturnValue(500)
+    await user.click(tap)
+    clock.mockReturnValue(1000)
+    await user.click(tap)
+    clock.mockRestore()
+
+    await expectBpmReadout(120)
+    expect(screen.getByText(i18n._('tempo.manual-badge'))).toBeInTheDocument()
+  })
+
+  it('re-anchors the beat grid on the playhead from the panel', async () => {
+    // Detected grid anchored at 0.25 s; the playhead sits at 0 — « Caler »
+    // pulls a downbeat onto it.
+    const detector = {
+      detect: async () => ({ bpm: 120, beats: beatsAt([0.25, 0.75, 1.25]) })
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+    await expectBpmReadout(120)
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('tempo.align') })
+    )
+
+    // 120 BPM over 10 s anchored at 0: 21 beats, downbeat on the first.
+    await waitFor(() =>
+      expect(document.querySelectorAll('[data-beat]')).toHaveLength(21)
+    )
+    expect(
+      document.querySelectorAll('[data-beat="downbeat"]')[0]
+    ).toBeTruthy()
+    expect(screen.getByText(i18n._('tempo.manual-badge'))).toBeInTheDocument()
+  })
+
+  it('saves and reopens a manual tempo without re-detecting', async () => {
+    const detect = vi.fn(async () => ({
+      bpm: 120,
+      beats: beatsAt([0, 0.5, 1])
+    }))
+    const { user } = renderShell({
+      projectStores: fakeProjectStores(),
+      tempoDetector: { detect }
+    })
+    await importTrack(user)
+    await expectBpmReadout(120)
+
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('tempo.bpm-field')
+    })
+    await user.clear(field)
+    await user.type(field, '96{Enter}')
+    await expectBpmReadout(96)
+    await saveProjectAs(user, 'Tempo à la main')
+
+    await openProjectsDialog(user)
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('projects.open') })
+    )
+
+    // The typed tempo and its manual flag come back from the manifest — the
+    // detector is never asked again (its result would overwrite the override).
+    await expectBpmReadout(96)
+    expect(screen.getByText(i18n._('tempo.manual-badge'))).toBeInTheDocument()
+    expect(detect).toHaveBeenCalledTimes(1)
   })
 
   it('shows the metronome as a mixer stem automatically once detected', async () => {
@@ -428,7 +538,7 @@ describe('WorkstationShell', () => {
       tempoDetector: { detect }
     })
     await importTrack(user)
-    await screen.findByText(i18n._('tempo.bpm', { 0: 120 }), visibleOnly)
+    await expectBpmReadout(120)
     await saveProjectAs(user, 'Avec métronome')
 
     await openProjectsDialog(user)
@@ -438,7 +548,7 @@ describe('WorkstationShell', () => {
 
     // The BPM and the click stem are back — seated from the manifest, so the
     // detector is never asked a second time (no server on reopen).
-    expect(await screen.findByText(i18n._('tempo.bpm', { 0: 120 }), visibleOnly)).toBeInTheDocument()
+    await expectBpmReadout(120)
     expect(
       await screen.findByRole('button', {
         name: i18n._('mixer.download-wav', { name: 'Métronome' })

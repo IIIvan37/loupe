@@ -179,16 +179,23 @@ export type {
   Beat,
   BeatGrid,
   DetectedBeat,
+  ManualTempo,
   OctaveFactor,
   TempoMap,
   TempoSegment,
   TempoValue
 } from './domain/tempo.ts'
 export {
+  appendTap,
+  buildManualGrid,
   buildTempoMap,
   DEFAULT_BEATS_PER_BAR,
   detectMeter,
   foldTempoOctave,
+  MAX_MANUAL_BPM,
+  MIN_MANUAL_BPM,
+  normalizeManualBpm,
+  tapTempoBpm,
   tempoAt
 } from './domain/tempo.ts'
 export { formatTimecode } from './domain/timecode.ts'

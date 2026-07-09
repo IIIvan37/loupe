@@ -107,6 +107,157 @@ describe('useTempo', () => {
     expect(result.current.octaveShift).toBe(-1)
   })
 
+  it('overrides the tempo manually when nothing was detected', () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    act(() => {
+      result.current.overrideBpm(100, 3)
+    })
+    expect(result.current.analysis?.bpm).toBe(100)
+    // 100 BPM over 3 s from phase 0: beats at 0, 0.6, 1.2, 1.8, 2.4, 3.
+    expect(result.current.analysis?.grid.map((b) => b.timeSeconds)).toEqual([
+      0, 0.6, 1.2, 1.8, 2.4, 3
+    ])
+    expect(result.current.manual).toEqual({ bpm: 100, phaseSeconds: 0 })
+  })
+
+  it('keeps the detected downbeat phase when overriding the BPM', async () => {
+    // Detected grid: downbeat at 0.5 (barPosition 1 lands on the first beat).
+    const { result } = renderHook(() =>
+      useTempo(detectorOf(120, [0.5, 1, 1.5, 2]))
+    )
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    act(() => {
+      result.current.overrideBpm(60, 3)
+    })
+    // The new grid stays anchored on the detected downbeat: …0.5 ± k·1 s.
+    expect(result.current.analysis?.grid.map((b) => b.timeSeconds)).toEqual([
+      0.5, 1.5, 2.5
+    ])
+    expect(result.current.manual).toEqual({ bpm: 60, phaseSeconds: 0.5 })
+  })
+
+  it('keeps the detected meter when overriding the BPM', async () => {
+    const { result } = renderHook(() =>
+      useTempo(detectorOf(120, [0, 0.5, 1, 1.5, 2, 2.5]))
+    )
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    act(() => {
+      result.current.overrideBpm(60, 3)
+    })
+    expect(result.current.analysis?.beatsPerBar).toBe(4)
+  })
+
+  it('rejects a non-positive or non-finite manual BPM', async () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5])))
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    act(() => {
+      // Number('') is 0 — an emptied field must not become a tempo.
+      expect(result.current.overrideBpm(0, 3)).toBeUndefined()
+      expect(result.current.overrideBpm(Number.NaN, 3)).toBeUndefined()
+      expect(result.current.overrideBpm(-60, 3)).toBeUndefined()
+    })
+    expect(result.current.analysis?.bpm).toBe(120)
+    expect(result.current.manual).toBeUndefined()
+  })
+
+  it('resets the octave shift on a manual override', async () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5, 1])))
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    act(() => result.current.fold(2))
+    act(() => {
+      result.current.overrideBpm(100, 3)
+    })
+    expect(result.current.octaveShift).toBe(0)
+  })
+
+  it('anchors a downbeat at the playhead on alignPhase', async () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5, 1])))
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    let aligned: ReturnType<typeof result.current.alignPhase>
+    act(() => {
+      aligned = result.current.alignPhase(0.25, 1)
+    })
+    const beats = result.current.analysis?.grid
+    const anchor = beats?.find((b) => b.timeSeconds === 0.25)
+    expect(anchor?.downbeat).toBe(true)
+    expect(result.current.manual).toEqual({ bpm: 120, phaseSeconds: 0.25 })
+    expect(aligned).toBe(result.current.analysis)
+  })
+
+  it('cannot align the phase before any tempo exists', () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    act(() => {
+      expect(result.current.alignPhase(1, 3)).toBeUndefined()
+    })
+    expect(result.current.analysis).toBeUndefined()
+  })
+
+  it('folds the manual override along with the analysis', async () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5])))
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    act(() => {
+      result.current.overrideBpm(100, 3)
+    })
+    act(() => result.current.fold(0.5))
+    expect(result.current.analysis?.bpm).toBe(50)
+    expect(result.current.manual?.bpm).toBe(50)
+  })
+
+  it('clears the manual override on a fresh detection', async () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5])))
+    act(() => {
+      result.current.overrideBpm(100, 3)
+    })
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    expect(result.current.manual).toBeUndefined()
+    expect(result.current.analysis?.bpm).toBe(120)
+  })
+
+  it('clears the manual override on reset', () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    act(() => {
+      result.current.overrideBpm(100, 3)
+    })
+    act(() => result.current.reset())
+    expect(result.current.manual).toBeUndefined()
+  })
+
+  it('restores a persisted manual override on set', () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    act(() => {
+      result.current.set({ bpm: 90, grid: [], beatsPerBar: 4 }, 0, {
+        bpm: 90,
+        phaseSeconds: 1.5
+      })
+    })
+    expect(result.current.manual).toEqual({ bpm: 90, phaseSeconds: 1.5 })
+  })
+
+  it('seating a persisted analysis without an override clears any manual', () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    act(() => {
+      result.current.overrideBpm(100, 3)
+    })
+    act(() => {
+      result.current.set({ bpm: 90, grid: [], beatsPerBar: 4 }, 0)
+    })
+    expect(result.current.manual).toBeUndefined()
+  })
+
   it('discards a stale run superseded by a reset', async () => {
     let release: (() => void) | undefined
     const gated: TempoDetector = {

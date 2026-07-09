@@ -11,6 +11,9 @@ type PanelProps = Partial<Parameters<typeof TempoPanel>[0]>
 
 function renderPanel(props: PanelProps = {}) {
   const onFold = vi.fn()
+  const onOverrideBpm = vi.fn()
+  const onTap = vi.fn()
+  const onAlignPhase = vi.fn()
   const defaults: Parameters<typeof TempoPanel>[0] = {
     bpm: 120,
     beatsPerBar: 4,
@@ -19,15 +22,26 @@ function renderPanel(props: PanelProps = {}) {
     detecting: false,
     error: undefined,
     octaveShift: 0,
+    manual: false,
     onFold,
-    onRetry: () => {}
+    onRetry: () => {},
+    onOverrideBpm,
+    onTap,
+    onAlignPhase
   }
   const view = render(<TempoPanel {...defaults} {...props} />, {
     wrapper: I18nTestingProvider
   })
   const rerenderPanel = (next: PanelProps) =>
     view.rerender(<TempoPanel {...defaults} {...next} />)
-  return { onFold, rerenderPanel }
+  return { onFold, onOverrideBpm, onTap, onAlignPhase, rerenderPanel }
+}
+
+/** The editable BPM field, queried by its accessible name. */
+function bpmField(): HTMLInputElement {
+  return screen.getByRole('spinbutton', {
+    name: i18n._('tempo.bpm-field')
+  })
 }
 
 describe('TempoPanel', () => {
@@ -87,7 +101,7 @@ describe('TempoPanel', () => {
       ],
       positionSeconds: 15
     })
-    expect(screen.getByText(i18n._('tempo.bpm', { 0: 90 }))).toBeInTheDocument()
+    expect(bpmField()).toHaveValue(90)
   })
 
   it('shows the tempo range when the tempo varies', () => {
@@ -175,6 +189,94 @@ describe('TempoPanel', () => {
     })
     expect(
       screen.queryByText(i18n._('tempo.range', { min: 120, max: 120 }))
+    ).not.toBeInTheDocument()
+  })
+
+  it('shows the tempo in an editable field', () => {
+    renderPanel({ bpm: 120 })
+    expect(bpmField()).toHaveValue(120)
+  })
+
+  it('commits a typed tempo on Enter', async () => {
+    const user = userEvent.setup()
+    const { onOverrideBpm } = renderPanel({ bpm: 120 })
+    await user.clear(bpmField())
+    await user.type(bpmField(), '96{Enter}')
+    expect(onOverrideBpm).toHaveBeenCalledWith(96)
+  })
+
+  it('commits a typed tempo on blur', async () => {
+    const user = userEvent.setup()
+    const { onOverrideBpm } = renderPanel({ bpm: 120 })
+    await user.clear(bpmField())
+    await user.type(bpmField(), '84')
+    await user.tab()
+    expect(onOverrideBpm).toHaveBeenCalledWith(84)
+  })
+
+  it('commits an emptied field as NaN, never as zero', async () => {
+    // Number('') is 0 — the hook must receive NaN so an emptied field stays
+    // inert instead of clamping to the floor tempo.
+    const user = userEvent.setup()
+    const { onOverrideBpm } = renderPanel({ bpm: 120 })
+    await user.clear(bpmField())
+    await user.keyboard('{Enter}')
+    expect(onOverrideBpm).toHaveBeenCalledWith(Number.NaN)
+  })
+
+  it('does not re-commit an untouched field on blur', async () => {
+    const user = userEvent.setup()
+    const { onOverrideBpm } = renderPanel({ bpm: 120 })
+    await user.click(bpmField())
+    await user.tab()
+    expect(onOverrideBpm).not.toHaveBeenCalled()
+  })
+
+  it('offers the BPM field and tap even when detection found nothing', () => {
+    // The manual path is the fallback when the detector fails or is offline.
+    renderPanel({ bpm: undefined, tempoMap: [] })
+    expect(bpmField()).toHaveValue(null)
+    expect(
+      screen.getByRole('button', { name: i18n._('tempo.tap') })
+    ).toBeInTheDocument()
+  })
+
+  it('reports each tap', async () => {
+    const user = userEvent.setup()
+    const { onTap } = renderPanel()
+    const tap = screen.getByRole('button', { name: i18n._('tempo.tap') })
+    await user.click(tap)
+    await user.click(tap)
+    expect(onTap).toHaveBeenCalledTimes(2)
+  })
+
+  it('aligns the grid phase on the playhead', async () => {
+    const user = userEvent.setup()
+    const { onAlignPhase } = renderPanel({ positionSeconds: 12.5 })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('tempo.align') })
+    )
+    expect(onAlignPhase).toHaveBeenCalledWith(12.5)
+  })
+
+  it('offers no phase alignment before a tempo exists', () => {
+    renderPanel({ bpm: undefined, tempoMap: [] })
+    expect(
+      screen.queryByRole('button', { name: i18n._('tempo.align') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('flags a manual tempo as such', () => {
+    renderPanel({ manual: true })
+    expect(
+      screen.getByText(i18n._('tempo.manual-badge'))
+    ).toBeInTheDocument()
+  })
+
+  it('shows no manual flag on an untouched detection', () => {
+    renderPanel({ manual: false })
+    expect(
+      screen.queryByText(i18n._('tempo.manual-badge'))
     ).not.toBeInTheDocument()
   })
 })
