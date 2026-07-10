@@ -104,28 +104,49 @@ ChordChart    { sections: Section[], meta }     // le document complet
 - **Transposition** : `transpose(chart, semitones)` pur — trivial une fois les
   accords parsés, pas des strings.
 
-## Choix du moteur ACE (à vérifier comme beat_this l'a été)
+## Choix du moteur ACE — arbitré par recherche approfondie (2026-07-10)
 
-Deux chemins, avec un **précédent défavorable au WASM** :
+> Deep-research (108 agents, 25 sources primaires, 25 affirmations vérifiées 3-0,
+> 0 réfutée). **Conclusion qui corrige l'intuition initiale de ce plan** : Chordino
+> n'est *pas* la bonne « option robuste simple » — c'est un piège licence + install.
+> Les bons candidats sont **deep, PyTorch, MIT**, donc alignés pile sur notre stack.
 
-- **In-browser WASM** — `essentia.js` (chromagram/HPCP/key). ⚠️ Le README serveur
-  note que le WASM (demucs.cpp GGML / onnxruntime-web) a été **essayé et retiré**
-  pour un mur qualité/vitesse. À ne reprendre que si l'on veut absolument éviter
-  le serveur.
-- **Serveur (voie établie) — recommandé.** Nouvel endpoint `/chords` + port
-  `ChordDetector`. Candidats à instruire :
-  - **Chordino / NNLS-Chroma** (Vamp) — robuste, triades + 7ths, éprouvé ; le
-    classique de l'ACE. Bon rapport qualité/simplicité.
-  - **Modèles deep (BTC, ou dérivés)** — vocabulaire plus riche, plus lourd/variable.
-  - **Pré-traitement décisif** : passer l'ACE sur un **mix harmonique** (stems
-    Demucs sans voix ni batterie) améliore nettement la détection. On a déjà Demucs.
-  - **Alignement** : forcer un accord par **beat/mesure** en s'appuyant sur le
-    `BeatGrid` (beat-synchronous chroma) → sortie propre, lissée, directement
-    mappable sur `Measure`.
+| Besoin | Outil | Licence | Stack / vocab | Verdict |
+|---|---|---|---|---|
+| **Robuste, intégration rapide** | **BTC** (`jayg996/BTC-ISMIR19`) | **MIT** | PyTorch, poids fournis, flag `voca` (25 maj-min / 170 accords) ; WCSR maj-min ~83,8 root / 82,7 | ✅ **Tier 1 retenu** |
+| **Précision / grand vocab (jazz)** | **ISMIR2019 music-x-lab** (Chord Structure Decomposition) | **MIT** | PyTorch, poids inclus, dicts ~170–301 classes (7ths/inversions/étendus) | ✅ **Tier 2** |
+| SOTA récent grand-vocab | ChordFormer (arXiv 2502.11840, 02/2026) | ⚠️ code/poids non confirmés | Conformer, 301 classes, MIREX 83,6 % — mais class-wise 0,39 | 🔬 à surveiller |
+| ~~« robuste classique »~~ | ~~Chordino / NNLS-Chroma~~ | 🚩 **GPL-2.0** | runtime Vamp natif + bindings `vamp` figées 2015 (wheels cp27, build from-source Py 3.11) ; non beat-sync | ❌ **écarter** |
+| wrapper Python de Chordino | chord-extractor | 🚩 **GPL-2.0** | hérite Vamp + copyleft | ❌ écarter |
+| lib « clé en main » | autochord | — | 🚩 **TensorFlow** (à côté de torch) + Vamp, **25 classes** | ❌ écarter |
+| baseline deep | madmom | BSD | 🚩 **maj-min only** (25 classes) + risque install Cython/numpy sur 3.11 | ⚠️ insuffisant |
+| beat-sync natif | Essentia `ChordsDetectionBeats` | 🚩 **AGPL** | seul à sortir 1 accord/beat nativement, mais copyleft fort | ⚠️ licence |
 
-> À vérifier avant de retenir (grille beat_this) : licence, deps sur Python 3.11 +
-> torch déjà présent, taille des poids, API in-memory prenant un tensor + sr (coller
-> à `DecodedAudio`, pas de fichier), maturité/maintenance, CPU supporté.
+**Décisions actées :**
+- **Moteur retenu : BTC (MIT, PyTorch)** en `voca=False` pour des triades pop/rock
+  fiables ; option `voca=True` (170 accords) ou bascule vers **ISMIR2019 music-x-lab**
+  si le besoin jazz/étendu se confirme. Nouvel endpoint `/chords` + port
+  `ChordDetector`, mirroring `TempoDetector`/`StemSeparator`.
+- **WASM abandonné** : `essentia.js` beat-sync est séduisant mais **AGPL** (copyleft
+  fort) + le précédent WASM (demucs.cpp/onnxruntime) déjà retiré pour un mur
+  qualité/vitesse. On reste serveur.
+- **Aucun moteur n'est nativement beat-synchronous** (sauf Essentia, écarté). BTC &
+  co sortent des **labels horodatés** → l'agrégation « 1 accord/mesure » sur la
+  `BeatGrid` beat_this (**vote majoritaire de frames, changement contraint sur
+  downbeat**) est du **travail d'intégration côté loupe**, pas une capacité fournie.
+  Bonne nouvelle : c'est du pur, testable dans le core.
+
+**Deux angles morts à lever avant le Lot C (non résolus par la recherche) :**
+1. **Gain réel de la pré-séparation Demucs** (ACE sur mix harmonique sans voix/
+   batterie) : plausible et souvent constaté, mais **quantifié par aucune source** →
+   à mesurer sur nos propres pistes, pas un acquis.
+2. **Dispo effective de ChordFormer** (code + poids sous licence permissive,
+   exécutable Py 3.11 CPU) : seul le papier est confirmé pour l'instant.
+
+> Réserve de fond : les scores (BTC/ISMIR2019/ChordFormer) sont **auto-reportés** sur
+> des splits non identiques → non strictement comparables ; la précision class-wise
+> grand-vocabulaire reste faible (0,39) → **les accords rares/étendus resteront
+> bruités**, l'édition manuelle (Lot A) n'est pas optionnelle mais le filet assumé.
 
 ## Lots (ordonnés outside-in — la valeur d'abord, l'IA en dernier)
 
@@ -149,10 +170,16 @@ calée sur la beat grid existante).*
   beat grid), à faire seulement si le besoin timeline émerge.
 
 ### Lot C — Extraction ACE (serveur) → brouillon éditable — *linchpin risqué*
-- **Serveur** : endpoint `/chords` (moteur retenu + pré-sépa harmonique Demucs,
-  chroma beat-synchronous), fallback 503, **tests serveur**.
+*Pré-requis : lever les deux angles morts (§ moteur ACE) — spike Demucs et dispo
+poids — avant de s'engager.*
+- **Serveur** : endpoint `/chords` avec **BTC** (MIT, PyTorch — poids fournis,
+  `voca=False` d'abord) sur mix pré-séparé Demucs (à valider), fallback 503,
+  **tests serveur**. Sortie = labels d'accords **horodatés** (pas beat-sync).
 - **Core (TDD)** : port `ChordDetector`, use-case `detectChords(audio, grid) →
-  ChordChart` (accords alignés sur les mesures).
+  ChordChart`. **L'agrégation « labels horodatés → 1 accord/mesure »** (vote
+  majoritaire de frames pondéré par durée, changement contraint sur downbeat) est
+  une **fonction pure du core**, testable — c'est là que vit l'alignement beat-sync
+  que le moteur ne fournit pas.
 - **Web** : bouton « Détecter les accords » → **pré-remplit** un brouillon que
   l'utilisateur corrige via l'éditeur du Lot A.
 
@@ -177,4 +204,10 @@ déjà). Seul couplage réel : l'alignement mesure↔downbeat, qui repose sur le
   mise en page (bars-per-row, sauts de ligne) — la disposition est un paramètre de
   rendu, jamais un champ du modèle. Sinon transposition/sync/export se compliquent.
 - **Ne pas repartir sur le WASM** sans raison forte (mur qualité/vitesse déjà
-  constaté sur la séparation).
+  constaté sur la séparation ; `essentia.js` en prime est **AGPL**).
+- **Drapeau licence** : toute la famille Chordino/Vamp (chord-extractor inclus) est
+  **GPL-2.0**, Essentia **AGPL** — copyleft déclenché à la distribution. Le
+  self-hosted single-user atténue mais reste un drapeau ; on privilégie **MIT/BTC**.
+- **Précision grand-vocabulaire faible** (class-wise ~0,39) : les accords jazz/
+  étendus resteront bruités quel que soit le moteur → l'édition manuelle (Lot A)
+  est le contrat, pas un rattrapage.
