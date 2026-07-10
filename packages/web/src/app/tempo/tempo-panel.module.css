@@ -64,15 +64,11 @@
 }
 
 .octave {
-  display: inline-flex;
-  gap: var(--space-2xs);
+  composes: chipRow from '../ui/controls.module.css';
 }
 
 .octaveButton {
-  composes: ghostButton from '../ui/controls.module.css';
-  padding: var(--space-2xs) var(--space-xs);
-  font-size: var(--font-size-s);
-  font-variant-numeric: tabular-nums;
+  composes: chipButton from '../ui/controls.module.css';
 }
 
 .error {

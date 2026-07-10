@@ -32,6 +32,20 @@
   color: var(--text);
 }
 
+/* A tight row of small ghost buttons (tempo ×2/÷2, chart transpose ±½):
+   the group and the chip skin, shared so the two panels stay in step. */
+.chipRow {
+  display: inline-flex;
+  gap: var(--space-2xs);
+}
+
+.chipButton {
+  composes: ghostButton;
+  padding: var(--space-2xs) var(--space-xs);
+  font-size: var(--font-size-s);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Quiet neutral button (add marker, run separation): panel fill, no accent. */
 .quietButton {
   padding: var(--space-2xs) var(--space-s);

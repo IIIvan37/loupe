@@ -7,33 +7,36 @@
 
 ## Where we are
 
-**Persistance de la grille d'accords done (2026-07-10)** on branch
-`feat/chord-chart-persistence` (off `main`, Lot A/B mergé PR #77) : la grille
-voyage avec le projet — **`ProjectChordChart { source }`** sur
-`Project`/`SaveProjectInput` (le **texte source** est persisté verbatim, le
-`ChordChart` parsé reste dérivé au rendu), état **lifté au shell**
-([use-chord-chart.ts](../packages/web/src/app/lead-sheet/use-chord-chart.ts),
-`ChordChartPanel` contrôlé — le panneau démonte pendant un chargement),
-signé dans `sessionSignature` (**absent ⇔ vide** : les vieux manifests
-rouvrent « Enregistré »), restauré à l'ouverture, reset à l'import.
-Outside-in avec un piège attrapé : le premier test de reopen passait
-*vacuement* (état local survivant au reopen) — durci par un import
-intermédiaire, la grille ne peut revenir que du manifest. react-doctor a
-flaggé le shell à 302 lignes → extraction
-[use-shell-drop.ts](../packages/web/src/app/workstation-shell/use-shell-drop.ts)
-(tout le drop OS en un hook). Gate **vert — 841 tests** (+9), coverage
-~96,1 %/89,5 %.
+**Transposition de la grille done (2026-07-10)** on branch
+`feat/chord-chart-transpose` (persistance mergée PR #78) :
+**`transposeChartSource(source, ±n)`** pur — transpose le **texte source**
+(la vérité persistée) en préservant la mise en page verbatim ; boutons
+**−½ / +½** dans l'en-tête du panneau, la source réécrite persiste comme
+une édition. Trois durcissements sortis de la revue post-slice (findings
+**vérifiés en exécutant le code**) : **garde round-trip par token** (un token
+lossy comme `C/E/G` passe verbatim — plus de corruption irréversible au
+clic), semitones non entiers/NaN refusés (plus de token `undefined`),
+accidentals unicode `♭`/`♯` reconnus (`B♭ −1 → A`). Tokenisation unifiée
+(`TOKEN` partagé parser/transposeur), chip-buttons factorisés
+(`controls.module.css`, clone jscpd 8 → 7). Gate **vert — 859 tests** (+18),
+Stryker **100 %** sur `chord-chart.ts`/`chord-symbol.ts` (global 95,09).
+Limitation assumée : les mots d'annotation (`Capo`…) sont des tokens-accords
+par contrat du format.
 
-**Next: PR, puis la transposition UI** (exporter `transposeChordSymbol`,
-`transposeChart`, boutons ± demi-ton) ou un incrément lead-sheet
-(bars-per-row, surlignage mesure courante). Ensuite ou en parallèle : **Lot J**
+**Next: PR, puis un incrément lead-sheet** (sync lecture — surlignage mesure
+courante via le `BeatGrid`, bars-per-row configurable) ou **Lot J**
 ([roadmap-excellence-2](roadmap-excellence-2.md)). See
-[2026-07-10-chord-chart-persistence](sessions/2026-07-10-chord-chart-persistence.md).
+[2026-07-10-chord-chart-transpose](sessions/2026-07-10-chord-chart-transpose.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Plan chord-charts (2026-07-10 → …)
 
+- 2026-07-10 · **Persistance de la grille** (PR #78) : `ProjectChordChart
+  { source }` signé dans le manifest (absent ⇔ vide), état lifté au shell,
+  restauré à l'ouverture, reset à l'import ; piège du test vacuement vert
+  durci par import intermédiaire ; extraction `use-shell-drop.ts` →
+  [rapport](sessions/2026-07-10-chord-chart-persistence.md)
 - 2026-07-10 · **Lot A/B — socle lead-sheet** (PR #77) : `chord-symbol` +
   `chord-chart` purs (format grille maison, round-trip fast-check),
   `LeadSheet` CSS Grid zéro lib + saisie live ; moteur ACE arbitré = BTC

@@ -4,6 +4,21 @@
   gap: var(--space-s);
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s);
+}
+
+.transpose {
+  composes: chipRow from '../ui/controls.module.css';
+}
+
+.transposeButton {
+  composes: chipButton from '../ui/controls.module.css';
+}
+
 .title {
   margin: 0;
   font-size: var(--font-size-base);

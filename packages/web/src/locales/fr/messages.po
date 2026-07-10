@@ -59,20 +59,30 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:26
+#: src/app/lead-sheet/chord-chart-panel.tsx:61
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:30
+#: src/app/lead-sheet/chord-chart-panel.tsx:65
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:17
+#: src/app/lead-sheet/chord-chart-panel.tsx:27
 msgid "chords.title"
 msgstr "Grille d'accords"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:34
+msgid "chords.transpose-down"
+msgstr "Transposer un demi-ton vers le bas"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:45
+msgid "chords.transpose-up"
+msgstr "Transposer un demi-ton vers le haut"
 
 #. js-lingui-explicit-id
 #: src/app/header/import-menu.tsx:180
@@ -141,7 +151,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:286
+#: src/app/workstation-shell/workstation-shell.tsx:302
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -193,7 +203,7 @@ msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:120
-#: src/app/workstation-shell/workstation-shell.tsx:179
+#: src/app/workstation-shell/workstation-shell.tsx:204
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
@@ -781,7 +791,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:171
+#: src/app/workstation-shell/workstation-shell.tsx:181
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
