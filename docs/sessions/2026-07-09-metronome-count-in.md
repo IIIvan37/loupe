@@ -42,6 +42,43 @@
   décompte → « Lecture », toujours 0:00, aucun départ tardif 4 s après.
   Console propre (404 favicon préexistants).
 
+## User feedback rounds (2026-07-10, same branch)
+
+Deux retours d'oreille de l'utilisateur ont reréglé le contrat musical :
+
+1. **« Le 1er clic après le décompte n'est pas audible »** puis **« le curseur
+   n'est pas forcément sur un temps / sur le premier temps »** — le vrai
+   diagnostic est le sien : le décompte partait de l'instant brut du curseur,
+   donc atterrissait hors grille, et comptait un faux « un ».
+   `buildCountIn` prend désormais **la grille + le curseur**
+   (`CountInInput`) : l'atterrissage est **calé sur le temps de la grille le
+   plus proche** (retourné en `startSeconds`, le hook y seeke avant le premier
+   clic), le tempo ressenti est lu à l'atterrissage, et **les accents suivent
+   la phase de mesure du morceau** (atterrir sur le temps 2 sonne
+   « 2 3 4 1 → départ », l'accent là où est le vrai « un » — downbeat cherché
+   derrière, devant pour une levée, via `barOffsetAt`).
+2. **« Deux clics rapprochés : on n'est pas calé »** — le clic d'atterrissage
+   ajouté au premier tour doublait celui de la piste (décalés de la latence de
+   démarrage du moteur → flam). Retiré : **l'atterrissage est le clic de la
+   piste elle-même** (garanti présent par le calage), le buffer du décompte
+   finit silencieux sur son dernier intervalle, et le départ différé est le
+   minuteur mural à `durationSeconds` pile (`onended` = nettoyage/filet;
+   contexte suspendu → source stoppée au tir pour qu'une reprise tardive ne
+   clique pas par-dessus).
+
+Stryker sur le nouveau code : premier run **avec des survivants réels** —
+tie-break du temps le plus proche et recherche du downbeat sur grille
+**irrégulière** (les grilles de test régulières rendaient
+arrière/avant indiscernables) — tués par 4 cas ciblés (tie → temps
+antérieur, downbeats irréguliers ×2, levées ×2). Restent 8 survivants
+équivalents vérifiés à la main (gardes impossibles, congruences mod `bar`,
+itérations hors-bornes ignorées). Gate re-green — **799 tests**; mutation
+fraîche (run --force complet) **94,75 %**, `metronome.ts` 81,82 % (16
+préexistants DSP + 8 équivalents count-in).
+
+**Reste à l'oreille de l'utilisateur** : plus de flam à l'atterrissage, et le
+léger retard du clic de piste (latence de démarrage moteur) acceptable.
+
 ## Not done / remaining
 - Le décompte n'est pas annoncé aux lecteurs d'écran (pas de LiveStatus) — le
   canal est déjà audible par nature (des clics) ; à reconsidérer si un retour

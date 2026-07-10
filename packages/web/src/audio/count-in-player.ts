@@ -2,17 +2,15 @@ import { type CountIn, synthesizeClickTrack } from '@app/core'
 import type { CountInPlayer } from '../app/tempo/use-count-in.ts'
 import { audioBufferFrom } from './web-audio-shared.ts'
 
-/** Slack past the bar before the wall-clock fallback declares the count over. */
-const FALLBACK_SLACK_MS = 150
-
 /**
- * The real Web Audio count-in player: synthesize one bar of clicks into a
- * buffer and play it once, straight to the destination (the count-in is not
- * part of the mix — it must sound even before the engines start). The deferred
- * start fires on the source's `onended`, with a wall-clock timer slightly past
- * the bar as a safety net: an autoplay-suspended context never plays the buffer
- * (so `onended` never comes), and the count-in must degrade to a plain start,
- * not hang the transport. Whichever fires first wins; cancelling silences both.
+ * The real Web Audio count-in player: synthesize the counts into a buffer and
+ * play it once, straight to the destination (the count-in is not part of the
+ * mix — it must sound even before the engines start). The buffer spans the
+ * whole bar, so its silent last interval leads into the landing — the track's
+ * own click, not ours. The deferred start fires on a wall-clock timer at
+ * `durationSeconds` exactly; it fires even when an autoplay-suspended context
+ * never plays a sample, degrading to a plain start instead of hanging the
+ * transport. `onended` is only cleanup plus a done-guarded safety net.
  * Untestable humble object (jsdom has no AudioContext) — browser-verified.
  */
 export function createCountInPlayer(): CountInPlayer {
@@ -40,24 +38,24 @@ export function createCountInPlayer(): CountInPlayer {
           onEnded()
         }
       }
-      const fallback = window.setTimeout(
-        () => {
-          finish()
-          // Stop the source too: a context resuming later would otherwise play
-          // the queued clicks late, over the running track.
+      const start = window.setTimeout(() => {
+        finish()
+        // A context still suspended here never sounded a sample — stop the
+        // queued source so a late resume can't click over the running track.
+        // A running context keeps ringing its landing click to the buffer end.
+        if (ctx?.state !== 'running') {
           source.stop()
-        },
-        countIn.durationSeconds * 1000 + FALLBACK_SLACK_MS
-      )
+        }
+      }, countIn.durationSeconds * 1000)
       source.onended = () => {
         source.disconnect()
-        window.clearTimeout(fallback)
+        // Safety net: had the timer somehow not fired, the count still ends.
         finish()
       }
       source.start()
       return () => {
         done = true
-        window.clearTimeout(fallback)
+        window.clearTimeout(start)
         source.stop()
       }
     }

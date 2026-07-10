@@ -58,6 +58,7 @@ function params(overrides: Partial<CountInParams> = {}): CountInParams {
     metronomeEnabled: true,
     mixerState: audibleMixer,
     togglePlayback: vi.fn(),
+    seekToSeconds: vi.fn(),
     ...overrides
   }
 }
@@ -74,7 +75,8 @@ describe('useCountIn', () => {
       result.current.togglePlayback()
     })
 
-    // One bar at 120 BPM ×1: four beats, two seconds — playback not started yet.
+    // One bar at 120 BPM ×1: four counts, two seconds — playback not started
+    // yet (the landing click will be the track's own, on the snapped beat).
     expect(toggle).not.toHaveBeenCalled()
     expect(result.current.countingIn).toBe(true)
     expect(player.played[0]?.durationSeconds).toBe(2)
@@ -116,6 +118,42 @@ describe('useCountIn', () => {
     expect(player.cancel).toHaveBeenCalledOnce()
     expect(toggle).not.toHaveBeenCalled()
     expect(result.current.countingIn).toBe(false)
+  })
+
+  it('snaps an off-beat playhead onto the grid before counting', () => {
+    const player = fakePlayer()
+    const seek = vi.fn()
+    const { result } = renderHook(() =>
+      useCountIn({
+        ...params({ positionSeconds: 1.3, seekToSeconds: seek }),
+        player
+      })
+    )
+
+    act(() => {
+      result.current.togglePlayback()
+    })
+
+    // 1.3 s sits between the 1 s and 1.5 s beats — the landing is 1.5 s.
+    expect(seek).toHaveBeenCalledWith(1.5)
+  })
+
+  it('leaves the playhead alone when it already sits on a beat', () => {
+    const player = fakePlayer()
+    const seek = vi.fn()
+    const { result } = renderHook(() =>
+      useCountIn({
+        ...params({ positionSeconds: 1.5, seekToSeconds: seek }),
+        player
+      })
+    )
+
+    act(() => {
+      result.current.togglePlayback()
+    })
+
+    expect(seek).not.toHaveBeenCalled()
+    expect(player.played).toHaveLength(1)
   })
 
   it('counts in at the tempo felt at the playhead, not the headline bpm', () => {

@@ -190,6 +190,7 @@ export function WorkstationShell({
     metronomeEnabled: metronome.enabled,
     mixerState: mixer.state,
     togglePlayback,
+    seekToSeconds,
     player: countInPlayer
   })
 

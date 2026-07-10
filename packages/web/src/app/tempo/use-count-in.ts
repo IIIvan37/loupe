@@ -1,11 +1,9 @@
 import {
   buildCountIn,
-  buildTempoMap,
   type CountIn,
   effectiveGains,
   type MixerState,
-  type TempoAnalysis,
-  tempoAt
+  type TempoAnalysis
 } from '@app/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createCountInPlayer } from '../../audio/count-in-player.ts'
@@ -34,6 +32,8 @@ export interface CountInParams {
   readonly mixerState: MixerState
   /** The raw transport toggle the count-in defers. */
   readonly togglePlayback: () => void
+  /** Seats the landing: the playhead snaps to the nearest grid beat. */
+  readonly seekToSeconds: (seconds: number) => void
   /** Injected in tests; defaults to the real Web Audio one-shot player. */
   readonly player?: CountInPlayer | undefined
 }
@@ -47,12 +47,14 @@ export interface CountInTransport {
 
 /**
  * Smart hook: the metronome's count-in. Starting playback while the click lane
- * is audible first plays one bar of clicks at the tempo felt at the playhead
- * (stretched by the playback rate), then starts the transport — the deferred
- * start the musician counts on. Pressing play again during the count abandons
- * it (still paused); pausing, a muted/soloed-away click, or no tempo at all
- * bypass the count entirely. Replacing or resetting the tempo (new detection,
- * fresh track, project open) abandons a pending count — its premise is gone.
+ * is audible first snaps the playhead to the nearest grid beat (the landing),
+ * plays one bar of clicks phased on the track's own bars at the tempo felt
+ * there (stretched by the playback rate), then starts the transport — the
+ * deferred start the musician counts on. Pressing play again during the count
+ * abandons it (still paused); pausing, a muted/soloed-away click, or no tempo
+ * at all bypass the count entirely. Replacing or resetting the tempo (new
+ * detection, fresh track, project open) abandons a pending count — its premise
+ * is gone.
  */
 export function useCountIn(params: CountInParams): CountInTransport {
   const player = useMemo(
@@ -85,10 +87,13 @@ export function useCountIn(params: CountInParams): CountInTransport {
     if (click === undefined || click.gain <= 0) {
       return undefined
     }
-    const bpm =
-      tempoAt(buildTempoMap(analysis.grid), params.positionSeconds) ??
-      analysis.bpm
-    return buildCountIn(bpm, analysis.beatsPerBar, params.timeRatio)
+    return buildCountIn({
+      grid: analysis.grid,
+      bpm: analysis.bpm,
+      beatsPerBar: analysis.beatsPerBar,
+      playheadSeconds: params.positionSeconds,
+      playbackRate: params.timeRatio
+    })
   }
 
   function togglePlayback(): void {
@@ -105,6 +110,11 @@ export function useCountIn(params: CountInParams): CountInTransport {
     if (countIn === undefined) {
       params.togglePlayback()
       return
+    }
+    // Seat the landing now: the playhead snaps to the grid beat the count
+    // leads into, visibly, before the first click sounds.
+    if (countIn.startSeconds !== params.positionSeconds) {
+      params.seekToSeconds(countIn.startSeconds)
     }
     cancelRef.current = player.play(countIn, () => {
       cancelRef.current = undefined
