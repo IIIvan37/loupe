@@ -62,8 +62,11 @@ persistance qui complète le Lot A.
 - tests (with coverage): ✅ **841 passed** (+9 : 4 acceptance shell, 2 domaine,
   1 application, 2 signature ; panel spec adaptée au contrôlé) — coverage
   96,18 %/89,5 % env. (seuils 85/80)
-- mutation (Stryker, local — core touché): ✅ (voir note du run dans la PR ;
-  `project.ts`/`projects.ts` : champs threadés couverts par specs dédiées)
+- mutation (Stryker, local — core touché): ✅ **94,98 %** global ;
+  `project.ts` **0 survivant** ; `projects.ts` 3 survivants sur la ligne
+  (préexistante) du spread `separation`, équivalents vérifiés à la main —
+  `stems` n'est défini que si `separation` l'est, muter `||`/les
+  sous-conditions ne change rien d'observable.
 - biome / sheriff / knip / jscpd (7 clones, stable) / impeccable /
   react-doctor: ✅ (le warning « large component » levé par l'extraction
   `useShellDrop`)
