@@ -201,5 +201,5 @@
 - [x] F.1 · [x] F.2 · [x] F.3 · [x] F.4 (PR #70)
 - [x] G.1 · [x] G.2 · [x] G.3 (PR #72)
 - [x] H.1 (PR #73)
-- [x] I.1 (PR #74) · [x] I.2 (PR #75) · [x] I.3 (branche `feat/metronome-count-in`)
+- [x] I.1 (PR #74) · [x] I.2 (PR #75) · [x] I.3 (PR #76)
 - [ ] J.1 · [ ] J.2 · [ ] J.3 · [ ] J.4 · [ ] J.5
