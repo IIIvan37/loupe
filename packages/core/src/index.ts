@@ -77,7 +77,7 @@ export type {
   Measure,
   Section
 } from './domain/chord-chart.ts'
-export { parseChart } from './domain/chord-chart.ts'
+export { parseChart, transposeChartSource } from './domain/chord-chart.ts'
 export type { ChordSymbol } from './domain/chord-symbol.ts'
 export { formatChordSymbol } from './domain/chord-symbol.ts'
 export type {

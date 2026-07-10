@@ -4,6 +4,25 @@
   gap: var(--space-s);
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s);
+}
+
+.transpose {
+  display: inline-flex;
+  gap: var(--space-2xs);
+}
+
+.transposeButton {
+  composes: ghostButton from '../ui/controls.module.css';
+  padding: var(--space-2xs) var(--space-xs);
+  font-size: var(--font-size-s);
+  font-variant-numeric: tabular-nums;
+}
+
 .title {
   margin: 0;
   font-size: var(--font-size-base);

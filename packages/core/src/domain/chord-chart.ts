@@ -1,4 +1,9 @@
-import { type ChordSymbol, parseChordSymbol } from './chord-symbol.ts'
+import {
+  type ChordSymbol,
+  formatChordSymbol,
+  parseChordSymbol,
+  transposeChordSymbol
+} from './chord-symbol.ts'
 
 /**
  * A lead-sheet as pure musical structure: sections of measures, each measure
@@ -28,6 +33,31 @@ function parseRow(line: string): Measure[] {
     .map((cell) => cell.trim())
     .filter((cell) => cell.length > 0)
     .map((cell) => ({ chords: cell.split(/\s+/).map(parseChordSymbol) }))
+}
+
+/**
+ * Transpose the grid's SOURCE TEXT — the persisted truth the panel edits — so
+ * the user's layout (headers, rows, blank lines, spacing) survives verbatim;
+ * only chord tokens are rewritten. A whole-octave move returns the source
+ * untouched, preserving flat spellings and malformed tokens alike.
+ */
+export function transposeChartSource(
+  source: string,
+  semitones: number
+): string {
+  if (semitones % 12 === 0) return source
+  return source
+    .split('\n')
+    .map((line) =>
+      HEADER.test(line.trim())
+        ? line
+        : line.replace(/[^|\s]+/g, (token) =>
+            formatChordSymbol(
+              transposeChordSymbol(parseChordSymbol(token), semitones)
+            )
+          )
+    )
+    .join('\n')
 }
 
 export function parseChart(text: string): ChordChart {

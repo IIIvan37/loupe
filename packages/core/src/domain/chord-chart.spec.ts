@@ -1,5 +1,6 @@
+import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { parseChart } from './chord-chart.ts'
+import { parseChart, transposeChartSource } from './chord-chart.ts'
 
 describe('parseChart', () => {
   it('reads a single measure into one unlabelled section', () => {
@@ -82,5 +83,50 @@ describe('parseChart', () => {
 
   it('a bracket mid-line is not a header either', () => {
     expect(parseChart('| C | [Coda]').sections[0]?.label).toBeUndefined()
+  })
+})
+
+describe('transposeChartSource', () => {
+  it('transposes every chord in a row', () => {
+    expect(transposeChartSource('| C | Am |', 2)).toBe('| D | Bm |')
+  })
+
+  it('transposes the slash bass with the chord', () => {
+    expect(transposeChartSource('| Cmaj7/E |', 2)).toBe('| Dmaj7/F# |')
+  })
+
+  it('leaves section headers untouched', () => {
+    expect(transposeChartSource('[Verse]\n| C |', 2)).toBe('[Verse]\n| D |')
+  })
+
+  it('preserves the layout — rows, blank lines, spacing', () => {
+    expect(transposeChartSource('[A]\n| C   F |\n\n| G |', 1)).toBe(
+      '[A]\n| C#   F# |\n\n| G# |'
+    )
+  })
+
+  it('passes an unknown token through unchanged', () => {
+    expect(transposeChartSource('| N.C. | C |', 2)).toBe('| N.C. | D |')
+  })
+
+  it('is the exact identity at zero semitones — flat spellings survive', () => {
+    fc.assert(
+      fc.property(fc.string(), (source) => {
+        expect(transposeChartSource(source, 0)).toBe(source)
+      })
+    )
+  })
+
+  it('is the exact identity at a whole octave', () => {
+    expect(transposeChartSource('[A]\n| Db | Bbm |', 12)).toBe(
+      '[A]\n| Db | Bbm |'
+    )
+  })
+
+  it('up a fifth then down a fifth restores the pitch classes', () => {
+    const source = '[Verse]\n| Db | Bbm7/F |'
+    expect(transposeChartSource(transposeChartSource(source, 7), -7)).toBe(
+      '[Verse]\n| C# | A#m7/F |'
+    )
   })
 })
