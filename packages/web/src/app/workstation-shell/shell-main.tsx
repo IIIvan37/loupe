@@ -2,6 +2,7 @@ import { buildTempoMap, type OctaveFactor } from '@app/core'
 import { type ComponentProps, useMemo } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
+import { ChordChartPanel } from '../lead-sheet/chord-chart-panel.tsx'
 import { LoopControls } from '../loops/loop-controls.tsx'
 import type { useLoopEditing } from '../loops/use-loop-editing.ts'
 import type { useLoops } from '../loops/use-loops.ts'
@@ -163,6 +164,7 @@ export function ShellMain({
             onClearRegion={loopEditing.clearRegion}
             trainer={speedTrainer}
           />
+          {isLoaded && <ChordChartPanel />}
         </Stack>
       </main>
 
