@@ -1,23 +1,29 @@
 # Plan — Grilles d'accords à partir d'un morceau
 
-> Statut (2026-07-10) : **ÉTUDE DE FAISABILITÉ** — aucun code. **Décision #1
-> arbitrée : la vue cible est une _lead-sheet_** (grille mesures/lignes orientée
-> page, façon [chordsheet.com](https://www.chordsheet.com/) : langage texte
-> spécialisé → grille de mesures, bars-per-row configurable, sections). La valeur
-> ajoutée de loupe par-dessus chordsheet.com : la lead-sheet est **synchronisée à
-> la lecture** — la mesure courante se surligne pendant que le morceau tourne,
-> grâce au `BeatGrid`. L'overlay accords-sur-waveform devient un **secondaire
-> optionnel**, pas le cœur.
+> Statut (2026-07-10) : **PLAN COMPLET — les 3 décisions produit + le moteur ACE
+> sont arbitrés, reste à coder (Lot A d'abord).**
+>
+> - **#1 Vue** → **lead-sheet** (grille mesures/lignes orientée page, façon
+>   [chordsheet.com](https://www.chordsheet.com/) : bars-per-row configurable,
+>   sections), **synchronisée à la lecture** via le `BeatGrid` (mesure courante
+>   surlignée). Overlay accords-sur-waveform = secondaire optionnel.
+> - **#2 Vocabulaire** → **triades pop/rock fiables comme socle** ; le grand
+>   vocabulaire jazz/étendu est un *stretch* assumé comme bruité, rattrapé par
+>   l'édition manuelle.
+> - **#3 Format & rendu** → **format grille maison inspiré de ChordPro, parser +
+>   rendu maison, ZÉRO lib** (ni ChordSheetJS ni Essentia — tous deux copyleft).
+> - **Moteur ACE** → **BTC** (MIT, PyTorch) ; voir § dédié.
 
 ## Le découpage qui décide de tout
 
 Le sujet cache **deux couches de difficulté très inégale**. Les confondre, c'est
 se lier les mains à la partie risquée avant d'avoir livré la partie facile.
 
-1. **Couche RENDU/ÉDITION — DSL texte → grille.** C'est *tout* ce que fait
-   chordsheet.com : plain-text → grille bars/mesures (Nashville, transposition,
-   DaCapo, diagrammes). Problème **résolu**, écosystème mature. Faisabilité **haute**,
-   risque **bas**, 100 % dans le core pur (parser) + un overlay web.
+1. **Couche RENDU/ÉDITION — format grille texte → lead-sheet.** C'est *tout* ce que
+   fait chordsheet.com : plain-text → grille bars/mesures (Nashville, transposition,
+   DaCapo, diagrammes). Problème **résolu**, faisable **sans aucune lib**.
+   Faisabilité **haute**, risque **bas**, 100 % dans le core pur (parser) + un
+   rendu HTML/CSS.
 2. **Couche EXTRACTION — audio → accords (ACE).** *Automatic Chord Estimation*,
    un problème MIR **ouvert**. État de l'art honnête : ~80–90 % sur majeur/mineur
    en pop/rock, chute franche sur 7th/extensions/inversions/jazz. Faisabilité
@@ -60,24 +66,36 @@ domaine + l'overlay + l'endpoint ACE.
   patron d'état temporel pur persisté dans le projet — modèle de référence pour la
   structure de sections.
 
-## Décisions produit à arbitrer (bloquantes avant les lots)
+## Décisions produit — **arbitrées** (2026-07-10)
 
-1. ~~**Quelle(s) vue(s) ?**~~ **✅ Arbitré : lead-sheet.** La grille mesures/lignes
-   orientée page (façon chordsheet.com) est **le** rendu cœur : bars-per-row
-   configurable, sections nommées, pensée pour l'écran *et* l'impression/PDF.
-   L'overlay accords-sur-waveform (`ZoomStage`) reste possible en secondaire mais
-   n'est pas prioritaire. Conséquence archi : le modèle domaine se dérive de la
-   **structure musicale** (sections → mesures → accords), pas de la timeline ; le
-   temps (surlignage de la mesure jouée) est une **projection** de la lead-sheet
-   sur le `BeatGrid`, dérivée, non stockée.
-2. **Quel vocabulaire d'accords ?** Triades pop/rock (ACE fiable) vs
-   extensions/jazz (ACE décevant → édition manuelle quasi obligatoire). Détermine
-   le réalisme de la promesse « automatique » et la richesse du DSL.
-3. **Quel DSL ?** Réutiliser un format existant (**ChordPro** via ChordSheetJS,
-   ou l'idiome **iReal Pro**/Nashville) vs un mini-DSL maison minimal. Un format
-   établi = interop/export gratuits ; un DSL maison = parser plus simple, calé sur
-   nos mesures. *Penchant : mini-DSL maison orienté mesures pour le core, avec
-   export ChordPro plus tard si besoin.*
+1. **Vue → ✅ lead-sheet.** La grille mesures/lignes orientée page (façon
+   chordsheet.com) est **le** rendu cœur : bars-per-row configurable, sections
+   nommées, pensée pour l'écran *et* l'impression/PDF. L'overlay
+   accords-sur-waveform (`ZoomStage`) reste possible en secondaire mais n'est pas
+   prioritaire. Conséquence archi : le modèle domaine se dérive de la **structure
+   musicale** (sections → mesures → accords), pas de la timeline ; le temps
+   (surlignage de la mesure jouée) est une **projection** de la lead-sheet sur le
+   `BeatGrid`, dérivée, non stockée.
+2. **Vocabulaire d'accords → ✅ triades pop/rock fiables comme socle.** BTC en
+   `voca=False` (25 classes maj-min) est le niveau où l'ACE est fiable (~83 %
+   WCSR). Le grand vocabulaire (7ths/extensions/inversions, `voca=True` ou
+   ISMIR2019) est un **stretch assumé bruité** (class-wise ~0,39), réservé au Lot C
+   avancé. La **saisie/édition manuelle** (Lot A) couvre tout le vocabulaire sans
+   dépendre de la fiabilité du moteur — c'est le contrat, pas un rattrapage.
+3. **Format & rendu → ✅ format grille maison inspiré de ChordPro, ZÉRO lib.**
+   - **Parsing** : format grille line-oriented (sections `[...]`, lignes de mesures
+     séparées par `|`, accords en tokens), parser maison pur dans le core — trivial
+     à écrire, TDD-able, aucune dépendance.
+   - **Rendu** : HTML + **CSS Grid** maison (bars-per-row = variable CSS, barre de
+     mesure = bordure, extensions en `<sup>`, `♭`/`♯` en glyphes), export **PDF
+     gratuit** via `@media print`. Pas de lib de rendu.
+   - **Écartés** : **ChordSheetJS** (GPL-2.0 + modèle accords-sur-paroles ≠ grille
+     de mesures) et **Essentia/essentia.js** (AGPL). On ne s'attache à aucun runtime
+     copyleft dans le bundle front.
+   - **ChordPro-le-format** sert d'**inspiration de syntaxe** (son environnement de
+     grille `{sog}…{eog}` est quasi identique à ce qu'on veut) ; un import/export
+     ChordPro *avec notre propre parser* reste possible en interop (**Lot D**), sans
+     jamais dépendre de ChordSheetJS.
 
 ## Le modèle domaine (esquisse, à confirmer par les tests)
 
@@ -99,8 +117,9 @@ ChordChart    { sections: Section[], meta }     // le document complet
   downbeat→downbeat du `BeatGrid` (source unique, comme la tempo-map non persistée).
   Dérivé, jamais stocké → robuste au ré-calage de phase, et une lead-sheet reste
   valide même sans beat grid (le surlignage se désactive, c'est tout).
-- **Parser DSL** : `parseChart(text) → ChordChart` pur, TDD + fast-check pour les
-  invariants (round-trip `render(parse(x)) === normalize(x)`, mesures ≤ meter, etc.).
+- **Parser (format grille maison, zéro lib)** : `parseChart(text) → ChordChart`
+  pur, TDD + fast-check pour les invariants (round-trip
+  `render(parse(x)) === normalize(x)`, mesures ≤ meter, etc.).
 - **Transposition** : `transpose(chart, semitones)` pur — trivial une fois les
   accords parsés, pas des strings.
 
@@ -150,20 +169,22 @@ ChordChart    { sections: Section[], meta }     // le document complet
 
 ## Lots (ordonnés outside-in — la valeur d'abord, l'IA en dernier)
 
-### Lot A — Modèle `ChordChart` + DSL + **saisie manuelle** — *sans aucune IA*
+### Lot A — Modèle `ChordChart` + format grille + **saisie manuelle** — *sans aucune IA, zéro lib*
 *D'abord : pur core, risque nul, valeur immédiate (annoter une grille à la main
 calée sur la beat grid existante).*
 
-- **Core (TDD)** : `ChordSymbol`/`Measure`/`Section`/`ChordChart`, `parseChart`,
-  `render`, `transpose` ; property tests round-trip.
+- **Core (TDD)** : `ChordSymbol`/`Measure`/`Section`/`ChordChart`, `parseChart`
+  (format grille maison), `render`, `transpose`, `parseChordSymbol`
+  (`Cmaj7/E → {root,quality,bass}`) ; property tests round-trip.
 - **Web** : saisie/édition d'accords par mesure, ancrés aux downbeats du `BeatGrid`.
 - **Persistence** : `ProjectChordChart` signé dans le manifest.
 
-### Lot B — Rendu lead-sheet (grille mesures/lignes) — *la vue cœur*
-- **Web** : composant lead-sheet — sections nommées, mesures disposées en lignes
-  (**bars-per-row** configurable), accords re-rendus depuis `ChordSymbol`.
-  CSS grid, pensé écran **et** impression/PDF (média print). Pas de dépendance à la
-  waveform : la lead-sheet se suffit à elle-même.
+### Lot B — Rendu lead-sheet (grille mesures/lignes) — *la vue cœur, zéro lib*
+- **Web** : composant lead-sheet **en HTML + CSS Grid maison** — sections nommées,
+  mesures en lignes (**bars-per-row** = variable CSS), barre de mesure = bordure,
+  accords re-rendus depuis `ChordSymbol` (extensions en `<sup>`, `♭`/`♯` en
+  glyphes). Export **PDF gratuit** via `@media print`. Aucune lib de rendu, aucune
+  dépendance à la waveform : la lead-sheet se suffit à elle-même.
 - **Sync lecture (dérivée)** : surligner la mesure courante en projetant l'index de
   mesure sur le `BeatGrid` (voir modèle) — se désactive proprement sans beat grid.
 - **Secondaire optionnel** : overlay accords sur `ZoomStage` (même idiome que la
@@ -183,8 +204,10 @@ poids — avant de s'engager.*
 - **Web** : bouton « Détecter les accords » → **pré-remplit** un brouillon que
   l'utilisateur corrige via l'éditeur du Lot A.
 
-### Lot D (optionnel) — Export / interop
-- Export ChordPro / PDF (façon chordsheet.com) ; import de charts existants.
+### Lot D (optionnel) — Interop ChordPro
+- Import/export **ChordPro** avec **notre propre parser** (jamais ChordSheetJS —
+  GPL) : coller une grille depuis l'écosystème existant, réexporter. Le PDF est
+  déjà couvert par le rendu print du Lot B.
 
 ## Ordre & couplage
 
