@@ -1,4 +1,5 @@
 import { type ChordChart, formatChordSymbol, parseChart } from '@app/core'
+import type { CSSProperties } from 'react'
 import styles from './lead-sheet.module.css'
 
 interface LeadSheetProps {
@@ -10,6 +11,11 @@ interface LeadSheetProps {
    * no beat grid at all — highlights nothing.
    */
   readonly currentMeasureIndex?: number | undefined
+  /**
+   * How many bars each row lays out — a RENDER parameter (never part of the
+   * chart model, see the plan). Undefined falls back to the stylesheet's 4.
+   */
+  readonly barsPerRow?: number | undefined
 }
 
 interface KeyedChord {
@@ -59,10 +65,18 @@ function keyed(
  * laid out as bars in a row. Pure presentation — all parsing lives in the core;
  * the layout is plain CSS grid, no library.
  */
-export function LeadSheet({ source, currentMeasureIndex }: LeadSheetProps) {
+export function LeadSheet({
+  source,
+  currentMeasureIndex,
+  barsPerRow
+}: LeadSheetProps) {
   const sections = keyed(parseChart(source), currentMeasureIndex)
+  const layout =
+    barsPerRow === undefined
+      ? undefined
+      : ({ '--bars-per-row': barsPerRow } as CSSProperties)
   return (
-    <div className={styles.sheet}>
+    <div className={styles.sheet} style={layout}>
       {sections.map((section) => (
         <section key={section.key} className={styles.section}>
           {section.label !== undefined && (

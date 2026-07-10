@@ -30,6 +30,18 @@ describe('LeadSheet', () => {
     expect(screen.getByText('G')).toBeInTheDocument()
   })
 
+  it('carries the chosen bars-per-row as the grid CSS variable', () => {
+    const { container } = render(
+      <LeadSheet source={'| C | Am |'} barsPerRow={6} />,
+      { wrapper: I18nTestingProvider }
+    )
+    expect(
+      (container.firstElementChild as HTMLElement).style.getPropertyValue(
+        '--bars-per-row'
+      )
+    ).toBe('6')
+  })
+
   it('marks the measure being played as current', () => {
     render(
       <LeadSheet source={'| C | Am | F |'} currentMeasureIndex={1} />,
