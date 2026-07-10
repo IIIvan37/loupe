@@ -161,6 +161,19 @@ describe('saveProject', () => {
     expect(store.saved.get('p1')?.tempo).toEqual(tempo)
   })
 
+  it('persists the chord chart source into the manifest', async () => {
+    const store = fakeProjectStore()
+
+    await saveProject(
+      { ...saveInput, chordChart: { source: '| Am | F |' } },
+      { store, audio: fakeAudioStore() }
+    )
+
+    expect(store.saved.get('p1')?.chordChart).toEqual({
+      source: '| Am | F |'
+    })
+  })
+
   it('stores each stem behind its own ref and keeps the mixer', async () => {
     const store = fakeProjectStore()
     const audio = fakeAudioStore()

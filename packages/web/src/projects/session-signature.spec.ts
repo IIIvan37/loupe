@@ -170,4 +170,22 @@ describe('sessionSignature', () => {
     }
     expect(sessionSignature(explicit)).toBe(sessionSignature(old))
   })
+
+  it('changes when the chord chart text changes', () => {
+    const charted: SignedSession = {
+      ...base,
+      chordChart: { source: '| Am | F |' }
+    }
+    const edited: SignedSession = {
+      ...base,
+      chordChart: { source: '| Am | G |' }
+    }
+    expect(sessionSignature(charted)).not.toBe(sessionSignature(base))
+    expect(sessionSignature(edited)).not.toBe(sessionSignature(charted))
+  })
+
+  it('signs an absent chart like an empty one (manifest that predates it)', () => {
+    const empty: SignedSession = { ...base, chordChart: { source: '' } }
+    expect(sessionSignature(empty)).toBe(sessionSignature(base))
+  })
 })

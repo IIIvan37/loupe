@@ -1,16 +1,23 @@
 import { useLingui } from '@lingui/react/macro'
-import { useState } from 'react'
 import { LeadSheet } from './lead-sheet.tsx'
 import styles from './chord-chart-panel.module.css'
 
+interface ChordChartPanelProps {
+  readonly source: string
+  readonly onSourceChange: (source: string) => void
+}
+
 /**
  * Manual chord-chart entry: type the grid in the home text format and watch the
- * lead-sheet render live above it. The draft lives in local state for now —
- * persisting it into the project is a later increment.
+ * lead-sheet render live above it. Dumb — the source text is session state
+ * owned by the shell (`useChordChart`), so it survives the panel unmounting
+ * and rides the project save/open lifecycle.
  */
-export function ChordChartPanel() {
+export function ChordChartPanel({
+  source,
+  onSourceChange
+}: ChordChartPanelProps) {
   const { t } = useLingui()
-  const [source, setSource] = useState('')
   return (
     <section className={styles.panel}>
       <h2 className={styles.title}>
@@ -20,7 +27,7 @@ export function ChordChartPanel() {
       <textarea
         className={styles.input}
         value={source}
-        onChange={(event) => setSource(event.target.value)}
+        onChange={(event) => onSourceChange(event.target.value)}
         rows={6}
         spellCheck={false}
         aria-label={t({

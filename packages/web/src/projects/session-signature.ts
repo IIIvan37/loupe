@@ -5,6 +5,7 @@ import {
   type MixerChannel,
   type MixerState,
   type ProjectActiveLoop,
+  type ProjectChordChart,
   type ProjectTuning,
   tuningOrDefault
 } from '@app/core'
@@ -29,6 +30,8 @@ export interface SignedSession {
         readonly manual?: ManualTempo | undefined
       }
     | undefined
+  /** The chord chart source text; absent ⇔ the user has typed none. */
+  readonly chordChart?: ProjectChordChart | undefined
   readonly separation?: { readonly mixer: MixerState } | undefined
 }
 
@@ -52,6 +55,9 @@ export function sessionSignature(session: SignedSession): string {
   // Absent manual override (a manifest that predates it, or an untouched
   // detection) reads as null, so a reopened old project still signs equal.
   const manual = session.tempo?.manual
+  // Absent chart (a manifest that predates it) reads like an empty one, so a
+  // reopened old project still signs « Enregistré » with the empty textarea.
+  const chordChart = session.chordChart?.source ?? ''
   return JSON.stringify({
     loops: session.loops.map((loop) => [
       loop.id,
@@ -75,6 +81,7 @@ export function sessionSignature(session: SignedSession): string {
     metronome: [metronome.gainDb, metronome.muted, metronome.soloed],
     octaveShift,
     manualTempo: manual ? [manual.bpm, manual.phaseSeconds] : null,
+    chordChart: chordChart === '' ? null : chordChart,
     mixer: session.separation
       ? session.separation.mixer.map((channel) => [
           channel.id,

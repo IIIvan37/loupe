@@ -5,6 +5,7 @@ import {
   mixerMatchesStems,
   type Project,
   type ProjectActiveLoop,
+  type ProjectChordChart,
   type ProjectStamp,
   type ProjectStem,
   type ProjectTempo,
@@ -46,6 +47,8 @@ export interface SaveProjectInput {
   readonly tuning?: ProjectTuning
   /** The detected tempo + metronome settings, once a tempo is known. */
   readonly tempo?: ProjectTempo
+  /** The chord chart source text, once the user has typed one. */
+  readonly chordChart?: ProjectChordChart
   readonly separation?: {
     readonly stems: readonly SaveProjectStem[]
     readonly mixer: MixerState
@@ -98,6 +101,7 @@ export async function saveProject(
         activeLoop: input.activeLoop,
         tuning: input.tuning,
         tempo: input.tempo,
+        chordChart: input.chordChart,
         ...(separation === undefined || stems === undefined
           ? {}
           : { separation: { stems, mixer: separation.mixer } })

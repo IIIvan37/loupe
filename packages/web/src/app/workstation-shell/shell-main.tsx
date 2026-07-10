@@ -57,6 +57,9 @@ interface ShellMainProps {
   readonly canSeparate: boolean
   readonly serverHealth: ServerHealth
   readonly onSeparate: () => void
+  /** The chord chart's source text — session state lifted to the shell. */
+  readonly chordChartSource: string
+  readonly onChordChartChange: (source: string) => void
 }
 
 /**
@@ -91,7 +94,9 @@ export function ShellMain({
   onSeekRatio,
   canSeparate,
   serverHealth,
-  onSeparate
+  onSeparate,
+  chordChartSource,
+  onChordChartChange
 }: ShellMainProps) {
   // Stems the separation masked as near-silent — captioned in the mixer gutter.
   const undetectedStems =
@@ -164,7 +169,12 @@ export function ShellMain({
             onClearRegion={loopEditing.clearRegion}
             trainer={speedTrainer}
           />
-          {isLoaded && <ChordChartPanel />}
+          {isLoaded && (
+            <ChordChartPanel
+              source={chordChartSource}
+              onSourceChange={onChordChartChange}
+            />
+          )}
         </Stack>
       </main>
 
