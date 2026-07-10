@@ -114,6 +114,19 @@ describe('projectFromSession', () => {
     expect('tempo' in project).toBe(false)
   })
 
+  it('carries the chord chart source through when present', () => {
+    const project = projectFromSession(
+      snapshot({ chordChart: { source: '[Couplet]\n| Am | F |' } }),
+      stamp
+    )
+    expect(project.chordChart).toEqual({ source: '[Couplet]\n| Am | F |' })
+  })
+
+  it('omits the chord chart when the session carries none', () => {
+    const project = projectFromSession(snapshot(), stamp)
+    expect('chordChart' in project).toBe(false)
+  })
+
   it('omits separation for an unseparated session', () => {
     const project = projectFromSession(snapshot(), stamp)
     expect(project.separation).toBeUndefined()

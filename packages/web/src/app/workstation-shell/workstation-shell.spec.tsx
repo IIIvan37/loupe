@@ -1467,6 +1467,73 @@ describe('WorkstationShell', () => {
     await screen.findByRole('button', { name: i18n._('header.rename-project') })
   }
 
+  it('restores the chord chart on reopen', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await user.type(
+      screen.getByLabelText(i18n._('chords.input-label')),
+      '[[Couplet]{enter}| Am | F |'
+    )
+    await saveProjectAs(user, 'Avec grille')
+    // Move on to another track first — the chart the reopen brings back can
+    // then only come from the manifest, never from leftover component state.
+    await importTrack(user, 'autre.wav')
+
+    await openProjectsDialog(user)
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('projects.open') })
+    )
+    // The unsaved new track arms the two-step confirm — go through it.
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('projects.confirm-open', { name: 'Avec grille' })
+      })
+    )
+
+    // The source text comes back verbatim and the lead-sheet renders from it.
+    await waitFor(() => {
+      expect(screen.getByLabelText(i18n._('chords.input-label'))).toHaveValue(
+        '[Couplet]\n| Am | F |'
+      )
+    })
+    expect(screen.getByText('Am')).toBeInTheDocument()
+  })
+
+  it('reopening a chart-less project signs « Enregistré » with an empty chart', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveProjectAs(user, 'Sans grille')
+
+    await openProjectsDialog(user)
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('projects.open') })
+    )
+
+    expect(await screen.findByText(i18n._('header.saved'))).toBeInTheDocument()
+    expect(screen.getByLabelText(i18n._('chords.input-label'))).toHaveValue('')
+  })
+
+  it('editing the chord chart drifts the session from its saved project', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await saveProjectAs(user, 'Grille sale')
+    expect(await screen.findByText(i18n._('header.saved'))).toBeInTheDocument()
+
+    await user.type(screen.getByLabelText(i18n._('chords.input-label')), '| C |')
+
+    expect(await screen.findByText(i18n._('header.unsaved'))).toBeInTheDocument()
+  })
+
+  it('a fresh import starts with a clean chord chart', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await user.type(screen.getByLabelText(i18n._('chords.input-label')), '| C |')
+
+    await importTrack(user, 'autre.wav')
+
+    expect(screen.getByLabelText(i18n._('chords.input-label'))).toHaveValue('')
+  })
+
   it('surfaces a failed save as a dismissible alert banner', async () => {
     const { user } = renderShell({ projectStores: brokenProjectStores() })
     await importTrack(user)

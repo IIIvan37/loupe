@@ -7,36 +7,39 @@
 
 ## Where we are
 
-**Grilles d'accords Lot A/B done (2026-07-10, merged PR #77)** on branch
-`feat/chord-chart-model` (off `main`): premier slice du
-[plan chord-charts](chord-charts-plan.md) (gelé le même jour). **Le socle
-lead-sheet** — modèle d'accords pur + saisie manuelle qui rend une grille en
-direct. Core pur (TDD) :
-[chord-symbol.ts](../packages/core/src/domain/chord-symbol.ts)
-(`parseChordSymbol`/`formatChordSymbol` round-trip + `transposeChordSymbol`,
-invariants fast-check) et
-[chord-chart.ts](../packages/core/src/domain/chord-chart.ts)
-(`ChordChart`/`Section`/`Measure` + `parseChart` du format grille maison
-`[Section]` / `|` / accords espacés). Web : `LeadSheet` (rendu CSS Grid, zéro
-lib) + `ChordChartPanel` (saisie → rendu live) câblé dans le shell. Format &
-rendu **maison, zéro lib** (ChordSheetJS écarté GPL, Essentia AGPL) ; moteur
-ACE arbitré = **BTC** (MIT/PyTorch) via deep-research, pour le Lot C à venir.
-Slice réaligné en **outside-in** en cours de route (acceptance web →
-`parseChart` → `chord-symbol`). À la reprise (même PR, après rebase sur le
-count-in) : **7 survivants Stryker réels tués** → fichiers chord **100 %**
-(global 94,52 %), et la **vérif navigateur a attrapé un vrai bug** (CSS sur
-tokens inexistants → accords invisibles; corrigé sur `--line`/`--panel-2`,
-textarea composé depuis `popover-form`). Gate **vert — 832 tests**, coverage
-96,17 %/89,46 %. **Merged as PR #77.**
+**Persistance de la grille d'accords done (2026-07-10)** on branch
+`feat/chord-chart-persistence` (off `main`, Lot A/B mergé PR #77) : la grille
+voyage avec le projet — **`ProjectChordChart { source }`** sur
+`Project`/`SaveProjectInput` (le **texte source** est persisté verbatim, le
+`ChordChart` parsé reste dérivé au rendu), état **lifté au shell**
+([use-chord-chart.ts](../packages/web/src/app/lead-sheet/use-chord-chart.ts),
+`ChordChartPanel` contrôlé — le panneau démonte pendant un chargement),
+signé dans `sessionSignature` (**absent ⇔ vide** : les vieux manifests
+rouvrent « Enregistré »), restauré à l'ouverture, reset à l'import.
+Outside-in avec un piège attrapé : le premier test de reopen passait
+*vacuement* (état local survivant au reopen) — durci par un import
+intermédiaire, la grille ne peut revenir que du manifest. react-doctor a
+flaggé le shell à 302 lignes → extraction
+[use-shell-drop.ts](../packages/web/src/app/workstation-shell/use-shell-drop.ts)
+(tout le drop OS en un hook). Gate **vert — 841 tests** (+9), coverage
+~96,1 %/89,5 %.
 
-**Next: persistance `ProjectChordChart`** (signer la grille dans le manifest
-comme `ProjectTempo`, lever l'état local du panneau vers un hook) ou **la
-transposition UI** (qui tirera `transposeChordSymbol`, aujourd'hui non
-exporté). Ensuite ou en parallèle : **Lot J** (fond de panier,
-[roadmap-excellence-2](roadmap-excellence-2.md)). See
-[2026-07-10-chord-charts-lot-a-b](sessions/2026-07-10-chord-charts-lot-a-b.md).
+**Next: PR, puis la transposition UI** (exporter `transposeChordSymbol`,
+`transposeChart`, boutons ± demi-ton) ou un incrément lead-sheet
+(bars-per-row, surlignage mesure courante). Ensuite ou en parallèle : **Lot J**
+([roadmap-excellence-2](roadmap-excellence-2.md)). See
+[2026-07-10-chord-chart-persistence](sessions/2026-07-10-chord-chart-persistence.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
+
+### Plan chord-charts (2026-07-10 → …)
+
+- 2026-07-10 · **Lot A/B — socle lead-sheet** (PR #77) : `chord-symbol` +
+  `chord-chart` purs (format grille maison, round-trip fast-check),
+  `LeadSheet` CSS Grid zéro lib + saisie live ; moteur ACE arbitré = BTC
+  (MIT) ; Stryker 100 % sur les fichiers chord ; vérif navigateur → fix
+  tokens (accords invisibles) →
+  [rapport](sessions/2026-07-10-chord-charts-lot-a-b.md)
 
 ### Roadmap excellence 2 (Lots F → I, 2026-07-07 → 07-10)
 

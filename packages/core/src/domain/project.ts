@@ -87,6 +87,16 @@ export interface ProjectTempo {
 }
 
 /**
+ * The chord chart as the user typed it: the raw grid-format text, preserved
+ * verbatim. The parsed `ChordChart` is derived from it wherever it is needed
+ * (like the tempo map from the beat grid) — the source text IS the user's
+ * edit, so it is what a save signs and restores, formatting included.
+ */
+export interface ProjectChordChart {
+  readonly source: string
+}
+
+/**
  * The separation half of a project: the stems produced plus the mixer settings
  * over them. The mixer's channels line up with the stems (one channel per stem
  * id). Present only once the track has been separated; absent otherwise.
@@ -118,6 +128,8 @@ export interface Project {
   readonly tuning?: ProjectTuning
   /** The detected tempo + metronome settings; absent until a tempo is known. */
   readonly tempo?: ProjectTempo
+  /** The chord chart source text; absent while the user has typed none. */
+  readonly chordChart?: ProjectChordChart
   /** Present once the track has been separated. */
   readonly separation?: ProjectSeparation
 }
@@ -171,6 +183,7 @@ export interface SessionSnapshot {
   readonly activeLoop?: ProjectActiveLoop | undefined
   readonly tuning?: ProjectTuning | undefined
   readonly tempo?: ProjectTempo | undefined
+  readonly chordChart?: ProjectChordChart | undefined
   readonly separation?: ProjectSeparation
 }
 
@@ -205,6 +218,9 @@ export function projectFromSession(
       : { activeLoop: session.activeLoop }),
     ...(session.tuning === undefined ? {} : { tuning: session.tuning }),
     ...(session.tempo === undefined ? {} : { tempo: session.tempo }),
+    ...(session.chordChart === undefined
+      ? {}
+      : { chordChart: session.chordChart }),
     ...(session.separation === undefined
       ? {}
       : { separation: session.separation })

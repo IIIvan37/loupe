@@ -17,6 +17,7 @@ import { useServerHealth } from '../../projects/use-server-health.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
 import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
+import { useChordChart } from '../lead-sheet/use-chord-chart.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
 import { useMarkers } from '../markers/use-markers.ts'
@@ -36,10 +37,9 @@ import { ShellDialogs } from './shell-dialogs.tsx'
 import { ShellDropLayer } from './shell-drop-layer.tsx'
 import { ShellHeader } from './shell-header.tsx'
 import { ShellMain } from './shell-main.tsx'
-import { useDropImport } from './use-drop-import.ts'
-import { useFileDrop } from './use-file-drop.ts'
 import { useProjectSession } from './use-project-session.ts'
 import { useSeparateAndLoad } from './use-separate-and-load.ts'
+import { useShellDrop } from './use-shell-drop.ts'
 import { useStemExport } from './use-stem-export.ts'
 import { useTempoDetection } from './use-tempo-detection.ts'
 import { useUnloadGuard } from './use-unload-guard.ts'
@@ -123,6 +123,10 @@ export function WorkstationShell({
   const markers = useMarkers()
   const tempo = useTempo(tempoDetector)
   const metronome = useMetronome({ mixer })
+  // The chart's source text is session state: saved with the project, restored
+  // on open, cleared by a fresh import — so it lives here, not in the panel
+  // (which unmounts while a track loads).
+  const chordChart = useChordChart()
   const loops = useLoops()
   const loopEditing = useLoopEditing(loops, {
     durationSeconds: transport.durationSeconds,
@@ -151,6 +155,8 @@ export function WorkstationShell({
     loopRegion,
     loopEnabled,
     tuning: { timeRatio, pitchSemitones, zoom: viewport.zoom },
+    chordChart,
+    restoreChordChart: chordChart.setSource,
     markers,
     loops,
     restoreActiveLoop: (active, savedLoopId) => {
@@ -205,21 +211,12 @@ export function WorkstationShell({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const openFilePicker = () => fileInputRef.current?.click()
 
-  // Native OS-file drop: a dropped audio file imports through the picker's exact
-  // path, guarded by the same unsaved-work confirmation as the button. A drop
-  // holding no audio file raises a dismissible warning instead of vanishing
-  // silently; the next accepted drop clears it.
-  const [dropRejected, setDropRejected] = useState(false)
-  const dropImport = useDropImport(session.importPickedFile, session.unsavedWork)
-  const { isDraggingFile, dropHandlers } = useFileDrop((file) => {
-    setDropRejected(false)
-    dropImport.onDropFile(file)
-  }, () => setDropRejected(true))
-  // Any import that starts (picker, URL, project open) supersedes the warning —
-  // adjusted during render, like the projects dialog's stale-confirm disarm.
-  if (dropRejected && importState.status === 'loading') {
-    setDropRejected(false)
-  }
+  // The whole native OS-file drop story (overlay, confirm, non-audio warning).
+  const drop = useShellDrop({
+    importPickedFile: session.importPickedFile,
+    unsavedWork: session.unsavedWork,
+    importStatus: importState.status
+  })
 
   // Separate the loaded track and wire the stems (+ metronome) into the mixer.
   const separateAndLoad = useSeparateAndLoad({ separation, tempo, mixer, metronome })
@@ -266,15 +263,15 @@ export function WorkstationShell({
   const mainViewState = importState
 
   return (
-    <div className={styles.shell} {...dropHandlers}>
+    <div className={styles.shell} {...drop.dropHandlers}>
       <ShellDropLayer
         fileInputRef={fileInputRef}
         onFilePicked={session.onFilePicked}
         importLabel={i18nImportLabel}
-        isDraggingFile={isDraggingFile}
-        pendingName={dropImport.pendingName}
-        onConfirm={dropImport.confirm}
-        onCancel={dropImport.cancel}
+        isDraggingFile={drop.isDraggingFile}
+        pendingName={drop.pendingName}
+        onConfirm={drop.confirm}
+        onCancel={drop.cancel}
       />
       <ShellHeader
         metadata={metadata}
@@ -300,13 +297,13 @@ export function WorkstationShell({
         onProjectsOpenChange={setProjectsOpen}
         session={session}
       />
-      {dropRejected && (
+      {drop.dropRejected && (
         <AlertBanner
           message={t({
             id: 'drop.unsupported',
             message: 'Format non supporté — déposer un fichier audio.'
           })}
-          onDismiss={() => setDropRejected(false)}
+          onDismiss={drop.dismissRejected}
         />
       )}
 
@@ -342,6 +339,8 @@ export function WorkstationShell({
         canSeparate={isLoaded && loadedAudio !== undefined}
         serverHealth={serverHealth}
         onSeparate={handleSeparate}
+        chordChartSource={chordChart.source}
+        onChordChartChange={chordChart.setSource}
         />
       )}
 

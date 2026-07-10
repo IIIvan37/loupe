@@ -155,6 +155,7 @@ export type {
   AudioRef,
   Project,
   ProjectActiveLoop,
+  ProjectChordChart,
   ProjectSeparation,
   ProjectSource,
   ProjectStamp,

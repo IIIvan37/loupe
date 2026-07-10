@@ -42,6 +42,11 @@ export interface ProjectSessionDeps extends SessionRestoreDeps {
   readonly loopEnabled: boolean
   /** The live playback tuning (tempo/pitch/zoom) — saved and fingerprinted. */
   readonly tuning: ProjectTuning
+  /** The chord chart's session state — saved, fingerprinted, reset on import. */
+  readonly chordChart: {
+    readonly source: string
+    readonly reset: () => void
+  }
   readonly viewport: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
@@ -115,6 +120,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     deps.mixer.reset()
     deps.tempo.reset()
     deps.metronome.reset()
+    deps.chordChart.reset()
     setTrackName(name)
   }
 
@@ -152,6 +158,17 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     }
   }
 
+  /**
+   * The chart as a save persists it: the raw text, present only once the user
+   * typed something real (whitespace alone is no chart — absent ⇔ empty, so
+   * old manifests and blank sessions sign the same).
+   */
+  function liveChordChart(): { source: string } | undefined {
+    return deps.chordChart.source.trim() === ''
+      ? undefined
+      : { source: deps.chordChart.source }
+  }
+
   /** The live session's persisted-state fingerprint (heavy audio excluded). */
   function liveSignature(): string {
     // Sign the metronome on the SAME condition a save persists it (a known
@@ -173,6 +190,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
             manual: deps.tempo.manual
           }
         : undefined,
+      chordChart: liveChordChart(),
       separation: deps.stemsReady ? { mixer: separationMixer() } : undefined
     })
   }
@@ -183,6 +201,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       return
     }
     const tempo = liveTempo()
+    const chordChart = liveChordChart()
     const input = sessionSaveInput({
       bytes: deps.loadedBytes,
       title: deps.metadata.title ?? trackName ?? undefined,
@@ -191,6 +210,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       markers: deps.markers.markers,
       tuning: deps.tuning,
       ...(tempo === undefined ? {} : { tempo }),
+      ...(chordChart === undefined ? {} : { chordChart }),
       ...(deps.loopRegion === undefined
         ? {}
         : {

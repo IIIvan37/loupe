@@ -148,6 +148,7 @@ describe('restoreSession', () => {
       } satisfies Loops,
       restoreActiveLoop: vi.fn(),
       restoreTuning: vi.fn(),
+      restoreChordChart: vi.fn(),
       tempo: {
         analysis: undefined,
         octaveShift: 0,

@@ -8,6 +8,7 @@ import {
   type MixerState,
   type OpenProjectResult,
   type ProjectActiveLoop,
+  type ProjectChordChart,
   type ProjectTempo,
   type ProjectTuning,
   type SaveProjectInput,
@@ -41,6 +42,8 @@ export interface SessionSnapshot {
   readonly tuning: ProjectTuning
   /** The detected tempo + metronome settings, once a tempo is known. */
   readonly tempo?: ProjectTempo
+  /** The chord chart source text, once the user has typed one. */
+  readonly chordChart?: ProjectChordChart
   /** The separation half, only once the stems are ready and mixing. */
   readonly separation?: {
     readonly sources: readonly SeparatedStem[]
@@ -68,6 +71,9 @@ export function sessionSaveInput(
     markers: session.markers,
     tuning: session.tuning,
     ...(session.tempo === undefined ? {} : { tempo: session.tempo }),
+    ...(session.chordChart === undefined
+      ? {}
+      : { chordChart: session.chordChart }),
     ...(session.activeLoop === undefined
       ? {}
       : { activeLoop: session.activeLoop }),
@@ -120,6 +126,8 @@ export interface SessionRestoreDeps {
   ) => void
   /** Seat the persisted tuning (tempo/pitch/zoom) on the live controls. */
   readonly restoreTuning: (tuning: ProjectTuning) => void
+  /** Seat the persisted chart text ('' for a manifest that predates it). */
+  readonly restoreChordChart: (source: string) => void
   readonly separation: Separation
   readonly mixer: Mixer
   /** Seat/analyse the tempo (persisted → `set`, old manifest → `detect`). */
@@ -166,6 +174,9 @@ export async function restoreSession(
   // A manifest that predates the tuning field means neutral settings — seat
   // them too, so the previous session's tempo/pitch never bleeds in.
   deps.restoreTuning(tuningOrDefault(opened.project.tuning))
+  // Same rule for the chart: absent reads as empty, never as « keep whatever
+  // the previous session typed ».
+  deps.restoreChordChart(opened.project.chordChart?.source ?? '')
   const active = opened.project.activeLoop
   if (active) {
     // If the region matches a library loop exactly, it WAS that loop: relink,
