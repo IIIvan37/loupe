@@ -48,4 +48,39 @@ describe('parseChart', () => {
       ]
     })
   })
+
+  it('reads runs of spaces as one separator — no phantom empty chord', () => {
+    expect(parseChart('| C   G |')).toEqual({
+      sections: [
+        {
+          measures: [
+            {
+              chords: [
+                { root: 'C', quality: '' },
+                { root: 'G', quality: '' }
+              ]
+            }
+          ]
+        }
+      ]
+    })
+  })
+
+  it('ignores blank lines before the first header — no empty section', () => {
+    expect(parseChart('\n  \n[Intro]\n| C |').sections).toHaveLength(1)
+  })
+
+  it('reads an indented header line as a header', () => {
+    expect(parseChart('  [Refrain]  \n| C |').sections[0]?.label).toBe(
+      'Refrain'
+    )
+  })
+
+  it('a header must own its whole line — trailing text makes a measure row', () => {
+    expect(parseChart('[Intro] | C |').sections[0]?.label).toBeUndefined()
+  })
+
+  it('a bracket mid-line is not a header either', () => {
+    expect(parseChart('| C | [Coda]').sections[0]?.label).toBeUndefined()
+  })
 })

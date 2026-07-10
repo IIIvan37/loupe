@@ -152,4 +152,19 @@ describe('transposeChordSymbol', () => {
       })
     )
   })
+
+  it('passes an unknown pitch name through unchanged', () => {
+    expect(
+      transposeChordSymbol({ root: 'H', quality: '', bass: 'X' }, 1)
+    ).toEqual({ root: 'H', quality: '', bass: 'X' })
+  })
+
+  it('does not grow a bass key on a bass-less chord', () => {
+    // Strict: `bass: undefined` and no `bass` key are different shapes under
+    // exactOptionalPropertyTypes — the transposed chord must stay bass-less.
+    expect(transposeChordSymbol({ root: 'C', quality: 'm' }, 1)).toStrictEqual({
+      root: 'C#',
+      quality: 'm'
+    })
+  })
 })

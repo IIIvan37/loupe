@@ -1,21 +1,25 @@
 .panel {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-s);
 }
 
 .title {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
 }
 
 .input {
   width: 100%;
   min-height: 6rem;
-  padding: 0.5rem 0.75rem;
+  padding: var(--space-2xs) var(--space-xs);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--text);
   font-family: var(--font-mono, monospace);
-  font-size: 0.9rem;
+  font-size: var(--font-size-m);
   line-height: 1.5;
   resize: vertical;
 }
