@@ -4,7 +4,45 @@
 
 ## Where we are
 
-- **Now — roadmap-excellence-2 Lot I.2 done (2026-07-09)** on branch
+- **Now — roadmap-excellence-2 Lot I.3 done, LOT I COMPLETE (2026-07-09/10, PR #76)**
+  on branch `feat/metronome-count-in` (off `main`, Lot I.2 merged as PR #75):
+  **le count-in du métronome** — une mesure de clics avant le départ de la
+  lecture quand la lane du clic est audible. Pure domain **`buildCountIn`** in
+  [metronome.ts](../packages/core/src/domain/metronome.ts) (TDD + fast-check
+  pin), reshaped twice on the user's ear checks into its final musical
+  contract: it takes **the grid + the playhead** (`CountInInput`), **snaps the
+  landing to the nearest grid beat** (`startSeconds`, the hook seeks there
+  before the first click — a mid-interval playhead must not start an off-grid
+  count), counts one bar at the tempo the player will **hear**
+  (`60/(bpm × playbackRate)`, felt at the landing via the tempo map), and
+  **phases the accents on the track's own bars** (landing on beat 2 sounds
+  « 2 3 4 1 → start » — downbeat looked up behind, ahead for a pickup). The
+  landing click is deliberately **the track's own** (the count-in stops at the
+  counts): a first cut doubled it and flammed against the engine's click.
+  Web hook [use-count-in.ts](../packages/web/src/app/tempo/use-count-in.ts)
+  wraps `togglePlayback`: audible click lane (`effectiveGains`) + a tempo ⇒
+  seek to the landing, one bar of clicks, then start; a press during the count
+  abandons it (still paused); a replaced/reset tempo abandons a pending count.
+  One-shot adapter
+  [count-in-player.ts](../packages/web/src/audio/count-in-player.ts) (humble
+  object, coverage-excluded): clicks straight to the destination (outside the
+  mix), deferred start on a **wall-clock timer at `durationSeconds` exactly**
+  (`onended` = cleanup + safety net) — an autoplay-suspended AudioContext
+  never plays the buffer and must degrade to a plain start, not hang the
+  transport (found in browser-verify; the timer also stops a never-heard
+  source so a late resume can't click over playback). Transport button reads
+  « Pause » during the count (pressing cancels). No new copy. Stryker caught
+  **real gaps the first regular-grid tests missed** (nearest-beat tie-break,
+  irregular-downbeat/pickup phase) — killed with 4 targeted cases; 8
+  remaining count-in survivors hand-verified equivalent. Gate **green — 799
+  tests** (+27), coverage 95,85 %/89 %; fresh full-force mutation **94,75 %**
+  (`metronome.ts` 81,82 % = 16 pre-existing `synthesizeClickTrack` DSP
+  sample-level equivalents + the 8 above). Browser-verified (real Chrome):
+  pause face immediate, playhead frozen the bar, clean start, cancel with no
+  late start. **Awaiting the user's ear check (no flam at the landing), then
+  merge PR #76; next Lot J** (fond de panier). See
+  [2026-07-09-metronome-count-in](sessions/2026-07-09-metronome-count-in.md).
+- **Prior — roadmap-excellence-2 Lot I.2 done (2026-07-09, merged PR #75)** on branch
   `feat/manual-tempo` (off `main`, Lot I.1 merged as PR #74): **le tempo
   manuel** — tap-tempo, saisie BPM et calage de phase, la sortie de secours
   quand la détection se trompe ou que le serveur est éteint. Pure domain in

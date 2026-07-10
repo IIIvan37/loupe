@@ -113,8 +113,8 @@ export {
   moveMarker,
   removeMarker
 } from './domain/marker-list.ts'
-export type { ClickTrackOptions } from './domain/metronome.ts'
-export { synthesizeClickTrack } from './domain/metronome.ts'
+export type { ClickTrackOptions, CountIn } from './domain/metronome.ts'
+export { buildCountIn, synthesizeClickTrack } from './domain/metronome.ts'
 export type {
   ChannelGain,
   MixerAction,

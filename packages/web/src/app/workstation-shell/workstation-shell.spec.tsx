@@ -531,6 +531,107 @@ describe('WorkstationShell', () => {
     expect(mute).toHaveAttribute('aria-pressed', 'true')
   })
 
+  it('counts one bar in before starting when the click lane is audible', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
+    }
+    let endCountIn: (() => void) | undefined
+    const countInPlayer = {
+      play: vi.fn((_countIn, onEnded: () => void) => {
+        endCountIn = onEnded
+        return vi.fn()
+      })
+    }
+    const stemEngine = fakeStemEngine()
+    const { user } = renderShell({
+      tempoDetector: detector,
+      stemEngine,
+      countInPlayer
+    })
+    await importTrack(user)
+    // Unmute the click — the count-in only fronts an audible metronome.
+    await user.click(
+      await screen.findByRole('button', {
+        name: i18n._('mixer.mute', { name: 'Métronome' })
+      })
+    )
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('transport.play') })
+    )
+
+    // One bar of clicks sounds first; the transport hasn't started, but the
+    // button already reads « Pause » — pressing it would abandon the count.
+    expect(countInPlayer.play).toHaveBeenCalledOnce()
+    expect(stemEngine.play).not.toHaveBeenCalled()
+    expect(
+      screen.getByRole('button', { name: i18n._('transport.pause') })
+    ).toBeInTheDocument()
+
+    act(() => {
+      endCountIn?.()
+    })
+    expect(stemEngine.play).toHaveBeenCalledOnce()
+  })
+
+  it('a press during the count abandons it instead of starting', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
+    }
+    const cancel = vi.fn()
+    const countInPlayer = { play: vi.fn(() => cancel) }
+    const stemEngine = fakeStemEngine()
+    const { user } = renderShell({
+      tempoDetector: detector,
+      stemEngine,
+      countInPlayer
+    })
+    await importTrack(user)
+    await user.click(
+      await screen.findByRole('button', {
+        name: i18n._('mixer.mute', { name: 'Métronome' })
+      })
+    )
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('transport.play') })
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('transport.pause') })
+    )
+
+    expect(cancel).toHaveBeenCalledOnce()
+    expect(stemEngine.play).not.toHaveBeenCalled()
+    expect(
+      screen.getByRole('button', { name: i18n._('transport.play') })
+    ).toBeInTheDocument()
+  })
+
+  it('starts immediately while the click lane stays muted', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
+    }
+    const countInPlayer = { play: vi.fn(() => vi.fn()) }
+    const stemEngine = fakeStemEngine()
+    const { user } = renderShell({
+      tempoDetector: detector,
+      stemEngine,
+      countInPlayer
+    })
+    await importTrack(user)
+    // The metronome seats muted by default — leave it that way and play.
+    await screen.findByRole('button', {
+      name: i18n._('mixer.mute', { name: 'Métronome' })
+    })
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('transport.play') })
+    )
+
+    expect(countInPlayer.play).not.toHaveBeenCalled()
+    expect(stemEngine.play).toHaveBeenCalledOnce()
+  })
+
   it('restores the tempo and metronome on reopen without re-detecting', async () => {
     const detect = vi.fn(async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) }))
     const { user } = renderShell({

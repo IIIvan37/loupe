@@ -197,9 +197,9 @@
 
 ### Suivi
 
-- [ ] Lot C tempo-map (plan précédent — prérequis)
-- [ ] F.1 · [ ] F.2 · [ ] F.3 · [ ] F.4
-- [ ] G.1 · [ ] G.2 · [ ] G.3
-- [ ] H.1
-- [ ] I.1 · [ ] I.2 · [ ] I.3
+- [x] Lot C tempo-map (plan précédent — prérequis, PR #69)
+- [x] F.1 · [x] F.2 · [x] F.3 · [x] F.4 (PR #70)
+- [x] G.1 · [x] G.2 · [x] G.3 (PR #72)
+- [x] H.1 (PR #73)
+- [x] I.1 (PR #74) · [x] I.2 (PR #75) · [x] I.3 (branche `feat/metronome-count-in`)
 - [ ] J.1 · [ ] J.2 · [ ] J.3 · [ ] J.4 · [ ] J.5
