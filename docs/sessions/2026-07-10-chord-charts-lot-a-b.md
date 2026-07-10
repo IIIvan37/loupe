@@ -47,8 +47,17 @@ Branche `feat/chord-chart-model` (off `main`). Premier slice du plan
 - **Rendu lead-sheet minimal** : pas encore de bars-per-row configurable, ni
   d'alignement `BeatGrid` (surlignage mesure courante), ni de style print/PDF
   soigné. Ce sont les incréments Lot B suivants.
-- **Vérif navigateur** différée au Mac (pas de Chrome sur ce PC — voir la
-  note projet).
+- ~~**Vérif navigateur** différée au Mac~~ → **faite à la reprise
+  (2026-07-10, Chrome réel)** et elle a payé : les mesures s'affichaient en
+  bandes claires au texte invisible — le CSS pointait des tokens inexistants
+  (`--border` retombant sur `currentColor` en fond de rangée, `--surface`).
+  Corrigé sur les vrais tokens (`--line`/`--panel-2`/`--text`/`--dim` +
+  échelle d'espacement) et le textarea composé depuis l'input de
+  `popover-form` (`composes` cross-file, jscpd stable à 7). Rendu re-vérifié :
+  sections, barres de mesure, `Dm/F`, saisie → rendu live.
+- **Rangée incomplète** : la grille est figée à 4 colonnes, une rangée de 3
+  mesures montre une cellule vide en bout — à traiter avec le bars-per-row
+  configurable (incrément Lot B).
 - **Lot C (ACE serveur)** : non commencé ; pré-requis = spike Demucs + dispo
   poids ChordFormer (angles morts du plan).
 
@@ -75,18 +84,23 @@ Branche `feat/chord-chart-model` (off `main`). Premier slice du plan
 - typecheck: ✅
 - tests (with coverage): ✅ **798 passed** (79 files ; +19 cette session) —
   coverage **96,04 % stmts / 88,83 % branches** (seuils 85/80)
-- mutation (Stryker, local — core touché): ⏳ **non terminé à la clôture**
-  (handoff machine — lancé localement puis interrompu). **À relancer sur le Mac
-  à la reprise** (`pnpm test:mutation`) ; la CI post-merge sert de backstop. Le
-  core touché (`chord-symbol.ts`, `chord-chart.ts`) est couvert par des tests
-  unitaires + property fast-check, mais les survivants n'ont pas été vérifiés.
+- mutation (Stryker, local — core touché): ✅ **fait à la reprise sur le Mac
+  (2026-07-10, après rebase sur le count-in)** — global **94,52 %** ; le
+  premier run a montré **7 survivants réels** sur les fichiers chord (note
+  inconnue → `undefined` à la transposition, clé `bass` fantôme — attrapée au
+  `toStrictEqual`, accord vide sur double espace, section vide sur lignes
+  blanches de tête, ancres du header `[Section]`, header indenté), tous tués
+  par des pins de contrat ciblés → `chord-symbol.ts` et `chord-chart.ts`
+  **100 %** (0 survivant, run scopé `--force`).
 - biome / sheriff / knip / jscpd: ✅ / ✅ / ✅ / ✅ ; impeccable + react-doctor ✅
 
 ## State to resume from
-- **Single next action** : ouvrir la PR pour `feat/chord-chart-model` (gate
-  vert), puis enchaîner sur **la persistance `ProjectChordChart`** (signer la
-  grille dans le manifest, restaurer à l'ouverture) OU **la transposition UI**
-  (qui tirera `transposeChordSymbol` + un nouveau `transposeChart`).
+- **Single next action** : ~~ouvrir la PR~~ (faite à la reprise : rebase sur
+  `main` post-count-in, Stryker 100 % sur les fichiers chord, vérif navigateur
+  + fix tokens), puis enchaîner sur **la persistance `ProjectChordChart`**
+  (signer la grille dans le manifest, restaurer à l'ouverture) OU **la
+  transposition UI** (qui tirera `transposeChordSymbol` + un nouveau
+  `transposeChart`).
 - Gotchas :
   - `ChordChartPanel` est **auto-contenu** (état local `useState`) — dès qu'on
     ajoute la persistance, lever l'état vers un hook (comme `useTempo`) et
