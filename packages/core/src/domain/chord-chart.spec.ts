@@ -124,9 +124,29 @@ describe('transposeChartSource', () => {
   })
 
   it('a whole octave preserves even malformed tokens verbatim', () => {
-    // `C/E/G` is lossy through parse∘format (the second slash drops) — only
-    // the whole-source guard keeps it intact.
     expect(transposeChartSource('| C/E/G |', 12)).toBe('| C/E/G |')
+  })
+
+  it('a lossy token passes through verbatim at ANY interval', () => {
+    // `C/E/G` cannot round-trip parse∘format (the second slash would drop) —
+    // rewriting it would silently destroy part of the persisted source.
+    expect(transposeChartSource('| C/E/G | C |', 1)).toBe('| C/E/G | C# |')
+  })
+
+  it('a fractional semitone count is refused — identity, never "undefined"', () => {
+    expect(transposeChartSource('| C |', 0.5)).toBe('| C |')
+  })
+
+  it('NaN semitones are refused — identity, never "undefined"', () => {
+    expect(transposeChartSource('| C |', Number.NaN)).toBe('| C |')
+  })
+
+  it('reads a unicode flat as its pitch class', () => {
+    expect(transposeChartSource('| B♭ |', -1)).toBe('| A |')
+  })
+
+  it('reads a unicode sharp as its pitch class', () => {
+    expect(transposeChartSource('| C♯m7 |', 1)).toBe('| Dm7 |')
   })
 
   it('an indented header keeps a chord-like label untouched', () => {

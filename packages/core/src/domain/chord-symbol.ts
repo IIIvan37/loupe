@@ -11,9 +11,13 @@ export interface ChordSymbol {
   readonly bass?: string
 }
 
+/** ASCII accidentals plus the unicode glyphs pasted charts often carry. */
+const ACCIDENTALS = new Set(['#', 'b', '♯', '♭'])
+
 /** Peel a pitch name (letter + optional accidental) off the front of `text`. */
 function splitRoot(text: string): { root: string; rest: string } {
-  const accidental = text[1] === '#' || text[1] === 'b' ? text[1] : ''
+  const second = text.charAt(1)
+  const accidental = ACCIDENTALS.has(second) ? second : ''
   const root = (text[0] ?? '') + accidental
   return { root, rest: text.slice(root.length) }
 }
@@ -42,20 +46,30 @@ const PITCH_NAMES = [
 const PITCH_CLASS: Readonly<Record<string, number>> = {
   C: 0,
   'C#': 1,
+  'C♯': 1,
   Db: 1,
+  'D♭': 1,
   D: 2,
   'D#': 3,
+  'D♯': 3,
   Eb: 3,
+  'E♭': 3,
   E: 4,
   F: 5,
   'F#': 6,
+  'F♯': 6,
   Gb: 6,
+  'G♭': 6,
   G: 7,
   'G#': 8,
+  'G♯': 8,
   Ab: 8,
+  'A♭': 8,
   A: 9,
   'A#': 10,
+  'A♯': 10,
   Bb: 10,
+  'B♭': 10,
   B: 11
 }
 
