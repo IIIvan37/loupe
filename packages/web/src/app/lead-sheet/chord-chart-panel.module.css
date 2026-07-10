@@ -11,13 +11,9 @@
 }
 
 .input {
+  composes: input from '../ui/popover-form.module.css';
   width: 100%;
   min-height: 6rem;
-  padding: var(--space-2xs) var(--space-xs);
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  color: var(--text);
   font-family: var(--font-mono, monospace);
   font-size: var(--font-size-m);
   line-height: 1.5;
