@@ -59,6 +59,22 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:26
+msgid "chords.input-label"
+msgstr "Saisir la grille d'accords"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:30
+msgid "chords.placeholder"
+msgstr "[Couplet]\n"
+"| C | Am | F | G |"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:17
+msgid "chords.title"
+msgstr "Grille d'accords"
+
+#. js-lingui-explicit-id
 #: src/app/header/import-menu.tsx:180
 #: src/app/loops/speed-trainer-controls.tsx:155
 #: src/app/ui/name-editor.tsx:85

@@ -7,37 +7,38 @@
 
 ## Where we are
 
-**Roadmap-excellence-2 Lot I.3 done — LOT I COMPLETE (2026-07-09/10, merged
-PR #76)**: **le count-in du métronome**. Pure domain `buildCountIn` in
-[metronome.ts](../packages/core/src/domain/metronome.ts) (TDD + fast-check),
-reshaped twice on the user's ear checks: it takes the grid + the playhead
-(`CountInInput`), **snaps the landing to the nearest grid beat**
-(`startSeconds`, seeked before the first click), counts one bar at the tempo
-the player will **hear** (`60/(bpm × playbackRate)`, felt at the landing), and
-**phases the accents on the track's own bars** (landing on beat 2 sounds
-« 2 3 4 1 → start »; downbeat looked up behind, ahead for a pickup). The
-landing click is deliberately **the track's own** — a first cut doubled it and
-flammed. Hook [use-count-in.ts](../packages/web/src/app/tempo/use-count-in.ts)
-wraps `togglePlayback` (audible click lane via `effectiveGains` + a tempo ⇒
-count then start; a press during the count abandons it); one-shot adapter
-[count-in-player.ts](../packages/web/src/audio/count-in-player.ts) defers the
-start on a wall-clock timer so an autoplay-suspended AudioContext degrades to
-a plain start instead of hanging the transport. Stryker caught real gaps the
-regular-grid tests missed (tie-break, irregular/pickup phase) — killed with
-targeted cases. Gate **green — 799 tests**, coverage 95,85 %/89 %; fresh
-full-force mutation **94,75 %**. Ear-checked by the user and merged. See
-[2026-07-09-metronome-count-in](sessions/2026-07-09-metronome-count-in.md).
+**Grilles d'accords Lot A/B done (2026-07-10)** on branch
+`feat/chord-chart-model` (off `main`): premier slice du
+[plan chord-charts](chord-charts-plan.md) (gelé le même jour). **Le socle
+lead-sheet** — modèle d'accords pur + saisie manuelle qui rend une grille en
+direct. Core pur (TDD) :
+[chord-symbol.ts](../packages/core/src/domain/chord-symbol.ts)
+(`parseChordSymbol`/`formatChordSymbol` round-trip + `transposeChordSymbol`,
+invariants fast-check) et
+[chord-chart.ts](../packages/core/src/domain/chord-chart.ts)
+(`ChordChart`/`Section`/`Measure` + `parseChart` du format grille maison
+`[Section]` / `|` / accords espacés). Web : `LeadSheet` (rendu CSS Grid, zéro
+lib) + `ChordChartPanel` (saisie → rendu live) câblé dans le shell. Format &
+rendu **maison, zéro lib** (ChordSheetJS écarté GPL, Essentia AGPL) ; moteur
+ACE arbitré = **BTC** (MIT/PyTorch) via deep-research, pour le Lot C à venir.
+Slice réaligné en **outside-in** en cours de route (acceptance web →
+`parseChart` → `chord-symbol`). Gate **vert — 798 tests** (avant rebase sur le
+count-in), coverage 96,04 %/88,83 %.
 
-**Next:** au choix — **Lot J** (fond de panier,
-[roadmap-excellence-2](roadmap-excellence-2.md) : `--danger`, `:active`,
-quota blobs 🟠, dédup moteurs, annulation des opérations longues) ou lancer le
-**plan chord-charts** figé sur `main` le 2026-07-10
-([chord-charts-plan.md](chord-charts-plan.md)).
+**Next: PR, puis persistance `ProjectChordChart` ou la transposition UI** (qui
+tirera `transposeChordSymbol`, aujourd'hui non exporté). Ensuite ou en
+parallèle : **Lot J** (fond de panier,
+[roadmap-excellence-2](roadmap-excellence-2.md)). See
+[2026-07-10-chord-charts-lot-a-b](sessions/2026-07-10-chord-charts-lot-a-b.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
-### Roadmap excellence 2 (Lots F → I, 2026-07-07 → 07-09)
+### Roadmap excellence 2 (Lots F → I, 2026-07-07 → 07-10)
 
+- 2026-07-09/10 · **Lot I.3 — count-in du métronome, LOT I COMPLET** (PR #76) :
+  une mesure de clics avant le départ — atterrissage calé sur la grille,
+  accents phasés sur la mesure du morceau, tempo entendu; adaptateur one-shot
+  robuste à l'autoplay → [rapport](sessions/2026-07-09-metronome-count-in.md)
 - 2026-07-09 · **Lot I.2 — tempo manuel** (PR #75) : tap-tempo (médiane), champ
   BPM éditable, calage de phase; `ManualTempo` signé/persisté →
   [rapport](sessions/2026-07-09-manual-tempo.md)
@@ -182,8 +183,8 @@ quota blobs 🟠, dédup moteurs, annulation des opérations longues) ou lancer 
 
 - [roadmap-excellence-2.md](roadmap-excellence-2.md) — **en cours** (Lots F–I
   faits, reste Lot J; suivi coché en fin de fichier).
-- [chord-charts-plan.md](chord-charts-plan.md) — **figé, prêt à lancer**
-  (2026-07-10).
+- [chord-charts-plan.md](chord-charts-plan.md) — **en cours** (figé le
+  2026-07-10; Lot A/B sur `feat/chord-chart-model`).
 - [tempo-detection-plan.md](tempo-detection-plan.md) — complet (Lots A–C).
 - [roadmap-excellence.md](roadmap-excellence.md) — complet (Lots A–E).
 - [jalon-2-plan.md](jalon-2-plan.md) · [jalon-1-plan.md](jalon-1-plan.md) —

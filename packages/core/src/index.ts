@@ -73,6 +73,14 @@ export type {
 export { separateTrack } from './application/separate-track.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
 export type {
+  ChordChart,
+  Measure,
+  Section
+} from './domain/chord-chart.ts'
+export { parseChart } from './domain/chord-chart.ts'
+export type { ChordSymbol } from './domain/chord-symbol.ts'
+export { formatChordSymbol } from './domain/chord-symbol.ts'
+export type {
   DetectedStem,
   StemEnergy
 } from './domain/instrument-detection.ts'
