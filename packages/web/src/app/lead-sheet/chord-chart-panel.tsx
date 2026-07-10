@@ -6,6 +6,8 @@ import styles from './chord-chart-panel.module.css'
 interface ChordChartPanelProps {
   readonly source: string
   readonly onSourceChange: (source: string) => void
+  /** The measure being played (global index), undefined to highlight nothing. */
+  readonly currentMeasureIndex?: number | undefined
 }
 
 /**
@@ -17,7 +19,8 @@ interface ChordChartPanelProps {
  */
 export function ChordChartPanel({
   source,
-  onSourceChange
+  onSourceChange,
+  currentMeasureIndex
 }: ChordChartPanelProps) {
   const { t } = useLingui()
   return (
@@ -53,7 +56,7 @@ export function ChordChartPanel({
           </button>
         </span>
       </div>
-      <LeadSheet source={source} />
+      <LeadSheet source={source} currentMeasureIndex={currentMeasureIndex} />
       <textarea
         className={styles.input}
         value={source}

@@ -32,6 +32,13 @@
   background: var(--panel-2);
 }
 
+/* The measure under the playhead — the amber « what plays » wash, readable in
+ * the flow without stealing the page (the sheet stays print-first). */
+.current {
+  background: var(--amber-glow);
+  box-shadow: inset 0 0 0 1px var(--amber-deep);
+}
+
 .chord {
   color: var(--text);
   font-variant-numeric: tabular-nums;

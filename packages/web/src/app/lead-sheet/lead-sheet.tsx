@@ -4,6 +4,12 @@ import styles from './lead-sheet.module.css'
 interface LeadSheetProps {
   /** The chord grid in the home text format (`[Section]` + `| … |` rows). */
   readonly source: string
+  /**
+   * The measure being played, counted through the whole chart (sections are a
+   * reading aid, not a reset). Undefined — before the first downbeat, or with
+   * no beat grid at all — highlights nothing.
+   */
+  readonly currentMeasureIndex?: number | undefined
 }
 
 interface KeyedChord {
@@ -12,6 +18,7 @@ interface KeyedChord {
 }
 interface KeyedMeasure {
   readonly key: string
+  readonly current: boolean
   readonly chords: readonly KeyedChord[]
 }
 interface KeyedSection {
@@ -25,10 +32,16 @@ interface KeyedSection {
  * state, so a positional path is a stable sibling-unique key. Computing it here,
  * off the JSX, keeps the render a plain map over identified nodes.
  */
-function keyed(chart: ChordChart): readonly KeyedSection[] {
+function keyed(
+  chart: ChordChart,
+  currentMeasureIndex?: number
+): readonly KeyedSection[] {
+  // The playhead's measure counts through the whole chart, not per section.
+  let global = 0
   return chart.sections.map((section, s) => {
     const measures = section.measures.map((measure, m) => ({
       key: `s${s}m${m}`,
+      current: global++ === currentMeasureIndex,
       chords: measure.chords.map((chord, c) => ({
         key: `s${s}m${m}c${c}`,
         text: formatChordSymbol(chord)
@@ -46,8 +59,8 @@ function keyed(chart: ChordChart): readonly KeyedSection[] {
  * laid out as bars in a row. Pure presentation — all parsing lives in the core;
  * the layout is plain CSS grid, no library.
  */
-export function LeadSheet({ source }: LeadSheetProps) {
-  const sections = keyed(parseChart(source))
+export function LeadSheet({ source, currentMeasureIndex }: LeadSheetProps) {
+  const sections = keyed(parseChart(source), currentMeasureIndex)
   return (
     <div className={styles.sheet}>
       {sections.map((section) => (
@@ -57,7 +70,15 @@ export function LeadSheet({ source }: LeadSheetProps) {
           )}
           <div className={styles.row}>
             {section.measures.map((measure) => (
-              <div key={measure.key} className={styles.measure}>
+              <div
+                key={measure.key}
+                className={
+                  measure.current
+                    ? `${styles.measure} ${styles.current}`
+                    : styles.measure
+                }
+                aria-current={measure.current ? 'true' : undefined}
+              >
                 {measure.chords.map((chord) => (
                   <span key={chord.key} className={styles.chord}>
                     {chord.text}

@@ -11,6 +11,7 @@ import {
   foldTempoOctave,
   MAX_MANUAL_BPM,
   MIN_MANUAL_BPM,
+  measureIndexAt,
   normalizeManualBpm,
   tapTempoBpm,
   tempoAt
@@ -34,6 +35,56 @@ function steadyTimes(bpm: number, count: number, start = 0): number[] {
   const interval = 60 / bpm
   return Array.from({ length: count }, (_, index) => start + index * interval)
 }
+
+describe('measureIndexAt', () => {
+  // 12 steady beats at 120 bpm, four to the bar: downbeats at 0s, 2s, 4s.
+  const grid = buildBeatGrid(bar4(steadyTimes(120, 12)))
+
+  it('reads the playhead inside the first bar as measure 0', () => {
+    expect(measureIndexAt(grid, 1)).toBe(0)
+  })
+
+  it('reads the playhead inside the second bar as measure 1', () => {
+    expect(measureIndexAt(grid, 3)).toBe(1)
+  })
+
+  it('reads no measure before the first downbeat (a pickup has no bar yet)', () => {
+    const anacrusis = buildBeatGrid(
+      bar4(steadyTimes(120, 12, 1)).map((beat, index) => ({
+        ...beat,
+        barPosition: ((index + 2) % 4) + 1
+      }))
+    )
+    expect(measureIndexAt(anacrusis, 1.2)).toBeUndefined()
+  })
+
+  it('enters the bar exactly on its downbeat instant', () => {
+    expect(measureIndexAt(grid, 2)).toBe(1)
+  })
+
+  it('stays in the last bar past the end of the grid', () => {
+    expect(measureIndexAt(grid, 100)).toBe(2)
+  })
+
+  it('reads no measure from an empty grid', () => {
+    expect(measureIndexAt([], 1)).toBeUndefined()
+  })
+
+  it('never decreases as the playhead moves forward', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ min: 0, max: 10, noNaN: true }),
+        fc.double({ min: 0, max: 10, noNaN: true }),
+        (a, b) => {
+          const [before, after] = a <= b ? [a, b] : [b, a]
+          const earlier = measureIndexAt(grid, before) ?? -1
+          const later = measureIndexAt(grid, after) ?? -1
+          return earlier <= later
+        }
+      )
+    )
+  })
+})
 
 describe('buildTempoMap', () => {
   it('reads a steady grid as a single segment', () => {
