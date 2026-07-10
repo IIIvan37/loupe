@@ -1,10 +1,13 @@
 # Plan — Grilles d'accords à partir d'un morceau
 
-> Statut (2026-07-10) : **ÉTUDE DE FAISABILITÉ** — pas encore d'arbitrage produit,
-> aucun code. Objet : générer/éditer des grilles d'accords (chord charts) calées
-> sur la timeline d'un morceau importé, façon [chordsheet.com](https://www.chordsheet.com/)
-> (langage texte spécialisé → grille de mesures) mais avec la valeur ajoutée de
-> loupe : **l'alignement temps réel accord ↔ waveform ↔ beat grid**.
+> Statut (2026-07-10) : **ÉTUDE DE FAISABILITÉ** — aucun code. **Décision #1
+> arbitrée : la vue cible est une _lead-sheet_** (grille mesures/lignes orientée
+> page, façon [chordsheet.com](https://www.chordsheet.com/) : langage texte
+> spécialisé → grille de mesures, bars-per-row configurable, sections). La valeur
+> ajoutée de loupe par-dessus chordsheet.com : la lead-sheet est **synchronisée à
+> la lecture** — la mesure courante se surligne pendant que le morceau tourne,
+> grâce au `BeatGrid`. L'overlay accords-sur-waveform devient un **secondaire
+> optionnel**, pas le cœur.
 
 ## Le découpage qui décide de tout
 
@@ -59,12 +62,14 @@ domaine + l'overlay + l'endpoint ACE.
 
 ## Décisions produit à arbitrer (bloquantes avant les lots)
 
-1. **Quelle(s) vue(s) ?**
-   - (a) **Overlay accords sur la waveform** (timeline continue) — colle à loupe,
-     réutilise `ZoomStage`. *Recommandé comme cœur.*
-   - (b) **Grille type lead-sheet** (mesures/lignes, orientée page/impression) façon
-     chordsheet.com — rendu différent, utile pour l'export/l'impression.
-   - Décider si (a) seul, ou (a) **et** (b) partageant le même modèle domaine.
+1. ~~**Quelle(s) vue(s) ?**~~ **✅ Arbitré : lead-sheet.** La grille mesures/lignes
+   orientée page (façon chordsheet.com) est **le** rendu cœur : bars-per-row
+   configurable, sections nommées, pensée pour l'écran *et* l'impression/PDF.
+   L'overlay accords-sur-waveform (`ZoomStage`) reste possible en secondaire mais
+   n'est pas prioritaire. Conséquence archi : le modèle domaine se dérive de la
+   **structure musicale** (sections → mesures → accords), pas de la timeline ; le
+   temps (surlignage de la mesure jouée) est une **projection** de la lead-sheet
+   sur le `BeatGrid`, dérivée, non stockée.
 2. **Quel vocabulaire d'accords ?** Triades pop/rock (ACE fiable) vs
    extensions/jazz (ACE décevant → édition manuelle quasi obligatoire). Détermine
    le réalisme de la promesse « automatique » et la richesse du DSL.
@@ -86,10 +91,14 @@ Section       { label?, measures: Measure[] }   // Intro / Couplet / Refrain …
 ChordChart    { sections: Section[], meta }     // le document complet
 ```
 
-- **Ancrage temps** : une mesure ↔ un intervalle downbeat→downbeat du `BeatGrid`.
-  La grille des accords n'a **pas** besoin de stocker des secondes — elle est
-  indexée en mesures, et le temps se dérive de la beat grid (source unique, comme
-  la tempo-map qui n'est pas persistée). Robuste au ré-calage de phase.
+- **Structure musicale d'abord.** Le modèle est indexé en **mesures**, pas en
+  secondes — la lead-sheet est un rendu de `sections → measures → chords`, sans
+  aucune donnée temporelle. C'est ce qui la rend imprimable/exportable telle quelle.
+- **Le temps est une projection, pas un champ.** Pour le surlignage « mesure
+  courante », on **mappe** la i-ᵉ mesure de la lead-sheet sur le i-ᵉ intervalle
+  downbeat→downbeat du `BeatGrid` (source unique, comme la tempo-map non persistée).
+  Dérivé, jamais stocké → robuste au ré-calage de phase, et une lead-sheet reste
+  valide même sans beat grid (le surlignage se désactive, c'est tout).
 - **Parser DSL** : `parseChart(text) → ChordChart` pur, TDD + fast-check pour les
   invariants (round-trip `render(parse(x)) === normalize(x)`, mesures ≤ meter, etc.).
 - **Transposition** : `transpose(chart, semitones)` pur — trivial une fois les
@@ -129,9 +138,15 @@ calée sur la beat grid existante).*
 - **Web** : saisie/édition d'accords par mesure, ancrés aux downbeats du `BeatGrid`.
 - **Persistence** : `ProjectChordChart` signé dans le manifest.
 
-### Lot B — Overlay de rendu sur la timeline
-- **Web** : couche accords dans `ZoomStage`, un label par mesure en `left: ratio%`,
-  suit zoom/scroll comme la beat grid. Vue lead-sheet (b) optionnelle ici ou plus tard.
+### Lot B — Rendu lead-sheet (grille mesures/lignes) — *la vue cœur*
+- **Web** : composant lead-sheet — sections nommées, mesures disposées en lignes
+  (**bars-per-row** configurable), accords re-rendus depuis `ChordSymbol`.
+  CSS grid, pensé écran **et** impression/PDF (média print). Pas de dépendance à la
+  waveform : la lead-sheet se suffit à elle-même.
+- **Sync lecture (dérivée)** : surligner la mesure courante en projetant l'index de
+  mesure sur le `BeatGrid` (voir modèle) — se désactive proprement sans beat grid.
+- **Secondaire optionnel** : overlay accords sur `ZoomStage` (même idiome que la
+  beat grid), à faire seulement si le besoin timeline émerge.
 
 ### Lot C — Extraction ACE (serveur) → brouillon éditable — *linchpin risqué*
 - **Serveur** : endpoint `/chords` (moteur retenu + pré-sépa harmonique Demucs,
@@ -157,8 +172,9 @@ déjà). Seul couplage réel : l'alignement mesure↔downbeat, qui repose sur le
 - **Précision ACE** : acceptable pour triades pop/rock, décevante sur jazz. Le
   choix de vocabulaire (décision #2) fixe la promesse ; l'édition manuelle est le
   filet, pas une option.
-- **Deux vues, un modèle** : ne pas dériver le modèle domaine de la vue lead-sheet
-  (orientée page) — le dériver de l'ancrage temporel, la vue page n'étant qu'un
-  autre rendu.
+- **Piège de la vue page** : même si la lead-sheet est la vue cœur, dériver le
+  modèle de la **structure musicale** (sections → mesures → accords), pas de la
+  mise en page (bars-per-row, sauts de ligne) — la disposition est un paramètre de
+  rendu, jamais un champ du modèle. Sinon transposition/sync/export se compliquent.
 - **Ne pas repartir sur le WASM** sans raison forte (mur qualité/vitesse déjà
   constaté sur la séparation).
