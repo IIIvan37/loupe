@@ -7,7 +7,7 @@
 
 ## Where we are
 
-**Grilles d'accords Lot A/B done (2026-07-10)** on branch
+**Grilles d'accords Lot A/B done (2026-07-10, merged PR #77)** on branch
 `feat/chord-chart-model` (off `main`): premier slice du
 [plan chord-charts](chord-charts-plan.md) (gelé le même jour). **Le socle
 lead-sheet** — modèle d'accords pur + saisie manuelle qui rend une grille en
@@ -22,12 +22,17 @@ lib) + `ChordChartPanel` (saisie → rendu live) câblé dans le shell. Format &
 rendu **maison, zéro lib** (ChordSheetJS écarté GPL, Essentia AGPL) ; moteur
 ACE arbitré = **BTC** (MIT/PyTorch) via deep-research, pour le Lot C à venir.
 Slice réaligné en **outside-in** en cours de route (acceptance web →
-`parseChart` → `chord-symbol`). Gate **vert — 798 tests** (avant rebase sur le
-count-in), coverage 96,04 %/88,83 %.
+`parseChart` → `chord-symbol`). À la reprise (même PR, après rebase sur le
+count-in) : **7 survivants Stryker réels tués** → fichiers chord **100 %**
+(global 94,52 %), et la **vérif navigateur a attrapé un vrai bug** (CSS sur
+tokens inexistants → accords invisibles; corrigé sur `--line`/`--panel-2`,
+textarea composé depuis `popover-form`). Gate **vert — 832 tests**, coverage
+96,17 %/89,46 %. **Merged as PR #77.**
 
-**Next: PR, puis persistance `ProjectChordChart` ou la transposition UI** (qui
-tirera `transposeChordSymbol`, aujourd'hui non exporté). Ensuite ou en
-parallèle : **Lot J** (fond de panier,
+**Next: persistance `ProjectChordChart`** (signer la grille dans le manifest
+comme `ProjectTempo`, lever l'état local du panneau vers un hook) ou **la
+transposition UI** (qui tirera `transposeChordSymbol`, aujourd'hui non
+exporté). Ensuite ou en parallèle : **Lot J** (fond de panier,
 [roadmap-excellence-2](roadmap-excellence-2.md)). See
 [2026-07-10-chord-charts-lot-a-b](sessions/2026-07-10-chord-charts-lot-a-b.md).
 
