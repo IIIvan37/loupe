@@ -36,6 +36,10 @@ const chordTextArb = fc
   )
 
 describe('parseChordSymbol', () => {
+  it('parses the empty string to an empty root, not "undefined"', () => {
+    expect(parseChordSymbol('')).toEqual({ root: '', quality: '' })
+  })
+
   it('reads a bare major triad as its root with an empty quality', () => {
     expect(parseChordSymbol('C')).toEqual({ root: 'C', quality: '' })
   })

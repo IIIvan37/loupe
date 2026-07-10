@@ -123,6 +123,18 @@ describe('transposeChartSource', () => {
     )
   })
 
+  it('a whole octave preserves even malformed tokens verbatim', () => {
+    // `C/E/G` is lossy through parse∘format (the second slash drops) — only
+    // the whole-source guard keeps it intact.
+    expect(transposeChartSource('| C/E/G |', 12)).toBe('| C/E/G |')
+  })
+
+  it('an indented header keeps a chord-like label untouched', () => {
+    expect(transposeChartSource('  [Solo A]\n| A |', 2)).toBe(
+      '  [Solo A]\n| B |'
+    )
+  })
+
   it('up a fifth then down a fifth restores the pitch classes', () => {
     const source = '[Verse]\n| Db | Bbm7/F |'
     expect(transposeChartSource(transposeChartSource(source, 7), -7)).toBe(
