@@ -7,34 +7,39 @@
 
 ## Where we are
 
-**Lot C chord-charts — slice CORE livrée (2026-07-11)**, branche
-`feat/chord-detection-core` : port **`ChordDetector`** (spans horodatés,
-tokens de grille, `undefined` = silence) + agrégation pure
-**`chordLabelPerMeasure`** (vote pondéré par durée par intervalle
-downbeat→downbeat — même projection que `measureIndexAt` —, silence candidat,
-changements contraints au downbeat) + **`renderChartSource`** placé chez le
-propriétaire de la grammaire (`chord-chart.ts`, labels hors-token assainis en
-`N.C.`) + use-case **`detectChords`** → brouillon de **texte source** que le
-panel pré-remplit (gardes : grille sans downbeat, détection vide, temps NaN).
-Gate **vert — 906 tests** (+26), Stryker **95,19** (`detect-chords` 100, les
-5 survivants = mutants équivalents analysés).
+**Lot C chord-charts — slices CORE + SERVEUR livrées (2026-07-11)**, deux PRs
+indépendantes. **Core** (PR #86, `feat/chord-detection-core`, CI verte) : port
+`ChordDetector` (spans horodatés, tokens de grille, `undefined` = silence),
+agrégation pure `chordLabelPerMeasure` (vote pondéré par durée par intervalle
+downbeat→downbeat — même projection que `measureIndexAt`), `renderChartSource`
+chez le propriétaire de la grammaire (labels hors-token → `N.C.`), use-case
+`detectChords` → brouillon de texte source (gardes : pas de downbeat,
+détection vide, NaN). Gate **906 tests** (+26), Stryker **95,19**
+(`detect-chords` 100). **Serveur** (`feat/chords-endpoint`) : **spike BTC levé**
+(exécution autorisée par l'utilisateur — **2,4 s CPU / 257 s d'audio**, sortie
+cohérente ; pré-séparation Demucs **différée**, BTC est entraîné sur mix
+complets) ; `POST /chords` (shell torch miroir de `/tempo`, 503 sans torch ou
+poids infetchables, BTC **vendoré** MIT sous `app/btc/` avec sa LICENSE, poids
+~33 Mo **sha256-pinnés avant tout `torch.load`** — `weights_cache.py`
+torch-free testé, download avec timeout d'inactivité), helper pur
+`chord_spans.py`, pin `librosa` (orphelin jusqu'ici). Serveur **127 pytest**
+(+15), coverage 97,2 %, smoke réel vérifié.
 
-**⛔ Spike BTC (pré-requis slice serveur) bloqué par permission** :
-l'exécution du code cloné `BTC-ISMIR19` (+ `torch.load` pickle) a été refusée
-au classifieur — poids confirmés dans le repo (~33 Mo, maj-min + large-voca),
-venv serveur prêt (torch 2.12), script `spike_infer.py` prêt dans le
-scratchpad. **L'utilisateur doit lancer/autoriser le spike** (qualité +
-temps CPU, puis gain Demucs = angle mort #1) avant la slice serveur `/chords`.
-
-**Next : PR de la slice core, spike BTC (utilisateur), puis slice serveur
-`/chords` et slice web** (adapter `createHttpChordDetector` + bouton
-« Détecter les accords »). See
-[2026-07-11-chord-detection-core](sessions/2026-07-11-chord-detection-core.md).
+**Next : merger PR #86 + la PR serveur, puis slice web (fin du Lot C)** —
+adapter `createHttpChordDetector` (traduction mir→tokens de grille,
+`N`/`X`→silence) + bouton « Détecter les accords » dans le panel lead-sheet
+(checkpoint d'approche UI en 2–3 lignes avant de coder). See
+[2026-07-11-chord-detection-core](sessions/2026-07-11-chord-detection-core.md)
+· [2026-07-11-chords-endpoint](sessions/2026-07-11-chords-endpoint.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Plan chord-charts (2026-07-10 → …)
 
+- 2026-07-11 · **Lot C core — détection d'accords** (PR #86) : port
+  `ChordDetector` + `chordLabelPerMeasure` + `renderChartSource` +
+  `detectChords` → brouillon source →
+  [rapport](sessions/2026-07-11-chord-detection-core.md)
 - 2026-07-11 · **Sync lecture de la lead-sheet** (PR #80) : `measureIndexAt`
   pur (mesure ↔ intervalle downbeat→downbeat, projection jamais stockée),
   surlignage `aria-current` + bars-per-row configurable →

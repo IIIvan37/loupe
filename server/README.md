@@ -2,7 +2,7 @@
 
 The local backend for loupe: hosts project storage and the heavy audio jobs the
 browser can't do well — **Demucs** separation, **beat_this** tempo/beat
-detection, and **yt-dlp** URL download. Its headline job runs the full **Demucs `htdemucs_6s`**
+detection, **BTC** chord estimation, and **yt-dlp** URL download. Its headline job runs the full **Demucs `htdemucs_6s`**
 model (PyTorch, GPU when available) and streams stems back to the web app. It
 exists because the in-browser WASM engines hit a quality/speed wall — server-side
 PyTorch has no such ceiling. The 6-source model splits **guitar** and **piano**
@@ -21,10 +21,10 @@ The server is an **adapter**, not a hexagon, so its discipline isn't "pure domai
 but the **humble object** pattern: the *decidable* logic — validation, policy,
 parsing, naming/ordering, math — lives in **torch/yt-dlp-free modules** that are
 unit-tested and type-checked (`limits`, `netguard`, `stems_store`, `stem_manifest`,
-`projects`, `beat_positions`, `wav_decode`, and pure helpers like
-`download.progress_fraction` / `_is_supported`).
+`projects`, `beat_positions`, `chord_spans`, `weights_cache`, `wav_decode`, and
+pure helpers like `download.progress_fraction` / `_is_supported`).
 The modules that import the heavy stacks (`separation.py` → torch/demucs,
-`tempo.py` → torch/beat_this) stay **thin shells**: decode → call the library →
+`tempo.py` → torch/beat_this, `chords.py` → torch/vendored BTC) stay **thin shells**: decode → call the library →
 hand the result to a pure helper → write. They're excluded from pyright + coverage and
 verified manually. **When you add server logic, put the decidable part in a
 torch-free module** — don't grow the ML shells. It's what keeps the fast,
@@ -70,6 +70,7 @@ be set up first.
 | `POST /separate` | Body = mix as a 16-bit PCM WAV (`audio/wav`). Responds `application/x-ndjson`, one JSON object per line. |
 | `GET /stems/{job}/{stem}.wav` | The isolated stem produced by a prior `/separate`. |
 | `POST /tempo` | Body = mix as a 16-bit PCM WAV (`audio/wav`). Responds `application/json`: `{"bpm": float, "beats": [{"time": seconds, "position": n}, …]}` — `position` numbers each beat within its bar (`1` = downbeat), from CPJKU's **beat_this** transformer (beats *and* downbeats). Needs torch + beat_this; a host without them answers `503`. Checkpoint via `LOUPE_TEMPO_CHECKPOINT` (default `final0`; `small0` is lighter), device via `LOUPE_TEMPO_DEVICE`. |
+| `POST /chords` | Body = mix as a 16-bit PCM WAV (`audio/wav`). Responds `application/json`: `{"chords": [{"start": s, "end": s, "label": "A:min"}, …]}` — timestamped chord spans (mir syntax, 25-class maj-min, `N` = no chord; **not** beat-synchronised — folding onto the beat grid is the web core's job), from the vendored **BTC** transformer (Park et al., ISMIR 2019, MIT, `app/btc/`). Needs torch; a host without it answers `503`. Weights (~33 MB) are fetched once to `~/.cache/loupe/btc/` and **sha256-pinned** before `torch.load` ever unpickles them; point `LOUPE_CHORDS_CHECKPOINT` at a local copy to skip the download, device via `LOUPE_CHORDS_DEVICE` (default `cpu` — ~2.4 s for a 4-minute song). |
 | `POST /audio`, `GET`/`HEAD /audio/{ref}`, `GET`/`PUT`/`DELETE /projects/{id}`, `GET /projects` | Project storage — content-addressed audio blobs + opaque JSON manifests (the core's `ProjectStore` / `ProjectAudioStore` ports). Always on, no ML stack needed. See `app/projects.py`. |
 | `POST /gc` | Reclaim orphaned audio blobs — scans every manifest for referenced refs and deletes the blobs none point at. Responds `{"deleted", "reclaimedBytes", "kept"}` (or `{"skipped": true, …}` if a manifest is unreadable — it never deletes on incomplete info). Also runs automatically on server boot. Run when idle. |
 | `GET /health` | Liveness + which model/device is loaded. |
@@ -107,7 +108,7 @@ Stem ids/labels (`voix`, `batterie`, `basse`, `autres`) match the core's
     mistake can't expose this file-writing server to the LAN even with a forged
     Host header.
   - **Body-size caps** refuse oversized uploads before buffering
-    (`LOUPE_MAX_UPLOAD_MB`, default `500`, for audio/`/separate`/`/tempo`;
+    (`LOUPE_MAX_UPLOAD_MB`, default `500`, for audio/`/separate`/`/tempo`/`/chords`;
     `LOUPE_MAX_MANIFEST_MB`, default `16`, for manifests and the `/download`
     JSON body) → 413.
   - **Audio-store quota**: a new blob that would push the content-addressed
@@ -115,8 +116,8 @@ Stem ids/labels (`voix`, `batterie`, `basse`, `autres`) match the core's
     refused → 507 (`/download` reports it as an NDJSON error event). The GC
     only reclaims orphans, so this cap is the only bound on total disk use.
   - **Inference concurrency** is bounded (`LOUPE_MAX_CONCURRENT_SEPARATIONS` /
-    `LOUPE_MAX_CONCURRENT_TEMPO`, default `1` each) so parallel inferences
-    can't thrash the device.
+    `LOUPE_MAX_CONCURRENT_TEMPO` / `LOUPE_MAX_CONCURRENT_CHORDS`, default `1`
+    each) so parallel inferences can't thrash the device.
   - Client error messages are generic; full detail is logged server-side.
 - Orphaned audio blobs (from re-saves and project deletes) are reclaimed by the
   manifest-scan GC — automatically on boot, or on demand via `POST /gc`.

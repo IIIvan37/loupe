@@ -11,6 +11,8 @@ Four independent capability groups behind one process:
 - `tempo` (when torch/beat_this is installed): the `/tempo` beat + downbeat
   contract. Also imported lazily — a host without the ML stack still serves the
   rest, and `/tempo` answers with a 503 the client surfaces as an error.
+- `chords` (when torch is installed): the `/chords` timestamped chord-span
+  contract (vendored BTC model). Same lazy-import + 503 pattern as `tempo`.
 - `download` (when yt-dlp is installed): the `/download` NDJSON contract that
   fetches a track from a media URL (YouTube / SoundCloud). Imported lazily — a
   host without yt-dlp still serves the rest, and `/download` answers with an
@@ -111,6 +113,18 @@ except Exception as exc:  # noqa: BLE001 - torch/beat_this missing on this host
         raise HTTPException(status_code=503, detail=_tempo_unavailable)
 else:
     app.include_router(tempo_router)
+
+try:
+    from .chords import router as chords_router
+except Exception as exc:  # noqa: BLE001 - torch missing on this host
+    _chords_unavailable = f"chord detection unavailable on this host: {exc}"
+
+    @app.post("/chords")
+    async def chords() -> None:
+        """Honour the contract with a clean error when torch is absent."""
+        raise HTTPException(status_code=503, detail=_chords_unavailable)
+else:
+    app.include_router(chords_router)
 
 try:
     from .download import router as download_router

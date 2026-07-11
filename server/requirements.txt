@@ -15,3 +15,5 @@ yt-dlp==2026.6.9
 # Direct dep of the torch-free WAV decoding (app/wav_decode.py) — would arrive
 # transitively via torch, but the app imports it itself.
 numpy==2.4.6
+# Chord estimation (vendored BTC, app/chords.py): CQT features + resampling.
+librosa==0.11.0
