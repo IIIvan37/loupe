@@ -33,6 +33,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request, Response
 
 from .limits import (
+    MAX_AUDIO_STORE_BYTES,
     MAX_MANIFEST_BYTES,
     MAX_UPLOAD_BYTES,
     read_capped_body,
@@ -63,16 +64,38 @@ def _project_path(project_id: str) -> Path:
     return PROJECTS_DIR / f"{project_id}.json"
 
 
+def _store_size() -> int:
+    """Total bytes held by our content-addressed blobs (ignores strays/.tmp)."""
+    if not AUDIO_DIR.is_dir():
+        return 0
+    return sum(
+        path.stat().st_size
+        for path in AUDIO_DIR.iterdir()
+        if path.is_file() and _REF_PATTERN.match(path.name)
+    )
+
+
 def store_audio(data: bytes) -> str:
     """Park bytes in the content-addressed store, returning their sha256 ref.
 
     The single seam other capability groups (e.g. `download`) reuse so a fetched
     track lands in the SAME `/audio` store the web client `GET`s from — never a
     forked second store. Idempotent: identical bytes re-point at the one blob.
+
+    Refuses (507) a NEW blob that would push the store past
+    `MAX_AUDIO_STORE_BYTES` — the GC only reclaims orphans, so this cap is the
+    only bound on total disk use. A re-save of held bytes never grows the store
+    and is always acknowledged.
     """
     ref = hashlib.sha256(data).hexdigest()
     path = _audio_path(ref)
     if not path.exists():  # content-addressed: same bytes -> same file
+        if _store_size() + len(data) > MAX_AUDIO_STORE_BYTES:
+            raise HTTPException(
+                status_code=507,
+                detail="audio store quota exceeded — delete projects or raise "
+                "LOUPE_MAX_AUDIO_STORE_MB",
+            )
         AUDIO_DIR.mkdir(parents=True, exist_ok=True)
         tmp = path.with_suffix(".tmp")
         tmp.write_bytes(data)

@@ -85,3 +85,28 @@ def test_gc_endpoint_returns_a_summary(client):
     client.put("/projects/p1", json={"id": "p1"})
     result = client.post("/gc").json()
     assert result == {"deleted": 0, "reclaimedBytes": 0, "kept": 0}
+
+
+def test_audio_quota_refuses_a_new_blob_that_would_overflow(client, monkeypatch):
+    monkeypatch.setattr(projects, "MAX_AUDIO_STORE_BYTES", 10)
+    assert client.post("/audio", content=b"12345").status_code == 200
+    response = client.post("/audio", content=b"6789012345")  # 5 + 10 > 10
+    assert response.status_code == 507
+    assert "quota" in response.json()["detail"]
+
+
+def test_audio_quota_allows_filling_exactly_to_the_cap(client, monkeypatch):
+    monkeypatch.setattr(projects, "MAX_AUDIO_STORE_BYTES", 10)
+    assert client.post("/audio", content=b"12345").status_code == 200
+    assert client.post("/audio", content=b"abcde").status_code == 200  # 5 + 5 == 10
+
+
+def test_audio_quota_ignores_a_resave_of_an_existing_blob(client, monkeypatch):
+    """Content-addressed hit: the store does not grow, so a full store must
+    still acknowledge bytes it already holds."""
+    monkeypatch.setattr(projects, "MAX_AUDIO_STORE_BYTES", 10)
+    body = b"0123456789"  # fills the store exactly
+    ref = client.post("/audio", content=body).json()["ref"]
+    response = client.post("/audio", content=body)
+    assert response.status_code == 200
+    assert response.json()["ref"] == ref

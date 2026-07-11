@@ -35,7 +35,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import yt_dlp
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from .limits import MAX_MANIFEST_BYTES, read_capped_json
@@ -171,7 +171,13 @@ def _download_stream(url: str) -> Iterator[bytes]:
         if not files:
             yield _event({"type": "error", "message": "download produced no file"})
             return
-        ref = store_audio(files[0].read_bytes())
+        try:
+            ref = store_audio(files[0].read_bytes())
+        except HTTPException as exc:
+            # The HTTP 200 is already committed (streaming) — a refusal such as
+            # the store quota must arrive as an NDJSON error, not a dead stream.
+            yield _event({"type": "error", "message": str(exc.detail)})
+            return
 
     done = {"type": "done", "ref": ref, "title": info.get("title") or "Sans titre"}
     if info.get("duration") is not None:
