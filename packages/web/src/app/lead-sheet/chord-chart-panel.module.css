@@ -22,21 +22,8 @@
 }
 
 .barsField {
-  width: 4ch;
-  padding: var(--space-2xs);
-  border: 1px solid transparent;
-  border-radius: var(--radius-s);
-  background: transparent;
+  composes: numberField from '../ui/controls.module.css';
   color: var(--text);
-  font: inherit;
-  font-variant-numeric: tabular-nums;
-  text-align: end;
-}
-
-.barsField:hover,
-.barsField:focus-visible {
-  border-color: var(--line-strong);
-  background: var(--panel-2);
 }
 
 .transpose {

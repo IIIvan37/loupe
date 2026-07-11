@@ -53,9 +53,14 @@ export function measureIndexAt(
   grid: BeatGrid,
   seconds: number
 ): number | undefined {
-  const started = grid.filter(
-    (beat) => beat.downbeat && beat.timeSeconds <= seconds
-  ).length
+  // A plain count, no intermediate array — this runs per animation frame
+  // during playback (the shell projects the playhead through it).
+  let started = 0
+  for (const beat of grid) {
+    if (beat.downbeat && beat.timeSeconds <= seconds) {
+      started += 1
+    }
+  }
   return started === 0 ? undefined : started - 1
 }
 

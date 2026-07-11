@@ -1,5 +1,6 @@
 import { type ChordChart, formatChordSymbol, parseChart } from '@app/core'
-import type { CSSProperties } from 'react'
+import { type CSSProperties, useMemo } from 'react'
+import { cx } from '../../lib/cx.ts'
 import styles from './lead-sheet.module.css'
 
 interface LeadSheetProps {
@@ -70,7 +71,12 @@ export function LeadSheet({
   currentMeasureIndex,
   barsPerRow
 }: LeadSheetProps) {
-  const sections = keyed(parseChart(source), currentMeasureIndex)
+  // The sheet re-renders on every playhead frame during playback (the parent
+  // ticks); only re-parse and re-key when the inputs actually change.
+  const sections = useMemo(
+    () => keyed(parseChart(source), currentMeasureIndex),
+    [source, currentMeasureIndex]
+  )
   const layout =
     barsPerRow === undefined
       ? undefined
@@ -86,11 +92,7 @@ export function LeadSheet({
             {section.measures.map((measure) => (
               <div
                 key={measure.key}
-                className={
-                  measure.current
-                    ? `${styles.measure} ${styles.current}`
-                    : styles.measure
-                }
+                className={cx(styles.measure, measure.current && styles.current)}
                 aria-current={measure.current ? 'true' : undefined}
               >
                 {measure.chords.map((chord) => (

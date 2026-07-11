@@ -30,7 +30,8 @@ export function ChordChartPanel({
   currentMeasureIndex
 }: ChordChartPanelProps) {
   const { t } = useLingui()
-  // A render preference, not chart data — session-local, never persisted.
+  // A render preference, not chart data — it lives with the panel (resets
+  // with it on track change) and is never persisted.
   const [barsPerRow, setBarsPerRow] = useState(DEFAULT_BARS_PER_ROW)
   // What the field shows while being edited — an emptied or out-of-range
   // draft is no layout, so the sheet keeps the last committed value.
