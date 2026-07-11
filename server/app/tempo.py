@@ -25,13 +25,18 @@ import logging
 import os
 import threading
 
+import anyio.to_thread
 import torch
 from beat_this.inference import Audio2Beats
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.concurrency import run_in_threadpool
 
 from .beat_positions import tempo_payload
-from .limits import MAX_UPLOAD_BYTES, concurrency_slots, read_capped_body, seconds_env
+from .limits import (
+    INFERENCE_TIMEOUT_SECONDS,
+    MAX_UPLOAD_BYTES,
+    concurrency_slots,
+    read_capped_body,
+)
 from .wav_decode import decode_wav_mono
 
 logger = logging.getLogger("loupe.tempo")
@@ -67,10 +72,6 @@ _model_lock = threading.Lock()
 # env-tunable.
 _tempo_semaphore = asyncio.Semaphore(concurrency_slots("LOUPE_MAX_CONCURRENT_TEMPO"))
 
-# A wedged inference would otherwise hold the single slot silently forever —
-# generous ceiling, shared by the /tempo and /chords inference wraps.
-INFERENCE_TIMEOUT_SECONDS = seconds_env("LOUPE_INFERENCE_TIMEOUT_SECONDS", 600)
-
 
 def _audio2beats() -> Audio2Beats:
     global _model
@@ -101,8 +102,14 @@ async def tempo(request: Request) -> dict:
         # Off the event loop: inference is compute-bound, and blocking here would
         # stall concurrent requests (e.g. the web app's /health poll) for seconds.
         async with _tempo_semaphore:
+            # abandon_on_cancel: plain run_in_threadpool suppresses the
+            # cancellation until the worker returns, so wait_for would never
+            # fire on a truly wedged inference. Abandoning frees the request
+            # and the slot; the orphaned thread keeps its threadpool token
+            # (bounded, can't be killed) until it dies on its own.
             return await asyncio.wait_for(
-                run_in_threadpool(_analyse, data), timeout=INFERENCE_TIMEOUT_SECONDS
+                anyio.to_thread.run_sync(_analyse, data, abandon_on_cancel=True),
+                timeout=INFERENCE_TIMEOUT_SECONDS,
             )
     except TimeoutError as exc:
         # The wait is cancelled but the worker thread can't be killed — free
