@@ -1,8 +1,5 @@
 import type { DecodedAudio, PlaybackEngine } from '@app/core'
-import type { SoundTouchNode } from '@soundtouchjs/audio-worklet'
-import { audioBufferFrom, loadSoundTouchNode } from './web-audio-shared.ts'
-
-type PositionListener = (seconds: number) => void
+import { audioBufferFrom, createStretchTransport } from './web-audio-shared.ts'
 
 /**
  * Driven adapter for the `PlaybackEngine` port. Plays decoded audio through an
@@ -14,70 +11,15 @@ type PositionListener = (seconds: number) => void
  *  - the SoundTouch node mirrors that rate (`node.playbackRate`) and divides the
  *    pitch by it automatically, so `node.pitchSemitones` is the net shift.
  *
- * Position is derived from `AudioContext.currentTime` scaled by the tempo ratio.
- * Untested (jsdom has no Web Audio / AudioWorklet) — a humble object verified in
- * a real browser.
+ * The context, stretch bus and position clock live in the shared
+ * `StretchTransport`; this engine only manages its single source node.
+ * Untested (jsdom has no Web Audio / AudioWorklet) — a humble object verified
+ * in a real browser.
  */
 export function createWebAudioPlayback(): PlaybackEngine {
-  const listeners = new Set<PositionListener>()
-  let context: AudioContext | undefined
-  let stretch: SoundTouchNode | undefined
   let buffer: AudioBuffer | undefined
   let source: AudioBufferSourceNode | undefined
-  let frame: number | undefined
-  let isPlaying = false
-  // Position bookkeeping: where the current run started, and the context clock at
-  // that moment. Live position = startOffset + ratio * (now - startedAt).
-  let startOffset = 0
-  let startedAt = 0
-  let timeRatio = 1
-  let pitchSemitones = 0
-
-  function audioContext(): AudioContext {
-    context ??= new AudioContext()
-    return context
-  }
-
-  /** Lazily create the SoundTouch node; on failure, fall back to plain output. */
-  async function ensureStretch(): Promise<void> {
-    if (stretch) {
-      return
-    }
-    // No worklet → basic playback still works (source → destination), only the
-    // tempo/pitch controls go inert. Verified/fixed in the browser.
-    stretch = await loadSoundTouchNode(audioContext(), {
-      timeRatio,
-      pitchSemitones
-    })
-  }
-
-  function outputNode(): AudioNode {
-    return stretch ?? audioContext().destination
-  }
-
-  function positionOf(buf: AudioBuffer): number {
-    const raw = isPlaying
-      ? startOffset + timeRatio * (audioContext().currentTime - startedAt)
-      : startOffset
-    return Math.min(Math.max(raw, 0), buf.duration)
-  }
-
-  function emit(): void {
-    if (!buffer) {
-      return
-    }
-    const seconds = positionOf(buffer)
-    for (const listener of listeners) {
-      listener(seconds)
-    }
-  }
-
-  function loop(): void {
-    emit()
-    if (isPlaying) {
-      frame = requestAnimationFrame(loop)
-    }
-  }
+  const transport = createStretchTransport(() => buffer?.duration)
 
   function stopSource(): void {
     if (source) {
@@ -86,64 +28,54 @@ export function createWebAudioPlayback(): PlaybackEngine {
       source.disconnect()
       source = undefined
     }
-    if (frame !== undefined) {
-      cancelAnimationFrame(frame)
-      frame = undefined
-    }
+    transport.cancelFrame()
   }
 
   function startSource(buf: AudioBuffer, offset: number): void {
-    const ctx = audioContext()
-    const node = ctx.createBufferSource()
+    const node = transport.audioContext().createBufferSource()
     node.buffer = buf
-    node.playbackRate.value = timeRatio
-    node.connect(outputNode())
+    node.playbackRate.value = transport.timeRatio()
+    node.connect(transport.outputNode())
     node.onended = () => {
       // Fire only for a natural end, not a stop()/seek that replaced the node.
       if (source === node) {
         stopSource()
-        isPlaying = false
-        startOffset = buf.duration
-        emit()
+        transport.stopAt(buf.duration)
+        transport.emit()
       }
     }
-    startOffset = offset
-    startedAt = ctx.currentTime
-    isPlaying = true
     node.start(0, offset)
     source = node
-    frame = requestAnimationFrame(loop)
+    transport.beginRun(offset)
   }
 
   return {
     async load(audio: DecodedAudio): Promise<void> {
       stopSource()
-      isPlaying = false
-      startOffset = 0
-      await ensureStretch()
-      buffer = audioBufferFrom(audioContext(), audio)
-      emit()
+      transport.stopAt(0)
+      await transport.ensureStretch()
+      buffer = audioBufferFrom(transport.audioContext(), audio)
+      transport.emit()
     },
 
     play(): void {
-      if (!buffer || isPlaying) {
+      if (!buffer || transport.isPlaying()) {
         return
       }
-      void audioContext().resume()
+      void transport.audioContext().resume()
       // Replaying from the very end restarts from the top.
-      const offset = startOffset >= buffer.duration ? 0 : startOffset
-      startSource(buffer, offset)
+      const resting = transport.position()
+      startSource(buffer, resting >= buffer.duration ? 0 : resting)
     },
 
     pause(): void {
-      if (!buffer || !isPlaying) {
+      if (!buffer || !transport.isPlaying()) {
         return
       }
-      const position = positionOf(buffer)
+      const position = transport.position()
       stopSource()
-      isPlaying = false
-      startOffset = position
-      emit()
+      transport.stopAt(position)
+      transport.emit()
     },
 
     seekTo(seconds: number): void {
@@ -151,43 +83,27 @@ export function createWebAudioPlayback(): PlaybackEngine {
         return
       }
       const target = Math.min(Math.max(seconds, 0), buffer.duration)
-      if (isPlaying) {
+      if (transport.isPlaying()) {
         stopSource()
         startSource(buffer, target)
       } else {
-        startOffset = target
-        emit()
+        transport.stopAt(target)
+        transport.emit()
       }
     },
 
     setTimeRatio(ratio: number): void {
-      // Re-baseline the position before changing the scale, so the elapsed-time
-      // maths stays continuous across the ratio change.
-      if (buffer && isPlaying) {
-        startOffset = positionOf(buffer)
-        startedAt = audioContext().currentTime
-      }
-      timeRatio = ratio
-      if (source) {
-        source.playbackRate.value = ratio
-      }
-      if (stretch) {
-        stretch.playbackRate.value = ratio
-      }
+      transport.setTimeRatio(ratio, (value) => {
+        if (source) {
+          source.playbackRate.value = value
+        }
+      })
     },
 
     setPitchSemitones(semitones: number): void {
-      pitchSemitones = semitones
-      if (stretch) {
-        stretch.pitchSemitones.value = semitones
-      }
+      transport.setPitchSemitones(semitones)
     },
 
-    onPositionChange(listener: PositionListener): () => void {
-      listeners.add(listener)
-      return () => {
-        listeners.delete(listener)
-      }
-    }
+    onPositionChange: transport.onPositionChange
   }
 }
