@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { i18n } from '../../i18n/i18n.ts'
+import { createExternalValue } from '../../lib/external-value.ts'
 import { TempoPanel } from './tempo-panel.tsx'
 
 type PanelProps = Partial<Parameters<typeof TempoPanel>[0]>
@@ -18,7 +19,7 @@ function renderPanel(props: PanelProps = {}) {
     bpm: 120,
     beatsPerBar: 4,
     tempoMap: [{ fromSeconds: 0, bpm: 120 }],
-    positionSeconds: 0,
+    position: createExternalValue(0),
     detecting: false,
     error: undefined,
     octaveShift: 0,
@@ -99,7 +100,7 @@ describe('TempoPanel', () => {
         { fromSeconds: 0, bpm: 120 },
         { fromSeconds: 10, bpm: 90 }
       ],
-      positionSeconds: 15
+      position: createExternalValue(15)
     })
     expect(bpmField()).toHaveValue(90)
   })
@@ -110,7 +111,7 @@ describe('TempoPanel', () => {
         { fromSeconds: 0, bpm: 120 },
         { fromSeconds: 10, bpm: 90 }
       ],
-      positionSeconds: 0
+      position: createExternalValue(0)
     })
     expect(
       screen.getByText(i18n._('tempo.range', { min: 90, max: 120 }))
@@ -174,7 +175,7 @@ describe('TempoPanel', () => {
         { fromSeconds: 0, bpm: 120 },
         { fromSeconds: 10, bpm: 90 }
       ],
-      positionSeconds: 15
+      position: createExternalValue(15)
     })
     expect(screen.getByRole('status')).toHaveTextContent(
       i18n._('tempo.bpm', { 0: 120 })
@@ -185,7 +186,7 @@ describe('TempoPanel', () => {
     renderPanel({
       bpm: 120,
       tempoMap: [{ fromSeconds: 0, bpm: 120 }],
-      positionSeconds: 30
+      position: createExternalValue(30)
     })
     expect(
       screen.queryByText(i18n._('tempo.range', { min: 120, max: 120 }))
@@ -252,7 +253,7 @@ describe('TempoPanel', () => {
 
   it('aligns the grid phase on the playhead', async () => {
     const user = userEvent.setup()
-    const { onAlignPhase } = renderPanel({ positionSeconds: 12.5 })
+    const { onAlignPhase } = renderPanel({ position: createExternalValue(12.5) })
     await user.click(
       screen.getByRole('button', { name: i18n._('tempo.align') })
     )

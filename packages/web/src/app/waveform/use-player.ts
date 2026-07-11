@@ -17,6 +17,7 @@ import { createMusicMetadataReader } from '../../audio/music-metadata-reader.ts'
 import { createWebAudioDecoder } from '../../audio/web-audio-decoder.ts'
 import { createWebAudioPlayback } from '../../audio/web-audio-playback.ts'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
+import type { ExternalValue } from '../../lib/external-value.ts'
 import {
   type SpeedTrainer,
   useSpeedTrainer
@@ -44,6 +45,8 @@ export interface Player {
   /** Tags read from the imported file (empty fields when the file has none). */
   readonly metadata: TrackMetadata
   readonly transport: TransportState
+  /** The playhead, streamed outside React state — see TransportEngines. */
+  readonly position: ExternalValue<number>
   /** Tempo as a ratio of normal speed (1 = 100 %). */
   readonly timeRatio: number
   /** Pitch shift in whole semitones (0 = original key). */
@@ -129,7 +132,7 @@ export function usePlayer(
     (percent) => applyTimeRatio(percent / 100),
     () => Math.round(timeRatio * 100)
   )
-  const { transport, dispatch, active } = useTransportEngines({
+  const { transport, dispatch, position, active } = useTransportEngines({
     playback,
     stemPlayback,
     stemsActive,
@@ -302,6 +305,7 @@ export function usePlayer(
     loadedBytes,
     metadata,
     transport,
+    position,
     timeRatio,
     pitchSemitones,
     loopRegion: loop.loopRegion,

@@ -9,6 +9,10 @@ import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
 import { i18n } from '../../i18n/i18n.ts'
+import {
+  type ExternalValue,
+  useExternalValue
+} from '../../lib/external-value.ts'
 import { LiveStatus } from '../ui/live-status.tsx'
 import styles from './tempo-panel.module.css'
 
@@ -31,8 +35,8 @@ interface TempoPanelProps {
    * the whole range is shown beside it.
    */
   readonly tempoMap: TempoMap
-  /** The playhead instant — drives the read-out when the tempo varies. */
-  readonly positionSeconds: number
+  /** The playhead, streamed outside React state (Lot L.1). */
+  readonly position: ExternalValue<number>
   /** Whether the automatic detection is in flight. */
   readonly detecting: boolean
   /** Why the last detection failed, if it did. */
@@ -67,7 +71,7 @@ export function TempoPanel({
   bpm,
   beatsPerBar,
   tempoMap,
-  positionSeconds,
+  position,
   detecting,
   error,
   octaveShift,
@@ -94,8 +98,14 @@ export function TempoPanel({
   }
   // A single segment is a steady track: show the representative bpm. With more,
   // the read-out follows the playhead and the whole range is shown beside it.
+  // Subscribing to the ROUNDED felt bpm re-renders the panel only when the
+  // playhead crosses a tempo segment — never per animation frame.
   const varies = tempoMap.length > 1
-  const felt = varies ? (tempoAt(tempoMap, positionSeconds) ?? bpm) : bpm
+  const feltAt = useExternalValue(position, (seconds) => {
+    const at = tempoAt(tempoMap, seconds)
+    return at === undefined ? undefined : Math.round(at)
+  })
+  const felt = varies ? (feltAt ?? bpm) : bpm
   const min = Math.round(Math.min(...tempoMap.map((s) => s.bpm)))
   const max = Math.round(Math.max(...tempoMap.map((s) => s.bpm)))
   // What the screen reader hears. A starting detection wins over a held BPM
@@ -201,7 +211,7 @@ export function TempoPanel({
           <button
             type="button"
             className={styles.octaveButton}
-            onClick={() => onAlignPhase(positionSeconds)}
+            onClick={() => onAlignPhase(position.get())}
             aria-label={t({
               id: 'tempo.align',
               message: 'Caler la grille sur la tête de lecture'

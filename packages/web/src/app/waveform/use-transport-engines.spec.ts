@@ -76,7 +76,59 @@ describe('useTransportEngines', () => {
     act(() => pb.emit(6.5))
 
     expect(pb.engine.seekTo).toHaveBeenCalledWith(2)
-    expect(result.current.transport.positionSeconds).toBe(2)
+    expect(result.current.position.get()).toBe(2)
+  })
+
+  it('a frame tick never produces a new transport state', () => {
+    // THE Lot L.1 invariant: the engine streams its position at animation-frame
+    // rate; routing it through React state re-rendered the whole workstation
+    // 60-120 times a second. Ticks land in the position store only.
+    const pb = fakePlayback()
+    const stem = fakeStemPlayback()
+    const { result } = mount(pb.engine, stem.engine, {
+      stemsActive: false,
+      loopRegion: undefined,
+      loopEnabled: true
+    })
+    act(() => result.current.dispatch({ type: 'load', durationSeconds: 10 }))
+    const before = result.current.transport
+
+    act(() => pb.emit(3))
+
+    expect(result.current.transport).toBe(before)
+  })
+
+  it('streams the ticked position through the store', () => {
+    const pb = fakePlayback()
+    const stem = fakeStemPlayback()
+    const { result } = mount(pb.engine, stem.engine, {
+      stemsActive: false,
+      loopRegion: undefined,
+      loopEnabled: true
+    })
+    act(() => result.current.dispatch({ type: 'load', durationSeconds: 10 }))
+
+    act(() => pb.emit(3.25))
+
+    expect(result.current.position.get()).toBe(3.25)
+  })
+
+  it('stops playback when the position reaches the end of the timeline', () => {
+    const pb = fakePlayback()
+    const stem = fakeStemPlayback()
+    const { result } = mount(pb.engine, stem.engine, {
+      stemsActive: false,
+      loopRegion: undefined,
+      loopEnabled: true
+    })
+    act(() => {
+      result.current.dispatch({ type: 'load', durationSeconds: 10 })
+      result.current.dispatch({ type: 'play' })
+    })
+
+    act(() => pb.emit(10))
+
+    expect(result.current.transport.isPlaying).toBe(false)
   })
 
   it('plays straight through when looping is disarmed', () => {
@@ -92,7 +144,7 @@ describe('useTransportEngines', () => {
     act(() => pb.emit(6.5))
 
     expect(pb.engine.seekTo).not.toHaveBeenCalled()
-    expect(result.current.transport.positionSeconds).toBe(6.5)
+    expect(result.current.position.get()).toBe(6.5)
   })
 
   it('wraps on the stem engine once the mix drives the transport', () => {
@@ -152,7 +204,7 @@ describe('useTransportEngines', () => {
     act(() => pb.emit(1))
 
     expect(pb.engine.seekTo).toHaveBeenCalledWith(2)
-    expect(result.current.transport.positionSeconds).toBe(2)
+    expect(result.current.position.get()).toBe(2)
     expect(onLoopWrap).not.toHaveBeenCalled()
   })
 

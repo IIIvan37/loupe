@@ -52,7 +52,7 @@ function params(overrides: Partial<CountInParams> = {}): CountInParams {
   return {
     canPlay: true,
     isPlaying: false,
-    positionSeconds: 0,
+    getPositionSeconds: () => 0,
     timeRatio: 1,
     analysis,
     metronomeEnabled: true,
@@ -125,7 +125,7 @@ describe('useCountIn', () => {
     const seek = vi.fn()
     const { result } = renderHook(() =>
       useCountIn({
-        ...params({ positionSeconds: 1.3, seekToSeconds: seek }),
+        ...params({ getPositionSeconds: () => 1.3, seekToSeconds: seek }),
         player
       })
     )
@@ -143,7 +143,7 @@ describe('useCountIn', () => {
     const seek = vi.fn()
     const { result } = renderHook(() =>
       useCountIn({
-        ...params({ positionSeconds: 1.5, seekToSeconds: seek }),
+        ...params({ getPositionSeconds: () => 1.5, seekToSeconds: seek }),
         player
       })
     )
@@ -175,7 +175,7 @@ describe('useCountIn', () => {
     }
     const { result } = renderHook(() =>
       useCountIn({
-        ...params({ analysis: variable, positionSeconds: 10 }),
+        ...params({ analysis: variable, getPositionSeconds: () => 10 }),
         player
       })
     )

@@ -1,3 +1,4 @@
+import type { ExternalValue } from '../../lib/external-value.ts'
 import { Trans } from '@lingui/react/macro'
 import { type BeatGrid, combineWaveforms } from '@app/core'
 import { type ComponentProps, useMemo } from 'react'
@@ -16,7 +17,8 @@ import styles from './workstation-shell.module.css'
 
 interface ShellStageProps {
   readonly isLoaded: boolean
-  readonly positionRatio: number
+  /** The playhead in seconds, streamed outside React state (Lot L.1). */
+  readonly position: ExternalValue<number>
   readonly durationSeconds: number
   readonly viewport: ReturnType<typeof useViewport>
   readonly mixer: ReturnType<typeof useMixer>
@@ -41,7 +43,7 @@ interface ShellStageProps {
  */
 export function ShellStage({
   isLoaded,
-  positionRatio,
+  position,
   durationSeconds,
   viewport,
   mixer,
@@ -101,7 +103,11 @@ export function ShellStage({
           </>
         )}
       </div>
-      <ZoomStage zoom={viewport.zoom} positionRatio={positionRatio}>
+      <ZoomStage
+        zoom={viewport.zoom}
+        position={position}
+        durationSeconds={durationSeconds}
+      >
         <MarkerRail
           markers={markers.markers}
           durationSeconds={durationSeconds}
