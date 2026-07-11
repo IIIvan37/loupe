@@ -38,6 +38,18 @@
   l'outro garde son vrai ralentissement (79 → 83 → 97). Fixture de test tirée
   du motif réel + test frontière (changement tenu exactement 4 gaps → cru).
 
+- **3ᵉ passe, sur retour utilisateur (clics parasites à 28 s)** : les beats du
+  fill (0,28–0,32 s d'écart, trois faux downbeats consécutifs !) passaient le
+  plancher anti-double-fire (0,4× médiane locale ≈ 0,2 s) mais contredisaient
+  le tempo **cru** à cet instant (100 BPM → période 0,6 s). `sanitizeBeatGrid`
+  travaille désormais en **deux passes** : (1) double-fires vs médiane locale
+  (downbeat gagne), (2) bruit off-tempo vs la carte consolidée interne — un
+  beat < 0,55× la période du tempo en vigueur est jeté (keep-first : les flags
+  downbeat d'une zone poubelle sont eux-mêmes poubelle). Sur la grille réelle :
+  clics 27,80 → 28,38 → 29,58 réguliers, tempo rapide seulement à partir de
+  29,94 s (l'entrée réelle du groupe). `detectTempo` (use-case) sanitize aussi
+  la grille — les détections fraîches sont couvertes quel que soit l'adaptateur.
+
 ## Not done / remaining
 - **Parasites denses** (un double-fire après *chaque* beat) : hors de portée
   d'un garde par médiane (les gaps courts deviennent majoritaires). Documenté

@@ -88,7 +88,12 @@ export type TempoMap = readonly TempoSegment[]
 const TEMPO_RUPTURE_TOLERANCE = 0.08
 
 export function buildTempoMap(grid: BeatGrid): TempoMap {
-  const [firstBeat, secondBeat, ...restBeats] = sanitizeBeatGrid(grid)
+  return consolidateSegments(segmentGaps(sanitizeBeatGrid(grid)))
+}
+
+/** Segment a (sanitized) grid into steady runs, each with its gap support. */
+function segmentGaps(grid: BeatGrid): readonly SupportedSegment[] {
+  const [firstBeat, secondBeat, ...restBeats] = grid
   if (firstBeat === undefined || secondBeat === undefined) {
     return []
   }
@@ -125,7 +130,7 @@ export function buildTempoMap(grid: BeatGrid): TempoMap {
     bpm: 60 / median(gaps),
     support: gaps.length
   })
-  return consolidateSegments(segments)
+  return segments
 }
 
 /**
@@ -186,17 +191,44 @@ const SPURIOUS_GAP_FRACTION = 0.4
 const SPURIOUS_WINDOW_RADIUS = 8
 
 /**
- * Drop beats that follow their predecessor implausibly closely — a detector
- * double-fire INSERTS a beat, which the tempo-map rupture guard (built for
- * MISSED beats) reads as two confirmed tempo changes and turns into an absurd
- * segment, and which grid consumers (metronome click, waveform grid) render
+ * A beat closer to its predecessor than this fraction of the believed beat
+ * period (from the consolidated map) is transition noise — nothing musical is
+ * ~2× faster than the tempo in force, not even mid-accelerando (whose gaps
+ * shrink gradually and open their own segment once sustained).
+ */
+const OFF_TEMPO_GAP_FRACTION = 0.55
+
+/**
+ * Drop detector noise from a beat grid, in two passes.
+ *
+ * Pass 1 — double-fires: a beat implausibly close to its predecessor
+ * (relative to the LOCAL median gap) is an INSERTED beat, which the tempo-map
+ * rupture guard (built for MISSED beats) would read as two confirmed tempo
+ * changes, and which grid consumers (metronome click, waveform grid) render
  * as a flam. Within a too-close pair the downbeat wins over a plain beat, so
  * a double-fire landing just before a bar line never evicts the bar anchor.
+ *
+ * Pass 2 — off-tempo transition noise: beats that pass the local-median floor
+ * but contradict the consolidated tempo in force at their instant (a drum
+ * fill read as beats between two steady sections). Keep-first here — the
+ * downbeat flags of such a region are themselves detector garbage.
+ *
  * Dense subdivision runs (a spurious beat after EVERY beat) are out of reach
  * of any median guard — that regime needs a tempo-continuity post-processor
  * upstream.
  */
 export function sanitizeBeatGrid(grid: BeatGrid): BeatGrid {
+  const plausible = dropDoubleFires(grid)
+  const map = consolidateSegments(segmentGaps(plausible))
+  return dropTooClose(plausible, (beat) => {
+    const bpm = tempoAt(map, beat.timeSeconds)
+    // No derivable tempo (under two beats) → NaN floor → everything is kept.
+    return (60 / (bpm ?? Number.NaN)) * OFF_TEMPO_GAP_FRACTION
+  })
+}
+
+/** Pass 1: drop double-fires against the local median gap (downbeat wins). */
+function dropDoubleFires(grid: BeatGrid): BeatGrid {
   // Index-free gap walk on purpose: the map idiom's `?? fallback` on
   // `grid[index]` is unreachable and survives mutation testing.
   const gaps: number[] = []
@@ -207,6 +239,24 @@ export function sanitizeBeatGrid(grid: BeatGrid): BeatGrid {
     }
     previousTime = beat.timeSeconds
   }
+  return dropTooClose(
+    grid,
+    // The floor is NaN when the window holds no positive gap (degenerate
+    // grid): no beat is provably spurious there, so everything is kept.
+    (_, index) => localReferenceGap(gaps, index - 1) * SPURIOUS_GAP_FRACTION,
+    { downbeatWins: true }
+  )
+}
+
+/**
+ * Walk the grid keeping beats at least `floorAt` away from the last kept one.
+ * With `downbeatWins`, a too-close downbeat replaces a kept plain beat.
+ */
+function dropTooClose(
+  grid: BeatGrid,
+  floorAt: (beat: Beat, index: number) => number,
+  { downbeatWins = false } = {}
+): BeatGrid {
   const kept: Beat[] = []
   grid.forEach((beat, index) => {
     const previous = kept[kept.length - 1]
@@ -214,12 +264,10 @@ export function sanitizeBeatGrid(grid: BeatGrid): BeatGrid {
       kept.push(beat)
       return
     }
-    // The floor is NaN when the window holds no positive gap (degenerate
-    // grid): no beat is provably spurious there, so everything is kept.
-    const floor = localReferenceGap(gaps, index - 1) * SPURIOUS_GAP_FRACTION
+    const floor = floorAt(beat, index)
     if (!(beat.timeSeconds - previous.timeSeconds < floor)) {
       kept.push(beat)
-    } else if (beat.downbeat && !previous.downbeat) {
+    } else if (downbeatWins && beat.downbeat && !previous.downbeat) {
       kept[kept.length - 1] = beat
     }
   })

@@ -1,4 +1,9 @@
-import { type BeatGrid, buildBeatGrid, detectMeter } from '../domain/tempo.ts'
+import {
+  type BeatGrid,
+  buildBeatGrid,
+  detectMeter,
+  sanitizeBeatGrid
+} from '../domain/tempo.ts'
 import { errorMessage } from './error-message.ts'
 import type { DecodedAudio, TempoDetector } from './ports.ts'
 
@@ -37,7 +42,9 @@ export async function detectTempo(
 ): Promise<DetectTempoResult> {
   try {
     const detected = await deps.detector.detect(input.audio)
-    const grid = buildBeatGrid(detected.beats)
+    // Sanitize HERE so every adapter's payload gets the same guard — the
+    // server filters double-fires too, but not map-aware transition noise.
+    const grid = sanitizeBeatGrid(buildBeatGrid(detected.beats))
     const beatsPerBar = detectMeter(detected.beats)
     return { ok: true, analysis: { bpm: detected.bpm, grid, beatsPerBar } }
   } catch (e) {

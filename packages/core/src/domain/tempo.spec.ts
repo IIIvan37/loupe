@@ -353,6 +353,28 @@ describe('sanitizeBeatGrid', () => {
     expect(sanitizeBeatGrid(grid)).toEqual(grid)
   })
 
+  it('drops transition beats faster than the believed tempo', () => {
+    // The « Don't Stop Me Now » 28 s flam: the drum fill emits beats ~0.3 s
+    // apart (bogus downbeats included) in a 100 BPM region. They pass the
+    // double-fire floor (0.4× the ~0.5 s local median) but contradict the
+    // consolidated tempo — the metronome must not click them.
+    const intro = steadyTimes(100, 16)
+    const last = intro[intro.length - 1] ?? 0
+    const fill: BeatGrid = [
+      { timeSeconds: last + 0.3, downbeat: true },
+      { timeSeconds: last + 0.58, downbeat: true },
+      { timeSeconds: last + 0.9, downbeat: true }
+    ]
+    const holeEnd = last + 1.78
+    const body = Array.from({ length: 9 }, (_, index) => holeEnd + index * 0.38)
+    const grid: BeatGrid = [...gridOf(intro), ...fill, ...gridOf(body)]
+    expect(times(sanitizeBeatGrid(grid))).toEqual([
+      ...intro,
+      last + 0.58,
+      ...body
+    ])
+  })
+
   it('leaves a sustained genuine fast section untouched', () => {
     // Same shape as the buildTempoMap tempo-change case: sustained sections
     // survive, only short bursts read as double-fires.
