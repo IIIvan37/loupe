@@ -344,11 +344,11 @@ Ce que la référence montre, et ce que ça implique :
 
 ## Suivi
 
-- [ ] **K.1** grille d'accords : scrollport borné + scrollIntoView
-- [ ] **K.2** tempo 750 BPM : buildTempoMap + filtre beat_positions
-- [ ] **L.1** tête de lecture hors état racine
-- [ ] **L.2** ZoomStage suivi par pages
-- [ ] **L.3** mémoire stems (double rétention + copie transitoire)
+- [x] **K.1** grille d'accords : scrollport borné + scrollIntoView
+- [x] **K.2** tempo 750 BPM : buildTempoMap + filtre beat_positions
+- [x] **L.1** tête de lecture hors état racine
+- [x] **L.2** ZoomStage suivi par pages
+- [x] **L.3** mémoire stems (double rétention + copie transitoire)
 - [ ] **L.4** mémoïsation WAV encodé
 - [ ] **M.1** garde Origin (CSRF)
 - [ ] **M.2** durcir /download

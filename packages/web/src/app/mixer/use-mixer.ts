@@ -64,11 +64,6 @@ export interface Mixer {
   readonly toggleSolo: (id: string) => void
 }
 
-interface Mixable {
-  readonly stem: StemTrack
-  readonly source: SeparatedStem
-}
-
 /**
  * Smart hook (= driving adapter logic): owns the pure `MixerState` for the
  * present stems and keeps the `StemPlaybackEngine` in step with it. `load` (from
@@ -80,30 +75,34 @@ interface Mixable {
  */
 export function useMixer(engine: StemPlaybackEngine): Mixer {
   const [state, dispatch] = useReducer(mixerReducer, emptyMixer)
-  // The stems being mixed (present + with PCM), kept for the channel views.
-  const [mixable, setMixable] = useState<readonly Mixable[]>([])
+  // The stems being mixed (present + with PCM), kept for the channel views —
+  // display tracks only, never the PCM: that lives once, in the engine.
+  const [mixable, setMixable] = useState<readonly StemTrack[]>([])
 
-  // Pair each present stem with its PCM, adopt the pairs and load them into the
-  // gain graph. Both `load` and `restore` start here; only the seeding differs.
+  // Pair each present stem with its PCM, hand the pairs to the gain graph and
+  // adopt the display tracks. Both `load` and `restore` start here; only the
+  // seeding differs. The PCM pairs stay local to this call: once the engine
+  // holds the buffers, nothing in React must keep the arrays alive.
   function adopt(
     stems: StemSet,
     sources: readonly SeparatedStem[]
-  ): readonly Mixable[] {
+  ): readonly StemTrack[] {
     const byId = new Map(sources.map((source) => [source.id, source]))
-    const next = stems.flatMap((stem) => {
+    const pairs = stems.flatMap((stem) => {
       const source = byId.get(stem.id)
       return stem.present && source ? [{ stem, source }] : []
     })
+    const next = pairs.map((entry) => entry.stem)
     setMixable(next)
     void engine.load(
-      next.map((entry) => ({ id: entry.source.id, audio: entry.source.audio }))
+      pairs.map((entry) => ({ id: entry.source.id, audio: entry.source.audio }))
     )
     return next
   }
 
   function load(stems: StemSet, sources: readonly SeparatedStem[]): void {
     const next = adopt(stems, sources)
-    dispatch({ type: 'init', ids: next.map((entry) => entry.stem.id) })
+    dispatch({ type: 'init', ids: next.map((stem) => stem.id) })
   }
 
   function restore(
@@ -122,16 +121,14 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
 
   function addStem(stem: StemTrack, source: SeparatedStem): void {
     setMixable((prev) =>
-      prev.some((entry) => entry.stem.id === stem.id)
-        ? prev
-        : [...prev, { stem, source }]
+      prev.some((entry) => entry.id === stem.id) ? prev : [...prev, stem]
     )
     void engine.addStem({ id: source.id, audio: source.audio })
     dispatch({ type: 'addChannel', id: stem.id })
   }
 
   function removeStem(id: string): void {
-    setMixable((prev) => prev.filter((entry) => entry.stem.id !== id))
+    setMixable((prev) => prev.filter((entry) => entry.id !== id))
     engine.removeStem(id)
     dispatch({ type: 'removeChannel', id })
   }
@@ -141,12 +138,10 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
     // its peaks in the lane, but dispatch no channel action — the reducer keeps
     // the fader/mute/solo, and the engine restores the gain it holds for this id.
     setMixable((prev) => {
-      if (!prev.some((entry) => entry.stem.id === stem.id)) {
+      if (!prev.some((entry) => entry.id === stem.id)) {
         return prev
       }
-      return prev.map((entry) =>
-        entry.stem.id === stem.id ? { stem, source } : entry
-      )
+      return prev.map((entry) => (entry.id === stem.id ? stem : entry))
     })
     engine.removeStem(source.id)
     void engine.addStem({ id: source.id, audio: source.audio })
@@ -171,15 +166,16 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
     const gainById = new Map<string, ChannelGain>(
       effectiveGains(state).map((gain) => [gain.id, gain])
     )
+    const stemById = new Map(mixable.map((item) => [item.id, item]))
     return state.flatMap((channel) => {
-      const entry = mixable.find((item) => item.stem.id === channel.id)
+      const entry = stemById.get(channel.id)
       if (!entry) {
         return []
       }
       const gain = gainById.get(channel.id)?.gain ?? 0
       return [
         {
-          stem: entry.stem,
+          stem: entry,
           gainDb: channel.gainDb,
           muted: channel.muted,
           soloed: channel.soloed,

@@ -44,7 +44,8 @@ function fakeStemPlayback() {
     load: vi.fn(async () => {}),
     addStem: vi.fn(async () => {}),
     removeStem: vi.fn(),
-    setGain: vi.fn()
+    setGain: vi.fn(),
+    stemAudio: () => undefined
   }
   return { engine, emit: base.emit }
 }

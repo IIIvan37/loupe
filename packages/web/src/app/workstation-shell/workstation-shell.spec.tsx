@@ -72,16 +72,29 @@ function fakeEngine() {
 
 /** A no-op stem engine so the mixer never touches real Web Audio in jsdom. */
 function fakeStemEngine(): StemPlaybackEngine {
+  // The engine is the stems' PCM custodian: remember what load/addStem handed
+  // over so `stemAudio` serves it back, as the real engine's buffers do.
+  const loaded = new Map<string, DecodedAudio>()
   return {
-    load: vi.fn(async () => {}),
-    addStem: vi.fn(async () => {}),
-    removeStem: vi.fn(),
+    load: vi.fn(async (stems) => {
+      loaded.clear()
+      for (const stem of stems) {
+        loaded.set(stem.id, stem.audio)
+      }
+    }),
+    addStem: vi.fn(async (stem) => {
+      loaded.set(stem.id, stem.audio)
+    }),
+    removeStem: vi.fn((id) => {
+      loaded.delete(id)
+    }),
     play: vi.fn(),
     pause: vi.fn(),
     seekTo: vi.fn(),
     setTimeRatio: vi.fn(),
     setPitchSemitones: vi.fn(),
     setGain: vi.fn(),
+    stemAudio: (id) => loaded.get(id),
     onPositionChange: () => () => {}
   }
 }

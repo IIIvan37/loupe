@@ -37,6 +37,7 @@ function fakeEngine() {
     setTimeRatio: vi.fn(),
     setPitchSemitones: vi.fn(),
     setGain: vi.fn<(id: string, gain: number) => void>(),
+    stemAudio: () => undefined,
     onPositionChange: vi.fn(() => () => {})
   }
 }

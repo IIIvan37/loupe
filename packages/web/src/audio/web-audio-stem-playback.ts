@@ -1,5 +1,9 @@
-import type { StemPlaybackEngine, StemSource } from '@app/core'
-import { audioBufferFrom, createStretchTransport } from './web-audio-shared.ts'
+import type { DecodedAudio, StemPlaybackEngine, StemSource } from '@app/core'
+import {
+  audioBufferFrom,
+  createStretchTransport,
+  decodedAudioFrom
+} from './web-audio-shared.ts'
 
 /** One loaded stem: its decoded buffer and the gain node feeding the master bus. */
 interface StemNode {
@@ -27,6 +31,9 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
   const desiredGains = new Map<string, number>()
   let stems: StemNode[] = []
   let durationSeconds = 0
+  // Bumped by every load: an async tail (worklet registration) that resumes
+  // after a newer load must not wire its now-discarded nodes into the graph.
+  let loadToken = 0
   const transport = createStretchTransport(() =>
     stems.length === 0 ? undefined : durationSeconds
   )
@@ -67,12 +74,13 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
     })
   }
 
+  // Build the stem's buffer and gain WITHOUT connecting the gain — wiring waits
+  // for the stretch bus, so callers connect after `ensureStretch` resolves.
   function makeStem(source: StemSource): StemNode {
     const ctx = transport.audioContext()
     const gain = ctx.createGain()
     // Adopt any gain the mixer set before load; default to unity.
     gain.gain.value = desiredGains.get(source.id) ?? 1
-    gain.connect(transport.outputNode())
     return {
       id: source.id,
       buffer: audioBufferFrom(ctx, source.audio),
@@ -87,19 +95,40 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
 
   return {
     async load(sources: readonly StemSource[]): Promise<void> {
+      const token = ++loadToken
       stopSources()
       transport.stopAt(0)
-      await transport.ensureStretch()
+      // A load starts a fresh mix: forget the previous track's per-id gains so
+      // same-named stems (voix, batterie…) don't inherit yesterday's faders —
+      // a restore pushes its saved gains right after this call.
+      desiredGains.clear()
+      // Adopt the buffers BEFORE awaiting the stretch bus: `stemAudio` must
+      // serve export/save from the moment the load is handed over — the caller
+      // releases its own copy of the PCM right after this call.
       stems = sources.map(makeStem)
       durationSeconds = longestDuration()
+      await transport.ensureStretch()
+      if (token !== loadToken) {
+        return
+      }
+      for (const stem of stems) {
+        stem.gain.connect(transport.outputNode())
+      }
       transport.emit()
     },
 
     async addStem(source: StemSource): Promise<void> {
-      await transport.ensureStretch()
       const stem = makeStem(source)
       stems.push(stem)
       durationSeconds = Math.max(durationSeconds, stem.buffer.duration)
+      await transport.ensureStretch()
+      // The stem may be gone by now — a removeStem (metronome reseat) or a
+      // wholesale load while the worklet registered. Wiring it anyway would
+      // start a ghost source no later call could ever reach again.
+      if (!stems.includes(stem)) {
+        return
+      }
+      stem.gain.connect(transport.outputNode())
       // Joining a running mix: start this one buffer at the live position so it
       // lines up with the others (never index 0, so it never owns the end).
       if (transport.isPlaying()) {
@@ -182,6 +211,13 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
       if (stem) {
         stem.gain.gain.value = gain
       }
+    },
+
+    stemAudio(id: string): DecodedAudio | undefined {
+      const stem = stems.find((candidate) => candidate.id === id)
+      // Zero-copy views into the engine's own buffers — the ONE retained form
+      // of the stems' PCM (export and save re-derive the samples from here).
+      return stem ? decodedAudioFrom(stem.buffer) : undefined
     },
 
     onPositionChange: transport.onPositionChange

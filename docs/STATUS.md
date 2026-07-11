@@ -33,16 +33,22 @@ produit « édition locale du tempo » en veille. **K.1 fait** sur
 **Lot K clos** (PRs #89/#90 mergées — + footer sticky). **L.1 mergé (PR #91)** :
 le playhead vit hors de l'état React (`createExternalValue`, playhead impératif
 dans ZoomStage) — **8 commits React/5 s de lecture contre ~60–120/s avant**.
-**L.2 fait** sur `perf/zoom-stage-page-follow` (PR à ouvrir) : suivi du playhead
-**par pages** (`followScrollLeft` pur — flip seulement quand le playhead sort de
-la fenêtre, clampé), plus d'écriture `scrollLeft` par frame ni de reflow forcé
-(lectures géométrie avant écriture), scroll manuel = suspension 2 s (écho
-détecté par relecture du `scrollLeft` appliqué). Browser-vérifié ; gate verte,
-**964 tests**. Limitation actée : seek/zoom pendant la grâce ne recadre pas
-(≤2 s, s'auto-répare) ; gap relevé : le suivi lead-sheet (K.1) n'a pas de
-suspension — slice `usePlayheadFollow` candidate.
-**Next : merger la PR L.2, puis L.3** (mémoire stems) / L.4 (memo WAV) → M/N/O.
-See [L.2](sessions/2026-07-11-zoom-stage-page-follow.md) ·
+**L.2 mergé (PR #92)** : suivi du playhead par pages (`followScrollLeft` pur),
+plus d'écriture `scrollLeft` par frame ; scroll manuel = grâce 2 s.
+**L.3 fait** sur `perf/stems-memory` (PR à ouvrir) : le moteur multitrack est
+**l'unique gardien du PCM des stems** (~500 MB au lieu de ~1 GB sur 6 stems) —
+`stemAudio(id)` sur le port (contrat : servable dès la remise du `load`, buffers
+adoptés en synchrone), `useSeparation.sources` = getter paresseux dérivé
+zéro-copie, mixer sans rétention, copie transitoire `Float32Array.from`
+supprimée. /code-review a corrigé 3 bugs moteur (stem fantôme post-await,
+`ensureStretch` réentrant, `desiredGains` hérités entre projets — préexistant).
+Browser-vérifié (tas 559 MB, WAV réel, round-trip save) ; gate verte,
+**966 tests**, mutation 94,91 %. Limitation actée : play() pendant
+l'enregistrement du worklet (cold start) = silence puis raccrochage en sync
+(fix profond « master bus permanent » consigné).
+**Next : merger la PR L.3, puis L.4** (memo WAV) → M/N/O.
+See [L.3](sessions/2026-07-11-stems-memory.md) ·
+[L.2](sessions/2026-07-11-zoom-stage-page-follow.md) ·
 [L.1](sessions/2026-07-11-playhead-external-store.md) ·
 [K.1](sessions/2026-07-11-lead-sheet-scrollport.md) ·
 [K.2](sessions/2026-07-11-tempo-map-outliers.md) ·

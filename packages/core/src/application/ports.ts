@@ -112,7 +112,12 @@ export interface StemSource {
  * values `effectiveGains` produced.
  */
 export interface StemPlaybackEngine {
-  /** Load the stems as the current multitrack source, ready from the start. */
+  /**
+   * Load the stems as the current multitrack source, ready from the start.
+   * From the moment the call is handed over (before it resolves), `stemAudio`
+   * must serve every loaded id — callers release their own copy of the PCM
+   * right after calling.
+   */
   load(stems: readonly StemSource[]): Promise<void>
   /** Add one stem to the running mix, joining in sync at the current position. */
   addStem(stem: StemSource): Promise<void>
@@ -125,6 +130,13 @@ export interface StemPlaybackEngine {
   setPitchSemitones(semitones: number): void
   /** Set one channel's linear output gain (0 = silent). */
   setGain(id: string, gain: number): void
+  /**
+   * Read one loaded stem's PCM back, or `undefined` when it is not loaded. The
+   * engine is the PCM's only custodian — consumers (export, save) re-derive the
+   * samples from here instead of retaining their own copy, and must treat the
+   * returned channels as read-only views into the engine's buffers.
+   */
+  stemAudio(id: string): DecodedAudio | undefined
   /** Subscribe to position updates (seconds). Returns an unsubscribe function. */
   onPositionChange(listener: (seconds: number) => void): () => void
 }

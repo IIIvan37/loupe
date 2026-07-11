@@ -30,7 +30,11 @@ export interface SeparationResult {
 
 export interface Separation {
   readonly state: SeparationState
-  /** The isolated stems' raw PCM, retained for the mixer and per-stem export. */
+  /**
+   * The isolated stems joined with their PCM, re-derived on read from the
+   * playback engine's buffers (the PCM's only custodian) — the hook retains no
+   * copy of its own. A stem whose PCM the engine no longer holds is omitted.
+   */
   readonly sources: readonly SeparatedStem[]
   /**
    * Separate the already-loaded PCM — the SAME audio the player decoded.
@@ -70,15 +74,21 @@ export interface Separation {
   readonly reset: () => void
 }
 
+/** What the hook remembers of each separated stem — its identity, never its PCM. */
+type StemDescriptor = Pick<SeparatedStem, 'id' | 'label'>
+
 /**
  * Smart hook (= driving adapter logic): owns the separation state machine and
  * runs the `separateTrack` use-case, streaming the separator's progress into the
  * reducer. The separator defaults to the local-server engine (`createSeparator`)
  * and is injected (a stub) in tests, like the export's `ArchiveWriter` (zip).
- * The stems' raw PCM is kept in a ref (out of the pure domain state) so it can
- * be exported on demand.
+ * The hook keeps only the stems' id/label: their PCM lives once, in the playback
+ * engine's buffers, and `pcmOf` (the engine's `stemAudio`) reads it back
+ * zero-copy for export and save — retaining it here too would double ~500 MB
+ * on a six-stem track.
  */
 export function useSeparation(
+  pcmOf: (id: string) => DecodedAudio | undefined,
   separator?: StemSeparator,
   archive?: ArchiveWriter
 ): Separation {
@@ -92,10 +102,21 @@ export function useSeparation(
   // The in-flight run's abort controller: cancel and reset abort it so the
   // server-side work is released, not just its result dropped.
   const controllerRef = useRef<AbortController | undefined>(undefined)
-  // The isolated stems' raw PCM, kept off the pure domain state (heavy buffers)
-  // but reactive so the mixer can load them into the gain graph when they land.
-  const [sources, setSources] = useState<readonly SeparatedStem[]>([])
+  // Which stems this separation produced — identities only, the PCM stays with
+  // the engine. Reactive so consumers re-render when a run commits.
+  const [descriptors, setDescriptors] = useState<readonly StemDescriptor[]>([])
   const [exportError, setExportError] = useState<string>()
+
+  // The PCM-backed view of the separated stems, derived from the engine's
+  // buffers (zero-copy channel views). Computed on demand — consumers are all
+  // event handlers (save, export, attach), so rebuilding it per render would
+  // be pure waste, and reading at call time always sees the live engine.
+  function deriveSources(): readonly SeparatedStem[] {
+    return descriptors.flatMap((descriptor) => {
+      const audio = pcmOf(descriptor.id)
+      return audio ? [{ ...descriptor, audio }] : []
+    })
+  }
 
   // The whole pipeline behind both entry points: run `separateTrack` with the
   // given separator (the real engine, or the stored stems replayed) and commit.
@@ -106,7 +127,7 @@ export function useSeparation(
     const runId = ++runIdRef.current
     const controller = new AbortController()
     controllerRef.current = controller
-    setSources([])
+    setDescriptors([])
     dispatch({ type: 'start' })
     const result = await separateTrack(
       { audio, bucketCount: BUCKET_COUNT },
@@ -129,7 +150,9 @@ export function useSeparation(
     let committed: SeparationResult | undefined
     if (runIdRef.current === runId) {
       if (result.ok) {
-        setSources(result.sources)
+        // Remember identities only; the result's PCM is returned to the caller
+        // (who loads it into the engine) and then released — never retained.
+        setDescriptors(result.sources.map(({ id, label }) => ({ id, label })))
         dispatch({ type: 'ready', stems: result.stems })
         committed = { stems: result.stems, sources: result.sources }
       } else {
@@ -164,7 +187,7 @@ export function useSeparation(
         present.add(stem.id)
       }
     }
-    return sources.filter((stem) => present.has(stem.id))
+    return deriveSources().filter((stem) => present.has(stem.id))
   }
 
   function downloadStem(id: string): boolean {
@@ -217,7 +240,7 @@ export function useSeparation(
     // run: its rejection resolves as a stale result, never as an error.
     controllerRef.current?.abort()
     runIdRef.current++
-    setSources([])
+    setDescriptors([])
     dispatch({ type: 'reset' })
   }
 
@@ -226,14 +249,16 @@ export function useSeparation(
     // and abort its transfer, since nothing will consume it.
     controllerRef.current?.abort()
     runIdRef.current++
-    setSources([])
+    setDescriptors([])
     setExportError(undefined)
     dispatch({ type: 'reset' })
   }
 
   return {
     state,
-    sources,
+    get sources() {
+      return deriveSources()
+    },
     separate,
     restore,
     downloadStem,

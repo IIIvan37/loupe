@@ -19,6 +19,10 @@
       {
         "files": ["src/app/waveform/use-transport-engines.ts"],
         "rules": ["react-doctor/no-pass-data-to-parent"]
+      },
+      {
+        "files": ["src/audio/web-audio-stem-playback.ts"],
+        "rules": ["react-doctor/async-defer-await"]
       }
     ]
   }
