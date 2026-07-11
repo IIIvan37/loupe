@@ -31,6 +31,7 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi.responses import FileResponse
 
 from .limits import (
     MAX_AUDIO_STORE_BYTES,
@@ -110,11 +111,13 @@ async def put_audio(request: Request) -> dict:
 
 
 @router.get("/audio/{ref}")
-async def get_audio(ref: str) -> Response:
+async def get_audio(ref: str) -> FileResponse:
     path = _audio_path(ref)
     if not path.is_file():
         raise HTTPException(status_code=404, detail="unknown audio ref")
-    return Response(path.read_bytes(), media_type="application/octet-stream")
+    # Streamed from disk like /stems — a blob runs to hundreds of MB, and
+    # read_bytes() would buffer all of it per request.
+    return FileResponse(path, media_type="application/octet-stream")
 
 
 @router.head("/audio/{ref}")

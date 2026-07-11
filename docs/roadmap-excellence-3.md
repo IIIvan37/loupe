@@ -354,7 +354,8 @@ Ce que la référence montre, et ce que ça implique :
       confiance)
 - [x] **M.2** durcir /download (sémaphore + max_filesize + budget total ;
       `/separate` aussi)
-- [ ] **M.3** basses sécurité groupées
+- [x] **M.3** basses sécurité groupées (timeout inférences 504,
+      `FileResponse /audio`, doc poids)
 - [ ] **N.1** erreurs accords discriminées + Lingui
 - [ ] **N.2** raccourcis toggles + carte
 - [ ] **N.3** indicateur pitch ↔ grille

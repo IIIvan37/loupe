@@ -40,6 +40,11 @@ def seconds_env(name: str, default_seconds: int) -> float:
     return float(value) if value > 0 else float(default_seconds)
 
 
+# One knob for the request/response inference passes (/tempo, /chords): a
+# wedged inference must not hold its single semaphore slot silently forever.
+INFERENCE_TIMEOUT_SECONDS = seconds_env("LOUPE_INFERENCE_TIMEOUT_SECONDS", 600)
+
+
 def concurrency_slots(env_name: str) -> int:
     """Inference-slot count from an env var — never below 1 (0 would deadlock).
 
