@@ -1,7 +1,11 @@
 import { type ReactNode, useEffect, useRef } from 'react'
 import { clamp01 } from '../../lib/clamp01.ts'
 import type { ExternalValue } from '../../lib/external-value.ts'
+import { followScrollLeft } from './follow-scroll.ts'
 import styles from './zoom-stage.module.css'
+
+/** How long a manual scroll keeps the auto-follow suspended. */
+const MANUAL_SCROLL_GRACE_MS = 2000
 
 interface ZoomStageProps {
   /** Current magnification (1× … 6×); widens the scrollable inner. */
@@ -29,27 +33,67 @@ export function ZoomStage({
 }: ZoomStageProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const playheadRef = useRef<HTMLSpanElement>(null)
+  // Epoch until which the auto-follow stays suspended after a manual scroll.
+  const followSuspendedUntilRef = useRef(0)
+  // The scrollLeft the follow itself last applied (read back after the write,
+  // so browser clamping/rounding can't desync it) — its own scroll event must
+  // not count as a manual scroll and suspend the follow.
+  const followedScrollLeftRef = useRef<number | null>(null)
+
+  // A manual scroll (wheel, scrollbar, touch) hands the window back to the
+  // user: the follow stays off for a grace period, then resumes.
+  useEffect(() => {
+    const scroll = scrollRef.current
+    if (!scroll) {
+      return
+    }
+    const onScroll = () => {
+      // Sub-pixel tolerance against fractional scroll positions.
+      const followed = followedScrollLeftRef.current
+      if (followed !== null && Math.abs(scroll.scrollLeft - followed) < 1) {
+        return
+      }
+      followSuspendedUntilRef.current = Date.now() + MANUAL_SCROLL_GRACE_MS
+    }
+    scroll.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      scroll.removeEventListener('scroll', onScroll)
+    }
+  }, [])
 
   // The playhead is driven imperatively off the position store: a frame tick
-  // moves this one DOM node (and the zoomed scroll) — no React re-render, the
-  // whole point of Lot L.1. Runs once on mount/zoom/duration change so the
-  // cursor is right before the first tick too. This is a store SUBSCRIPTION
-  // (external-system sync), not event logic — react-doctor's no-event-handler
-  // is a false positive here, suppressed for this file in doctor.config.json.
+  // moves this one DOM node — no React re-render, the whole point of Lot L.1.
+  // Runs once on mount/zoom/duration change so the cursor is right before the
+  // first tick too. This is a store SUBSCRIPTION (external-system sync), not
+  // event logic — react-doctor's no-event-handler is a false positive here,
+  // suppressed for this file in doctor.config.json.
   useEffect(() => {
     const apply = () => {
-      const ratio =
+      const ratio = clamp01(
         durationSeconds > 0 ? position.get() / durationSeconds : 0
+      )
+      // Geometry reads come BEFORE any style write: reading layout after a
+      // write would force a synchronous reflow on every frame.
+      // DAW page-follow (Lot L.2): scroll only when the playhead leaves the
+      // visible window — not every frame — and never right after a manual
+      // scroll. At 1× nothing scrolls.
+      const scroll = scrollRef.current
+      const next =
+        scroll && zoom > 1 && Date.now() >= followSuspendedUntilRef.current
+          ? followScrollLeft({
+              playheadX: ratio * scroll.scrollWidth,
+              scrollLeft: scroll.scrollLeft,
+              clientWidth: scroll.clientWidth,
+              scrollWidth: scroll.scrollWidth
+            })
+          : null
       const playhead = playheadRef.current
       if (playhead) {
-        playhead.style.left = `${clamp01(ratio) * 100}%`
+        playhead.style.left = `${ratio * 100}%`
       }
-      // Keep the playhead in view through a zoomed-in timeline — on playback
-      // and on a seek (paused included). Centres it; at 1× nothing scrolls.
-      const scroll = scrollRef.current
-      if (scroll && zoom > 1) {
-        const centred = ratio * scroll.scrollWidth - scroll.clientWidth / 2
-        scroll.scrollLeft = Math.max(0, centred)
+      if (scroll && next !== null) {
+        scroll.scrollLeft = next
+        followedScrollLeftRef.current = scroll.scrollLeft
       }
     }
     apply()
