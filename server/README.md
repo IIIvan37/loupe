@@ -125,10 +125,12 @@ Stem ids/labels (`voix`, `batterie`, `basse`, `autres`) match the core's
     each) so parallel inferences can't thrash the device.
   - **`/download` is bounded like the rest**: one yt-dlp run at a time
     (`LOUPE_MAX_CONCURRENT_DOWNLOADS`, default `1`), fetched files capped at
-    the upload limit (yt-dlp `max_filesize` = `LOUPE_MAX_UPLOAD_MB`, so the
-    tmp dir can't fill up before the store quota even applies), and a wedged
-    fetch times out (`LOUPE_DOWNLOAD_TIMEOUT_SECONDS`, default `900`) as an
-    NDJSON error instead of suspending its thread forever.
+    the upload limit (yt-dlp `max_filesize`, so the tmp dir can't fill up
+    before the store quota even applies), a 30 s socket timeout inside yt-dlp,
+    and a **total** wall-clock budget (`LOUPE_DOWNLOAD_TIMEOUT_SECONDS`,
+    default `900`) — trickling progress can't reset it — surfaced as an NDJSON
+    error instead of suspending the stream thread forever. `/separate` gets
+    the same total budget (`LOUPE_SEPARATION_TIMEOUT_SECONDS`, default `1800`).
   - Client error messages are generic; full detail is logged server-side.
 - Orphaned audio blobs (from re-saves and project deletes) are reclaimed by the
   manifest-scan GC — automatically on boot, or on demand via `POST /gc`.

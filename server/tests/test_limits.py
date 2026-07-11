@@ -114,3 +114,14 @@ def test_seconds_env_reads_the_variable(monkeypatch):
 def test_seconds_env_garbage_falls_back(monkeypatch):
     monkeypatch.setenv("LOUPE_TEST_TIMEOUT", "-5x")
     assert limits.seconds_env("LOUPE_TEST_TIMEOUT", 900) == 900.0
+
+
+def test_seconds_env_zero_falls_back():
+    """0 would make every stream time out instantly — never a valid timeout."""
+    import os
+
+    os.environ["LOUPE_TEST_TIMEOUT"] = "0"
+    try:
+        assert limits.seconds_env("LOUPE_TEST_TIMEOUT", 900) == 900.0
+    finally:
+        del os.environ["LOUPE_TEST_TIMEOUT"]

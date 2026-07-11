@@ -8,6 +8,8 @@ touching YouTube. Run: `.venv/bin/python -m pytest`.
 from __future__ import annotations
 
 import json
+import time
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -66,7 +68,10 @@ def test_no_file_produced_is_an_error(monkeypatch):
 
     monkeypatch.setattr(download, "_extract", fake_extract)
     events = _events("https://youtube.com/watch?v=x")
-    assert events[-1] == {"type": "error", "message": "download produced no file"}
+    assert events[-1] == {
+        "type": "error",
+        "message": "download produced no file — the track may exceed the size cap",
+    }
 
 
 def test_extraction_failure_is_generic(monkeypatch):
@@ -172,3 +177,27 @@ def test_downloads_wait_on_the_concurrency_semaphore(monkeypatch):
     finally:
         download._download_semaphore.release()
     assert events[-1] == {"type": "error", "message": "download timed out"}
+
+
+def test_a_trickling_download_cannot_outlive_the_total_deadline(monkeypatch):
+    """The timeout is a total budget, not per-event — steady progress events
+    must not reset it forever."""
+    monkeypatch.setattr(download, "DOWNLOAD_TIMEOUT_SECONDS", 0.05)
+
+    def trickle(url, out_dir, events):
+        for _ in range(50):
+            time.sleep(0.01)
+            events.put(("progress", 0.5))
+        events.put(("error", "worker finished after the deadline"))
+
+    monkeypatch.setattr(download, "_download", trickle)
+
+    events = _events("https://youtube.com/watch?v=x")
+    assert events[-1] == {"type": "error", "message": "download timed out"}
+
+
+def test_options_bound_the_socket_wait():
+    """A dead network pipe must eventually raise inside yt-dlp itself — the
+    stream timeout frees our thread but cannot free the worker's slot."""
+    options = download._make_options(Path("/tmp/x"), lambda status: None)
+    assert options["socket_timeout"] == 30

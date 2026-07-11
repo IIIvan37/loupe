@@ -30,6 +30,7 @@ import logging
 import queue
 import tempfile
 import threading
+import time
 from collections.abc import Iterator
 from pathlib import Path
 from urllib.parse import urlparse
@@ -108,6 +109,9 @@ def _make_options(out_dir: Path, on_progress) -> dict:
         # The audio store would refuse a blob over the upload cap anyway —
         # refuse it before it fills the tmp dir, which sits outside the quota.
         "max_filesize": MAX_UPLOAD_BYTES,
+        # A dead pipe must raise inside yt-dlp: the stream deadline below frees
+        # our threadpool thread, but only the worker can free its own slot.
+        "socket_timeout": 30,
     }
 
 
@@ -171,10 +175,16 @@ def _download_stream(url: str) -> Iterator[bytes]:
         worker = threading.Thread(target=_download, args=(url, out_dir, events), daemon=True)
         worker.start()
 
+        # A single wall-clock budget for the whole fetch: a per-event timeout
+        # would be reset forever by a trickling download's progress stream.
+        deadline = time.monotonic() + DOWNLOAD_TIMEOUT_SECONDS
         info = None
         while True:
+            remaining = deadline - time.monotonic()
             try:
-                kind, payload = events.get(timeout=DOWNLOAD_TIMEOUT_SECONDS)
+                if remaining <= 0:
+                    raise queue.Empty
+                kind, payload = events.get(timeout=remaining)
             except queue.Empty:
                 yield _event({"type": "error", "message": "download timed out"})
                 return
@@ -194,7 +204,14 @@ def _download_stream(url: str) -> Iterator[bytes]:
 
         files = list(out_dir.iterdir())
         if not files:
-            yield _event({"type": "error", "message": "download produced no file"})
+            # yt-dlp honours `max_filesize` by silently skipping the download,
+            # so an empty dir usually means the track blew the size cap.
+            yield _event(
+                {
+                    "type": "error",
+                    "message": "download produced no file — the track may exceed the size cap",
+                }
+            )
             return
         try:
             ref = store_audio(files[0].read_bytes())
