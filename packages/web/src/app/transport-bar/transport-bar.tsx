@@ -1,12 +1,21 @@
-import { MAX_TEMPO_PERCENT, MIN_TEMPO_PERCENT } from '@app/core'
+import {
+  formatTimecode,
+  MAX_TEMPO_PERCENT,
+  MIN_TEMPO_PERCENT
+} from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
+import {
+  type ExternalValue,
+  useExternalValue
+} from '../../lib/external-value.ts'
 import { Icon } from '../ui/icon.tsx'
 import styles from './transport-bar.module.css'
 
 interface TransportBarProps {
-  readonly position: string
+  /** The playhead, streamed outside React state (Lot L.1). */
+  readonly position: ExternalValue<number>
   readonly duration: string
   readonly isPlaying: boolean
   /** Disabled until a track is loaded. */
@@ -41,6 +50,9 @@ export function TransportBar({
   onPitchChange
 }: TransportBarProps) {
   const { t } = useLingui()
+  // Subscribing to the FORMATTED timecode re-renders the bar once per elapsed
+  // second — the 60 Hz playhead never reaches React through this prop.
+  const timecode = useExternalValue(position, formatTimecode)
   return (
     <footer className={styles.bar}>
       <Cluster gap="var(--space-s)" align="center">
@@ -78,7 +90,7 @@ export function TransportBar({
           <Icon name="skip-forward" />
         </button>
         <span className={styles.time}>
-          <span className={styles.position}>{position}</span>
+          <span className={styles.position}>{timecode}</span>
           <span className={styles.separator}> / </span>
           <span className={styles.duration}>{duration}</span>
         </span>

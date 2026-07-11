@@ -1,5 +1,9 @@
 import { buildTempoMap, measureIndexAt, type OctaveFactor } from '@app/core'
 import { type ComponentProps, useMemo } from 'react'
+import {
+  type ExternalValue,
+  useExternalValue
+} from '../../lib/external-value.ts'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { ChordChartPanel } from '../lead-sheet/chord-chart-panel.tsx'
@@ -23,8 +27,8 @@ import styles from './workstation-shell.module.css'
 
 interface ShellMainProps {
   readonly isLoaded: boolean
-  readonly positionRatio: number
-  readonly positionSeconds: number
+  /** The playhead, streamed outside React state (Lot L.1). */
+  readonly position: ExternalValue<number>
   readonly durationSeconds: number
   readonly markers: ReturnType<typeof useMarkers>
   readonly viewport: ReturnType<typeof useViewport>
@@ -71,8 +75,7 @@ interface ShellMainProps {
  */
 export function ShellMain({
   isLoaded,
-  positionRatio,
-  positionSeconds,
+  position,
   durationSeconds,
   markers,
   viewport,
@@ -113,6 +116,13 @@ export function ShellMain({
   const grid = tempo.analysis?.grid
   const tempoMap = useMemo(() => buildTempoMap(grid ?? []), [grid])
 
+  // The played measure is a projection of the playhead on the grid's downbeats
+  // — derived, never stored. Subscribing to the INDEX (an integer) re-renders
+  // this column once per measure, not per animation frame.
+  const currentMeasureIndex = useExternalValue(position, (seconds) =>
+    measureIndexAt(grid ?? [], seconds)
+  )
+
   return (
     <div className={styles.body}>
       <main className={styles.main}>
@@ -128,11 +138,11 @@ export function ShellMain({
           />
           <MarkerControls
             disabled={!isLoaded}
-            onAdd={() => markers.addAt(positionSeconds)}
+            onAdd={() => markers.addAt(position.get())}
           />
           <ShellStage
             isLoaded={isLoaded}
-            positionRatio={positionRatio}
+            position={position}
             durationSeconds={durationSeconds}
             viewport={viewport}
             mixer={mixer}
@@ -153,7 +163,7 @@ export function ShellMain({
               bpm={tempo.analysis?.bpm}
               beatsPerBar={tempo.analysis?.beatsPerBar}
               tempoMap={tempoMap}
-              positionSeconds={positionSeconds}
+              position={position}
               detecting={tempo.detecting}
               error={tempo.error}
               octaveShift={tempo.octaveShift}
@@ -178,9 +188,7 @@ export function ShellMain({
             <ChordChartPanel
               source={chordChartSource}
               onSourceChange={onChordChartChange}
-              // The played measure is a projection of the playhead on the
-              // grid's downbeats — derived here, never stored (see the plan).
-              currentMeasureIndex={measureIndexAt(grid ?? [], positionSeconds)}
+              currentMeasureIndex={currentMeasureIndex}
               detection={{
                 detecting: chordDetection.detecting,
                 error: chordDetection.error,

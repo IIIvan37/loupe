@@ -9,7 +9,18 @@ import {
   transportReducer,
   wrapToLoop
 } from '@app/core'
-import { type Dispatch, useEffect, useReducer, useRef } from 'react'
+import {
+  type Dispatch,
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef
+} from 'react'
+import {
+  createExternalValue,
+  type ExternalValue
+} from '../../lib/external-value.ts'
 
 /** The transport surface both engines share — what the active one is driven by. */
 export type TransportControls = Pick<
@@ -20,6 +31,12 @@ export type TransportControls = Pick<
 export interface TransportEngines {
   readonly transport: TransportState
   readonly dispatch: Dispatch<TransportAction>
+  /**
+   * The playhead, streamed at animation-frame rate OUTSIDE React state (Lot
+   * L.1): a tick re-renders nothing by itself — consumers subscribe to the
+   * derived slice they need (timecode second, measure index, playhead ratio).
+   */
+  readonly position: ExternalValue<number>
   /** The engine the transport currently drives (the stem mix or the track). */
   readonly active: () => TransportControls
 }
@@ -53,7 +70,25 @@ export function useTransportEngines({
   loopEnabled,
   onLoopWrap
 }: TransportEnginesParams): TransportEngines {
-  const [transport, dispatch] = useReducer(transportReducer, initialTransport)
+  const [transport, reduce] = useReducer(transportReducer, initialTransport)
+  // The playhead lives OUTSIDE the reducer: engines stream it per animation
+  // frame, and routing that through React state re-rendered the whole
+  // workstation on every frame (Lot L.1). The store carries the raw engine
+  // truth; display consumers clamp for themselves.
+  const position = useMemo(() => createExternalValue(0), [])
+  // Seeks and loads still go through the reducer for control state — mirror
+  // them into the store so both views of the playhead always agree.
+  const dispatch: Dispatch<TransportAction> = useCallback(
+    (action) => {
+      if (action.type === 'seek') {
+        position.set(action.toSeconds)
+      } else if (action.type === 'load') {
+        position.set(0)
+      }
+      reduce(action)
+    },
+    [position]
+  )
 
   // Latest loop + enabled flag kept in refs so the (mount-once) position listener
   // never closes over stale values.
@@ -67,17 +102,21 @@ export function useTransportEngines({
   // listener and the loop wrap-around always steer the live one.
   const stemsActiveRef = useRef(false)
   stemsActiveRef.current = stemsActive
-  // The current playhead, so a transport hand-off can settle the new engine there.
-  const positionRef = useRef(0)
-  positionRef.current = transport.positionSeconds
+  // Timeline bounds + play state for the (mount-once) listener: reaching the
+  // end must stop playback, which used to be the reducer's 'tick' job.
+  const durationRef = useRef(0)
+  durationRef.current = transport.durationSeconds
+  const isPlayingRef = useRef(false)
+  isPlayingRef.current = transport.isPlaying
 
   /** The engine the transport currently drives (the stem mix or the track). */
   const active = (): TransportControls =>
     stemsActiveRef.current ? stemPlayback : playback
 
   useEffect(() => {
-    // Both engines stream elapsed position; only the playing one ticks. The
-    // reducer turns it into UI state, the same way whichever drives the transport.
+    // Both engines stream elapsed position; only the playing one ticks. Ticks
+    // land in the position store — NOT the reducer — so a frame re-renders
+    // only the components whose derived slice of the playhead moved.
     const onPosition = (seconds: number) => {
       const loop = loopRef.current
       // Guard a degenerate (zero-length) loop, which would otherwise wrap-seek
@@ -99,7 +138,16 @@ export function useTransportEngines({
         }
         return
       }
-      dispatch({ type: 'tick', atSeconds: seconds })
+      position.set(seconds)
+      // Reaching the end of a real timeline stops playback — the reducer's old
+      // 'tick' job, now the listener's (the only frame that changes UI state).
+      if (
+        isPlayingRef.current &&
+        durationRef.current > 0 &&
+        seconds >= durationRef.current
+      ) {
+        dispatch({ type: 'pause' })
+      }
     }
     const unsubscribe = playback.onPositionChange(onPosition)
     const unsubscribeStems = stemPlayback.onPositionChange(onPosition)
@@ -111,7 +159,7 @@ export function useTransportEngines({
       playback.pause()
       stemPlayback.pause()
     }
-  }, [playback, stemPlayback])
+  }, [playback, stemPlayback, dispatch, position])
 
   // Whether stems drove the transport on the previous render, so the hand-off
   // runs only on a real switch — never on mount, where there is nothing to move.
@@ -127,14 +175,14 @@ export function useTransportEngines({
     // starts cleanly and in the right place.
     playback.pause()
     stemPlayback.pause()
-    const at = positionRef.current
+    const at = position.get()
     if (stemsActive) {
       stemPlayback.seekTo(at)
     } else {
       playback.seekTo(at)
     }
     dispatch({ type: 'pause' })
-  }, [stemsActive, playback, stemPlayback])
+  }, [stemsActive, playback, stemPlayback, dispatch, position])
 
-  return { transport, dispatch, active }
+  return { transport, dispatch, position, active }
 }

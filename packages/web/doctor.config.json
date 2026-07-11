@@ -8,6 +8,14 @@
       {
         "files": ["src/i18n/i18n-testing-provider.tsx"],
         "rules": ["deslop/unused-file"]
+      },
+      {
+        "files": ["src/app/waveform/zoom-stage.tsx"],
+        "rules": ["react-doctor/no-event-handler"]
+      },
+      {
+        "files": ["src/app/waveform/use-transport-engines.ts"],
+        "rules": ["react-doctor/no-pass-data-to-parent"]
       }
     ]
   }

@@ -30,7 +30,14 @@ produit « édition locale du tempo » en veille. **K.1 fait** sur
 `feat/lead-sheet-scrollport` (PR à ouvrir) : scrollport
 `clamp(14rem, 45dvh, 26rem)` autour du LeadSheet + suivi du playhead
 (`scrollIntoView` nearest), browser-vérifié sur le projet réel.
-**Next : merger la PR K.1 → Lot K clos, puis Lot L** (perf web) → M/N/O. See
+**Lot K clos** (PRs #89/#90 mergées — + footer sticky). **L.1 fait** sur
+`perf/playhead-external-store` (PR à ouvrir) : le playhead vit hors de l'état
+React (`createExternalValue`/`useExternalValue`, snapshots dérivés par
+consommateur, playhead impératif dans ZoomStage) — mesuré : **8 commits
+React/5 s de lecture contre ~60–120/s avant**. Gate verte, 954 tests.
+**Next : merger la PR L.1, puis L.2** (ZoomStage par pages) / L.3 (mémoire
+stems) → M/N/O. See
+[L.1](sessions/2026-07-11-playhead-external-store.md) ·
 [K.1](sessions/2026-07-11-lead-sheet-scrollport.md) ·
 [K.2](sessions/2026-07-11-tempo-map-outliers.md) ·
 [2026-07-11-detect-chords-ui](sessions/2026-07-11-detect-chords-ui.md) ·

@@ -23,7 +23,8 @@ export interface CountInParams {
   readonly canPlay: boolean
   readonly isPlaying: boolean
   /** Where playback will start — the count-in matches the tempo felt there. */
-  readonly positionSeconds: number
+  /** Read the playhead NOW (event-time) — it streams outside React state. */
+  readonly getPositionSeconds: () => number
   /** Tempo as a ratio of normal speed — the count matches the HEARD tempo. */
   readonly timeRatio: number
   readonly analysis: TempoAnalysis | undefined
@@ -91,7 +92,7 @@ export function useCountIn(params: CountInParams): CountInTransport {
       grid: analysis.grid,
       bpm: analysis.bpm,
       beatsPerBar: analysis.beatsPerBar,
-      playheadSeconds: params.positionSeconds,
+      playheadSeconds: params.getPositionSeconds(),
       playbackRate: params.timeRatio
     })
   }
@@ -113,7 +114,7 @@ export function useCountIn(params: CountInParams): CountInTransport {
     }
     // Seat the landing now: the playhead snaps to the grid beat the count
     // leads into, visibly, before the first click sounds.
-    if (countIn.startSeconds !== params.positionSeconds) {
+    if (countIn.startSeconds !== params.getPositionSeconds()) {
       params.seekToSeconds(countIn.startSeconds)
     }
     cancelRef.current = player.play(countIn, () => {

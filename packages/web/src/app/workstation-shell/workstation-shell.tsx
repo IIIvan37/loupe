@@ -108,6 +108,7 @@ export function WorkstationShell({
     loadedBytes,
     metadata,
     transport,
+    position,
     timeRatio,
     pitchSemitones,
     loopRegion,
@@ -198,7 +199,7 @@ export function WorkstationShell({
   const countIn = useCountIn({
     canPlay: importState.status === 'loaded',
     isPlaying: transport.isPlaying,
-    positionSeconds: transport.positionSeconds,
+    getPositionSeconds: position.get,
     timeRatio,
     analysis: tempo.analysis,
     metronomeEnabled: metronome.enabled,
@@ -241,18 +242,13 @@ export function WorkstationShell({
   useKeyboardShortcuts(
     {
       togglePlayback: countIn.togglePlayback,
-      seekBy: (seconds) => seekToSeconds(transport.positionSeconds + seconds),
+      seekBy: (seconds) => seekToSeconds(position.get() + seconds),
       zoomIn: viewport.zoomIn,
       zoomOut: viewport.zoomOut,
-      addMarker: () => markers.addAt(transport.positionSeconds)
+      addMarker: () => markers.addAt(position.get())
     },
     { enabled: isLoaded }
   )
-
-  const positionRatio =
-    transport.durationSeconds > 0
-      ? transport.positionSeconds / transport.durationSeconds
-      : 0
 
   // The two stem-export entry points (+ their success toasts), off the shell.
   const { exportStems: handleExportStems, downloadStem: handleDownloadStem } =
@@ -320,8 +316,7 @@ export function WorkstationShell({
       ) : (
         <ShellMain
           isLoaded={isLoaded}
-          positionRatio={positionRatio}
-        positionSeconds={transport.positionSeconds}
+          position={position}
         durationSeconds={transport.durationSeconds}
         markers={markers}
         viewport={viewport}
@@ -354,7 +349,7 @@ export function WorkstationShell({
       )}
 
       <TransportBar
-        position={formatTimecode(transport.positionSeconds)}
+        position={position}
         duration={formatTimecode(transport.durationSeconds)}
         // During the count-in the button reads « pause » — pressing it abandons
         // the count, exactly what a pause means at that instant.
