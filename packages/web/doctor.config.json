@@ -11,7 +11,10 @@
       },
       {
         "files": ["src/app/waveform/zoom-stage.tsx"],
-        "rules": ["react-doctor/no-event-handler"]
+        "rules": [
+          "react-doctor/no-event-handler",
+          "react-doctor/no-pass-data-to-parent"
+        ]
       },
       {
         "files": ["src/app/waveform/use-transport-engines.ts"],

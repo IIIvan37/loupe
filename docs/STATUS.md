@@ -30,13 +30,19 @@ produit « édition locale du tempo » en veille. **K.1 fait** sur
 `feat/lead-sheet-scrollport` (PR à ouvrir) : scrollport
 `clamp(14rem, 45dvh, 26rem)` autour du LeadSheet + suivi du playhead
 (`scrollIntoView` nearest), browser-vérifié sur le projet réel.
-**Lot K clos** (PRs #89/#90 mergées — + footer sticky). **L.1 fait** sur
-`perf/playhead-external-store` (PR à ouvrir) : le playhead vit hors de l'état
-React (`createExternalValue`/`useExternalValue`, snapshots dérivés par
-consommateur, playhead impératif dans ZoomStage) — mesuré : **8 commits
-React/5 s de lecture contre ~60–120/s avant**. Gate verte, 954 tests.
-**Next : merger la PR L.1, puis L.2** (ZoomStage par pages) / L.3 (mémoire
-stems) → M/N/O. See
+**Lot K clos** (PRs #89/#90 mergées — + footer sticky). **L.1 mergé (PR #91)** :
+le playhead vit hors de l'état React (`createExternalValue`, playhead impératif
+dans ZoomStage) — **8 commits React/5 s de lecture contre ~60–120/s avant**.
+**L.2 fait** sur `perf/zoom-stage-page-follow` (PR à ouvrir) : suivi du playhead
+**par pages** (`followScrollLeft` pur — flip seulement quand le playhead sort de
+la fenêtre, clampé), plus d'écriture `scrollLeft` par frame ni de reflow forcé
+(lectures géométrie avant écriture), scroll manuel = suspension 2 s (écho
+détecté par relecture du `scrollLeft` appliqué). Browser-vérifié ; gate verte,
+**964 tests**. Limitation actée : seek/zoom pendant la grâce ne recadre pas
+(≤2 s, s'auto-répare) ; gap relevé : le suivi lead-sheet (K.1) n'a pas de
+suspension — slice `usePlayheadFollow` candidate.
+**Next : merger la PR L.2, puis L.3** (mémoire stems) / L.4 (memo WAV) → M/N/O.
+See [L.2](sessions/2026-07-11-zoom-stage-page-follow.md) ·
 [L.1](sessions/2026-07-11-playhead-external-store.md) ·
 [K.1](sessions/2026-07-11-lead-sheet-scrollport.md) ·
 [K.2](sessions/2026-07-11-tempo-map-outliers.md) ·

@@ -1,9 +1,21 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { act } from 'react'
 import { createExternalValue } from '../../lib/external-value.ts'
 import { ZoomStage } from './zoom-stage.tsx'
+
+/** jsdom has no layout: pin the geometry the follow logic reads. */
+function mockGeometry(scroll: Element) {
+  Object.defineProperty(scroll, 'scrollWidth', {
+    value: 1000,
+    configurable: true
+  })
+  Object.defineProperty(scroll, 'clientWidth', {
+    value: 250,
+    configurable: true
+  })
+}
 
 function renderStage(
   overrides: Partial<Parameters<typeof ZoomStage>[0]> = {}
@@ -46,5 +58,48 @@ describe('ZoomStage', () => {
     act(() => position.set(2.5))
     const playhead = container.querySelector('[class*="playhead"]')
     expect(playhead).toHaveStyle({ left: '25%' })
+  })
+
+  describe('page-follow (Lot L.2)', () => {
+    function renderZoomedStage() {
+      const position = createExternalValue(0)
+      const { container } = renderStage({ zoom: 4, position })
+      const scroll = container.querySelector('[class*="scroll"]') as HTMLElement
+      mockGeometry(scroll)
+      return { position, scroll }
+    }
+
+    it('leaves the scroll alone while the playhead stays inside the visible window', () => {
+      const { position, scroll } = renderZoomedStage()
+      act(() => position.set(2)) // playheadX 200 < clientWidth 250
+      expect(scroll.scrollLeft).toBe(0)
+    })
+
+    it('flips the page when the playhead crosses the right edge', () => {
+      const { position, scroll } = renderZoomedStage()
+      act(() => position.set(4)) // playheadX 400 > 250 → new page at 400
+      expect(scroll.scrollLeft).toBe(400)
+    })
+
+    it('suspends the follow after a manual scroll', () => {
+      vi.useFakeTimers()
+      const { position, scroll } = renderZoomedStage()
+      scroll.scrollLeft = 600
+      fireEvent.scroll(scroll)
+      act(() => position.set(4)) // out of view, but the user just scrolled
+      expect(scroll.scrollLeft).toBe(600)
+      vi.useRealTimers()
+    })
+
+    it('resumes the follow once the manual-scroll grace period has elapsed', () => {
+      vi.useFakeTimers()
+      const { position, scroll } = renderZoomedStage()
+      scroll.scrollLeft = 600
+      fireEvent.scroll(scroll)
+      act(() => vi.advanceTimersByTime(2100))
+      act(() => position.set(4))
+      expect(scroll.scrollLeft).toBe(400)
+      vi.useRealTimers()
+    })
   })
 })
