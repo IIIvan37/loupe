@@ -38,11 +38,28 @@ import yt_dlp
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from .limits import MAX_MANIFEST_BYTES, read_capped_json
+from .limits import (
+    MAX_MANIFEST_BYTES,
+    MAX_UPLOAD_BYTES,
+    concurrency_slots,
+    read_capped_json,
+    seconds_env,
+)
 from .projects import store_audio
 
 logger = logging.getLogger("loupe.download")
 router = APIRouter()
+
+# yt-dlp holds a network pipe and (on the ffmpeg fallback) a CPU; N parallel
+# /download calls would also fill the tmp dir N times over. One at a time by
+# default; env-tunable. Same worker-side acquisition as /separate.
+_download_semaphore = threading.BoundedSemaphore(
+    concurrency_slots("LOUPE_MAX_CONCURRENT_DOWNLOADS")
+)
+
+# A wedged yt-dlp (network black hole, stuck extractor) must not suspend the
+# stream's threadpool thread forever — cap the wait between two worker events.
+DOWNLOAD_TIMEOUT_SECONDS = seconds_env("LOUPE_DOWNLOAD_TIMEOUT_SECONDS", 900)
 
 # Mirror of the core's supported-source policy: only these hosts (and their
 # subdomains) are fetchable. Keeps yt-dlp from being used as an open proxy.
@@ -88,6 +105,9 @@ def _make_options(out_dir: Path, on_progress) -> dict:
         "quiet": True,
         "no_warnings": True,
         "progress_hooks": [on_progress],
+        # The audio store would refuse a blob over the upload cap anyway —
+        # refuse it before it fills the tmp dir, which sits outside the quota.
+        "max_filesize": MAX_UPLOAD_BYTES,
     }
 
 
@@ -116,7 +136,8 @@ def _download(url: str, out_dir: Path, events: queue.Queue) -> None:
             events.put(("progress", fraction))
 
     try:
-        info = _extract(url, out_dir, on_progress)
+        with _download_semaphore:
+            info = _extract(url, out_dir, on_progress)
         events.put(("done", info))
     except yt_dlp.utils.DownloadError:  # pyright: ignore[reportAttributeAccessIssue]
         events.put(
@@ -152,7 +173,11 @@ def _download_stream(url: str) -> Iterator[bytes]:
 
         info = None
         while True:
-            kind, payload = events.get()
+            try:
+                kind, payload = events.get(timeout=DOWNLOAD_TIMEOUT_SECONDS)
+            except queue.Empty:
+                yield _event({"type": "error", "message": "download timed out"})
+                return
             if kind == "progress":
                 yield _event({"type": "progress", "phase": "downloading", "fraction": payload})
             elif kind == "error":

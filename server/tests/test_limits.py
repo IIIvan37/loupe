@@ -104,3 +104,13 @@ def test_concurrency_slots_ignores_garbage(monkeypatch):
     assert limits.concurrency_slots("LOUPE_TEST_SLOTS") == 1
     monkeypatch.setenv("LOUPE_TEST_SLOTS", "many")
     assert limits.concurrency_slots("LOUPE_TEST_SLOTS") == 1
+
+
+def test_seconds_env_reads_the_variable(monkeypatch):
+    monkeypatch.setenv("LOUPE_TEST_TIMEOUT", "120")
+    assert limits.seconds_env("LOUPE_TEST_TIMEOUT", 900) == 120.0
+
+
+def test_seconds_env_garbage_falls_back(monkeypatch):
+    monkeypatch.setenv("LOUPE_TEST_TIMEOUT", "-5x")
+    assert limits.seconds_env("LOUPE_TEST_TIMEOUT", 900) == 900.0
