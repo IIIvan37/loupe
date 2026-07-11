@@ -59,38 +59,74 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:67
+#: src/app/lead-sheet/chord-chart-panel.tsx:130
 msgid "chords.bars-per-row"
 msgstr "Mesures par ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:72
+#: src/app/lead-sheet/chord-chart-panel.tsx:135
 msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:110
+#: src/app/lead-sheet/chord-chart-panel.tsx:185
+msgid "chords.detect"
+msgstr "Détecter les accords"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:181
+msgid "chords.detect-confirm"
+msgstr "Remplacer la grille ?"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:96
+msgid "chords.detect-done"
+msgstr "Grille pré-remplie depuis la détection"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:87
+msgid "chords.detect-failed"
+msgstr "Échec de la détection des accords"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:76
+msgid "chords.detect-needs-grid"
+msgstr "Détecter d'abord le tempo — la grille de mesures ancre les accords."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:71
+msgid "chords.detect-needs-server"
+msgstr "Lancer le serveur local pour détecter les accords."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:94
+#: src/app/lead-sheet/chord-chart-panel.tsx:179
+msgid "chords.detecting"
+msgstr "Détection des accords…"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:204
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:114
+#: src/app/lead-sheet/chord-chart-panel.tsx:208
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:45
+#: src/app/lead-sheet/chord-chart-panel.tsx:108
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:79
+#: src/app/lead-sheet/chord-chart-panel.tsx:142
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:90
+#: src/app/lead-sheet/chord-chart-panel.tsx:153
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
@@ -163,7 +199,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:302
+#: src/app/workstation-shell/workstation-shell.tsx:310
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -215,7 +251,7 @@ msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:120
-#: src/app/workstation-shell/workstation-shell.tsx:204
+#: src/app/workstation-shell/workstation-shell.tsx:212
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
@@ -803,7 +839,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:181
+#: src/app/workstation-shell/workstation-shell.tsx:189
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
