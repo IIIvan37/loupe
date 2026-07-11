@@ -26,25 +26,32 @@ voir l'historique ci-dessous).
 **M.1 mergé (PR #95)** : `OriginGuardMiddleware` — 403 pour tout `Origin` hors
 allowlist (CSRF « simple request »), same-origin de confiance, chaque valeur
 dupliquée vérifiée.
-**M.2 fait** sur `security/harden-download` (PR à ouvrir) : `/download` rejoint
-le standard — sémaphore (`LOUPE_MAX_CONCURRENT_DOWNLOADS`), `max_filesize`
-yt-dlp aligné sur le cap d'upload, **budget wall-clock total**
-(`LOUPE_DOWNLOAD_TIMEOUT_SECONDS`, 900 s) sur `events.get()`. /code-review a
-mordu fort : le timeout par-événement était réarmé par chaque tick de
-progression → deadline totale ; `socket_timeout: 30` yt-dlp (seul le worker
-peut libérer son slot) ; **`/separate` avait le même trou en pire** (aucun
-timeout) → même budget (`LOUPE_SEPARATION_TIMEOUT_SECONDS`, 1800 s) ;
-`seconds_env` refuse 0. **157 pytest** (97,5 %), ruff+pyright verts.
-**Next : merger la PR M.2, puis M.3** (basses groupées : `asyncio.wait_for`
-inférences, `FileResponse /audio`, doc poids) → N, O.
-See [M.2](sessions/2026-07-11-harden-download.md) ·
-[M.1](sessions/2026-07-11-origin-guard.md) ·
-[L.4](sessions/2026-07-11-wav-encode-memo.md).
+**M.2 mergé (PR #96)** : `/download` borné (sémaphore, `max_filesize`, budget
+wall-clock **total** 900 s — un trickle ne le réarme pas, `socket_timeout` 30 s)
+et `/separate` reçoit le même budget (1800 s — son `events.get()` n'avait
+aucun timeout).
+**M.3 fait** sur `security/server-lows-m3` (PR à ouvrir, **Lot M complet** à la
+merge) : timeout d'inférence `/tempo`+`/chords`
+(`LOUPE_INFERENCE_TIMEOUT_SECONDS`, 600 s → 504) ; `GET /audio/{ref}` en
+`FileResponse` (plus de blob de centaines de MB bufferisé par requête) ;
+asymétrie d'épinglage des poids documentée. /code-review a confirmé et corrigé
+un vrai bug : `wait_for` autour de `run_in_threadpool` **ne tirait jamais**
+(anyio supprime l'annulation jusqu'au retour du worker) →
+`anyio.to_thread.run_sync(..., abandon_on_cancel=True)`. **157 pytest**
+(97,5 %), ruff+pyright verts.
+**Next : merger la PR M.3, puis Lot N** (N.1 erreurs accords discriminées +
+Lingui) → O.
+See [M.3](sessions/2026-07-11-server-lows-m3.md) ·
+[M.2](sessions/2026-07-11-harden-download.md) ·
+[M.1](sessions/2026-07-11-origin-guard.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
+- 2026-07-11 · **M.2 — /download borné** (PR #96) : sémaphore + `max_filesize`
+  + budget total (et `/separate` aussi) →
+  [rapport](sessions/2026-07-11-harden-download.md)
 - 2026-07-11 · **M.1 — garde Origin CSRF** (PR #95) : `OriginGuardMiddleware`,
   403 hors allowlist, same-origin de confiance →
   [rapport](sessions/2026-07-11-origin-guard.md)
