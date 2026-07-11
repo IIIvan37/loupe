@@ -24,10 +24,14 @@ The trust model is "only the local loupe web app talks to this server":
 - **CORS** is restricted to the dev origin(s) (`LOUPE_ALLOWED_ORIGINS`,
   default `http://localhost:5173` + the 127.0.0.1 variant), never `*` — so a
   random page the user has open in the same browser cannot read our responses.
+- **Origin** is enforced, not just CORS'd: CORS blocks reads, not sends — a
+  "simple request" POST needs no preflight, so any request bearing an Origin
+  outside `LOUPE_ALLOWED_ORIGINS` is refused with 403 (no Origin = not a
+  browser = pass).
 - **Host** header is validated (`LOUPE_ALLOWED_HOSTS`, default `localhost` +
   `127.0.0.1`) to blunt DNS-rebinding, which would otherwise let an attacker
   origin reach us over the loopback despite CORS.
-Both are env-overridable so an operator can point the web app at a different
+All are env-overridable so an operator can point the web app at a different
 host, but the defaults are locked to the loopback dev setup.
 """
 
@@ -43,7 +47,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from .netguard import LoopbackOnlyMiddleware
+from .netguard import LoopbackOnlyMiddleware, OriginGuardMiddleware
 from .projects import collect_garbage
 from .projects import router as projects_router
 
@@ -68,14 +72,20 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(title="loupe server", lifespan=lifespan)
-# Host check first (outermost) so a rebinding request is rejected before anything
-# else runs; then CORS scoped to the dev origin.
+# Middleware onion, innermost first (add_middleware: last added = outermost):
+# CORS < OriginGuard < TrustedHost < LoopbackOnly — so a request is vetted
+# network-first (loopback, then Host, then Origin) before CORS ever sees it.
+_allowed_origins = _env_list("LOUPE_ALLOWED_ORIGINS", _DEFAULT_ORIGINS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_env_list("LOUPE_ALLOWED_ORIGINS", _DEFAULT_ORIGINS),
+    allow_origins=_allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# CORS only stops a foreign page from READING us; a "simple request" POST
+# (text/plain, no preflight) could still fire /download, /audio, inference or
+# /gc. Refuse any request whose Origin is present and not the loupe app's.
+app.add_middleware(OriginGuardMiddleware, allowed_origins=_allowed_origins)
 app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=_env_list("LOUPE_ALLOWED_HOSTS", _DEFAULT_HOSTS),

@@ -39,13 +39,16 @@ def test_cors_allows_the_dev_origin():
 
 
 def test_cors_does_not_echo_a_foreign_origin():
-    """A cross-origin page gets no allow-origin header, so it can't read us."""
+    """A cross-origin page gets no allow-origin header, so it can't read us.
+    Since M.1 the OriginGuard refuses the request outright (403) before CORS."""
     res = client.get("/health", headers={"origin": EVIL_ORIGIN})
+    assert res.status_code == 403
     assert res.headers.get("access-control-allow-origin") != EVIL_ORIGIN
     assert res.headers.get("access-control-allow-origin") != "*"
 
 
 def test_cors_preflight_rejects_foreign_origin():
+    """A foreign preflight dies at the OriginGuard; either way, never echoed."""
     res = client.options(
         "/projects",
         headers={
@@ -53,6 +56,7 @@ def test_cors_preflight_rejects_foreign_origin():
             "access-control-request-method": "GET",
         },
     )
+    assert res.status_code == 403
     assert res.headers.get("access-control-allow-origin") != EVIL_ORIGIN
 
 
