@@ -59,28 +59,38 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:61
+#: src/app/lead-sheet/chord-chart-panel.tsx:62
+msgid "chords.bars-per-row"
+msgstr "Mesures par ligne"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:67
+msgid "chords.bars-per-row-unit"
+msgstr "mes. / ligne"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:105
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:65
+#: src/app/lead-sheet/chord-chart-panel.tsx:109
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:27
+#: src/app/lead-sheet/chord-chart-panel.tsx:41
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:34
+#: src/app/lead-sheet/chord-chart-panel.tsx:74
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:45
+#: src/app/lead-sheet/chord-chart-panel.tsx:85
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 

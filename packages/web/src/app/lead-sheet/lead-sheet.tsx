@@ -1,9 +1,22 @@
 import { type ChordChart, formatChordSymbol, parseChart } from '@app/core'
+import { type CSSProperties, useMemo } from 'react'
+import { cx } from '../../lib/cx.ts'
 import styles from './lead-sheet.module.css'
 
 interface LeadSheetProps {
   /** The chord grid in the home text format (`[Section]` + `| … |` rows). */
   readonly source: string
+  /**
+   * The measure being played, counted through the whole chart (sections are a
+   * reading aid, not a reset). Undefined — before the first downbeat, or with
+   * no beat grid at all — highlights nothing.
+   */
+  readonly currentMeasureIndex?: number | undefined
+  /**
+   * How many bars each row lays out — a RENDER parameter (never part of the
+   * chart model, see the plan). Undefined falls back to the stylesheet's 4.
+   */
+  readonly barsPerRow?: number | undefined
 }
 
 interface KeyedChord {
@@ -12,6 +25,7 @@ interface KeyedChord {
 }
 interface KeyedMeasure {
   readonly key: string
+  readonly current: boolean
   readonly chords: readonly KeyedChord[]
 }
 interface KeyedSection {
@@ -25,10 +39,16 @@ interface KeyedSection {
  * state, so a positional path is a stable sibling-unique key. Computing it here,
  * off the JSX, keeps the render a plain map over identified nodes.
  */
-function keyed(chart: ChordChart): readonly KeyedSection[] {
+function keyed(
+  chart: ChordChart,
+  currentMeasureIndex?: number
+): readonly KeyedSection[] {
+  // The playhead's measure counts through the whole chart, not per section.
+  let global = 0
   return chart.sections.map((section, s) => {
     const measures = section.measures.map((measure, m) => ({
       key: `s${s}m${m}`,
+      current: global++ === currentMeasureIndex,
       chords: measure.chords.map((chord, c) => ({
         key: `s${s}m${m}c${c}`,
         text: formatChordSymbol(chord)
@@ -46,10 +66,23 @@ function keyed(chart: ChordChart): readonly KeyedSection[] {
  * laid out as bars in a row. Pure presentation — all parsing lives in the core;
  * the layout is plain CSS grid, no library.
  */
-export function LeadSheet({ source }: LeadSheetProps) {
-  const sections = keyed(parseChart(source))
+export function LeadSheet({
+  source,
+  currentMeasureIndex,
+  barsPerRow
+}: LeadSheetProps) {
+  // The sheet re-renders on every playhead frame during playback (the parent
+  // ticks); only re-parse and re-key when the inputs actually change.
+  const sections = useMemo(
+    () => keyed(parseChart(source), currentMeasureIndex),
+    [source, currentMeasureIndex]
+  )
+  const layout =
+    barsPerRow === undefined
+      ? undefined
+      : ({ '--bars-per-row': barsPerRow } as CSSProperties)
   return (
-    <div className={styles.sheet}>
+    <div className={styles.sheet} style={layout}>
       {sections.map((section) => (
         <section key={section.key} className={styles.section}>
           {section.label !== undefined && (
@@ -57,7 +90,11 @@ export function LeadSheet({ source }: LeadSheetProps) {
           )}
           <div className={styles.row}>
             {section.measures.map((measure) => (
-              <div key={measure.key} className={styles.measure}>
+              <div
+                key={measure.key}
+                className={cx(styles.measure, measure.current && styles.current)}
+                aria-current={measure.current ? 'true' : undefined}
+              >
                 {measure.chords.map((chord) => (
                   <span key={chord.key} className={styles.chord}>
                     {chord.text}

@@ -32,6 +32,37 @@ describe('ChordChartPanel', () => {
     expect(screen.getByRole('textbox')).toHaveValue('| C# | A#m |')
   })
 
+  it('lays the sheet out with the chosen bars per row', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<Host />, { wrapper: I18nTestingProvider })
+    await user.type(screen.getByRole('textbox'), '| C | Am |')
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('chords.bars-per-row')
+    })
+    await user.clear(field)
+    await user.type(field, '6')
+    const sheet = [...container.querySelectorAll<HTMLElement>('div')].find(
+      (div) => div.style.getPropertyValue('--bars-per-row') !== ''
+    )
+    expect(sheet?.style.getPropertyValue('--bars-per-row')).toBe('6')
+  })
+
+  it('an emptied bars-per-row field keeps the previous layout', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<Host />, { wrapper: I18nTestingProvider })
+    await user.type(screen.getByRole('textbox'), '| C | Am |')
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('chords.bars-per-row')
+    })
+    await user.clear(field)
+    await user.type(field, '6')
+    await user.clear(field)
+    const sheet = [...container.querySelectorAll<HTMLElement>('div')].find(
+      (div) => div.style.getPropertyValue('--bars-per-row') !== ''
+    )
+    expect(sheet?.style.getPropertyValue('--bars-per-row')).toBe('6')
+  })
+
   it('transposes the whole grid down a semitone', async () => {
     const user = userEvent.setup()
     render(<Host />, { wrapper: I18nTestingProvider })

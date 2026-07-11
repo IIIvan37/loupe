@@ -46,6 +46,32 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Inline numeric field dressed as the read-out it edits (tempo BPM, chart
+   bars-per-row): transparent until hovered/focused, spinners hidden. Consumers
+   compose and add their own colour. */
+.numberField {
+  width: 4ch;
+  padding: var(--space-2xs);
+  border: 1px solid transparent;
+  border-radius: var(--radius-s);
+  background: transparent;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  appearance: textfield;
+}
+
+.numberField::-webkit-outer-spin-button,
+.numberField::-webkit-inner-spin-button {
+  appearance: none;
+}
+
+.numberField:hover,
+.numberField:focus-visible {
+  border-color: var(--line-strong);
+  background: var(--panel-2);
+}
+
 /* Quiet neutral button (add marker, run separation): panel fill, no accent. */
 .quietButton {
   padding: var(--space-2xs) var(--space-s);

@@ -13,11 +13,12 @@
   letter-spacing: 0.05em;
 }
 
-/* Bars flow in a row that wraps; a configurable bars-per-row comes later. The
- * 1px gap over the line-coloured row background draws the measure bars. */
+/* Bars flow in rows of --bars-per-row columns (a render parameter set inline
+ * on the sheet, 4 when unset). The 1px gap over the line-coloured row
+ * background draws the measure bars. */
 .row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--bars-per-row, 4), minmax(0, 1fr));
   gap: 1px;
   background: var(--line);
   border: 1px solid var(--line);
@@ -30,6 +31,13 @@
   align-items: center;
   padding: var(--space-2xs) var(--space-xs);
   background: var(--panel-2);
+}
+
+/* The measure under the playhead — the amber « what plays » wash, readable in
+ * the flow without stealing the page (the sheet stays print-first). */
+.current {
+  background: var(--amber-glow);
+  box-shadow: inset 0 0 0 1px var(--amber-deep);
 }
 
 .chord {

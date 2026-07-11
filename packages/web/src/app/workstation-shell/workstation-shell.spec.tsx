@@ -1513,6 +1513,37 @@ describe('WorkstationShell', () => {
     expect(screen.getByLabelText(i18n._('chords.input-label'))).toHaveValue('')
   })
 
+  it('highlights the chart measure under the playhead', async () => {
+    // Beats every second, four to the bar → downbeats at 0 s, 4 s, 8 s.
+    const detector = {
+      detect: async () => ({
+        bpm: 60,
+        beats: beatsAt([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+      })
+    }
+    const { engine, user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+    await expectBpmReadout(60)
+    await user.type(
+      screen.getByLabelText(i18n._('chords.input-label')),
+      '| C | Am | F |'
+    )
+    // 5 s sits in the second bar (4 s → 8 s) → the second measure, Am.
+    act(() => engine.emit(5))
+    expect(screen.getByText('Am').closest('[aria-current]')).not.toBeNull()
+  })
+
+  it('highlights no measure without a beat grid', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+    await user.type(
+      screen.getByLabelText(i18n._('chords.input-label')),
+      '| C | Am |'
+    )
+    act(() => engine.emit(5))
+    expect(screen.getByText('Am').closest('[aria-current]')).toBeNull()
+  })
+
   it('editing the chord chart drifts the session from its saved project', async () => {
     const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)

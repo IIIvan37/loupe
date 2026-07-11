@@ -42,6 +42,28 @@ export function detectMeter(beats: readonly DetectedBeat[]): number {
   return max > 0 ? max : DEFAULT_BEATS_PER_BAR
 }
 
+/**
+ * The measure being played at an instant: the lead-sheet's i-th measure maps
+ * onto the grid's i-th downbeat→downbeat interval, so the index is the count of
+ * downbeats at or before the instant, minus one. Undefined before the first
+ * downbeat (a pickup has no bar yet) or without a grid — the projection simply
+ * has nothing to highlight. Derived, never stored (see the tempo map).
+ */
+export function measureIndexAt(
+  grid: BeatGrid,
+  seconds: number
+): number | undefined {
+  // A plain count, no intermediate array — this runs per animation frame
+  // during playback (the shell projects the playhead through it).
+  let started = 0
+  for (const beat of grid) {
+    if (beat.downbeat && beat.timeSeconds <= seconds) {
+      started += 1
+    }
+  }
+  return started === 0 ? undefined : started - 1
+}
+
 /** One stretch of steady tempo: from this instant on, the track runs at `bpm`. */
 export interface TempoSegment {
   readonly fromSeconds: number

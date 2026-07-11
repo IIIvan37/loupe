@@ -29,4 +29,50 @@ describe('LeadSheet', () => {
     expect(screen.getByText('F')).toBeInTheDocument()
     expect(screen.getByText('G')).toBeInTheDocument()
   })
+
+  it('carries the chosen bars-per-row as the grid CSS variable', () => {
+    const { container } = render(
+      <LeadSheet source={'| C | Am |'} barsPerRow={6} />,
+      { wrapper: I18nTestingProvider }
+    )
+    expect(
+      (container.firstElementChild as HTMLElement).style.getPropertyValue(
+        '--bars-per-row'
+      )
+    ).toBe('6')
+  })
+
+  it('marks the measure being played as current', () => {
+    render(
+      <LeadSheet source={'| C | Am | F |'} currentMeasureIndex={1} />,
+      { wrapper: I18nTestingProvider }
+    )
+    expect(screen.getByText('Am').closest('[aria-current]')).not.toBeNull()
+  })
+
+  it('counts the played measure across sections (one global index)', () => {
+    render(
+      <LeadSheet
+        source={'[A]\n| C | Am |\n[B]\n| F |'}
+        currentMeasureIndex={2}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+    expect(screen.getByText('F').closest('[aria-current]')).not.toBeNull()
+  })
+
+  it('marks nothing while the playhead is before the first bar', () => {
+    const { container } = render(<LeadSheet source={'| C | Am |'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(container.querySelector('[aria-current]')).toBeNull()
+  })
+
+  it('marks nothing when the grid is shorter than the played index', () => {
+    const { container } = render(
+      <LeadSheet source={'| C | Am |'} currentMeasureIndex={5} />,
+      { wrapper: I18nTestingProvider }
+    )
+    expect(container.querySelector('[aria-current]')).toBeNull()
+  })
 })

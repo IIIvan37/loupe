@@ -1,4 +1,4 @@
-import { buildTempoMap, type OctaveFactor } from '@app/core'
+import { buildTempoMap, measureIndexAt, type OctaveFactor } from '@app/core'
 import { type ComponentProps, useMemo } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
@@ -173,6 +173,9 @@ export function ShellMain({
             <ChordChartPanel
               source={chordChartSource}
               onSourceChange={onChordChartChange}
+              // The played measure is a projection of the playhead on the
+              // grid's downbeats — derived here, never stored (see the plan).
+              currentMeasureIndex={measureIndexAt(grid ?? [], positionSeconds)}
             />
           )}
         </Stack>

@@ -203,6 +203,7 @@ export {
   foldTempoOctave,
   MAX_MANUAL_BPM,
   MIN_MANUAL_BPM,
+  measureIndexAt,
   normalizeManualBpm,
   tapTempoBpm,
   tempoAt
