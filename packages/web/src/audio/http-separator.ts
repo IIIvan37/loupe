@@ -5,7 +5,8 @@ import type {
   SeparationProgress,
   StemSeparator
 } from '@app/core'
-import { decodeWav, encodeWav } from '@app/core'
+import { decodeWav } from '@app/core'
+import { encodeWavMemo } from './encode-wav-memo.ts'
 import { streamNdjson } from './read-ndjson.ts'
 
 /** One NDJSON line the server streams during a separation. */
@@ -50,7 +51,7 @@ export function createHttpSeparator(baseUrl: string): StemSeparator {
       onProgress: (progress: SeparationProgress) => void,
       signal?: AbortSignal
     ): Promise<readonly SeparatedStem[]> {
-      const wav = encodeWav(audio.channels, audio.sampleRate)
+      const wav = encodeWavMemo(audio)
       // The signal covers the whole run: aborting also tears down the NDJSON
       // stream (its reader rejects) and any in-flight stem fetch below.
       const response = await fetch(`${baseUrl}/separate`, {

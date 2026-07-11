@@ -35,19 +35,20 @@ le playhead vit hors de l'état React (`createExternalValue`, playhead impérati
 dans ZoomStage) — **8 commits React/5 s de lecture contre ~60–120/s avant**.
 **L.2 mergé (PR #92)** : suivi du playhead par pages (`followScrollLeft` pur),
 plus d'écriture `scrollLeft` par frame ; scroll manuel = grâce 2 s.
-**L.3 fait** sur `perf/stems-memory` (PR à ouvrir) : le moteur multitrack est
-**l'unique gardien du PCM des stems** (~500 MB au lieu de ~1 GB sur 6 stems) —
-`stemAudio(id)` sur le port (contrat : servable dès la remise du `load`, buffers
-adoptés en synchrone), `useSeparation.sources` = getter paresseux dérivé
-zéro-copie, mixer sans rétention, copie transitoire `Float32Array.from`
-supprimée. /code-review a corrigé 3 bugs moteur (stem fantôme post-await,
-`ensureStretch` réentrant, `desiredGains` hérités entre projets — préexistant).
-Browser-vérifié (tas 559 MB, WAV réel, round-trip save) ; gate verte,
-**966 tests**, mutation 94,91 %. Limitation actée : play() pendant
-l'enregistrement du worklet (cold start) = silence puis raccrochage en sync
-(fix profond « master bus permanent » consigné).
-**Next : merger la PR L.3, puis L.4** (memo WAV) → M/N/O.
-See [L.3](sessions/2026-07-11-stems-memory.md) ·
+**L.3 mergé (PR #93)** : le moteur multitrack est l'unique gardien du PCM des
+stems (~500 MB au lieu de ~1 GB sur 6 stems) — `stemAudio(id)` sur le port,
+`useSeparation.sources` paresseux zéro-copie, mixer sans rétention.
+**L.4 fait** sur `perf/wav-encode-memo` (PR à ouvrir) : `encodeWavMemo`
+(`WeakMap<DecodedAudio, Uint8Array>`) — le mix est encodé **une fois** pour
+`/tempo`, `/chords`, `/separate` et le téléchargement « piste »
+(~100–300 ms + ~40 MB économisés par appel évité) ; cache réservé au mix
+(jamais les blobs par-stem, ça les épinglerait). /code-review (8 angles) a
+ajouté la bascule de `use-stem-export` et confirmé l'identité stable du
+`DecodedAudio` sur les trois adaptateurs. Gate verte, **969 tests** ;
+mutation skippée (aucun fichier core touché). **Lot L clos** à la merge.
+**Next : merger la PR L.4, puis Lot M** (M.1 garde Origin CSRF).
+See [L.4](sessions/2026-07-11-wav-encode-memo.md) ·
+[L.3](sessions/2026-07-11-stems-memory.md) ·
 [L.2](sessions/2026-07-11-zoom-stage-page-follow.md) ·
 [L.1](sessions/2026-07-11-playhead-external-store.md) ·
 [K.1](sessions/2026-07-11-lead-sheet-scrollport.md) ·

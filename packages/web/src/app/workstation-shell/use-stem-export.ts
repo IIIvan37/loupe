@@ -1,6 +1,7 @@
 import { type DecodedAudio, encodeWav, synthesizeClickTrack } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { downloadBlob } from '../../audio/download-blob.ts'
+import { encodeWavMemo } from '../../audio/encode-wav-memo.ts'
 import { exportBaseName } from '../../lib/export-base-name.ts'
 import { TRACK_STEM_ID } from '../mixer/track-stem.ts'
 import type { Separation } from '../separation/use-separation.ts'
@@ -81,7 +82,7 @@ export function useStemExport({
       return
     }
     if (id === TRACK_STEM_ID && loadedAudio) {
-      const wav = encodeWav(loadedAudio.channels, loadedAudio.sampleRate)
+      const wav = encodeWavMemo(loadedAudio)
       downloadBlob(`${base}_piste.wav`, new Blob([wav], { type: 'audio/wav' }))
       notifySuccess(fileExportedMessage)
       return

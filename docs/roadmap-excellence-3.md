@@ -349,7 +349,7 @@ Ce que la référence montre, et ce que ça implique :
 - [x] **L.1** tête de lecture hors état racine
 - [x] **L.2** ZoomStage suivi par pages
 - [x] **L.3** mémoire stems (double rétention + copie transitoire)
-- [ ] **L.4** mémoïsation WAV encodé
+- [x] **L.4** mémoïsation WAV encodé (`encodeWavMemo`, cache réservé au mix)
 - [ ] **M.1** garde Origin (CSRF)
 - [ ] **M.2** durcir /download
 - [ ] **M.3** basses sécurité groupées
