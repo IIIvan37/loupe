@@ -53,7 +53,7 @@
 
 .warning {
   margin-top: calc(-1 * var(--space-2xs));
-  color: var(--stem-vocals);
+  color: var(--danger);
   font-size: var(--font-size-xs);
 }
 

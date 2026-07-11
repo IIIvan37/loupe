@@ -7,7 +7,7 @@
 /* Unreachable server: red-ish, the same accent as the other error surfaces. */
 .error {
   margin-block-start: var(--space-m);
-  color: var(--stem-vocals);
+  color: var(--danger);
   font-size: var(--font-size-m);
 }
 
@@ -82,15 +82,15 @@
 /* The second step of a destructive/replacing action — red-ish and explicit. */
 .confirmAction {
   padding: var(--space-3xs) var(--space-xs);
-  border: 1px solid var(--stem-vocals);
+  border: 1px solid var(--danger);
   border-radius: var(--radius);
   background: transparent;
-  color: var(--stem-vocals);
+  color: var(--danger);
   font-size: var(--font-size-s);
 }
 
 .confirmNote {
-  color: var(--stem-vocals);
+  color: var(--danger);
   font-size: var(--font-size-xs);
 }
 

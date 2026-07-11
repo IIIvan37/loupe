@@ -87,7 +87,7 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-xl);
-  background: rgb(0 0 0 / 0.6);
+  background: var(--scrim);
   pointer-events: none;
 }
 

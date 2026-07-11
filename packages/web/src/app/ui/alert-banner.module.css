@@ -15,8 +15,8 @@
   gap: var(--space-s);
   padding: var(--space-2xs) var(--space-l);
   background: var(--panel);
-  border-block-end: 1px solid var(--stem-vocals);
-  color: var(--stem-vocals);
+  border-block-end: 1px solid var(--danger);
+  color: var(--danger);
   font-size: var(--font-size-s);
   animation: alert-in var(--motion-med) var(--motion-ease);
 }
@@ -36,12 +36,12 @@
   border: 1px solid transparent;
   border-radius: var(--radius);
   background: transparent;
-  color: var(--stem-vocals);
+  color: var(--danger);
   font-size: var(--font-size-s);
 }
 
 .close:hover {
-  border-color: var(--stem-vocals);
+  border-color: var(--danger);
 }
 
 .close:focus-visible {

@@ -114,8 +114,8 @@
    dialog; an inset outline so arming never shifts the row's geometry. */
 .entryConfirm,
 .entryConfirm:hover {
-  color: var(--stem-vocals);
-  outline: 1px solid var(--stem-vocals);
+  color: var(--danger);
+  outline: 1px solid var(--danger);
   outline-offset: -1px;
   white-space: nowrap;
 }
