@@ -88,7 +88,7 @@ export type TempoMap = readonly TempoSegment[]
 const TEMPO_RUPTURE_TOLERANCE = 0.08
 
 export function buildTempoMap(grid: BeatGrid): TempoMap {
-  const [firstBeat, secondBeat, ...restBeats] = grid
+  const [firstBeat, secondBeat, ...restBeats] = sanitizeBeatGrid(grid)
   if (firstBeat === undefined || secondBeat === undefined) {
     return []
   }
@@ -133,6 +133,75 @@ export function tempoAt(map: TempoMap, seconds: number): number | undefined {
     }
   }
   return felt?.bpm
+}
+
+/**
+ * A gap shorter than this fraction of the LOCAL median gap is a spurious
+ * extra beat (a detector double-fire), never a faster tempo.
+ */
+const SPURIOUS_GAP_FRACTION = 0.4
+
+/**
+ * How many gaps on each side feed the local median a gap is judged against.
+ * Local (not global) so a sustained genuine tempo change — whose gaps dominate
+ * their own neighbourhood — is never decimated, while a short burst of
+ * double-fires stays a minority in every window that contains it.
+ */
+const SPURIOUS_WINDOW_RADIUS = 8
+
+/**
+ * Drop beats that follow their predecessor implausibly closely — a detector
+ * double-fire INSERTS a beat, which the tempo-map rupture guard (built for
+ * MISSED beats) reads as two confirmed tempo changes and turns into an absurd
+ * segment, and which grid consumers (metronome click, waveform grid) render
+ * as a flam. Within a too-close pair the downbeat wins over a plain beat, so
+ * a double-fire landing just before a bar line never evicts the bar anchor.
+ * Dense subdivision runs (a spurious beat after EVERY beat) are out of reach
+ * of any median guard — that regime needs a tempo-continuity post-processor
+ * upstream.
+ */
+export function sanitizeBeatGrid(grid: BeatGrid): BeatGrid {
+  // Index-free gap walk on purpose: the map idiom's `?? fallback` on
+  // `grid[index]` is unreachable and survives mutation testing.
+  const gaps: number[] = []
+  let previousTime: number | undefined
+  for (const beat of grid) {
+    if (previousTime !== undefined) {
+      gaps.push(beat.timeSeconds - previousTime)
+    }
+    previousTime = beat.timeSeconds
+  }
+  const kept: Beat[] = []
+  grid.forEach((beat, index) => {
+    const previous = kept[kept.length - 1]
+    if (previous === undefined) {
+      kept.push(beat)
+      return
+    }
+    // The floor is NaN when the window holds no positive gap (degenerate
+    // grid): no beat is provably spurious there, so everything is kept.
+    const floor = localReferenceGap(gaps, index - 1) * SPURIOUS_GAP_FRACTION
+    if (!(beat.timeSeconds - previous.timeSeconds < floor)) {
+      kept.push(beat)
+    } else if (beat.downbeat && !previous.downbeat) {
+      kept[kept.length - 1] = beat
+    }
+  })
+  return kept
+}
+
+/** The median positive gap in a window around `gapIndex` (NaN when none). */
+function localReferenceGap(gaps: readonly number[], gapIndex: number): number {
+  // Slide the window inward at the edges instead of truncating it: a cluster
+  // of double-fires at the very start of the grid must stay a minority of its
+  // window, which a half-width window would not guarantee.
+  const width = 2 * SPURIOUS_WINDOW_RADIUS + 1
+  const start = Math.min(
+    Math.max(0, gapIndex - SPURIOUS_WINDOW_RADIUS),
+    Math.max(0, gaps.length - width)
+  )
+  const window = gaps.slice(start, start + width).filter((gap) => gap > 0)
+  return median(window)
 }
 
 /** Whether an interval strays beyond the rupture tolerance of its reference. */

@@ -22,6 +22,18 @@ from typing import TypedDict
 # tightly; this only absorbs float noise, staying well under a beat period.
 DEFAULT_TOLERANCE = 0.05
 
+# A gap shorter than this fraction of the LOCAL median gap marks a spurious
+# INSERTED beat (the model double-firing on a subdivision), never a faster
+# tempo. The minimal beat_this post-processor (dbn=False) has no
+# tempo-continuity constraint, so heavily subdivided feels leak such beats
+# into the payload.
+SPURIOUS_GAP_FRACTION = 0.4
+
+# How many gaps on each side feed the local median a gap is judged against.
+# Local (not global) so a sustained genuine tempo change survives while a
+# short burst of double-fires stays a minority in every window containing it.
+SPURIOUS_WINDOW_RADIUS = 8
+
 
 class PositionedBeat(TypedDict):
     time: float
@@ -39,6 +51,56 @@ def representative_bpm(beats: Sequence[float]) -> float:
     if not gaps:
         return 0.0
     return 60.0 / median(gaps)
+
+
+def _local_reference_gap(gaps: Sequence[float], gap_index: int) -> float | None:
+    """Median positive gap in a full-width window around `gap_index`.
+
+    The window slides inward at the edges instead of truncating, so a cluster
+    of double-fires at the very start of the track stays a minority of its
+    window. Returns None when the window holds no positive gap (degenerate
+    input) — nothing is provably spurious there.
+    """
+    width = 2 * SPURIOUS_WINDOW_RADIUS + 1
+    start = min(max(0, gap_index - SPURIOUS_WINDOW_RADIUS), max(0, len(gaps) - width))
+    window = [gap for gap in gaps[start : start + width] if gap > 0]
+    if not window:
+        return None
+    return median(window)
+
+
+def drop_spurious_beats(
+    beats: Sequence[float],
+    downbeats: Sequence[float],
+    tolerance: float = DEFAULT_TOLERANCE,
+) -> list[float]:
+    """Drop beats that follow their predecessor implausibly closely.
+
+    The threshold is relative to the LOCAL median gap, so a sustained genuine
+    tempo change is never decimated while a short burst of double-fires stays
+    a minority of every window. Within a too-close pair the beat matching a
+    reported downbeat wins, so a double-fire landing just before a bar line
+    never evicts the bar anchor (which would orphan the downbeat beyond the
+    matching tolerance). A wide gap (a missed beat) is untouched.
+    """
+    times = [float(beat) for beat in beats]
+    gaps = [b - a for a, b in zip(times, times[1:], strict=False)]
+    anchors = [float(d) for d in downbeats]
+
+    def on_bar_line(time: float) -> bool:
+        return any(abs(time - anchor) <= tolerance for anchor in anchors)
+
+    kept: list[float] = []
+    for index, time in enumerate(times):
+        if not kept:
+            kept.append(time)
+            continue
+        reference = _local_reference_gap(gaps, index - 1)
+        if reference is None or time - kept[-1] >= reference * SPURIOUS_GAP_FRACTION:
+            kept.append(time)
+        elif on_bar_line(time) and not on_bar_line(kept[-1]):
+            kept[-1] = time
+    return kept
 
 
 def _downbeat_flags(
@@ -111,7 +173,7 @@ def tempo_payload(
     tolerance: float = DEFAULT_TOLERANCE,
 ) -> dict:
     """The full /tempo JSON body: representative bpm + positioned beats."""
-    times = [float(beat) for beat in beats]
+    times = drop_spurious_beats(beats, downbeats, tolerance)
     return {
         "bpm": representative_bpm(times),
         "beats": to_positioned_beats(times, downbeats, tolerance),

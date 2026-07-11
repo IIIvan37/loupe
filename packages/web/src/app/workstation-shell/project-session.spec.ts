@@ -370,6 +370,42 @@ describe('restoreSession', () => {
     )
   })
 
+  it('sanitizes a persisted grid carrying a spurious detector beat', async () => {
+    // A grid saved BEFORE the server-side filter existed still carries the
+    // double-fire: restoring must not seat the parasite into the metronome
+    // click and the waveform grid — the manifest self-repairs on open.
+    const parasiteTempo: ProjectTempo = {
+      ...savedTempo,
+      bpm: 75,
+      grid: [
+        { timeSeconds: 0, downbeat: true },
+        { timeSeconds: 0.8, downbeat: false },
+        { timeSeconds: 1.6, downbeat: false },
+        { timeSeconds: 1.68, downbeat: false },
+        { timeSeconds: 2.4, downbeat: false },
+        { timeSeconds: 3.2, downbeat: false }
+      ]
+    }
+    const deps = fakeDeps(undefined)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: { ...baseProject, tempo: parasiteTempo },
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    const cleaned = parasiteTempo.grid.filter(
+      (beat) => beat.timeSeconds !== 1.68
+    )
+    expect(deps.metronome.enable).toHaveBeenCalledWith(
+      cleaned,
+      audio,
+      parasiteTempo.metronome
+    )
+  })
+
   it('restores the persisted octave correction', async () => {
     const deps = fakeDeps(undefined)
     const opened: Extract<OpenProjectResult, { ok: true }> = {

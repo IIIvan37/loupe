@@ -13,6 +13,7 @@ import {
   type ProjectTuning,
   type SaveProjectInput,
   type SeparatedStem,
+  sanitizeBeatGrid,
   type TempoAnalysis,
   type TrackMetadata,
   tuningOrDefault
@@ -235,9 +236,11 @@ export async function restoreSession(
     // Fast path: tempo + metronome come straight from the manifest — no server.
     // The persisted bpm/grid are already folded; the shift restores the read-out.
     // A manifest predating the enriched contract has no meter — default to 4/4.
+    // Sanitizing here self-repairs grids saved before the server filtered out
+    // spurious detector beats — the parasite would otherwise click forever.
     const analysis: TempoAnalysis = {
       bpm: persisted.bpm,
-      grid: persisted.grid,
+      grid: sanitizeBeatGrid(persisted.grid),
       beatsPerBar: persisted.beatsPerBar ?? DEFAULT_BEATS_PER_BAR
     }
     deps.tempo.set(analysis, persisted.octaveShift ?? 0, persisted.manual)

@@ -68,6 +68,52 @@ class TestBarPositions:
         assert to_positioned_beats([], []) == []
 
 
+class TestSpuriousBeats:
+    def test_payload_drops_a_beat_inserted_right_after_a_real_one(self) -> None:
+        # 75 BPM (0.8 s gaps) with a detector double-fire 80 ms after the third
+        # beat — a subdivision misread, not a beat; it must not reach the client.
+        payload = tempo_payload([0.0, 0.8, 1.6, 1.68, 2.4, 3.2], [0.0, 3.2])
+        assert [b["time"] for b in payload["beats"]] == [0.0, 0.8, 1.6, 2.4, 3.2]
+
+    def test_keeps_a_single_wide_gap(self) -> None:
+        # A missed beat (one long gap) removes nothing: only implausibly SHORT
+        # gaps mark an inserted beat.
+        payload = tempo_payload([0.0, 0.5, 1.0, 2.0, 2.5], [0.0])
+        assert [b["time"] for b in payload["beats"]] == [0.0, 0.5, 1.0, 2.0, 2.5]
+
+    def test_threshold_scales_with_the_track_beat_interval(self) -> None:
+        # At 30 BPM (2 s gaps) a 0.5 s follower is spurious even though the same
+        # gap would be a legitimate beat at 120 BPM.
+        payload = tempo_payload([0.0, 2.0, 2.5, 4.0, 6.0], [0.0])
+        assert [b["time"] for b in payload["beats"]] == [0.0, 2.0, 4.0, 6.0]
+
+    def test_keeps_the_downbeat_of_a_close_pair_not_the_fire_before_it(self) -> None:
+        # The double-fire lands 80 ms BEFORE the real bar-line beat: keeping the
+        # first of the pair would orphan the downbeat (0.8 matches nothing within
+        # the 0.05 s tolerance) and corrupt every bar number after it.
+        payload = tempo_payload([0.0, 0.72, 0.8, 1.6, 2.4, 3.2], [0.0, 0.8])
+        assert [b["time"] for b in payload["beats"]] == [0.0, 0.8, 1.6, 2.4, 3.2]
+
+    def test_downbeat_flag_survives_a_double_fire_on_the_bar_line(self) -> None:
+        # Double-fire ON the downbeat instant: the reported downbeat (1.68) must
+        # still reset the bar count, not vanish into the dropped beat.
+        payload = tempo_payload([0.0, 0.8, 1.6, 1.68, 2.4, 3.2], [0.0, 1.68])
+        assert [b["position"] for b in payload["beats"]] == [1, 2, 1, 2, 3]
+
+    def test_keeps_a_sustained_genuine_fast_section(self) -> None:
+        # 60 BPM then a real 160 BPM section (ratio 2.67x): a sustained section
+        # is a tempo change, not a run of double-fires — no beat may be dropped.
+        slow = [float(i) for i in range(16)]
+        fast = [15.0 + i * 0.375 for i in range(1, 17)]
+        payload = tempo_payload(slow + fast, [0.0])
+        assert [b["time"] for b in payload["beats"]] == slow + fast
+
+    def test_collapses_duplicate_beat_instants(self) -> None:
+        # Zero gaps must count as spurious, not poison the median with zeros.
+        payload = tempo_payload([0.0, 0.0, 0.5, 0.5, 1.0, 1.0], [0.0])
+        assert [b["time"] for b in payload["beats"]] == [0.0, 0.5, 1.0]
+
+
 class TestTempoPayload:
     def test_bundles_bpm_and_positioned_beats(self) -> None:
         payload = tempo_payload([0.0, 0.5, 1.0, 1.5], [0.0, 1.0])
