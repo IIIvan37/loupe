@@ -1,5 +1,5 @@
 import { type ChordChart, formatChordSymbol, parseChart } from '@app/core'
-import { type CSSProperties, useMemo } from 'react'
+import { type CSSProperties, useCallback, useMemo } from 'react'
 import { cx } from '../../lib/cx.ts'
 import styles from './lead-sheet.module.css'
 
@@ -81,6 +81,14 @@ export function LeadSheet({
     barsPerRow === undefined
       ? undefined
       : ({ '--bars-per-row': barsPerRow } as CSSProperties)
+  // Follow the playhead: React invokes this ref exactly when a measure BECOMES
+  // current (the ref prop flips undefined → callback), so it fires once per
+  // measure change, never per playhead frame. `nearest` only scrolls the first
+  // scrollable ancestor (the panel's scrollport) and is a no-op when the sheet
+  // fits without one — the component stays print-first.
+  const followPlayhead = useCallback((node: HTMLDivElement | null) => {
+    node?.scrollIntoView({ block: 'nearest' })
+  }, [])
   return (
     <div className={styles.sheet} style={layout}>
       {sections.map((section) => (
@@ -92,6 +100,7 @@ export function LeadSheet({
             {section.measures.map((measure) => (
               <div
                 key={measure.key}
+                ref={measure.current ? followPlayhead : undefined}
                 className={cx(styles.measure, measure.current && styles.current)}
                 aria-current={measure.current ? 'true' : undefined}
               >

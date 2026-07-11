@@ -10,3 +10,14 @@ const canvasElement = (
 if (canvasElement) {
   canvasElement.prototype.getContext = () => null
 }
+
+// jsdom implements no scrolling: Element.prototype.scrollIntoView is missing
+// entirely, so any component following the playhead would throw. Stub it as a
+// no-op; specs that assert the follow behaviour install their own spy.
+const element = (
+  globalThis as { Element?: { prototype: { scrollIntoView: unknown } } }
+).Element
+
+if (element && typeof element.prototype.scrollIntoView !== 'function') {
+  element.prototype.scrollIntoView = () => {}
+}

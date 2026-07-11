@@ -159,11 +159,16 @@ export function ChordChartPanel({
           </button>
         </span>
       </div>
-      <LeadSheet
-        source={source}
-        currentMeasureIndex={currentMeasureIndex}
-        barsPerRow={barsPerRow}
-      />
+      {/* A detected chart spans the whole track (~120 measures in one click):
+          the scrollport bounds the sheet so it never stretches the page and
+          pushes the transport out of the viewport (K.1). */}
+      <div className={styles.sheetViewport}>
+        <LeadSheet
+          source={source}
+          currentMeasureIndex={currentMeasureIndex}
+          barsPerRow={barsPerRow}
+        />
+      </div>
       {detection && (
         <div className={styles.detectRow}>
           <button
