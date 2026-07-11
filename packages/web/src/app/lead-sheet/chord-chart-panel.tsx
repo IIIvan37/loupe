@@ -1,6 +1,8 @@
 import { transposeChartSource } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
+import { LiveStatus } from '../ui/live-status.tsx'
+import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
 import { LeadSheet } from './lead-sheet.tsx'
 import styles from './chord-chart-panel.module.css'
 
@@ -10,11 +12,22 @@ const DEFAULT_BARS_PER_ROW = 4
 const MIN_BARS_PER_ROW = 1
 const MAX_BARS_PER_ROW = 12
 
+/** The detection surface the shell wires in (absent = feature not wired). */
+export interface ChordDetectionProps {
+  /** Why detection is unavailable (disables the button + explains under it). */
+  readonly blockedReason: 'server' | 'no-grid' | undefined
+  readonly detecting: boolean
+  readonly error: string | undefined
+  readonly succeeded: boolean
+  readonly onDetect: (barsPerRow: number) => void
+}
+
 interface ChordChartPanelProps {
   readonly source: string
   readonly onSourceChange: (source: string) => void
   /** The measure being played (global index), undefined to highlight nothing. */
   readonly currentMeasureIndex?: number | undefined
+  readonly detection?: ChordDetectionProps | undefined
 }
 
 /**
@@ -27,7 +40,8 @@ interface ChordChartPanelProps {
 export function ChordChartPanel({
   source,
   onSourceChange,
-  currentMeasureIndex
+  currentMeasureIndex,
+  detection
 }: ChordChartPanelProps) {
   const { t } = useLingui()
   // A render preference, not chart data — it lives with the panel (resets
@@ -36,6 +50,55 @@ export function ChordChartPanel({
   // What the field shows while being edited — an emptied or out-of-range
   // draft is no layout, so the sheet keeps the last committed value.
   const [barsDraft, setBarsDraft] = useState<string | undefined>(undefined)
+  // The detected draft REPLACES the source — a non-empty grid is armed work,
+  // so the first activation only swaps the button to « Confirmer ? ».
+  const overwrite = useTwoStepConfirm<true>()
+
+  function onDetectClick(): void {
+    if (!detection) {
+      return
+    }
+    if (source.trim().length > 0 && overwrite.pending === null) {
+      overwrite.arm(true)
+      return
+    }
+    overwrite.disarm()
+    detection.onDetect(barsPerRow)
+  }
+
+  const blockedHint =
+    detection?.blockedReason === 'server'
+      ? t({
+          id: 'chords.detect-needs-server',
+          message: 'Lancer le serveur local pour détecter les accords.'
+        })
+      : detection?.blockedReason === 'no-grid'
+        ? t({
+            id: 'chords.detect-needs-grid',
+            message:
+              "Détecter d'abord le tempo — la grille de mesures ancre les accords."
+          })
+        : undefined
+
+  // The failure copy stays in the catalog (Lot G: actionable, translated) —
+  // the raw engine detail is appended visibly but never spoken alone.
+  const failed =
+    detection?.error !== undefined
+      ? t({
+          id: 'chords.detect-failed',
+          message: 'Échec de la détection des accords'
+        })
+      : undefined
+
+  const announced = detection?.detecting
+    ? t({ id: 'chords.detecting', message: 'Détection des accords…' })
+    : detection?.succeeded
+      ? t({
+          id: 'chords.detect-done',
+          message: 'Grille pré-remplie depuis la détection'
+        })
+      : failed
+
   return (
     <section className={styles.panel}>
       {/* Not a <header>: Testing Library's role mapper would still expose it
@@ -101,6 +164,37 @@ export function ChordChartPanel({
         currentMeasureIndex={currentMeasureIndex}
         barsPerRow={barsPerRow}
       />
+      {detection && (
+        <div className={styles.detectRow}>
+          <button
+            type="button"
+            className={styles.detectButton}
+            disabled={
+              detection.blockedReason !== undefined || detection.detecting
+            }
+            onClick={onDetectClick}
+            onBlur={overwrite.disarm}
+          >
+            {detection.detecting
+              ? t({ id: 'chords.detecting', message: 'Détection des accords…' })
+              : overwrite.pending
+                ? t({
+                    id: 'chords.detect-confirm',
+                    message: 'Remplacer la grille ?'
+                  })
+                : t({ id: 'chords.detect', message: 'Détecter les accords' })}
+          </button>
+          {blockedHint !== undefined && (
+            <p className={styles.hint}>{blockedHint}</p>
+          )}
+          {detection.error !== undefined && (
+            <p className={styles.error}>
+              {failed} — {detection.error}
+            </p>
+          )}
+          <LiveStatus message={announced} />
+        </div>
+      )}
       <textarea
         className={styles.input}
         value={source}

@@ -1,7 +1,11 @@
 # Plan — Grilles d'accords à partir d'un morceau
 
-> Statut (2026-07-10) : **PLAN COMPLET — les 3 décisions produit + le moteur ACE
-> sont arbitrés, reste à coder (Lot A d'abord).**
+> Statut (2026-07-11) : **LIVRÉ — Lots A/B/C complets** (socle + persistance +
+> transposition + sync lecture, puis détection ACE bout-en-bout : core PR #86,
+> serveur `/chords` PR #87, web « Détecter les accords »). Les deux angles
+> morts du Lot C ont été levés : poids BTC fournis et exécutables (2,4 s CPU /
+> 257 s d'audio), pré-séparation Demucs **différée** (BTC est entraîné sur des
+> mix complets). Reste optionnel : Lot D interop ChordPro (veille).
 >
 > - **#1 Vue** → **lead-sheet** (grille mesures/lignes orientée page, façon
 >   [chordsheet.com](https://www.chordsheet.com/) : bars-per-row configurable,

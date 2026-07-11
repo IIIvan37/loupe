@@ -49,3 +49,24 @@
   line-height: 1.5;
   resize: vertical;
 }
+
+/* The detection action sits between the sheet and the source editor: one
+ * quiet button plus its explanations (why it's blocked / why it failed). */
+.detectRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+  flex-wrap: wrap;
+}
+
+.detectButton {
+  composes: quietButton from '../ui/controls.module.css';
+}
+
+.hint {
+  composes: hint from '../ui/controls.module.css';
+}
+
+.error {
+  composes: errorLine from '../ui/controls.module.css';
+}

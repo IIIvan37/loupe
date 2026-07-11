@@ -7,35 +7,35 @@
 
 ## Where we are
 
-**Lot C chord-charts — slices CORE + SERVEUR livrées (2026-07-11)**, deux PRs
-indépendantes. **Core** (PR #86, `feat/chord-detection-core`, CI verte) : port
-`ChordDetector` (spans horodatés, tokens de grille, `undefined` = silence),
-agrégation pure `chordLabelPerMeasure` (vote pondéré par durée par intervalle
-downbeat→downbeat — même projection que `measureIndexAt`), `renderChartSource`
-chez le propriétaire de la grammaire (labels hors-token → `N.C.`), use-case
-`detectChords` → brouillon de texte source (gardes : pas de downbeat,
-détection vide, NaN). Gate **906 tests** (+26), Stryker **95,19**
-(`detect-chords` 100). **Serveur** (`feat/chords-endpoint`) : **spike BTC levé**
-(exécution autorisée par l'utilisateur — **2,4 s CPU / 257 s d'audio**, sortie
-cohérente ; pré-séparation Demucs **différée**, BTC est entraîné sur mix
-complets) ; `POST /chords` (shell torch miroir de `/tempo`, 503 sans torch ou
-poids infetchables, BTC **vendoré** MIT sous `app/btc/` avec sa LICENSE, poids
-~33 Mo **sha256-pinnés avant tout `torch.load`** — `weights_cache.py`
-torch-free testé, download avec timeout d'inactivité), helper pur
-`chord_spans.py`, pin `librosa` (orphelin jusqu'ici). Serveur **127 pytest**
-(+15), coverage 97,2 %, smoke réel vérifié.
+**Lot C chord-charts — COMPLET (2026-07-11)** : les trois slices livrées le
+même jour. **Core** (PR #86 mergée) : port `ChordDetector` + agrégation pure
+`chordLabelPerMeasure` (1 accord/mesure sur les intervalles
+downbeat→downbeat) + `renderChartSource` + use-case `detectChords` →
+brouillon de texte source. **Serveur** (PR #87 mergée) : spike BTC levé
+(2,4 s CPU / 257 s d'audio), `POST /chords` (BTC vendoré MIT, poids
+sha256-pinnés, 503 sans torch/poids), helper pur `chord_spans`. **Web**
+(branche `feat/detect-chords-ui`) : adapter `createHttpChordDetector`
+(traduction mir→tokens, `N`/`X`→silence), hook `useChordDetection` (jeton de
+run, brouillon = édition manuelle persistée), bouton « Détecter les accords »
+(confirmation deux temps avant écrasement, hints actionnables serveur/grille,
+LiveStatus a11y). Gate **vert — 925 tests** (+19), serveur 127 pytest.
 
-**Next : merger PR #86 + la PR serveur, puis slice web (fin du Lot C)** —
-adapter `createHttpChordDetector` (traduction mir→tokens de grille,
-`N`/`X`→silence) + bouton « Détecter les accords » dans le panel lead-sheet
-(checkpoint d'approche UI en 2–3 lignes avant de coder). See
-[2026-07-11-chord-detection-core](sessions/2026-07-11-chord-detection-core.md)
-· [2026-07-11-chords-endpoint](sessions/2026-07-11-chords-endpoint.md).
+**Next : merger la PR web → Lot C clos.** Puis prochain chantier (veille :
+overlay accords waveform, interop ChordPro (Lot D), export MIDI par stem
+(Jalon 4), locale EN…). See
+[2026-07-11-detect-chords-ui](sessions/2026-07-11-detect-chords-ui.md) ·
+[2026-07-11-chords-endpoint](sessions/2026-07-11-chords-endpoint.md) ·
+[2026-07-11-chord-detection-core](sessions/2026-07-11-chord-detection-core.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Plan chord-charts (2026-07-10 → …)
 
+- 2026-07-11 · **Lot C serveur + web — détection ACE bout-en-bout** (PR #87 +
+  PR web) : `POST /chords` BTC vendoré sha256-pinné, adapter mir→tokens,
+  bouton « Détecter les accords » → brouillon confirmé →
+  [serveur](sessions/2026-07-11-chords-endpoint.md) ·
+  [web](sessions/2026-07-11-detect-chords-ui.md)
 - 2026-07-11 · **Lot C core — détection d'accords** (PR #86) : port
   `ChordDetector` + `chordLabelPerMeasure` + `renderChartSource` +
   `detectChords` → brouillon source →
@@ -214,8 +214,8 @@ adapter `createHttpChordDetector` (traduction mir→tokens de grille,
 
 - [roadmap-excellence-2.md](roadmap-excellence-2.md) — **complet** (Lots F–J ;
   J en PRs #81–#85, suivi coché en fin de fichier).
-- [chord-charts-plan.md](chord-charts-plan.md) — **en cours** (figé le
-  2026-07-10; Lot A/B sur `feat/chord-chart-model`).
+- [chord-charts-plan.md](chord-charts-plan.md) — **complet** (Lots A/B/C
+  livrés ; Lot D ChordPro = optionnel, en veille).
 - [tempo-detection-plan.md](tempo-detection-plan.md) — complet (Lots A–C).
 - [roadmap-excellence.md](roadmap-excellence.md) — complet (Lots A–E).
 - [jalon-2-plan.md](jalon-2-plan.md) · [jalon-1-plan.md](jalon-1-plan.md) —

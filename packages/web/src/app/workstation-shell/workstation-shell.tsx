@@ -1,5 +1,6 @@
 import {
   type AudioFileDecoder,
+  type ChordDetector,
   defaultKeyBindings,
   formatTimecode,
   type PlaybackEngine,
@@ -17,7 +18,7 @@ import { useServerHealth } from '../../projects/use-server-health.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
 import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
-import { useChordChart } from '../lead-sheet/use-chord-chart.ts'
+import { useChordChartSession } from '../lead-sheet/use-chord-chart-session.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
 import { useMarkers } from '../markers/use-markers.ts'
@@ -56,6 +57,7 @@ interface WorkstationShellProps {
   readonly metadataReader?: TrackMetadataReader
   readonly separator?: StemSeparator
   readonly tempoDetector?: TempoDetector
+  readonly chordDetector?: ChordDetector
   readonly trackSource?: TrackSource
   readonly projectStores?: ProjectDeps
   /** Injected in tests; the health poll defaults to the real global fetch. */
@@ -78,6 +80,7 @@ export function WorkstationShell({
   metadataReader,
   separator,
   tempoDetector,
+  chordDetector,
   trackSource,
   projectStores,
   healthFetch,
@@ -122,11 +125,16 @@ export function WorkstationShell({
   } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsActive)
   const markers = useMarkers()
   const tempo = useTempo(tempoDetector)
+  // The chart's source (session state riding the project lifecycle) + the
+  // « Détecter les accords » flow drafting into it — see the hook's doc.
+  const { chart: chordChart, detection: chordDetection } = useChordChartSession(
+    {
+      loadedAudio,
+      grid: tempo.analysis?.grid ?? [],
+      detector: chordDetector
+    }
+  )
   const metronome = useMetronome({ mixer })
-  // The chart's source text is session state: saved with the project, restored
-  // on open, cleared by a fresh import — so it lives here, not in the panel
-  // (which unmounts while a track loads).
-  const chordChart = useChordChart()
   const loops = useLoops()
   const loopEditing = useLoopEditing(loops, {
     durationSeconds: transport.durationSeconds,
@@ -341,6 +349,7 @@ export function WorkstationShell({
         onSeparate={handleSeparate}
         chordChartSource={chordChart.source}
         onChordChartChange={chordChart.setSource}
+        chordDetection={chordDetection}
         />
       )}
 

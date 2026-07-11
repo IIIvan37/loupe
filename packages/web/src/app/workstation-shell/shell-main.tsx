@@ -3,6 +3,7 @@ import { type ComponentProps, useMemo } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { ChordChartPanel } from '../lead-sheet/chord-chart-panel.tsx'
+import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import { LoopControls } from '../loops/loop-controls.tsx'
 import type { useLoopEditing } from '../loops/use-loop-editing.ts'
 import type { useLoops } from '../loops/use-loops.ts'
@@ -60,6 +61,8 @@ interface ShellMainProps {
   /** The chord chart's source text — session state lifted to the shell. */
   readonly chordChartSource: string
   readonly onChordChartChange: (source: string) => void
+  /** « Détecter les accords » — the chord-detection flow the panel drives. */
+  readonly chordDetection: ChordDetection
 }
 
 /**
@@ -96,7 +99,8 @@ export function ShellMain({
   serverHealth,
   onSeparate,
   chordChartSource,
-  onChordChartChange
+  onChordChartChange,
+  chordDetection
 }: ShellMainProps) {
   // Stems the separation masked as near-silent — captioned in the mixer gutter.
   const undetectedStems =
@@ -177,6 +181,22 @@ export function ShellMain({
               // The played measure is a projection of the playhead on the
               // grid's downbeats — derived here, never stored (see the plan).
               currentMeasureIndex={measureIndexAt(grid ?? [], positionSeconds)}
+              detection={{
+                detecting: chordDetection.detecting,
+                error: chordDetection.error,
+                succeeded: chordDetection.succeeded,
+                onDetect: (barsPerRow) =>
+                  void chordDetection.detect(barsPerRow),
+                // The chord engine only needs the server to ANSWER (it runs
+                // on CPU — 'no-separation' just means no Demucs device), and
+                // the measures need a downbeat-flagged grid to anchor on.
+                blockedReason:
+                  serverHealth === 'offline' || serverHealth === 'checking'
+                    ? 'server'
+                    : (grid?.some((beat) => beat.downbeat) ?? false)
+                      ? undefined
+                      : 'no-grid'
+              }}
             />
           )}
         </Stack>
