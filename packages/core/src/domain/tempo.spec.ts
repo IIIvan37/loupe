@@ -224,6 +224,43 @@ describe('buildTempoMap', () => {
     )
   })
 
+  it('ignores a short noise run between two steady sections', () => {
+    // The « Don't Stop Me Now » transition: between the ~100 BPM intro and the
+    // ~158 BPM body, the detector misreads the drum fill (three ~0.3 s gaps,
+    // then a missed beat). Two confirmed gaps must not be enough to believe a
+    // tempo — the fill must not surface as 200 and 68 BPM micro-segments.
+    const intro = steadyTimes(100, 11)
+    const last = intro[intro.length - 1] ?? 0
+    const fill = [last + 0.3, last + 0.58, last + 0.9, last + 1.78]
+    const fillEnd = fill[fill.length - 1] ?? 0
+    const body = Array.from(
+      { length: 11 },
+      (_, index) => fillEnd + (index + 1) * 0.38
+    )
+    const map = buildTempoMap(gridOf([...intro, ...fill, ...body]))
+    expect(map.map((segment) => Math.round(segment.bpm))).toEqual([100, 158])
+  })
+
+  it('believes a tempo change held for a full bar (four gaps)', () => {
+    // Exactly four 0.4 s gaps between two 0.6 s sections: the minimum run a
+    // tempo change needs to be believed — one gap fewer is transition noise.
+    const before = steadyTimes(100, 11)
+    const last = before[before.length - 1] ?? 0
+    const change = Array.from(
+      { length: 4 },
+      (_, index) => last + (index + 1) * 0.4
+    )
+    const changeEnd = change[change.length - 1] ?? 0
+    const after = Array.from(
+      { length: 11 },
+      (_, index) => changeEnd + (index + 1) * 0.6
+    )
+    const map = buildTempoMap(gridOf([...before, ...change, ...after]))
+    expect(map.map((segment) => Math.round(segment.bpm))).toEqual([
+      100, 150, 100
+    ])
+  })
+
   it('keeps a genuine sustained tempo change beyond the spurious threshold', () => {
     // 60 BPM then a real 160 BPM section (ratio 2.67×): a sustained fast
     // section is a tempo change, not a run of double-fires — no beat may be

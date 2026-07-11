@@ -27,6 +27,17 @@
   un seul segment au bon bpm », dont un contre-exemple réel trouvé par
   fast-check : cluster de parasites en début de grille → fenêtre glissée).
 
+- **2ᵉ passe, sur retour utilisateur (« Don't Stop Me Now », 25–30 s)** : les
+  parasites étaient bien filtrés, mais la **transition** intro 100 BPM → corps
+  158 BPM exposait un défaut distinct — deux gaps « confirmés » suffisaient à
+  `buildTempoMap` pour croire un tempo, donc le fill de batterie bruité créait
+  des micro-segments 207 → 187 → 68 → 162 BPM. Ajout d'un **support minimal
+  par segment** (`MIN_SEGMENT_SUPPORT = 4` gaps ≈ une mesure, dernier segment
+  exempté pour les ritardandos finaux) : sur la grille réelle du projet, la
+  carte passe de **21 à 7 segments** — 100 BPM jusqu'à 30,3 s puis 157,9, et
+  l'outro garde son vrai ralentissement (79 → 83 → 97). Fixture de test tirée
+  du motif réel + test frontière (changement tenu exactement 4 gaps → cru).
+
 ## Not done / remaining
 - **Parasites denses** (un double-fire après *chaque* beat) : hors de portée
   d'un garde par médiane (les gaps courts deviennent majoritaires). Documenté
@@ -56,7 +67,7 @@
 - typecheck: ✅ (gate exit 0)
 - tests (with coverage): ✅ 935 web/core (+7) · 134 pytest serveur (+7),
   couverture serveur 97 %
-- mutation (Stryker, local): ✅ **95,01 %** global, tempo.ts 94,29 %
+- mutation (Stryker, local): ✅ **94,93 %** global, tempo.ts 93,82 %
   (baseline 93,69 avant le lot)
 - biome / sheriff / knip / jscpd: ✅ · ruff + ruff format + pyright serveur ✅
 - Note : un flake `workstation-shell.spec.tsx` (timer Base UI ToastProvider

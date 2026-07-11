@@ -95,7 +95,7 @@ export function buildTempoMap(grid: BeatGrid): TempoMap {
   // Walk the gaps between consecutive beats, opening a new segment when a gap
   // strays beyond the tolerance of the running median AND the following gap
   // confirms it — a lone outlier (a missed beat) is jitter, not a new tempo.
-  const segments: TempoSegment[] = []
+  const segments: SupportedSegment[] = []
   let anchor = firstBeat // the beat opening the current segment
   let previous = secondBeat // the beat opening the current gap
   let gaps = [secondBeat.timeSeconds - firstBeat.timeSeconds]
@@ -108,7 +108,11 @@ export function buildTempoMap(grid: BeatGrid): TempoMap {
       nextBeat !== undefined &&
       deviates(nextBeat.timeSeconds - beat.timeSeconds, reference)
     if (ruptures) {
-      segments.push({ fromSeconds: anchor.timeSeconds, bpm: 60 / reference })
+      segments.push({
+        fromSeconds: anchor.timeSeconds,
+        bpm: 60 / reference,
+        support: gaps.length
+      })
       anchor = previous
       gaps = [gap]
     } else {
@@ -116,8 +120,40 @@ export function buildTempoMap(grid: BeatGrid): TempoMap {
     }
     previous = beat
   })
-  segments.push({ fromSeconds: anchor.timeSeconds, bpm: 60 / median(gaps) })
+  segments.push({
+    fromSeconds: anchor.timeSeconds,
+    bpm: 60 / median(gaps),
+    support: gaps.length
+  })
+  return consolidateSegments(segments)
+}
+
+/**
+ * A tempo change must hold for at least this many beat intervals before the
+ * map believes it: shorter runs are transition noise (a drum fill read as
+ * double-time, a detector wobble), not a tempo the musician should see.
+ */
+const MIN_SEGMENT_SUPPORT = 4
+
+/** A raw segment plus how many gaps vouched for it. */
+interface SupportedSegment extends TempoSegment {
+  readonly support: number
+}
+
+/**
+ * Keep only segments a full run of gaps vouches for; the span of a discarded
+ * run stays under the previous kept segment's reign (its median is untouched
+ * by the noise, so the read-out holds steady through the transition). The
+ * final segment is exempt — a closing ritardando may not live long enough to
+ * qualify, and with nothing after it there is nothing to absorb it into.
+ */
+function consolidateSegments(segments: readonly SupportedSegment[]): TempoMap {
   return segments
+    .filter(
+      (segment, index) =>
+        segment.support >= MIN_SEGMENT_SUPPORT || index === segments.length - 1
+    )
+    .map(({ fromSeconds, bpm }) => ({ fromSeconds, bpm }))
 }
 
 /**
