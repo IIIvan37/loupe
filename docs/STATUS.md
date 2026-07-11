@@ -23,24 +23,31 @@ LiveStatus a11y). Gate **vert — 925 tests** (+19), serveur 127 pytest.
 **En cours : [feuille de route v3](roadmap-excellence-3.md)** (évaluation
 notée du 2026-07-11, 16,0/20). **Lots K et L clos** (PRs #89–#94 mergées —
 voir l'historique ci-dessous).
-**M.1 fait** sur `security/origin-guard` (PR à ouvrir) : `OriginGuardMiddleware`
-à côté de `LoopbackOnlyMiddleware` — **403** pour toute requête portant un
-`Origin` hors `LOUPE_ALLOWED_ORIGINS` (CORS bloque la *lecture*, pas l'*envoi* :
-un POST « simple request » sans préflight pouvait déclencher `/download`,
-`/audio`, les inférences ou `/gc` depuis une page tierce) ; sans `Origin`
-(curl, natif) → passe. /code-review a durci : chaque valeur `Origin` dupliquée
-vérifiée, same-origin (`/docs`) de confiance, allowlist partagée CORS+garde,
-tests CORS étrangers assertent le 403. **149 pytest** (97,3 %), ruff+pyright
-verts ; gate TS non concernée (aucun fichier TS touché).
-**Next : merger la PR M.1, puis M.2** (durcir `/download`) → M.3, N, O.
-See [M.1](sessions/2026-07-11-origin-guard.md) ·
-[L.4](sessions/2026-07-11-wav-encode-memo.md) ·
-[L.3](sessions/2026-07-11-stems-memory.md).
+**M.1 mergé (PR #95)** : `OriginGuardMiddleware` — 403 pour tout `Origin` hors
+allowlist (CSRF « simple request »), same-origin de confiance, chaque valeur
+dupliquée vérifiée.
+**M.2 fait** sur `security/harden-download` (PR à ouvrir) : `/download` rejoint
+le standard — sémaphore (`LOUPE_MAX_CONCURRENT_DOWNLOADS`), `max_filesize`
+yt-dlp aligné sur le cap d'upload, **budget wall-clock total**
+(`LOUPE_DOWNLOAD_TIMEOUT_SECONDS`, 900 s) sur `events.get()`. /code-review a
+mordu fort : le timeout par-événement était réarmé par chaque tick de
+progression → deadline totale ; `socket_timeout: 30` yt-dlp (seul le worker
+peut libérer son slot) ; **`/separate` avait le même trou en pire** (aucun
+timeout) → même budget (`LOUPE_SEPARATION_TIMEOUT_SECONDS`, 1800 s) ;
+`seconds_env` refuse 0. **157 pytest** (97,5 %), ruff+pyright verts.
+**Next : merger la PR M.2, puis M.3** (basses groupées : `asyncio.wait_for`
+inférences, `FileResponse /audio`, doc poids) → N, O.
+See [M.2](sessions/2026-07-11-harden-download.md) ·
+[M.1](sessions/2026-07-11-origin-guard.md) ·
+[L.4](sessions/2026-07-11-wav-encode-memo.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
+- 2026-07-11 · **M.1 — garde Origin CSRF** (PR #95) : `OriginGuardMiddleware`,
+  403 hors allowlist, same-origin de confiance →
+  [rapport](sessions/2026-07-11-origin-guard.md)
 - 2026-07-11 · **L.4 — memo WAV encodé** (PR #94, **Lot L clos**) :
   `encodeWavMemo` WeakMap, le mix encodé une fois pour `/tempo`/`/chords`/
   `/separate`/export piste → [rapport](sessions/2026-07-11-wav-encode-memo.md)

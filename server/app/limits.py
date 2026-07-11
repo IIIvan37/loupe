@@ -32,6 +32,14 @@ MAX_MANIFEST_BYTES = _mb_env("LOUPE_MAX_MANIFEST_MB", 16)
 MAX_AUDIO_STORE_BYTES = _mb_env("LOUPE_MAX_AUDIO_STORE_MB", 10240)
 
 
+def seconds_env(name: str, default_seconds: int) -> float:
+    """A timeout in seconds from an env var — absent/garbage/zero falls back
+    (0 would make every guarded wait expire instantly, never a valid timeout)."""
+    raw = os.environ.get(name, str(default_seconds))
+    value = int(raw) if raw.isdigit() else 0
+    return float(value) if value > 0 else float(default_seconds)
+
+
 def concurrency_slots(env_name: str) -> int:
     """Inference-slot count from an env var — never below 1 (0 would deadlock).
 

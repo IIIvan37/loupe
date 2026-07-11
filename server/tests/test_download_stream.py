@@ -8,6 +8,8 @@ touching YouTube. Run: `.venv/bin/python -m pytest`.
 from __future__ import annotations
 
 import json
+import time
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -66,7 +68,10 @@ def test_no_file_produced_is_an_error(monkeypatch):
 
     monkeypatch.setattr(download, "_extract", fake_extract)
     events = _events("https://youtube.com/watch?v=x")
-    assert events[-1] == {"type": "error", "message": "download produced no file"}
+    assert events[-1] == {
+        "type": "error",
+        "message": "download produced no file — the track may exceed the size cap",
+    }
 
 
 def test_extraction_failure_is_generic(monkeypatch):
@@ -136,3 +141,63 @@ def test_full_audio_store_ends_the_stream_with_the_quota_error(monkeypatch):
     events = _events("https://youtube.com/watch?v=x")
 
     assert events[-1] == {"type": "error", "message": "audio store quota exceeded"}
+
+
+def test_options_cap_the_file_size_to_the_upload_limit(tmp_path):
+    """yt-dlp must refuse a file the audio store would refuse anyway — before
+    it fills the tmp dir (which sits outside the store quota)."""
+    options = download._make_options(tmp_path, lambda status: None)
+    assert options["max_filesize"] == download.MAX_UPLOAD_BYTES
+
+
+def test_frozen_worker_times_out_with_an_ndjson_error(monkeypatch):
+    """A wedged yt-dlp must not suspend the stream thread forever."""
+    monkeypatch.setattr(download, "DOWNLOAD_TIMEOUT_SECONDS", 0.05)
+    monkeypatch.setattr(download, "_download", lambda url, out_dir, events: None)
+
+    events = _events("https://youtube.com/watch?v=x")
+    assert events[-1] == {"type": "error", "message": "download timed out"}
+
+
+def test_downloads_wait_on_the_concurrency_semaphore(monkeypatch):
+    """With the single slot held, the worker can't start and the stream times
+    out — proof the fetch acquires the semaphore."""
+    monkeypatch.setattr(download, "DOWNLOAD_TIMEOUT_SECONDS", 0.05)
+
+    def fake_extract(url, out_dir, on_progress):
+        (out_dir / "track.m4a").write_bytes(b"x")
+        return {"title": "Song"}
+
+    monkeypatch.setattr(download, "_extract", fake_extract)
+    monkeypatch.setattr(download, "store_audio", lambda data: "r")
+
+    assert download._download_semaphore.acquire(blocking=False)
+    try:
+        events = _events("https://youtube.com/watch?v=x")
+    finally:
+        download._download_semaphore.release()
+    assert events[-1] == {"type": "error", "message": "download timed out"}
+
+
+def test_a_trickling_download_cannot_outlive_the_total_deadline(monkeypatch):
+    """The timeout is a total budget, not per-event — steady progress events
+    must not reset it forever."""
+    monkeypatch.setattr(download, "DOWNLOAD_TIMEOUT_SECONDS", 0.05)
+
+    def trickle(url, out_dir, events):
+        for _ in range(50):
+            time.sleep(0.01)
+            events.put(("progress", 0.5))
+        events.put(("error", "worker finished after the deadline"))
+
+    monkeypatch.setattr(download, "_download", trickle)
+
+    events = _events("https://youtube.com/watch?v=x")
+    assert events[-1] == {"type": "error", "message": "download timed out"}
+
+
+def test_options_bound_the_socket_wait():
+    """A dead network pipe must eventually raise inside yt-dlp itself — the
+    stream timeout frees our thread but cannot free the worker's slot."""
+    options = download._make_options(Path("/tmp/x"), lambda status: None)
+    assert options["socket_timeout"] == 30

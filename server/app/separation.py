@@ -40,7 +40,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, StreamingResponse
 
 from . import stems_store
-from .limits import MAX_UPLOAD_BYTES, concurrency_slots, read_capped_body
+from .limits import MAX_UPLOAD_BYTES, concurrency_slots, read_capped_body, seconds_env
 from .stem_manifest import build_manifest
 from .wav_decode import decode_wav
 
@@ -91,6 +91,10 @@ stems_store.ensure_jobs_dir()
 # concurrent /separate calls (trivially reachable in a browser) would thrash the
 # device or OOM it. One at a time by default; env-tunable.
 _sep_semaphore = threading.BoundedSemaphore(concurrency_slots("LOUPE_MAX_CONCURRENT_SEPARATIONS"))
+
+# Total wall-clock budget for one separation, queue wait included (a long
+# track on CPU takes minutes, so the ceiling is generous).
+SEPARATION_TIMEOUT_SECONDS = seconds_env("LOUPE_SEPARATION_TIMEOUT_SECONDS", 1800)
 
 
 def _load_mix(data: bytes) -> torch.Tensor:
@@ -167,9 +171,20 @@ def _separate_stream(data: bytes, base_url: str) -> Iterator[bytes]:
     worker = threading.Thread(target=_run_separation, args=(mix, events), daemon=True)
     worker.start()
 
+    # Same total wall-clock budget as /download: a wedged inference (device
+    # hang) must not suspend this threadpool thread forever, and a per-event
+    # timeout would be reset by every tqdm progress tick.
+    deadline = time.monotonic() + SEPARATION_TIMEOUT_SECONDS
     stems = None
     while True:
-        kind, payload = events.get()
+        remaining = deadline - time.monotonic()
+        try:
+            if remaining <= 0:
+                raise queue.Empty
+            kind, payload = events.get(timeout=remaining)
+        except queue.Empty:
+            yield _event({"type": "error", "message": "separation timed out"})
+            return
         if kind == "progress":
             yield _event({"type": "progress", "phase": "separating", "fraction": payload})
         elif kind == "error":
