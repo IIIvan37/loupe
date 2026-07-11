@@ -7,31 +7,36 @@
 
 ## Where we are
 
-**Transposition de la grille done (2026-07-10)** on branch
-`feat/chord-chart-transpose` (persistance mergée PR #78) :
-**`transposeChartSource(source, ±n)`** pur — transpose le **texte source**
-(la vérité persistée) en préservant la mise en page verbatim ; boutons
-**−½ / +½** dans l'en-tête du panneau, la source réécrite persiste comme
-une édition. Trois durcissements sortis de la revue post-slice (findings
-**vérifiés en exécutant le code**) : **garde round-trip par token** (un token
-lossy comme `C/E/G` passe verbatim — plus de corruption irréversible au
-clic), semitones non entiers/NaN refusés (plus de token `undefined`),
-accidentals unicode `♭`/`♯` reconnus (`B♭ −1 → A`). Tokenisation unifiée
-(`TOKEN` partagé parser/transposeur), chip-buttons factorisés
-(`controls.module.css`, clone jscpd 8 → 7). Gate **vert — 859 tests** (+18),
-Stryker **100 %** sur `chord-chart.ts`/`chord-symbol.ts` (global 95,09).
-Limitation assumée : les mots d'annotation (`Capo`…) sont des tokens-accords
-par contrat du format.
+**Sync lecture de la lead-sheet done (2026-07-11)** on branch
+`feat/chord-chart-playback-sync` (transposition mergée PR #79) : la grille
+suit la tête de lecture. **`measureIndexAt(grid, seconds)`** pur dans
+`domain/tempo.ts` — la i-ᵉ mesure ↔ le i-ᵉ intervalle downbeat→downbeat du
+`BeatGrid` (projection dérivée, jamais stockée, conforme au plan) ;
+`undefined` avant le premier downbeat ou sans grille → surlignage désactivé
+proprement. `LeadSheet` rend la mesure courante en `aria-current` + lavis
+ambre (index **global** à travers les sections) ; acceptation au niveau
+shell via le fake engine. **Bars-per-row configurable** :
+`repeat(var(--bars-per-row, 4), …)` — paramètre de rendu inline, jamais un
+champ du modèle ; champ 1–12 dans l'en-tête (brouillon local, un champ vidé
+garde la disposition). Revue 8 angles → 5 corrections : `parseChart`
+memoïsé (le parent tick à chaque frame), comptage sans allocation, `cx()`,
+**`.numberField` partagé** (composé par tempo-panel et grille). Gate
+**vert — 875 tests** (+16), Stryker global **95,14**, `measureIndexAt`
+0 survivant.
 
-**Next: PR, puis un incrément lead-sheet** (sync lecture — surlignage mesure
-courante via le `BeatGrid`, bars-per-row configurable) ou **Lot J**
-([roadmap-excellence-2](roadmap-excellence-2.md)). See
-[2026-07-10-chord-chart-transpose](sessions/2026-07-10-chord-chart-transpose.md).
+**Next: PR, puis Lot C chord-charts** (endpoint `/chords` BTC + port
+`ChordDetector` — lever d'abord les 2 angles morts : spike Demucs, dispo
+poids) ou **Lot J** ([roadmap-excellence-2](roadmap-excellence-2.md)). See
+[2026-07-11-chord-chart-playback-sync](sessions/2026-07-11-chord-chart-playback-sync.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Plan chord-charts (2026-07-10 → …)
 
+- 2026-07-10 · **Transposition de la grille** (PR #79) :
+  `transposeChartSource(source, ±n)` réécrit le texte source en préservant la
+  mise en page ; garde round-trip par token, accidentals unicode →
+  [rapport](sessions/2026-07-10-chord-chart-transpose.md)
 - 2026-07-10 · **Persistance de la grille** (PR #78) : `ProjectChordChart
   { source }` signé dans le manifest (absent ⇔ vide), état lifté au shell,
   restauré à l'ouverture, reset à l'import ; piège du test vacuement vert
