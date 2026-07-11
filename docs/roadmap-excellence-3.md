@@ -61,6 +61,9 @@ K.1), export zip synchrone (veille STATUS.md — inchangé).
   3. acceptance test avec une source de ~120 mesures (présence du scrollport +
      spy `scrollIntoView` au changement de mesure) ; browser-verify le ressenti ;
   4. au passage : documenter ou retirer l'`overflow: auto` inerte de `.main`.
+- **Horizon.** Correctif tactique : la refonte visuelle de la lead-sheet
+  (Lot P — chart avec sections/reprises, édition repliée) redéfinira le
+  panneau ; K.1 doit rester minimal.
 
 ### K.2 — Tempo 750 BPM : beat parasite non filtré, ni clamp ni repli local *(🟠 haute, core + serveur)*
 - **Constat (cause racine tracée).** Le garde-fou de `buildTempoMap`
@@ -267,6 +270,51 @@ veille, pas de `manualChunks` prématuré.)*
 
 ---
 
+## Lot P — Lead-sheet façon « chart » *(chantier produit, direction fixée le 2026-07-11)*
+
+> **Cible visuelle (demande utilisateur) :** la lead-sheet doit ressembler à une
+> chart professionnelle type chordsheet.com/iReal — référence : le PDF « Your
+> Song » (Elton John) fourni localement (non versionné, document sous droits).
+> Ce lot est un chantier à part entière : il mérite **son propre plan**
+> (comme chord-charts-plan) et le checkpoint d'approche UI avant chaque slice.
+> K.1 reste le correctif immédiat du bug de hauteur ; P le remplace à terme.
+
+Ce que la référence montre, et ce que ça implique :
+
+### P.1 — Décrire la **structure** du morceau (domaine)
+- La chart de référence n'est pas une timeline linéaire : elle décrit la
+  **forme** — sections nommées et encadrées (Intro, Verse, Chorus, Coda,
+  Outro), reprises `|:  :|`, voltas 1./2., D.C., signe Coda, point d'orgue.
+  Une trentaine de mesures écrites suffisent à décrire un morceau de 100+
+  mesures jouées.
+- Le modèle actuel est linéaire (mesure i ↔ i-ème downbeat) ; il faut un
+  modèle de forme dans le domaine : sections + reprises/voltas, et une
+  fonction pure de **déroulement** (unroll) forme → suite de mesures jouées,
+  pour que la sync lecture (`measureIndexAt`) et le surlignage continuent de
+  fonctionner. Étendre la grammaire du format texte (les labels `[Section]`
+  existent déjà ; ajouter reprises/voltas est l'étape suivante).
+- Ce déroulement résout au passage la hauteur (une forme compacte remplace
+  105 mesures dépliées) et ouvre la voie à une future **détection de
+  structure** (segmentation audio) — à ne pas coder spéculativement.
+
+### P.2 — Rendu « chart » (UI)
+- Typographie de chart : accords en grande taille, exposants pour les
+  qualités (maj7, 7), slash chords empilés (F/C) ; barres de mesure dessinées,
+  double barre d'ouverture/fermeture, barres de reprise, cadres de section,
+  entête (titre, artiste, tonalité, tempo, style) ; 4 mesures par ligne par
+  défaut. Rester CSS Grid/zéro lib comme l'actuel LeadSheet, tokens du design
+  system.
+
+### P.3 — Édition repliée
+- **Demande utilisateur :** l'édition des accords n'a pas besoin d'être
+  perpétuellement visible. Sortir la textarea du flux permanent du panneau —
+  mode édition explicite (toggle « Modifier », dialog, ou édition en place
+  d'une mesure/section) ; la vue par défaut est la chart en lecture seule,
+  synchronisée à la lecture. La ligne « Détecter les accords » reste, elle,
+  accessible en tête de panneau (cf. N.4).
+
+---
+
 ## Veille (décisions, pas des oublis)
 
 - Subdivisions du métronome (croches/triolets) — promesse du plan produit §3.6,
@@ -302,3 +350,5 @@ veille, pas de `manualChunks` prématuré.)*
 - [ ] **O.3** split workstation-shell.spec
 - [ ] **O.4** btc_windows.py pur
 - [ ] **O.5** basses code groupées
+- [ ] **P** lead-sheet façon chart — à planifier (plan dédié : structure,
+      rendu, édition repliée)
