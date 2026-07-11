@@ -56,6 +56,21 @@ describe('detectTempo', () => {
     ])
   })
 
+  it('sanitizes the detector grid: a double-fire never reaches the analysis', async () => {
+    // The detector double-fires 80 ms after a real beat: whatever adapter the
+    // payload came through, the analysis grid (metronome click, waveform
+    // beats) must not carry the spurious instant.
+    const withParasite = bar4([0, 0.8, 1.6, 1.68, 2.4, 3.2])
+    const result = await detectTempo(
+      { audio },
+      { detector: fakeDetector(75, withParasite) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.analysis.grid.map((beat) => beat.timeSeconds)).toEqual([
+      0, 0.8, 1.6, 2.4, 3.2
+    ])
+  })
+
   it('derives the meter from the reported bar positions', async () => {
     const threeFour: readonly DetectedBeat[] = [
       { timeSeconds: 0, barPosition: 1 },

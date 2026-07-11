@@ -13,6 +13,7 @@ import {
   MIN_MANUAL_BPM,
   measureIndexAt,
   normalizeManualBpm,
+  sanitizeBeatGrid,
   tapTempoBpm,
   tempoAt
 } from './tempo.ts'
@@ -188,6 +189,19 @@ describe('buildTempoMap', () => {
     expect(buildTempoMap(gridOf(withHole))[0]?.bpm).toBeCloseTo(120, 5)
   })
 
+  it('reads a grid with one spurious inserted beat as a single segment', () => {
+    // 75 BPM (0.8 s gaps) with a detector double-fire 80 ms after a real beat:
+    // an INSERTED beat, not a missed one — it must not open a 750 BPM segment.
+    const withParasite = [0, 0.8, 1.6, 1.68, 2.4, 3.2, 4, 4.8]
+    expect(buildTempoMap(gridOf(withParasite))).toHaveLength(1)
+  })
+
+  it('keeps the felt tempo right after the spurious beat at the real bpm', () => {
+    // Without the guard this instant reads 60/0.08 = 750 BPM.
+    const withParasite = [0, 0.8, 1.6, 1.68, 2.4, 3.2, 4, 4.8]
+    expect(tempoAt(buildTempoMap(gridOf(withParasite)), 2)).toBeCloseTo(75, 5)
+  })
+
   it('never splits a steady grid under ±2% jitter', () => {
     fc.assert(
       fc.property(
@@ -205,6 +219,79 @@ describe('buildTempoMap', () => {
             times.push(at)
           }
           return buildTempoMap(gridOf(times)).length === 1
+        }
+      )
+    )
+  })
+
+  it('ignores a short noise run between two steady sections', () => {
+    // The « Don't Stop Me Now » transition: between the ~100 BPM intro and the
+    // ~158 BPM body, the detector misreads the drum fill (three ~0.3 s gaps,
+    // then a missed beat). Two confirmed gaps must not be enough to believe a
+    // tempo — the fill must not surface as 200 and 68 BPM micro-segments.
+    const intro = steadyTimes(100, 11)
+    const last = intro[intro.length - 1] ?? 0
+    const fill = [last + 0.3, last + 0.58, last + 0.9, last + 1.78]
+    const fillEnd = fill[fill.length - 1] ?? 0
+    const body = Array.from(
+      { length: 11 },
+      (_, index) => fillEnd + (index + 1) * 0.38
+    )
+    const map = buildTempoMap(gridOf([...intro, ...fill, ...body]))
+    expect(map.map((segment) => Math.round(segment.bpm))).toEqual([100, 158])
+  })
+
+  it('believes a tempo change held for a full bar (four gaps)', () => {
+    // Exactly four 0.4 s gaps between two 0.6 s sections: the minimum run a
+    // tempo change needs to be believed — one gap fewer is transition noise.
+    const before = steadyTimes(100, 11)
+    const last = before[before.length - 1] ?? 0
+    const change = Array.from(
+      { length: 4 },
+      (_, index) => last + (index + 1) * 0.4
+    )
+    const changeEnd = change[change.length - 1] ?? 0
+    const after = Array.from(
+      { length: 11 },
+      (_, index) => changeEnd + (index + 1) * 0.6
+    )
+    const map = buildTempoMap(gridOf([...before, ...change, ...after]))
+    expect(map.map((segment) => Math.round(segment.bpm))).toEqual([
+      100, 150, 100
+    ])
+  })
+
+  it('keeps a genuine sustained tempo change beyond the spurious threshold', () => {
+    // 60 BPM then a real 160 BPM section (ratio 2.67×): a sustained fast
+    // section is a tempo change, not a run of double-fires — no beat may be
+    // dropped, so the second segment must read 160, not a decimated 80.
+    const slow = steadyTimes(60, 16)
+    const last = slow[slow.length - 1] ?? 0
+    const fast = steadyTimes(160, 16, last + 60 / 160)
+    const map = buildTempoMap(gridOf([...slow, ...fast]))
+    expect(map[map.length - 1]?.bpm).toBeCloseTo(160, 5)
+  })
+
+  it('reads the base tempo whatever spurious beats are inserted', () => {
+    // The « Somebody to Love » invariant: double-fires inserted anywhere in a
+    // steady grid must never surface as a segment of their own.
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 60, max: 200 }),
+        fc.uniqueArray(fc.integer({ min: 0, max: 10 }), {
+          minLength: 1,
+          maxLength: 3
+        }),
+        fc.double({ min: 0.05, max: 0.35, noNaN: true }),
+        (bpm, parasiteAfter, offsetFraction) => {
+          const interval = 60 / bpm
+          const times = steadyTimes(bpm, 12).flatMap((time, index) =>
+            parasiteAfter.includes(index)
+              ? [time, time + offsetFraction * interval]
+              : [time]
+          )
+          const map = buildTempoMap(gridOf(times))
+          return map.length === 1 && Math.abs((map[0]?.bpm ?? 0) - bpm) < 1e-6
         }
       )
     )
@@ -230,6 +317,72 @@ describe('buildTempoMap', () => {
         }
       )
     )
+  })
+})
+
+describe('sanitizeBeatGrid', () => {
+  const times = (grid: BeatGrid): number[] =>
+    grid.map((beat) => beat.timeSeconds)
+
+  it('drops a spurious beat inserted right after a real one', () => {
+    const grid = gridOf([0, 0.8, 1.6, 1.68, 2.4, 3.2])
+    expect(times(sanitizeBeatGrid(grid))).toEqual([0, 0.8, 1.6, 2.4, 3.2])
+  })
+
+  it('keeps the downbeat of a too-close pair, not the spurious fire before it', () => {
+    // The double-fire lands 80 ms BEFORE the real downbeat: keeping the first
+    // of the pair would shift the bar anchor early and orphan the downbeat.
+    const grid: BeatGrid = [
+      { timeSeconds: 0, downbeat: true },
+      { timeSeconds: 0.72, downbeat: false },
+      { timeSeconds: 0.8, downbeat: true },
+      { timeSeconds: 1.6, downbeat: false },
+      { timeSeconds: 2.4, downbeat: false }
+    ]
+    expect(times(sanitizeBeatGrid(grid))).toEqual([0, 0.8, 1.6, 2.4])
+  })
+
+  it('collapses duplicate beat instants', () => {
+    // A zero gap must count as spurious, not poison the median with zeros.
+    const grid = gridOf([0, 0, 0.5, 0.5, 1, 1])
+    expect(times(sanitizeBeatGrid(grid))).toEqual([0, 0.5, 1])
+  })
+
+  it('leaves a clean steady grid untouched', () => {
+    const grid = gridOf(steadyTimes(120, 8))
+    expect(sanitizeBeatGrid(grid)).toEqual(grid)
+  })
+
+  it('drops transition beats faster than the believed tempo', () => {
+    // The « Don't Stop Me Now » 28 s flam: the drum fill emits beats ~0.3 s
+    // apart (bogus downbeats included) in a 100 BPM region. They pass the
+    // double-fire floor (0.4× the ~0.5 s local median) but contradict the
+    // consolidated tempo — the metronome must not click them.
+    const intro = steadyTimes(100, 16)
+    const last = intro[intro.length - 1] ?? 0
+    const fill: BeatGrid = [
+      { timeSeconds: last + 0.3, downbeat: true },
+      { timeSeconds: last + 0.58, downbeat: true },
+      { timeSeconds: last + 0.9, downbeat: true }
+    ]
+    const holeEnd = last + 1.78
+    const body = Array.from({ length: 9 }, (_, index) => holeEnd + index * 0.38)
+    const grid: BeatGrid = [...gridOf(intro), ...fill, ...gridOf(body)]
+    expect(times(sanitizeBeatGrid(grid))).toEqual([
+      ...intro,
+      last + 0.58,
+      ...body
+    ])
+  })
+
+  it('leaves a sustained genuine fast section untouched', () => {
+    // Same shape as the buildTempoMap tempo-change case: sustained sections
+    // survive, only short bursts read as double-fires.
+    const slow = steadyTimes(60, 16)
+    const last = slow[slow.length - 1] ?? 0
+    const fast = steadyTimes(160, 16, last + 60 / 160)
+    const grid = gridOf([...slow, ...fast])
+    expect(sanitizeBeatGrid(grid)).toEqual(grid)
   })
 })
 

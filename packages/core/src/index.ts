@@ -213,6 +213,7 @@ export {
   MIN_MANUAL_BPM,
   measureIndexAt,
   normalizeManualBpm,
+  sanitizeBeatGrid,
   tapTempoBpm,
   tempoAt
 } from './domain/tempo.ts'

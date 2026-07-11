@@ -20,14 +20,27 @@ run, brouillon = édition manuelle persistée), bouton « Détecter les accords 
 (confirmation deux temps avant écrasement, hints actionnables serveur/grille,
 LiveStatus a11y). Gate **vert — 925 tests** (+19), serveur 127 pytest.
 
-**Next : merger la PR web → Lot C clos.** Puis prochain chantier (veille :
-overlay accords waveform, interop ChordPro (Lot D), export MIDI par stem
-(Jalon 4), locale EN…). See
+**En cours : [feuille de route v3](roadmap-excellence-3.md)** (évaluation
+notée du 2026-07-11, 16,0/20). **K.2 tempo 750 BPM — fait** sur la branche
+`fix/tempo-map-outliers` (PR à ouvrir) : `sanitizeBeatGrid` core (médiane
+locale fenêtrée ±8 gaps, préférence downbeat, property fast-check), filtre
+miroir serveur dans `beat_positions.py`, auto-réparation des projets persistés
+au seam de restauration. Gate verte, Stryker 95,01 %, 935 + 134 tests.
+**Next : merger la PR K.2, puis K.1** (grille d'accords : scrollport borné +
+scrollIntoView — slice UI, checkpoint d'approche en attente de validation).
+Puis Lot L (perf web) → M/N/O. See
+[2026-07-11-tempo-map-outliers](sessions/2026-07-11-tempo-map-outliers.md) ·
 [2026-07-11-detect-chords-ui](sessions/2026-07-11-detect-chords-ui.md) ·
 [2026-07-11-chords-endpoint](sessions/2026-07-11-chords-endpoint.md) ·
 [2026-07-11-chord-detection-core](sessions/2026-07-11-chord-detection-core.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
+
+### Roadmap excellence 3 (2026-07-11 → …)
+
+- 2026-07-11 · **Évaluation notée v3** (16,0/20, six axes dont performance) :
+  revue multi-agents vérifiée adversarialement, 35 constats confirmés →
+  [roadmap-excellence-3](roadmap-excellence-3.md) (Lots K–O)
 
 ### Plan chord-charts (2026-07-10 → …)
 
@@ -212,6 +225,8 @@ overlay accords waveform, interop ChordPro (Lot D), export MIDI par stem
 
 ## Plans
 
+- [roadmap-excellence-3.md](roadmap-excellence-3.md) — **en cours** (Lots K–O,
+  évaluation notée du 2026-07-11).
 - [roadmap-excellence-2.md](roadmap-excellence-2.md) — **complet** (Lots F–J ;
   J en PRs #81–#85, suivi coché en fin de fichier).
 - [chord-charts-plan.md](chord-charts-plan.md) — **complet** (Lots A/B/C
