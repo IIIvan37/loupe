@@ -66,7 +66,14 @@ def is_allowed_origin(origin: str | None, allowed: Collection[str]) -> bool:
 
 
 class OriginGuardMiddleware:
-    """Refuse (403) any HTTP request bearing an Origin outside the allowlist."""
+    """Refuse (403) any HTTP request bearing an Origin outside the allowlist.
+
+    Every `Origin` value is checked (a dict-style parse would keep only the
+    last of duplicate headers, letting a smuggled foreign one ride along). A
+    same-origin request — Origin equal to this server's own scheme://host, as
+    sent by pages we serve ourselves such as `/docs` — is trusted: a browser's
+    Origin is not forgeable, and TrustedHost already vets the Host header.
+    """
 
     def __init__(self, app: ASGIApp, allowed_origins: Collection[str]) -> None:
         self.app = app
@@ -74,11 +81,22 @@ class OriginGuardMiddleware:
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] == "http":
-            headers = dict(scope.get("headers") or [])
-            raw = headers.get(b"origin")
-            origin = raw.decode("latin-1") if raw is not None else None
-            if not is_allowed_origin(origin, self.allowed_origins):
+            headers: list[tuple[bytes, bytes]] = scope.get("headers") or []
+            origins = [v.decode("latin-1") for k, v in headers if k == b"origin"]
+            own = _request_origin(scope, headers)
+            if any(
+                origin != own and not is_allowed_origin(origin, self.allowed_origins)
+                for origin in origins
+            ):
                 response = PlainTextResponse("origin not allowed", status_code=403)
                 await response(scope, receive, send)
                 return
         await self.app(scope, receive, send)
+
+
+def _request_origin(scope: Scope, headers: list[tuple[bytes, bytes]]) -> str | None:
+    """The request's own origin (`scheme://host`), or None without a Host."""
+    host = next((v.decode("latin-1") for k, v in headers if k == b"host"), None)
+    if not host:
+        return None
+    return f"{scope.get('scheme', 'http')}://{host}"

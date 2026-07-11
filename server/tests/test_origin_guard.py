@@ -39,7 +39,7 @@ def test_foreign_origins_are_rejected(origin):
     assert is_allowed_origin(origin, ALLOWED) is False
 
 
-def _drive(headers):
+def _drive(headers, scheme="http"):
     """Run the middleware over a fabricated http scope; return (app_called, status)."""
     calls = {"app": False, "status": None}
 
@@ -53,7 +53,13 @@ def _drive(headers):
         if message["type"] == "http.response.start":
             calls["status"] = message["status"]
 
-    scope = {"type": "http", "headers": headers, "method": "POST", "path": "/gc"}
+    scope = {
+        "type": "http",
+        "headers": headers,
+        "method": "POST",
+        "path": "/gc",
+        "scheme": scheme,
+    }
     middleware = OriginGuardMiddleware(downstream, allowed_origins=ALLOWED)
     asyncio.run(middleware(scope, receive, send))
     return calls
@@ -73,6 +79,24 @@ def test_middleware_refuses_a_foreign_origin():
     calls = _drive([(b"origin", b"https://evil.example")])
     assert calls["app"] is False
     assert calls["status"] == 403
+
+
+def test_middleware_refuses_when_any_duplicate_origin_is_foreign():
+    """dict-style parsing would keep only the last Origin — every value counts."""
+    calls = _drive([(b"origin", b"https://evil.example"), (b"origin", b"http://localhost:5173")])
+    assert calls["app"] is False
+    assert calls["status"] == 403
+
+
+def test_middleware_passes_a_same_origin_request_through():
+    """A page our own server serves (e.g. /docs) posts with Origin == our origin."""
+    calls = _drive([(b"origin", b"http://localhost:8000"), (b"host", b"localhost:8000")])
+    assert calls["app"] is True
+
+
+def test_middleware_refuses_a_scheme_mismatched_own_host():
+    calls = _drive([(b"origin", b"https://localhost:8000"), (b"host", b"localhost:8000")])
+    assert calls["app"] is False
 
 
 # End-to-end through the app: the exact CSRF vectors the roadmap names.
