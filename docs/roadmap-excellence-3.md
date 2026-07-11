@@ -350,7 +350,8 @@ Ce que la référence montre, et ce que ça implique :
 - [x] **L.2** ZoomStage suivi par pages
 - [x] **L.3** mémoire stems (double rétention + copie transitoire)
 - [x] **L.4** mémoïsation WAV encodé (`encodeWavMemo`, cache réservé au mix)
-- [ ] **M.1** garde Origin (CSRF)
+- [x] **M.1** garde Origin (CSRF) (`OriginGuardMiddleware`, same-origin de
+      confiance)
 - [ ] **M.2** durcir /download
 - [ ] **M.3** basses sécurité groupées
 - [ ] **N.1** erreurs accords discriminées + Lingui

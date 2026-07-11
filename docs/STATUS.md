@@ -21,46 +21,44 @@ run, brouillon = édition manuelle persistée), bouton « Détecter les accords 
 LiveStatus a11y). Gate **vert — 925 tests** (+19), serveur 127 pytest.
 
 **En cours : [feuille de route v3](roadmap-excellence-3.md)** (évaluation
-notée du 2026-07-11, 16,0/20). **K.2 mergé (PR #89)** : `sanitizeBeatGrid` en
-deux passes (double-fires vs médiane locale fenêtrée + bruit off-tempo vs
-carte consolidée), support minimal par segment (4 gaps), filtre miroir
-serveur, auto-réparation des projets persistés ; limite documentée : la
-modulation métrique anticipée de beat_this (dbn testé, n'aide pas) → remède
-produit « édition locale du tempo » en veille. **K.1 fait** sur
-`feat/lead-sheet-scrollport` (PR à ouvrir) : scrollport
-`clamp(14rem, 45dvh, 26rem)` autour du LeadSheet + suivi du playhead
-(`scrollIntoView` nearest), browser-vérifié sur le projet réel.
-**Lot K clos** (PRs #89/#90 mergées — + footer sticky). **L.1 mergé (PR #91)** :
-le playhead vit hors de l'état React (`createExternalValue`, playhead impératif
-dans ZoomStage) — **8 commits React/5 s de lecture contre ~60–120/s avant**.
-**L.2 mergé (PR #92)** : suivi du playhead par pages (`followScrollLeft` pur),
-plus d'écriture `scrollLeft` par frame ; scroll manuel = grâce 2 s.
-**L.3 mergé (PR #93)** : le moteur multitrack est l'unique gardien du PCM des
-stems (~500 MB au lieu de ~1 GB sur 6 stems) — `stemAudio(id)` sur le port,
-`useSeparation.sources` paresseux zéro-copie, mixer sans rétention.
-**L.4 fait** sur `perf/wav-encode-memo` (PR à ouvrir) : `encodeWavMemo`
-(`WeakMap<DecodedAudio, Uint8Array>`) — le mix est encodé **une fois** pour
-`/tempo`, `/chords`, `/separate` et le téléchargement « piste »
-(~100–300 ms + ~40 MB économisés par appel évité) ; cache réservé au mix
-(jamais les blobs par-stem, ça les épinglerait). /code-review (8 angles) a
-ajouté la bascule de `use-stem-export` et confirmé l'identité stable du
-`DecodedAudio` sur les trois adaptateurs. Gate verte, **969 tests** ;
-mutation skippée (aucun fichier core touché). **Lot L clos** à la merge.
-**Next : merger la PR L.4, puis Lot M** (M.1 garde Origin CSRF).
-See [L.4](sessions/2026-07-11-wav-encode-memo.md) ·
-[L.3](sessions/2026-07-11-stems-memory.md) ·
-[L.2](sessions/2026-07-11-zoom-stage-page-follow.md) ·
-[L.1](sessions/2026-07-11-playhead-external-store.md) ·
-[K.1](sessions/2026-07-11-lead-sheet-scrollport.md) ·
-[K.2](sessions/2026-07-11-tempo-map-outliers.md) ·
-[2026-07-11-detect-chords-ui](sessions/2026-07-11-detect-chords-ui.md) ·
-[2026-07-11-chords-endpoint](sessions/2026-07-11-chords-endpoint.md) ·
-[2026-07-11-chord-detection-core](sessions/2026-07-11-chord-detection-core.md).
+notée du 2026-07-11, 16,0/20). **Lots K et L clos** (PRs #89–#94 mergées —
+voir l'historique ci-dessous).
+**M.1 fait** sur `security/origin-guard` (PR à ouvrir) : `OriginGuardMiddleware`
+à côté de `LoopbackOnlyMiddleware` — **403** pour toute requête portant un
+`Origin` hors `LOUPE_ALLOWED_ORIGINS` (CORS bloque la *lecture*, pas l'*envoi* :
+un POST « simple request » sans préflight pouvait déclencher `/download`,
+`/audio`, les inférences ou `/gc` depuis une page tierce) ; sans `Origin`
+(curl, natif) → passe. /code-review a durci : chaque valeur `Origin` dupliquée
+vérifiée, same-origin (`/docs`) de confiance, allowlist partagée CORS+garde,
+tests CORS étrangers assertent le 403. **149 pytest** (97,3 %), ruff+pyright
+verts ; gate TS non concernée (aucun fichier TS touché).
+**Next : merger la PR M.1, puis M.2** (durcir `/download`) → M.3, N, O.
+See [M.1](sessions/2026-07-11-origin-guard.md) ·
+[L.4](sessions/2026-07-11-wav-encode-memo.md) ·
+[L.3](sessions/2026-07-11-stems-memory.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
+- 2026-07-11 · **L.4 — memo WAV encodé** (PR #94, **Lot L clos**) :
+  `encodeWavMemo` WeakMap, le mix encodé une fois pour `/tempo`/`/chords`/
+  `/separate`/export piste → [rapport](sessions/2026-07-11-wav-encode-memo.md)
+- 2026-07-11 · **L.3 — mémoire stems** (PR #93) : le moteur multitrack unique
+  gardien du PCM des stems (~500 MB vs ~1 GB sur 6 stems), `stemAudio(id)` sur
+  le port, sources paresseuses zéro-copie →
+  [rapport](sessions/2026-07-11-stems-memory.md)
+- 2026-07-11 · **L.2 — suivi par pages du ZoomStage** (PR #92) :
+  `followScrollLeft` pur, plus d'écriture `scrollLeft` par frame, grâce 2 s au
+  scroll manuel → [rapport](sessions/2026-07-11-zoom-stage-page-follow.md)
+- 2026-07-11 · **L.1 — playhead hors état React** (PR #91) :
+  `createExternalValue` + playhead impératif — 8 commits React/5 s contre
+  ~60–120/s → [rapport](sessions/2026-07-11-playhead-external-store.md)
+- 2026-07-11 · **Lot K — grille & tempo** (PRs #89/#90) : `sanitizeBeatGrid`
+  deux passes + filtre miroir serveur (K.2) ; scrollport LeadSheet + suivi du
+  playhead + footer sticky (K.1) →
+  [K.2](sessions/2026-07-11-tempo-map-outliers.md) ·
+  [K.1](sessions/2026-07-11-lead-sheet-scrollport.md)
 - 2026-07-11 · **Évaluation notée v3** (16,0/20, six axes dont performance) :
   revue multi-agents vérifiée adversarialement, 35 constats confirmés →
   [roadmap-excellence-3](roadmap-excellence-3.md) (Lots K–O)
