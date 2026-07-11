@@ -170,3 +170,11 @@
 .saveStateBusy {
   color: var(--teal);
 }
+
+/* Escape hatch beside the busy chip (a cancellable download) — a quiet ghost,
+   sized to the chip's line so it never inflates the header row. */
+.busyCancel {
+  composes: ghostButton from '../ui/controls.module.css';
+  padding: var(--space-3xs) var(--space-xs);
+  font-size: var(--font-size-xs);
+}

@@ -137,7 +137,9 @@ export interface StemPlaybackEngine {
 export interface StemSeparator {
   separate(
     audio: DecodedAudio,
-    onProgress: (progress: SeparationProgress) => void
+    onProgress: (progress: SeparationProgress) => void,
+    /** Cooperative cancellation — an aborted run should reject promptly. */
+    signal?: AbortSignal
   ): Promise<readonly SeparatedStem[]>
 }
 
@@ -214,6 +216,8 @@ export interface DownloadProgress {
 export interface TrackSource {
   fetch(
     url: string,
-    onProgress: (progress: DownloadProgress) => void
+    onProgress: (progress: DownloadProgress) => void,
+    /** Cooperative cancellation — an aborted run should reject promptly. */
+    signal?: AbortSignal
   ): Promise<FetchedTrack>
 }

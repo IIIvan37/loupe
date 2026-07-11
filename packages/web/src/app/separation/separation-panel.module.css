@@ -27,6 +27,15 @@
   color: var(--teal);
 }
 
+/* Cancelling is an escape hatch, not the main event — a quiet ghost under
+   the bar, out of the reading line of the progress read-out. */
+.cancel {
+  composes: ghostButton from '../ui/controls.module.css';
+  align-self: flex-start;
+  padding: var(--space-3xs) var(--space-xs);
+  font-size: var(--font-size-s);
+}
+
 .bar {
   width: 100%;
   height: 6px;

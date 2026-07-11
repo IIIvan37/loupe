@@ -52,6 +52,37 @@ describe('useSeparation', () => {
     expect(result.current.state.stems.map((s) => s.id)).toEqual(['voix'])
   })
 
+
+  it('cancels an in-flight run: aborts the port and returns to idle', async () => {
+    let seen: AbortSignal | undefined
+    const separator: StemSeparator = {
+      separate: (_audio, _onProgress, signal) => {
+        seen = signal
+        return new Promise((_resolve, reject) => {
+          signal?.addEventListener('abort', () =>
+            reject(new DOMException('Aborted', 'AbortError'))
+          )
+        })
+      }
+    }
+    const { result } = renderHook(() => useSeparation(separator), {
+      wrapper: I18nTestingProvider
+    })
+
+    act(() => {
+      void result.current.separate(audio)
+    })
+    expect(result.current.state.status).toBe('analysing')
+
+    act(() => result.current.cancel())
+    expect(result.current.state.status).toBe('idle')
+    expect(seen?.aborted).toBe(true)
+
+    // The aborted run's rejection is stale — it must never surface as an error.
+    await act(async () => {})
+    expect(result.current.state.status).toBe('idle')
+  })
+
   it('rebuilds the ready state from persisted stems without the separator', async () => {
     const { separator } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(separator), {

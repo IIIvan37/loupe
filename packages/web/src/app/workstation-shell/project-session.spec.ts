@@ -172,6 +172,7 @@ describe('restoreSession', () => {
         exportStems: vi.fn(async () => false),
         exportError: undefined,
         dismissExportError: vi.fn(),
+        cancel: vi.fn(),
         reset: vi.fn()
       } satisfies Separation,
       mixer: {

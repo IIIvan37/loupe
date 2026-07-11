@@ -23,6 +23,8 @@ export interface SeparateTrackDeps {
   readonly separator: StemSeparator
   /** Optional progress sink — the UI feeds it into the separation state machine. */
   readonly onProgress?: (progress: SeparationProgress) => void
+  /** Optional cancellation, handed to the separator port verbatim. */
+  readonly signal?: AbortSignal
 }
 
 export type SeparateTrackResult =
@@ -47,7 +49,8 @@ export async function separateTrack(
   try {
     const separated = await deps.separator.separate(
       input.audio,
-      deps.onProgress ?? (() => {})
+      deps.onProgress ?? (() => {}),
+      deps.signal
     )
     // Decide which stems are actually present (the separator emits a fixed roster;
     // a track rarely uses them all) and how confident we are, from their energy.

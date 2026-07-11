@@ -65,6 +65,8 @@ export interface Separation {
   /** Why the last export did not happen — cleared by the next one. */
   readonly exportError: string | undefined
   readonly dismissExportError: () => void
+  /** Abort the in-flight run and return to idle; a no-op when none runs. */
+  readonly cancel: () => void
   readonly reset: () => void
 }
 
@@ -87,6 +89,9 @@ export function useSeparation(
   // import or reset is stale, and its late progress/result must not land on the
   // current track. Bumped by every `separate` and every `reset`.
   const runIdRef = useRef(0)
+  // The in-flight run's abort controller: cancel and reset abort it so the
+  // server-side work is released, not just its result dropped.
+  const controllerRef = useRef<AbortController | undefined>(undefined)
   // The isolated stems' raw PCM, kept off the pure domain state (heavy buffers)
   // but reactive so the mixer can load them into the gain graph when they land.
   const [sources, setSources] = useState<readonly SeparatedStem[]>([])
@@ -99,12 +104,15 @@ export function useSeparation(
     separateWith: StemSeparator
   ): Promise<SeparationResult | undefined> {
     const runId = ++runIdRef.current
+    const controller = new AbortController()
+    controllerRef.current = controller
     setSources([])
     dispatch({ type: 'start' })
     const result = await separateTrack(
       { audio, bucketCount: BUCKET_COUNT },
       {
         separator: separateWith,
+        signal: controller.signal,
         onProgress: (progress) => {
           if (runIdRef.current === runId) {
             dispatch({
@@ -204,8 +212,19 @@ export function useSeparation(
     return false
   }
 
+  function cancel(): void {
+    // Abort the transfer (releasing the server-side work) and supersede the
+    // run: its rejection resolves as a stale result, never as an error.
+    controllerRef.current?.abort()
+    runIdRef.current++
+    setSources([])
+    dispatch({ type: 'reset' })
+  }
+
   function reset(): void {
-    // Abandon any in-flight run so its late result can't repopulate the state.
+    // Abandon any in-flight run so its late result can't repopulate the state —
+    // and abort its transfer, since nothing will consume it.
+    controllerRef.current?.abort()
     runIdRef.current++
     setSources([])
     setExportError(undefined)
@@ -221,6 +240,7 @@ export function useSeparation(
     exportStems: exportAllStems,
     exportError,
     dismissExportError: () => setExportError(undefined),
+    cancel,
     reset
   }
 }

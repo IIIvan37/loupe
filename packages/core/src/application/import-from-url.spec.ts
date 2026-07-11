@@ -46,6 +46,22 @@ describe('importFromUrl — when the URL is a supported source', () => {
     )
     expect(onProgress.mock.calls.map(([p]) => p)).toEqual(events)
   })
+
+  it('hands the abort signal through to the source port', async () => {
+    const controller = new AbortController()
+    let received: AbortSignal | undefined
+    const source: TrackSource = {
+      async fetch(_url, _onProgress, signal) {
+        received = signal
+        return fetched
+      }
+    }
+    await importFromUrl(
+      { url: YOUTUBE_URL },
+      { source, signal: controller.signal }
+    )
+    expect(received).toBe(controller.signal)
+  })
 })
 
 describe('importFromUrl — when the URL is not a supported source', () => {

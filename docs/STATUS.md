@@ -7,32 +7,33 @@
 
 ## Where we are
 
-**Sync lecture de la lead-sheet done (2026-07-11)** on branch
-`feat/chord-chart-playback-sync` (transposition mergée PR #79) : la grille
-suit la tête de lecture. **`measureIndexAt(grid, seconds)`** pur dans
-`domain/tempo.ts` — la i-ᵉ mesure ↔ le i-ᵉ intervalle downbeat→downbeat du
-`BeatGrid` (projection dérivée, jamais stockée, conforme au plan) ;
-`undefined` avant le premier downbeat ou sans grille → surlignage désactivé
-proprement. `LeadSheet` rend la mesure courante en `aria-current` + lavis
-ambre (index **global** à travers les sections) ; acceptation au niveau
-shell via le fake engine. **Bars-per-row configurable** :
-`repeat(var(--bars-per-row, 4), …)` — paramètre de rendu inline, jamais un
-champ du modèle ; champ 1–12 dans l'en-tête (brouillon local, un champ vidé
-garde la disposition). Revue 8 angles → 5 corrections : `parseChart`
-memoïsé (le parent tick à chaque frame), comptage sans allocation, `cx()`,
-**`.numberField` partagé** (composé par tempo-panel et grille). Gate
-**vert — 875 tests** (+16), Stryker global **95,14**, `measureIndexAt`
-0 survivant.
+**Lot J — fond de panier COMPLET (2026-07-11)**, 5 PRs ouvertes,
+indépendantes sur `main` (sync lecture mergée PR #80) : **J.1** tokens
+sémantiques `--danger`/`--ok` + `--scrim` + `--disabled-opacity` (PR #81) ;
+**J.2** retour d'enfoncement `:active` 1px sur tous les skins (PR #82) ;
+**J.4** dédup des moteurs Web Audio — `createStretchTransport` partagé,
+clone jscpd éteint, **vérifié navigateur** (PR #83) ; **J.3** 🟠 quota
+disque du store audio, `LOUPE_MAX_AUDIO_STORE_MB` défaut 10 Go, refus 507 +
+événement NDJSON sur `/download` (PR #84) ; **J.5** annulation
+séparation/download — `AbortSignal` dans les ports, `cancel()` = abort +
+supersede (réducteur intact), « Annuler » dans le panneau et le header
+(PR #85). Gate **vert — 880 tests** (+5), Stryker **95,14**, serveur
+112 pytest. Avec le Lot J, la roadmap-excellence-2 est **entièrement
+cochée**.
 
-**Next: PR, puis Lot C chord-charts** (endpoint `/chords` BTC + port
-`ChordDetector` — lever d'abord les 2 angles morts : spike Demucs, dispo
-poids) ou **Lot J** ([roadmap-excellence-2](roadmap-excellence-2.md)). See
-[2026-07-11-chord-chart-playback-sync](sessions/2026-07-11-chord-chart-playback-sync.md).
+**Next : merger #81–#85, puis Lot C chord-charts** (endpoint `/chords` BTC
++ port `ChordDetector` — lever d'abord les 2 angles morts : spike Demucs,
+dispo poids, cf. [chord-charts-plan](chord-charts-plan.md)). See
+[2026-07-11-lot-j-fond-de-panier](sessions/2026-07-11-lot-j-fond-de-panier.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Plan chord-charts (2026-07-10 → …)
 
+- 2026-07-11 · **Sync lecture de la lead-sheet** (PR #80) : `measureIndexAt`
+  pur (mesure ↔ intervalle downbeat→downbeat, projection jamais stockée),
+  surlignage `aria-current` + bars-per-row configurable →
+  [rapport](sessions/2026-07-11-chord-chart-playback-sync.md)
 - 2026-07-10 · **Transposition de la grille** (PR #79) :
   `transposeChartSource(source, ±n)` réécrit le texte source en préservant la
   mise en page ; garde round-trip par token, accidentals unicode →
@@ -197,8 +198,8 @@ poids) ou **Lot J** ([roadmap-excellence-2](roadmap-excellence-2.md)). See
 
 ## Plans
 
-- [roadmap-excellence-2.md](roadmap-excellence-2.md) — **en cours** (Lots F–I
-  faits, reste Lot J; suivi coché en fin de fichier).
+- [roadmap-excellence-2.md](roadmap-excellence-2.md) — **complet** (Lots F–J ;
+  J en PRs #81–#85, suivi coché en fin de fichier).
 - [chord-charts-plan.md](chord-charts-plan.md) — **en cours** (figé le
   2026-07-10; Lot A/B sur `feat/chord-chart-model`).
 - [tempo-detection-plan.md](tempo-detection-plan.md) — complet (Lots A–C).

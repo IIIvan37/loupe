@@ -45,6 +45,7 @@ function renderPanel(
       canSeparate
       serverHealth="ready"
       onSeparate={() => {}}
+      onCancel={() => {}}
       {...props}
     />,
     { wrapper: I18nTestingProvider }
@@ -56,6 +57,7 @@ function renderPanel(
         canSeparate
         serverHealth="ready"
         onSeparate={() => {}}
+        onCancel={() => {}}
       />
     )
   return { ...view, rerenderPanel }
@@ -111,13 +113,25 @@ describe('SeparationPanel', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('shows the running phase and progress, hiding the action', () => {
+  it('shows the running phase and progress, swapping the action for a cancel', () => {
     renderPanel({ status: 'separating', progress: 0.4 })
     expect(
       screen.getByText(i18n._('separation.separating'), visibleOnly)
     ).toBeInTheDocument()
     expect(screen.getByRole('progressbar')).toHaveAttribute('value', '40')
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: i18n._('separation.separate') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('cancels the running separation on demand', async () => {
+    const user = userEvent.setup()
+    const onCancel = vi.fn()
+    renderPanel({ status: 'separating', progress: 0.4 }, { onCancel })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('common.cancel') })
+    )
+    expect(onCancel).toHaveBeenCalledOnce()
   })
 
   it('exposes a live status region before a run starts', () => {
