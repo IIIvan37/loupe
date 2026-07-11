@@ -33,10 +33,15 @@ function deferredSeparator(): {
 
 const stems: SeparatedStem[] = [{ id: 'voix', label: 'Voix', audio }]
 
+/** The engine read-back: serve the given stems' PCM by id, like `stemAudio`. */
+function pcmOf(loaded: readonly SeparatedStem[]) {
+  return (id: string) => loaded.find((stem) => stem.id === id)?.audio
+}
+
 describe('useSeparation', () => {
   it('runs a separation to completion and exposes the stems', async () => {
     const { separator, finish } = deferredSeparator()
-    const { result } = renderHook(() => useSeparation(separator), {
+    const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
       wrapper: I18nTestingProvider
     })
 
@@ -65,7 +70,7 @@ describe('useSeparation', () => {
         })
       }
     }
-    const { result } = renderHook(() => useSeparation(separator), {
+    const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
       wrapper: I18nTestingProvider
     })
 
@@ -85,7 +90,7 @@ describe('useSeparation', () => {
 
   it('rebuilds the ready state from persisted stems without the separator', async () => {
     const { separator } = deferredSeparator()
-    const { result } = renderHook(() => useSeparation(separator), {
+    const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
       wrapper: I18nTestingProvider
     })
 
@@ -101,9 +106,40 @@ describe('useSeparation', () => {
     expect(restored?.sources).toEqual(stems)
   })
 
+  it('re-derives sources from the engine PCM instead of retaining a copy', async () => {
+    // What the engine's buffers hold — a DIFFERENT object from the separated
+    // stems' arrays, so identity proves the hook reads back, never retains.
+    const engineView: DecodedAudio = { sampleRate: 4, channels: [[0.25, 0, 0, 0]] }
+    const { separator } = deferredSeparator()
+    const { result } = renderHook(() => useSeparation(() => engineView, separator), {
+      wrapper: I18nTestingProvider
+    })
+
+    await act(async () => {
+      await result.current.restore(audio, stems)
+    })
+    expect(result.current.sources.map((s) => s.id)).toEqual(['voix'])
+    expect(result.current.sources[0]?.audio).toBe(engineView)
+  })
+
+  it('drops a stem whose PCM the engine no longer holds', async () => {
+    const { separator } = deferredSeparator()
+    const { result } = renderHook(() => useSeparation(() => undefined, separator), {
+      wrapper: I18nTestingProvider
+    })
+
+    await act(async () => {
+      await result.current.restore(audio, stems)
+    })
+    // The ready state still lists the stems (lanes render from their peaks) —
+    // only the PCM-backed view is empty.
+    expect(result.current.state.status).toBe('ready')
+    expect(result.current.sources).toEqual([])
+  })
+
   it('ignores a stale run that finishes after a reset', async () => {
     const { separator, finish } = deferredSeparator()
-    const { result } = renderHook(() => useSeparation(separator), {
+    const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
       wrapper: I18nTestingProvider
     })
 
@@ -160,9 +196,10 @@ describe('useSeparation — exportStems (the aligned stem folder)', () => {
 
   async function readyHook(archive: ArchiveWriter, ready: SeparatedStem[]) {
     const { separator } = deferredSeparator()
-    const { result } = renderHook(() => useSeparation(separator, archive), {
-      wrapper: I18nTestingProvider
-    })
+    const { result } = renderHook(
+      () => useSeparation(pcmOf(ready), separator, archive),
+      { wrapper: I18nTestingProvider }
+    )
     await act(async () => {
       await result.current.restore(audio, ready)
     })

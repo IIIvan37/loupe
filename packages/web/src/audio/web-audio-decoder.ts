@@ -1,4 +1,5 @@
 import type { AudioFileDecoder, DecodedAudio } from '@app/core'
+import { decodedAudioFrom } from './web-audio-shared.ts'
 
 /**
  * Driven adapter for the `AudioFileDecoder` port: turns encoded audio bytes into
@@ -15,11 +16,7 @@ export function createWebAudioDecoder(): AudioFileDecoder {
       // `decodeAudioData` detaches its input buffer, so decode a copy and keep
       // the caller's bytes intact.
       const buffer = await context.decodeAudioData(bytes.slice(0))
-      const channels: Float32Array[] = []
-      for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-        channels.push(buffer.getChannelData(channel))
-      }
-      return { sampleRate: buffer.sampleRate, channels }
+      return decodedAudioFrom(buffer)
     }
   }
 }

@@ -93,7 +93,9 @@ export function WorkstationShell({
   )
   const { t } = useLingui()
   const { toaster, notifySuccess } = useToaster()
-  const separation = useSeparation(separator)
+  // The engine's buffers are the stems' only retained PCM — export and save
+  // read it back from there (zero-copy) instead of keeping a second copy.
+  const separation = useSeparation(stemPlayback.stemAudio, separator)
   const mixer = useMixer(stemPlayback)
   // Separation has produced stems (drives the header export + what a save
   // persists). The metronome can join the mix without a separation, so this is

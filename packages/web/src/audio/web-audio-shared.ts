@@ -25,9 +25,30 @@ export function audioBufferFrom(
   const frames = Math.max(audio.channels[0]?.length ?? 0, 1)
   const buffer = ctx.createBuffer(channelCount, frames, audio.sampleRate)
   audio.channels.forEach((channel, index) => {
-    buffer.copyToChannel(Float32Array.from(channel as ArrayLike<number>), index)
+    // Decoded channels already are Float32Arrays — converting again would copy
+    // the whole channel transiently (~tens of MB per stem) for nothing.
+    const samples =
+      channel instanceof Float32Array
+        ? // The runtime never hands a SharedArrayBuffer-backed channel here;
+          // the assertion only bridges TS's `ArrayBufferLike` default.
+          (channel as Float32Array<ArrayBuffer>)
+        : Float32Array.from(channel as ArrayLike<number>)
+    buffer.copyToChannel(samples, index)
   })
   return buffer
+}
+
+/**
+ * Read a Web Audio buffer back as decoded PCM — the inverse of
+ * `audioBufferFrom`, shared by the file decoder and the stem engine's
+ * `stemAudio`. The channels are zero-copy views into the buffer's own storage.
+ */
+export function decodedAudioFrom(buffer: AudioBuffer): DecodedAudio {
+  const channels: Float32Array[] = []
+  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+    channels.push(buffer.getChannelData(channel))
+  }
+  return { sampleRate: buffer.sampleRate, channels }
 }
 
 /**
@@ -98,6 +119,7 @@ export function createStretchTransport(
   const listeners = new Set<PositionListener>()
   let context: AudioContext | undefined
   let stretch: SoundTouchNode | undefined
+  let stretchLoading: Promise<SoundTouchNode | undefined> | undefined
   let frame: number | undefined
   let isPlaying = false
   // Position bookkeeping: where the current run started, and the context clock at
@@ -143,12 +165,21 @@ export function createStretchTransport(
       if (stretch) {
         return
       }
+      // Concurrent callers on a cold context (a load racing an addStem) must
+      // share ONE registration — a second SoundTouchNode would stay wired to
+      // the destination forever and split the mix across two buses.
       // No worklet → basic playback still works (sources → destination), only
       // the tempo/pitch controls go inert. Verified/fixed in the browser.
-      stretch = await loadSoundTouchNode(audioContext(), {
+      stretchLoading ??= loadSoundTouchNode(audioContext(), {
         timeRatio,
         pitchSemitones
       })
+      stretch = await stretchLoading
+      // The controls may have moved while the worklet registered.
+      if (stretch) {
+        stretch.playbackRate.value = timeRatio
+        stretch.pitchSemitones.value = pitchSemitones
+      }
     },
 
     outputNode(): AudioNode {
