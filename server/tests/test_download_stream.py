@@ -116,3 +116,23 @@ def test_download_non_object_json_streams_unsupported_error():
     res = _client().post("/download", json=[1, 2, 3])
     assert res.status_code == 200
     assert "unsupported source URL" in res.text
+
+
+def test_full_audio_store_ends_the_stream_with_the_quota_error(monkeypatch):
+    """`store_audio` refusing over quota must surface as an NDJSON error event,
+    not a broken stream (the HTTP 200 is already committed by then)."""
+    from fastapi import HTTPException
+
+    def fake_extract(url, out_dir, on_progress):
+        (out_dir / "track.m4a").write_bytes(b"audio-bytes")
+        return {"title": "Song"}
+
+    def full_store(data):
+        raise HTTPException(status_code=507, detail="audio store quota exceeded")
+
+    monkeypatch.setattr(download, "_extract", fake_extract)
+    monkeypatch.setattr(download, "store_audio", full_store)
+
+    events = _events("https://youtube.com/watch?v=x")
+
+    assert events[-1] == {"type": "error", "message": "audio store quota exceeded"}

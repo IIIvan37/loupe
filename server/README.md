@@ -110,6 +110,10 @@ Stem ids/labels (`voix`, `batterie`, `basse`, `autres`) match the core's
     (`LOUPE_MAX_UPLOAD_MB`, default `500`, for audio/`/separate`/`/tempo`;
     `LOUPE_MAX_MANIFEST_MB`, default `16`, for manifests and the `/download`
     JSON body) → 413.
+  - **Audio-store quota**: a new blob that would push the content-addressed
+    store past `LOUPE_MAX_AUDIO_STORE_MB` (default `10240`, i.e. 10 GB) is
+    refused → 507 (`/download` reports it as an NDJSON error event). The GC
+    only reclaims orphans, so this cap is the only bound on total disk use.
   - **Inference concurrency** is bounded (`LOUPE_MAX_CONCURRENT_SEPARATIONS` /
     `LOUPE_MAX_CONCURRENT_TEMPO`, default `1` each) so parallel inferences
     can't thrash the device.

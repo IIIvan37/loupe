@@ -27,6 +27,9 @@ def _mb_env(name: str, default_mb: int) -> int:
 
 MAX_UPLOAD_BYTES = _mb_env("LOUPE_MAX_UPLOAD_MB", 500)
 MAX_MANIFEST_BYTES = _mb_env("LOUPE_MAX_MANIFEST_MB", 16)
+# Total size of the content-addressed audio store. The GC only reclaims
+# orphans, so without a ceiling saved projects can fill the disk unbounded.
+MAX_AUDIO_STORE_BYTES = _mb_env("LOUPE_MAX_AUDIO_STORE_MB", 10240)
 
 
 def concurrency_slots(env_name: str) -> int:
