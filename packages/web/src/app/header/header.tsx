@@ -52,6 +52,8 @@ interface HeaderProps {
   readonly dirty?: boolean | undefined
   /** A long operation in flight (save, open/rebuild) — takes over the state chip. */
   readonly busyMessage?: string | undefined
+  /** Abort the narrated operation, when it is cancellable (the URL download). */
+  readonly onCancelBusy?: (() => void) | undefined
   /** Reveal the saved-projects dialog. The shell owns its state. */
   readonly onShowProjects?: () => void
 }
@@ -172,6 +174,7 @@ export function Header({
   saving,
   dirty,
   busyMessage,
+  onCancelBusy,
   onShowProjects
 }: HeaderProps) {
   const { t } = useLingui()
@@ -207,6 +210,15 @@ export function Header({
           >
             {sessionState}
           </output>
+        )}
+        {busyMessage !== undefined && onCancelBusy !== undefined && (
+          <button
+            type="button"
+            className={styles.busyCancel}
+            onClick={onCancelBusy}
+          >
+            <Trans id="common.cancel">Annuler</Trans>
+          </button>
         )}
       </Cluster>
 

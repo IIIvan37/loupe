@@ -23,9 +23,12 @@ type SeparationEvent =
 
 async function fetchStem(
   baseUrl: string,
-  stem: { id: string; label: string; url: string }
+  stem: { id: string; label: string; url: string },
+  signal?: AbortSignal
 ): Promise<SeparatedStem> {
-  const response = await fetch(new URL(stem.url, baseUrl).toString())
+  const response = await fetch(new URL(stem.url, baseUrl).toString(), {
+    signal: signal ?? null
+  })
   if (!response.ok) {
     throw new Error(`stem ${stem.id} failed: HTTP ${response.status}`)
   }
@@ -44,13 +47,17 @@ export function createHttpSeparator(baseUrl: string): StemSeparator {
   return {
     async separate(
       audio: DecodedAudio,
-      onProgress: (progress: SeparationProgress) => void
+      onProgress: (progress: SeparationProgress) => void,
+      signal?: AbortSignal
     ): Promise<readonly SeparatedStem[]> {
       const wav = encodeWav(audio.channels, audio.sampleRate)
+      // The signal covers the whole run: aborting also tears down the NDJSON
+      // stream (its reader rejects) and any in-flight stem fetch below.
       const response = await fetch(`${baseUrl}/separate`, {
         method: 'POST',
         headers: { 'Content-Type': 'audio/wav' },
-        body: wav
+        body: wav,
+        signal: signal ?? null
       })
       if (!response.ok || !response.body) {
         throw new Error(`separation request failed: HTTP ${response.status}`)
@@ -60,7 +67,9 @@ export function createHttpSeparator(baseUrl: string): StemSeparator {
         onProgress({ phase: event.phase, fraction: event.fraction })
       )
 
-      return Promise.all(done.stems.map((stem) => fetchStem(baseUrl, stem)))
+      return Promise.all(
+        done.stems.map((stem) => fetchStem(baseUrl, stem, signal))
+      )
     }
   }
 }

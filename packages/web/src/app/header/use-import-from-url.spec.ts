@@ -39,6 +39,33 @@ describe('useImportFromUrl', () => {
     expect(result.current.progress).toBeUndefined()
   })
 
+  it('cancels an in-flight download: aborts the fetch and clears the progress', async () => {
+    let seen: AbortSignal | undefined
+    const source: TrackSource = {
+      fetch: (_url, _onProgress, signal) => {
+        seen = signal
+        return new Promise((_resolve, reject) => {
+          signal?.addEventListener('abort', () =>
+            reject(new DOMException('Aborted', 'AbortError'))
+          )
+        })
+      }
+    }
+    const { result } = renderHook(() => useImportFromUrl(vi.fn(), source))
+
+    act(() => result.current.submit(YT))
+    expect(result.current.running).toBe(true)
+
+    act(() => result.current.cancel())
+    expect(result.current.running).toBe(false)
+    expect(result.current.progress).toBeUndefined()
+    expect(seen?.aborted).toBe(true)
+
+    // The aborted run's rejection is stale — it must never surface as an error.
+    await act(async () => {})
+    expect(result.current.error).toBeUndefined()
+  })
+
   it('rejects an unsupported URL without calling the source', async () => {
     const fetch = vi.fn()
     const onImported = vi.fn()

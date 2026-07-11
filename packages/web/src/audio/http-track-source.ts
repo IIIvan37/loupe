@@ -33,12 +33,16 @@ export function createHttpTrackSource(baseUrl: string): TrackSource {
   return {
     async fetch(
       url: string,
-      onProgress: (progress: DownloadProgress) => void
+      onProgress: (progress: DownloadProgress) => void,
+      signal?: AbortSignal
     ): Promise<FetchedTrack> {
+      // The signal covers the whole run: aborting also tears down the NDJSON
+      // stream (its reader rejects) and the audio fetch below.
       const response = await fetch(`${baseUrl}/download`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
+        body: JSON.stringify({ url }),
+        signal: signal ?? null
       })
       if (!response.ok || !response.body) {
         throw new Error(`download request failed: HTTP ${response.status}`)
@@ -49,7 +53,8 @@ export function createHttpTrackSource(baseUrl: string): TrackSource {
       )
 
       const audioResponse = await fetch(
-        new URL(`/audio/${done.ref}`, baseUrl).toString()
+        new URL(`/audio/${done.ref}`, baseUrl).toString(),
+        { signal: signal ?? null }
       )
       if (!audioResponse.ok) {
         throw new Error(`audio fetch failed: HTTP ${audioResponse.status}`)

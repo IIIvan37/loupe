@@ -59,6 +59,22 @@ describe('separateTrack — when the separator yields stems', () => {
     )
     expect(seen).toEqual(events)
   })
+
+  it('hands the abort signal through to the separator port', async () => {
+    const controller = new AbortController()
+    let received: AbortSignal | undefined
+    const separator: StemSeparator = {
+      async separate(_audio, _onProgress, signal) {
+        received = signal
+        return []
+      }
+    }
+    await separateTrack(
+      { audio, bucketCount: 1 },
+      { separator, signal: controller.signal }
+    )
+    expect(received).toBe(controller.signal)
+  })
 })
 
 describe('separateTrack — adaptive detection', () => {

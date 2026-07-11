@@ -145,6 +145,9 @@ export function ShellHeader({
         saving={projects.busy === 'save'}
         dirty={session.dirty}
         busyMessage={busyMessage}
+        onCancelBusy={
+          downloadMessage !== undefined ? urlImport.cancel : undefined
+        }
         onShowProjects={onShowProjects}
       />
       {urlImport.error !== undefined && (

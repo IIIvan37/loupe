@@ -32,6 +32,8 @@ interface SeparationPanelProps {
    */
   readonly serverHealth: ServerHealth
   readonly onSeparate: () => void
+  /** Abort the running separation — offered beside the progress read-out. */
+  readonly onCancel: () => void
 }
 
 /** Server states that make separation impossible, with an actionable reason. */
@@ -59,7 +61,8 @@ export function SeparationPanel({
   state,
   canSeparate,
   serverHealth,
-  onSeparate
+  onSeparate,
+  onCancel
 }: SeparationPanelProps) {
   const { t } = useLingui()
   const isRunning = state.status === 'analysing' || state.status === 'separating'
@@ -117,6 +120,13 @@ export function SeparationPanel({
               <progress className={styles.bar} value={percent} max={100}>
                 {percent}%
               </progress>
+              <button
+                type="button"
+                className={styles.cancel}
+                onClick={onCancel}
+              >
+                <Trans id="common.cancel">Annuler</Trans>
+              </button>
             </div>
           )}
 

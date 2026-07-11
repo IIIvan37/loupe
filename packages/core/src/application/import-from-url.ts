@@ -15,6 +15,8 @@ export interface ImportFromUrlDeps {
   readonly source: TrackSource
   /** Optional progress sink — the UI feeds it into the download progress display. */
   readonly onProgress?: (progress: DownloadProgress) => void
+  /** Optional cancellation, handed to the source port verbatim. */
+  readonly signal?: AbortSignal
 }
 
 export type ImportFromUrlResult =
@@ -46,7 +48,8 @@ export async function importFromUrl(
   try {
     const fetched = await deps.source.fetch(
       input.url,
-      deps.onProgress ?? (() => {})
+      deps.onProgress ?? (() => {}),
+      deps.signal
     )
     return { ok: true, bytes: fetched.bytes, metadata: fetched.metadata }
   } catch (e) {

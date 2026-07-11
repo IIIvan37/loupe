@@ -17,6 +17,8 @@ export interface UrlImport {
   readonly running: boolean
   /** Start importing the given URL; a no-op while one is already running. */
   readonly submit: (url: string) => void
+  /** Abort the in-flight download and clear the progress; a no-op when idle. */
+  readonly cancel: () => void
   readonly dismissError: () => void
 }
 
@@ -39,12 +41,15 @@ export function useImportFromUrl(
   const [error, setError] = useState<string | undefined>(undefined)
   const [running, setRunning] = useState(false)
   const runIdRef = useRef(0)
+  const controllerRef = useRef<AbortController | undefined>(undefined)
 
   function submit(url: string): void {
     if (running) {
       return
     }
     const runId = ++runIdRef.current
+    const controller = new AbortController()
+    controllerRef.current = controller
     setRunning(true)
     setError(undefined)
     setProgress({ phase: 'downloading', fraction: 0 })
@@ -52,6 +57,7 @@ export function useImportFromUrl(
       { url },
       {
         source: trackSource,
+        signal: controller.signal,
         onProgress: (update) => {
           // Ignore a superseded run's late progress.
           if (runIdRef.current === runId) {
@@ -74,11 +80,24 @@ export function useImportFromUrl(
     })
   }
 
+  function cancel(): void {
+    if (!running) {
+      return
+    }
+    // Abort the transfer and supersede the run: its rejection resolves as a
+    // stale result (the bumped run-id) and never surfaces as an error.
+    controllerRef.current?.abort()
+    runIdRef.current++
+    setRunning(false)
+    setProgress(undefined)
+  }
+
   return {
     progress,
     error,
     running,
     submit,
+    cancel,
     dismissError: () => setError(undefined)
   }
 }

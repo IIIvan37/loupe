@@ -120,6 +120,7 @@ export function ShellMain({
             canSeparate={canSeparate}
             serverHealth={serverHealth}
             onSeparate={onSeparate}
+            onCancel={separation.cancel}
           />
           <MarkerControls
             disabled={!isLoaded}
