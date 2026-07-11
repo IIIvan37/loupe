@@ -30,6 +30,11 @@
   background: var(--panel-3);
 }
 
+/* Pressed feedback — same 1px dip as the shared skins (controls.module.css). */
+.control:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
 .control:disabled {
   opacity: 0.5;
 }

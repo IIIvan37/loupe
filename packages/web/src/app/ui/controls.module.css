@@ -20,6 +20,14 @@
   outline-color: var(--text);
 }
 
+/* Pressed feedback: every button skin dips 1px while held. Instantaneous on
+   purpose (no transition), so the reduced-motion reset has nothing to undo. */
+.amberButton:active:not(:disabled),
+.ghostButton:active:not(:disabled),
+.quietButton:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
 .ghostButton {
   border-radius: var(--radius);
   border: 1px solid var(--line);

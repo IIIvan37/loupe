@@ -35,6 +35,11 @@
   border-color: var(--line-strong);
 }
 
+/* Pressed feedback — same 1px dip as the shared skins (controls.module.css). */
+.tick:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
 .tick:disabled {
   opacity: 0.5;
 }

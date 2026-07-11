@@ -116,6 +116,12 @@
   background: var(--panel-2);
 }
 
+/* Pressed feedback — same 1px dip as the shared skins (controls.module.css). */
+.secondaryAction:active:not(:disabled),
+.confirmAction:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
 .secondaryAction:disabled {
   opacity: 0.5;
   cursor: not-allowed;
