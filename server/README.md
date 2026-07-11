@@ -100,6 +100,11 @@ Stem ids/labels (`voix`, `batterie`, `basse`, `autres`) match the core's
   - **CORS** is scoped to the dev origin (`LOUPE_ALLOWED_ORIGINS`, default
     `http://localhost:5173,http://127.0.0.1:5173`), never `*` — a random page in
     the same browser can't read our responses.
+  - **Origin guard** (CSRF): CORS blocks *reads*, not *sends* — a foreign
+    page could still fire a preflight-free `text/plain` POST at
+    `/download`/`/gc`/inference. Any request bearing an `Origin` outside
+    `LOUPE_ALLOWED_ORIGINS` is refused (403); no Origin (curl, native
+    clients) passes.
   - **Host** header is validated (`LOUPE_ALLOWED_HOSTS`, default
     `localhost,127.0.0.1`) to blunt DNS-rebinding. Point the web app elsewhere by
     setting both vars.
