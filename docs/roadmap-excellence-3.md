@@ -317,6 +317,13 @@ Ce que la référence montre, et ce que ça implique :
 
 ## Veille (décisions, pas des oublis)
 
+- **Modèle DAW complet pour le shell** (décision K.1, 2026-07-11) :
+  `height: 100dvh` — header ET transport épinglés, colonne centrale à
+  défilement interne (la chaîne `min-height: 0` + `overflow: auto` est déjà en
+  place). Retenu **pour plus tard** : le footer sticky règle le symptôme ;
+  passer au scroll interne est une décision de design shell-wide, à vérifier
+  soigneusement quand le panneau latéral passe dessous (écrans étroits, deux
+  zones de scroll). Candidat naturel au moment du Lot P (lead-sheet chart).
 - **Édition locale du tempo** (constat K.2, 2026-07-11) : quand le détecteur
   suit une modulation métrique avant le pouls ressenti (« Don't Stop Me Now » :
   piano à 156 dès 30 s, batterie à 38 s — `dbn=True` testé, n'aide pas), seule
