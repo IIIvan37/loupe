@@ -32,6 +32,14 @@
   mixer/waveform/tempo — plus la grille (avant : +1 300 à +4 300 px à elle
   seule).
 
+- **Complément (retour utilisateur post-scrollport)** : même bornée, la pile
+  mixer 5 stems + waveform + tempo suffisait à pousser le transport sous le
+  pli. Checkpoint d'approche → **footer sticky** retenu (vs modèle DAW
+  `height: 100dvh`, jugé hors de proportion, et vs sections repliables, qui ne
+  garantissent rien) : `position: sticky; inset-block-end: 0` sur la barre de
+  transport + token `--z-transport: 15` (au-dessus du flux, sous les
+  overlays). Browser-vérifié : barre visible en haut/milieu/bas de défilement.
+
 ## Not done / remaining
 - La refonte visuelle complète de la lead-sheet (chart pro : sections,
   reprises, édition repliée) est le **Lot P** — ce correctif est le fix
