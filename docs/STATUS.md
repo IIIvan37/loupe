@@ -7,29 +7,39 @@
 
 ## Where we are
 
-**Lot J — fond de panier COMPLET (2026-07-11)**, 5 PRs ouvertes,
-indépendantes sur `main` (sync lecture mergée PR #80) : **J.1** tokens
-sémantiques `--danger`/`--ok` + `--scrim` + `--disabled-opacity` (PR #81) ;
-**J.2** retour d'enfoncement `:active` 1px sur tous les skins (PR #82) ;
-**J.4** dédup des moteurs Web Audio — `createStretchTransport` partagé,
-clone jscpd éteint, **vérifié navigateur** (PR #83) ; **J.3** 🟠 quota
-disque du store audio, `LOUPE_MAX_AUDIO_STORE_MB` défaut 10 Go, refus 507 +
-événement NDJSON sur `/download` (PR #84) ; **J.5** annulation
-séparation/download — `AbortSignal` dans les ports, `cancel()` = abort +
-supersede (réducteur intact), « Annuler » dans le panneau et le header
-(PR #85). Gate **vert — 880 tests** (+5), Stryker **95,14**, serveur
-112 pytest. Avec le Lot J, la roadmap-excellence-2 est **entièrement
-cochée**.
+**Lot C chord-charts — slices CORE + SERVEUR livrées (2026-07-11)**, deux PRs
+indépendantes. **Core** (PR #86, `feat/chord-detection-core`, CI verte) : port
+`ChordDetector` (spans horodatés, tokens de grille, `undefined` = silence),
+agrégation pure `chordLabelPerMeasure` (vote pondéré par durée par intervalle
+downbeat→downbeat — même projection que `measureIndexAt`), `renderChartSource`
+chez le propriétaire de la grammaire (labels hors-token → `N.C.`), use-case
+`detectChords` → brouillon de texte source (gardes : pas de downbeat,
+détection vide, NaN). Gate **906 tests** (+26), Stryker **95,19**
+(`detect-chords` 100). **Serveur** (`feat/chords-endpoint`) : **spike BTC levé**
+(exécution autorisée par l'utilisateur — **2,4 s CPU / 257 s d'audio**, sortie
+cohérente ; pré-séparation Demucs **différée**, BTC est entraîné sur mix
+complets) ; `POST /chords` (shell torch miroir de `/tempo`, 503 sans torch ou
+poids infetchables, BTC **vendoré** MIT sous `app/btc/` avec sa LICENSE, poids
+~33 Mo **sha256-pinnés avant tout `torch.load`** — `weights_cache.py`
+torch-free testé, download avec timeout d'inactivité), helper pur
+`chord_spans.py`, pin `librosa` (orphelin jusqu'ici). Serveur **127 pytest**
+(+15), coverage 97,2 %, smoke réel vérifié.
 
-**Next : merger #81–#85, puis Lot C chord-charts** (endpoint `/chords` BTC
-+ port `ChordDetector` — lever d'abord les 2 angles morts : spike Demucs,
-dispo poids, cf. [chord-charts-plan](chord-charts-plan.md)). See
-[2026-07-11-lot-j-fond-de-panier](sessions/2026-07-11-lot-j-fond-de-panier.md).
+**Next : merger PR #86 + la PR serveur, puis slice web (fin du Lot C)** —
+adapter `createHttpChordDetector` (traduction mir→tokens de grille,
+`N`/`X`→silence) + bouton « Détecter les accords » dans le panel lead-sheet
+(checkpoint d'approche UI en 2–3 lignes avant de coder). See
+[2026-07-11-chord-detection-core](sessions/2026-07-11-chord-detection-core.md)
+· [2026-07-11-chords-endpoint](sessions/2026-07-11-chords-endpoint.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Plan chord-charts (2026-07-10 → …)
 
+- 2026-07-11 · **Lot C core — détection d'accords** (PR #86) : port
+  `ChordDetector` + `chordLabelPerMeasure` + `renderChartSource` +
+  `detectChords` → brouillon source →
+  [rapport](sessions/2026-07-11-chord-detection-core.md)
 - 2026-07-11 · **Sync lecture de la lead-sheet** (PR #80) : `measureIndexAt`
   pur (mesure ↔ intervalle downbeat→downbeat, projection jamais stockée),
   surlignage `aria-current` + bars-per-row configurable →
@@ -50,8 +60,12 @@ dispo poids, cf. [chord-charts-plan](chord-charts-plan.md)). See
   tokens (accords invisibles) →
   [rapport](sessions/2026-07-10-chord-charts-lot-a-b.md)
 
-### Roadmap excellence 2 (Lots F → I, 2026-07-07 → 07-10)
+### Roadmap excellence 2 (Lots F → J, 2026-07-07 → 07-11)
 
+- 2026-07-11 · **Lot J — fond de panier** (PRs #81–#85 mergées) : tokens
+  sémantiques, `:active`, dédup moteurs Web Audio, quota disque, annulation —
+  roadmap-excellence-2 **entièrement cochée** →
+  [rapport](sessions/2026-07-11-lot-j-fond-de-panier.md)
 - 2026-07-09/10 · **Lot I.3 — count-in du métronome, LOT I COMPLET** (PR #76) :
   une mesure de clics avant le départ — atterrissage calé sur la grille,
   accents phasés sur la mesure du morceau, tempo entendu; adaptateur one-shot

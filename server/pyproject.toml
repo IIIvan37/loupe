@@ -7,6 +7,9 @@ requires-python = ">=3.11"
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# Vendored BTC model code is kept verbatim (checkpoint compatibility) — neither
+# linted nor formatted to our style.
+extend-exclude = ["app/btc"]
 
 [tool.ruff.lint]
 # A pragmatic set: pyflakes + pycodestyle + import order + bugbear + comprehensions
@@ -23,7 +26,7 @@ include = ["app"]
 # separation.py / tempo.py are the torch/librosa humble objects; they import the
 # heavy ML stack that CI deliberately doesn't install, so they're type-checked
 # manually rather than in the torch-free CI. Everything decidable lives elsewhere.
-exclude = ["app/separation.py", "app/tempo.py", "**/.venv"]
+exclude = ["app/separation.py", "app/tempo.py", "app/chords.py", "app/btc", "**/.venv"]
 pythonVersion = "3.11"
 venvPath = "."
 venv = ".venv"
@@ -39,4 +42,4 @@ testpaths = ["tests"]
 # Omit the ML humble objects: their inference/DSP paths are covered manually, and
 # they aren't even imported in the torch-free test run — measuring them would make
 # coverage depend on whether torch happens to be installed.
-omit = ["tests/*", "app/separation.py", "app/tempo.py"]
+omit = ["tests/*", "app/separation.py", "app/tempo.py", "app/chords.py", "app/btc/*"]
