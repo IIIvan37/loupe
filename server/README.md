@@ -42,6 +42,16 @@ First run downloads the model weights (~hundreds of MB). The best available
 device is picked automatically — CUDA, then Apple GPU (MPS), then CPU (still well
 ahead of the browser).
 
+Weights pinning is deliberately asymmetric: the **BTC** chord checkpoint is
+fetched by *our* code, so it goes through `weights_cache.pinned_weights` —
+sha256-pinned and re-hashed on every load before `torch.load` unpickles it.
+**Demucs** and **beat_this** fetch their own checkpoints through their
+libraries' loaders (torch hub–style caches we don't control); pinning those
+would mean re-implementing each library's download path, so their integrity
+is delegated to the upstream package + HTTPS. Routing beat_this through
+`pinned_weights` stays on the table if its loader ever exposes a
+checkpoint-path hook.
+
 Point the web app at it:
 
 ```sh

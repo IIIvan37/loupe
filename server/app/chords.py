@@ -33,7 +33,7 @@ import torch
 
 from .btc import BTC_model
 from .chord_spans import chord_spans
-from .limits import MAX_UPLOAD_BYTES, concurrency_slots, read_capped_body
+from .limits import MAX_UPLOAD_BYTES, concurrency_slots, read_capped_body, seconds_env
 from .wav_decode import decode_wav_mono
 from .weights_cache import WeightsUnavailable, pinned_weights
 
@@ -93,6 +93,10 @@ _model_lock = threading.Lock()
 # /tempo: each pass pins the CPU, and the semaphore is async so queued
 # requests hold no threadpool token while they wait.
 _chords_semaphore = asyncio.Semaphore(concurrency_slots("LOUPE_MAX_CONCURRENT_CHORDS"))
+
+# A wedged inference would otherwise hold the single slot silently forever —
+# same env knob as /tempo (both are "analyse the mix" passes).
+INFERENCE_TIMEOUT_SECONDS = seconds_env("LOUPE_INFERENCE_TIMEOUT_SECONDS", 600)
 
 
 def _weights_path() -> Path:
@@ -168,7 +172,14 @@ async def chords(request: Request) -> dict:
         # Off the event loop: inference is compute-bound, and blocking here
         # would stall concurrent requests (e.g. the /health poll) for seconds.
         async with _chords_semaphore:
-            return await run_in_threadpool(_analyse, data)
+            return await asyncio.wait_for(
+                run_in_threadpool(_analyse, data), timeout=INFERENCE_TIMEOUT_SECONDS
+            )
+    except TimeoutError as exc:
+        # The wait is cancelled but the worker thread can't be killed — free
+        # the request and say so rather than hanging the client forever.
+        logger.exception("chord analysis timed out")
+        raise HTTPException(status_code=504, detail="chord analysis timed out") from exc
     except WeightsUnavailable as exc:
         # Host not provisioned (weights unfetchable / failing their pin) — the
         # client's audio is fine, so answer like a missing ML stack does.

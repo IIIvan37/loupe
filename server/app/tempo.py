@@ -31,7 +31,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 
 from .beat_positions import tempo_payload
-from .limits import MAX_UPLOAD_BYTES, concurrency_slots, read_capped_body
+from .limits import MAX_UPLOAD_BYTES, concurrency_slots, read_capped_body, seconds_env
 from .wav_decode import decode_wav_mono
 
 logger = logging.getLogger("loupe.tempo")
@@ -67,6 +67,10 @@ _model_lock = threading.Lock()
 # env-tunable.
 _tempo_semaphore = asyncio.Semaphore(concurrency_slots("LOUPE_MAX_CONCURRENT_TEMPO"))
 
+# A wedged inference would otherwise hold the single slot silently forever —
+# generous ceiling, shared by the /tempo and /chords inference wraps.
+INFERENCE_TIMEOUT_SECONDS = seconds_env("LOUPE_INFERENCE_TIMEOUT_SECONDS", 600)
+
 
 def _audio2beats() -> Audio2Beats:
     global _model
@@ -97,7 +101,14 @@ async def tempo(request: Request) -> dict:
         # Off the event loop: inference is compute-bound, and blocking here would
         # stall concurrent requests (e.g. the web app's /health poll) for seconds.
         async with _tempo_semaphore:
-            return await run_in_threadpool(_analyse, data)
+            return await asyncio.wait_for(
+                run_in_threadpool(_analyse, data), timeout=INFERENCE_TIMEOUT_SECONDS
+            )
+    except TimeoutError as exc:
+        # The wait is cancelled but the worker thread can't be killed — free
+        # the request and say so rather than hanging the client forever.
+        logger.exception("tempo analysis timed out")
+        raise HTTPException(status_code=504, detail="tempo analysis timed out") from exc
     except Exception as exc:  # malformed upload / analysis failure
         # Log the detail server-side; keep the client message generic so model
         # internals / paths don't leak (esp. reachable cross-origin).
