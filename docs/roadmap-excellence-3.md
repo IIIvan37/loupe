@@ -317,6 +317,11 @@ Ce que la référence montre, et ce que ça implique :
 
 ## Veille (décisions, pas des oublis)
 
+- **Édition locale du tempo** (constat K.2, 2026-07-11) : quand le détecteur
+  suit une modulation métrique avant le pouls ressenti (« Don't Stop Me Now » :
+  piano à 156 dès 30 s, batterie à 38 s — `dbn=True` testé, n'aide pas), seule
+  une correction manuelle par plage (« forcer 104 BPM de 28 s à 38 s ») rend le
+  bon clic. Étendrait `ManualTempo` (global aujourd'hui) à des plages.
 - Subdivisions du métronome (croches/triolets) — promesse du plan produit §3.6,
   quelques lignes pures sur `synthesizeClickTrack` + sélecteur ; à inscrire ou
   à faire au fil de l'eau.

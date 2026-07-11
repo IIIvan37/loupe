@@ -51,10 +51,20 @@
   la grille — les détections fraîches sont couvertes quel que soit l'adaptateur.
 
 ## Not done / remaining
+- **Modulation métrique anticipée** (« Don't Stop Me Now », 30→38 s) : le
+  morceau module 104 → 156 BPM (×1,5) au piano ~8 s avant l'entrée de la
+  batterie ; beat_this suit le piano (beats réguliers à 158 dès ~30 s) alors
+  que le pouls ressenti — confirmé par autocorrélation d'onsets librosa —
+  reste à ~104 jusqu'à 38 s. **Expérience menée avec l'accord utilisateur** :
+  `dbn=True` (madmom installé depuis git, py3.14) produit une transition plus
+  propre mais bascule encore plus tôt (28,7 s) — ce sont les activations du
+  réseau, pas le post-traitement ; madmom désinstallé, venv restauré. Des
+  beats soutenus et cohérents ne sont récusables par aucune heuristique de
+  gaps, et ×1,5 n'est pas repliable par octave. **Remède produit** : édition
+  locale du tempo (forcer un BPM sur une plage) — ajouté en veille roadmap.
 - **Parasites denses** (un double-fire après *chaque* beat) : hors de portée
   d'un garde par médiane (les gaps courts deviennent majoritaires). Documenté
-  dans le code ; le vrai remède serait `dbn=True` (continuité de tempo) côté
-  beat_this — coût dépendance/latence, non retenu pour ce lot.
+  dans le code.
 - Mutants survivants dans `sanitizeBeatGrid` : arithmétique de bord de fenêtre
   (±1 index de gap, clamp) et frontière `<`/`<=` — quasi-équivalents en
   pratique (mesure nulle), assumés.
