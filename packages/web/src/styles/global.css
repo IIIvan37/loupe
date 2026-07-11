@@ -107,7 +107,7 @@ input[type='range'][data-compact]::-moz-range-thumb {
 }
 
 input[type='range']:disabled {
-  opacity: 0.5;
+  opacity: var(--disabled-opacity);
 }
 
 @media (prefers-reduced-motion: reduce) {

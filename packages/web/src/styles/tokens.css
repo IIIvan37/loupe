@@ -23,6 +23,18 @@
   --teal: #56b8c9; /* what the AI detected */
   --teal-deep: #2c6f7a;
 
+  /* Status accents. They currently share the vocals/guitar hues but carry their
+     own names so error surfaces never depend on the stem palette: recolouring a
+     stem must not repaint every error message. */
+  --danger: #e2897a; /* errors, offline, destructive confirms */
+  --ok: #8db585; /* healthy / ready */
+
+  /* Dimmed backdrop behind full-viewport layers (modal dialogs, drop overlay). */
+  --scrim: rgb(0 0 0 / 0.55);
+
+  /* Disabled controls: one opacity for every skin. */
+  --disabled-opacity: 0.5;
+
   /* Stems */
   --stem-vocals: #e2897a;
   --stem-drums: #7c86a6;

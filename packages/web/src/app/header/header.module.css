@@ -85,7 +85,7 @@
 }
 
 .serverStatus[data-tone='offline'] .statusDot {
-  background: var(--stem-vocals);
+  background: var(--danger);
 }
 
 .serverStatus[data-tone='degraded'] .statusDot {
@@ -93,7 +93,7 @@
 }
 
 .serverStatus[data-tone='ready'] .statusDot {
-  background: var(--stem-guitar);
+  background: var(--ok);
 }
 
 /* The header actions wear the shared control skins (single source of truth in
@@ -117,7 +117,7 @@
 }
 
 .secondaryAction:disabled {
-  opacity: 0.5;
+  opacity: var(--disabled-opacity);
   cursor: not-allowed;
 }
 
@@ -133,9 +133,9 @@
   composes: touchTarget from '../ui/controls.module.css';
   padding: var(--space-2xs) var(--space-m);
   border-radius: var(--radius);
-  border: 1px solid var(--stem-vocals);
+  border: 1px solid var(--danger);
   background: transparent;
-  color: var(--stem-vocals);
+  color: var(--danger);
   font-weight: 600;
 }
 

@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-dialog);
-  background: rgb(0 0 0 / 0.55);
+  background: var(--scrim);
   transition: opacity var(--motion-med) var(--motion-ease);
 }
 

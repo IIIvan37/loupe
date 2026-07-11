@@ -53,7 +53,7 @@
 .error {
   margin: 0;
   font-size: var(--font-size-s);
-  color: var(--stem-vocals);
+  color: var(--danger);
 }
 
 /* Idle: one quiet line instead of an empty frame — the lanes appear in the
