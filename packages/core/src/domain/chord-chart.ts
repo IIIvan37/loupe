@@ -67,6 +67,39 @@ export function transposeChartSource(
     .join('\n')
 }
 
+/** How a blank measure prints: the lead-sheet's own "no chord" token. It parses
+    as an unknown pitch name, so transposition passes it through verbatim. */
+const NO_CHORD = 'N.C.'
+
+/**
+ * Print measure labels as grid source text — `| C | Am | F | G |` rows of
+ * `barsPerRow` — the draft the chord detection pre-fills and the user corrects.
+ * Lives with the parser so the printer can never drift from the row grammar: a
+ * blank measure, or a label that is not exactly one `TOKEN` (empty, spaced,
+ * containing a bar line), prints as `N.C.` — anything else would change the
+ * measure count under `parseChart` and shift every following bar off its
+ * downbeat.
+ */
+export function renderChartSource(
+  labels: readonly (string | undefined)[],
+  barsPerRow: number
+): string {
+  const width = Math.max(1, Math.floor(barsPerRow) || 1)
+  const rows: string[] = []
+  for (let start = 0; start < labels.length; start += width) {
+    const cells = labels.slice(start, start + width)
+    rows.push(`| ${cells.map((label) => cellToken(label)).join(' | ')} |`)
+  }
+  return rows.join('\n')
+}
+
+/** The single token a cell may print — `N.C.` when the label isn't one. */
+function cellToken(label: string | undefined): string {
+  return label !== undefined && label.match(TOKEN)?.join('') === label
+    ? label
+    : NO_CHORD
+}
+
 export function parseChart(text: string): ChordChart {
   const sections: Section[] = []
   let current: { label?: string; measures: Measure[] } | undefined

@@ -1,3 +1,4 @@
+import type { DetectedChordSpan } from '../domain/chord-detection.ts'
 import type { AudioRef, Project } from '../domain/project.ts'
 import type { SeparationPhase } from '../domain/separation.ts'
 import type { DetectedBeat } from '../domain/tempo.ts'
@@ -165,6 +166,20 @@ export interface DetectedTempo {
  */
 export interface TempoDetector {
   detect(audio: DecodedAudio): Promise<DetectedTempo>
+}
+
+/**
+ * Driven port: estimate a track's chords from decoded PCM, as timestamped
+ * spans — NOT beat-synchronised; folding them onto the beat grid is the core's
+ * job (`chordLabelPerMeasure`). Implemented by an adapter (web: an HTTP call to
+ * the local server running a chord estimator); the pure core never runs the
+ * DSP, and the audio is the SAME PCM the player loaded. The adapter translates
+ * engine syntax (e.g. mir `A:min`) into the grid's chord tokens (`Am`) and
+ * reports spans in order, non-overlapping — overlaps would inflate the
+ * per-measure vote.
+ */
+export interface ChordDetector {
+  detect(audio: DecodedAudio): Promise<readonly DetectedChordSpan[]>
 }
 
 /** One file destined for the export archive: its name and encoded bytes. */

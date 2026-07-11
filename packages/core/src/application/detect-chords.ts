@@ -1,0 +1,60 @@
+import { renderChartSource } from '../domain/chord-chart.ts'
+import { chordLabelPerMeasure } from '../domain/chord-detection.ts'
+import type { BeatGrid } from '../domain/tempo.ts'
+import { errorMessage } from './error-message.ts'
+import type { ChordDetector, DecodedAudio } from './ports.ts'
+
+export interface DetectChordsInput {
+  /** The already-decoded track — the SAME PCM the player loaded, not a re-import. */
+  readonly audio: DecodedAudio
+  /** The beat grid anchoring measures — detected or manual, downbeats flagged. */
+  readonly grid: BeatGrid
+  /** The lead-sheet's row width, so the draft wraps like the user's layout. */
+  readonly barsPerRow: number
+}
+
+export interface DetectChordsDeps {
+  readonly detector: ChordDetector
+}
+
+export type DetectChordsResult =
+  | { readonly ok: true; readonly source: string }
+  | { readonly ok: false; readonly error: string }
+
+/**
+ * Orchestration use-case, pure: hand the loaded PCM to the chord detector port
+ * and fold its timestamped spans into ONE chord per measure on the beat grid
+ * (`chordLabelPerMeasure`), rendered as grid SOURCE text — the draft the
+ * chord-chart editor pre-fills and the user corrects; imperfect estimation is
+ * absorbed by editing, never exposed raw. A grid without downbeats cannot
+ * anchor measures, so it is rejected BEFORE the engine runs (application
+ * policy, like `importFromUrl`'s URL guard); a detection yielding no measures
+ * is an error too — an empty draft would silently wipe the user's chart.
+ */
+export async function detectChords(
+  input: DetectChordsInput,
+  deps: DetectChordsDeps
+): Promise<DetectChordsResult> {
+  if (!input.grid.some((beat) => beat.downbeat)) {
+    return { ok: false, error: 'no downbeat to anchor measures on' }
+  }
+  try {
+    const spans = await deps.detector.detect(input.audio)
+    // Garbage times (an adapter parsing a malformed number) must surface as an
+    // error, not fold into a confidently-blank draft.
+    const finite = spans.every(
+      (span) =>
+        Number.isFinite(span.startSeconds) && Number.isFinite(span.endSeconds)
+    )
+    if (!finite) {
+      return { ok: false, error: 'invalid chord detection' }
+    }
+    const labels = chordLabelPerMeasure(spans, input.grid)
+    if (labels.length === 0) {
+      return { ok: false, error: 'no chords detected' }
+    }
+    return { ok: true, source: renderChartSource(labels, input.barsPerRow) }
+  } catch (e) {
+    return { ok: false, error: errorMessage(e) }
+  }
+}
