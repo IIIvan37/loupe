@@ -40,6 +40,18 @@
   font-weight: 600;
 }
 
+/* The sheet's scrollport: intrinsic bounds (clamp + dvh, no dimensional media
+ * query — Every Layout), ~5-9 rows visible whatever the viewport. The sheet
+ * itself stays unbounded (print-first, reusable outside a scrollport); the
+ * playhead follow (scrollIntoView in the LeadSheet) keeps the playing measure
+ * visible inside these bounds. */
+.sheetViewport {
+  max-block-size: clamp(14rem, 45dvh, 26rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
 .input {
   composes: input from '../ui/popover-form.module.css';
   width: 100%;

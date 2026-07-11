@@ -96,6 +96,58 @@ function detectionOf(
   }
 }
 
+describe('ChordChartPanel long grids', () => {
+  // A detected chart covers the whole track: ~120 measures in one click. The
+  // panel must absorb any N without stretching the page (K.1).
+  const longSource = Array.from(
+    { length: 30 },
+    () => '| C | Am | F | G |'
+  ).join('\n')
+
+  it('hosts the sheet in a bounded scrollport', () => {
+    const { container } = render(
+      <ChordChartPanel source={longSource} onSourceChange={() => {}} />,
+      { wrapper: I18nTestingProvider }
+    )
+    const viewport = container.querySelector('[class*="sheetViewport"]')
+    expect(viewport?.querySelectorAll('[class*="measure"]')).toHaveLength(120)
+  })
+
+  it('scrolls the playing measure into view when playback reaches it', () => {
+    const scrolls = vi.fn()
+    Element.prototype.scrollIntoView = scrolls
+    const { rerender } = render(
+      <ChordChartPanel
+        source={longSource}
+        onSourceChange={() => {}}
+        currentMeasureIndex={0}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+    scrolls.mockClear()
+    rerender(
+      <ChordChartPanel
+        source={longSource}
+        onSourceChange={() => {}}
+        currentMeasureIndex={42}
+      />
+    )
+    expect(scrolls).toHaveBeenCalledWith({ block: 'nearest' })
+  })
+
+  it('keeps the playing measure marked for assistive tech on long grids', () => {
+    render(
+      <ChordChartPanel
+        source={longSource}
+        onSourceChange={() => {}}
+        currentMeasureIndex={42}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+    expect(document.querySelectorAll('[aria-current="true"]')).toHaveLength(1)
+  })
+})
+
 describe('ChordChartPanel detection', () => {
   it('runs the detection with the panel layout on an empty grid', async () => {
     const user = userEvent.setup()

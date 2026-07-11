@@ -72,6 +72,7 @@
      dialogs on purpose: a menu / rename popover is often triggered from *inside*
      a dialog (e.g. « Renommer » in the projects dialog) and must float over it. */
   --z-playhead: 10; /* the moving cursor, above the waveform */
+  --z-transport: 15; /* sticky transport bar, over the page flow, under overlays */
   --z-overlay: 20; /* full-viewport drop layer */
   --z-dialog: 30; /* modal backdrop + popup */
   --z-popover: 40; /* menus, popover forms — above dialogs (may nest in one) */

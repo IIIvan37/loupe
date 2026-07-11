@@ -21,15 +21,18 @@ run, brouillon = édition manuelle persistée), bouton « Détecter les accords 
 LiveStatus a11y). Gate **vert — 925 tests** (+19), serveur 127 pytest.
 
 **En cours : [feuille de route v3](roadmap-excellence-3.md)** (évaluation
-notée du 2026-07-11, 16,0/20). **K.2 tempo 750 BPM — fait** sur la branche
-`fix/tempo-map-outliers` (PR à ouvrir) : `sanitizeBeatGrid` core (médiane
-locale fenêtrée ±8 gaps, préférence downbeat, property fast-check), filtre
-miroir serveur dans `beat_positions.py`, auto-réparation des projets persistés
-au seam de restauration. Gate verte, Stryker 95,01 %, 935 + 134 tests.
-**Next : merger la PR K.2, puis K.1** (grille d'accords : scrollport borné +
-scrollIntoView — slice UI, checkpoint d'approche en attente de validation).
-Puis Lot L (perf web) → M/N/O. See
-[2026-07-11-tempo-map-outliers](sessions/2026-07-11-tempo-map-outliers.md) ·
+notée du 2026-07-11, 16,0/20). **K.2 mergé (PR #89)** : `sanitizeBeatGrid` en
+deux passes (double-fires vs médiane locale fenêtrée + bruit off-tempo vs
+carte consolidée), support minimal par segment (4 gaps), filtre miroir
+serveur, auto-réparation des projets persistés ; limite documentée : la
+modulation métrique anticipée de beat_this (dbn testé, n'aide pas) → remède
+produit « édition locale du tempo » en veille. **K.1 fait** sur
+`feat/lead-sheet-scrollport` (PR à ouvrir) : scrollport
+`clamp(14rem, 45dvh, 26rem)` autour du LeadSheet + suivi du playhead
+(`scrollIntoView` nearest), browser-vérifié sur le projet réel.
+**Next : merger la PR K.1 → Lot K clos, puis Lot L** (perf web) → M/N/O. See
+[K.1](sessions/2026-07-11-lead-sheet-scrollport.md) ·
+[K.2](sessions/2026-07-11-tempo-map-outliers.md) ·
 [2026-07-11-detect-chords-ui](sessions/2026-07-11-detect-chords-ui.md) ·
 [2026-07-11-chords-endpoint](sessions/2026-07-11-chords-endpoint.md) ·
 [2026-07-11-chord-detection-core](sessions/2026-07-11-chord-detection-core.md).

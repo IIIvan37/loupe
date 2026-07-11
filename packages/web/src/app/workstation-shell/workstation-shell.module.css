@@ -24,6 +24,11 @@
   min-inline-size: 60%;
   /* Fluid page padding — generous on desktop, tight on phones. */
   padding: clamp(var(--space-s), 2.5vw, var(--space-l));
+  /* Horizontal guard only: `.shell` uses min-height (the DOCUMENT scrolls
+     vertically), so the 1fr row is never height-constrained and vertical
+     overflow can't engage here. Long content must bound itself (e.g. the
+     chord panel's sheetViewport); switching the app to an inner-scroll DAW
+     model would be a shell-wide design decision, not a bugfix. */
   overflow: auto;
 }
 

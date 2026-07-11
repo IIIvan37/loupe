@@ -9,6 +9,13 @@
   padding: var(--space-s) var(--space-l);
   background: var(--panel);
   border-block-start: 1px solid var(--line);
+  /* Pinned to the viewport while the page scrolls: play/pause and the
+     timecode must survive any content height (mixer + grid on a long track
+     used to push them under the fold). Sticky, not fixed — the bar keeps its
+     grid slot and the document keeps its natural scroll model. */
+  position: sticky;
+  inset-block-end: 0;
+  z-index: var(--z-transport);
 }
 
 .control {
