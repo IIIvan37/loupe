@@ -352,7 +352,8 @@ Ce que la référence montre, et ce que ça implique :
 - [x] **L.4** mémoïsation WAV encodé (`encodeWavMemo`, cache réservé au mix)
 - [x] **M.1** garde Origin (CSRF) (`OriginGuardMiddleware`, same-origin de
       confiance)
-- [ ] **M.2** durcir /download
+- [x] **M.2** durcir /download (sémaphore + max_filesize + budget total ;
+      `/separate` aussi)
 - [ ] **M.3** basses sécurité groupées
 - [ ] **N.1** erreurs accords discriminées + Lingui
 - [ ] **N.2** raccourcis toggles + carte
