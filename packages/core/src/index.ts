@@ -1,6 +1,12 @@
 // Public contract of the core (the only surface adapters consume).
 
 export type {
+  DetectChordsDeps,
+  DetectChordsInput,
+  DetectChordsResult
+} from './application/detect-chords.ts'
+export { detectChords } from './application/detect-chords.ts'
+export type {
   DetectTempoDeps,
   DetectTempoInput,
   DetectTempoResult,
@@ -29,6 +35,7 @@ export type {
   ArchiveFile,
   ArchiveWriter,
   AudioFileDecoder,
+  ChordDetector,
   DecodedAudio,
   DetectedTempo,
   DownloadProgress,
@@ -78,6 +85,7 @@ export type {
   Section
 } from './domain/chord-chart.ts'
 export { parseChart, transposeChartSource } from './domain/chord-chart.ts'
+export type { DetectedChordSpan } from './domain/chord-detection.ts'
 export type { ChordSymbol } from './domain/chord-symbol.ts'
 export { formatChordSymbol } from './domain/chord-symbol.ts'
 export type {

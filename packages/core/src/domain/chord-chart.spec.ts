@@ -1,6 +1,10 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { parseChart, transposeChartSource } from './chord-chart.ts'
+import {
+  parseChart,
+  renderChartSource,
+  transposeChartSource
+} from './chord-chart.ts'
 
 describe('parseChart', () => {
   it('reads a single measure into one unlabelled section', () => {
@@ -159,6 +163,55 @@ describe('transposeChartSource', () => {
     const source = '[Verse]\n| Db | Bbm7/F |'
     expect(transposeChartSource(transposeChartSource(source, 7), -7)).toBe(
       '[Verse]\n| C# | A#m7/F |'
+    )
+  })
+})
+
+describe('renderChartSource', () => {
+  it('renders measures as bar-separated cells, wrapping rows', () => {
+    expect(renderChartSource(['C', 'Am', 'F', 'G', 'C'], 4)).toBe(
+      '| C | Am | F | G |\n| C |'
+    )
+  })
+
+  it('prints a blank measure as N.C. so the bar count survives parsing', () => {
+    expect(renderChartSource(['C', undefined, 'G'], 4)).toBe('| C | N.C. | G |')
+  })
+
+  it('prints a label the row grammar cannot hold as N.C.', () => {
+    // An empty, spaced or bar-lined label would change the measure count
+    // under parseChart, shifting every following bar off its downbeat.
+    expect(renderChartSource(['', 'A min', 'C|G'], 4)).toBe(
+      '| N.C. | N.C. | N.C. |'
+    )
+  })
+
+  it('renders nothing from no measures', () => {
+    expect(renderChartSource([], 4)).toBe('')
+  })
+
+  it('clamps a degenerate row width to one bar per row', () => {
+    expect(renderChartSource(['C', 'G'], 0)).toBe('| C |\n| G |')
+  })
+
+  it('round-trips: parsing the render yields one measure per label', () => {
+    const label = fc.oneof(
+      fc.constantFrom('C', 'Am', 'F#m7b5', 'Bb', 'Cmaj7/E', 'N.C.', undefined),
+      fc.string()
+    )
+    fc.assert(
+      fc.property(
+        fc.array(label, { minLength: 1, maxLength: 32 }),
+        fc.integer({ min: 1, max: 12 }),
+        (labels, barsPerRow) => {
+          const chart = parseChart(renderChartSource(labels, barsPerRow))
+          const measures = chart.sections.flatMap((section) => section.measures)
+          return (
+            measures.length === labels.length &&
+            measures.every((measure) => measure.chords.length === 1)
+          )
+        }
+      )
     )
   })
 })

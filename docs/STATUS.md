@@ -7,24 +7,29 @@
 
 ## Where we are
 
-**Lot J — fond de panier COMPLET (2026-07-11)**, 5 PRs ouvertes,
-indépendantes sur `main` (sync lecture mergée PR #80) : **J.1** tokens
-sémantiques `--danger`/`--ok` + `--scrim` + `--disabled-opacity` (PR #81) ;
-**J.2** retour d'enfoncement `:active` 1px sur tous les skins (PR #82) ;
-**J.4** dédup des moteurs Web Audio — `createStretchTransport` partagé,
-clone jscpd éteint, **vérifié navigateur** (PR #83) ; **J.3** 🟠 quota
-disque du store audio, `LOUPE_MAX_AUDIO_STORE_MB` défaut 10 Go, refus 507 +
-événement NDJSON sur `/download` (PR #84) ; **J.5** annulation
-séparation/download — `AbortSignal` dans les ports, `cancel()` = abort +
-supersede (réducteur intact), « Annuler » dans le panneau et le header
-(PR #85). Gate **vert — 880 tests** (+5), Stryker **95,14**, serveur
-112 pytest. Avec le Lot J, la roadmap-excellence-2 est **entièrement
-cochée**.
+**Lot C chord-charts — slice CORE livrée (2026-07-11)**, branche
+`feat/chord-detection-core` : port **`ChordDetector`** (spans horodatés,
+tokens de grille, `undefined` = silence) + agrégation pure
+**`chordLabelPerMeasure`** (vote pondéré par durée par intervalle
+downbeat→downbeat — même projection que `measureIndexAt` —, silence candidat,
+changements contraints au downbeat) + **`renderChartSource`** placé chez le
+propriétaire de la grammaire (`chord-chart.ts`, labels hors-token assainis en
+`N.C.`) + use-case **`detectChords`** → brouillon de **texte source** que le
+panel pré-remplit (gardes : grille sans downbeat, détection vide, temps NaN).
+Gate **vert — 906 tests** (+26), Stryker **95,19** (`detect-chords` 100, les
+5 survivants = mutants équivalents analysés).
 
-**Next : merger #81–#85, puis Lot C chord-charts** (endpoint `/chords` BTC
-+ port `ChordDetector` — lever d'abord les 2 angles morts : spike Demucs,
-dispo poids, cf. [chord-charts-plan](chord-charts-plan.md)). See
-[2026-07-11-lot-j-fond-de-panier](sessions/2026-07-11-lot-j-fond-de-panier.md).
+**⛔ Spike BTC (pré-requis slice serveur) bloqué par permission** :
+l'exécution du code cloné `BTC-ISMIR19` (+ `torch.load` pickle) a été refusée
+au classifieur — poids confirmés dans le repo (~33 Mo, maj-min + large-voca),
+venv serveur prêt (torch 2.12), script `spike_infer.py` prêt dans le
+scratchpad. **L'utilisateur doit lancer/autoriser le spike** (qualité +
+temps CPU, puis gain Demucs = angle mort #1) avant la slice serveur `/chords`.
+
+**Next : PR de la slice core, spike BTC (utilisateur), puis slice serveur
+`/chords` et slice web** (adapter `createHttpChordDetector` + bouton
+« Détecter les accords »). See
+[2026-07-11-chord-detection-core](sessions/2026-07-11-chord-detection-core.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
@@ -50,8 +55,12 @@ dispo poids, cf. [chord-charts-plan](chord-charts-plan.md)). See
   tokens (accords invisibles) →
   [rapport](sessions/2026-07-10-chord-charts-lot-a-b.md)
 
-### Roadmap excellence 2 (Lots F → I, 2026-07-07 → 07-10)
+### Roadmap excellence 2 (Lots F → J, 2026-07-07 → 07-11)
 
+- 2026-07-11 · **Lot J — fond de panier** (PRs #81–#85 mergées) : tokens
+  sémantiques, `:active`, dédup moteurs Web Audio, quota disque, annulation —
+  roadmap-excellence-2 **entièrement cochée** →
+  [rapport](sessions/2026-07-11-lot-j-fond-de-panier.md)
 - 2026-07-09/10 · **Lot I.3 — count-in du métronome, LOT I COMPLET** (PR #76) :
   une mesure de clics avant le départ — atterrissage calé sur la grille,
   accents phasés sur la mesure du morceau, tempo entendu; adaptateur one-shot
