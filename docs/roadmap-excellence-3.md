@@ -356,10 +356,10 @@ Ce que la référence montre, et ce que ça implique :
       `/separate` aussi)
 - [x] **M.3** basses sécurité groupées (timeout inférences 504,
       `FileResponse /audio`, doc poids)
-- [ ] **N.1** erreurs accords discriminées + Lingui
-- [ ] **N.2** raccourcis toggles + carte
-- [ ] **N.3** indicateur pitch ↔ grille
-- [ ] **N.4** micro-frictions panneau accords
+- [x] **N.1** erreurs accords discriminées + Lingui
+- [x] **N.2** raccourcis toggles + carte
+- [x] **N.3** indicateur pitch ↔ grille
+- [x] **N.4** micro-frictions panneau accords
 - [ ] **O.1** token mort --accent (+ lint tokens)
 - [ ] **O.2** micro-dérives design
 - [ ] **O.3** split workstation-shell.spec

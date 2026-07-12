@@ -21,7 +21,7 @@ import {
   within
 } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
-import { beforeAll, vi } from 'vitest'
+import { beforeAll, beforeEach, vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { WorkstationShell } from './workstation-shell.tsx'
@@ -31,6 +31,10 @@ beforeAll(() => {
   Element.prototype.setPointerCapture = vi.fn()
   Element.prototype.releasePointerCapture = vi.fn()
 })
+
+// The chord panel reads its bars-per-row preference from localStorage at
+// every mount — never let one test's layout leak into the next.
+beforeEach(() => localStorage.clear())
 
 /** 10 samples at 1 Hz → a 10-second timeline, easy to read as 0:10. */
 const decoded: DecodedAudio = {

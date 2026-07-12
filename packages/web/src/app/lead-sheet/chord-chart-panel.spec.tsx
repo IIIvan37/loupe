@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom/vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import {
@@ -31,6 +31,10 @@ function Host({
     />
   )
 }
+
+// The bars-per-row preference rides localStorage — never let one test's
+// layout leak into the next.
+beforeEach(() => localStorage.clear())
 
 describe('ChordChartPanel', () => {
   it('renders the lead-sheet live from the typed grid', async () => {
@@ -81,6 +85,53 @@ describe('ChordChartPanel', () => {
     expect(sheet?.style.getPropertyValue('--bars-per-row')).toBe('6')
   })
 
+  it('flags an out-of-range bars-per-row draft instead of ignoring it', async () => {
+    const user = userEvent.setup()
+    render(<Host />, { wrapper: I18nTestingProvider })
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('chords.bars-per-row')
+    })
+    await user.clear(field)
+    await user.type(field, '20')
+    expect(field).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('an in-range bars-per-row draft carries no invalid flag', async () => {
+    const user = userEvent.setup()
+    render(<Host />, { wrapper: I18nTestingProvider })
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('chords.bars-per-row')
+    })
+    await user.clear(field)
+    await user.type(field, '6')
+    expect(field).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('an emptied draft is transient, not invalid', async () => {
+    const user = userEvent.setup()
+    render(<Host />, { wrapper: I18nTestingProvider })
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('chords.bars-per-row')
+    })
+    await user.clear(field)
+    expect(field).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('leaving the field clears the rejected draft and the flag', async () => {
+    const user = userEvent.setup()
+    render(<Host />, { wrapper: I18nTestingProvider })
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('chords.bars-per-row')
+    })
+    await user.clear(field)
+    await user.type(field, '20')
+    await user.tab()
+    expect(field).not.toHaveAttribute('aria-invalid')
+    // The « 2 » keystroke previewed 2 bars per row, but the edit as a whole
+    // was rejected — leaving the field falls back to the settled layout.
+    expect(field).toHaveValue(4)
+  })
+
   it('transposes the whole grid down a semitone', async () => {
     const user = userEvent.setup()
     render(<Host />, { wrapper: I18nTestingProvider })
@@ -89,6 +140,50 @@ describe('ChordChartPanel', () => {
       screen.getByRole('button', { name: i18n._('chords.transpose-down') })
     )
     expect(screen.getByRole('textbox')).toHaveValue('| B | G#m |')
+  })
+})
+
+describe('ChordChartPanel bars-per-row preference', () => {
+  // A render preference, not project data: it lives in localStorage so the
+  // chosen layout survives reloads without touching the project manifest.
+  it('remembers the chosen layout across panel lifetimes', async () => {
+    const user = userEvent.setup()
+    const { unmount } = render(<Host />, { wrapper: I18nTestingProvider })
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('chords.bars-per-row')
+    })
+    await user.clear(field)
+    await user.type(field, '6')
+    await user.tab()
+    unmount()
+    render(<Host />, { wrapper: I18nTestingProvider })
+    expect(
+      screen.getByRole('spinbutton', { name: i18n._('chords.bars-per-row') })
+    ).toHaveValue(6)
+  })
+
+  it('ignores a stored value the layout cannot use', () => {
+    localStorage.setItem('loupe.chords.bars-per-row', '99')
+    render(<Host />, { wrapper: I18nTestingProvider })
+    expect(
+      screen.getByRole('spinbutton', { name: i18n._('chords.bars-per-row') })
+    ).toHaveValue(4)
+  })
+
+  it('a rejected edit never clobbers the stored preference', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem('loupe.chords.bars-per-row', '6')
+    render(<Host />, { wrapper: I18nTestingProvider })
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('chords.bars-per-row')
+    })
+    await user.clear(field)
+    await user.type(field, '20')
+    await user.tab()
+    // « 2 » previewed mid-edit, but the edit was rejected as a whole: the
+    // deliberate 6 survives in storage AND the field settles back on it.
+    expect(localStorage.getItem('loupe.chords.bars-per-row')).toBe('6')
+    expect(field).toHaveValue(6)
   })
 })
 
@@ -310,6 +405,20 @@ describe('ChordChartPanel detection', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       i18n._('chords.detect-done')
     )
+  })
+
+  it('keeps the primary action at the top — before the sheet, not below it', () => {
+    const { container } = render(<Host detection={detectionOf()} />, {
+      wrapper: I18nTestingProvider
+    })
+    const button = screen.getByRole('button', { name: i18n._('chords.detect') })
+    const viewport = container.querySelector('[class*="sheetViewport"]')
+    // A long grid pushes everything under it out of view (K.1 bounded the
+    // sheet, but the action must not drift down with it).
+    expect(
+      button.compareDocumentPosition(viewport as Element) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
   })
 
   it('renders no detection controls when the feature is not wired', () => {
