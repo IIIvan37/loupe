@@ -32,6 +32,9 @@ export type Command =
   | { readonly type: 'zoomIn' }
   | { readonly type: 'zoomOut' }
   | { readonly type: 'addMarker' }
+  | { readonly type: 'toggleLoop' }
+  | { readonly type: 'toggleMetronome' }
+  | { readonly type: 'tapTempo' }
 
 export interface KeyBinding {
   readonly chord: KeyChord
@@ -45,7 +48,7 @@ export const SEEK_STEP_SECONDS = 5
 
 /**
  * The shipped layout. Spatial keys bind by physical position; the mnemonic
- * keys (`+`, `-`, `M`) bind by character so they land on the right key on every
+ * keys (`+`, `-`, `M`, `L`, `K`, `T`) bind by character so they land on the right key on every
  * keyboard layout. All are modifier-free, so they never clash with browser
  * shortcuts (which all carry Ctrl/Cmd).
  */
@@ -61,7 +64,10 @@ export const defaultKeyBindings: KeyBindings = [
   },
   { chord: { key: '+' }, command: { type: 'zoomIn' } },
   { chord: { key: '-' }, command: { type: 'zoomOut' } },
-  { chord: { key: 'm' }, command: { type: 'addMarker' } }
+  { chord: { key: 'm' }, command: { type: 'addMarker' } },
+  { chord: { key: 'l' }, command: { type: 'toggleLoop' } },
+  { chord: { key: 'k' }, command: { type: 'toggleMetronome' } },
+  { chord: { key: 't' }, command: { type: 'tapTempo' } }
 ]
 
 /** Ctrl/alt/meta must match exactly so OS/browser chords are never hijacked. */

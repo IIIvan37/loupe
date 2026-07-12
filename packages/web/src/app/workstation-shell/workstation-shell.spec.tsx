@@ -302,6 +302,20 @@ async function expectBpmReadout(bpm: number): Promise<void> {
   )
 }
 
+/**
+ * Three taps half a second apart (→ 120 BPM) with the wall clock mocked; the
+ * actuation is injected so the panel button and the T key share one
+ * choreography.
+ */
+async function tapThrice(actuate: () => void | Promise<void>): Promise<void> {
+  const clock = vi.spyOn(performance, 'now')
+  for (const atMs of [0, 500, 1000]) {
+    clock.mockReturnValue(atMs)
+    await actuate()
+  }
+  clock.mockRestore()
+}
+
 describe('WorkstationShell', () => {
   // Picker tests spy on HTMLInputElement.prototype.click — restore even when
   // an assertion failed mid-test, so no spy (or its counts) leaks onward.
@@ -444,15 +458,8 @@ describe('WorkstationShell', () => {
     await screen.findByRole('button', { name: i18n._('tempo.retry') })
 
     // Three taps half a second apart — the manual fallback when no server.
-    const clock = vi.spyOn(performance, 'now')
     const tap = screen.getByRole('button', { name: i18n._('tempo.tap') })
-    clock.mockReturnValue(0)
-    await user.click(tap)
-    clock.mockReturnValue(500)
-    await user.click(tap)
-    clock.mockReturnValue(1000)
-    await user.click(tap)
-    clock.mockRestore()
+    await tapThrice(() => user.click(tap))
 
     await expectBpmReadout(120)
     expect(screen.getByText(i18n._('tempo.manual-badge'))).toBeInTheDocument()
@@ -956,6 +963,30 @@ describe('WorkstationShell', () => {
     input.remove()
   })
 
+  it('ignores auto-repeated keydowns from a held key', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    // Holding a key must fire its command once, not at the OS repeat rate —
+    // a held T would otherwise machine-gun tap-tempo into a bogus override.
+    fireEvent.keyDown(document.body, { code: 'Space', repeat: true })
+    expect(engine.play).not.toHaveBeenCalled()
+  })
+
+  it('stands back while a modal dialog is open', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('header.show-shortcuts') })
+    )
+    const dialog = await screen.findByRole('dialog')
+    // Focus is trapped inside the dialog, so the pressed key targets it; the
+    // global layout must not mutate the session behind the overlay.
+    fireEvent.keyDown(dialog, { code: 'Space' })
+    expect(engine.play).not.toHaveBeenCalled()
+  })
+
   it('ignores keyboard shortcuts until a track is loaded', () => {
     const { engine } = renderShell()
     fireEvent.keyDown(document.body, { code: 'Space' })
@@ -987,6 +1018,62 @@ describe('WorkstationShell', () => {
     const goto = screen.getByRole('button', { name: i18n._('markers.go-to', { name: i18n._('markers.default-name', { number: 1 }) }) })
     await user.click(goto)
     expect(engine.seekTo).toHaveBeenLastCalledWith(5)
+  })
+
+  it('toggles the loop with the L key', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    pointerGesture(20, 60)
+    await screen.findByRole('button', { name: i18n._('loops.active') })
+
+    fireEvent.keyDown(document.body, { key: 'l', code: 'KeyL' })
+    expect(
+      await screen.findByRole('button', { name: i18n._('loops.inactive') })
+    ).toBeInTheDocument()
+
+    fireEvent.keyDown(document.body, { key: 'l', code: 'KeyL' })
+    expect(
+      await screen.findByRole('button', { name: i18n._('loops.active') })
+    ).toBeInTheDocument()
+  })
+
+  it('toggles the metronome mute with the K key', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+
+    // The click seats muted by default; K makes it audible, K again mutes it.
+    const mute = await screen.findByRole('button', {
+      name: i18n._('mixer.mute', { name: 'Métronome' })
+    })
+    expect(mute).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.keyDown(document.body, { key: 'k', code: 'KeyK' })
+    expect(mute).toHaveAttribute('aria-pressed', 'false')
+
+    fireEvent.keyDown(document.body, { key: 'k', code: 'KeyK' })
+    expect(mute).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('taps a tempo with the T key', async () => {
+    const detector = {
+      detect: async () => {
+        throw new Error('server unreachable')
+      }
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+    await screen.findByRole('button', { name: i18n._('tempo.retry') })
+
+    // Three T presses half a second apart — hands stay on the instrument.
+    await tapThrice(() => {
+      fireEvent.keyDown(document.body, { key: 't', code: 'KeyT' })
+    })
+
+    await expectBpmReadout(120)
+    expect(screen.getByText(i18n._('tempo.manual-badge'))).toBeInTheDocument()
   })
 
   it('moves a marker with an arrow key on its tag', async () => {

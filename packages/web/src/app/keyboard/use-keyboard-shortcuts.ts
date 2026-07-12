@@ -23,6 +23,18 @@ function isTextEntry(target: EventTarget | null): boolean {
   )
 }
 
+/**
+ * True while a modal dialog owns the interaction. Its focus trap keeps the
+ * pressed key targeting the dialog subtree, so this is checkable from the
+ * event alone — the global layout must not mutate the session behind an
+ * overlay (e.g. T retapping the tempo behind the very dialog listing it).
+ */
+function isInsideDialog(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement && target.closest('[role="dialog"]') !== null
+  )
+}
+
 /** The app actions a resolved command is dispatched onto. */
 export interface ShortcutActions {
   readonly togglePlayback: () => void
@@ -31,6 +43,12 @@ export interface ShortcutActions {
   readonly zoomIn: () => void
   readonly zoomOut: () => void
   readonly addMarker: () => void
+  /** Loop the active A/B region vs playing through it. */
+  readonly toggleLoop: () => void
+  /** Mute/unmute the metronome click lane. */
+  readonly toggleMetronome: () => void
+  /** One tap of the manual tap-tempo (the median of a run sets the BPM). */
+  readonly tapTempo: () => void
 }
 
 export interface ShortcutOptions {
@@ -56,6 +74,15 @@ function dispatch(command: Command, actions: ShortcutActions): void {
       return
     case 'addMarker':
       actions.addMarker()
+      return
+    case 'toggleLoop':
+      actions.toggleLoop()
+      return
+    case 'toggleMetronome':
+      actions.toggleMetronome()
+      return
+    case 'tapTempo':
+      actions.tapTempo()
       return
   }
 }
@@ -84,7 +111,14 @@ export function useKeyboardShortcuts(
     function onKeyDown(event: KeyboardEvent): void {
       // A control that owns the key consumed it first (a marker tag or a loop
       // handle arrow-nudge calls preventDefault): the global layout stands back.
-      if (event.defaultPrevented || isTextEntry(event.target)) {
+      // Auto-repeat is ignored too — a held key fires its command once, not at
+      // the OS repeat rate (a held T would machine-gun the tap tempo).
+      if (
+        event.defaultPrevented ||
+        event.repeat ||
+        isTextEntry(event.target) ||
+        isInsideDialog(event.target)
+      ) {
         return
       }
       const command = resolveCommand(bindings, {

@@ -31,30 +31,41 @@ wall-clock **total** 900 s — un trickle ne le réarme pas, `socket_timeout` 30
 et `/separate` reçoit le même budget (1800 s — son `events.get()` n'avait
 aucun timeout).
 **Lot M complet** (M.1 PR #95, M.2 PR #96, M.3 PR #97 mergées).
-**N.1 fait** sur `fix/chord-detection-error-codes` (PR à ouvrir) : `detectChords`
-échoue avec un code discriminé (`no-downbeat | no-chords | engine-unavailable |
-network | timeout | too-large | unknown`) + détail brut console-only ;
-l'interprétation du contrat transport (503/504/413, TypeError du fetch) vit une
-fois dans `post-wav-json.ts` (`classifyTransportError`) ; le panneau mappe
-chaque code sur une copy Lingui actionnable (map `msg()` module, réutilise les
-hints existants pour `network`/`no-downbeat`) et la live region annonce la
-raison complète (parité lecteur d'écran). /code-review 8 angles : 7 constats
-confirmés → tous corrigés, 1 réfuté. Gate vert **986 tests** (+15), Stryker
-94,92 % (detect-chords 40/40).
-**Next : ouvrir la PR N.1, puis N.2** (raccourcis : toggles boucle/métronome/
-tap) → N.3/N.4 → O. Retrofit `/tempo` sur `classifyTransportError` noté (le
-panneau tempo affiche encore la chaîne transport brute).
-See [N.1](sessions/2026-07-12-chord-detection-error-codes.md) ·
-[M.3](sessions/2026-07-11-server-lows-m3.md) ·
-[M.2](sessions/2026-07-11-harden-download.md).
+**N.1 fait** — **PR #98 ouverte** (checks verts, mergeable, attend
+validation) : codes d'échec discriminés bout-en-bout pour la détection
+d'accords + copy Lingui actionnable, `classifyTransportError` partagé dans
+`post-wav-json.ts` → [rapport](sessions/2026-07-12-chord-detection-error-codes.md).
+**N.2 fait** sur `feat/practice-toggle-shortcuts` (PR à ouvrir) : trois
+variantes `Command` (`toggleLoop | toggleMetronome | tapTempo`) liées à
+`L`/`K`/`T` par caractère ; carte de raccourcis + empty-state suivent via
+`describeKeyBindings` ; `useMetronome.toggle()` garde la représentation
+clic-stem dans son hook (la couche raccourcis ne connaît plus
+`METRONOME_ID`) ; le listener global ignore `event.repeat` (un T maintenu
+mitraillait un override 400 BPM clampé + rebuild du stem clic à ~30 Hz) et se
+retire quand la touche cible un `[role="dialog"]` (Base UI laisse passer les
+lettres — deux T derrière le dialogue des raccourcis remplaçaient le tempo
+détecté). /code-review 8 angles + vérif adversariale (1 vérificateur/constat) :
+5 constats corrigés, 5 réfutés avec preuve. Gate vert **975 tests** (+6),
+Stryker 94,96 % (key-bindings 85/85).
+**Next : ouvrir la PR N.2 (et merger la #98), puis N.3** (indicateur
+pitch-shift ↔ grille + « Transposer la grille pour suivre ») → N.4 → O.
+Retrofit `/tempo` sur `classifyTransportError` toujours noté.
+See [N.2](sessions/2026-07-12-practice-toggle-shortcuts.md) ·
+[N.1](sessions/2026-07-12-chord-detection-error-codes.md) ·
+[M.3](sessions/2026-07-11-server-lows-m3.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
-- 2026-07-12 · **N.1 — erreurs accords discriminées + Lingui** (PR à ouvrir) :
-  codes typés bout-en-bout, `classifyTransportError` partagé, copy actionnable
-  annoncée → [rapport](sessions/2026-07-12-chord-detection-error-codes.md)
+- 2026-07-12 · **N.2 — raccourcis L/K/T + gardes repeat/dialog** (PR à
+  ouvrir) : toggles boucle/métronome/tap au clavier, carte auto-dérivée,
+  listener global durci →
+  [rapport](sessions/2026-07-12-practice-toggle-shortcuts.md)
+- 2026-07-12 · **N.1 — erreurs accords discriminées + Lingui** (PR #98) :
+  codes typés bout-en-bout, `classifyTransportError` partagé, copy
+  actionnable annoncée →
+  [rapport](sessions/2026-07-12-chord-detection-error-codes.md)
 - 2026-07-11 · **M.3 — lows serveur groupés, Lot M clos** (PR #97) : timeout
   d'inférence qui tire vraiment (`abandon_on_cancel`), `FileResponse`,
   épinglage documenté → [rapport](sessions/2026-07-11-server-lows-m3.md)

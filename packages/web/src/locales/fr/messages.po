@@ -224,7 +224,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:308
+#: src/app/workstation-shell/workstation-shell.tsx:309
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -763,6 +763,16 @@ msgid "shortcuts.title"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:94
+msgid "shortcuts.toggle-loop"
+msgstr "Activer / désactiver la boucle"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:98
+msgid "shortcuts.toggle-metronome"
+msgstr "Activer / désactiver le métronome"
+
+#. js-lingui-explicit-id
 #: src/app/keyboard/shortcut-hints.ts:88
 msgid "shortcuts.zoom-in"
 msgstr "Zoom avant"
@@ -839,6 +849,7 @@ msgid "tempo.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:103
 #: src/app/tempo/tempo-panel.tsx:206
 msgid "tempo.tap"
 msgstr "Taper le tempo"

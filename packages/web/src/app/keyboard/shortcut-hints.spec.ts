@@ -19,7 +19,10 @@ describe('describeKeyBindings', () => {
       },
       { keys: '+', description: i18n._('shortcuts.zoom-in') },
       { keys: '-', description: i18n._('shortcuts.zoom-out') },
-      { keys: 'M', description: i18n._('shortcuts.add-marker') }
+      { keys: 'M', description: i18n._('shortcuts.add-marker') },
+      { keys: 'L', description: i18n._('shortcuts.toggle-loop') },
+      { keys: 'K', description: i18n._('shortcuts.toggle-metronome') },
+      { keys: 'T', description: i18n._('tempo.tap') }
     ])
   })
 
