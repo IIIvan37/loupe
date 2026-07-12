@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DetectedChordSpan } from '../domain/chord-detection.ts'
 import type { BeatGrid } from '../domain/tempo.ts'
-import { detectChords } from './detect-chords.ts'
+import { ChordDetectionError, detectChords } from './detect-chords.ts'
 import type { ChordDetector, DecodedAudio } from './ports.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
@@ -88,7 +88,11 @@ describe('detectChords', () => {
         ])
       }
     )
-    expect(result).toEqual({ ok: false, error: 'invalid chord detection' })
+    expect(result).toEqual({
+      ok: false,
+      code: 'unknown',
+      detail: 'invalid chord detection'
+    })
   })
 
   it('hands the detector the same PCM it was given', async () => {
@@ -107,7 +111,8 @@ describe('detectChords', () => {
     )
     expect(result).toEqual({
       ok: false,
-      error: 'no downbeat to anchor measures on'
+      code: 'no-downbeat',
+      detail: 'no downbeat to anchor measures on'
     })
     expect(detector.seen).toBeUndefined()
   })
@@ -117,10 +122,14 @@ describe('detectChords', () => {
       { audio, grid: grid4(2), barsPerRow: 4 },
       { detector: fakeDetector([]) }
     )
-    expect(result).toEqual({ ok: false, error: 'no chords detected' })
+    expect(result).toEqual({
+      ok: false,
+      code: 'no-chords',
+      detail: 'no chords detected'
+    })
   })
 
-  it('returns an error result when the detector throws', async () => {
+  it('folds an untyped detector throw into the unknown code', async () => {
     const boom: ChordDetector = {
       detect: async () => {
         throw new Error('chord engine down')
@@ -130,6 +139,44 @@ describe('detectChords', () => {
       { audio, grid: grid4(1), barsPerRow: 4 },
       { detector: boom }
     )
-    expect(result).toEqual({ ok: false, error: 'chord engine down' })
+    expect(result).toEqual({
+      ok: false,
+      code: 'unknown',
+      detail: 'chord engine down'
+    })
+  })
+
+  it('carries the code of a typed ChordDetectionError through', async () => {
+    const down: ChordDetector = {
+      detect: async () => {
+        throw new ChordDetectionError('engine-unavailable', 'HTTP 503')
+      }
+    }
+    const result = await detectChords(
+      { audio, grid: grid4(1), barsPerRow: 4 },
+      { detector: down }
+    )
+    expect(result).toEqual({
+      ok: false,
+      code: 'engine-unavailable',
+      detail: 'HTTP 503'
+    })
+  })
+
+  it('carries a network ChordDetectionError code through', async () => {
+    const offline: ChordDetector = {
+      detect: async () => {
+        throw new ChordDetectionError('network', 'Failed to fetch')
+      }
+    }
+    const result = await detectChords(
+      { audio, grid: grid4(1), barsPerRow: 4 },
+      { detector: offline }
+    )
+    expect(result).toEqual({
+      ok: false,
+      code: 'network',
+      detail: 'Failed to fetch'
+    })
   })
 })

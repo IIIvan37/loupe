@@ -1,11 +1,15 @@
 // Public contract of the core (the only surface adapters consume).
 
 export type {
+  ChordDetectionErrorCode,
   DetectChordsDeps,
   DetectChordsInput,
   DetectChordsResult
 } from './application/detect-chords.ts'
-export { detectChords } from './application/detect-chords.ts'
+export {
+  ChordDetectionError,
+  detectChords
+} from './application/detect-chords.ts'
 export type {
   DetectTempoDeps,
   DetectTempoInput,
