@@ -989,6 +989,67 @@ describe('WorkstationShell', () => {
     expect(engine.seekTo).toHaveBeenLastCalledWith(5)
   })
 
+  it('toggles the loop with the L key', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    pointerGesture(20, 60)
+    await screen.findByRole('button', { name: i18n._('loops.active') })
+
+    fireEvent.keyDown(document.body, { key: 'l', code: 'KeyL' })
+    expect(
+      await screen.findByRole('button', { name: i18n._('loops.inactive') })
+    ).toBeInTheDocument()
+
+    fireEvent.keyDown(document.body, { key: 'l', code: 'KeyL' })
+    expect(
+      await screen.findByRole('button', { name: i18n._('loops.active') })
+    ).toBeInTheDocument()
+  })
+
+  it('toggles the metronome mute with the K key', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+
+    // The click seats muted by default; K makes it audible, K again mutes it.
+    const mute = await screen.findByRole('button', {
+      name: i18n._('mixer.mute', { name: 'Métronome' })
+    })
+    expect(mute).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.keyDown(document.body, { key: 'k', code: 'KeyK' })
+    expect(mute).toHaveAttribute('aria-pressed', 'false')
+
+    fireEvent.keyDown(document.body, { key: 'k', code: 'KeyK' })
+    expect(mute).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('taps a tempo with the T key', async () => {
+    const detector = {
+      detect: async () => {
+        throw new Error('server unreachable')
+      }
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+    await screen.findByRole('button', { name: i18n._('tempo.retry') })
+
+    // Three T presses half a second apart — hands stay on the instrument.
+    const clock = vi.spyOn(performance, 'now')
+    clock.mockReturnValue(0)
+    fireEvent.keyDown(document.body, { key: 't', code: 'KeyT' })
+    clock.mockReturnValue(500)
+    fireEvent.keyDown(document.body, { key: 't', code: 'KeyT' })
+    clock.mockReturnValue(1000)
+    fireEvent.keyDown(document.body, { key: 't', code: 'KeyT' })
+    clock.mockRestore()
+
+    await expectBpmReadout(120)
+    expect(screen.getByText(i18n._('tempo.manual-badge'))).toBeInTheDocument()
+  })
+
   it('moves a marker with an arrow key on its tag', async () => {
     const { engine, user } = renderShell()
     await importTrack(user)

@@ -91,6 +91,16 @@ const ADD_MARKER = msg({
   id: 'shortcuts.add-marker',
   message: 'Ajouter un repère'
 })
+const TOGGLE_LOOP = msg({
+  id: 'shortcuts.toggle-loop',
+  message: 'Activer / désactiver la boucle'
+})
+const TOGGLE_METRONOME = msg({
+  id: 'shortcuts.toggle-metronome',
+  message: 'Activer / désactiver le métronome'
+})
+// Same action as the tempo panel's tap button — same words, same catalogue id.
+const TAP_TEMPO = msg({ id: 'tempo.tap', message: 'Taper le tempo' })
 
 /** Localised sentence describing what a resolved command does. */
 function describeCommand(command: Command): string {
@@ -110,6 +120,12 @@ function describeCommand(command: Command): string {
       return i18n._(ZOOM_OUT)
     case 'addMarker':
       return i18n._(ADD_MARKER)
+    case 'toggleLoop':
+      return i18n._(TOGGLE_LOOP)
+    case 'toggleMetronome':
+      return i18n._(TOGGLE_METRONOME)
+    case 'tapTempo':
+      return i18n._(TAP_TEMPO)
   }
 }
 

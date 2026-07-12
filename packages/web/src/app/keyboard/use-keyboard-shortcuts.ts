@@ -31,6 +31,12 @@ export interface ShortcutActions {
   readonly zoomIn: () => void
   readonly zoomOut: () => void
   readonly addMarker: () => void
+  /** Loop the active A/B region vs playing through it. */
+  readonly toggleLoop: () => void
+  /** Mute/unmute the metronome click lane. */
+  readonly toggleMetronome: () => void
+  /** One tap of the manual tap-tempo (the median of a run sets the BPM). */
+  readonly tapTempo: () => void
 }
 
 export interface ShortcutOptions {
@@ -56,6 +62,15 @@ function dispatch(command: Command, actions: ShortcutActions): void {
       return
     case 'addMarker':
       actions.addMarker()
+      return
+    case 'toggleLoop':
+      actions.toggleLoop()
+      return
+    case 'toggleMetronome':
+      actions.toggleMetronome()
+      return
+    case 'tapTempo':
+      actions.tapTempo()
       return
   }
 }
