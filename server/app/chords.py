@@ -10,8 +10,9 @@ Labels are mir syntax from the 25-class maj-min vocabulary (`N` = no chord);
 translating them into the web grid's own chord tokens is the adapter's job.
 The model is BTC (Park et al., ISMIR 2019, MIT), vendored under `app/btc/` and
 run on the full mix — its training regime. This module is the thin torch
-shell: decode the WAV, resample, CQT, run the model per window, and hand the
-frame indices to the pure `chord_spans` helper. `main` imports it lazily so a
+shell: decode the WAV, resample, CQT, run the model per window (padding and
+slicing per the pure `btc_windows` plan), and hand the frame indices to the
+pure `chord_spans` helper. `main` imports it lazily so a
 host without torch still serves the rest — `/chords` then answers with a 503
 the client surfaces as an error. The WAV is the exact 16-bit PCM `encodeWav`
 produces, decoded with the stdlib.
@@ -33,6 +34,7 @@ import numpy as np
 import torch
 
 from .btc import BTC_model
+from .btc_windows import window_plan
 from .chord_spans import chord_spans
 from .limits import (
     INFERENCE_TIMEOUT_SECONDS,
@@ -153,13 +155,13 @@ def _analyse(data: bytes) -> dict:
     model, mean, std = _btc()
     feature = (_features(signal, sample_rate).T - mean) / std
     seconds_per_frame = WINDOW_SECONDS / TIMESTEP
-    pad = -feature.shape[0] % TIMESTEP
-    feature = np.pad(feature, ((0, pad), (0, 0)), mode="constant")
+    plan = window_plan(feature.shape[0], TIMESTEP)
+    feature = np.pad(feature, ((0, plan["pad"]), (0, 0)), mode="constant")
     frames: list[int] = []
     with torch.no_grad():
         batch = torch.tensor(feature, dtype=torch.float32, device=_device).unsqueeze(0)
-        for window in range(feature.shape[0] // TIMESTEP):
-            segment = batch[:, TIMESTEP * window : TIMESTEP * (window + 1), :]
+        for start, end in plan["slices"]:
+            segment = batch[:, start:end, :]
             encoded, _ = model.self_attn_layers(segment)
             prediction, _ = model.output_layer(encoded)
             frames.extend(int(p) for p in prediction.squeeze(0))

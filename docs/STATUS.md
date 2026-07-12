@@ -44,7 +44,8 @@ badInput), préférence localStorage posée au blur, ligne « Détecter » sous 
 header — **Lot N clos**.
 **O.1 mergé (PR #106)**, **interlude react-doctor 0.7.6 mergé (PR #107)**,
 **O.2 mergé (PR #109)** — voir l'historique.
-**O.3 fait** sur `feat/o3-split-shell-spec` (PR à ouvrir) :
+**O.3 fait** sur `feat/o3-split-shell-spec` (PR #110, CI verte, merge en
+attente) :
 `workstation-shell.spec.tsx` (2 438 lignes, 115 tests, un seul `describe`)
 découpé par parcours en 9 specs colocalisées (`.import`, `.tempo`,
 `.transport`, `.shortcuts`, `.loops`, `.stems`, `.chords`, `.projects` + le
@@ -56,10 +57,17 @@ donc scanné par react-doctor : `tapThrice` déroulé (faux positif « await in
 loop »), `deslop/unused-file` ignoré pour le kit (même cas que le wrapper
 i18n). Gate vert **1047 tests** (total inchangé avant/après — aucun test
 perdu), Stryker skipped (core intouché).
-**Next : ouvrir/merger la PR O.3, puis O.4 (`btc_windows.py` pur) et O.5
-(basses code groupées) pour clore le Lot O.**
+**O.4 fait** sur `feat/o4-btc-windows` (empilée sur la branche O.3) : le
+padding/fenêtrage TIMESTEP de `chords.py` (exclu de coverage + pyright)
+extrait en `btc_windows.py` pur testé (`window_plan` → `{pad, slices}`,
+6 pytest, modèle `chord_spans.py`), `_analyse` rebranché, équivalence
+ancien/nouveau vérifiée par script. Serveur **163 pytest** (+6), pyright 0,
+coverage 97,6 %.
+**Next : merger #110 puis la PR O.4, et finir O.5 (basses code groupées)
+pour clore le Lot O.**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [O.3](sessions/2026-07-12-split-shell-spec.md) ·
+See [O.4](sessions/2026-07-12-btc-windows.md) ·
+[O.3](sessions/2026-07-12-split-shell-spec.md) ·
 [O.2](sessions/2026-07-12-design-micro-drifts.md) ·
 [interlude](sessions/2026-07-12-react-doctor-ref-mutations.md) ·
 [O.1](sessions/2026-07-12-dead-accent-token.md).
@@ -68,7 +76,10 @@ See [O.3](sessions/2026-07-12-split-shell-spec.md) ·
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
-- 2026-07-12 · **O.3 — split workstation-shell.spec** (PR à ouvrir) : 115
+- 2026-07-12 · **O.4 — btc_windows.py pur** (PR à ouvrir) : fenêtrage
+  TIMESTEP extrait de chords.py, `window_plan` testé (6 pytest), _analyse
+  rebranché → [rapport](sessions/2026-07-12-btc-windows.md)
+- 2026-07-12 · **O.3 — split workstation-shell.spec** (PR #110) : 115
   tests répartis en 9 specs par parcours + `shell-test-kit.tsx` colocalisé →
   [rapport](sessions/2026-07-12-split-shell-spec.md)
 - 2026-07-12 · **O.2 — micro-dérives design** (PR #109 mergée) : transitions
