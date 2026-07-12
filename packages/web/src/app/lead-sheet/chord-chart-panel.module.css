@@ -26,6 +26,16 @@
   color: var(--text);
 }
 
+/* An out-of-range draft is flagged, not silently ignored — the border echoes
+ * the aria-invalid state assistive tech announces. The :hover/:focus-visible
+ * variants outrank the composed numberField state rules (same specificity,
+ * order-dependent otherwise) — and the flag only exists while focused. */
+.barsField[aria-invalid='true'],
+.barsField[aria-invalid='true']:hover,
+.barsField[aria-invalid='true']:focus-visible {
+  border-color: var(--danger);
+}
+
 .transpose {
   composes: chipRow from '../ui/controls.module.css';
 }
@@ -62,8 +72,9 @@
   resize: vertical;
 }
 
-/* The detection action sits between the sheet and the source editor: one
- * quiet button plus its explanations (why it's blocked / why it failed). */
+/* The detection action sits right under the header — a long grid must not
+ * push the primary action out of view: one quiet button plus its
+ * explanations (why it's blocked / why it failed). */
 .detectRow {
   display: flex;
   align-items: center;

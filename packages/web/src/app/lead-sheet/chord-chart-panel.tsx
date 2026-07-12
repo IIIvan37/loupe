@@ -2,18 +2,20 @@ import { chartMatchesPitch, type ChordDetectionErrorCode } from '@app/core'
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { LiveStatus } from '../ui/live-status.tsx'
 import { signedSemitones } from '../ui/signed-semitones.ts'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
+import {
+  DEFAULT_BARS_PER_ROW,
+  isValidBarsPerRow,
+  MAX_BARS_PER_ROW,
+  MIN_BARS_PER_ROW,
+  readStoredBarsPerRow,
+  storeBarsPerRow
+} from './bars-per-row-preference.ts'
 import { LeadSheet } from './lead-sheet.tsx'
 import styles from './chord-chart-panel.module.css'
-
-/** The lead-sheet's default layout: four bars to a row, the lead-sheet norm. */
-const DEFAULT_BARS_PER_ROW = 4
-/** The layout bounds — beyond them the sheet stops reading as a grid. */
-const MIN_BARS_PER_ROW = 1
-const MAX_BARS_PER_ROW = 12
 
 /** Blocked-state hints, shared with the failure copy below. */
 const NEEDS_SERVER = msg({
@@ -101,12 +103,27 @@ export function ChordChartPanel({
   detection
 }: ChordChartPanelProps) {
   const { t } = useLingui()
-  // A render preference, not chart data — it lives with the panel (resets
-  // with it on track change) and is never persisted.
-  const [barsPerRow, setBarsPerRow] = useState(DEFAULT_BARS_PER_ROW)
+  // A render preference, not chart data — it rides localStorage (per browser)
+  // so the chosen layout survives reloads without touching the manifest.
+  const [barsPerRow, setBarsPerRow] = useState(
+    () => readStoredBarsPerRow() ?? DEFAULT_BARS_PER_ROW
+  )
+  // The last deliberate choice — what an abandoned or rejected edit settles
+  // back to on blur, so a mid-edit preview never clobbers the preference.
+  const settledBars = useRef(barsPerRow)
   // What the field shows while being edited — an emptied or out-of-range
   // draft is no layout, so the sheet keeps the last committed value.
   const [barsDraft, setBarsDraft] = useState<string | undefined>(undefined)
+  // Browsers surface unparseable number-input content as '' + validity
+  // .badInput — without this flag that garbage would pass as « transient ».
+  const [barsBadInput, setBarsBadInput] = useState(false)
+  // An empty draft is a transient mid-edit state; only content that cannot
+  // become a layout gets flagged (the old behaviour rejected silently).
+  const barsDraftInvalid =
+    barsBadInput ||
+    (barsDraft !== undefined &&
+      barsDraft !== '' &&
+      !isValidBarsPerRow(Number(barsDraft)))
   // The detected draft REPLACES the source — a non-empty grid is armed work,
   // so the first activation only swaps the button to « Confirmer ? ».
   const overwrite = useTwoStepConfirm<true>()
@@ -195,16 +212,26 @@ export function ChordChartPanel({
             value={barsDraft ?? barsPerRow}
             onChange={(event) => {
               setBarsDraft(event.target.value)
+              setBarsBadInput(event.target.validity?.badInput ?? false)
               const bars = Number(event.target.value)
-              if (
-                Number.isInteger(bars) &&
-                bars >= MIN_BARS_PER_ROW &&
-                bars <= MAX_BARS_PER_ROW
-              ) {
+              // A live preview only — the choice settles (and persists) on
+              // blur, so a rejected edit's prefix never sticks.
+              if (isValidBarsPerRow(bars)) {
                 setBarsPerRow(bars)
               }
             }}
-            onBlur={() => setBarsDraft(undefined)}
+            onBlur={() => {
+              const bars = Number(barsDraft)
+              if (barsDraft !== undefined && isValidBarsPerRow(bars)) {
+                settledBars.current = bars
+                storeBarsPerRow(bars)
+              } else {
+                setBarsPerRow(settledBars.current)
+              }
+              setBarsDraft(undefined)
+              setBarsBadInput(false)
+            }}
+            aria-invalid={barsDraftInvalid || undefined}
             aria-label={t({
               id: 'chords.bars-per-row',
               message: 'Mesures par ligne'
@@ -237,6 +264,34 @@ export function ChordChartPanel({
           </button>
         </span>
       </div>
+      {detection && (
+        <div className={styles.detectRow}>
+          <button
+            type="button"
+            className={styles.detectButton}
+            disabled={
+              detection.blockedReason !== undefined || detection.detecting
+            }
+            onClick={onDetectClick}
+            onBlur={overwrite.disarm}
+          >
+            {detection.detecting
+              ? t({ id: 'chords.detecting', message: 'Détection des accords…' })
+              : overwrite.pending
+                ? t({
+                    id: 'chords.detect-confirm',
+                    message: 'Remplacer la grille ?'
+                  })
+                : t({ id: 'chords.detect', message: 'Détecter les accords' })}
+          </button>
+          {blockedHint !== undefined && (
+            <p className={styles.hint}>{blockedHint}</p>
+          )}
+          {failureLine !== undefined && (
+            <p className={styles.error}>{failureLine}</p>
+          )}
+        </div>
+      )}
       {gridDiverges && (
         <div className={styles.pitchDrift}>
           <p className={styles.hint}>
@@ -277,34 +332,6 @@ export function ChordChartPanel({
           barsPerRow={barsPerRow}
         />
       </div>
-      {detection && (
-        <div className={styles.detectRow}>
-          <button
-            type="button"
-            className={styles.detectButton}
-            disabled={
-              detection.blockedReason !== undefined || detection.detecting
-            }
-            onClick={onDetectClick}
-            onBlur={overwrite.disarm}
-          >
-            {detection.detecting
-              ? t({ id: 'chords.detecting', message: 'Détection des accords…' })
-              : overwrite.pending
-                ? t({
-                    id: 'chords.detect-confirm',
-                    message: 'Remplacer la grille ?'
-                  })
-                : t({ id: 'chords.detect', message: 'Détecter les accords' })}
-          </button>
-          {blockedHint !== undefined && (
-            <p className={styles.hint}>{blockedHint}</p>
-          )}
-          {failureLine !== undefined && (
-            <p className={styles.error}>{failureLine}</p>
-          )}
-        </div>
-      )}
       <textarea
         className={styles.input}
         value={source}
