@@ -17,7 +17,7 @@
     "@fontsource/space-grotesk": "^5.2.10",
     "@lingui/core": "^6.4.0",
     "@lingui/react": "^6.4.0",
-    "@soundtouchjs/audio-worklet": "^2.0.4",
+    "@soundtouchjs/audio-worklet": "^2.1.0",
     "fflate": "^0.8.3",
     "music-metadata": "^11.13.0",
     "react": "^19.2.7",
