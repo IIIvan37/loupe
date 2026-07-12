@@ -1,5 +1,10 @@
-import type { ChordDetector, DecodedAudio, DetectedChordSpan } from '@app/core'
-import { postWavForJson } from './post-wav-json.ts'
+import {
+  ChordDetectionError,
+  type ChordDetector,
+  type DecodedAudio,
+  type DetectedChordSpan
+} from '@app/core'
+import { HttpStatusError, postWavForJson } from './post-wav-json.ts'
 
 /** One span as the chords endpoint reports it: mir label over [start, end). */
 interface WireSpan {
@@ -65,11 +70,25 @@ function isWireSpan(value: unknown): value is WireSpan {
 export function createHttpChordDetector(baseUrl: string): ChordDetector {
   return {
     async detect(audio: DecodedAudio): Promise<readonly DetectedChordSpan[]> {
-      const body = (await postWavForJson(
-        baseUrl,
-        '/chords',
-        audio
-      )) as Partial<ChordsResponse>
+      let body: Partial<ChordsResponse>
+      try {
+        body = (await postWavForJson(
+          baseUrl,
+          '/chords',
+          audio
+        )) as Partial<ChordsResponse>
+      } catch (e) {
+        // Type the failures the UI can explain: 503 is the server's "no
+        // chord engine installed" answer, a TypeError is fetch's "server
+        // unreachable". Anything else stays untyped → the unknown code.
+        if (e instanceof HttpStatusError && e.status === 503) {
+          throw new ChordDetectionError('engine-unavailable', e.message)
+        }
+        if (e instanceof TypeError) {
+          throw new ChordDetectionError('network', e.message)
+        }
+        throw e
+      }
       if (!Array.isArray(body.chords) || !body.chords.every(isWireSpan)) {
         throw new Error('chords response was malformed')
       }

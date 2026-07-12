@@ -1,4 +1,7 @@
-import { transposeChartSource } from '@app/core'
+import {
+  type ChordDetectionErrorCode,
+  transposeChartSource
+} from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
 import { LiveStatus } from '../ui/live-status.tsx'
@@ -17,7 +20,8 @@ export interface ChordDetectionProps {
   /** Why detection is unavailable (disables the button + explains under it). */
   readonly blockedReason: 'server' | 'no-grid' | undefined
   readonly detecting: boolean
-  readonly error: string | undefined
+  /** Why the last run failed — a code the panel maps to translated copy. */
+  readonly error: ChordDetectionErrorCode | undefined
   readonly succeeded: boolean
   readonly onDetect: (barsPerRow: number) => void
 }
@@ -81,7 +85,32 @@ export function ChordChartPanel({
         : undefined
 
   // The failure copy stays in the catalog (Lot G: actionable, translated) —
-  // the raw engine detail is appended visibly but never spoken alone.
+  // each code speaks the user's language; the raw engine/transport detail
+  // never reaches the UI (the hook logs it to the console).
+  const errorCopy: Record<ChordDetectionErrorCode, string> = {
+    'no-downbeat': t({
+      id: 'chords.error.no-downbeat',
+      message:
+        "La grille de mesures n'a pas de premier temps — détecter d'abord le tempo."
+    }),
+    'no-chords': t({
+      id: 'chords.error.no-chords',
+      message: 'Aucun accord détecté sur ce morceau.'
+    }),
+    'engine-unavailable': t({
+      id: 'chords.error.engine-unavailable',
+      message:
+        "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
+    }),
+    network: t({
+      id: 'chords.error.network',
+      message: "Serveur local injoignable — vérifier qu'il est lancé."
+    }),
+    unknown: t({
+      id: 'chords.error.unknown',
+      message: 'Erreur inattendue — détails dans la console du navigateur.'
+    })
+  }
   const failed =
     detection?.error !== undefined
       ? t({
@@ -194,7 +223,7 @@ export function ChordChartPanel({
           )}
           {detection.error !== undefined && (
             <p className={styles.error}>
-              {failed} — {detection.error}
+              {failed} — {errorCopy[detection.error]}
             </p>
           )}
           <LiveStatus message={announced} />

@@ -2,6 +2,20 @@ import type { DecodedAudio } from '@app/core'
 import { encodeWavMemo } from './encode-wav-memo.ts'
 
 /**
+ * A non-2xx answer, with the status kept machine-readable so an adapter can
+ * discriminate the statuses it knows how to explain (503 = engine missing).
+ */
+export class HttpStatusError extends Error {
+  constructor(
+    readonly status: number,
+    message: string
+  ) {
+    super(message)
+    this.name = 'HttpStatusError'
+  }
+}
+
+/**
  * The POST-a-mix-WAV-get-JSON skeleton the analysis adapters share
  * (`/tempo`, `/chords`): encode the loaded PCM (memoised per audio, shared
  * with `/separate`), upload it, fail loudly on a non-2xx answer. Each
@@ -20,7 +34,10 @@ export async function postWavForJson(
     body: wav
   })
   if (!response.ok) {
-    throw new Error(`${path.slice(1)} request failed: HTTP ${response.status}`)
+    throw new HttpStatusError(
+      response.status,
+      `${path.slice(1)} request failed: HTTP ${response.status}`
+    )
   }
   return response.json()
 }

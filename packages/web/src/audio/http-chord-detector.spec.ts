@@ -1,4 +1,4 @@
-import type { DecodedAudio } from '@app/core'
+import { ChordDetectionError, type DecodedAudio } from '@app/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createHttpChordDetector } from './http-chord-detector.ts'
 
@@ -121,5 +121,49 @@ describe('createHttpChordDetector', () => {
     await expect(
       createHttpChordDetector('http://localhost:8000').detect(MIX)
     ).rejects.toThrow('HTTP 503')
+  })
+
+  it('types an HTTP 503 as the engine being unavailable', async () => {
+    // 503 is the server's "up, but no chord engine installed" answer — the
+    // one hint the user can act on (install torch/weights), so it gets its
+    // own code instead of folding into `unknown`.
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(new Response('nope', { status: 503 }))
+    )
+
+    await expect(
+      createHttpChordDetector('http://localhost:8000').detect(MIX)
+    ).rejects.toMatchObject({
+      name: 'ChordDetectionError',
+      code: 'engine-unavailable'
+    })
+  })
+
+  it('leaves a non-503 HTTP failure untyped', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(new Response('boom', { status: 500 }))
+    )
+
+    await expect(
+      createHttpChordDetector('http://localhost:8000').detect(MIX)
+    ).rejects.not.toBeInstanceOf(ChordDetectionError)
+  })
+
+  it('types an unreachable server as a network failure', async () => {
+    // What `fetch` throws when the server is down or offline.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockRejectedValue(new TypeError('Failed to fetch'))
+    )
+
+    await expect(
+      createHttpChordDetector('http://localhost:8000').detect(MIX)
+    ).rejects.toMatchObject({ name: 'ChordDetectionError', code: 'network' })
   })
 })

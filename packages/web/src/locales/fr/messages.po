@@ -59,74 +59,99 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:130
+#: src/app/lead-sheet/chord-chart-panel.tsx:159
 msgid "chords.bars-per-row"
 msgstr "Mesures par ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:135
+#: src/app/lead-sheet/chord-chart-panel.tsx:164
 msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:185
+#: src/app/lead-sheet/chord-chart-panel.tsx:219
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:181
+#: src/app/lead-sheet/chord-chart-panel.tsx:215
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:96
+#: src/app/lead-sheet/chord-chart-panel.tsx:125
 msgid "chords.detect-done"
 msgstr "Grille pré-remplie depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:87
+#: src/app/lead-sheet/chord-chart-panel.tsx:116
 msgid "chords.detect-failed"
 msgstr "Échec de la détection des accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:76
+#: src/app/lead-sheet/chord-chart-panel.tsx:80
 msgid "chords.detect-needs-grid"
 msgstr "Détecter d'abord le tempo — la grille de mesures ancre les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:71
+#: src/app/lead-sheet/chord-chart-panel.tsx:75
 msgid "chords.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:94
-#: src/app/lead-sheet/chord-chart-panel.tsx:179
+#: src/app/lead-sheet/chord-chart-panel.tsx:123
+#: src/app/lead-sheet/chord-chart-panel.tsx:213
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:204
+#: src/app/lead-sheet/chord-chart-panel.tsx:100
+msgid "chords.error.engine-unavailable"
+msgstr "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:105
+msgid "chords.error.network"
+msgstr "Serveur local injoignable — vérifier qu'il est lancé."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:96
+msgid "chords.error.no-chords"
+msgstr "Aucun accord détecté sur ce morceau."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:91
+msgid "chords.error.no-downbeat"
+msgstr "La grille de mesures n'a pas de premier temps — détecter d'abord le tempo."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:109
+msgid "chords.error.unknown"
+msgstr "Erreur inattendue — détails dans la console du navigateur."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:238
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:208
+#: src/app/lead-sheet/chord-chart-panel.tsx:242
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:108
+#: src/app/lead-sheet/chord-chart-panel.tsx:137
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:142
+#: src/app/lead-sheet/chord-chart-panel.tsx:171
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:153
+#: src/app/lead-sheet/chord-chart-panel.tsx:182
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
@@ -199,7 +224,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:310
+#: src/app/workstation-shell/workstation-shell.tsx:308
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -251,7 +276,7 @@ msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:120
-#: src/app/workstation-shell/workstation-shell.tsx:212
+#: src/app/workstation-shell/workstation-shell.tsx:215
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
@@ -522,7 +547,7 @@ msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-stage.tsx:91
+#: src/app/workstation-shell/shell-stage.tsx:93
 msgid "mixer.mix-label"
 msgstr "Mix"
 
@@ -642,7 +667,7 @@ msgid "separation.done"
 msgstr "Pistes séparées"
 
 #. js-lingui-explicit-id
-#: src/app/separation/use-separation.ts:207
+#: src/app/separation/use-separation.ts:230
 msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
@@ -748,83 +773,83 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:205
+#: src/app/tempo/tempo-panel.tsx:215
 msgid "tempo.align"
 msgstr "Caler la grille sur la tête de lecture"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:210
+#: src/app/tempo/tempo-panel.tsx:220
 msgid "tempo.align-short"
 msgstr "Caler"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:21
+#: src/app/tempo/tempo-panel.tsx:25
 msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:137
+#: src/app/tempo/tempo-panel.tsx:147
 msgid "tempo.bpm-field"
 msgstr "Saisir le tempo (BPM)"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:20
-#: src/app/tempo/tempo-panel.tsx:216
+#: src/app/tempo/tempo-panel.tsx:24
+#: src/app/tempo/tempo-panel.tsx:226
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:180
+#: src/app/tempo/tempo-panel.tsx:190
 msgid "tempo.double"
 msgstr "Doubler le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:168
+#: src/app/tempo/tempo-panel.tsx:178
 msgid "tempo.halve"
 msgstr "Diviser le tempo par deux"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:116
+#: src/app/tempo/tempo-panel.tsx:126
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:146
+#: src/app/tempo/tempo-panel.tsx:156
 msgid "tempo.manual-badge"
 msgstr "Manuel"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:158
+#: src/app/tempo/tempo-panel.tsx:168
 msgid "tempo.meter"
 msgstr "{beatsPerBar} temps"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:151
+#: src/app/tempo/tempo-panel.tsx:161
 msgid "tempo.range"
 msgstr "{min}–{max} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:113
+#: src/app/tempo/tempo-panel.tsx:123
 msgid "tempo.region-label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:225
+#: src/app/tempo/tempo-panel.tsx:235
 msgid "tempo.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:196
+#: src/app/tempo/tempo-panel.tsx:206
 msgid "tempo.tap"
 msgstr "Taper le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:198
+#: src/app/tempo/tempo-panel.tsx:208
 msgid "tempo.tap-short"
 msgstr "Tap"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:142
+#: src/app/tempo/tempo-panel.tsx:152
 msgid "tempo.unit"
 msgstr "BPM"
 
@@ -834,12 +859,12 @@ msgid "toast.dismiss"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/use-stem-export.ts:52
+#: src/app/workstation-shell/use-stem-export.ts:53
 msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:189
+#: src/app/workstation-shell/workstation-shell.tsx:192
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
@@ -849,57 +874,57 @@ msgid "toast.region"
 msgstr "Notifications"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/use-stem-export.ts:48
+#: src/app/workstation-shell/use-stem-export.ts:49
 msgid "toast.stems-exported"
 msgstr "Stems exportés"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:74
+#: src/app/transport-bar/transport-bar.tsx:86
 msgid "transport.end"
 msgstr "Fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:62
+#: src/app/transport-bar/transport-bar.tsx:74
 msgid "transport.pause"
 msgstr "Pause"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:114
+#: src/app/transport-bar/transport-bar.tsx:126
 msgid "transport.pitch-label"
 msgstr "Hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:127
+#: src/app/transport-bar/transport-bar.tsx:139
 msgid "transport.pitch-reset"
 msgstr "Double-clic pour revenir à 0"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:122
+#: src/app/transport-bar/transport-bar.tsx:134
 msgid "transport.pitch-slider"
 msgstr "Hauteur en demi-tons"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:63
+#: src/app/transport-bar/transport-bar.tsx:75
 msgid "transport.play"
 msgstr "Lecture"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:50
+#: src/app/transport-bar/transport-bar.tsx:62
 msgid "transport.start"
 msgstr "Début"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:90
+#: src/app/transport-bar/transport-bar.tsx:102
 msgid "transport.tempo-label"
 msgstr "Tempo (sans toucher au pitch)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:103
+#: src/app/transport-bar/transport-bar.tsx:115
 msgid "transport.tempo-reset"
 msgstr "Double-clic pour revenir à 100 %"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:98
+#: src/app/transport-bar/transport-bar.tsx:110
 msgid "transport.tempo-slider"
 msgstr "Tempo en pourcentage"
 
