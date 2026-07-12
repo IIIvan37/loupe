@@ -83,6 +83,7 @@
 }
 
 .measure {
+  position: relative;
   display: flex;
   gap: var(--space-xs);
   min-height: 3rem;
@@ -90,6 +91,81 @@
   justify-content: center;
   padding: var(--space-2xs) var(--space-xs);
   border-right: 1px solid var(--text);
+}
+
+/* ——— Form notation: repeat bars, voltas, D.C. / Fine / coda, fermata. ——— */
+
+/* |: and :| — the double bar plus its two dots, drawn at the measure edge. */
+.measure[data-repeat-start] {
+  border-left: 3px double var(--text);
+}
+
+.measure[data-repeat-start]::before,
+.measure[data-repeat-end]::after {
+  content: ':';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-60%);
+  font-family: var(--font-chart);
+  font-size: var(--font-size-l);
+  color: var(--text);
+}
+
+.measure[data-repeat-start]::before {
+  left: var(--space-3xs);
+}
+
+.measure[data-repeat-end] {
+  border-right: 3px double var(--text);
+}
+
+.measure[data-repeat-end]::after {
+  right: var(--space-3xs);
+}
+
+/* A volta measure carries the bracket line; the number prints once, where
+ * the group opens. */
+.volta {
+  border-top: 1px solid var(--text);
+}
+
+/* The chart-hand annotations share one recipe; each mark only picks its
+ * corner and size. */
+.annotation {
+  position: absolute;
+  top: var(--space-3xs);
+  font-family: var(--font-chart);
+  color: var(--text);
+}
+
+.voltaLabel {
+  composes: annotation;
+  left: var(--space-3xs);
+  font-size: var(--font-size-xs);
+}
+
+/* D.C. / Fine sit over the bar closing their measure, chart-hand small. */
+.formMark {
+  composes: annotation;
+  right: var(--space-3xs);
+  font-size: var(--font-size-s);
+}
+
+/* The ⊕ sign opening the coda. */
+.codaSign {
+  composes: annotation;
+  left: var(--space-3xs);
+  font-size: var(--font-size-m);
+}
+
+/* The fermata over its held measure. */
+.fermata {
+  composes: annotation;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--font-size-m);
+  line-height: 1;
 }
 
 .measure:last-child {

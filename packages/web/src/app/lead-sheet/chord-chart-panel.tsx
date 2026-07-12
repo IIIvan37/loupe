@@ -82,7 +82,8 @@ interface ChordChartPanelProps {
   readonly pitchSemitones: number
   /** How far the grid's key has been transposed from its written key. */
   readonly transposedBy: number
-  /** The measure being played (global index), undefined to highlight nothing. */
+  /** The measure being PLAYED (the n-th downbeat, counted through the
+   * unrolled form — see LeadSheet), undefined to highlight nothing. */
   readonly currentMeasureIndex?: number | undefined
   readonly detection?: ChordDetectionProps | undefined
   /** The session-derived chart head (tags, BPM, bar length) — see LeadSheet. */

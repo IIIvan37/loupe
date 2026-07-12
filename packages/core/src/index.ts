@@ -84,6 +84,7 @@ export type {
 export { separateTrack } from './application/separate-track.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
 export type {
+  ChartForm,
   ChordChart,
   Measure,
   Section
@@ -92,7 +93,8 @@ export {
   chartMatchesPitch,
   parseChart,
   transposeChart,
-  transposeChartSource
+  transposeChartSource,
+  unrollChart
 } from './domain/chord-chart.ts'
 export type { DetectedChordSpan } from './domain/chord-detection.ts'
 export type { ChordSymbol } from './domain/chord-symbol.ts'

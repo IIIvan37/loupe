@@ -77,19 +77,24 @@ formulaire apparaît).
 fournie (`your-song-elton-john-chart.pdf`, non versionnée — rendu cible +
 fonctionnalités) ; trois arbitrages pris : rendu d'abord, sync lecture via
 unroll dès P.2, en-tête dérivé de la session + directives `{…}` de surcharge.
-**P.1 — rendu chart livré sur `feat/p1-chart-rendering` (PR à ouvrir)** :
-directives `{k: v}` de tête dans `parseChart` (verbatim sous transposition),
-`ChordGlyph` (m mineur en base, extension exposant, basse empilée, garde
-verbatim), barres dessinées (doubles aux frontières), labels encadrés,
-`ChartHeader` dérivé session (tags/BPM/mesure) + surcharges, Petaluma Script
-(OFL) bundlée. Gate vert, Stryker 95,26 (chord-chart 99,15), vérif visuelle
-navigateur contre la maquette. Décision : « key of X » **directive-only**
-(aucune tonalité détectée n'existe dans l'app) ; notation d'en-tête hors
-Lingui (contenu de document).
-**Next : merger la PR P.1 puis P.2 — grammaire de forme + unrollChart (TDD,
-autonomie).**
+**P.1 — rendu chart mergé (PR #113)** : directives `{k: v}`, `ChordGlyph`,
+barres dessinées, `ChartHeader` dérivé + Petaluma Script OFL — voir
+l'historique.
+**P.2 — grammaire de forme + déroulement, sur `feat/p2-form-unroll` (PR à
+ouvrir)** : reprises `|: :|`, voltas `|1.`/`|2.` (portée = la ligne jusqu'au
+`:|` inclus), `{d.c.}`/`{coda}`/`{fine}` pleine-ligne → `ChartForm`, fermata
+`@` ; `unrollChart` pur (propriétés fast-check : identité sans structure,
+tout indice déroulé référence une mesure écrite ; gardes formes dégénérées —
+aucune mesure écrite inatteignable) ; surlignage LeadSheet sur la forme
+déroulée + rendu reprises/voltas/D.C./Fine/⊕/𝄐. Revue 8 angles : 5 bugs
+confirmés reproduits en tests rouges puis fixés (volta multi-mesures, `:|`
+après groupe de voltas, dc=0, queue post-d.c., volta+`|:`). Syntaxe
+documentée dans le README application.
+**Next : merger la PR P.2 puis P.3 — édition repliée (UI, checkpoint
+d'approche obligatoire).**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [P.1](sessions/2026-07-12-p1-chart-rendering.md) ·
+See [P.2](sessions/2026-07-12-p2-form-unroll.md) ·
+[P.1](sessions/2026-07-12-p1-chart-rendering.md) ·
 [O.5](sessions/2026-07-12-grouped-lows-o5.md) ·
 [O.4](sessions/2026-07-12-btc-windows.md) ·
 [O.3](sessions/2026-07-12-split-shell-spec.md) ·
@@ -101,7 +106,11 @@ See [P.1](sessions/2026-07-12-p1-chart-rendering.md) ·
 
 ### Lot P — lead-sheet chart (2026-07-12 → …)
 
-- 2026-07-12 · **P.1 — rendu chart** (PR à ouvrir) : directives `{k: v}`,
+- 2026-07-12 · **P.2 — grammaire de forme + unrollChart** (PR à ouvrir) :
+  reprises/voltas/{d.c.}/{coda}/{fine}/fermata, unroll pur (fast-check),
+  surlignage sur la forme déroulée →
+  [rapport](sessions/2026-07-12-p2-form-unroll.md)
+- 2026-07-12 · **P.1 — rendu chart** (PR #113 mergée) : directives `{k: v}`,
   ChordGlyph, barres dessinées, ChartHeader dérivé + Petaluma Script OFL →
   [rapport](sessions/2026-07-12-p1-chart-rendering.md)
 
