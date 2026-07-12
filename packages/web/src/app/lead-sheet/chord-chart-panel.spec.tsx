@@ -236,17 +236,71 @@ describe('ChordChartPanel detection', () => {
     expect(screen.getByRole('status')).toHaveTextContent(
       i18n._('chords.detecting')
     )
-    rerender(
-      <Host detection={detectionOf({ error: 'chord engine down' })} />
-    )
-    // The visible line carries the translated failure + the raw detail; the
-    // live region only speaks the translated part.
-    expect(screen.getByText(/chord engine down/)).toHaveTextContent(
-      i18n._('chords.detect-failed')
-    )
+    rerender(<Host detection={detectionOf({ error: 'unknown' })} />)
+    // The visible line is fully translated: prefix + the code's own copy —
+    // no raw engine text ever reaches the UI (it goes to the console).
+    expect(
+      screen.getAllByText(new RegExp(i18n._('chords.error.unknown')))[0]
+    ).toHaveTextContent(i18n._('chords.detect-failed'))
+    // The live region speaks the actionable copy too — a screen-reader user
+    // gets the same reason a sighted user reads.
     expect(screen.getByRole('status')).toHaveTextContent(
-      i18n._('chords.detect-failed')
+      i18n._('chords.error.unknown')
     )
+  })
+
+  it('explains a missing server engine in the user language', () => {
+    render(<Host detection={detectionOf({ error: 'engine-unavailable' })} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(
+      screen.getAllByText(new RegExp(i18n._('chords.error.engine-unavailable'))).length
+    ).toBeGreaterThan(0)
+  })
+
+  it('reuses the launch-the-server hint for an unreachable server', () => {
+    render(<Host detection={detectionOf({ error: 'network' })} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(
+      screen.getAllByText(new RegExp(i18n._('chords.detect-needs-server'))).length
+    ).toBeGreaterThan(0)
+  })
+
+  it('explains a server-side timeout in the user language', () => {
+    render(<Host detection={detectionOf({ error: 'timeout' })} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(
+      screen.getAllByText(new RegExp(i18n._('chords.error.timeout'))).length
+    ).toBeGreaterThan(0)
+  })
+
+  it('explains an oversized upload in the user language', () => {
+    render(<Host detection={detectionOf({ error: 'too-large' })} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(
+      screen.getAllByText(new RegExp(i18n._('chords.error.too-large'))).length
+    ).toBeGreaterThan(0)
+  })
+
+  it('explains an empty detection in the user language', () => {
+    render(<Host detection={detectionOf({ error: 'no-chords' })} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(
+      screen.getAllByText(new RegExp(i18n._('chords.error.no-chords'))).length
+    ).toBeGreaterThan(0)
+  })
+
+  it('reuses the detect-tempo-first hint for a gridless failure', () => {
+    render(<Host detection={detectionOf({ error: 'no-downbeat' })} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(
+      screen.getAllByText(new RegExp(i18n._('chords.detect-needs-grid'))).length
+    ).toBeGreaterThan(0)
   })
 
   it('announces the landed draft', () => {

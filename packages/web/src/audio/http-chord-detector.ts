@@ -1,5 +1,10 @@
-import type { ChordDetector, DecodedAudio, DetectedChordSpan } from '@app/core'
-import { postWavForJson } from './post-wav-json.ts'
+import {
+  ChordDetectionError,
+  type ChordDetector,
+  type DecodedAudio,
+  type DetectedChordSpan
+} from '@app/core'
+import { classifyTransportError, postWavForJson } from './post-wav-json.ts'
 
 /** One span as the chords endpoint reports it: mir label over [start, end). */
 interface WireSpan {
@@ -65,11 +70,22 @@ function isWireSpan(value: unknown): value is WireSpan {
 export function createHttpChordDetector(baseUrl: string): ChordDetector {
   return {
     async detect(audio: DecodedAudio): Promise<readonly DetectedChordSpan[]> {
-      const body = (await postWavForJson(
-        baseUrl,
-        '/chords',
-        audio
-      )) as Partial<ChordsResponse>
+      let body: Partial<ChordsResponse>
+      try {
+        body = (await postWavForJson(
+          baseUrl,
+          '/chords',
+          audio
+        )) as Partial<ChordsResponse>
+      } catch (e) {
+        // Translate the shared transport failures into the port's typed
+        // error; anything unclassified stays untyped → the unknown code.
+        const failure = classifyTransportError(e)
+        if (failure !== undefined && e instanceof Error) {
+          throw new ChordDetectionError(failure, e.message)
+        }
+        throw e
+      }
       if (!Array.isArray(body.chords) || !body.chords.every(isWireSpan)) {
         throw new Error('chords response was malformed')
       }

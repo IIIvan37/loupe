@@ -1,5 +1,10 @@
 // @vitest-environment jsdom
-import type { BeatGrid, ChordDetector, DecodedAudio } from '@app/core'
+import {
+  type BeatGrid,
+  ChordDetectionError,
+  type ChordDetector,
+  type DecodedAudio
+} from '@app/core'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useChordDetection } from './use-chord-detection.ts'
@@ -92,7 +97,7 @@ describe('useChordDetection', () => {
     expect(result.current.detecting).toBe(false)
   })
 
-  it('surfaces a failed detection as an error, clearing on the next run', async () => {
+  it('surfaces a failed detection as an error code, clearing on the next run', async () => {
     const boom: ChordDetector = {
       detect: async () => {
         throw new Error('chord engine down')
@@ -110,13 +115,57 @@ describe('useChordDetection', () => {
       { initialProps: { detector: boom } }
     )
     await act(() => result.current.detect(4))
-    expect(result.current.error).toBe('chord engine down')
+    expect(result.current.error).toBe('unknown')
     expect(onDraft).not.toHaveBeenCalled()
 
     rerender({ detector: detectorOf(['C']) })
     await act(() => result.current.detect(4))
     expect(result.current.error).toBeUndefined()
     expect(onDraft).toHaveBeenCalledWith('| C |')
+  })
+
+  it('surfaces the typed code a ChordDetectionError carries', async () => {
+    const engineDown: ChordDetector = {
+      detect: async () => {
+        throw new ChordDetectionError('engine-unavailable', 'HTTP 503')
+      }
+    }
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        onDraft: vi.fn(),
+        detector: engineDown
+      })
+    )
+    await act(() => result.current.detect(4))
+    expect(result.current.error).toBe('engine-unavailable')
+  })
+
+  it('logs the raw failure detail to the console for diagnosis', async () => {
+    const logged = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined)
+    const engineDown: ChordDetector = {
+      detect: async () => {
+        throw new ChordDetectionError('engine-unavailable', 'HTTP 503')
+      }
+    }
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        onDraft: vi.fn(),
+        detector: engineDown
+      })
+    )
+    await act(() => result.current.detect(4))
+    expect(logged).toHaveBeenCalledWith(
+      'chord detection failed:',
+      'engine-unavailable',
+      'HTTP 503'
+    )
+    logged.mockRestore()
   })
 
   it('drops a late result when the track was replaced mid-flight', async () => {
