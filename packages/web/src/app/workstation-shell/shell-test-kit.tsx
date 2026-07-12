@@ -235,6 +235,21 @@ export async function importTrack(user: UserEvent, fileName?: string): Promise<v
   })
 }
 
+/**
+ * The chord-source editor, unfolded on demand: the panel shows the chart
+ * alone by default (P.3) — reading or typing the source first means opening
+ * the editor behind « Modifier ». Idempotent: an already-open editor is
+ * returned as-is (the toggle would fold it back).
+ */
+export async function chartEditor(user: UserEvent): Promise<HTMLElement> {
+  const existing = screen.queryByLabelText(i18n._('chords.input-label'))
+  if (existing) {
+    return existing
+  }
+  await user.click(screen.getByRole('button', { name: i18n._('chords.edit') }))
+  return screen.getByLabelText(i18n._('chords.input-label'))
+}
+
 /** Drag 20%→60% of the 10 s timeline and save the region as a named loop. */
 export async function saveNamedLoop(user: UserEvent, name: string): Promise<void> {
   pointerGesture(20, 60)
