@@ -74,6 +74,42 @@ describe('deduceStructure', () => {
     ).toEqual([4, 4, 3])
   })
 
+  it('treats a bar detected only in the earlier occurrence as disagreement', () => {
+    const song = ['C', 'Am', 'F', 'G', 'C', 'Am', undefined, undefined]
+    expect(
+      deduceStructure(song).flatMap((section) => section.measures)
+    ).toEqual(song)
+  })
+
+  it('treats a bar detected only in the later occurrence as disagreement', () => {
+    const song = ['C', 'Am', undefined, undefined, 'C', 'Am', 'F', 'G']
+    expect(
+      deduceStructure(song).flatMap((section) => section.measures)
+    ).toEqual(song)
+  })
+
+  it('never merges blocks that agree only on silence', () => {
+    const song = [
+      ...[undefined, undefined, undefined, 'C'],
+      ...[undefined, undefined, undefined, 'G']
+    ]
+    expect(
+      deduceStructure(song).flatMap((section) => section.measures)
+    ).toEqual(song)
+  })
+
+  it('continues section labels past Z with two letters', () => {
+    const blocks = Array.from({ length: 27 }, (_, index) => [
+      `X${index}a`,
+      `X${index}b`,
+      `X${index}c`,
+      `X${index}d`
+    ])
+    const song = blocks.flatMap((block) => [...block, ...block])
+    const sections = deduceStructure(song)
+    expect(sections[sections.length - 1]?.label).toBe('AA')
+  })
+
   it('cleans a mis-detected bar by majority vote across occurrences', () => {
     const verse = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'G7']
     const noisy = ['C', 'Am', 'F', 'G', 'Em', 'A7', 'Dm', 'G7']
@@ -118,6 +154,14 @@ describe('renderStructuredSource', () => {
     }
     expect(renderStructuredSource([verse, verse], 4)).toBe(
       '|: C | Am | F | G |\n| Em | Am | Dm | G7 :|'
+    )
+  })
+
+  it('does not fold same-label sections whose measures differ', () => {
+    const first = { label: 'A', measures: ['C'] }
+    const second = { label: 'A', measures: ['G'] }
+    expect(renderStructuredSource([first, second], 4)).toBe(
+      '[A]\n| C |\n\n[A]\n| G |'
     )
   })
 

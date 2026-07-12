@@ -26,10 +26,9 @@ const SECTION_LENGTHS = [16, 12, 8, 4]
 export function deduceStructure(
   labels: MeasureLabels
 ): readonly DeducedSection[] {
-  let best = {
-    cost: labels.length + 1,
-    sections: [{ label: 'A', measures: labels }] as readonly DeducedSection[]
-  }
+  // The whole song is itself the one-block tiling — a single cost formula
+  // scores every candidate, so the baseline can never drift from the tilings.
+  let best = tile(labels, labels.length)
   for (const length of SECTION_LENGTHS) {
     const candidate = tile(labels, length)
     if (candidate.cost < best.cost) best = candidate
@@ -61,14 +60,16 @@ export function renderStructuredSource(
     .join('\n\n')
 }
 
-/** Consecutive plays of the same section, folded to (section, count). */
+/** Consecutive plays of THE SAME section object (deduction shares one per
+    type), folded to (section, count) — identity, not label, so a caller who
+    reuses a label with different measures never loses the second content. */
 function groupRuns(
   sections: readonly DeducedSection[]
 ): readonly { section: DeducedSection; count: number }[] {
   const runs: { section: DeducedSection; count: number }[] = []
   for (const section of sections) {
     const last = runs[runs.length - 1]
-    if (last && last.section.label === section.label) {
+    if (last && last.section === section) {
       last.count += 1
     } else {
       runs.push({ section, count: 1 })
@@ -77,13 +78,11 @@ function groupRuns(
   return runs
 }
 
-/** Wrap rendered rows in `|: … :|` — the pair plays back as two passes. */
+/** Wrap rendered rows in `|: … :|` — the pair plays back as two passes. Every
+    rendered block starts and ends with a bar line, so the repeat dots splice
+    onto the string's own first and last characters, across all its rows. */
 function withRepeatBars(rows: string): string {
-  const lines = rows.split('\n')
-  lines[0] = `|:${(lines[0] as string).slice(1)}`
-  const lastIndex = lines.length - 1
-  lines[lastIndex] = `${(lines[lastIndex] as string).slice(0, -1)}:|`
-  return lines.join('\n')
+  return `|:${rows.slice(1, -1)}:|`
 }
 
 /** Cut the song into `length`-bar blocks (plus a tail) and group equal blocks
@@ -92,30 +91,40 @@ function tile(
   labels: MeasureLabels,
   length: number
 ): { cost: number; sections: readonly DeducedSection[] } {
-  const types: MeasureLabels[][] = []
+  const types: [MeasureLabels, ...MeasureLabels[]][] = []
   const assignment: number[] = []
   for (let start = 0; start < labels.length; start += length) {
     const block = labels.slice(start, start + length)
-    let index = types.findIndex(([representative]) =>
-      matchesBlock(representative as MeasureLabels, block)
+    const match = types.find(([representative]) =>
+      matchesBlock(representative, block)
     )
-    if (index === -1) {
-      index = types.length
-      types.push([])
+    if (match === undefined) {
+      assignment.push(types.length)
+      types.push([block])
+    } else {
+      assignment.push(types.indexOf(match))
+      match.push(block)
     }
-    ;(types[index] as MeasureLabels[]).push(block)
-    assignment.push(index)
   }
-  const cleaned = types.map((occurrences) => votedBlock(occurrences))
+  // ONE section object per type: re-occurrences share it, so the renderer can
+  // fold runs on object identity — the shared-measures invariant is structural.
+  const sections = types.map((occurrences, index) => ({
+    label: sectionLabel(index),
+    measures: votedBlock(occurrences)
+  }))
   return {
     cost:
-      cleaned.reduce((total, type) => total + type.length, 0) +
+      sections.reduce((total, type) => total + type.measures.length, 0) +
       assignment.length,
-    sections: assignment.map((index) => ({
-      label: String.fromCharCode(65 + index),
-      measures: cleaned[index] as MeasureLabels
-    }))
+    sections: assignment.map((index) => sections[index] as DeducedSection)
   }
+}
+
+/** Neutral type labels: 'A'…'Z', then 'AA', 'AB', … — bijective base 26. */
+function sectionLabel(index: number): string {
+  const letter = String.fromCharCode(65 + (index % 26))
+  const rest = Math.floor(index / 26)
+  return rest === 0 ? letter : `${sectionLabel(rest - 1)}${letter}`
 }
 
 /**
@@ -144,11 +153,21 @@ function votedBlock(occurrences: readonly MeasureLabels[]): MeasureLabels {
 }
 
 /** Detection is noisy: two blocks are the same section when at least 3/4 of
-    their bars agree — a tail block (shorter) never matches a full one. */
+    their DETECTED bars agree — a tail block (shorter) never matches a full
+    one. Silence carries no evidence: blank-vs-blank positions count for
+    neither side, so mostly-silent blocks only merge on the chords they do
+    share, never on shared emptiness outvoting a real difference. */
 const MATCH_RATIO = 0.75
 
 function matchesBlock(a: MeasureLabels, b: MeasureLabels): boolean {
   if (a.length !== b.length) return false
-  const agreeing = a.filter((label, index) => label === b[index]).length
-  return agreeing >= a.length * MATCH_RATIO
+  let agreeing = 0
+  let detected = 0
+  a.forEach((label, index) => {
+    const other = b[index]
+    if (label === undefined && other === undefined) return
+    detected += 1
+    if (label === other) agreeing += 1
+  })
+  return agreeing >= detected * MATCH_RATIO
 }
