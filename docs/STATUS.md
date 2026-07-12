@@ -39,30 +39,32 @@ carte auto-dérivée, listener global durci (repeat + dialogues).
 **N.3 mergé (PR #100)** : `transposedBy` persisté (absent ⇔ 0), transposition
 appariée texte+offset en core, flag divergence **modulo 12**, « Transposer la
 grille pour suivre » confirmé deux temps, `signedSemitones` partagé.
-**N.4 fait** sur `feat/chord-panel-frictions` (PR à ouvrir) : champ « mes. /
-ligne » flaggé `aria-invalid` + bordure `--danger` (badInput navigateur
-compris) au lieu du rejet silencieux ; préférence mémorisée en localStorage —
-`bars-per-row-preference.ts` possède la règle entière (bornes 1–12, défaut 4,
-`isValidBarsPerRow`), la frappe valide reste un **aperçu live** mais le choix
-ne se pose (state + storage) **qu'au blur** — une édition rejetée retombe sur
-le dernier choix posé, son préfixe n'écrase jamais la préférence ; ligne
-« Détecter les accords » remontée sous le header (test d'ordre DOM).
-/code-review 8 angles + vérif adversariale : 2 CONFIRMED + 2 PLAUSIBLE
-corrigés (préfixe persisté, badInput invisible, égalité de spécificité CSS,
-hygiène localStorage du spec shell), 1 réfuté avec preuve ; cleanup
-convergent appliqué (prédicat unique, validation dans le module). Gate vert
-**1043 tests** (+5), Stryker non relancé (core intouché, 95,12 % N.3).
-**Next : ouvrir la PR N.4, puis Lot O** (O.1 token mort `--accent` d'abord).
+**N.4 mergé (PR #105)** : champ « mes. / ligne » flaggé (`aria-invalid` +
+badInput), préférence localStorage posée au blur, ligne « Détecter » sous le
+header — **Lot N clos**.
+**O.1 fait** sur `feat/o1-dead-accent-token` (PR à ouvrir) : le texte d'erreur
+du tempo-panel référençait `var(--accent)` (token inexistant → couleur de
+danger perdue) — remplacé par `composes: errorLine` (recette
+chord-chart-panel) + `margin-inline-start` ; verrou au gate
+`scripts/check-css-tokens.sh` (`check:tokens`) qui diffe les `var(--…)`
+utilisés contre les définitions CSS **et** inline TS/TSX
+(`--bars-per-row`, `--cluster-gap`, `--stack-gap`), rouge/vert prouvés sur
+l'état pré-fix. Gate vert **1043 tests**, Stryker skipped (core intouché).
+**Next : ouvrir la PR O.1, puis O.2** (micro-dérives design).
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [N.4](sessions/2026-07-12-chord-panel-frictions.md) ·
-[N.3](sessions/2026-07-12-pitch-chart-divergence.md) ·
-[N.2](sessions/2026-07-12-practice-toggle-shortcuts.md).
+See [O.1](sessions/2026-07-12-dead-accent-token.md) ·
+[N.4](sessions/2026-07-12-chord-panel-frictions.md) ·
+[N.3](sessions/2026-07-12-pitch-chart-divergence.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
-- 2026-07-12 · **N.4 — micro-frictions panneau accords** (PR à ouvrir) :
+- 2026-07-12 · **O.1 — token mort `--accent` + check:tokens** (PR à ouvrir) :
+  erreur tempo re-colorée via `errorLine`, gate verrouillé par un diff
+  var() utilisées/définies →
+  [rapport](sessions/2026-07-12-dead-accent-token.md)
+- 2026-07-12 · **N.4 — micro-frictions panneau accords** (PR #105 mergée) :
   champ mes./ligne flaggé (aria-invalid + badInput), préférence localStorage
   posée au blur, ligne « Détecter » sous le header →
   [rapport](sessions/2026-07-12-chord-panel-frictions.md)

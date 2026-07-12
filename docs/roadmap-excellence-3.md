@@ -360,7 +360,7 @@ Ce que la référence montre, et ce que ça implique :
 - [x] **N.2** raccourcis toggles + carte
 - [x] **N.3** indicateur pitch ↔ grille
 - [x] **N.4** micro-frictions panneau accords
-- [ ] **O.1** token mort --accent (+ lint tokens)
+- [x] **O.1** token mort --accent (+ lint tokens)
 - [ ] **O.2** micro-dérives design
 - [ ] **O.3** split workstation-shell.spec
 - [ ] **O.4** btc_windows.py pur
