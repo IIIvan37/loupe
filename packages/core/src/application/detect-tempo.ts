@@ -10,6 +10,8 @@ import type { DecodedAudio, TempoDetector } from './ports.ts'
 export interface DetectTempoInput {
   /** The already-decoded track — the SAME PCM the player loaded, not a re-import. */
   readonly audio: DecodedAudio
+  /** Cooperative cancellation, forwarded to the detector port. */
+  readonly signal?: AbortSignal
 }
 
 export interface DetectTempoDeps {
@@ -41,7 +43,7 @@ export async function detectTempo(
   deps: DetectTempoDeps
 ): Promise<DetectTempoResult> {
   try {
-    const detected = await deps.detector.detect(input.audio)
+    const detected = await deps.detector.detect(input.audio, input.signal)
     // Sanitize HERE so every adapter's payload gets the same guard — the
     // server filters double-fires too, but not map-aware transition noise.
     const grid = sanitizeBeatGrid(buildBeatGrid(detected.beats))

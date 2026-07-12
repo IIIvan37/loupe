@@ -63,10 +63,21 @@ extrait en `btc_windows.py` pur testé (`window_plan` → `{pad, slices}`,
 6 pytest, modèle `chord_spans.py`), `_analyse` rebranché, équivalence
 ancien/nouveau vérifiée par script. Serveur **163 pytest** (+6), pyright 0,
 coverage 97,6 %.
-**Next : merger #110 puis la PR O.4, et finir O.5 (basses code groupées)
-pour clore le Lot O.**
+**O.5 fait** sur `feat/o5-grouped-lows` (empilée sur O.4) : `AbortSignal`
+bout-en-bout `/tempo`+`/chords` (ports core → use-cases → `postWavForJson` →
+hooks ; abort au reset/override/nouveau run/changement de piste/démontage —
+le sémaphore serveur est libéré), `create-chord-detector.ts` exclu de la
+couverture avec ses jumeaux, boilerplate Popover factorisé en `PopoverForm`
+(NameEditor + SpeedTrainerControls, clones jscpd résorbés). Gate vert
+**1057 tests** (+10), **Stryker 95,2 %** (core touché). Revue 8 angles :
+abort à l'unmount de useTempo ajouté ; import-menu volontairement non migré
+(il lui faut anchor + form + hint — API à élargir seulement si un 4e
+formulaire apparaît).
+**Next : merger les 3 PR empilées #110 (O.3) → #111 (O.4) → PR O.5 — le
+Lot O sera clos — puis ouvrir le plan du Lot P (lead-sheet façon chart).**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [O.4](sessions/2026-07-12-btc-windows.md) ·
+See [O.5](sessions/2026-07-12-grouped-lows-o5.md) ·
+[O.4](sessions/2026-07-12-btc-windows.md) ·
 [O.3](sessions/2026-07-12-split-shell-spec.md) ·
 [O.2](sessions/2026-07-12-design-micro-drifts.md) ·
 [interlude](sessions/2026-07-12-react-doctor-ref-mutations.md) ·
@@ -76,7 +87,10 @@ See [O.4](sessions/2026-07-12-btc-windows.md) ·
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
-- 2026-07-12 · **O.4 — btc_windows.py pur** (PR à ouvrir) : fenêtrage
+- 2026-07-12 · **O.5 — basses code groupées** (PR à ouvrir) : AbortSignal
+  /tempo+/chords bout-en-bout, coverage create-chord-detector aligné,
+  `PopoverForm` partagé → [rapport](sessions/2026-07-12-grouped-lows-o5.md)
+- 2026-07-12 · **O.4 — btc_windows.py pur** (PR #111) : fenêtrage
   TIMESTEP extrait de chords.py, `window_plan` testé (6 pytest), _analyse
   rebranché → [rapport](sessions/2026-07-12-btc-windows.md)
 - 2026-07-12 · **O.3 — split workstation-shell.spec** (PR #110) : 115

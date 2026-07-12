@@ -92,6 +92,19 @@ describe('detectTempo', () => {
     expect(detector.seen).toBe(audio)
   })
 
+  it('hands the caller abort signal through to the detector', async () => {
+    let seenSignal: AbortSignal | undefined
+    const detector: TempoDetector = {
+      async detect(_given, signal) {
+        seenSignal = signal
+        return { bpm: 90, beats: [] }
+      }
+    }
+    const controller = new AbortController()
+    await detectTempo({ audio, signal: controller.signal }, { detector })
+    expect(seenSignal).toBe(controller.signal)
+  })
+
   it('returns an error result when the detector throws', async () => {
     const boom: TempoDetector = {
       detect: async () => {

@@ -36,6 +36,22 @@ describe('createHttpTempoDetector', () => {
     expect(init?.body).toBeInstanceOf(Uint8Array)
   })
 
+  it('forwards the abort signal to the fetch', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ bpm: 120, beats: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+    const controller = new AbortController()
+
+    await createHttpTempoDetector('http://localhost:8000').detect(
+      MIX,
+      controller.signal
+    )
+
+    const [, init] = fetchMock.mock.calls[0] ?? []
+    expect(init?.signal).toBe(controller.signal)
+  })
+
   it('maps positioned beats into a DetectedTempo', async () => {
     vi.stubGlobal(
       'fetch',

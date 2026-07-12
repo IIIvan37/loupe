@@ -5,7 +5,7 @@ import {
   type DecodedAudio,
   detectChords
 } from '@app/core'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createChordDetector } from '../../audio/create-chord-detector.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 
@@ -52,6 +52,9 @@ export function useChordDetection({
   const [error, setError] = useState<ChordDetectionErrorCode>()
   const [succeeded, setSucceeded] = useState(false)
   const runIdRef = useRef(0)
+  // The in-flight run's abort controller: a superseded run must release the
+  // server's analysis slot, not just have its late result dropped.
+  const controllerRef = useRef<AbortController | undefined>(undefined)
 
   // A replaced track supersedes any in-flight run — its late result is
   // dropped by the commit guard below (audio identity), so no ref needs
@@ -71,22 +74,39 @@ export function useChordDetection({
   // without re-identifying itself (the panel keys nothing on it).
   const inputRef = useLatest({ loadedAudio, grid, onDraft })
 
+  // Abort in an EFFECT, not the render-time block above: the replaced track's
+  // pending upload still holds the server's analysis slot, and an effect
+  // cleanup is where a committed track change may touch the outside world.
+  // The unmount cleanup also tears down whatever run is still in flight.
+  // biome-ignore lint/correctness/useExhaustiveDependencies(loadedAudio): the cleanup deliberately keys on the track — replacing it aborts the previous track's run
+  useEffect(() => {
+    return () => controllerRef.current?.abort()
+  }, [loadedAudio])
+
   async function detect(barsPerRow: number): Promise<void> {
     const { loadedAudio: audio, grid: beatGrid } = inputRef.current
     if (!audio) {
       return
     }
+    controllerRef.current?.abort()
+    const controller = new AbortController()
+    controllerRef.current = controller
     const runId = ++runIdRef.current
     setDetecting(true)
     setError(undefined)
     setSucceeded(false)
     const result = await detectChords(
-      { audio, grid: beatGrid, barsPerRow },
+      { audio, grid: beatGrid, barsPerRow, signal: controller.signal },
       { detector: engine }
     )
-    // Commit only if this is still the latest run (no newer detect) and the
-    // track it analysed is still the loaded one (no swap since the await).
-    if (runIdRef.current !== runId || inputRef.current.loadedAudio !== audio) {
+    // Commit only if this is still the latest run (no newer detect), the
+    // track it analysed is still the loaded one (no swap since the await),
+    // and the run was not aborted (an abort error is not an outcome).
+    if (
+      runIdRef.current !== runId ||
+      inputRef.current.loadedAudio !== audio ||
+      controller.signal.aborted
+    ) {
       return
     }
     setDetecting(false)

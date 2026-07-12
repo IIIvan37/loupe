@@ -10,7 +10,7 @@ import {
   type TempoAnalysis,
   type TempoDetector
 } from '@app/core'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createTempoDetector } from '../../audio/create-tempo-detector.ts'
 
 /** How far the felt tempo may be nudged from the detection: ±2 octaves. */
@@ -97,14 +97,38 @@ export function useTempo(detector?: TempoDetector): Tempo {
   const [detecting, setDetecting] = useState(false)
   const [error, setError] = useState<string>()
   const runIdRef = useRef(0)
+  // The in-flight run's abort controller: a superseded run must release the
+  // server's analysis slot, not just have its late result dropped.
+  const controllerRef = useRef<AbortController | undefined>(undefined)
+
+  /**
+   * Supersede any in-flight run: bump the token AND abort its transfer.
+   * Invariant: every abort goes through here (token bumped BEFORE the abort
+   * settles) so the stale run's commit guard always mismatches — except the
+   * unmount cleanup below, where every setState is a no-op anyway.
+   */
+  function supersede(): number {
+    controllerRef.current?.abort()
+    return ++runIdRef.current
+  }
+
+  // Unmounting mid-run must release the server's analysis slot too.
+  useEffect(() => {
+    return () => controllerRef.current?.abort()
+  }, [])
 
   async function detect(
     audio: DecodedAudio
   ): Promise<TempoAnalysis | undefined> {
-    const runId = ++runIdRef.current
+    const runId = supersede()
+    const controller = new AbortController()
+    controllerRef.current = controller
     setDetecting(true)
     setError(undefined)
-    const result = await detectTempo({ audio }, { detector: engine })
+    const result = await detectTempo(
+      { audio, signal: controller.signal },
+      { detector: engine }
+    )
     // Commit only if this is still the latest run: a newer detect or a reset
     // since the await bumped the token, making this result stale.
     if (runIdRef.current === runId) {
@@ -163,7 +187,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
     }
     // The user's tempo is an authority: a late in-flight detection must not
     // overwrite it (same token dance as `set`).
-    runIdRef.current++
+    supersede()
     setDetecting(false)
     setError(undefined)
     setManual(next)
@@ -206,7 +230,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
   function set(next: TempoAnalysis, shift = 0, override?: ManualTempo): void {
     // Supersede any in-flight detect (bump the token) so its late result can't
     // overwrite the persisted analysis we are seating here.
-    runIdRef.current++
+    supersede()
     setDetecting(false)
     setError(undefined)
     setOctaveShift(shift)
@@ -216,7 +240,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
 
   function reset(): void {
     // Abandon any in-flight run so its late result can't repopulate the state.
-    runIdRef.current++
+    supersede()
     setAnalysis(undefined)
     setOctaveShift(0)
     setManual(undefined)

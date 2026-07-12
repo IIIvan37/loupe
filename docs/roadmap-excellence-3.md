@@ -364,6 +364,6 @@ Ce que la référence montre, et ce que ça implique :
 - [x] **O.2** micro-dérives design
 - [x] **O.3** split workstation-shell.spec (9 specs par parcours + shell-test-kit)
 - [x] **O.4** btc_windows.py pur (window_plan testé, _analyse rebranché)
-- [ ] **O.5** basses code groupées
+- [x] **O.5** basses code groupées (AbortSignal bout-en-bout, coverage alignée, PopoverForm)
 - [ ] **P** lead-sheet façon chart — à planifier (plan dédié : structure,
       rendu, édition repliée)

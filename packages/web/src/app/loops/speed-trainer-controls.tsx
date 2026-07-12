@@ -1,9 +1,9 @@
 import { MAX_TEMPO_PERCENT, MIN_TEMPO_PERCENT } from '@app/core'
-import { Popover } from '@base-ui-components/react/popover'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { type KeyboardEvent, memo, useState } from 'react'
 import { cx } from '../../lib/cx.ts'
 import { LiveStatus } from '../ui/live-status.tsx'
+import { PopoverForm } from '../ui/popover-form.tsx'
 import styles from './speed-trainer-controls.module.css'
 import type { SpeedTrainer } from './use-speed-trainer.ts'
 
@@ -113,58 +113,43 @@ export const SpeedTrainerControls = memo(function SpeedTrainerControls({
   }
 
   return (
-    <Popover.Root open={open} onOpenChange={onOpenChange}>
-      <Popover.Trigger className={cx(styles.ghost)}>
-        <Trans id="loops.trainer-open">Rampe de tempo</Trans>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Positioner className={cx(styles.positioner)} sideOffset={6}>
-          <Popover.Popup className={cx(styles.popup)}>
-            <Popover.Title className={cx(styles.title)}>
-              <Trans id="loops.trainer-title">Rampe de tempo</Trans>
-            </Popover.Title>
-            {field(
-              'startPercent',
-              t({ id: 'loops.trainer-start-percent', message: 'Départ (%)' }),
-              MIN_TEMPO_PERCENT,
-              MAX_TEMPO_PERCENT
-            )}
-            {field(
-              'incrementPercent',
-              t({ id: 'loops.trainer-increment', message: 'Incrément (%)' }),
-              1,
-              50
-            )}
-            {field(
-              'passesPerStep',
-              t({
-                id: 'loops.trainer-passes',
-                message: 'Répétitions par palier'
-              }),
-              1,
-              99
-            )}
-            {field(
-              'targetPercent',
-              t({ id: 'loops.trainer-target', message: 'Plafond (%)' }),
-              MIN_TEMPO_PERCENT,
-              MAX_TEMPO_PERCENT
-            )}
-            <div className={cx(styles.actions)}>
-              <Popover.Close className={cx(styles.ghost)}>
-                <Trans id="common.cancel">Annuler</Trans>
-              </Popover.Close>
-              <button
-                type="button"
-                className={cx(styles.submit)}
-                onClick={start}
-              >
-                <Trans id="loops.trainer-start">Démarrer</Trans>
-              </button>
-            </div>
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
+    <PopoverForm
+      open={open}
+      onOpenChange={onOpenChange}
+      triggerClassName={cx(styles.ghost)}
+      triggerContent={<Trans id="loops.trainer-open">Rampe de tempo</Trans>}
+      title={<Trans id="loops.trainer-title">Rampe de tempo</Trans>}
+      popupClassName={cx(styles.popup)}
+      submitLabel={<Trans id="loops.trainer-start">Démarrer</Trans>}
+      onSubmit={start}
+    >
+      {field(
+        'startPercent',
+        t({ id: 'loops.trainer-start-percent', message: 'Départ (%)' }),
+        MIN_TEMPO_PERCENT,
+        MAX_TEMPO_PERCENT
+      )}
+      {field(
+        'incrementPercent',
+        t({ id: 'loops.trainer-increment', message: 'Incrément (%)' }),
+        1,
+        50
+      )}
+      {field(
+        'passesPerStep',
+        t({
+          id: 'loops.trainer-passes',
+          message: 'Répétitions par palier'
+        }),
+        1,
+        99
+      )}
+      {field(
+        'targetPercent',
+        t({ id: 'loops.trainer-target', message: 'Plafond (%)' }),
+        MIN_TEMPO_PERCENT,
+        MAX_TEMPO_PERCENT
+      )}
+    </PopoverForm>
   )
 })

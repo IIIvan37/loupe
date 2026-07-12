@@ -47,6 +47,79 @@ describe('useTempo', () => {
     expect(result.current.error).toBe('server down')
   })
 
+  it('aborts the in-flight detection when reset supersedes it', async () => {
+    // A pending run holds the server's analysis slot — a reset (new track)
+    // must abort the transfer, not just drop the late result.
+    let seenSignal: AbortSignal | undefined
+    const pending: TempoDetector = {
+      detect: (_audio, signal) => {
+        seenSignal = signal
+        return new Promise(() => {})
+      }
+    }
+    const { result } = renderHook(() => useTempo(pending))
+    act(() => {
+      void result.current.detect(audio)
+    })
+    act(() => result.current.reset())
+    expect(seenSignal?.aborted).toBe(true)
+  })
+
+  it('aborts the previous run when a new detection starts', async () => {
+    const signals: AbortSignal[] = []
+    const pending: TempoDetector = {
+      detect: (_audio, signal) => {
+        if (signal) {
+          signals.push(signal)
+        }
+        return new Promise(() => {})
+      }
+    }
+    const { result } = renderHook(() => useTempo(pending))
+    act(() => {
+      void result.current.detect(audio)
+    })
+    act(() => {
+      void result.current.detect(audio)
+    })
+    expect(signals[0]?.aborted).toBe(true)
+    expect(signals[1]?.aborted).toBe(false)
+  })
+
+  it('aborts the in-flight detection on unmount', async () => {
+    let seenSignal: AbortSignal | undefined
+    const pending: TempoDetector = {
+      detect: (_audio, signal) => {
+        seenSignal = signal
+        return new Promise(() => {})
+      }
+    }
+    const { result, unmount } = renderHook(() => useTempo(pending))
+    act(() => {
+      void result.current.detect(audio)
+    })
+    unmount()
+    expect(seenSignal?.aborted).toBe(true)
+  })
+
+  it('aborts the in-flight detection when a manual tempo supersedes it', async () => {
+    let seenSignal: AbortSignal | undefined
+    const pending: TempoDetector = {
+      detect: (_audio, signal) => {
+        seenSignal = signal
+        return new Promise(() => {})
+      }
+    }
+    const { result } = renderHook(() => useTempo(pending))
+    act(() => {
+      void result.current.detect(audio)
+    })
+    act(() => {
+      result.current.overrideBpm(120, 10)
+    })
+    expect(seenSignal?.aborted).toBe(true)
+  })
+
   it('clears the analysis on reset', async () => {
     const { result } = renderHook(() => useTempo(detectorOf(120, [0, 1])))
     await act(async () => {

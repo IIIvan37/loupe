@@ -50,11 +50,15 @@ function toDetectedBeats(
  */
 export function createHttpTempoDetector(baseUrl: string): TempoDetector {
   return {
-    async detect(audio: DecodedAudio): Promise<DetectedTempo> {
+    async detect(
+      audio: DecodedAudio,
+      signal?: AbortSignal
+    ): Promise<DetectedTempo> {
       const body = (await postWavForJson(
         baseUrl,
         '/tempo',
-        audio
+        audio,
+        signal
       )) as Partial<TempoResponse>
       if (typeof body.bpm !== 'number' || !Array.isArray(body.beats)) {
         throw new Error('tempo response was malformed')

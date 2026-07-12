@@ -101,6 +101,22 @@ describe('detectChords', () => {
     expect(detector.seen).toBe(audio)
   })
 
+  it('hands the caller abort signal through to the detector', async () => {
+    let seenSignal: AbortSignal | undefined
+    const detector: ChordDetector = {
+      async detect(_given, signal) {
+        seenSignal = signal
+        return []
+      }
+    }
+    const controller = new AbortController()
+    await detectChords(
+      { audio, grid: grid4(1), barsPerRow: 4, signal: controller.signal },
+      { detector }
+    )
+    expect(seenSignal).toBe(controller.signal)
+  })
+
   it('rejects a grid without downbeats before calling the detector', async () => {
     const detector = fakeDetector([
       { startSeconds: 0, endSeconds: 2, label: 'C' }

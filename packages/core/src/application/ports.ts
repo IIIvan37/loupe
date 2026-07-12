@@ -177,7 +177,11 @@ export interface DetectedTempo {
  * adapters on the same port.
  */
 export interface TempoDetector {
-  detect(audio: DecodedAudio): Promise<DetectedTempo>
+  detect(
+    audio: DecodedAudio,
+    /** Cooperative cancellation — an aborted run should reject promptly. */
+    signal?: AbortSignal
+  ): Promise<DetectedTempo>
 }
 
 /**
@@ -191,7 +195,11 @@ export interface TempoDetector {
  * per-measure vote.
  */
 export interface ChordDetector {
-  detect(audio: DecodedAudio): Promise<readonly DetectedChordSpan[]>
+  detect(
+    audio: DecodedAudio,
+    /** Cooperative cancellation — an aborted run should reject promptly. */
+    signal?: AbortSignal
+  ): Promise<readonly DetectedChordSpan[]>
 }
 
 /** One file destined for the export archive: its name and encoded bytes. */
