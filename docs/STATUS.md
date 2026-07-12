@@ -35,31 +35,38 @@ aucun timeout).
 validation) : codes d'échec discriminés bout-en-bout pour la détection
 d'accords + copy Lingui actionnable, `classifyTransportError` partagé dans
 `post-wav-json.ts` → [rapport](sessions/2026-07-12-chord-detection-error-codes.md).
-**N.2 fait** sur `feat/practice-toggle-shortcuts` (PR à ouvrir) : trois
-variantes `Command` (`toggleLoop | toggleMetronome | tapTempo`) liées à
-`L`/`K`/`T` par caractère ; carte de raccourcis + empty-state suivent via
-`describeKeyBindings` ; `useMetronome.toggle()` garde la représentation
-clic-stem dans son hook (la couche raccourcis ne connaît plus
-`METRONOME_ID`) ; le listener global ignore `event.repeat` (un T maintenu
-mitraillait un override 400 BPM clampé + rebuild du stem clic à ~30 Hz) et se
-retire quand la touche cible un `[role="dialog"]` (Base UI laisse passer les
-lettres — deux T derrière le dialogue des raccourcis remplaçaient le tempo
-détecté). /code-review 8 angles + vérif adversariale (1 vérificateur/constat) :
-5 constats corrigés, 5 réfutés avec preuve. Gate vert **975 tests** (+6),
-Stryker 94,96 % (key-bindings 85/85).
-**Next : ouvrir la PR N.2 (et merger la #98), puis N.3** (indicateur
-pitch-shift ↔ grille + « Transposer la grille pour suivre ») → N.4 → O.
-Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [N.2](sessions/2026-07-12-practice-toggle-shortcuts.md) ·
-[N.1](sessions/2026-07-12-chord-detection-error-codes.md) ·
-[M.3](sessions/2026-07-11-server-lows-m3.md).
+**N.2 mergé (PR #99)** : raccourcis `L`/`K`/`T` (boucle/métronome/tap),
+carte auto-dérivée, listener global durci (repeat + dialogues).
+**N.3 fait** sur `feat/pitch-chart-divergence` (PR à ouvrir) :
+`ProjectChordChart.transposedBy` persisté (absent ⇔ 0, lu 0 si non entier),
+quatre fonctions pures core (`transposeChart` apparié texte+offset,
+`chartMatchesPitch` **modulo 12** — pas de faux flag à l'octave,
+`chartTransposedBy`/`projectChordChart` lecture/écriture de la règle du
+manifest en un seul endroit) ; hint « la grille ne suit pas » + « Transposer
+la grille pour suivre » (confirmation deux temps, annonce LiveStatus
+fusionnée) ; ±½ alimentent le même offset, détection le remet à 0, vider la
+grille aussi ; `signedSemitones` partagé transport↔panneau. /code-review 8
+angles + vérif adversariale : 5 constats correctness corrigés (offset fantôme
+sur grille vide, offset hérité au retype, un-clic destructif, faux flag ±12,
+manifest corrompu) + 5 cleanups. Gate vert **1013 tests** (+38), Stryker
+**95,12 %** (project.ts 100 %).
+**Next : ouvrir la PR N.3 (et merger la #98 — refusée au classifieur de
+permissions, à merger à la main), puis N.4** (micro-frictions du panneau
+accords) → O. Retrofit `/tempo` sur `classifyTransportError` toujours noté.
+See [N.3](sessions/2026-07-12-pitch-chart-divergence.md) ·
+[N.2](sessions/2026-07-12-practice-toggle-shortcuts.md) ·
+[N.1](sessions/2026-07-12-chord-detection-error-codes.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
-- 2026-07-12 · **N.2 — raccourcis L/K/T + gardes repeat/dialog** (PR à
-  ouvrir) : toggles boucle/métronome/tap au clavier, carte auto-dérivée,
+- 2026-07-12 · **N.3 — divergence pitch ↔ grille** (PR à ouvrir) :
+  `transposedBy` persisté, transposition appariée en core, flag modulo 12,
+  « Transposer la grille pour suivre » confirmé deux temps →
+  [rapport](sessions/2026-07-12-pitch-chart-divergence.md)
+- 2026-07-12 · **N.2 — raccourcis L/K/T + gardes repeat/dialog** (PR #99
+  mergée) : toggles boucle/métronome/tap au clavier, carte auto-dérivée,
   listener global durci →
   [rapport](sessions/2026-07-12-practice-toggle-shortcuts.md)
 - 2026-07-12 · **N.1 — erreurs accords discriminées + Lingui** (PR #98) :

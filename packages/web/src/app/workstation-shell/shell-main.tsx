@@ -7,6 +7,7 @@ import {
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import { ChordChartPanel } from '../lead-sheet/chord-chart-panel.tsx'
+import type { ChordChartState } from '../lead-sheet/use-chord-chart.ts'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import { LoopControls } from '../loops/loop-controls.tsx'
 import type { useLoopEditing } from '../loops/use-loop-editing.ts'
@@ -62,9 +63,13 @@ interface ShellMainProps {
   readonly canSeparate: boolean
   readonly serverHealth: ServerHealth
   readonly onSeparate: () => void
-  /** The chord chart's source text — session state lifted to the shell. */
-  readonly chordChartSource: string
-  readonly onChordChartChange: (source: string) => void
+  /** The chord chart's session state (text + key offset), lifted to the shell. */
+  readonly chordChart: Pick<
+    ChordChartState,
+    'source' | 'transposedBy' | 'setSource' | 'transpose'
+  >
+  /** The live audio pitch shift — the key the ear hears the track in. */
+  readonly pitchSemitones: number
   /** « Détecter les accords » — the chord-detection flow the panel drives. */
   readonly chordDetection: ChordDetection
 }
@@ -101,8 +106,8 @@ export function ShellMain({
   canSeparate,
   serverHealth,
   onSeparate,
-  chordChartSource,
-  onChordChartChange,
+  chordChart,
+  pitchSemitones,
   chordDetection
 }: ShellMainProps) {
   // Stems the separation masked as near-silent — captioned in the mixer gutter.
@@ -186,8 +191,11 @@ export function ShellMain({
           />
           {isLoaded && (
             <ChordChartPanel
-              source={chordChartSource}
-              onSourceChange={onChordChartChange}
+              source={chordChart.source}
+              onSourceChange={chordChart.setSource}
+              onTranspose={chordChart.transpose}
+              transposedBy={chordChart.transposedBy}
+              pitchSemitones={pitchSemitones}
               currentMeasureIndex={currentMeasureIndex}
               detection={{
                 detecting: chordDetection.detecting,

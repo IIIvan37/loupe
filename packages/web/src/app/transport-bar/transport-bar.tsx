@@ -11,6 +11,7 @@ import {
   useExternalValue
 } from '../../lib/external-value.ts'
 import { Icon } from '../ui/icon.tsx'
+import { signedSemitones } from '../ui/signed-semitones.ts'
 import styles from './transport-bar.module.css'
 
 interface TransportBarProps {
@@ -144,7 +145,7 @@ export function TransportBar({
             onDoubleClick={() => onPitchChange(0)}
           />
           <span className={styles.fieldValue}>
-            {pitchSemitones > 0 ? `+${pitchSemitones}` : pitchSemitones}
+            {signedSemitones(pitchSemitones)}
           </span>
         </label>
       </Cluster>

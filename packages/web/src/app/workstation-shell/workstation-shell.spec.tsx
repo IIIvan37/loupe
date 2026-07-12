@@ -1599,6 +1599,61 @@ describe('WorkstationShell', () => {
     expect(screen.getByText('Am')).toBeInTheDocument()
   })
 
+  it('restores the followed key offset on reopen — the indicator stays off', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    await user.type(
+      screen.getByLabelText(i18n._('chords.input-label')),
+      '| C | Am |'
+    )
+    // Shift the audio up two semitones: the grid now shows the wrong key and
+    // the divergence flag offers to transpose it along.
+    fireEvent.change(screen.getByLabelText(i18n._('transport.pitch-slider')), {
+      target: { value: '2' }
+    })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.follow-pitch') })
+    )
+    // Rewriting the whole grid is two-step, like the detected draft.
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('chords.follow-pitch-confirm')
+      })
+    )
+    expect(screen.getByLabelText(i18n._('chords.input-label'))).toHaveValue(
+      '| D | Bm |'
+    )
+    expect(
+      screen.queryByRole('button', { name: i18n._('chords.follow-pitch') })
+    ).not.toBeInTheDocument()
+    await saveProjectAs(user, 'Suivi +2')
+    // Move on to another track first — the offset the reopen brings back can
+    // then only come from the manifest, never from leftover component state.
+    await importTrack(user, 'autre.wav')
+
+    await openProjectsDialog(user)
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('projects.open') })
+    )
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('projects.confirm-open', { name: 'Suivi +2' })
+      })
+    )
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(i18n._('chords.input-label'))).toHaveValue(
+        '| D | Bm |'
+      )
+    })
+    // The restored pitch (+2) and the persisted offset agree — no flag, and
+    // the untouched reopened project reads « Enregistré ».
+    expect(
+      screen.queryByRole('button', { name: i18n._('chords.follow-pitch') })
+    ).not.toBeInTheDocument()
+    expect(await screen.findByText(i18n._('header.saved'))).toBeInTheDocument()
+  })
+
   it('reopening a chart-less project signs « Enregistré » with an empty chart', async () => {
     const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)

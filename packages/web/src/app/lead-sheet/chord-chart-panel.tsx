@@ -1,7 +1,8 @@
-import { transposeChartSource } from '@app/core'
+import { chartMatchesPitch } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
 import { LiveStatus } from '../ui/live-status.tsx'
+import { signedSemitones } from '../ui/signed-semitones.ts'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
 import { LeadSheet } from './lead-sheet.tsx'
 import styles from './chord-chart-panel.module.css'
@@ -25,6 +26,13 @@ export interface ChordDetectionProps {
 interface ChordChartPanelProps {
   readonly source: string
   readonly onSourceChange: (source: string) => void
+  /** Transpose the whole grid by a signed number of semitones — the owner
+   * rewrites the source AND accounts for the key change (`transposedBy`). */
+  readonly onTranspose: (delta: number) => void
+  /** The live audio pitch shift, in semitones (0 = original key). */
+  readonly pitchSemitones: number
+  /** How far the grid's key has been transposed from its written key. */
+  readonly transposedBy: number
   /** The measure being played (global index), undefined to highlight nothing. */
   readonly currentMeasureIndex?: number | undefined
   readonly detection?: ChordDetectionProps | undefined
@@ -40,6 +48,9 @@ interface ChordChartPanelProps {
 export function ChordChartPanel({
   source,
   onSourceChange,
+  onTranspose,
+  pitchSemitones,
+  transposedBy,
   currentMeasureIndex,
   detection
 }: ChordChartPanelProps) {
@@ -90,6 +101,34 @@ export function ChordChartPanel({
         })
       : undefined
 
+  // The « transposing instruments » gap: the audio plays in one key, the grid
+  // shows another. Octave-equivalent keys name the same chords, so the flag
+  // compares modulo 12; the button still applies the exact gap so the offset
+  // accounting stays true to the audible shift.
+  const pitchDrift = pitchSemitones - transposedBy
+  const gridDiverges =
+    source.trim().length > 0 && !chartMatchesPitch(transposedBy, pitchSemitones)
+  const pitch = signedSemitones(pitchSemitones)
+  const grid = signedSemitones(transposedBy)
+  // Following rewrites the whole grid in one click — like the detected draft,
+  // armed work deserves a « Confirmer ? » beat before being rewritten.
+  const follow = useTwoStepConfirm<true>()
+  const [followedAnnounce, setFollowedAnnounce] = useState<string | undefined>(
+    undefined
+  )
+
+  function onFollowClick(): void {
+    if (follow.pending === null) {
+      follow.arm(true)
+      return
+    }
+    follow.disarm()
+    onTranspose(pitchDrift)
+    setFollowedAnnounce(
+      t({ id: 'chords.followed', message: 'Grille transposée' })
+    )
+  }
+
   const announced = detection?.detecting
     ? t({ id: 'chords.detecting', message: 'Détection des accords…' })
     : detection?.succeeded
@@ -138,7 +177,7 @@ export function ChordChartPanel({
           <button
             type="button"
             className={styles.transposeButton}
-            onClick={() => onSourceChange(transposeChartSource(source, -1))}
+            onClick={() => onTranspose(-1)}
             aria-label={t({
               id: 'chords.transpose-down',
               message: 'Transposer un demi-ton vers le bas'
@@ -149,7 +188,7 @@ export function ChordChartPanel({
           <button
             type="button"
             className={styles.transposeButton}
-            onClick={() => onSourceChange(transposeChartSource(source, 1))}
+            onClick={() => onTranspose(1)}
             aria-label={t({
               id: 'chords.transpose-up',
               message: 'Transposer un demi-ton vers le haut'
@@ -159,6 +198,36 @@ export function ChordChartPanel({
           </button>
         </span>
       </div>
+      {gridDiverges && (
+        <div className={styles.pitchDrift}>
+          <p className={styles.hint}>
+            {t({
+              id: 'chords.pitch-mismatch',
+              message: `Audio transposé de ${pitch} demi-tons, grille de ${grid} — la grille ne suit pas.`
+            })}
+          </p>
+          <button
+            type="button"
+            className={styles.followButton}
+            onClick={onFollowClick}
+            onBlur={follow.disarm}
+          >
+            {follow.pending
+              ? t({
+                  id: 'chords.follow-pitch-confirm',
+                  message: 'Réécrire la grille ?'
+                })
+              : t({
+                  id: 'chords.follow-pitch',
+                  message: 'Transposer la grille pour suivre'
+                })}
+          </button>
+        </div>
+      )}
+      {/* The panel's one live region, mounted outside the conditional rows:
+          the flag row unmounts the instant the grid follows, but the
+          announcement must still be spoken (detection states take over). */}
+      <LiveStatus message={announced ?? followedAnnounce} />
       {/* A detected chart spans the whole track (~120 measures in one click):
           the scrollport bounds the sheet so it never stretches the page and
           pushes the transport out of the viewport (K.1). */}
@@ -197,7 +266,6 @@ export function ChordChartPanel({
               {failed} — {detection.error}
             </p>
           )}
-          <LiveStatus message={announced} />
         </div>
       )}
       <textarea

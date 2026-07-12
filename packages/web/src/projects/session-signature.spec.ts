@@ -188,4 +188,27 @@ describe('sessionSignature', () => {
     const empty: SignedSession = { ...base, chordChart: { source: '' } }
     expect(sessionSignature(empty)).toBe(sessionSignature(base))
   })
+
+  it('changes when the chart key offset changes', () => {
+    // Transposing rewrites the text too, but the offset must be signed in its
+    // own right: a +12 transpose is text-identical yet a different key offset.
+    const original: SignedSession = {
+      ...base,
+      chordChart: { source: '| Am | F |' }
+    }
+    const followed: SignedSession = {
+      ...base,
+      chordChart: { source: '| Am | F |', transposedBy: 12 }
+    }
+    expect(sessionSignature(followed)).not.toBe(sessionSignature(original))
+  })
+
+  it('signs a chart that predates the offset like an explicit zero', () => {
+    const old: SignedSession = { ...base, chordChart: { source: '| Am |' } }
+    const explicit: SignedSession = {
+      ...base,
+      chordChart: { source: '| Am |', transposedBy: 0 }
+    }
+    expect(sessionSignature(explicit)).toBe(sessionSignature(old))
+  })
 })

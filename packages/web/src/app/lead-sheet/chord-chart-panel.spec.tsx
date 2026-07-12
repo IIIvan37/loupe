@@ -2,7 +2,6 @@
 import '@testing-library/jest-dom/vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
@@ -10,14 +9,24 @@ import {
   ChordChartPanel,
   type ChordDetectionProps
 } from './chord-chart-panel.tsx'
+import { useChordChart } from './use-chord-chart.ts'
 
 /** The panel as the shell hosts it: controlled by lifted session state. */
-function Host({ detection }: { detection?: ChordDetectionProps }) {
-  const [source, setSource] = useState('')
+function Host({
+  detection,
+  pitchSemitones = 0
+}: {
+  detection?: ChordDetectionProps
+  pitchSemitones?: number
+}) {
+  const chart = useChordChart()
   return (
     <ChordChartPanel
-      source={source}
-      onSourceChange={setSource}
+      source={chart.source}
+      onSourceChange={chart.setSource}
+      onTranspose={chart.transpose}
+      transposedBy={chart.transposedBy}
+      pitchSemitones={pitchSemitones}
       detection={detection}
     />
   )
@@ -106,7 +115,13 @@ describe('ChordChartPanel long grids', () => {
 
   it('hosts the sheet in a bounded scrollport', () => {
     const { container } = render(
-      <ChordChartPanel source={longSource} onSourceChange={() => {}} />,
+      <ChordChartPanel
+        source={longSource}
+        onSourceChange={() => {}}
+        onTranspose={() => {}}
+        pitchSemitones={0}
+        transposedBy={0}
+      />,
       { wrapper: I18nTestingProvider }
     )
     const viewport = container.querySelector('[class*="sheetViewport"]')
@@ -120,6 +135,9 @@ describe('ChordChartPanel long grids', () => {
       <ChordChartPanel
         source={longSource}
         onSourceChange={() => {}}
+        onTranspose={() => {}}
+        pitchSemitones={0}
+        transposedBy={0}
         currentMeasureIndex={0}
       />,
       { wrapper: I18nTestingProvider }
@@ -129,6 +147,9 @@ describe('ChordChartPanel long grids', () => {
       <ChordChartPanel
         source={longSource}
         onSourceChange={() => {}}
+        onTranspose={() => {}}
+        pitchSemitones={0}
+        transposedBy={0}
         currentMeasureIndex={42}
       />
     )
@@ -140,6 +161,9 @@ describe('ChordChartPanel long grids', () => {
       <ChordChartPanel
         source={longSource}
         onSourceChange={() => {}}
+        onTranspose={() => {}}
+        pitchSemitones={0}
+        transposedBy={0}
         currentMeasureIndex={42}
       />,
       { wrapper: I18nTestingProvider }
@@ -238,6 +262,118 @@ describe('ChordChartPanel detection', () => {
     render(<Host />, { wrapper: I18nTestingProvider })
     expect(
       screen.queryByRole('button', { name: i18n._('chords.detect') })
+    ).not.toBeInTheDocument()
+  })
+})
+
+describe('ChordChartPanel pitch divergence', () => {
+  const followName = () => i18n._('chords.follow-pitch')
+
+  /** The follow action is two-step: first activation arms the confirmation. */
+  async function follow(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole('button', { name: followName() }))
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.follow-pitch-confirm') })
+    )
+  }
+
+  it('flags the grid when the audio pitch shift leaves it behind', async () => {
+    const user = userEvent.setup()
+    render(<Host pitchSemitones={2} />, { wrapper: I18nTestingProvider })
+    await user.type(screen.getByRole('textbox'), '| C | Am |')
+    expect(
+      screen.getByText(i18n._('chords.pitch-mismatch', { pitch: '+2', grid: '0' }))
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: followName() })
+    ).toBeInTheDocument()
+  })
+
+  it('following transposes the grid by the gap and clears the flag', async () => {
+    const user = userEvent.setup()
+    render(<Host pitchSemitones={2} />, { wrapper: I18nTestingProvider })
+    await user.type(screen.getByRole('textbox'), '| C | Am |')
+    await follow(user)
+    expect(screen.getByRole('textbox')).toHaveValue('| D | Bm |')
+    expect(
+      screen.queryByRole('button', { name: followName() })
+    ).not.toBeInTheDocument()
+    // The rewrite is announced — the button just vanished from under focus.
+    expect(screen.getByText(i18n._('chords.followed'))).toBeInTheDocument()
+  })
+
+  it('rewriting the whole grid asks to confirm first', async () => {
+    const user = userEvent.setup()
+    render(<Host pitchSemitones={2} />, { wrapper: I18nTestingProvider })
+    await user.type(screen.getByRole('textbox'), '| C |')
+    await user.click(screen.getByRole('button', { name: followName() }))
+    // First activation only arms — the grid is untouched.
+    expect(screen.getByRole('textbox')).toHaveValue('| C |')
+  })
+
+  it('a manual transpose counts toward the same offset', async () => {
+    const user = userEvent.setup()
+    render(<Host pitchSemitones={1} />, { wrapper: I18nTestingProvider })
+    await user.type(screen.getByRole('textbox'), '| C |')
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.transpose-up') })
+    )
+    // The grid now sits a semitone up, exactly where the audio is.
+    expect(
+      screen.queryByRole('button', { name: followName() })
+    ).not.toBeInTheDocument()
+  })
+
+  it('a transposed grid over an untouched pitch diverges too', async () => {
+    const user = userEvent.setup()
+    render(<Host pitchSemitones={0} />, { wrapper: I18nTestingProvider })
+    await user.type(screen.getByRole('textbox'), '| C |')
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.transpose-down') })
+    )
+    expect(
+      screen.getByText(i18n._('chords.pitch-mismatch', { pitch: '0', grid: '-1' }))
+    ).toBeInTheDocument()
+    // Following brings the grid back to the heard key.
+    await follow(user)
+    expect(screen.getByRole('textbox')).toHaveValue('| C |')
+  })
+
+  it('stays quiet while the grid is empty — nothing to transpose', () => {
+    render(<Host pitchSemitones={2} />, { wrapper: I18nTestingProvider })
+    expect(
+      screen.queryByRole('button', { name: followName() })
+    ).not.toBeInTheDocument()
+  })
+
+  it('stays quiet while grid and audio agree', async () => {
+    const user = userEvent.setup()
+    render(<Host pitchSemitones={0} />, { wrapper: I18nTestingProvider })
+    await user.type(screen.getByRole('textbox'), '| C |')
+    expect(
+      screen.queryByRole('button', { name: followName() })
+    ).not.toBeInTheDocument()
+  })
+
+  it('an octave apart names the same chords — no false flag at ±12', async () => {
+    const user = userEvent.setup()
+    render(<Host pitchSemitones={12} />, { wrapper: I18nTestingProvider })
+    await user.type(screen.getByRole('textbox'), '| C |')
+    expect(
+      screen.queryByRole('button', { name: followName() })
+    ).not.toBeInTheDocument()
+  })
+
+  it('transposing an empty grid leaves no invisible offset behind', async () => {
+    const user = userEvent.setup()
+    render(<Host pitchSemitones={0} />, { wrapper: I18nTestingProvider })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.transpose-up') })
+    )
+    await user.type(screen.getByRole('textbox'), '| C |')
+    // The blank-grid click counted for nothing: grid and audio still agree.
+    expect(
+      screen.queryByRole('button', { name: followName() })
     ).not.toBeInTheDocument()
   })
 })
