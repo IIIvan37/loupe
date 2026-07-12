@@ -41,6 +41,39 @@ describe('deduceStructure', () => {
     expect(sections.map((section) => section.label)).toEqual(['A', 'A'])
   })
 
+  it('prefers the larger section when two explanations cost the same', () => {
+    const a = ['C', 'Am', 'F', 'G']
+    const b = ['Dm', 'G7', 'C', 'E7']
+    // [A A B] twice: the 12-bar tiling and the 4-bar tiling tie on cost.
+    const song = [...a, ...a, ...b, ...a, ...a, ...b]
+    expect(
+      deduceStructure(song).map((section) => section.measures.length)
+    ).toEqual([12, 12])
+  })
+
+  it('keeps the first occurrence bar on a split vote', () => {
+    const verse = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'G7']
+    const noisy = ['C', 'Am', 'F', 'G', 'Em', 'A7', 'Dm', 'G7']
+    const sections = deduceStructure([...verse, ...noisy])
+    expect(sections.map((section) => section.measures)).toEqual([verse, verse])
+  })
+
+  it('still matches at exactly three quarters agreement', () => {
+    const verse = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'G7']
+    const noisy = ['C', 'Am', 'F', 'G', 'Em', 'A7', 'Dm', 'E7']
+    const sections = deduceStructure([...verse, ...noisy])
+    expect(sections.map((section) => section.label)).toEqual(['A', 'A'])
+  })
+
+  it('never absorbs a shorter tail into a full section', () => {
+    const sparse = [undefined, undefined, undefined, 'C']
+    const tail = [undefined, undefined, undefined]
+    const song = [...sparse, ...sparse, ...tail]
+    expect(
+      deduceStructure(song).map((section) => section.measures.length)
+    ).toEqual([4, 4, 3])
+  })
+
   it('cleans a mis-detected bar by majority vote across occurrences', () => {
     const verse = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'G7']
     const noisy = ['C', 'Am', 'F', 'G', 'Em', 'A7', 'Dm', 'G7']

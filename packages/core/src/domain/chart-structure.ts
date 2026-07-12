@@ -31,7 +31,6 @@ export function deduceStructure(
     sections: [{ label: 'A', measures: labels }] as readonly DeducedSection[]
   }
   for (const length of SECTION_LENGTHS) {
-    if (length >= labels.length) continue
     const candidate = tile(labels, length)
     if (candidate.cost < best.cost) best = candidate
   }
@@ -132,7 +131,8 @@ function votedBlock(occurrences: readonly MeasureLabels[]): MeasureLabels {
       counts.set(block[position], (counts.get(block[position]) ?? 0) + 1)
     }
     let winner = label
-    let best = counts.get(label) ?? 0
+    // The representative's own label is always counted, so its tally exists.
+    let best = counts.get(label) as number
     for (const [candidate, count] of counts) {
       if (count > best) {
         winner = candidate
