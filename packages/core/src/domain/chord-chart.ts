@@ -67,6 +67,43 @@ export function transposeChartSource(
     .join('\n')
 }
 
+/**
+ * Transpose a chart AND its key accounting as one move, so the two can never
+ * desync: the source text is rewritten (layout preserved) and `transposedBy`
+ * — how far the grid's key sits from the key it was written in — absorbs the
+ * same delta. The no-op guards protect the pairing: a blank grid must not
+ * accrue an invisible offset that would corrupt the next grid typed over it,
+ * and a non-integer move leaves both halves untouched (the text would not
+ * move either). A whole-octave move keeps the text verbatim but still counts
+ * — the offset is exact key accounting, octave equivalence belongs to
+ * `chartMatchesPitch`.
+ */
+export function transposeChart(
+  chart: { readonly source: string; readonly transposedBy: number },
+  semitones: number
+): { readonly source: string; readonly transposedBy: number } {
+  if (!Number.isInteger(semitones) || chart.source.trim() === '') {
+    return chart
+  }
+  return {
+    source: transposeChartSource(chart.source, semitones),
+    transposedBy: chart.transposedBy + semitones
+  }
+}
+
+/**
+ * Whether a grid transposed by `transposedBy` names the right chords for
+ * audio pitch-shifted by `pitchSemitones`. Octave moves preserve every chord
+ * symbol (pitch classes are unchanged), so the comparison is modulo 12 — a
+ * +12 shift over an untouched grid is NOT a divergence.
+ */
+export function chartMatchesPitch(
+  transposedBy: number,
+  pitchSemitones: number
+): boolean {
+  return (pitchSemitones - transposedBy) % 12 === 0
+}
+
 /** How a blank measure prints: the lead-sheet's own "no chord" token. It parses
     as an unknown pitch name, so transposition passes it through verbatim. */
 const NO_CHORD = 'N.C.'

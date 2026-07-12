@@ -1,8 +1,10 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import {
+  chartMatchesPitch,
   parseChart,
   renderChartSource,
+  transposeChart,
   transposeChartSource
 } from './chord-chart.ts'
 
@@ -164,6 +166,61 @@ describe('transposeChartSource', () => {
     expect(transposeChartSource(transposeChartSource(source, 7), -7)).toBe(
       '[Verse]\n| C# | A#m7/F |'
     )
+  })
+})
+
+describe('transposeChart', () => {
+  it('rewrites the text and accounts for the move together', () => {
+    expect(
+      transposeChart({ source: '| C | Am |', transposedBy: 0 }, 2)
+    ).toEqual({ source: '| D | Bm |', transposedBy: 2 })
+  })
+
+  it('accumulates the offset across moves', () => {
+    const once = transposeChart({ source: '| C |', transposedBy: 0 }, 1)
+    const twice = transposeChart(once, -3)
+    expect(twice).toEqual({ source: '| A# |', transposedBy: -2 })
+  })
+
+  it('a blank grid is a no-op — no invisible offset to corrupt a later grid', () => {
+    const blank = { source: '', transposedBy: 0 }
+    expect(transposeChart(blank, 1)).toBe(blank)
+    const spaces = { source: '  \n ', transposedBy: 0 }
+    expect(transposeChart(spaces, 1)).toBe(spaces)
+  })
+
+  it('a non-integer move is a no-op — the text would not move either', () => {
+    const chart = { source: '| C |', transposedBy: 0 }
+    expect(transposeChart(chart, 1.5)).toBe(chart)
+    expect(transposeChart(chart, Number.NaN)).toBe(chart)
+  })
+
+  it('a whole-octave move keeps the text but still counts', () => {
+    expect(transposeChart({ source: '| C |', transposedBy: 0 }, 12)).toEqual({
+      source: '| C |',
+      transposedBy: 12
+    })
+  })
+})
+
+describe('chartMatchesPitch', () => {
+  it('matches when the grid was transposed exactly as the audio', () => {
+    expect(chartMatchesPitch(0, 0)).toBe(true)
+    expect(chartMatchesPitch(2, 2)).toBe(true)
+    expect(chartMatchesPitch(-3, -3)).toBe(true)
+  })
+
+  it('diverges when the keys differ', () => {
+    expect(chartMatchesPitch(0, 2)).toBe(false)
+    expect(chartMatchesPitch(1, 0)).toBe(false)
+    expect(chartMatchesPitch(-1, 1)).toBe(false)
+  })
+
+  it('an octave apart names the same chords — no divergence', () => {
+    expect(chartMatchesPitch(0, 12)).toBe(true)
+    expect(chartMatchesPitch(0, -12)).toBe(true)
+    expect(chartMatchesPitch(2, 14)).toBe(true)
+    expect(chartMatchesPitch(0, 14)).toBe(false)
   })
 })
 
