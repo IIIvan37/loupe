@@ -77,10 +77,20 @@ formulaire apparaît).
 fournie (`your-song-elton-john-chart.pdf`, non versionnée — rendu cible +
 fonctionnalités) ; trois arbitrages pris : rendu d'abord, sync lecture via
 unroll dès P.2, en-tête dérivé de la session + directives `{…}` de surcharge.
-**Next : P.1 — rendu chart (typographie, barres, cadres, en-tête) — slice UI,
-checkpoint d'approche avant l'acceptance test.**
+**P.1 — rendu chart livré sur `feat/p1-chart-rendering` (PR à ouvrir)** :
+directives `{k: v}` de tête dans `parseChart` (verbatim sous transposition),
+`ChordGlyph` (m mineur en base, extension exposant, basse empilée, garde
+verbatim), barres dessinées (doubles aux frontières), labels encadrés,
+`ChartHeader` dérivé session (tags/BPM/mesure) + surcharges, Petaluma Script
+(OFL) bundlée. Gate vert, Stryker 95,26 (chord-chart 99,15), vérif visuelle
+navigateur contre la maquette. Décision : « key of X » **directive-only**
+(aucune tonalité détectée n'existe dans l'app) ; notation d'en-tête hors
+Lingui (contenu de document).
+**Next : merger la PR P.1 puis P.2 — grammaire de forme + unrollChart (TDD,
+autonomie).**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [O.5](sessions/2026-07-12-grouped-lows-o5.md) ·
+See [P.1](sessions/2026-07-12-p1-chart-rendering.md) ·
+[O.5](sessions/2026-07-12-grouped-lows-o5.md) ·
 [O.4](sessions/2026-07-12-btc-windows.md) ·
 [O.3](sessions/2026-07-12-split-shell-spec.md) ·
 [O.2](sessions/2026-07-12-design-micro-drifts.md) ·
@@ -88,6 +98,12 @@ See [O.5](sessions/2026-07-12-grouped-lows-o5.md) ·
 [O.1](sessions/2026-07-12-dead-accent-token.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
+
+### Lot P — lead-sheet chart (2026-07-12 → …)
+
+- 2026-07-12 · **P.1 — rendu chart** (PR à ouvrir) : directives `{k: v}`,
+  ChordGlyph, barres dessinées, ChartHeader dérivé + Petaluma Script OFL →
+  [rapport](sessions/2026-07-12-p1-chart-rendering.md)
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 

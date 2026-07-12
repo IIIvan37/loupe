@@ -96,7 +96,7 @@ export {
 } from './domain/chord-chart.ts'
 export type { DetectedChordSpan } from './domain/chord-detection.ts'
 export type { ChordSymbol } from './domain/chord-symbol.ts'
-export { formatChordSymbol } from './domain/chord-symbol.ts'
+export { formatChordSymbol, parseChordSymbol } from './domain/chord-symbol.ts'
 export type {
   DetectedStem,
   StemEnergy

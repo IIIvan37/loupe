@@ -11,12 +11,14 @@ import {
 describe('parseChart', () => {
   it('reads a single measure into one unlabelled section', () => {
     expect(parseChart('| C |')).toEqual({
+      directives: {},
       sections: [{ measures: [{ chords: [{ root: 'C', quality: '' }] }] }]
     })
   })
 
   it('splits a row into one measure per bar', () => {
     expect(parseChart('| C | Am |')).toEqual({
+      directives: {},
       sections: [
         {
           measures: [
@@ -30,6 +32,7 @@ describe('parseChart', () => {
 
   it('reads space-separated chords within a bar', () => {
     expect(parseChart('| F G |')).toEqual({
+      directives: {},
       sections: [
         {
           measures: [
@@ -47,6 +50,7 @@ describe('parseChart', () => {
 
   it('labels a section from a bracketed header', () => {
     expect(parseChart('[Verse]\n| C |')).toEqual({
+      directives: {},
       sections: [
         {
           label: 'Verse',
@@ -58,6 +62,7 @@ describe('parseChart', () => {
 
   it('reads runs of spaces as one separator — no phantom empty chord', () => {
     expect(parseChart('| C   G |')).toEqual({
+      directives: {},
       sections: [
         {
           measures: [
@@ -89,6 +94,60 @@ describe('parseChart', () => {
 
   it('a bracket mid-line is not a header either', () => {
     expect(parseChart('| C | [Coda]').sections[0]?.label).toBeUndefined()
+  })
+})
+
+describe('parseChart — head directives', () => {
+  it('reads a {key: value} line at the head of the source', () => {
+    expect(parseChart('{title: Your Song}\n| C |').directives).toEqual({
+      title: 'Your Song'
+    })
+  })
+
+  it('a directive line contributes no section and no measure', () => {
+    const chart = parseChart('{style: pop ballad}\n[Intro]\n| C |')
+    expect(chart.sections).toHaveLength(1)
+    expect(chart.sections[0]?.measures).toHaveLength(1)
+  })
+
+  it('reads several directives, keys case-insensitive and trimmed', () => {
+    const source = '{Title: Your Song}\n{ TEMPO : 128 }\n| C |'
+    expect(parseChart(source).directives).toEqual({
+      title: 'Your Song',
+      tempo: '128'
+    })
+  })
+
+  it('keeps colons inside the value — only the first one splits', () => {
+    expect(parseChart('{title: Rock: The Musical}\n| C |').directives).toEqual({
+      title: 'Rock: The Musical'
+    })
+  })
+
+  it('a source without directives has an empty record', () => {
+    expect(parseChart('| C |').directives).toEqual({})
+  })
+
+  it('blank lines between head directives are allowed', () => {
+    const source = '{title: A}\n\n{artist: B}\n| C |'
+    expect(parseChart(source).directives).toEqual({ title: 'A', artist: 'B' })
+  })
+
+  it('a {…} line after grid content starts is NOT a directive', () => {
+    // The head is the only directive zone — P.2 will claim in-grid `{d.c.}`
+    // lines for the form grammar, so they must not leak into overrides.
+    const chart = parseChart('| C |\n{title: Late}')
+    expect(chart.directives).toEqual({})
+  })
+
+  it('a directive after a section header is grid content, not an override', () => {
+    expect(parseChart('[Intro]\n{title: Late}\n| C |').directives).toEqual({})
+  })
+
+  it('an indented directive line still reads as a directive', () => {
+    expect(parseChart('  {key: Eb}  \n| C |').directives).toEqual({
+      key: 'Eb'
+    })
   })
 })
 
@@ -153,6 +212,38 @@ describe('transposeChartSource', () => {
 
   it('reads a unicode sharp as its pitch class', () => {
     expect(transposeChartSource('| C♯m7 |', 1)).toBe('| Dm7 |')
+  })
+
+  it('transposes the {key: …} directive with the grid — the head must not lie', () => {
+    expect(transposeChartSource('{key: C}\n| C |', 2)).toBe('{key: D}\n| D |')
+  })
+
+  it('the key directive name is case-insensitive and trimmed, like parsing', () => {
+    expect(transposeChartSource('{ KEY : C}\n| C |', 2)).toBe(
+      '{ KEY : D}\n| D |'
+    )
+  })
+
+  it('reads a unicode flat in the {key: …} directive', () => {
+    expect(transposeChartSource('{key: E♭}\n| C |', 1)).toBe('{key: E}\n| C# |')
+  })
+
+  it('a chord-like word in ANY other directive passes verbatim', () => {
+    expect(transposeChartSource('{title: C major}\n| C |', 2)).toBe(
+      '{title: C major}\n| D |'
+    )
+  })
+
+  it('an indented non-key directive passes verbatim too', () => {
+    expect(transposeChartSource('  {tempo: 128}\n| A |', 1)).toBe(
+      '  {tempo: 128}\n| A# |'
+    )
+  })
+
+  it('a non-key directive with trailing spaces still passes verbatim', () => {
+    expect(transposeChartSource('{style: Cool Pop}  \n| C |', 2)).toBe(
+      '{style: Cool Pop}  \n| D |'
+    )
   })
 
   it('an indented header keeps a chord-like label untouched', () => {

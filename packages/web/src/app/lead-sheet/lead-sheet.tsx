@@ -1,11 +1,18 @@
 import { type ChordChart, formatChordSymbol, parseChart } from '@app/core'
 import { type CSSProperties, useCallback, useMemo } from 'react'
 import { cx } from '../../lib/cx.ts'
+import { ChartHeader, type ChartHeaderData } from './chart-header.tsx'
+import { ChordGlyph } from './chord-glyph.tsx'
 import styles from './lead-sheet.module.css'
 
 interface LeadSheetProps {
   /** The chord grid in the home text format (`[Section]` + `| … |` rows). */
   readonly source: string
+  /**
+   * The session-derived chart head (tags, BPM, bar length) — the source's own
+   * `{k: v}` directives override it field by field. Absent = no derivation.
+   */
+  readonly header?: ChartHeaderData | undefined
   /**
    * The measure being played, counted through the whole chart (sections are a
    * reading aid, not a reset). Undefined — before the first downbeat, or with
@@ -68,15 +75,19 @@ function keyed(
  */
 export function LeadSheet({
   source,
+  header,
   currentMeasureIndex,
   barsPerRow
 }: LeadSheetProps) {
   // The sheet re-renders on every playhead frame during playback (the parent
   // ticks); only re-parse and re-key when the inputs actually change.
-  const sections = useMemo(
-    () => keyed(parseChart(source), currentMeasureIndex),
-    [source, currentMeasureIndex]
-  )
+  const { sections, directives } = useMemo(() => {
+    const chart = parseChart(source)
+    return {
+      sections: keyed(chart, currentMeasureIndex),
+      directives: chart.directives
+    }
+  }, [source, currentMeasureIndex])
   const layout =
     barsPerRow === undefined
       ? undefined
@@ -89,8 +100,15 @@ export function LeadSheet({
   const followPlayhead = useCallback((node: HTMLDivElement | null) => {
     node?.scrollIntoView({ block: 'nearest' })
   }, [])
+  // A chart head over no chart is noise (and would double the app header's
+  // title): the head only prints once the source holds a grid or directives.
+  const hasChart =
+    sections.length > 0 || Object.keys(directives).length > 0
   return (
     <div className={styles.sheet} style={layout}>
+      {hasChart && (
+        <ChartHeader derived={header ?? {}} directives={directives} />
+      )}
       {sections.map((section) => (
         <section key={section.key} className={styles.section}>
           {section.label !== undefined && (
@@ -105,9 +123,7 @@ export function LeadSheet({
                 aria-current={measure.current ? 'true' : undefined}
               >
                 {measure.chords.map((chord) => (
-                  <span key={chord.key} className={styles.chord}>
-                    {chord.text}
-                  </span>
+                  <ChordGlyph key={chord.key} text={chord.text} />
                 ))}
               </div>
             ))}

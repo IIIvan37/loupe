@@ -17,6 +17,7 @@ import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.
 import { useServerHealth } from '../../projects/use-server-health.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
+import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
 import { useChordChartSession } from '../lead-sheet/use-chord-chart-session.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
@@ -347,6 +348,7 @@ export function WorkstationShell({
         onSeparate={handleSeparate}
         chordChart={chordChart}
         pitchSemitones={pitchSemitones}
+        chartHeader={deriveChartHeader(metadata, session.trackName, tempo.analysis)}
         chordDetection={chordDetection}
         />
       )}
