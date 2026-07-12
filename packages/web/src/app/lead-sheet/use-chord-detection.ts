@@ -1,5 +1,6 @@
 import {
   type BeatGrid,
+  type ChordDetectionErrorCode,
   type ChordDetector,
   type DecodedAudio,
   detectChords
@@ -10,8 +11,12 @@ import { createChordDetector } from '../../audio/create-chord-detector.ts'
 export interface ChordDetection {
   /** Whether a detection is in flight (drives the busy button). */
   readonly detecting: boolean
-  /** Why the last detection failed — cleared by the next run. */
-  readonly error: string | undefined
+  /**
+   * Why the last detection failed, as a discriminated code the panel maps to
+   * translated copy — cleared by the next run. The raw engine/transport
+   * detail goes to the console, never the UI.
+   */
+  readonly error: ChordDetectionErrorCode | undefined
   /** Whether the last run landed a draft (drives the a11y announcement). */
   readonly succeeded: boolean
   /**
@@ -42,7 +47,7 @@ export function useChordDetection({
 }): ChordDetection {
   const engine = useMemo(() => detector ?? createChordDetector(), [detector])
   const [detecting, setDetecting] = useState(false)
-  const [error, setError] = useState<string>()
+  const [error, setError] = useState<ChordDetectionErrorCode>()
   const [succeeded, setSucceeded] = useState(false)
   const runIdRef = useRef(0)
 
@@ -89,7 +94,10 @@ export function useChordDetection({
       setSucceeded(true)
       inputRef.current.onDraft(result.source)
     } else {
-      setError(result.error)
+      // The code drives the translated UI copy; the raw detail (engine text,
+      // HTTP status) is diagnosis-only, so it lands in the console.
+      console.error('chord detection failed:', result.code, result.detail)
+      setError(result.code)
     }
   }
 

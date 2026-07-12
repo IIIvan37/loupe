@@ -17,9 +17,43 @@ export interface DetectChordsDeps {
   readonly detector: ChordDetector
 }
 
+/**
+ * Why a detection failed, discriminated so the UI can speak each case in the
+ * user's language (Lot G standard) instead of echoing raw engine text.
+ */
+export type ChordDetectionErrorCode =
+  | 'no-downbeat'
+  | 'no-chords'
+  | 'engine-unavailable'
+  | 'network'
+  | 'timeout'
+  | 'too-large'
+  | 'unknown'
+
+/**
+ * The typed failure a `ChordDetector` adapter throws when it can tell WHY the
+ * engine call failed (server up but engine missing, network unreachable,
+ * analysis timed out, upload over the server's cap). The use-case forwards
+ * the code; anything else it catches folds into `unknown`.
+ */
+export class ChordDetectionError extends Error {
+  constructor(
+    readonly code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large',
+    detail: string
+  ) {
+    super(detail)
+    this.name = 'ChordDetectionError'
+  }
+}
+
 export type DetectChordsResult =
   | { readonly ok: true; readonly source: string }
-  | { readonly ok: false; readonly error: string }
+  | {
+      readonly ok: false
+      readonly code: ChordDetectionErrorCode
+      /** The raw engine/transport message — for the console, never the UI. */
+      readonly detail: string
+    }
 
 /**
  * Orchestration use-case, pure: hand the loaded PCM to the chord detector port
@@ -36,7 +70,11 @@ export async function detectChords(
   deps: DetectChordsDeps
 ): Promise<DetectChordsResult> {
   if (!input.grid.some((beat) => beat.downbeat)) {
-    return { ok: false, error: 'no downbeat to anchor measures on' }
+    return {
+      ok: false,
+      code: 'no-downbeat',
+      detail: 'no downbeat to anchor measures on'
+    }
   }
   try {
     const spans = await deps.detector.detect(input.audio)
@@ -47,14 +85,15 @@ export async function detectChords(
         Number.isFinite(span.startSeconds) && Number.isFinite(span.endSeconds)
     )
     if (!finite) {
-      return { ok: false, error: 'invalid chord detection' }
+      return { ok: false, code: 'unknown', detail: 'invalid chord detection' }
     }
     const labels = chordLabelPerMeasure(spans, input.grid)
     if (labels.length === 0) {
-      return { ok: false, error: 'no chords detected' }
+      return { ok: false, code: 'no-chords', detail: 'no chords detected' }
     }
     return { ok: true, source: renderChartSource(labels, input.barsPerRow) }
   } catch (e) {
-    return { ok: false, error: errorMessage(e) }
+    const code = e instanceof ChordDetectionError ? e.code : 'unknown'
+    return { ok: false, code, detail: errorMessage(e) }
   }
 }

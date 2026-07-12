@@ -59,74 +59,99 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:130
+#: src/app/lead-sheet/chord-chart-panel.tsx:172
 msgid "chords.bars-per-row"
 msgstr "Mesures par ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:135
+#: src/app/lead-sheet/chord-chart-panel.tsx:177
 msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:190
+#: src/app/lead-sheet/chord-chart-panel.tsx:232
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:186
+#: src/app/lead-sheet/chord-chart-panel.tsx:228
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:96
+#: src/app/lead-sheet/chord-chart-panel.tsx:138
 msgid "chords.detect-done"
 msgstr "Grille pré-remplie depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:87
+#: src/app/lead-sheet/chord-chart-panel.tsx:129
 msgid "chords.detect-failed"
 msgstr "Échec de la détection des accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:76
+#: src/app/lead-sheet/chord-chart-panel.tsx:25
 msgid "chords.detect-needs-grid"
 msgstr "Détecter d'abord le tempo — la grille de mesures ancre les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:71
+#: src/app/lead-sheet/chord-chart-panel.tsx:21
 msgid "chords.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:94
-#: src/app/lead-sheet/chord-chart-panel.tsx:184
+#: src/app/lead-sheet/chord-chart-panel.tsx:136
+#: src/app/lead-sheet/chord-chart-panel.tsx:226
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:209
+#: src/app/lead-sheet/chord-chart-panel.tsx:43
+msgid "chords.error.engine-unavailable"
+msgstr "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:39
+msgid "chords.error.no-chords"
+msgstr "Aucun accord détecté sur ce morceau."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:49
+msgid "chords.error.timeout"
+msgstr "L'analyse des accords a expiré sur le serveur — réessayer."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:53
+msgid "chords.error.too-large"
+msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:57
+msgid "chords.error.unknown"
+msgstr "Erreur inattendue — détails dans la console du navigateur."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:249
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:213
+#: src/app/lead-sheet/chord-chart-panel.tsx:253
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:108
+#: src/app/lead-sheet/chord-chart-panel.tsx:150
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:142
+#: src/app/lead-sheet/chord-chart-panel.tsx:184
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:153
+#: src/app/lead-sheet/chord-chart-panel.tsx:195
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
@@ -199,7 +224,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:308
+#: src/app/workstation-shell/workstation-shell.tsx:309
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
