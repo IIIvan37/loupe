@@ -27,7 +27,8 @@
     "check:react": "react-doctor packages/web --blocking warning --no-telemetry",
     "check:dead": "knip",
     "check:dup": "jscpd packages",
-    "gate": "pnpm run \"/^(typecheck|check|check:arch|check:design|check:react|test:coverage|check:dead|check:dup)$/\"",
+    "check:tokens": "bash scripts/check-css-tokens.sh",
+    "gate": "pnpm run \"/^(typecheck|check|check:arch|check:design|check:react|check:tokens|test:coverage|check:dead|check:dup)$/\"",
     "prepare": "husky"
   },
   "devDependencies": {

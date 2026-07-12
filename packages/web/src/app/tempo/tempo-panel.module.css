@@ -53,9 +53,8 @@
 }
 
 .error {
-  margin-left: auto;
-  color: var(--accent);
-  font-size: var(--font-size-s);
+  composes: errorLine from '../ui/controls.module.css';
+  margin-inline-start: auto;
 }
 
 .retry {
