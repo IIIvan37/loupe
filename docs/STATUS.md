@@ -58,21 +58,32 @@ l'état pré-fix. Gate vert **1043 tests**, Stryker skipped (core intouché).
 d'identité audio au commit dans use-chord-detection (plus de bump de ref au
 rendu), Biome `stableResult`, `doctor.config.json` (exhaustive-deps off —
 Biome fait foi ; unused-file ignoré pour le seul wrapper de test i18n),
-react-doctor épinglé `^0.7.6` (local = CI). Gate vert **1047 tests** (+4).
-**Next : merger ce fix, rebaser/merger #101–#104 (#53 reste reporté), puis
-O.2** (micro-dérives design).
+react-doctor épinglé `^0.7.6` (local = CI). **Interlude mergé (PR #107)** ;
+Dependabot : #102 mergée, #101/#103/#104 fermées par Dependabot lui-même
+(« updatable in another way » — rien à merger), #53 reste reportée.
+**O.2 fait** sur `feat/o2-design-micro-drifts` (PR à ouvrir) : dernières
+transitions littérales → `var(--motion-fast) var(--motion-ease)`
+(analysis-panel, stem-lanes), focus ring du close de toast teal → amber
+(baseline), marker-rail sur l'échelle (`5px` → `--space-2xs`,
+`--ruler-height: 18px` tokenisé + inset des markers dérivé en `calc`),
+`--tracking-label: 0.08em` consommé par les 10 labels uppercase. Gate vert
+**1047 tests**, Stryker skipped (core intouché).
+**Next : merger la PR O.2, puis O.3/O.4/O.5 ou ouvrir le plan du Lot P.**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [interlude](sessions/2026-07-12-react-doctor-ref-mutations.md) ·
+See [O.2](sessions/2026-07-12-design-micro-drifts.md) ·
+[interlude](sessions/2026-07-12-react-doctor-ref-mutations.md) ·
 [O.1](sessions/2026-07-12-dead-accent-token.md) ·
-[N.4](sessions/2026-07-12-chord-panel-frictions.md) ·
-[N.3](sessions/2026-07-12-pitch-chart-divergence.md).
+[N.4](sessions/2026-07-12-chord-panel-frictions.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
-- 2026-07-12 · **Interlude — react-doctor 0.7.6 / hook `useLatest`** (PR à
-  ouvrir) : 14 refs mutées au rendu purifiées (écriture en effet), Dependabot
+- 2026-07-12 · **O.2 — micro-dérives design** (PR à ouvrir) : transitions sur
+  tokens motion, focus toast amber, marker-rail/ruler tokenisés,
+  `--tracking-label` → [rapport](sessions/2026-07-12-design-micro-drifts.md)
+- 2026-07-12 · **Interlude — react-doctor 0.7.6 / hook `useLatest`** (PR #107
+  mergée) : 14 refs mutées au rendu purifiées (écriture en effet), Dependabot
   débloqué → [rapport](sessions/2026-07-12-react-doctor-ref-mutations.md)
 - 2026-07-12 · **O.1 — token mort `--accent` + check:tokens** (PR #106
   mergée) :

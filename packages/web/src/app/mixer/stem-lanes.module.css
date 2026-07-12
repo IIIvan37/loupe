@@ -19,5 +19,5 @@
 /* The envelope fades with the channel level. */
 .wave {
   height: 100%;
-  transition: opacity 120ms ease-out;
+  transition: opacity var(--motion-fast) var(--motion-ease);
 }

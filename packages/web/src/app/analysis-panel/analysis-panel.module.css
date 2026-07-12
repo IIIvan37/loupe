@@ -26,8 +26,8 @@
   border-block-end: 2px solid transparent;
   cursor: pointer;
   transition:
-    color 0.15s ease,
-    border-color 0.15s ease;
+    color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease);
 }
 
 .tab:hover {
