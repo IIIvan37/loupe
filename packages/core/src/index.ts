@@ -88,7 +88,12 @@ export type {
   Measure,
   Section
 } from './domain/chord-chart.ts'
-export { parseChart, transposeChartSource } from './domain/chord-chart.ts'
+export {
+  chartMatchesPitch,
+  parseChart,
+  transposeChart,
+  transposeChartSource
+} from './domain/chord-chart.ts'
 export type { DetectedChordSpan } from './domain/chord-detection.ts'
 export type { ChordSymbol } from './domain/chord-symbol.ts'
 export { formatChordSymbol } from './domain/chord-symbol.ts'
@@ -176,7 +181,12 @@ export type {
   ProjectTuning,
   SessionSnapshot
 } from './domain/project.ts'
-export { projectFromSession, tuningOrDefault } from './domain/project.ts'
+export {
+  chartTransposedBy,
+  projectChordChart,
+  projectFromSession,
+  tuningOrDefault
+} from './domain/project.ts'
 export type {
   SeparationAction,
   SeparationPhase,

@@ -59,99 +59,119 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:172
+#: src/app/lead-sheet/chord-chart-panel.tsx:208
 msgid "chords.bars-per-row"
 msgstr "Mesures par ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:177
+#: src/app/lead-sheet/chord-chart-panel.tsx:213
 msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:232
+#: src/app/lead-sheet/chord-chart-panel.tsx:298
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:228
+#: src/app/lead-sheet/chord-chart-panel.tsx:294
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:138
+#: src/app/lead-sheet/chord-chart-panel.tsx:174
 msgid "chords.detect-done"
 msgstr "Grille pré-remplie depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:129
+#: src/app/lead-sheet/chord-chart-panel.tsx:137
 msgid "chords.detect-failed"
 msgstr "Échec de la détection des accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:25
+#: src/app/lead-sheet/chord-chart-panel.tsx:23
 msgid "chords.detect-needs-grid"
 msgstr "Détecter d'abord le tempo — la grille de mesures ancre les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:21
+#: src/app/lead-sheet/chord-chart-panel.tsx:19
 msgid "chords.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:136
-#: src/app/lead-sheet/chord-chart-panel.tsx:226
+#: src/app/lead-sheet/chord-chart-panel.tsx:172
+#: src/app/lead-sheet/chord-chart-panel.tsx:292
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:43
+#: src/app/lead-sheet/chord-chart-panel.tsx:41
 msgid "chords.error.engine-unavailable"
 msgstr "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:39
+#: src/app/lead-sheet/chord-chart-panel.tsx:37
 msgid "chords.error.no-chords"
 msgstr "Aucun accord détecté sur ce morceau."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:49
+#: src/app/lead-sheet/chord-chart-panel.tsx:47
 msgid "chords.error.timeout"
 msgstr "L'analyse des accords a expiré sur le serveur — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:53
+#: src/app/lead-sheet/chord-chart-panel.tsx:51
 msgid "chords.error.too-large"
 msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:57
+#: src/app/lead-sheet/chord-chart-panel.tsx:55
 msgid "chords.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:249
+#: src/app/lead-sheet/chord-chart-panel.tsx:259
+msgid "chords.follow-pitch"
+msgstr "Transposer la grille pour suivre"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:255
+msgid "chords.follow-pitch-confirm"
+msgstr "Réécrire la grille ?"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:167
+msgid "chords.followed"
+msgstr "Grille transposée"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:314
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:253
+#: src/app/lead-sheet/chord-chart-panel.tsx:243
+msgid "chords.pitch-mismatch"
+msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:318
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:150
+#: src/app/lead-sheet/chord-chart-panel.tsx:186
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:184
+#: src/app/lead-sheet/chord-chart-panel.tsx:220
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:195
+#: src/app/lead-sheet/chord-chart-panel.tsx:231
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
@@ -890,52 +910,52 @@ msgid "toast.stems-exported"
 msgstr "Stems exportés"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:86
+#: src/app/transport-bar/transport-bar.tsx:87
 msgid "transport.end"
 msgstr "Fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:74
+#: src/app/transport-bar/transport-bar.tsx:75
 msgid "transport.pause"
 msgstr "Pause"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:126
+#: src/app/transport-bar/transport-bar.tsx:127
 msgid "transport.pitch-label"
 msgstr "Hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:139
+#: src/app/transport-bar/transport-bar.tsx:140
 msgid "transport.pitch-reset"
 msgstr "Double-clic pour revenir à 0"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:134
+#: src/app/transport-bar/transport-bar.tsx:135
 msgid "transport.pitch-slider"
 msgstr "Hauteur en demi-tons"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:75
+#: src/app/transport-bar/transport-bar.tsx:76
 msgid "transport.play"
 msgstr "Lecture"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:62
+#: src/app/transport-bar/transport-bar.tsx:63
 msgid "transport.start"
 msgstr "Début"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:102
+#: src/app/transport-bar/transport-bar.tsx:103
 msgid "transport.tempo-label"
 msgstr "Tempo (sans toucher au pitch)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:115
+#: src/app/transport-bar/transport-bar.tsx:116
 msgid "transport.tempo-reset"
 msgstr "Double-clic pour revenir à 100 %"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:110
+#: src/app/transport-bar/transport-bar.tsx:111
 msgid "transport.tempo-slider"
 msgstr "Tempo en pourcentage"
 

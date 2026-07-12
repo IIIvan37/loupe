@@ -127,8 +127,8 @@ export interface SessionRestoreDeps {
   ) => void
   /** Seat the persisted tuning (tempo/pitch/zoom) on the live controls. */
   readonly restoreTuning: (tuning: ProjectTuning) => void
-  /** Seat the persisted chart text ('' for a manifest that predates it). */
-  readonly restoreChordChart: (source: string) => void
+  /** Seat the persisted chart (text + key offset) — absent reads as empty. */
+  readonly restoreChordChart: (chart: ProjectChordChart | undefined) => void
   readonly separation: Separation
   readonly mixer: Mixer
   /** Seat/analyse the tempo (persisted → `set`, old manifest → `detect`). */
@@ -177,7 +177,7 @@ export async function restoreSession(
   deps.restoreTuning(tuningOrDefault(opened.project.tuning))
   // Same rule for the chart: absent reads as empty, never as « keep whatever
   // the previous session typed ».
-  deps.restoreChordChart(opened.project.chordChart?.source ?? '')
+  deps.restoreChordChart(opened.project.chordChart)
   const active = opened.project.activeLoop
   if (active) {
     // If the region matches a library loop exactly, it WAS that loop: relink,

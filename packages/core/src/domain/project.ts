@@ -94,6 +94,46 @@ export interface ProjectTempo {
  */
 export interface ProjectChordChart {
   readonly source: string
+  /**
+   * The grid's key offset in semitones from the key it was written/detected
+   * in — bumped by every transpose (manual ±1 or « follow the pitch shift »).
+   * Comparing it to the tuning's `pitchSemitones` is what tells whether the
+   * grid matches what the ear hears. Absent ⇔ 0 on manifests that predate it.
+   */
+  readonly transposedBy?: number
+}
+
+/**
+ * Normalise an optional persisted chart to its transposition offset: no chart
+ * or a chart that predates the field means an untransposed grid, so absent
+ * reads as 0. Keeps the « old manifest » rule in one place — the fingerprint
+ * and the divergence indicator must agree on it (same rule as
+ * `tuningOrDefault`).
+ */
+export function chartTransposedBy(
+  chart: ProjectChordChart | undefined
+): number {
+  const offset = chart?.transposedBy ?? 0
+  // A corrupted (hand-edited) manifest must not seed a divergence flag no
+  // click can clear (NaN) or a phantom fractional key — read it as 0.
+  return Number.isInteger(offset) ? offset : 0
+}
+
+/**
+ * Normalise live chart state to what a manifest persists: a whitespace-only
+ * source is no chart (absent ⇔ empty), and an untransposed grid omits the
+ * offset (absent ⇔ 0) — so old manifests and fresh charts stay byte-identical
+ * to what they always were. The single write-side counterpart of
+ * `chartTransposedBy`.
+ */
+export function projectChordChart(
+  source: string,
+  transposedBy: number
+): ProjectChordChart | undefined {
+  if (source.trim() === '') {
+    return undefined
+  }
+  return { source, ...(transposedBy === 0 ? {} : { transposedBy }) }
 }
 
 /**

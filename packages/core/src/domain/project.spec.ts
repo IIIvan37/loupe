@@ -4,12 +4,14 @@ import type { LoopLibrary } from './loop-library.ts'
 import type { MarkerList } from './marker-list.ts'
 import type { MixerState } from './mixer.ts'
 import {
+  chartTransposedBy,
   mixerMatchesStems,
   type ProjectActiveLoop,
   type ProjectSeparation,
   type ProjectStamp,
   type ProjectTempo,
   type ProjectTuning,
+  projectChordChart,
   projectFromSession,
   type SessionSnapshot,
   tuningOrDefault
@@ -127,6 +129,14 @@ describe('projectFromSession', () => {
     expect('chordChart' in project).toBe(false)
   })
 
+  it('carries the chart transposition offset through when present', () => {
+    const project = projectFromSession(
+      snapshot({ chordChart: { source: '| Bm |', transposedBy: 2 } }),
+      stamp
+    )
+    expect(project.chordChart).toEqual({ source: '| Bm |', transposedBy: 2 })
+  })
+
   it('omits separation for an unseparated session', () => {
     const project = projectFromSession(snapshot(), stamp)
     expect(project.separation).toBeUndefined()
@@ -180,6 +190,49 @@ describe('tuningOrDefault', () => {
   it('returns a persisted tuning unchanged', () => {
     const tuning: ProjectTuning = { timeRatio: 0.7, pitchSemitones: 2, zoom: 4 }
     expect(tuningOrDefault(tuning)).toBe(tuning)
+  })
+})
+
+describe('chartTransposedBy', () => {
+  it('reads 0 for a manifest with no chart at all', () => {
+    expect(chartTransposedBy(undefined)).toBe(0)
+  })
+
+  it('reads 0 for a chart that predates the offset field', () => {
+    expect(chartTransposedBy({ source: '| Am |' })).toBe(0)
+  })
+
+  it('returns the persisted offset unchanged', () => {
+    expect(chartTransposedBy({ source: '| Bm |', transposedBy: 2 })).toBe(2)
+    expect(chartTransposedBy({ source: '| Gm |', transposedBy: -3 })).toBe(-3)
+  })
+
+  it('reads a corrupted (non-integer) offset as untransposed', () => {
+    // A hand-edited manifest must not seed a divergence flag that no click
+    // can clear (NaN) or a phantom fractional key.
+    expect(chartTransposedBy({ source: '| C |', transposedBy: 2.5 })).toBe(0)
+    expect(
+      chartTransposedBy({ source: '| C |', transposedBy: Number.NaN })
+    ).toBe(0)
+  })
+})
+
+describe('projectChordChart', () => {
+  it('drops a blank chart — whitespace alone is no chart', () => {
+    expect(projectChordChart('', 0)).toBeUndefined()
+    expect(projectChordChart('  \n ', 2)).toBeUndefined()
+  })
+
+  it('omits the offset when the grid is untransposed (absent ⇔ 0)', () => {
+    expect(projectChordChart('| Am |', 0)).toEqual({ source: '| Am |' })
+    expect('transposedBy' in (projectChordChart('| Am |', 0) ?? {})).toBe(false)
+  })
+
+  it('keeps a real offset alongside the source', () => {
+    expect(projectChordChart('| Bm |', 2)).toEqual({
+      source: '| Bm |',
+      transposedBy: 2
+    })
   })
 })
 

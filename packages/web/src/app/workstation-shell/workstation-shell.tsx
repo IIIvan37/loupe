@@ -167,7 +167,7 @@ export function WorkstationShell({
     loopEnabled,
     tuning: { timeRatio, pitchSemitones, zoom: viewport.zoom },
     chordChart,
-    restoreChordChart: chordChart.setSource,
+    restoreChordChart: chordChart.restore,
     markers,
     loops,
     restoreActiveLoop: (active, savedLoopId) => {
@@ -345,8 +345,8 @@ export function WorkstationShell({
         canSeparate={isLoaded && loadedAudio !== undefined}
         serverHealth={serverHealth}
         onSeparate={handleSeparate}
-        chordChartSource={chordChart.source}
-        onChordChartChange={chordChart.setSource}
+        chordChart={chordChart}
+        pitchSemitones={pitchSemitones}
         chordDetection={chordDetection}
         />
       )}

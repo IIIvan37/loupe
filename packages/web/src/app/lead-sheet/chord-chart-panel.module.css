@@ -79,6 +79,17 @@
   composes: hint from '../ui/controls.module.css';
 }
 
+/* The pitch-divergence flag: a quiet hint + its one repair action, shown only
+ * while the grid's key and the heard key disagree — same recipe as the
+ * detection row above it. */
+.pitchDrift {
+  composes: detectRow;
+}
+
+.followButton {
+  composes: detectButton;
+}
+
 .error {
   composes: errorLine from '../ui/controls.module.css';
 }

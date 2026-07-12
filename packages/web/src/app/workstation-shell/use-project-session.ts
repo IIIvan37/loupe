@@ -1,12 +1,14 @@
-import type {
-  LoopRegion,
-  MixerChannel,
-  MixerState,
-  Project,
-  ProjectDeps,
-  ProjectTempo,
-  ProjectTuning,
-  TrackSourceMetadata
+import {
+  type LoopRegion,
+  type MixerChannel,
+  type MixerState,
+  type Project,
+  type ProjectChordChart,
+  type ProjectDeps,
+  type ProjectTempo,
+  type ProjectTuning,
+  projectChordChart,
+  type TrackSourceMetadata
 } from '@app/core'
 import { type ChangeEvent, useRef, useState } from 'react'
 import { sessionSignature } from '../../projects/session-signature.ts'
@@ -45,6 +47,8 @@ export interface ProjectSessionDeps extends SessionRestoreDeps {
   /** The chord chart's session state — saved, fingerprinted, reset on import. */
   readonly chordChart: {
     readonly source: string
+    /** How far the grid's key has been transposed from its written key. */
+    readonly transposedBy: number
     readonly reset: () => void
   }
   readonly viewport: { readonly reset: () => void }
@@ -163,10 +167,13 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
    * typed something real (whitespace alone is no chart — absent ⇔ empty, so
    * old manifests and blank sessions sign the same).
    */
-  function liveChordChart(): { source: string } | undefined {
-    return deps.chordChart.source.trim() === ''
-      ? undefined
-      : { source: deps.chordChart.source }
+  function liveChordChart(): ProjectChordChart | undefined {
+    // The core builder owns the manifest shape (absent ⇔ empty, absent ⇔ 0),
+    // mirroring `chartTransposedBy` on the read side.
+    return projectChordChart(
+      deps.chordChart.source,
+      deps.chordChart.transposedBy
+    )
   }
 
   /** The live session's persisted-state fingerprint (heavy audio excluded). */

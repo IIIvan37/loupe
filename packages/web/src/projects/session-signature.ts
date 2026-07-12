@@ -1,4 +1,5 @@
 import {
+  chartTransposedBy,
   type LoopLibrary,
   type ManualTempo,
   type MarkerList,
@@ -82,6 +83,9 @@ export function sessionSignature(session: SignedSession): string {
     octaveShift,
     manualTempo: manual ? [manual.bpm, manual.phaseSeconds] : null,
     chordChart: chordChart === '' ? null : chordChart,
+    // Absent chart or pre-offset manifest reads as untransposed 0, so a
+    // reopened old project still signs equal.
+    chartTransposedBy: chartTransposedBy(session.chordChart),
     mixer: session.separation
       ? session.separation.mixer.map((channel) => [
           channel.id,

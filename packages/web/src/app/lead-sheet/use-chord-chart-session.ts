@@ -28,7 +28,8 @@ export function useChordChartSession({
   const detection = useChordDetection({
     loadedAudio,
     grid,
-    onDraft: chart.setSource,
+    // A landed draft is in the track's own key — it resets the key offset.
+    onDraft: chart.seatDraft,
     detector
   })
   return { chart, detection }
