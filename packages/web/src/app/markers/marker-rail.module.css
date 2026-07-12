@@ -8,7 +8,7 @@
 .ruler {
   position: absolute;
   inset: 0 0 auto 0;
-  height: 18px;
+  height: var(--ruler-height);
   display: flex;
   justify-content: space-between;
   color: var(--faint);
@@ -17,13 +17,14 @@
 }
 
 .tick {
-  padding-inline-start: 5px;
+  padding-inline-start: var(--space-2xs);
   border-inline-start: 1px solid var(--line);
 }
 
+/* Markers hang just below the ruler strip. */
 .markers {
   position: absolute;
-  inset: 20px 0 0 0;
+  inset: calc(var(--ruler-height) + var(--space-3xs)) 0 0 0;
 }
 
 .marker {
@@ -32,7 +33,7 @@
   transform: translateX(-1px);
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-2xs);
 }
 
 /* A thin amber pin (yours) anchoring each marker's label. */
@@ -43,7 +44,7 @@
 }
 
 .tag {
-  padding: 1px 5px;
+  padding: 1px var(--space-2xs);
   border: 1px solid var(--amber-deep);
   border-radius: var(--radius-s);
   background: var(--panel);

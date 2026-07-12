@@ -61,6 +61,10 @@
   --font-size-xl: 1.35rem; /* empty-state heading */
   --font-size-2xl: 2.5rem; /* empty-state hero glyph */
 
+  /* Letter-spacing for the small uppercase section labels (panel headings,
+     transport captions…) — one value, so every label tracks the same. */
+  --tracking-label: 0.08em;
+
   /* Elevation — two steps only. `1` lifts light overlays (menus, popovers) off
      the panel; `2` is the modal dialog sitting above a dimmed backdrop. Tuned
      for the dark UI: deep, low-spread, so the ombre reads without a halo. */
@@ -113,6 +117,7 @@
      The stem-lane pair keeps the fixed gutter (track headers) and the zoomable
      lanes aligned row by row: change one side, the other follows. */
   --timeline-height: 46px;
+  --ruler-height: 18px; /* timecode strip at the top of the timeline */
   --waveform-height: 134px;
   --stem-lane-height: 48px;
   --stem-lane-gap: 2px;
