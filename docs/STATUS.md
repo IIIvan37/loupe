@@ -80,20 +80,23 @@ unroll dès P.2, en-tête dérivé de la session + directives `{…}` de surchar
 **P.1 — rendu chart mergé (PR #113)** : directives `{k: v}`, `ChordGlyph`,
 barres dessinées, `ChartHeader` dérivé + Petaluma Script OFL — voir
 l'historique.
-**P.2 — grammaire de forme + déroulement, sur `feat/p2-form-unroll` (PR à
-ouvrir)** : reprises `|: :|`, voltas `|1.`/`|2.` (portée = la ligne jusqu'au
-`:|` inclus), `{d.c.}`/`{coda}`/`{fine}` pleine-ligne → `ChartForm`, fermata
-`@` ; `unrollChart` pur (propriétés fast-check : identité sans structure,
-tout indice déroulé référence une mesure écrite ; gardes formes dégénérées —
-aucune mesure écrite inatteignable) ; surlignage LeadSheet sur la forme
-déroulée + rendu reprises/voltas/D.C./Fine/⊕/𝄐. Revue 8 angles : 5 bugs
-confirmés reproduits en tests rouges puis fixés (volta multi-mesures, `:|`
-après groupe de voltas, dc=0, queue post-d.c., volta+`|:`). Syntaxe
-documentée dans le README application.
-**Next : merger la PR P.2 puis P.3 — édition repliée (UI, checkpoint
-d'approche obligatoire).**
+**P.2 — grammaire de forme + déroulement mergé (PR #114)** — voir
+l'historique.
+**P.3 — édition repliée, sur `feat/p3-collapsed-edit` (PR à ouvrir)** :
+vue par défaut = la chart seule, textarea repliée derrière « Modifier »
+(toggle en place validé au checkpoint — pas de dialog), disclosure
+accessible (`aria-expanded` + `aria-controls`, focus remis à l'éditeur),
+hint d'état vide `chords.empty-hint` (le placeholder pédagogique était le
+seul guidage premier-lancement). Modèle intouché (source liftée,
+bars-per-row, brouillon de détection). Helpers de specs idempotents
+`typeGrid`/`chartEditor`. Revue 8 angles : 2 constats fixés en TDD
+(aria-controls, état vide muet), 6 arbitrés. Gate vert **1151 tests** (+7),
+Stryker skipped (core intouché).
+**Next : ouvrir + merger la PR P.3 — Lot P clos (P.4 impression en
+veille).**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [P.2](sessions/2026-07-12-p2-form-unroll.md) ·
+See [P.3](sessions/2026-07-12-p3-collapsed-edit.md) ·
+[P.2](sessions/2026-07-12-p2-form-unroll.md) ·
 [P.1](sessions/2026-07-12-p1-chart-rendering.md) ·
 [O.5](sessions/2026-07-12-grouped-lows-o5.md) ·
 [O.4](sessions/2026-07-12-btc-windows.md) ·
@@ -106,7 +109,11 @@ See [P.2](sessions/2026-07-12-p2-form-unroll.md) ·
 
 ### Lot P — lead-sheet chart (2026-07-12 → …)
 
-- 2026-07-12 · **P.2 — grammaire de forme + unrollChart** (PR à ouvrir) :
+- 2026-07-12 · **P.3 — édition repliée** (PR à ouvrir) : chart-first,
+  textarea derrière « Modifier » (aria-expanded/controls, focus remis),
+  hint d'état vide, helpers typeGrid/chartEditor →
+  [rapport](sessions/2026-07-12-p3-collapsed-edit.md)
+- 2026-07-12 · **P.2 — grammaire de forme + unrollChart** (PR #114 mergée) :
   reprises/voltas/{d.c.}/{coda}/{fine}/fermata, unroll pur (fast-check),
   surlignage sur la forme déroulée →
   [rapport](sessions/2026-07-12-p2-form-unroll.md)
