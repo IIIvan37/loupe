@@ -363,7 +363,7 @@ Ce que la référence montre, et ce que ça implique :
 - [x] **O.1** token mort --accent (+ lint tokens)
 - [x] **O.2** micro-dérives design
 - [x] **O.3** split workstation-shell.spec (9 specs par parcours + shell-test-kit)
-- [ ] **O.4** btc_windows.py pur
+- [x] **O.4** btc_windows.py pur (window_plan testé, _analyse rebranché)
 - [ ] **O.5** basses code groupées
 - [ ] **P** lead-sheet façon chart — à planifier (plan dédié : structure,
       rendu, édition repliée)
