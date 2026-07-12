@@ -76,6 +76,76 @@ describe('LeadSheet', () => {
     expect(container.querySelector('[aria-current]')).toBeNull()
   })
 
+  it('follows the unrolled form — the repeat pass highlights the top again', () => {
+    // |: C | G :| plays C G C G; the third played measure is written measure 0.
+    render(
+      <LeadSheet source={'|: C | G :|'} currentMeasureIndex={2} />,
+      { wrapper: I18nTestingProvider }
+    )
+    expect(screen.getByText('C').closest('[aria-current]')).not.toBeNull()
+  })
+
+  it('marks nothing past the end of the unrolled form', () => {
+    const { container } = render(
+      <LeadSheet source={'|: C | G :|'} currentMeasureIndex={4} />,
+      { wrapper: I18nTestingProvider }
+    )
+    expect(container.querySelector('[aria-current]')).toBeNull()
+  })
+
+  it('draws the |: bar on the measure opening a repeat', () => {
+    const { container } = render(<LeadSheet source={'|: C | G :|'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(container.querySelector('[data-repeat-start]')).toHaveTextContent(
+      'C'
+    )
+  })
+
+  it('draws the :| bar on the measure closing a repeat', () => {
+    const { container } = render(<LeadSheet source={'|: C | G :|'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(container.querySelector('[data-repeat-end]')).toHaveTextContent(
+      'G'
+    )
+  })
+
+  it('labels a volta measure with its number bracket', () => {
+    render(<LeadSheet source={'|: C |1. G :|\n|2. F |'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(screen.getByText('1.')).toBeInTheDocument()
+  })
+
+  it('prints the D.C. mark over the measure it follows', () => {
+    render(<LeadSheet source={'| C | G |\n{d.c.}'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(screen.getByText('D.C.')).toBeInTheDocument()
+  })
+
+  it('prints the Fine mark over the measure it follows', () => {
+    render(<LeadSheet source={'| C |\n{fine}\n| G |\n{d.c.}'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(screen.getByText('Fine')).toBeInTheDocument()
+  })
+
+  it('prints the coda sign where the coda starts', () => {
+    render(<LeadSheet source={'| C |\n{d.c.}\n{coda}\n| F |'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(screen.getByText('⊕')).toBeInTheDocument()
+  })
+
+  it('prints a fermata over a held measure', () => {
+    render(<LeadSheet source={'| C@ |'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(screen.getByText('𝄐')).toBeInTheDocument()
+  })
+
   it('sets a chord quality as a superscript (chart typography)', () => {
     const { container } = render(<LeadSheet source={'| Fmaj7 |'} />, {
       wrapper: I18nTestingProvider

@@ -13,6 +13,14 @@ import {
  */
 export interface Measure {
   readonly chords: readonly ChordSymbol[]
+  /** Opened by a `|:` bar — playback comes back here on the repeat. */
+  readonly repeatStart?: true
+  /** Closed by a `:|` bar — playback jumps back from here. */
+  readonly repeatEnd?: true
+  /** The alternative ending this measure belongs to (`|1.` / `|2.` bars). */
+  readonly volta?: number
+  /** A `@` suffix on any of the measure's chords — hold the last one. */
+  readonly fermata?: true
 }
 
 export interface Section {
@@ -20,8 +28,22 @@ export interface Section {
   readonly measures: readonly Measure[]
 }
 
+/**
+ * The chart's navigation marks, each a position in WRITTEN measures (the count
+ * of measures before the mark's line): `dc` = the D.C. jump ("go back to the
+ * top" — its position doubles as the to-coda point), `coda` = where the ⊕ coda
+ * starts, `fine` = where the replayed pass ends.
+ */
+export interface ChartForm {
+  readonly dc?: number
+  readonly coda?: number
+  readonly fine?: number
+}
+
 export interface ChordChart {
   readonly sections: readonly Section[]
+  /** Present only when the source carries `{d.c.}` / `{coda}` / `{fine}`. */
+  readonly form?: ChartForm
   /**
    * The head-of-source `{key: value}` overrides (`{title: …}`, `{key: …}`,
    * `{tempo: …}`…) that make a chart self-supporting away from its session.
@@ -40,13 +62,51 @@ const DIRECTIVE = /^\{([^:{}]+):([^{}]*)\}$/
     Shared by the parser and the transposer so the two can never drift. */
 const TOKEN = /[^|\s]+/g
 
-/** The bars of one `| … | … |` row — each non-empty cell is a measure. */
+/** The bars of one `| … | … |` row — each non-empty cell is a measure. A
+    volta number spans its row (a two-bar ending is one bracket in print) up
+    to and including the bar its `:|` closes. */
 function parseRow(line: string): Measure[] {
+  let carriedVolta: number | undefined
   return line
     .split('|')
     .map((cell) => cell.match(TOKEN) ?? [])
     .filter((tokens) => tokens.length > 0)
-    .map((tokens) => ({ chords: tokens.map(parseChordSymbol) }))
+    .map((tokens) => {
+      const measure = parseCell(tokens)
+      const volta = measure.volta ?? carriedVolta
+      carriedVolta = measure.repeatEnd === true ? undefined : volta
+      return volta === undefined ? measure : { ...measure, volta }
+    })
+}
+
+/** One cell's tokens into a measure: edge `:` tokens are the repeat bars of
+    `|:` / `:|` (split on `|` leaves them at the cell's edges), never chords. */
+/** A volta bar's number token: `1.` right after the opening bar line. */
+const VOLTA = /^(\d+)\.$/
+
+function parseCell(tokens: readonly string[]): Measure {
+  const repeatStart = tokens[0] === ':'
+  const inner = repeatStart ? tokens.slice(1) : [...tokens]
+  const volta = VOLTA.exec(inner[0] ?? '')
+  if (volta) inner.shift()
+  const repeatEnd = inner[inner.length - 1] === ':'
+  if (repeatEnd) inner.pop()
+  const fermata = inner.some((token) => FERMATA.test(token))
+  return {
+    chords: inner.map((token) => parseChordSymbol(stripFermata(token))),
+    ...(repeatStart && { repeatStart }),
+    ...(repeatEnd && { repeatEnd }),
+    ...(volta && { volta: Number(volta[1]) }),
+    ...(fermata && { fermata })
+  }
+}
+
+/** A fermata suffix: `C@` holds the chord. A lone `@` is no chord, so the
+    suffix only counts on a non-empty head. */
+const FERMATA = /.@$/
+
+function stripFermata(token: string): string {
+  return FERMATA.test(token) ? token.slice(0, -1) : token
 }
 
 /**
@@ -77,9 +137,14 @@ export function transposeChartSource(
         (directive[1] as string).trim().toLowerCase() !== 'key'
       if (prose || HEADER.test(line.trim())) return line
       return line.replace(TOKEN, (token) => {
-        const parsed = parseChordSymbol(token)
-        if (formatChordSymbol(parsed) !== token) return token
-        return formatChordSymbol(transposeChordSymbol(parsed, semitones))
+        // A fermata suffix rides outside the chord grammar: peel it before
+        // the round-trip guard so `C/E@` still transposes, and re-append it.
+        const head = stripFermata(token)
+        const hold = head !== token
+        const parsed = parseChordSymbol(head)
+        if (formatChordSymbol(parsed) !== head) return token
+        const moved = formatChordSymbol(transposeChordSymbol(parsed, semitones))
+        return hold ? `${moved}@` : moved
       })
     })
     .join('\n')
@@ -148,21 +213,140 @@ export function renderChartSource(
   return rows.join('\n')
 }
 
-/** The single token a cell may print — `N.C.` when the label isn't one. */
+/** The single token a cell may print — `N.C.` when the label isn't one, or
+    when the form grammar would read it structurally (`:`, a volta `1.`) and
+    the measure count would drift under `parseChart`. */
 function cellToken(label: string | undefined): string {
-  return label !== undefined && label.match(TOKEN)?.join('') === label
+  return label !== undefined &&
+    label.match(TOKEN)?.join('') === label &&
+    label !== ':' &&
+    !VOLTA.test(label) &&
+    !FERMATA.test(label)
     ? label
     : NO_CHORD
+}
+
+/** The `ChartForm` key each full-line form mark sets — the single source the
+    recognizer regex derives from, so a new mark can never miss the pattern. */
+const FORM_KEYS: Readonly<Record<string, keyof ChartForm>> = {
+  'd.c.': 'dc',
+  coda: 'coda',
+  fine: 'fine'
+}
+
+/** A full-line form mark — `{d.c.}` / `{coda}` / `{fine}`, case-insensitive. */
+const FORM_MARK = new RegExp(
+  `^\\{\\s*(${Object.keys(FORM_KEYS)
+    .map((mark) => mark.replaceAll('.', String.raw`\.`))
+    .join('|')})\\s*\\}$`,
+  'i'
+)
+
+/**
+ * Unroll a chart's form into the sequence of WRITTEN measure indices actually
+ * played — the projection playback highlighting follows (the n-th downbeat
+ * plays the n-th unrolled measure).
+ */
+export function unrollChart(chart: ChordChart): readonly number[] {
+  const measures = chart.sections.flatMap((section) => section.measures)
+  const dc = chart.form?.dc
+  if (dc === undefined) {
+    return walkForm(measures, 0, measures.length)
+  }
+  // The D.C. bounds the first pass, then replays from the top: to the {fine}
+  // when one is written (al Fine — it wins over a contradictory coda),
+  // otherwise to the D.C. point again, landing on the {coda} when one is
+  // written (al Coda — the D.C. position doubles as the to-coda sign) or
+  // simply playing on through the tail, so no written measure is ever
+  // unreachable behind a plain {d.c.}.
+  const { fine, coda } = chart.form ?? {}
+  const firstPass = walkForm(measures, 0, dc)
+  const replay =
+    fine !== undefined
+      ? walkForm(measures, 0, fine)
+      : [...firstPass, ...walkForm(measures, coda ?? dc, measures.length)]
+  return [...firstPass, ...replay]
+}
+
+/**
+ * Play the written measures from `from` until the boundary `until`, honouring
+ * repeats and voltas. Terminates on any input: a jump strictly grows `pass`
+ * under an unchanged `repeatFrom`, a fall-through strictly grows `repeatFrom`
+ * — the walk's (repeatFrom, pass) state never repeats.
+ */
+function walkForm(
+  measures: readonly Measure[],
+  from: number,
+  until: number
+): number[] {
+  const played: number[] = []
+  let index = from
+  let pass = 1
+  let repeatFrom = from
+  let jumped = false
+  let inVolta = false
+  while (index < until) {
+    const measure = measures[index] as Measure
+    // A fresh |: (not reached via a jump back to it) opens a new repeat, and
+    // walking out of the last ending closes the volta group — either way the
+    // form starts over here, at pass one. A volta-numbered bar never opens
+    // one: its bracket belongs to the CURRENT repeat, whatever bars it
+    // carries.
+    if (
+      !jumped &&
+      measure.volta === undefined &&
+      (measure.repeatStart || inVolta)
+    ) {
+      repeatFrom = index
+      pass = 1
+    }
+    jumped = false
+    if (measure.volta !== undefined) {
+      inVolta = true
+      if (measure.volta !== pass) {
+        index += 1
+        continue
+      }
+    } else {
+      inVolta = false
+    }
+    played.push(index)
+    if (measure.repeatEnd) {
+      // A volta's :| always sends the walk back for the NEXT ending (it is
+      // only ever reached on its own pass); a bare :| repeats once.
+      if (measure.volta !== undefined || pass === 1) {
+        pass = (measure.volta ?? pass) + 1
+        index = repeatFrom
+        jumped = true
+        continue
+      }
+      // Falling through a taken repeat closes it: the next bare :| repeats
+      // from here, never from the closed repeat's own start.
+      repeatFrom = index + 1
+      pass = 1
+    }
+    index += 1
+  }
+  return played
 }
 
 export function parseChart(text: string): ChordChart {
   const sections: Section[] = []
   const directives: Record<string, string> = {}
+  const form: { -readonly [K in keyof ChartForm]: ChartForm[K] } = {}
+  let written = 0
   let current: { label?: string; measures: Measure[] } | undefined
 
   for (const rawLine of text.split('\n')) {
     const line = rawLine.trim()
     if (line.length === 0) continue
+
+    const mark = FORM_MARK.exec(line)
+    if (mark) {
+      form[FORM_KEYS[(mark[1] as string).toLowerCase()] as keyof ChartForm] =
+        written
+      continue
+    }
 
     // Directives may only lead the source: once any grid content (a section
     // header or a row) has started, a `{…}` line is grid content too.
@@ -187,8 +371,14 @@ export function parseChart(text: string): ChordChart {
       current = { measures: [] }
       sections.push(current)
     }
-    current.measures.push(...parseRow(line))
+    const row = parseRow(line)
+    written += row.length
+    current.measures.push(...row)
   }
 
-  return { sections, directives }
+  return {
+    sections,
+    directives,
+    ...(Object.keys(form).length > 0 && { form })
+  }
 }

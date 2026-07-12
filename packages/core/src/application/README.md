@@ -104,6 +104,28 @@ The single place to look before adding a feature, so ports and use-cases get
 > frame count — zero-pad or truncate — so all exported WAVs start at t=0 and last
 > exactly as long). `exportStems` composes them with `encodeWav`.
 >
+> Pure chord-chart domain (no use-case/port, UI-driven) — chord-charts lots +
+> lead-sheet Lot P: `parseChart(text) → ChordChart` over the home grid grammar —
+> head `{key: value}` directives, `[Section]` labels, `| C | Am |` rows
+> (`parseChordSymbol` per token) — and its inverse `renderChartSource` (the
+> detection draft printer; a label the grammar would misread prints as `N.C.`).
+> `transposeChartSource` / `transposeChart` rewrite the SOURCE text (layout
+> preserved, lossy tokens verbatim, `{key: …}` follows) with `transposedBy` as
+> the key accounting, `chartMatchesPitch` compares it to the audio shift mod 12.
+> **Form grammar (P.2)** (structural tokens are space-separated): repeats
+> `|: … :|` (a bare `:|` repeats from after the previous close, else the top;
+> nesting is unsupported — the inner repeat wins), voltas `|1. … :| |2. …` —
+> a volta number spans its ROW up to and including the bar its `:|` closes,
+> each ending plays on its own pass, an orphan volta plays only its first
+> ending — full-line marks `{d.c.}` (replay from the top, repeats honoured as
+> written; its position doubles as the to-coda point, and without a coda the
+> replay simply plays on through the tail) / `{coda}` (played only via the
+> jump) / `{fine}` (ends the replay — wins over a contradictory coda), and a
+> `@` token suffix for a fermata on the measure.
+> `unrollChart(chart)` flattens the form into the played sequence of written
+> measure indices — the projection the playhead highlight follows (the n-th
+> downbeat plays the n-th unrolled measure).
+>
 > Pure project domain — Slice J3.1: `projectFromSession`
 > assembles a `Project` (id/name/timestamps + `ProjectSource`, `LoopLibrary`,
 > `MarkerList`, optional `ProjectActiveLoop` = the armed A/B region + wrap

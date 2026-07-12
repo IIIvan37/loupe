@@ -5,7 +5,8 @@ import {
   parseChart,
   renderChartSource,
   transposeChart,
-  transposeChartSource
+  transposeChartSource,
+  unrollChart
 } from './chord-chart.ts'
 
 describe('parseChart', () => {
@@ -94,6 +95,76 @@ describe('parseChart', () => {
 
   it('a bracket mid-line is not a header either', () => {
     expect(parseChart('| C | [Coda]').sections[0]?.label).toBeUndefined()
+  })
+})
+
+describe('parseChart — form grammar (P.2)', () => {
+  it('flags the measure a |: opens as a repeat start', () => {
+    expect(parseChart('|: C | G |').sections[0]?.measures[0]).toEqual({
+      chords: [{ root: 'C', quality: '' }],
+      repeatStart: true
+    })
+  })
+
+  it('flags the measure a :| closes as a repeat end', () => {
+    expect(parseChart('| C | G :|').sections[0]?.measures[1]).toEqual({
+      chords: [{ root: 'G', quality: '' }],
+      repeatEnd: true
+    })
+  })
+
+  it('a one-measure repeat carries both flags', () => {
+    expect(parseChart('|: C :|').sections[0]?.measures[0]).toEqual({
+      chords: [{ root: 'C', quality: '' }],
+      repeatStart: true,
+      repeatEnd: true
+    })
+  })
+
+  it('records the written position of a {d.c.} line', () => {
+    expect(parseChart('| C | G |\n{d.c.}\n| F |').form).toEqual({ dc: 2 })
+  })
+
+  it('reads a trailing @ as a fermata on the measure', () => {
+    expect(parseChart('| C@ |').sections[0]?.measures[0]).toEqual({
+      chords: [{ root: 'C', quality: '' }],
+      fermata: true
+    })
+  })
+
+  it('a fermata on ANY chord of the bar flags the measure', () => {
+    expect(parseChart('| C@ G |').sections[0]?.measures[0]?.fermata).toBe(true)
+  })
+
+  it('a lone : cell is a repeat bar around an empty measure, not a chord', () => {
+    expect(parseChart('| : |').sections[0]?.measures[0]).toEqual({
+      chords: [],
+      repeatStart: true
+    })
+  })
+
+  it('numbers a volta measure from its |1. bar', () => {
+    expect(
+      parseChart('|: C |1. G :|\n|2. F |').sections[0]?.measures[1]
+    ).toEqual({
+      chords: [{ root: 'G', quality: '' }],
+      volta: 1,
+      repeatEnd: true
+    })
+  })
+
+  it('a volta spans its row until the closing repeat bar', () => {
+    expect(parseChart('|: X |1. A | B :|').sections[0]?.measures[2]).toEqual({
+      chords: [{ root: 'B', quality: '' }],
+      volta: 1,
+      repeatEnd: true
+    })
+  })
+
+  it('the volta stops at its :| — later bars of the row are plain', () => {
+    expect(
+      parseChart('|1. A :| C |').sections[0]?.measures[1]?.volta
+    ).toBeUndefined()
   })
 })
 
@@ -214,6 +285,20 @@ describe('transposeChartSource', () => {
     expect(transposeChartSource('| C♯m7 |', 1)).toBe('| Dm7 |')
   })
 
+  it('transposes a fermata slash chord, keeping its @ suffix', () => {
+    expect(transposeChartSource('| C/E@ |', 2)).toBe('| D/F#@ |')
+  })
+
+  it('keeps repeat bars and volta numbers verbatim, chords moving', () => {
+    expect(transposeChartSource('|: C |1. G :|\n|2. F |', 2)).toBe(
+      '|: D |1. A :|\n|2. G |'
+    )
+  })
+
+  it('keeps a form-mark line verbatim', () => {
+    expect(transposeChartSource('| C |\n{d.c.}', 2)).toBe('| D |\n{d.c.}')
+  })
+
   it('transposes the {key: …} directive with the grid — the head must not lie', () => {
     expect(transposeChartSource('{key: C}\n| C |', 2)).toBe('{key: D}\n| D |')
   })
@@ -315,6 +400,145 @@ describe('chartMatchesPitch', () => {
   })
 })
 
+describe('unrollChart', () => {
+  it('unrolls a structureless chart to written order', () => {
+    expect(unrollChart(parseChart('| C | G |'))).toEqual([0, 1])
+  })
+
+  it('plays a |: … :| repeat twice', () => {
+    expect(unrollChart(parseChart('|: C | G :|'))).toEqual([0, 1, 0, 1])
+  })
+
+  it('a second bare :| repeats from after the first, not the top', () => {
+    expect(unrollChart(parseChart('| C :|\n| G :|'))).toEqual([0, 0, 1, 1])
+  })
+
+  it('a |: mid-chart repeats from its own bar, not the top', () => {
+    expect(unrollChart(parseChart('| A |\n|: B | C :|'))).toEqual([
+      0, 1, 2, 1, 2
+    ])
+  })
+
+  it('a fresh |: after a volta group opens at pass one again', () => {
+    expect(unrollChart(parseChart('|: A |1. B :|\n|2. C |\n|: D :|'))).toEqual([
+      0, 1, 0, 2, 3, 3
+    ])
+  })
+
+  it('plays each volta on its own pass', () => {
+    expect(unrollChart(parseChart('|: C |1. G :|\n|2. F |'))).toEqual([
+      0, 1, 0, 2
+    ])
+  })
+
+  it('a third volta earns a third pass', () => {
+    expect(unrollChart(parseChart('|: C |1. D :|\n|2. E :|\n|3. F |'))).toEqual(
+      [0, 1, 0, 2, 0, 3]
+    )
+  })
+
+  it('guard — an orphan volta (no repeat) only plays its first ending', () => {
+    expect(unrollChart(parseChart('| C |1. G |\n|2. F |'))).toEqual([0, 1])
+  })
+
+  it('a {d.c.} replays the chart from the top', () => {
+    expect(unrollChart(parseChart('| C | G |\n{d.c.}'))).toEqual([0, 1, 0, 1])
+  })
+
+  it('with a {fine}, the replay stops there', () => {
+    const source = '| C | G |\n{fine}\n| A |\n{d.c.}'
+    expect(unrollChart(parseChart(source))).toEqual([0, 1, 2, 0, 1])
+  })
+
+  it('with a {coda}, the replay jumps there from the D.C. point', () => {
+    const source = '| C | G |\n{d.c.}\n{coda}\n| F |'
+    expect(unrollChart(parseChart(source))).toEqual([0, 1, 0, 1, 2])
+  })
+
+  it('the coda section never plays on the first pass', () => {
+    const source = '| C |\n{d.c.}\n{coda}\n| F |'
+    expect(unrollChart(parseChart(source)).slice(0, 1)).toEqual([0])
+  })
+
+  it('guard — a {coda} without a {d.c.} is ignored, written order plays', () => {
+    expect(unrollChart(parseChart('| C |\n{coda}\n| G |'))).toEqual([0, 1])
+  })
+
+  it('guard — a {d.c.} before any measure is ignored, never an empty unroll', () => {
+    expect(unrollChart(parseChart('{d.c.}\n| C |'))).toEqual([0])
+  })
+
+  it('a volta that also opens a repeat still plays on its pass', () => {
+    expect(unrollChart(parseChart('|: A |1. B :|: 2. C | D |'))).toEqual([
+      0, 1, 0, 2, 3
+    ])
+  })
+
+  it('a two-bar first ending is skipped whole on the second pass', () => {
+    expect(unrollChart(parseChart('|: X |1. A | B :|\n|2. C |'))).toEqual([
+      0, 1, 2, 0, 3
+    ])
+  })
+
+  it('a bare :| after a volta group repeats its own bar, not the group', () => {
+    expect(unrollChart(parseChart('|: A |1. B :|\n|2. C |\n| D :|'))).toEqual([
+      0, 1, 0, 2, 3, 3
+    ])
+  })
+
+  it('measures written after a plain {d.c.} still play, after the replay', () => {
+    expect(unrollChart(parseChart('| C |\n{d.c.}\n| G |'))).toEqual([0, 0, 1])
+  })
+
+  it('the D.C. replay honours repeats as written', () => {
+    expect(unrollChart(parseChart('|: C | G :|\n{d.c.}'))).toEqual([
+      0, 1, 0, 1, 0, 1, 0, 1
+    ])
+  })
+
+  it('property — unrolling a structureless chart is the identity', () => {
+    const label = fc.constantFrom('C', 'Am', 'F#m7b5', 'Bb/D', 'N.C.')
+    fc.assert(
+      fc.property(
+        fc.array(label, { minLength: 1, maxLength: 32 }),
+        fc.integer({ min: 1, max: 8 }),
+        (labels, barsPerRow) => {
+          const chart = parseChart(renderChartSource(labels, barsPerRow))
+          return (
+            JSON.stringify(unrollChart(chart)) ===
+            JSON.stringify(labels.map((_, index) => index))
+          )
+        }
+      )
+    )
+  })
+
+  it('property — every unrolled index references a written measure', () => {
+    const line = fc.constantFrom(
+      '| C | G :|',
+      '|: A | Bm |',
+      '|1. F :|',
+      '|2. E |',
+      '|3. D :|',
+      '{d.c.}',
+      '{coda}',
+      '{fine}',
+      '[Verse]',
+      '| G@ :|',
+      '|: C :|'
+    )
+    fc.assert(
+      fc.property(fc.array(line, { maxLength: 12 }), (lines) => {
+        const chart = parseChart(lines.join('\n'))
+        const written = chart.sections.flatMap((s) => s.measures).length
+        return unrollChart(chart).every(
+          (index) => Number.isInteger(index) && index >= 0 && index < written
+        )
+      })
+    )
+  })
+})
+
 describe('renderChartSource', () => {
   it('renders measures as bar-separated cells, wrapping rows', () => {
     expect(renderChartSource(['C', 'Am', 'F', 'G', 'C'], 4)).toBe(
@@ -332,6 +556,14 @@ describe('renderChartSource', () => {
     expect(renderChartSource(['', 'A min', 'C|G'], 4)).toBe(
       '| N.C. | N.C. | N.C. |'
     )
+  })
+
+  it('prints a structural label as N.C. — a bare : would open a repeat', () => {
+    expect(renderChartSource([':', '1.'], 4)).toBe('| N.C. | N.C. |')
+  })
+
+  it('prints a fermata-suffixed label as N.C. — @ would not round-trip', () => {
+    expect(renderChartSource(['G@'], 4)).toBe('| N.C. |')
   })
 
   it('renders nothing from no measures', () => {
