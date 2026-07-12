@@ -17,7 +17,6 @@ import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.
 import { useServerHealth } from '../../projects/use-server-health.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
-import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
 import { useChordChartSession } from '../lead-sheet/use-chord-chart-session.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
@@ -41,6 +40,7 @@ import { ShellMain } from './shell-main.tsx'
 import { useProjectSession } from './use-project-session.ts'
 import { useSeparateAndLoad } from './use-separate-and-load.ts'
 import { useShellDrop } from './use-shell-drop.ts'
+import { useShellShortcuts } from './use-shell-shortcuts.ts'
 import { useStemExport } from './use-stem-export.ts'
 import { useTempoDetection } from './use-tempo-detection.ts'
 import { useUnloadGuard } from './use-unload-guard.ts'
@@ -241,16 +241,17 @@ export function WorkstationShell({
   useUnloadGuard(session.unsavedWork)
 
   // Global keyboard layout — only live once a track is loaded.
-  useKeyboardShortcuts(
-    {
-      togglePlayback: countIn.togglePlayback,
-      seekBy: (seconds) => seekToSeconds(position.get() + seconds),
-      zoomIn: viewport.zoomIn,
-      zoomOut: viewport.zoomOut,
-      addMarker: () => markers.addAt(position.get())
-    },
-    { enabled: isLoaded }
-  )
+  useShellShortcuts({
+    enabled: isLoaded,
+    countIn,
+    position,
+    seekToSeconds,
+    viewport,
+    markers,
+    toggleLoop,
+    metronome,
+    tempoDetection
+  })
 
   // The two stem-export entry points (+ their success toasts), off the shell.
   const { exportStems: handleExportStems, downloadStem: handleDownloadStem } =

@@ -40,6 +40,18 @@ describe('resolveCommand', () => {
     })
   })
 
+  it('maps the practice-toggle characters to loop, metronome and tap tempo', () => {
+    expect(resolveCommand(defaultKeyBindings, { key: 'l' })).toEqual({
+      type: 'toggleLoop'
+    })
+    expect(resolveCommand(defaultKeyBindings, { key: 'k' })).toEqual({
+      type: 'toggleMetronome'
+    })
+    expect(resolveCommand(defaultKeyBindings, { key: 't' })).toEqual({
+      type: 'tapTempo'
+    })
+  })
+
   it('matches character bindings case-insensitively (Shift+M still works)', () => {
     expect(
       resolveCommand(defaultKeyBindings, { key: 'M', shift: true })

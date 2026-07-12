@@ -10,7 +10,7 @@ import { UNITY_GAIN_DB } from '@app/core'
 import { useRef, useState } from 'react'
 import { buildTrackStem, TRACK_STEM_ID } from '../mixer/track-stem.ts'
 import type { Mixer } from '../mixer/use-mixer.ts'
-import { buildMetronomeStem } from './metronome-stem.ts'
+import { buildMetronomeStem, METRONOME_ID } from './metronome-stem.ts'
 
 export interface MetronomeDeps {
   readonly mixer: Mixer
@@ -48,6 +48,11 @@ export interface Metronome {
    * the running mix, leaving its channel — and every other stem — untouched.
    */
   readonly reseat: (grid: BeatGrid, audio: DecodedAudio) => void
+  /**
+   * Make the click audible / silence it — a mute toggle on its channel, the
+   * same switch as the lane's mute button. A no-op while no click is seated.
+   */
+  readonly toggle: () => void
   /** Forget the click (a fresh track); the shell clears the mixer separately. */
   readonly reset: () => void
 }
@@ -119,5 +124,19 @@ export function useMetronome(deps: MetronomeDeps): Metronome {
     mixerRef.current.replaceStem(metro.stem, metro.source)
   }
 
-  return { enabled, enable, attach, reseat, reset: () => setEnabled(false) }
+  function toggle(): void {
+    if (!enabled) {
+      return
+    }
+    mixerRef.current.toggleMute(METRONOME_ID)
+  }
+
+  return {
+    enabled,
+    enable,
+    attach,
+    reseat,
+    toggle,
+    reset: () => setEnabled(false)
+  }
 }
