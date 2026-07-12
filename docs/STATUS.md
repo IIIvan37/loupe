@@ -44,8 +44,7 @@ badInput), préférence localStorage posée au blur, ligne « Détecter » sous 
 header — **Lot N clos**.
 **O.1 mergé (PR #106)**, **interlude react-doctor 0.7.6 mergé (PR #107)**,
 **O.2 mergé (PR #109)** — voir l'historique.
-**O.3 fait** sur `feat/o3-split-shell-spec` (PR #110, CI verte, merge en
-attente) :
+**O.3 mergé (PR #110)** :
 `workstation-shell.spec.tsx` (2 438 lignes, 115 tests, un seul `describe`)
 découpé par parcours en 9 specs colocalisées (`.import`, `.tempo`,
 `.transport`, `.shortcuts`, `.loops`, `.stems`, `.chords`, `.projects` + le
@@ -57,13 +56,13 @@ donc scanné par react-doctor : `tapThrice` déroulé (faux positif « await in
 loop »), `deslop/unused-file` ignoré pour le kit (même cas que le wrapper
 i18n). Gate vert **1047 tests** (total inchangé avant/après — aucun test
 perdu), Stryker skipped (core intouché).
-**O.4 fait** sur `feat/o4-btc-windows` (empilée sur la branche O.3) : le
+**O.4 mergé (PR #111)** : le
 padding/fenêtrage TIMESTEP de `chords.py` (exclu de coverage + pyright)
 extrait en `btc_windows.py` pur testé (`window_plan` → `{pad, slices}`,
 6 pytest, modèle `chord_spans.py`), `_analyse` rebranché, équivalence
 ancien/nouveau vérifiée par script. Serveur **163 pytest** (+6), pyright 0,
 coverage 97,6 %.
-**O.5 fait** sur `feat/o5-grouped-lows` (empilée sur O.4) : `AbortSignal`
+**O.5 mergé (PR #112) — Lot O clos.** `AbortSignal`
 bout-en-bout `/tempo`+`/chords` (ports core → use-cases → `postWavForJson` →
 hooks ; abort au reset/override/nouveau run/changement de piste/démontage —
 le sémaphore serveur est libéré), `create-chord-detector.ts` exclu de la
@@ -73,8 +72,9 @@ couverture avec ses jumeaux, boilerplate Popover factorisé en `PopoverForm`
 abort à l'unmount de useTempo ajouté ; import-menu volontairement non migré
 (il lui faut anchor + form + hint — API à élargir seulement si un 4e
 formulaire apparaît).
-**Next : merger les 3 PR empilées #110 (O.3) → #111 (O.4) → PR O.5 — le
-Lot O sera clos — puis ouvrir le plan du Lot P (lead-sheet façon chart).**
+**Next : ouvrir le plan du Lot P (lead-sheet façon chart — structure,
+rendu, édition repliée) — maquette fournie
+(`your-song-elton-john-chart.pdf`, rendu cible + fonctionnalités).**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [O.5](sessions/2026-07-12-grouped-lows-o5.md) ·
 [O.4](sessions/2026-07-12-btc-windows.md) ·
@@ -87,7 +87,7 @@ See [O.5](sessions/2026-07-12-grouped-lows-o5.md) ·
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
-- 2026-07-12 · **O.5 — basses code groupées** (PR à ouvrir) : AbortSignal
+- 2026-07-12 · **O.5 — basses code groupées** (PR #112 mergée, Lot O clos) : AbortSignal
   /tempo+/chords bout-en-bout, coverage create-chord-detector aligné,
   `PopoverForm` partagé → [rapport](sessions/2026-07-12-grouped-lows-o5.md)
 - 2026-07-12 · **O.4 — btc_windows.py pur** (PR #111) : fenêtrage
