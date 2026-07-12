@@ -1,28 +1,13 @@
 {
+  "$schema": "https://react.doctor/schema/config.json",
+  "rules": {
+    "react-doctor/exhaustive-deps": "off"
+  },
   "ignore": {
     "overrides": [
       {
-        "files": ["public/**"],
-        "rules": ["deslop/unused-file"]
-      },
-      {
         "files": ["src/i18n/i18n-testing-provider.tsx"],
         "rules": ["deslop/unused-file"]
-      },
-      {
-        "files": ["src/app/waveform/zoom-stage.tsx"],
-        "rules": [
-          "react-doctor/no-event-handler",
-          "react-doctor/no-pass-data-to-parent"
-        ]
-      },
-      {
-        "files": ["src/app/waveform/use-transport-engines.ts"],
-        "rules": ["react-doctor/no-pass-data-to-parent"]
-      },
-      {
-        "files": ["src/audio/web-audio-stem-playback.ts"],
-        "rules": ["react-doctor/async-defer-await"]
       }
     ]
   }

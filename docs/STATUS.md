@@ -50,9 +50,20 @@ chord-chart-panel) + `margin-inline-start` ; verrou au gate
 utilisés contre les définitions CSS **et** inline TS/TSX
 (`--bars-per-row`, `--cluster-gap`, `--stack-gap`), rouge/vert prouvés sur
 l'état pré-fix. Gate vert **1043 tests**, Stryker skipped (core intouché).
-**Next : ouvrir la PR O.1, puis O.2** (micro-dérives design).
+**O.1 mergé (PR #106)**. **Interlude react-doctor 0.7.6** sur
+`fix/react-doctor-ref-mutations` (PR à ouvrir) : les PR Dependabot #101–#104
+échouaient au gate CI (install fraîche → react-doctor 0.7.6, nouvelle règle
+« Ref mutated during render », 14 erreurs pré-existantes) — hook partagé
+`useLatest` (écriture de ref en effet, 12 miroirs remplacés), garde
+d'identité audio au commit dans use-chord-detection (plus de bump de ref au
+rendu), Biome `stableResult`, `doctor.config.json` (exhaustive-deps off —
+Biome fait foi ; unused-file ignoré pour le seul wrapper de test i18n),
+react-doctor épinglé `^0.7.6` (local = CI). Gate vert **1047 tests** (+4).
+**Next : merger ce fix, rebaser/merger #101–#104 (#53 reste reporté), puis
+O.2** (micro-dérives design).
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [O.1](sessions/2026-07-12-dead-accent-token.md) ·
+See [interlude](sessions/2026-07-12-react-doctor-ref-mutations.md) ·
+[O.1](sessions/2026-07-12-dead-accent-token.md) ·
 [N.4](sessions/2026-07-12-chord-panel-frictions.md) ·
 [N.3](sessions/2026-07-12-pitch-chart-divergence.md).
 
@@ -60,7 +71,11 @@ See [O.1](sessions/2026-07-12-dead-accent-token.md) ·
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
-- 2026-07-12 · **O.1 — token mort `--accent` + check:tokens** (PR à ouvrir) :
+- 2026-07-12 · **Interlude — react-doctor 0.7.6 / hook `useLatest`** (PR à
+  ouvrir) : 14 refs mutées au rendu purifiées (écriture en effet), Dependabot
+  débloqué → [rapport](sessions/2026-07-12-react-doctor-ref-mutations.md)
+- 2026-07-12 · **O.1 — token mort `--accent` + check:tokens** (PR #106
+  mergée) :
   erreur tempo re-colorée via `errorLine`, gate verrouillé par un diff
   var() utilisées/définies →
   [rapport](sessions/2026-07-12-dead-accent-token.md)

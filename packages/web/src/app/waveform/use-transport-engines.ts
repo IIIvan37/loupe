@@ -21,6 +21,7 @@ import {
   createExternalValue,
   type ExternalValue
 } from '../../lib/external-value.ts'
+import { useLatest } from '../../lib/use-latest.ts'
 
 /** The transport surface both engines share — what the active one is driven by. */
 export type TransportControls = Pick<
@@ -92,22 +93,16 @@ export function useTransportEngines({
 
   // Latest loop + enabled flag kept in refs so the (mount-once) position listener
   // never closes over stale values.
-  const loopRef = useRef<LoopRegion | undefined>(undefined)
-  loopRef.current = loopRegion
-  const loopEnabledRef = useRef(true)
-  loopEnabledRef.current = loopEnabled
-  const onLoopWrapRef = useRef<(() => void) | undefined>(undefined)
-  onLoopWrapRef.current = onLoopWrap
+  const loopRef = useLatest(loopRegion)
+  const loopEnabledRef = useLatest(loopEnabled)
+  const onLoopWrapRef = useLatest(onLoopWrap)
   // Which engine the transport drives, kept in a ref so the (mount-once) position
   // listener and the loop wrap-around always steer the live one.
-  const stemsActiveRef = useRef(false)
-  stemsActiveRef.current = stemsActive
+  const stemsActiveRef = useLatest(stemsActive)
   // Timeline bounds + play state for the (mount-once) listener: reaching the
   // end must stop playback, which used to be the reducer's 'tick' job.
-  const durationRef = useRef(0)
-  durationRef.current = transport.durationSeconds
-  const isPlayingRef = useRef(false)
-  isPlayingRef.current = transport.isPlaying
+  const durationRef = useLatest(transport.durationSeconds)
+  const isPlayingRef = useLatest(transport.isPlaying)
 
   /** The engine the transport currently drives (the stem mix or the track). */
   const active = (): TransportControls =>
