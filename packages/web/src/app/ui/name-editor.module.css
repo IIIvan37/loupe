@@ -1,14 +1,6 @@
-.positioner {
-  composes: positioner from './popover-form.module.css';
-}
-
+/* The PopoverForm shell wears the shared skin; only the width is ours. */
 .popup {
-  composes: popup from './popover-form.module.css';
   width: min(18rem, calc(100vw - var(--space-l)));
-}
-
-.title {
-  composes: title from './popover-form.module.css';
 }
 
 .field {
@@ -21,16 +13,4 @@
 
 .input {
   composes: input from './popover-form.module.css';
-}
-
-.actions {
-  composes: actions from './popover-form.module.css';
-}
-
-.ghost {
-  composes: ghost from './popover-form.module.css';
-}
-
-.submit {
-  composes: submit from './popover-form.module.css';
 }

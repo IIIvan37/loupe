@@ -11,6 +11,8 @@ export interface DetectChordsInput {
   readonly grid: BeatGrid
   /** The lead-sheet's row width, so the draft wraps like the user's layout. */
   readonly barsPerRow: number
+  /** Cooperative cancellation, forwarded to the detector port. */
+  readonly signal?: AbortSignal
 }
 
 export interface DetectChordsDeps {
@@ -77,7 +79,7 @@ export async function detectChords(
     }
   }
   try {
-    const spans = await deps.detector.detect(input.audio)
+    const spans = await deps.detector.detect(input.audio, input.signal)
     // Garbage times (an adapter parsing a malformed number) must surface as an
     // error, not fold into a confidently-blank draft.
     const finite = spans.every(

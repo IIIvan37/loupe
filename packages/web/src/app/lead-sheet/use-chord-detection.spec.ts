@@ -193,6 +193,62 @@ describe('useChordDetection', () => {
     expect(result.current.detecting).toBe(false)
   })
 
+  it('aborts the in-flight run when the track is replaced', async () => {
+    // Dropping the late result is not enough: the pending upload still holds
+    // the server's analysis slot, so the transfer itself must be aborted.
+    let seenSignal: AbortSignal | undefined
+    const pending: ChordDetector = {
+      detect: (_audio, signal) => {
+        seenSignal = signal
+        return new Promise(() => {})
+      }
+    }
+    const { result, rerender } = renderHook(
+      ({ audio }: { audio: DecodedAudio }) =>
+        useChordDetection({
+          loadedAudio: audio,
+          grid: GRID,
+          onDraft: vi.fn(),
+          detector: pending
+        }),
+      { initialProps: { audio: AUDIO } }
+    )
+    act(() => {
+      void result.current.detect(4)
+    })
+    expect(seenSignal?.aborted).toBe(false)
+    rerender({ audio: { sampleRate: 4, channels: [[0.5]] } })
+    expect(seenSignal?.aborted).toBe(true)
+  })
+
+  it('aborts the previous run when a new detection starts', async () => {
+    const signals: AbortSignal[] = []
+    const pending: ChordDetector = {
+      detect: (_audio, signal) => {
+        if (signal) {
+          signals.push(signal)
+        }
+        return new Promise(() => {})
+      }
+    }
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        onDraft: vi.fn(),
+        detector: pending
+      })
+    )
+    act(() => {
+      void result.current.detect(4)
+    })
+    act(() => {
+      void result.current.detect(4)
+    })
+    expect(signals[0]?.aborted).toBe(true)
+    expect(signals[1]?.aborted).toBe(false)
+  })
+
   it('does nothing without loaded audio', async () => {
     const detect = vi.fn()
     const { result } = renderHook(() =>

@@ -82,6 +82,7 @@ export default defineConfig({
         '**/audio/web-audio-shared.ts',
         '**/audio/web-audio-decoder.ts',
         '**/audio/download-blob.ts',
+        '**/audio/create-chord-detector.ts',
         '**/audio/create-separator.ts',
         '**/audio/create-tempo-detector.ts',
         '**/audio/create-track-source.ts',

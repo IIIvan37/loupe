@@ -1,14 +1,6 @@
-.positioner {
-  composes: positioner from '../ui/popover-form.module.css';
-}
-
+/* The PopoverForm shell wears the shared skin; only the width is ours. */
 .popup {
-  composes: popup from '../ui/popover-form.module.css';
   width: min(14rem, calc(100vw - var(--space-l)));
-}
-
-.title {
-  composes: title from '../ui/popover-form.module.css';
 }
 
 .field {
@@ -23,16 +15,9 @@
   composes: input from '../ui/popover-form.module.css';
 }
 
-.actions {
-  composes: actions from '../ui/popover-form.module.css';
-}
-
+/* Trigger and « Arrêter » share the shared skin's ghost button. */
 .ghost {
   composes: ghost from '../ui/popover-form.module.css';
-}
-
-.submit {
-  composes: submit from '../ui/popover-form.module.css';
 }
 
 /* The running read-out sits inline with the loop controls, amber like the

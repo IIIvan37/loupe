@@ -1,8 +1,8 @@
 import { Trans } from '@lingui/react/macro'
-import { Popover } from '@base-ui-components/react/popover'
 import { type KeyboardEvent, type ReactNode, useState } from 'react'
 import { cx } from '../../lib/cx.ts'
 import styles from './name-editor.module.css'
+import { PopoverForm } from './popover-form.tsx'
 
 interface NameEditorProps {
   readonly title: string
@@ -57,45 +57,30 @@ export function NameEditor({
   }
 
   return (
-    <Popover.Root open={open} onOpenChange={onOpenChange}>
-      <Popover.Trigger
-        className={cx(triggerClassName)}
-        aria-label={triggerLabel}
-      >
-        {triggerContent}
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Positioner className={cx(styles.positioner)} sideOffset={6}>
-          <Popover.Popup className={cx(styles.popup)}>
-            <Popover.Title className={cx(styles.title)}>{title}</Popover.Title>
-            <label className={cx(styles.field)}>
-              <span className={cx(styles.label)}>
-                <Trans id="common.name">Nom</Trans>
-              </span>
-              <input
-                className={cx(styles.input)}
-                type="text"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                onKeyDown={onKeyDown}
-              />
-            </label>
-            <div className={cx(styles.actions)}>
-              <Popover.Close className={cx(styles.ghost)}>
-                <Trans id="common.cancel">Annuler</Trans>
-              </Popover.Close>
-              <button
-                type="button"
-                className={cx(styles.submit)}
-                disabled={name.trim() === ''}
-                onClick={submit}
-              >
-                {submitLabel}
-              </button>
-            </div>
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
+    <PopoverForm
+      open={open}
+      onOpenChange={onOpenChange}
+      triggerClassName={triggerClassName}
+      triggerLabel={triggerLabel}
+      triggerContent={triggerContent}
+      title={title}
+      popupClassName={cx(styles.popup)}
+      submitLabel={submitLabel}
+      submitDisabled={name.trim() === ''}
+      onSubmit={submit}
+    >
+      <label className={cx(styles.field)}>
+        <span className={cx(styles.label)}>
+          <Trans id="common.name">Nom</Trans>
+        </span>
+        <input
+          className={cx(styles.input)}
+          type="text"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          onKeyDown={onKeyDown}
+        />
+      </label>
+    </PopoverForm>
   )
 }

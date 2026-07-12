@@ -69,13 +69,17 @@ function isWireSpan(value: unknown): value is WireSpan {
  */
 export function createHttpChordDetector(baseUrl: string): ChordDetector {
   return {
-    async detect(audio: DecodedAudio): Promise<readonly DetectedChordSpan[]> {
+    async detect(
+      audio: DecodedAudio,
+      signal?: AbortSignal
+    ): Promise<readonly DetectedChordSpan[]> {
       let body: Partial<ChordsResponse>
       try {
         body = (await postWavForJson(
           baseUrl,
           '/chords',
-          audio
+          audio,
+          signal
         )) as Partial<ChordsResponse>
       } catch (e) {
         // Translate the shared transport failures into the port's typed

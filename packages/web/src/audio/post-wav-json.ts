@@ -66,7 +66,8 @@ export function classifyTransportError(
 export async function postWavForJson(
   baseUrl: string,
   path: string,
-  audio: DecodedAudio
+  audio: DecodedAudio,
+  signal?: AbortSignal
 ): Promise<unknown> {
   const wav = encodeWavMemo(audio)
   let response: Response
@@ -74,11 +75,13 @@ export async function postWavForJson(
     response = await fetch(`${baseUrl}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'audio/wav' },
-      body: wav
+      body: wav,
+      signal: signal ?? null
     })
   } catch (e) {
     // Only the fetch call gets the network typing — a TypeError thrown by
-    // the encoder or a response guard must not read as "server unreachable".
+    // the encoder or a response guard must not read as "server unreachable";
+    // an abort surfaces as a DOMException, so it stays unclassified too.
     if (e instanceof TypeError) {
       throw new NetworkError(e.message)
     }
