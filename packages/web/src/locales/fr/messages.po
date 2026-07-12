@@ -40,7 +40,7 @@ msgstr "L'analyse spectrale arrivera avec la détection (jalon ultérieur)."
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:64
-#: src/app/workstation-shell/shell-test-kit.tsx:249
+#: src/app/workstation-shell/shell-test-kit.tsx:264
 msgid "analysis.tab-loops"
 msgstr "Boucles"
 
@@ -65,32 +65,32 @@ msgid "chart.key-of"
 msgstr "key of {key}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:239
+#: src/app/lead-sheet/chord-chart-panel.tsx:254
 msgid "chords.bars-per-row"
 msgstr "Mesures par ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:244
+#: src/app/lead-sheet/chord-chart-panel.tsx:259
 msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:289
+#: src/app/lead-sheet/chord-chart-panel.tsx:313
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:285
+#: src/app/lead-sheet/chord-chart-panel.tsx:309
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:195
+#: src/app/lead-sheet/chord-chart-panel.tsx:210
 msgid "chords.detect-done"
 msgstr "Grille pré-remplie depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:158
+#: src/app/lead-sheet/chord-chart-panel.tsx:173
 msgid "chords.detect-failed"
 msgstr "Échec de la détection des accords"
 
@@ -105,10 +105,21 @@ msgid "chords.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:193
-#: src/app/lead-sheet/chord-chart-panel.tsx:283
+#: src/app/lead-sheet/chord-chart-panel.tsx:208
+#: src/app/lead-sheet/chord-chart-panel.tsx:307
 msgid "chords.detecting"
 msgstr "Détection des accords…"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:292
+#: src/app/workstation-shell/shell-test-kit.tsx:249
+msgid "chords.edit"
+msgstr "Modifier"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:369
+msgid "chords.empty-hint"
+msgstr "Aucune grille — saisir les accords via « Modifier » ou lancer la détection."
 
 #. js-lingui-explicit-id
 #: src/app/lead-sheet/chord-chart-panel.tsx:44
@@ -136,48 +147,50 @@ msgid "chords.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:318
+#: src/app/lead-sheet/chord-chart-panel.tsx:342
 msgid "chords.follow-pitch"
 msgstr "Transposer la grille pour suivre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:314
+#: src/app/lead-sheet/chord-chart-panel.tsx:338
 msgid "chords.follow-pitch-confirm"
 msgstr "Réécrire la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:188
+#: src/app/lead-sheet/chord-chart-panel.tsx:203
 msgid "chords.followed"
 msgstr "Grille transposée"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:346
+#: src/app/lead-sheet/chord-chart-panel.tsx:385
+#: src/app/workstation-shell/shell-test-kit.tsx:245
+#: src/app/workstation-shell/shell-test-kit.tsx:250
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:302
+#: src/app/lead-sheet/chord-chart-panel.tsx:326
 msgid "chords.pitch-mismatch"
 msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:350
+#: src/app/lead-sheet/chord-chart-panel.tsx:389
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:207
+#: src/app/lead-sheet/chord-chart-panel.tsx:222
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:251
+#: src/app/lead-sheet/chord-chart-panel.tsx:266
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:262
+#: src/app/lead-sheet/chord-chart-panel.tsx:277
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
@@ -209,9 +222,9 @@ msgstr "Supprimer"
 
 #. js-lingui-explicit-id
 #: src/app/ui/name-editor.tsx:74
-#: src/app/workstation-shell/shell-test-kit.tsx:242
-#: src/app/workstation-shell/shell-test-kit.tsx:330
-#: src/app/workstation-shell/shell-test-kit.tsx:331
+#: src/app/workstation-shell/shell-test-kit.tsx:257
+#: src/app/workstation-shell/shell-test-kit.tsx:345
+#: src/app/workstation-shell/shell-test-kit.tsx:346
 msgid "common.name"
 msgstr "Nom"
 
@@ -227,8 +240,8 @@ msgstr "Renommer"
 #: src/app/header/header.tsx:102
 #: src/app/header/header.tsx:114
 #: src/app/loops/loop-controls.tsx:79
-#: src/app/workstation-shell/shell-test-kit.tsx:243
-#: src/app/workstation-shell/shell-test-kit.tsx:332
+#: src/app/workstation-shell/shell-test-kit.tsx:258
+#: src/app/workstation-shell/shell-test-kit.tsx:347
 msgid "common.save"
 msgstr "Enregistrer"
 
@@ -358,13 +371,13 @@ msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:278
-#: src/app/workstation-shell/shell-test-kit.tsx:263
+#: src/app/workstation-shell/shell-test-kit.tsx:278
 msgid "header.projects"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:122
-#: src/app/workstation-shell/shell-test-kit.tsx:334
+#: src/app/workstation-shell/shell-test-kit.tsx:349
 msgid "header.rename-project"
 msgstr "Renommer le projet"
 
@@ -381,7 +394,7 @@ msgstr "Importer un morceau pour pouvoir l'enregistrer"
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:136
 #: src/app/header/header.tsx:138
-#: src/app/workstation-shell/shell-test-kit.tsx:328
+#: src/app/workstation-shell/shell-test-kit.tsx:343
 msgid "header.save-project"
 msgstr "Enregistrer le projet"
 
@@ -472,7 +485,7 @@ msgstr "Renommer la boucle"
 
 #. js-lingui-explicit-id
 #: src/app/loops/loop-controls.tsx:42
-#: src/app/workstation-shell/shell-test-kit.tsx:241
+#: src/app/workstation-shell/shell-test-kit.tsx:256
 msgid "loops.save-region"
 msgstr "Enregistrer la boucle"
 
@@ -682,7 +695,7 @@ msgid "projects.save-failed"
 msgstr "Impossible d'enregistrer le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-test-kit.tsx:268
+#: src/app/workstation-shell/shell-test-kit.tsx:283
 #: src/projects/projects-dialog.tsx:137
 msgid "projects.title"
 msgstr "Projets"
@@ -835,7 +848,7 @@ msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
 #: src/app/tempo/tempo-panel.tsx:147
-#: src/app/workstation-shell/shell-test-kit.tsx:287
+#: src/app/workstation-shell/shell-test-kit.tsx:302
 msgid "tempo.bpm-field"
 msgstr "Saisir le tempo (BPM)"
 

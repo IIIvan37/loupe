@@ -2,7 +2,7 @@ import { chartMatchesPitch, type ChordDetectionErrorCode } from '@app/core'
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
-import { useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { LiveStatus } from '../ui/live-status.tsx'
 import { signedSemitones } from '../ui/signed-semitones.ts'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
@@ -129,6 +129,20 @@ export function ChordChartPanel({
     (barsDraft !== undefined &&
       barsDraft !== '' &&
       !isValidBarsPerRow(Number(barsDraft)))
+  // The chart is the view; the source editor is a mode, folded by default
+  // (P.3). View state only — the source itself stays lifted in the shell.
+  const [editing, setEditing] = useState(false)
+  const editorRef = useRef<HTMLTextAreaElement>(null)
+  // Ties the disclosure button to the region it reveals (aria-controls): the
+  // textarea sits far below the toggle in the DOM, AT needs the link.
+  const editorId = useId()
+  useEffect(() => {
+    // Unfolding is an explicit request to type — hand the editor the focus
+    // (an effect, not autoFocus: the mount is user-triggered, not page load).
+    if (editing) {
+      editorRef.current?.focus()
+    }
+  }, [editing])
   // The detected draft REPLACES the source — a non-empty grid is armed work,
   // so the first activation only swaps the button to « Confirmer ? ».
   const overwrite = useTwoStepConfirm<true>()
@@ -268,6 +282,15 @@ export function ChordChartPanel({
             +½
           </button>
         </span>
+        <button
+          type="button"
+          className={styles.editToggle}
+          aria-expanded={editing}
+          aria-controls={editorId}
+          onClick={() => setEditing((open) => !open)}
+        >
+          {t({ id: 'chords.edit', message: 'Modifier' })}
+        </button>
       </div>
       {detection && (
         <div className={styles.detectRow}>
@@ -338,21 +361,37 @@ export function ChordChartPanel({
           barsPerRow={barsPerRow}
         />
       </div>
-      <textarea
-        className={styles.input}
-        value={source}
-        onChange={(event) => onSourceChange(event.target.value)}
-        rows={6}
-        spellCheck={false}
-        aria-label={t({
-          id: 'chords.input-label',
-          message: "Saisir la grille d'accords"
-        })}
-        placeholder={t({
-          id: 'chords.placeholder',
-          message: '[Couplet]\n| C | Am | F | G |'
-        })}
-      />
+      {/* The always-visible textarea used to teach the grid format via its
+          placeholder; folded away, an empty panel would show nothing at all —
+          this line re-establishes the first-run guidance. */}
+      {!editing && source.trim().length === 0 && (
+        <p className={styles.hint}>
+          {t({
+            id: 'chords.empty-hint',
+            message:
+              'Aucune grille — saisir les accords via « Modifier » ou lancer la détection.'
+          })}
+        </p>
+      )}
+      {editing && (
+        <textarea
+          ref={editorRef}
+          id={editorId}
+          className={styles.input}
+          value={source}
+          onChange={(event) => onSourceChange(event.target.value)}
+          rows={6}
+          spellCheck={false}
+          aria-label={t({
+            id: 'chords.input-label',
+            message: "Saisir la grille d'accords"
+          })}
+          placeholder={t({
+            id: 'chords.placeholder',
+            message: '[Couplet]\n| C | Am | F | G |'
+          })}
+        />
+      )}
     </section>
   )
 }

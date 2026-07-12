@@ -4,6 +4,7 @@ import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { i18n } from '../../i18n/i18n.ts'
 import {
   beatsAt,
+  chartEditor,
   expectBpmReadout,
   fakeProjectStores,
   importTrack,
@@ -20,7 +21,7 @@ describe('WorkstationShell chord chart', () => {
     const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
     await user.type(
-      screen.getByLabelText(i18n._('chords.input-label')),
+      await chartEditor(user),
       '[[Couplet]{enter}| Am | F |'
     )
     await saveProjectAs(user, 'Avec grille')
@@ -39,20 +40,19 @@ describe('WorkstationShell chord chart', () => {
       })
     )
 
-    // The source text comes back verbatim and the lead-sheet renders from it.
+    // The restored chart renders first (the read view is the default)…
     await waitFor(() => {
-      expect(screen.getByLabelText(i18n._('chords.input-label'))).toHaveValue(
-        '[Couplet]\n| Am | F |'
-      )
+      expect(screen.getByText('Am')).toBeInTheDocument()
     })
-    expect(screen.getByText('Am')).toBeInTheDocument()
+    // …and the source text comes back verbatim behind « Modifier ».
+    expect(await chartEditor(user)).toHaveValue('[Couplet]\n| Am | F |')
   })
 
   it('restores the followed key offset on reopen — the indicator stays off', async () => {
     const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
     await user.type(
-      screen.getByLabelText(i18n._('chords.input-label')),
+      await chartEditor(user),
       '| C | Am |'
     )
     // Shift the audio up two semitones: the grid now shows the wrong key and
@@ -69,7 +69,7 @@ describe('WorkstationShell chord chart', () => {
         name: i18n._('chords.follow-pitch-confirm')
       })
     )
-    expect(screen.getByLabelText(i18n._('chords.input-label'))).toHaveValue(
+    expect(await chartEditor(user)).toHaveValue(
       '| D | Bm |'
     )
     expect(
@@ -90,11 +90,11 @@ describe('WorkstationShell chord chart', () => {
       })
     )
 
+    // The restored chart renders first, then the source reads back verbatim.
     await waitFor(() => {
-      expect(screen.getByLabelText(i18n._('chords.input-label'))).toHaveValue(
-        '| D | Bm |'
-      )
+      expect(screen.getByText('Bm')).toBeInTheDocument()
     })
+    expect(await chartEditor(user)).toHaveValue('| D | Bm |')
     // The restored pitch (+2) and the persisted offset agree — no flag, and
     // the untouched reopened project reads « Enregistré ».
     expect(
@@ -114,7 +114,7 @@ describe('WorkstationShell chord chart', () => {
     )
 
     expect(await screen.findByText(i18n._('header.saved'))).toBeInTheDocument()
-    expect(screen.getByLabelText(i18n._('chords.input-label'))).toHaveValue('')
+    expect(await chartEditor(user)).toHaveValue('')
   })
 
   it('highlights the chart measure under the playhead', async () => {
@@ -129,7 +129,7 @@ describe('WorkstationShell chord chart', () => {
     await importTrack(user)
     await expectBpmReadout(60)
     await user.type(
-      screen.getByLabelText(i18n._('chords.input-label')),
+      await chartEditor(user),
       '| C | Am | F |'
     )
     // 5 s sits in the second bar (4 s → 8 s) → the second measure, Am.
@@ -141,7 +141,7 @@ describe('WorkstationShell chord chart', () => {
     const { engine, user } = renderShell()
     await importTrack(user)
     await user.type(
-      screen.getByLabelText(i18n._('chords.input-label')),
+      await chartEditor(user),
       '| C | Am |'
     )
     act(() => engine.emit(5))
@@ -154,7 +154,7 @@ describe('WorkstationShell chord chart', () => {
     await saveProjectAs(user, 'Grille sale')
     expect(await screen.findByText(i18n._('header.saved'))).toBeInTheDocument()
 
-    await user.type(screen.getByLabelText(i18n._('chords.input-label')), '| C |')
+    await user.type(await chartEditor(user), '| C |')
 
     expect(await screen.findByText(i18n._('header.unsaved'))).toBeInTheDocument()
   })
@@ -162,10 +162,10 @@ describe('WorkstationShell chord chart', () => {
   it('a fresh import starts with a clean chord chart', async () => {
     const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
-    await user.type(screen.getByLabelText(i18n._('chords.input-label')), '| C |')
+    await user.type(await chartEditor(user), '| C |')
 
     await importTrack(user, 'autre.wav')
 
-    expect(screen.getByLabelText(i18n._('chords.input-label'))).toHaveValue('')
+    expect(await chartEditor(user)).toHaveValue('')
   })
 })

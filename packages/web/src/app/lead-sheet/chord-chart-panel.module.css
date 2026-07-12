@@ -44,6 +44,17 @@
   composes: chipButton from '../ui/controls.module.css';
 }
 
+/* The edit toggle is a disclosure: open state echoes aria-expanded so a
+ * sighted user sees what assistive tech announces. */
+.editToggle {
+  composes: chipButton from '../ui/controls.module.css';
+}
+
+.editToggle[aria-expanded='true'] {
+  color: var(--text);
+  border-color: var(--amber-deep);
+}
+
 .title {
   margin: 0;
   font-size: var(--font-size-base);
