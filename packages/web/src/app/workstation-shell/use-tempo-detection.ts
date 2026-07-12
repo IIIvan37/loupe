@@ -1,5 +1,6 @@
 import type { BeatGrid, DecodedAudio, OctaveFactor } from '@app/core'
 import { useEffect, useRef } from 'react'
+import { useLatest } from '../../lib/use-latest.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
 import type { useMetronome } from '../tempo/use-metronome.ts'
 import { useTapTempo } from '../tempo/use-tap-tempo.ts'
@@ -50,8 +51,7 @@ export function useTempoDetection({
   const suppressAutoDetectRef = useRef(false)
   // Read at RESOLVE time (a separation can finish while a detection is in
   // flight — its stems must win over the late result's track+click seating).
-  const separationOwnsMixRef = useRef(separationOwnsMix)
-  separationOwnsMixRef.current = separationOwnsMix
+  const separationOwnsMixRef = useLatest(separationOwnsMix)
 
   // One detection flow for the auto-run and the panel's « Réessayer »: run the
   // detector and seat the always-on metronome from the result. `enable` is the
@@ -67,12 +67,9 @@ export function useTempoDetection({
     })
   }
 
-  // Held in a ref so the effect keys on `loadedAudio` alone yet always calls
-  // the live detect/enable (both read fresh state internally).
-  const autoDetectRef = useRef<(audio: DecodedAudio | undefined) => void>(
-    () => {}
-  )
-  autoDetectRef.current = (audio) => {
+  // Held in a latest-ref so the effect keys on `loadedAudio` alone yet always
+  // calls the live detect/enable (both read fresh state internally).
+  const autoDetectRef = useLatest((audio: DecodedAudio | undefined) => {
     if (!audio) {
       return
     }
@@ -82,7 +79,7 @@ export function useTempoDetection({
       return
     }
     runDetect(audio)
-  }
+  })
   useEffect(() => {
     autoDetectRef.current(loadedAudio)
   }, [loadedAudio])

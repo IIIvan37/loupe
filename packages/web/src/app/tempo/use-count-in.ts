@@ -7,6 +7,7 @@ import {
 } from '@app/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createCountInPlayer } from '../../audio/count-in-player.ts'
+import { useLatest } from '../../lib/use-latest.ts'
 import { METRONOME_ID } from './metronome-stem.ts'
 
 /**
@@ -67,8 +68,7 @@ export function useCountIn(params: CountInParams): CountInTransport {
   // reads synchronously (state alone would lag a render behind).
   const cancelRef = useRef<(() => void) | undefined>(undefined)
   // The scheduled end fires async — always start the CURRENT transport.
-  const toggleRef = useRef(params.togglePlayback)
-  toggleRef.current = params.togglePlayback
+  const toggleRef = useLatest(params.togglePlayback)
 
   function abandon(): void {
     cancelRef.current?.()

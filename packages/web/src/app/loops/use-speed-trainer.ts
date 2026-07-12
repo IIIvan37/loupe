@@ -5,6 +5,7 @@ import {
   startSpeedTrainer
 } from '@app/core'
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { useLatest } from '../../lib/use-latest.ts'
 
 export interface SpeedTrainer {
   /** The running ramp, or undefined when the trainer is off. */
@@ -37,10 +38,8 @@ export function useSpeedTrainer(
 ): SpeedTrainer {
   const [state, setState] = useState<SpeedTrainerState | undefined>(undefined)
   const stateRef = useRef<SpeedTrainerState | undefined>(undefined)
-  const applyRef = useRef(applyTempoPercent)
-  applyRef.current = applyTempoPercent
-  const currentRef = useRef(currentTempoPercent)
-  currentRef.current = currentTempoPercent
+  const applyRef = useLatest(applyTempoPercent)
+  const currentRef = useLatest(currentTempoPercent)
   // The tempo to give back when the practice ends, memorised at arming.
   const resumePercentRef = useRef(100)
 

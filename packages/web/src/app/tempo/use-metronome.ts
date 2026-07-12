@@ -7,7 +7,8 @@ import type {
   StemTrack
 } from '@app/core'
 import { UNITY_GAIN_DB } from '@app/core'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
+import { useLatest } from '../../lib/use-latest.ts'
 import { buildTrackStem, TRACK_STEM_ID } from '../mixer/track-stem.ts'
 import type { Mixer } from '../mixer/use-mixer.ts'
 import { buildMetronomeStem, METRONOME_ID } from './metronome-stem.ts'
@@ -79,8 +80,7 @@ function unityChannel(id: string): MixerChannel {
  * fired from async handlers, always drive the live one.
  */
 export function useMetronome(deps: MetronomeDeps): Metronome {
-  const mixerRef = useRef(deps.mixer)
-  mixerRef.current = deps.mixer
+  const mixerRef = useLatest(deps.mixer)
   const [enabled, setEnabled] = useState(false)
 
   function enable(
