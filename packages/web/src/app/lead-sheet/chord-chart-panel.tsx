@@ -6,6 +6,7 @@ import { useRef, useState } from 'react'
 import { LiveStatus } from '../ui/live-status.tsx'
 import { signedSemitones } from '../ui/signed-semitones.ts'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
+import type { ChartHeaderData } from './chart-header.tsx'
 import {
   DEFAULT_BARS_PER_ROW,
   isValidBarsPerRow,
@@ -84,6 +85,8 @@ interface ChordChartPanelProps {
   /** The measure being played (global index), undefined to highlight nothing. */
   readonly currentMeasureIndex?: number | undefined
   readonly detection?: ChordDetectionProps | undefined
+  /** The session-derived chart head (tags, BPM, bar length) — see LeadSheet. */
+  readonly header?: ChartHeaderData | undefined
 }
 
 /**
@@ -100,7 +103,8 @@ export function ChordChartPanel({
   pitchSemitones,
   transposedBy,
   currentMeasureIndex,
-  detection
+  detection,
+  header
 }: ChordChartPanelProps) {
   const { t } = useLingui()
   // A render preference, not chart data — it rides localStorage (per browser)
@@ -328,6 +332,7 @@ export function ChordChartPanel({
       <div className={styles.sheetViewport}>
         <LeadSheet
           source={source}
+          header={header}
           currentMeasureIndex={currentMeasureIndex}
           barsPerRow={barsPerRow}
         />

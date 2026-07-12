@@ -6,6 +6,7 @@ import {
 } from '../../lib/external-value.ts'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
+import type { ChartHeaderData } from '../lead-sheet/chart-header.tsx'
 import { ChordChartPanel } from '../lead-sheet/chord-chart-panel.tsx'
 import type { ChordChartState } from '../lead-sheet/use-chord-chart.ts'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
@@ -70,6 +71,8 @@ interface ShellMainProps {
   >
   /** The live audio pitch shift — the key the ear hears the track in. */
   readonly pitchSemitones: number
+  /** What the session derives for the chart head (tags, BPM, bar length). */
+  readonly chartHeader: ChartHeaderData
   /** « Détecter les accords » — the chord-detection flow the panel drives. */
   readonly chordDetection: ChordDetection
 }
@@ -108,6 +111,7 @@ export function ShellMain({
   onSeparate,
   chordChart,
   pitchSemitones,
+  chartHeader,
   chordDetection
 }: ShellMainProps) {
   // Stems the separation masked as near-silent — captioned in the mixer gutter.
@@ -196,6 +200,7 @@ export function ShellMain({
               onTranspose={chordChart.transpose}
               transposedBy={chordChart.transposedBy}
               pitchSemitones={pitchSemitones}
+              header={chartHeader}
               currentMeasureIndex={currentMeasureIndex}
               detection={{
                 detecting: chordDetection.detecting,

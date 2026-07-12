@@ -75,4 +75,43 @@ describe('LeadSheet', () => {
     )
     expect(container.querySelector('[aria-current]')).toBeNull()
   })
+
+  it('sets a chord quality as a superscript (chart typography)', () => {
+    const { container } = render(<LeadSheet source={'| Fmaj7 |'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(container.querySelector('sup')).toHaveTextContent('maj7')
+  })
+
+  it('prints the chart head from the source directives', () => {
+    render(<LeadSheet source={'{title: Your Song}\n| C |'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(
+      screen.getByRole('heading', { name: 'Your Song' })
+    ).toBeInTheDocument()
+  })
+
+  it('prints the session-derived head fields it is given', () => {
+    render(<LeadSheet source={'| C |'} header={{ bpm: 128 }} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(screen.getByText('♩ = 128')).toBeInTheDocument()
+  })
+
+  it('an empty grid prints no chart head — nothing to entitle', () => {
+    const { container } = render(
+      <LeadSheet source={''} header={{ title: 'Nocturne', bpm: 128 }} />,
+      { wrapper: I18nTestingProvider }
+    )
+    expect(container.firstElementChild).toBeEmptyDOMElement()
+  })
+
+  it('a directive line never becomes a measure of the grid', () => {
+    const { container } = render(
+      <LeadSheet source={'{style: pop}\n| C |'} currentMeasureIndex={0} />,
+      { wrapper: I18nTestingProvider }
+    )
+    expect(container.querySelector('[aria-current]')).toHaveTextContent('C')
+  })
 })

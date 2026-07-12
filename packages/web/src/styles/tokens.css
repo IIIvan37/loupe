@@ -47,6 +47,7 @@
   --font-ui: 'Inter', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --font-logo: 'Space Grotesk', var(--font-ui);
+  --font-chart: 'Petaluma Script', cursive; /* the lead-sheet's printed look */
 
   /* Type scale — modular, 8 steps. The dense workstation lives at the small end
      (`s` is by far the most common), so the scale is weighted downward rather

@@ -14,10 +14,12 @@ import { useChordChart } from './use-chord-chart.ts'
 /** The panel as the shell hosts it: controlled by lifted session state. */
 function Host({
   detection,
-  pitchSemitones = 0
+  pitchSemitones = 0,
+  header
 }: {
   detection?: ChordDetectionProps
   pitchSemitones?: number
+  header?: { title?: string; bpm?: number }
 }) {
   const chart = useChordChart()
   return (
@@ -28,6 +30,7 @@ function Host({
       transposedBy={chart.transposedBy}
       pitchSemitones={pitchSemitones}
       detection={detection}
+      header={header}
     />
   )
 }
@@ -42,6 +45,15 @@ describe('ChordChartPanel', () => {
     render(<Host />, { wrapper: I18nTestingProvider })
     await user.type(screen.getByRole('textbox'), '| Am |')
     expect(screen.getByText('Am')).toBeInTheDocument()
+  })
+
+  it('prints the session-derived chart head over the sheet', async () => {
+    const user = userEvent.setup()
+    render(<Host header={{ title: 'Your Song', bpm: 128 }} />, {
+      wrapper: I18nTestingProvider
+    })
+    await user.type(screen.getByRole('textbox'), '| C |')
+    expect(screen.getByText('♩ = 128')).toBeInTheDocument()
   })
 
   it('transposes the whole grid up a semitone', async () => {

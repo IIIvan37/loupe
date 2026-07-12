@@ -22,9 +22,19 @@ export interface Section {
 
 export interface ChordChart {
   readonly sections: readonly Section[]
+  /**
+   * The head-of-source `{key: value}` overrides (`{title: …}`, `{key: …}`,
+   * `{tempo: …}`…) that make a chart self-supporting away from its session.
+   * Keys are lowercased; only lines BEFORE any grid content count — P.2's form
+   * grammar owns in-grid `{…}` lines.
+   */
+  readonly directives: Readonly<Record<string, string>>
 }
 
 const HEADER = /^\[(.*)\]$/
+
+/** A full-line `{key: value}` directive — the value keeps any later colons. */
+const DIRECTIVE = /^\{([^:{}]+):([^{}]*)\}$/
 
 /** The single token grammar of a row: anything between bar lines and spaces.
     Shared by the parser and the transposer so the two can never drift. */
@@ -56,7 +66,7 @@ export function transposeChartSource(
   return source
     .split('\n')
     .map((line) =>
-      HEADER.test(line.trim())
+      HEADER.test(line.trim()) || DIRECTIVE.test(line.trim())
         ? line
         : line.replace(TOKEN, (token) => {
             const parsed = parseChordSymbol(token)
@@ -139,11 +149,24 @@ function cellToken(label: string | undefined): string {
 
 export function parseChart(text: string): ChordChart {
   const sections: Section[] = []
+  const directives: Record<string, string> = {}
   let current: { label?: string; measures: Measure[] } | undefined
 
   for (const rawLine of text.split('\n')) {
     const line = rawLine.trim()
     if (line.length === 0) continue
+
+    // Directives may only lead the source: once any grid content (a section
+    // header or a row) has started, a `{…}` line is grid content too.
+    if (sections.length === 0) {
+      const directive = DIRECTIVE.exec(line)
+      if (directive) {
+        directives[(directive[1] as string).trim().toLowerCase()] = (
+          directive[2] as string
+        ).trim()
+        continue
+      }
+    }
 
     const header = HEADER.exec(line)
     if (header) {
@@ -159,5 +182,5 @@ export function parseChart(text: string): ChordChart {
     current.measures.push(...parseRow(line))
   }
 
-  return { sections }
+  return { sections, directives }
 }
