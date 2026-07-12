@@ -65,15 +65,23 @@ export function transposeChartSource(
   if (!Number.isInteger(semitones)) return source
   return source
     .split('\n')
-    .map((line) =>
-      HEADER.test(line.trim()) || DIRECTIVE.test(line.trim())
-        ? line
-        : line.replace(TOKEN, (token) => {
-            const parsed = parseChordSymbol(token)
-            if (formatChordSymbol(parsed) !== token) return token
-            return formatChordSymbol(transposeChordSymbol(parsed, semitones))
-          })
-    )
+    .map((line) => {
+      // Directive lines hold prose, not chords (`{title: C major}` must not
+      // move) — except `{key: …}`, whose pitch names the grid's key and MUST
+      // follow the transposition or the printed head would lie. Its value
+      // rides the normal token rewrite: the pitch round-trips, the rest
+      // (`{key:`, a mode word) fails the round-trip guard and stays verbatim.
+      const directive = DIRECTIVE.exec(line.trim())
+      const prose =
+        directive !== null &&
+        (directive[1] as string).trim().toLowerCase() !== 'key'
+      if (prose || HEADER.test(line.trim())) return line
+      return line.replace(TOKEN, (token) => {
+        const parsed = parseChordSymbol(token)
+        if (formatChordSymbol(parsed) !== token) return token
+        return formatChordSymbol(transposeChordSymbol(parsed, semitones))
+      })
+    })
     .join('\n')
 }
 

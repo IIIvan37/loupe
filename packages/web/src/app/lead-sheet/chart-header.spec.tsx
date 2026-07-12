@@ -1,11 +1,18 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { render, screen } from '@testing-library/react'
+import { render as renderBare, screen } from '@testing-library/react'
+import type { ComponentProps, ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
+import { i18n } from '../../i18n/i18n.ts'
+import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { ChartHeader } from './chart-header.tsx'
 import { deriveChartHeader } from './derive-chart-header.ts'
 
 const NONE = {}
+
+function render(ui: ReactElement<ComponentProps<typeof ChartHeader>>) {
+  return renderBare(ui, { wrapper: I18nTestingProvider })
+}
 
 describe('ChartHeader', () => {
   it('shows the derived title as the chart heading', () => {
@@ -34,12 +41,21 @@ describe('ChartHeader', () => {
 
   it('prints the key line only when a {key: …} directive names one', () => {
     render(<ChartHeader derived={{}} directives={{ key: 'E♭' }} />)
-    expect(screen.getByText('key of E♭')).toBeInTheDocument()
+    expect(
+      screen.getByText(i18n._('chart.key-of', { key: 'E♭' }))
+    ).toBeInTheDocument()
   })
 
   it('no key directive, no key line — the app detects no key yet', () => {
     render(<ChartHeader derived={{ title: 'X' }} directives={NONE} />)
-    expect(screen.queryByText(/key of/)).toBeNull()
+    expect(
+      screen.queryByText(i18n._('chart.key-of', { key: '' }).trim())
+    ).toBeNull()
+  })
+
+  it('an empty {key:} directive overrides nothing — no orphan key line', () => {
+    render(<ChartHeader derived={{ title: 'X' }} directives={{ key: '' }} />)
+    expect(screen.getByRole('banner').childElementCount).toBe(1)
   })
 
   it('prints the session tempo rounded to the beat', () => {

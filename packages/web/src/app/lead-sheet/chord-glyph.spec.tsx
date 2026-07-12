@@ -22,6 +22,11 @@ describe('ChordGlyph', () => {
     expect(screen.getByText('Am')).toBeInTheDocument()
   })
 
+  it('madd9 keeps its minor m at baseline — only maj spellings lose it', () => {
+    render(<ChordGlyph text="Cmadd9" />)
+    expect(screen.getByText('Cm')).toBeInTheDocument()
+  })
+
   it('a plain triad has no superscript', () => {
     const { container } = render(<ChordGlyph text="C" />)
     expect(container.querySelector('sup')).toBeNull()

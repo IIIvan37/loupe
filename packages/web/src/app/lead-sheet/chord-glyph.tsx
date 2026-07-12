@@ -15,9 +15,10 @@ interface ChordGlyphProps {
  * root is no pitch name — `N.C.`) renders verbatim in one piece: decomposing it
  * would misprint what the user wrote. Same guard as transposition.
  */
-/** The baseline part of a quality: a minor `m`/`min` is part of the chord name
-    (the mockup prints `Dm⁷` with the m full-size); `ma…`/`maj…` is not. */
-const MINOR = /^m(?!a)[in]*/
+/** The baseline part of a quality: a minor `m`/`mi`/`min` is part of the chord
+    name (the mockup prints `Dm⁷` with the m full-size). Only the MAJOR
+    spellings (`ma`, `ma7`, `maj…`) exclude it — `madd9` is still minor. */
+const MINOR = /^m(?!aj)(?!a\d)(?!a$)[in]*/
 
 export function ChordGlyph({ text }: ChordGlyphProps) {
   const parsed = parseChordSymbol(text)

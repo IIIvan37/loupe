@@ -214,19 +214,35 @@ describe('transposeChartSource', () => {
     expect(transposeChartSource('| C♯m7 |', 1)).toBe('| Dm7 |')
   })
 
-  it('passes a directive line through verbatim — {key: C} is not a chord', () => {
-    expect(transposeChartSource('{key: C}\n| C |', 2)).toBe('{key: C}\n| D |')
+  it('transposes the {key: …} directive with the grid — the head must not lie', () => {
+    expect(transposeChartSource('{key: C}\n| C |', 2)).toBe('{key: D}\n| D |')
   })
 
-  it('an indented directive line passes verbatim too', () => {
+  it('the key directive name is case-insensitive and trimmed, like parsing', () => {
+    expect(transposeChartSource('{ KEY : C}\n| C |', 2)).toBe(
+      '{ KEY : D}\n| D |'
+    )
+  })
+
+  it('reads a unicode flat in the {key: …} directive', () => {
+    expect(transposeChartSource('{key: E♭}\n| C |', 1)).toBe('{key: E}\n| C# |')
+  })
+
+  it('a chord-like word in ANY other directive passes verbatim', () => {
+    expect(transposeChartSource('{title: C major}\n| C |', 2)).toBe(
+      '{title: C major}\n| D |'
+    )
+  })
+
+  it('an indented non-key directive passes verbatim too', () => {
     expect(transposeChartSource('  {tempo: 128}\n| A |', 1)).toBe(
       '  {tempo: 128}\n| A# |'
     )
   })
 
-  it('a directive line with trailing spaces still passes verbatim', () => {
-    expect(transposeChartSource('{key: C}  \n| C |', 2)).toBe(
-      '{key: C}  \n| D |'
+  it('a non-key directive with trailing spaces still passes verbatim', () => {
+    expect(transposeChartSource('{style: Cool Pop}  \n| C |', 2)).toBe(
+      '{style: Cool Pop}  \n| D |'
     )
   })
 

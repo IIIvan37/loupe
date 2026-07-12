@@ -1,3 +1,4 @@
+import { useLingui } from '@lingui/react/macro'
 import styles from './lead-sheet.module.css'
 
 /**
@@ -18,21 +19,27 @@ interface ChartHeaderProps {
   readonly directives: Readonly<Record<string, string>>
 }
 
+/** An empty directive (`{key:}`) overrides nothing — '' is no value. */
+function over(value: string | undefined): string | undefined {
+  return value ? value : undefined
+}
+
 /**
  * The printed lead-sheet head: `key of X` and `♩ = BPM` on the top line, then
  * title and artist, then the meta line (style). Derived from the session by
  * default, overridden field by field by the source's directives so the chart
- * stays self-supporting. `key of` / `♩` / `3/4` are chart notation — document
- * content like the chord letters, not UI copy, hence no catalog entry.
+ * stays self-supporting. `♩` / `3/4` are chart notation (document content like
+ * the chord letters, no catalog entry); `key of` is prose, so it rides Lingui.
  */
 export function ChartHeader({ derived, directives }: ChartHeaderProps) {
-  const title = directives.title ?? derived.title
-  const artist = directives.artist ?? derived.artist
-  const key = directives.key
+  const { t } = useLingui()
+  const title = over(directives.title) ?? derived.title
+  const artist = over(directives.artist) ?? derived.artist
+  const key = over(directives.key)
   const tempo =
-    directives.tempo ??
+    over(directives.tempo) ??
     (derived.bpm === undefined ? undefined : String(Math.round(derived.bpm)))
-  const style = directives.style
+  const style = over(directives.style)
   const signature =
     derived.beatsPerBar === undefined ? undefined : `${derived.beatsPerBar}/4`
 
@@ -44,7 +51,7 @@ export function ChartHeader({ derived, directives }: ChartHeaderProps) {
       {(key !== undefined || tempo !== undefined) && (
         <p className={styles.chartTopLine}>
           {key !== undefined && (
-            <span className={styles.chartKey}>key of {key}</span>
+            <span>{t({ id: 'chart.key-of', message: `key of ${key}` })}</span>
           )}
           {tempo !== undefined && (
             <span className={styles.chartTempo}>♩ = {tempo}</span>
