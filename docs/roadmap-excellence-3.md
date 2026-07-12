@@ -362,7 +362,7 @@ Ce que la référence montre, et ce que ça implique :
 - [x] **N.4** micro-frictions panneau accords
 - [x] **O.1** token mort --accent (+ lint tokens)
 - [x] **O.2** micro-dérives design
-- [ ] **O.3** split workstation-shell.spec
+- [x] **O.3** split workstation-shell.spec (9 specs par parcours + shell-test-kit)
 - [ ] **O.4** btc_windows.py pur
 - [ ] **O.5** basses code groupées
 - [ ] **P** lead-sheet façon chart — à planifier (plan dédié : structure,

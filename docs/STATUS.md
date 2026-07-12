@@ -42,45 +42,37 @@ grille pour suivre » confirmé deux temps, `signedSemitones` partagé.
 **N.4 mergé (PR #105)** : champ « mes. / ligne » flaggé (`aria-invalid` +
 badInput), préférence localStorage posée au blur, ligne « Détecter » sous le
 header — **Lot N clos**.
-**O.1 fait** sur `feat/o1-dead-accent-token` (PR à ouvrir) : le texte d'erreur
-du tempo-panel référençait `var(--accent)` (token inexistant → couleur de
-danger perdue) — remplacé par `composes: errorLine` (recette
-chord-chart-panel) + `margin-inline-start` ; verrou au gate
-`scripts/check-css-tokens.sh` (`check:tokens`) qui diffe les `var(--…)`
-utilisés contre les définitions CSS **et** inline TS/TSX
-(`--bars-per-row`, `--cluster-gap`, `--stack-gap`), rouge/vert prouvés sur
-l'état pré-fix. Gate vert **1043 tests**, Stryker skipped (core intouché).
-**O.1 mergé (PR #106)**. **Interlude react-doctor 0.7.6** sur
-`fix/react-doctor-ref-mutations` (PR à ouvrir) : les PR Dependabot #101–#104
-échouaient au gate CI (install fraîche → react-doctor 0.7.6, nouvelle règle
-« Ref mutated during render », 14 erreurs pré-existantes) — hook partagé
-`useLatest` (écriture de ref en effet, 12 miroirs remplacés), garde
-d'identité audio au commit dans use-chord-detection (plus de bump de ref au
-rendu), Biome `stableResult`, `doctor.config.json` (exhaustive-deps off —
-Biome fait foi ; unused-file ignoré pour le seul wrapper de test i18n),
-react-doctor épinglé `^0.7.6` (local = CI). **Interlude mergé (PR #107)** ;
-Dependabot : #102 mergée, #101/#103/#104 fermées par Dependabot lui-même
-(« updatable in another way » — rien à merger), #53 reste reportée.
-**O.2 fait** sur `feat/o2-design-micro-drifts` (PR à ouvrir) : dernières
-transitions littérales → `var(--motion-fast) var(--motion-ease)`
-(analysis-panel, stem-lanes), focus ring du close de toast teal → amber
-(baseline), marker-rail sur l'échelle (`5px` → `--space-2xs`,
-`--ruler-height: 18px` tokenisé + inset des markers dérivé en `calc`),
-`--tracking-label: 0.08em` consommé par les 10 labels uppercase. Gate vert
-**1047 tests**, Stryker skipped (core intouché).
-**Next : merger la PR O.2, puis O.3/O.4/O.5 ou ouvrir le plan du Lot P.**
+**O.1 mergé (PR #106)**, **interlude react-doctor 0.7.6 mergé (PR #107)**,
+**O.2 mergé (PR #109)** — voir l'historique.
+**O.3 fait** sur `feat/o3-split-shell-spec` (PR à ouvrir) :
+`workstation-shell.spec.tsx` (2 438 lignes, 115 tests, un seul `describe`)
+découpé par parcours en 9 specs colocalisées (`.import`, `.tempo`,
+`.transport`, `.shortcuts`, `.loops`, `.stems`, `.chords`, `.projects` + le
+socle landmarks) — aucun test réécrit, uniquement déplacés. Fixtures
+communes dans `shell-test-kit.tsx` (fakes des ports, `renderShell`,
+`importTrack`, `saveProjectAs`, `installShellHooks()` appelé en tête de
+chaque spec) ; helpers mono-parcours restés locaux. Le kit, non-`.spec`
+donc scanné par react-doctor : `tapThrice` déroulé (faux positif « await in
+loop »), `deslop/unused-file` ignoré pour le kit (même cas que le wrapper
+i18n). Gate vert **1047 tests** (total inchangé avant/après — aucun test
+perdu), Stryker skipped (core intouché).
+**Next : ouvrir/merger la PR O.3, puis O.4 (`btc_windows.py` pur) et O.5
+(basses code groupées) pour clore le Lot O.**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [O.2](sessions/2026-07-12-design-micro-drifts.md) ·
+See [O.3](sessions/2026-07-12-split-shell-spec.md) ·
+[O.2](sessions/2026-07-12-design-micro-drifts.md) ·
 [interlude](sessions/2026-07-12-react-doctor-ref-mutations.md) ·
-[O.1](sessions/2026-07-12-dead-accent-token.md) ·
-[N.4](sessions/2026-07-12-chord-panel-frictions.md).
+[O.1](sessions/2026-07-12-dead-accent-token.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
 ### Roadmap excellence 3 (2026-07-11 → …)
 
-- 2026-07-12 · **O.2 — micro-dérives design** (PR à ouvrir) : transitions sur
-  tokens motion, focus toast amber, marker-rail/ruler tokenisés,
+- 2026-07-12 · **O.3 — split workstation-shell.spec** (PR à ouvrir) : 115
+  tests répartis en 9 specs par parcours + `shell-test-kit.tsx` colocalisé →
+  [rapport](sessions/2026-07-12-split-shell-spec.md)
+- 2026-07-12 · **O.2 — micro-dérives design** (PR #109 mergée) : transitions
+  sur tokens motion, focus toast amber, marker-rail/ruler tokenisés,
   `--tracking-label` → [rapport](sessions/2026-07-12-design-micro-drifts.md)
 - 2026-07-12 · **Interlude — react-doctor 0.7.6 / hook `useLatest`** (PR #107
   mergée) : 14 refs mutées au rendu purifiées (écriture en effet), Dependabot
