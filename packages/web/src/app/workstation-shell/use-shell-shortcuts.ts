@@ -1,21 +1,23 @@
+import type { ExternalValue } from '../../lib/external-value.ts'
 import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
-import { METRONOME_ID } from '../tempo/metronome-stem.ts'
+import type { Markers } from '../markers/use-markers.ts'
+import type { CountInTransport } from '../tempo/use-count-in.ts'
+import type { Metronome } from '../tempo/use-metronome.ts'
+import type { ViewportControl } from '../waveform/use-viewport.ts'
+import type { TempoDetection } from './use-tempo-detection.ts'
 
-/** The narrow slice of each shell hook the keyboard layout drives. */
+/** The slice of each shell hook the keyboard layout drives. */
 interface ShellShortcutsDeps {
   /** When false the listener is detached (e.g. no track loaded). */
   readonly enabled: boolean
-  readonly countIn: { readonly togglePlayback: () => void }
-  readonly position: { readonly get: () => number }
+  readonly countIn: Pick<CountInTransport, 'togglePlayback'>
+  readonly position: Pick<ExternalValue<number>, 'get'>
   readonly seekToSeconds: (seconds: number) => void
-  readonly viewport: {
-    readonly zoomIn: () => void
-    readonly zoomOut: () => void
-  }
-  readonly markers: { readonly addAt: (seconds: number) => void }
+  readonly viewport: Pick<ViewportControl, 'zoomIn' | 'zoomOut'>
+  readonly markers: Pick<Markers, 'addAt'>
   readonly toggleLoop: () => void
-  readonly mixer: { readonly toggleMute: (id: string) => void }
-  readonly tempoDetection: { readonly tap: () => void }
+  readonly metronome: Pick<Metronome, 'toggle'>
+  readonly tempoDetection: Pick<TempoDetection, 'tap'>
 }
 
 /**
@@ -30,7 +32,7 @@ export function useShellShortcuts({
   viewport,
   markers,
   toggleLoop,
-  mixer,
+  metronome,
   tempoDetection
 }: ShellShortcutsDeps): void {
   useKeyboardShortcuts(
@@ -41,8 +43,7 @@ export function useShellShortcuts({
       zoomOut: viewport.zoomOut,
       addMarker: () => markers.addAt(position.get()),
       toggleLoop,
-      // The click is a mixer stem: audible on/off is its channel mute.
-      toggleMetronome: () => mixer.toggleMute(METRONOME_ID),
+      toggleMetronome: metronome.toggle,
       tapTempo: tempoDetection.tap
     },
     { enabled }

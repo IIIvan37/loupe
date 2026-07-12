@@ -23,6 +23,18 @@ function isTextEntry(target: EventTarget | null): boolean {
   )
 }
 
+/**
+ * True while a modal dialog owns the interaction. Its focus trap keeps the
+ * pressed key targeting the dialog subtree, so this is checkable from the
+ * event alone — the global layout must not mutate the session behind an
+ * overlay (e.g. T retapping the tempo behind the very dialog listing it).
+ */
+function isInsideDialog(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement && target.closest('[role="dialog"]') !== null
+  )
+}
+
 /** The app actions a resolved command is dispatched onto. */
 export interface ShortcutActions {
   readonly togglePlayback: () => void
@@ -99,7 +111,14 @@ export function useKeyboardShortcuts(
     function onKeyDown(event: KeyboardEvent): void {
       // A control that owns the key consumed it first (a marker tag or a loop
       // handle arrow-nudge calls preventDefault): the global layout stands back.
-      if (event.defaultPrevented || isTextEntry(event.target)) {
+      // Auto-repeat is ignored too — a held key fires its command once, not at
+      // the OS repeat rate (a held T would machine-gun the tap tempo).
+      if (
+        event.defaultPrevented ||
+        event.repeat ||
+        isTextEntry(event.target) ||
+        isInsideDialog(event.target)
+      ) {
         return
       }
       const command = resolveCommand(bindings, {

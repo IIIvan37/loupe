@@ -249,7 +249,7 @@ export function WorkstationShell({
     viewport,
     markers,
     toggleLoop,
-    mixer,
+    metronome,
     tempoDetection
   })
 
