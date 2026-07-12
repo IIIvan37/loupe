@@ -72,9 +72,13 @@ couverture avec ses jumeaux, boilerplate Popover factorisé en `PopoverForm`
 abort à l'unmount de useTempo ajouté ; import-menu volontairement non migré
 (il lui faut anchor + form + hint — API à élargir seulement si un 4e
 formulaire apparaît).
-**Next : ouvrir le plan du Lot P (lead-sheet façon chart — structure,
-rendu, édition repliée) — maquette fournie
-(`your-song-elton-john-chart.pdf`, rendu cible + fonctionnalités).**
+**Plan du Lot P écrit et validé**
+([lead-sheet-chart-plan.md](lead-sheet-chart-plan.md)) sur la maquette
+fournie (`your-song-elton-john-chart.pdf`, non versionnée — rendu cible +
+fonctionnalités) ; trois arbitrages pris : rendu d'abord, sync lecture via
+unroll dès P.2, en-tête dérivé de la session + directives `{…}` de surcharge.
+**Next : P.1 — rendu chart (typographie, barres, cadres, en-tête) — slice UI,
+checkpoint d'approche avant l'acceptance test.**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [O.5](sessions/2026-07-12-grouped-lows-o5.md) ·
 [O.4](sessions/2026-07-12-btc-windows.md) ·
