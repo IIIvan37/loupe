@@ -2,6 +2,8 @@ import {
   type ChordDetectionErrorCode,
   transposeChartSource
 } from '@app/core'
+import type { MessageDescriptor } from '@lingui/core'
+import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
 import { LiveStatus } from '../ui/live-status.tsx'
@@ -14,6 +16,49 @@ const DEFAULT_BARS_PER_ROW = 4
 /** The layout bounds — beyond them the sheet stops reading as a grid. */
 const MIN_BARS_PER_ROW = 1
 const MAX_BARS_PER_ROW = 12
+
+/** Blocked-state hints, shared with the failure copy below. */
+const NEEDS_SERVER = msg({
+  id: 'chords.detect-needs-server',
+  message: 'Lancer le serveur local pour détecter les accords.'
+})
+const NEEDS_GRID = msg({
+  id: 'chords.detect-needs-grid',
+  message: "Détecter d'abord le tempo — la grille de mesures ancre les accords."
+})
+
+/**
+ * One actionable, translated line per failure code (Lot G standard) — the raw
+ * engine/transport detail never reaches the UI (the hook logs it to the
+ * console). `network` and `no-downbeat` reuse the blocked-state hints: same
+ * user situation, same words.
+ */
+const ERROR_COPY: Readonly<Record<ChordDetectionErrorCode, MessageDescriptor>> =
+  {
+    'no-downbeat': NEEDS_GRID,
+    'no-chords': msg({
+      id: 'chords.error.no-chords',
+      message: 'Aucun accord détecté sur ce morceau.'
+    }),
+    'engine-unavailable': msg({
+      id: 'chords.error.engine-unavailable',
+      message:
+        "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
+    }),
+    network: NEEDS_SERVER,
+    timeout: msg({
+      id: 'chords.error.timeout',
+      message: "L'analyse des accords a expiré sur le serveur — réessayer."
+    }),
+    'too-large': msg({
+      id: 'chords.error.too-large',
+      message: "Piste trop volumineuse pour l'analyse sur le serveur."
+    }),
+    unknown: msg({
+      id: 'chords.error.unknown',
+      message: 'Erreur inattendue — détails dans la console du navigateur.'
+    })
+  }
 
 /** The detection surface the shell wires in (absent = feature not wired). */
 export interface ChordDetectionProps {
@@ -72,51 +117,19 @@ export function ChordChartPanel({
 
   const blockedHint =
     detection?.blockedReason === 'server'
-      ? t({
-          id: 'chords.detect-needs-server',
-          message: 'Lancer le serveur local pour détecter les accords.'
-        })
+      ? t(NEEDS_SERVER)
       : detection?.blockedReason === 'no-grid'
-        ? t({
-            id: 'chords.detect-needs-grid',
-            message:
-              "Détecter d'abord le tempo — la grille de mesures ancre les accords."
-          })
+        ? t(NEEDS_GRID)
         : undefined
 
-  // The failure copy stays in the catalog (Lot G: actionable, translated) —
-  // each code speaks the user's language; the raw engine/transport detail
-  // never reaches the UI (the hook logs it to the console).
-  const errorCopy: Record<ChordDetectionErrorCode, string> = {
-    'no-downbeat': t({
-      id: 'chords.error.no-downbeat',
-      message:
-        "La grille de mesures n'a pas de premier temps — détecter d'abord le tempo."
-    }),
-    'no-chords': t({
-      id: 'chords.error.no-chords',
-      message: 'Aucun accord détecté sur ce morceau.'
-    }),
-    'engine-unavailable': t({
-      id: 'chords.error.engine-unavailable',
-      message:
-        "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
-    }),
-    network: t({
-      id: 'chords.error.network',
-      message: "Serveur local injoignable — vérifier qu'il est lancé."
-    }),
-    unknown: t({
-      id: 'chords.error.unknown',
-      message: 'Erreur inattendue — détails dans la console du navigateur.'
-    })
-  }
-  const failed =
+  // The full failure line — shown AND announced, so a screen-reader user
+  // hears the same actionable reason a sighted user reads.
+  const failureLine =
     detection?.error !== undefined
-      ? t({
+      ? `${t({
           id: 'chords.detect-failed',
           message: 'Échec de la détection des accords'
-        })
+        })} — ${t(ERROR_COPY[detection.error])}`
       : undefined
 
   const announced = detection?.detecting
@@ -126,7 +139,7 @@ export function ChordChartPanel({
           id: 'chords.detect-done',
           message: 'Grille pré-remplie depuis la détection'
         })
-      : failed
+      : failureLine
 
   return (
     <section className={styles.panel}>
@@ -221,10 +234,8 @@ export function ChordChartPanel({
           {blockedHint !== undefined && (
             <p className={styles.hint}>{blockedHint}</p>
           )}
-          {detection.error !== undefined && (
-            <p className={styles.error}>
-              {failed} — {errorCopy[detection.error]}
-            </p>
+          {failureLine !== undefined && (
+            <p className={styles.error}>{failureLine}</p>
           )}
           <LiveStatus message={announced} />
         </div>

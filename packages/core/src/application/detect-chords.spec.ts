@@ -163,6 +163,32 @@ describe('detectChords', () => {
     })
   })
 
+  it('carries a timeout ChordDetectionError code through', async () => {
+    const slow: ChordDetector = {
+      detect: async () => {
+        throw new ChordDetectionError('timeout', 'HTTP 504')
+      }
+    }
+    const result = await detectChords(
+      { audio, grid: grid4(1), barsPerRow: 4 },
+      { detector: slow }
+    )
+    expect(result).toEqual({ ok: false, code: 'timeout', detail: 'HTTP 504' })
+  })
+
+  it('carries a too-large ChordDetectionError code through', async () => {
+    const heavy: ChordDetector = {
+      detect: async () => {
+        throw new ChordDetectionError('too-large', 'HTTP 413')
+      }
+    }
+    const result = await detectChords(
+      { audio, grid: grid4(1), barsPerRow: 4 },
+      { detector: heavy }
+    )
+    expect(result).toEqual({ ok: false, code: 'too-large', detail: 'HTTP 413' })
+  })
+
   it('carries a network ChordDetectionError code through', async () => {
     const offline: ChordDetector = {
       detect: async () => {

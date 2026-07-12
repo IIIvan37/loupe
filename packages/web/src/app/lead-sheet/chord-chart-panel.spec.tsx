@@ -216,10 +216,12 @@ describe('ChordChartPanel detection', () => {
     // The visible line is fully translated: prefix + the code's own copy —
     // no raw engine text ever reaches the UI (it goes to the console).
     expect(
-      screen.getByText(new RegExp(i18n._('chords.error.unknown')))
+      screen.getAllByText(new RegExp(i18n._('chords.error.unknown')))[0]
     ).toHaveTextContent(i18n._('chords.detect-failed'))
+    // The live region speaks the actionable copy too — a screen-reader user
+    // gets the same reason a sighted user reads.
     expect(screen.getByRole('status')).toHaveTextContent(
-      i18n._('chords.detect-failed')
+      i18n._('chords.error.unknown')
     )
   })
 
@@ -228,17 +230,35 @@ describe('ChordChartPanel detection', () => {
       wrapper: I18nTestingProvider
     })
     expect(
-      screen.getByText(new RegExp(i18n._('chords.error.engine-unavailable')))
-    ).toBeInTheDocument()
+      screen.getAllByText(new RegExp(i18n._('chords.error.engine-unavailable'))).length
+    ).toBeGreaterThan(0)
   })
 
-  it('explains an unreachable server in the user language', () => {
+  it('reuses the launch-the-server hint for an unreachable server', () => {
     render(<Host detection={detectionOf({ error: 'network' })} />, {
       wrapper: I18nTestingProvider
     })
     expect(
-      screen.getByText(new RegExp(i18n._('chords.error.network')))
-    ).toBeInTheDocument()
+      screen.getAllByText(new RegExp(i18n._('chords.detect-needs-server'))).length
+    ).toBeGreaterThan(0)
+  })
+
+  it('explains a server-side timeout in the user language', () => {
+    render(<Host detection={detectionOf({ error: 'timeout' })} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(
+      screen.getAllByText(new RegExp(i18n._('chords.error.timeout'))).length
+    ).toBeGreaterThan(0)
+  })
+
+  it('explains an oversized upload in the user language', () => {
+    render(<Host detection={detectionOf({ error: 'too-large' })} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(
+      screen.getAllByText(new RegExp(i18n._('chords.error.too-large'))).length
+    ).toBeGreaterThan(0)
   })
 
   it('explains an empty detection in the user language', () => {
@@ -246,17 +266,17 @@ describe('ChordChartPanel detection', () => {
       wrapper: I18nTestingProvider
     })
     expect(
-      screen.getByText(new RegExp(i18n._('chords.error.no-chords')))
-    ).toBeInTheDocument()
+      screen.getAllByText(new RegExp(i18n._('chords.error.no-chords'))).length
+    ).toBeGreaterThan(0)
   })
 
-  it('points a gridless failure at tempo detection', () => {
+  it('reuses the detect-tempo-first hint for a gridless failure', () => {
     render(<Host detection={detectionOf({ error: 'no-downbeat' })} />, {
       wrapper: I18nTestingProvider
     })
     expect(
-      screen.getByText(new RegExp(i18n._('chords.error.no-downbeat')))
-    ).toBeInTheDocument()
+      screen.getAllByText(new RegExp(i18n._('chords.detect-needs-grid'))).length
+    ).toBeGreaterThan(0)
   })
 
   it('announces the landed draft', () => {

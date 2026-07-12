@@ -142,7 +142,36 @@ describe('createHttpChordDetector', () => {
     })
   })
 
-  it('leaves a non-503 HTTP failure untyped', async () => {
+  it('types an HTTP 504 as the analysis timing out', async () => {
+    // The server's inference timeout answers 504 — actionable (shorter
+    // track, retry), so it must not fold into `unknown`.
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(new Response('slow', { status: 504 }))
+    )
+
+    await expect(
+      createHttpChordDetector('http://localhost:8000').detect(MIX)
+    ).rejects.toMatchObject({ name: 'ChordDetectionError', code: 'timeout' })
+  })
+
+  it('types an HTTP 413 as the track being too large', async () => {
+    // The server caps the upload body — a long track trips it.
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(new Response('fat', { status: 413 }))
+    )
+
+    await expect(
+      createHttpChordDetector('http://localhost:8000').detect(MIX)
+    ).rejects.toMatchObject({ name: 'ChordDetectionError', code: 'too-large' })
+  })
+
+  it('leaves an unclassified HTTP failure untyped', async () => {
     vi.stubGlobal(
       'fetch',
       vi

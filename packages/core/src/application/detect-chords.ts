@@ -26,16 +26,19 @@ export type ChordDetectionErrorCode =
   | 'no-chords'
   | 'engine-unavailable'
   | 'network'
+  | 'timeout'
+  | 'too-large'
   | 'unknown'
 
 /**
  * The typed failure a `ChordDetector` adapter throws when it can tell WHY the
- * engine call failed (server up but engine missing, network unreachable). The
- * use-case forwards the code; anything else it catches folds into `unknown`.
+ * engine call failed (server up but engine missing, network unreachable,
+ * analysis timed out, upload over the server's cap). The use-case forwards
+ * the code; anything else it catches folds into `unknown`.
  */
 export class ChordDetectionError extends Error {
   constructor(
-    readonly code: 'engine-unavailable' | 'network',
+    readonly code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large',
     detail: string
   ) {
     super(detail)
