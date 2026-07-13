@@ -466,6 +466,36 @@ describe('chartMeters', () => {
     })
   })
 
+  it('suppresses a RUN of off-dominant bars — a detector regime, not a signature', () => {
+    // beat_this can read whole passages at half-bar downbeats (The Logical
+    // Song's intro): consecutive short bars are that regime, never meter.
+    expect(chartMeters(meteredGrid([4, 4, 4, 2, 2, 4, 4, 4])).meters).toEqual([
+      4,
+      4,
+      4,
+      undefined,
+      undefined,
+      4,
+      4,
+      4
+    ])
+  })
+
+  it('keeps an isolated short bar — the genuine turnaround', () => {
+    expect(chartMeters(meteredGrid([4, 4, 2, 4, 4])).meters).toEqual([
+      4, 4, 2, 4, 4
+    ])
+  })
+
+  it('suppresses an isolated LONG bar — a missed downbeat, not a signature', () => {
+    expect(chartMeters(meteredGrid([4, 6, 4, 4])).meters).toEqual([
+      4,
+      undefined,
+      4,
+      4
+    ])
+  })
+
   it('rescales a folded grid to the felt beats-per-bar', () => {
     // An octave ×2 fold doubles every count; the session's meter is the
     // authority the chart prints, so the 2/4 bar survives as 2/4, not 4/8.

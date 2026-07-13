@@ -49,6 +49,16 @@
   dans le memo `[source]`, câblage chart+structure extrait en
   `useChartWithStructure` — shell < 300 lignes).
 
+- **Calibrage sur The Logical Song (retour utilisateur : « 2/4 placés
+  n'importe où dès l'intro »)** : diagnostic sur la vraie grille beat_this
+  (145 mesures : 100×4, 40×2 en LONGUES SÉQUENCES — le détecteur lit des
+  passages entiers en downbeats à la demi-mesure — + 1/3/6 épars). Règle
+  ajoutée à `chartMeters` : un écart au dominant n'imprime que comme **mesure
+  courte ISOLÉE entre deux mesures au dominant** (le vrai turnaround) ; une
+  séquence = régime du détecteur, une mesure longue isolée = downbeat manqué.
+  Sur la vraie grille : 40 marques parasites → **2 marques** (97,2 s et
+  102,3 s, les 2/4 plausibles du morceau).
+
 ## Not done / remaining
 - **Chart périmé après correction de mètre** (constat de revue, assumé) : un
   chart détecté sous la mauvaise grille garde ses mesures ET sa directive

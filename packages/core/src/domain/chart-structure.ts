@@ -38,11 +38,14 @@ export function timeLine(meter: number): string {
  * - Only complete bars elect the voted dominant (the trailing one runs to the
  *   track end) — the same electorate as `detectMeter`, so the chart head can
  *   never contradict the tempo panel.
- * - EDGE bars are distrusted unless they land on the dominant: the first
- *   interval is often a pickup, the last is usually truncation (a fade-out) —
- *   neither is a signature change. This also guarantees the render never
- *   opens with a bare `{time:}` lead that would collide with the draft's own
- *   head directive in `parseChart`'s head zone.
+ * - An off-dominant bar prints ONLY as an isolated SHORT bar between two
+ *   dominant bars (the genuine 2/4 turnaround). A RUN of short bars is a
+ *   detector regime — beat_this reading a whole passage at half-bar
+ *   downbeats, The Logical Song's intro — and a lone LONG bar is a missed
+ *   downbeat; neither is a signature the musician should see. This also
+ *   distrusts the edges (a pickup first bar, a truncated last one) and
+ *   guarantees the render never opens with a bare `{time:}` lead that would
+ *   collide with the draft's own head directive in `parseChart`'s head zone.
  */
 export function chartMeters(
   grid: BeatGrid,
@@ -56,14 +59,17 @@ export function chartMeters(
   const voted = dominantMeter(complete.length > 0 ? complete : counted)
   const dominant = beatsPerBar ?? voted
   const factor = dominant / voted
-  const meters = counted.map((count, index) => {
-    const meter = count * factor
-    const interior = index > 0 && index < counted.length - 1
-    return Number.isInteger(meter) &&
-      meter >= 1 &&
-      (interior || meter === dominant)
-      ? meter
-      : undefined
+  const scaled = counted.map((count) => count * factor)
+  const meters = scaled.map((meter, index) => {
+    if (!Number.isInteger(meter) || meter < 1) return undefined
+    if (meter === dominant) return meter
+    const isolatedShort =
+      index > 0 &&
+      index < scaled.length - 1 &&
+      meter < dominant &&
+      scaled[index - 1] === dominant &&
+      scaled[index + 1] === dominant
+    return isolatedShort ? meter : undefined
   })
   return { meters, dominant }
 }
