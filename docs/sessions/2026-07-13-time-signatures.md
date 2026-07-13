@@ -59,6 +59,22 @@
   Sur la vraie grille : 40 marques parasites → **2 marques** (97,2 s et
   102,3 s, les 2/4 plausibles du morceau).
 
+- **Fix racine — DBN madmom activé sur `/tempo`** (2e retour utilisateur : la
+  règle d'isolation ne suffisait pas ; question « quels logiciels font ça ? »).
+  Réponse : le standard est le `DBNDownBeatTrackingProcessor` de **madmom**
+  (décodage global de la séquence de mesures dans un espace d'états de
+  longueurs de mesure) — et beat_this l'expose nativement (`dbn=True`), mais le
+  serveur tournait avec `dbn=False` sans madmom installé. Mesuré sur The
+  Logical Song : brut = 145 mesures {4: 100, **2: 40**, 1: 3, 6: 1, 3: 1} ;
+  **DBN = 124 mesures {4: 123, 3: 1}** (le 3 = bord de piste, déjà écarté).
+  Somebody To Love : {4: 93, 3: 1} ✓. Élargir l'espace à [2,3,4] ne change
+  rien (les activations des faux downbeats sont faibles). Câblé :
+  `LOUPE_TEMPO_DBN` (défaut ON), madmom épinglé au commit master
+  (`27f032e8` — la release PyPI ne builde pas sur 3.14), device CPU par défaut
+  quand DBN (float64 non supporté par MPS ; ~4,4 s / 250 s d'audio, mesuré).
+  La règle d'isolation du chart reste en ceinture de sécurité. Serveur :
+  ruff/pyright/199 pytest verts.
+
 ## Not done / remaining
 - **Chart périmé après correction de mètre** (constat de revue, assumé) : un
   chart détecté sous la mauvaise grille garde ses mesures ET sa directive
