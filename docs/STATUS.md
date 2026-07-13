@@ -116,7 +116,7 @@ autonome). Revue 2 angles → 3 fixes. Gate vert **1207 tests**, Stryker ciblé
 detect-structure 100 % / song-structure ~91 %.
 [rapport S.2](sessions/2026-07-13-structure-core-s2.md).
 **S.2 mergé (PR #119).**
-**S.3a web — marqueurs de structure sur `feat/p-structure-web-s3` (PR à ouvrir) :**
+**S.3a web — marqueurs de structure (PR #120 mergée) :**
 bouton « Détecter la structure » **dans la barre de repères** →
 `createHttpStructureDetector` (`POST /structure`, labels bruts, AbortSignal O.5)
 + `useStructureDetection` (décalque de `useChordDetection`) + `sectionMarkers`
@@ -131,7 +131,13 @@ repères ? ». **Pas de grille requise** (marche avant le tempo). Revue 8 angles
 en-têtes `[Couplet]`/`[Refrain]` depuis les sections détectées, nécessite un
 **nouveau fold core** (sections + grille → source structurée). À reprendre après
 vérif navigateur des marqueurs.
-**Next : ouvrir/merger la PR S.3a, puis vérif navigateur des marqueurs bout-en-bout.**
+**Vérif navigateur S.3a OK (2026-07-13)** : *The Logical Song* (Supertramp) →
+`POST /structure` 200 → 9 sections traduites (Intro/Couplet/Refrain/
+Instrumental/…/Outro/Silence) rendues dans la barre de repères **et** le
+panneau, annonce a11y « Repères de structure posés », bouton sans grille
+requise (marche avant le tempo). Piège relevé : l'app doit tourner sur
+`localhost:5173` (allowlist d'origine du serveur), sinon « Serveur hors ligne ».
+**Next : décision produit sur S.3b (réétiquetage de la grille d'accords).**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 [P.4 print](sessions/2026-07-13-p4-print.md) ·
