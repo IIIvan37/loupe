@@ -81,12 +81,16 @@ pin torch 2.4 → **2.12.1 OK**. Testé sur 2 vrais morceaux.
   SSL **pleine fenêtre** (jusqu'à 420 s d'un coup) → **~16 Go de pic**,
   dépasse la RAM de ce Mac (16 Go) sur les morceaux > ~4,5 min → swap
   thrash (Queen jamais fini en pleine fenêtre).
-- **Mitigation = chunking, validée.** Découpe ≤ 180 s + recollage des
-  segments contigus de même label : **RAM ~0,2 Go**, Queen en **28 s
-  (RTF 0,09×, 11× temps réel)**, qualité préservée. Un seul artefact : un
-  « intro » parasite à la couture (début de chunk lu comme intro) — à
-  corriger par chevauchement de chunks ou règle de couture (intro/silence
-  en milieu de morceau sur une frontière → fusion voisins).
+- **Mitigation = chunking, validée + couture corrigée.** Algorithme final
+  (prototype `chunked_infer.py`, à porter en TDD côté serveur) : chunks de
+  `CHUNK_S` (180 s) avec **marges de contexte** `OVERLAP_S` (20 s) de chaque
+  côté ; on ne garde que les segments dont le **centre** tombe dans la
+  région possédée `[c·CHUNK, (c+1)·CHUNK]` — le biais « début de chunk = intro »
+  reste dans la marge jetée ; puis fusion des contigus de même label +
+  fermeture des trous → timeline contiguë. Résultat sur Queen : **RAM ~0,2 Go,
+  RTF 0,17×**, seam de 180 s **invisible** (couplet l'enjambe proprement),
+  plus d'intro parasite. Reste un « silence » en tête sur l'intro très
+  clairsemée = jugement du modèle, pas un artefact, éditable dans le brouillon.
 
 **Arbitrages produit pris :** découpage agressif + stitch retenu (vs moteur
 plus léger) ; cible prod pas encore tranchée → **doit tenir sur ce Mac
