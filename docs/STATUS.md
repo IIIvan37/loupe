@@ -99,11 +99,15 @@ appliqués, 3 arbitrés. Browser-verify du rendu contre la maquette. Gate
 vert **1181 tests** (+8), Stryker skippé (core intouché).
 **P.4 impression mergé (PR #117) — Lot P complet.**
 **Next : phase 2 structure — retour produit du 2026-07-13 : la déduction
-MDL déçoit, direction segmentation audio + marqueurs de structure. Plan
-écrit et partiellement arbitré (bouton séparé tranché ; moteur SongFormer
-n°1, repli all-in-one-fix) :
-[structure-detection-plan.md](structure-detection-plan.md) — le spike S.0
-attend un go explicite.**
+MDL déçoit, direction segmentation audio + marqueurs de structure.
+[Plan](structure-detection-plan.md) arbitré (bouton séparé) et **spike S.0
+FAIT : GO pour SongFormer** — tourne sur MPS (torch 2.12), qualité nettement
+au-dessus du MDL sur 2 vrais morceaux (Logical Song, Queen), mais ~16 Go en
+pleine fenêtre → **chunking 180 s obligatoire** (RAM 0,2 Go, RTF 0,09×,
+validé). Cible prod pas tranchée → doit tenir sur ce Mac 16 Go.
+Next : S.1 serveur `POST /structure` (moule chords.py + chunking), après
+raffinage optionnel de la règle de couture (« intro » parasite aux
+frontières).**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [P.4 print](sessions/2026-07-13-p4-print.md) ·
 [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·

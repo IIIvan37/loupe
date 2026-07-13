@@ -65,19 +65,35 @@ academic-only), MSAF / sf_segmenter (frontières sans labels, morts).
 
 ## Les slices
 
-### S.0 — Spike moteur *(serveur, hors hexagone — même moule que le spike BTC)*
+### S.0 — Spike moteur — **FAIT (2026-07-13) : GO pour SongFormer + chunking**
 
-- Venv jetable : SongFormer d'abord — desserrer le pin torch vers 2.12,
-  retirer triton, inférer **sur CPU/MPS Apple Silicon** sur 2-3 vrais
-  morceaux (dont un au résultat P.4 décevant). Mesurer temps/RAM, juger
-  les segments (frontières vs downbeats beat_this, labels vs la vraie
-  forme).
-- Si SongFormer ne tourne pas raisonnablement sur mac : rejouer le spike
-  avec `all-in-one-fix` (cache démix pré-rempli depuis nos stems 6s→4
-  sommés vs démix interne).
-- Verdict : moteur retenu, budget temps, plan de vendoring des poids.
-  **Go/no-go de la phase 2** — si la qualité ne bat pas nettement le MDL
-  de P.4 sur nos morceaux réels, on s'arrête là.
+Venv jetable Python 3.11 (`scratchpad/structure-spike`, uv), SongFormer +
+MuQ-large + MusicFM montés, `msaf`/gradio contournés, device patché MPS,
+pin torch 2.4 → **2.12.1 OK**. Testé sur 2 vrais morceaux.
+
+**Résultats :**
+- **MPS (GPU Mac) : ✅ tourne** (aucun op fatal, fallback STFT bénin).
+- **Qualité : ✅ nettement au-dessus du MDL de P.4.** Logical Song
+  (4:10) : `intro→couplet→couplet→refrain→…→solo(inst)→outro` exact au tag
+  près. Queen Somebody To Love (5:10) : `intro/couplet/refrain/pont/solo/
+  outro` riche et musicalement juste. Frontières sur de vraies sections.
+- **Mémoire : ⚠️ le point dur.** L'inférence de référence fait une passe
+  SSL **pleine fenêtre** (jusqu'à 420 s d'un coup) → **~16 Go de pic**,
+  dépasse la RAM de ce Mac (16 Go) sur les morceaux > ~4,5 min → swap
+  thrash (Queen jamais fini en pleine fenêtre).
+- **Mitigation = chunking, validée.** Découpe ≤ 180 s + recollage des
+  segments contigus de même label : **RAM ~0,2 Go**, Queen en **28 s
+  (RTF 0,09×, 11× temps réel)**, qualité préservée. Un seul artefact : un
+  « intro » parasite à la couture (début de chunk lu comme intro) — à
+  corriger par chevauchement de chunks ou règle de couture (intro/silence
+  en milieu de morceau sur une frontière → fusion voisins).
+
+**Arbitrages produit pris :** découpage agressif + stitch retenu (vs moteur
+plus léger) ; cible prod pas encore tranchée → **doit tenir sur ce Mac
+16 Go**, donc chunking obligatoire dans l'intégration serveur (S.1).
+
+**all-in-one-fix non testé** — inutile, SongFormer passe. Repli documenté
+si besoin.
 
 ### S.1 — Serveur `POST /structure` *(TDD serveur)*
 
