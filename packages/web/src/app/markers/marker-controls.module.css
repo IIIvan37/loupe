@@ -14,3 +14,20 @@
   outline: 2px solid var(--amber);
   outline-offset: 2px;
 }
+
+.detect {
+  composes: quietButton from '../ui/controls.module.css';
+}
+
+.detect:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.hint {
+  composes: hint from '../ui/controls.module.css';
+}
+
+.error {
+  composes: errorLine from '../ui/controls.module.css';
+}

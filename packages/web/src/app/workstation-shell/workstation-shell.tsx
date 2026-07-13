@@ -7,12 +7,13 @@ import {
   type ProjectDeps,
   type StemPlaybackEngine,
   type StemSeparator,
+  type StructureDetector,
   type TempoDetector,
   type TrackMetadataReader,
   type TrackSource
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import { useServerHealth } from '../../projects/use-server-health.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
@@ -22,6 +23,7 @@ import { useChordChartSession } from '../lead-sheet/use-chord-chart-session.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
 import { useMarkers } from '../markers/use-markers.ts'
+import { useStructureMarkers } from '../markers/use-structure-markers.ts'
 import { useMixer } from '../mixer/use-mixer.ts'
 import { useSeparation } from '../separation/use-separation.ts'
 import { type CountInPlayer, useCountIn } from '../tempo/use-count-in.ts'
@@ -38,6 +40,7 @@ import { ShellDialogs } from './shell-dialogs.tsx'
 import { ShellDropLayer } from './shell-drop-layer.tsx'
 import { ShellHeader } from './shell-header.tsx'
 import { ShellMain } from './shell-main.tsx'
+import { useFilePicker } from './use-file-picker.ts'
 import { useProjectSession } from './use-project-session.ts'
 import { useSeparateAndLoad } from './use-separate-and-load.ts'
 import { useShellDrop } from './use-shell-drop.ts'
@@ -59,6 +62,7 @@ interface WorkstationShellProps {
   readonly separator?: StemSeparator
   readonly tempoDetector?: TempoDetector
   readonly chordDetector?: ChordDetector
+  readonly structureDetector?: StructureDetector
   readonly trackSource?: TrackSource
   readonly projectStores?: ProjectDeps
   /** Injected in tests; the health poll defaults to the real global fetch. */
@@ -82,6 +86,7 @@ export function WorkstationShell({
   separator,
   tempoDetector,
   chordDetector,
+  structureDetector,
   trackSource,
   projectStores,
   healthFetch,
@@ -129,6 +134,13 @@ export function WorkstationShell({
   } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsActive)
   const markers = useMarkers()
   const tempo = useTempo(tempoDetector)
+  // « Détecter la structure » (markers bar) → section markers on the timeline.
+  const structureDetection = useStructureMarkers({
+    loadedAudio,
+    grid: tempo.analysis?.grid ?? [],
+    markers,
+    detector: structureDetector
+  })
   // The chart's source (session state riding the project lifecycle) + the
   // « Détecter les accords » flow drafting into it — see the hook's doc.
   const { chart: chordChart, detection: chordDetection } = useChordChartSession(
@@ -213,15 +225,7 @@ export function WorkstationShell({
   })
 
   const isLoaded = importState.status === 'loaded'
-  const i18nImportLabel = t({
-    id: 'header.import-file',
-    message: 'Importer un fichier audio'
-  })
-
-  // The one hidden file input, shared by the header's « Importer » and the
-  // empty-state hero (a drag never touches it — it carries a File directly).
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const openFilePicker = () => fileInputRef.current?.click()
+  const { fileInputRef, openFilePicker, importLabel } = useFilePicker()
 
   // The whole native OS-file drop story (overlay, confirm, non-audio warning).
   const drop = useShellDrop({
@@ -275,7 +279,7 @@ export function WorkstationShell({
       <ShellDropLayer
         fileInputRef={fileInputRef}
         onFilePicked={session.onFilePicked}
-        importLabel={i18nImportLabel}
+        importLabel={importLabel}
         isDraggingFile={drop.isDraggingFile}
         pendingName={drop.pendingName}
         onConfirm={drop.confirm}
@@ -350,6 +354,7 @@ export function WorkstationShell({
         pitchSemitones={pitchSemitones}
         chartHeader={deriveChartHeader(metadata, session.trackName, tempo.analysis)}
         chordDetection={chordDetection}
+        structureDetection={structureDetection}
         />
       )}
 
