@@ -1,7 +1,9 @@
 import {
+  type Accidental,
   type ChordSymbol,
   formatChordSymbol,
   parseChordSymbol,
+  respellChordSymbol,
   transposeChordSymbol
 } from './chord-symbol.ts'
 
@@ -123,28 +125,57 @@ export function transposeChartSource(
   semitones: number
 ): string {
   if (!Number.isInteger(semitones)) return source
+  return rewriteChordTokens(source, (symbol) =>
+    transposeChordSymbol(symbol, semitones)
+  )
+}
+
+/**
+ * Re-spell the grid's SOURCE TEXT under the key's accidental convention — a
+ * flat key rewrites `A#` to `Bb` — without moving any pitch. Layout and
+ * qualities survive verbatim (only the enharmonic spelling of roots and basses
+ * changes); a token that would not round-trip passes through untouched, exactly
+ * as for the transposer. The `{key: …}` directive's own pitch is re-spelled
+ * too, so the printed head names the key in its own accidental.
+ */
+export function respellChartSource(
+  source: string,
+  accidental: Accidental
+): string {
+  return rewriteChordTokens(source, (symbol) =>
+    respellChordSymbol(symbol, accidental)
+  )
+}
+
+/**
+ * Rewrite every chord token in the source through `rewrite`, preserving the
+ * user's layout to the character. Directive lines hold prose, not chords
+ * (`{title: C major}` must stay put) — except `{key: …}`, whose pitch names the
+ * grid's key and must follow the rewrite (its value rides the normal token
+ * pass: the pitch round-trips, the `{key:` and any mode word fail the guard and
+ * stay verbatim). A fermata suffix is peeled before the round-trip guard so
+ * `C/E@` still rewrites, then re-appended. A token the grammar cannot re-print
+ * exactly passes through untouched — rewriting it would destroy saved source.
+ */
+function rewriteChordTokens(
+  source: string,
+  rewrite: (symbol: ChordSymbol) => ChordSymbol
+): string {
   return source
     .split('\n')
     .map((line) => {
-      // Directive lines hold prose, not chords (`{title: C major}` must not
-      // move) — except `{key: …}`, whose pitch names the grid's key and MUST
-      // follow the transposition or the printed head would lie. Its value
-      // rides the normal token rewrite: the pitch round-trips, the rest
-      // (`{key:`, a mode word) fails the round-trip guard and stays verbatim.
       const directive = DIRECTIVE.exec(line.trim())
       const prose =
         directive !== null &&
         (directive[1] as string).trim().toLowerCase() !== 'key'
       if (prose || HEADER.test(line.trim())) return line
       return line.replace(TOKEN, (token) => {
-        // A fermata suffix rides outside the chord grammar: peel it before
-        // the round-trip guard so `C/E@` still transposes, and re-append it.
         const head = stripFermata(token)
         const hold = head !== token
         const parsed = parseChordSymbol(head)
         if (formatChordSymbol(parsed) !== head) return token
-        const moved = formatChordSymbol(transposeChordSymbol(parsed, semitones))
-        return hold ? `${moved}@` : moved
+        const rewritten = formatChordSymbol(rewrite(parsed))
+        return hold ? `${rewritten}@` : rewritten
       })
     })
     .join('\n')

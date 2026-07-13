@@ -30,6 +30,12 @@ function fakeDetector(
   }
 }
 
+/** A draft's grid rows, without the leading detected-key directive line — the
+    key itself is asserted in the dedicated tonality tests below. */
+function grid(source: string): string {
+  return source.replace(/^\{key:[^}]*\}\n/, '')
+}
+
 describe('detectChords', () => {
   it('drafts one chord per measure as grid source rows', async () => {
     const spans: readonly DetectedChordSpan[] = [
@@ -43,7 +49,44 @@ describe('detectChords', () => {
       { detector: fakeDetector(spans) }
     )
     if (!result.ok) throw new Error('expected ok')
-    expect(result.source).toBe('| C | Am | F | G |')
+    expect(grid(result.source)).toBe('| C | Am | F | G |')
+  })
+
+  it('detects a flat key and spells the draft with flats under a key head', async () => {
+    // A flat-key progression the engine spelled with sharps (Bb → A#, Eb → D#).
+    const flatKey = ['F', 'A#', 'C', 'Dm', 'F', 'A#', 'D#', 'C']
+    const spans: readonly DetectedChordSpan[] = flatKey.map((label, index) => ({
+      startSeconds: index * 2,
+      endSeconds: index * 2 + 2,
+      label
+    }))
+    const result = await detectChords(
+      { audio, grid: grid4(8), barsPerRow: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.source.startsWith('{key: ')).toBe(true)
+    expect(result.source).toContain('Bb')
+    expect(result.source).toContain('Eb')
+    expect(result.source).not.toContain('A#')
+    expect(result.source).not.toContain('D#')
+  })
+
+  it('names the detected key even when the chords carry no accidentals', async () => {
+    const spans: readonly DetectedChordSpan[] = [
+      { startSeconds: 0, endSeconds: 2, label: 'C' },
+      { startSeconds: 2, endSeconds: 4, label: 'Am' },
+      { startSeconds: 4, endSeconds: 6, label: 'F' },
+      { startSeconds: 6, endSeconds: 8, label: 'G' }
+    ]
+    const result = await detectChords(
+      { audio, grid: grid4(4), barsPerRow: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.source.startsWith('{key: ')).toBe(true)
+    // Natural chords are untouched — respelling a sharp key is a no-op.
+    expect(grid(result.source)).toBe('| C | Am | F | G |')
   })
 
   it('wraps rows at four measures per row', async () => {
@@ -60,7 +103,7 @@ describe('detectChords', () => {
       { detector: fakeDetector(spans) }
     )
     if (!result.ok) throw new Error('expected ok')
-    expect(result.source).toBe('| C | G | C | G |\n| C |')
+    expect(grid(result.source)).toBe('| C | G | C | G |\n| C |')
   })
 
   it('wraps the draft at the given bars-per-row', async () => {
@@ -74,7 +117,7 @@ describe('detectChords', () => {
       { detector: fakeDetector(spans) }
     )
     if (!result.ok) throw new Error('expected ok')
-    expect(result.source).toBe('| C | Am |\n| F |')
+    expect(grid(result.source)).toBe('| C | Am |\n| F |')
   })
 
   it('folds a progression detected twice in a row into repeat bars', async () => {
@@ -89,7 +132,7 @@ describe('detectChords', () => {
       { detector: fakeDetector(spans) }
     )
     if (!result.ok) throw new Error('expected ok')
-    expect(result.source).toBe('|: C | Am | F | G :|')
+    expect(grid(result.source)).toBe('|: C | Am | F | G :|')
   })
 
   it('rejects a detection carrying non-finite times', async () => {

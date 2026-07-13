@@ -43,6 +43,36 @@ const PITCH_NAMES = [
   'B'
 ] as const
 
+/** The twelve pitch classes spelled with flats — the alternate output spelling,
+ *  chosen when the key uses flats (`F` → `Bb`, not `A#`). */
+const FLAT_NAMES = [
+  'C',
+  'Db',
+  'D',
+  'Eb',
+  'E',
+  'F',
+  'Gb',
+  'G',
+  'Ab',
+  'A',
+  'Bb',
+  'B'
+] as const
+
+/** Which accidental a spelling favours — the key's convention, not a note's. */
+export type Accidental = 'sharp' | 'flat'
+
+/** Spell a pitch class (0–11, wrapped) with the key's chosen accidental. */
+export function spellPitchClass(
+  pitchClass: number,
+  accidental: Accidental
+): string {
+  const index = ((pitchClass % 12) + 12) % 12
+  const table = accidental === 'flat' ? FLAT_NAMES : PITCH_NAMES
+  return table[index] as string
+}
+
 const PITCH_CLASS: Readonly<Record<string, number>> = {
   C: 0,
   'C#': 1,
@@ -85,6 +115,35 @@ function transposeNote(note: string, semitones: number): string {
   if (pitchClass === undefined) return note
   const index = (((pitchClass + semitones) % 12) + 12) % 12
   return PITCH_NAMES[index] as string
+}
+
+/** The pitch class (0–11) a note names, or undefined for an unknown name. */
+export function pitchClassOf(note: string): number | undefined {
+  return PITCH_CLASS[note]
+}
+
+/**
+ * Re-spell a note under the key's accidental convention without moving it:
+ * `A#` and `Bb` are the same pitch, but a flat key wants `Bb`. A whole
+ * pitch class in — unknown names (or naturals, which spell the same either way)
+ * pass through unchanged.
+ */
+export function respellNote(note: string, accidental: Accidental): string {
+  const pitchClass = PITCH_CLASS[note]
+  return pitchClass === undefined
+    ? note
+    : spellPitchClass(pitchClass, accidental)
+}
+
+/** Re-spell a chord's root and slash bass under the key's accidental. */
+export function respellChordSymbol(
+  symbol: ChordSymbol,
+  accidental: Accidental
+): ChordSymbol {
+  const root = respellNote(symbol.root, accidental)
+  return symbol.bass === undefined
+    ? { ...symbol, root }
+    : { ...symbol, root, bass: respellNote(symbol.bass, accidental) }
 }
 
 export function transposeChordSymbol(

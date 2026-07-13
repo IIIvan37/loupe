@@ -55,7 +55,7 @@ describe('useChordDetection', () => {
       })
     )
     await act(() => result.current.detect(4))
-    expect(onDraft).toHaveBeenCalledWith('| C |')
+    expect(onDraft).toHaveBeenCalledWith(expect.stringContaining('| C |'))
     expect(result.current.succeeded).toBe(true)
   })
 
@@ -74,7 +74,9 @@ describe('useChordDetection', () => {
       })
     )
     await act(() => result.current.detect(2))
-    expect(onDraft).toHaveBeenCalledWith('| C | G |\n| Am |')
+    expect(onDraft).toHaveBeenCalledWith(
+      expect.stringContaining('| C | G |\n| Am |')
+    )
   })
 
   it('reports the busy state while a detection is in flight', async () => {
@@ -121,7 +123,7 @@ describe('useChordDetection', () => {
     rerender({ detector: detectorOf(['C']) })
     await act(() => result.current.detect(4))
     expect(result.current.error).toBeUndefined()
-    expect(onDraft).toHaveBeenCalledWith('| C |')
+    expect(onDraft).toHaveBeenCalledWith(expect.stringContaining('| C |'))
   })
 
   it('surfaces the typed code a ChordDetectionError carries', async () => {

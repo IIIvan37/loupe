@@ -170,6 +170,27 @@ multi-accords → 1er accord seulement ; pas de repli `|: :|` (chaque section so
 son en-tête). Gate **vert — 1249 tests** (+13), react-doctor clean
 (WorkstationShell < 300 lignes).
 [rapport S.3b](sessions/2026-07-13-structure-web-s3b.md).
+
+**En cours : grille d'accords — orthographe tonale + vocabulaire étendu
+(branche `feat/chord-grid-vocab-key`, PR à ouvrir).** Deux améliorations de la
+génération de grille avant la démo (les points #2 marqueurs↔structure et #3
+signatures rythmiques restent pour la suite ; multi-accords/mesure reporté).
+**#1 Orthographe tonale (core pur)** : `detectKey` (profil de hauteurs pondéré
+durée → corrélation Krumhansl → tonique+mode), `keyAccidental`/`keyName`,
+`respellNote`/`respellChordSymbol` + `respellChartSource` (squelette factorisé
+avec `transposeChartSource`). Le use-case `detectChords` détecte la tonalité,
+ré-épelle le brouillon (`A#`→`Bb` en tonalité bémol) et préfixe `{key: …}`
+(l'app affiche « key of X », éditable). **Vocabulaire étendu (serveur)** :
+bascule vers le grand checkpoint BTC `btc_model_large_voca.pt` (170 classes :
+7es, sus2/4, dim, aug, 6… ; sha256 épinglé, CQT inchangé, repli
+`LOUPE_CHORDS_VOCA=majmin`), table `LARGE_VOCABULARY` générée
+(`idx2voca_chord()` verbatim). **Web** : `toGridToken` mappe les qualités
+étendues (`min7`→`m7`, `hdim7`→`m7b5`…). Vérifié end-to-end sur *The Logical
+Song* : détection `C:min6/G#:maj7/G:min7/F:7`, tonalité Do mineur, brouillon
+`Eb/Abmaj7/Bb`. Gate **vert — 1322 tests**, serveur **199 pytest**, Stryker
+**93,94 %** (chord-symbol/detect-chords 100 %, chord-key 73,7 % — survivants =
+mutants équivalents de la corrélation Krumhansl).
+[rapport](sessions/2026-07-13-chord-grid-vocab-key.md).
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 [P.4 print](sessions/2026-07-13-p4-print.md) ·
