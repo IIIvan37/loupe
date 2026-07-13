@@ -1,6 +1,9 @@
 /** The default bar length when no meter is known: common time (4/4). */
 export const DEFAULT_BEATS_PER_BAR = 4
 
+/** The longest bar a meter correction accepts — past 12/4, it's noise. */
+export const MAX_BEATS_PER_BAR = 12
+
 /**
  * One detected beat: its instant and its position within the bar. Position 1 is
  * a downbeat (the first beat of a bar); the detector reports it directly, so the
@@ -34,12 +37,87 @@ export function buildBeatGrid(beats: readonly DetectedBeat[]): BeatGrid {
 }
 
 /**
- * Derive the meter (beats per bar) from positioned beats: the largest bar
- * position seen. Falls back to common time when the detector reported no beats.
+ * Derive the meter (beats per bar) from positioned beats: the DOMINANT length
+ * of the complete bars (downbeat to downbeat) — a stray high position (a
+ * detector slip on one bar) must not promote the whole song to that meter.
+ * Before a full bar exists the positions are all there is, so the largest one
+ * stands in; no beats at all falls back to common time.
  */
 export function detectMeter(beats: readonly DetectedBeat[]): number {
+  const bars: number[] = []
+  let count: number | undefined
+  for (const beat of beats) {
+    if (beat.barPosition === 1) {
+      if (count !== undefined) bars.push(count)
+      count = 0
+    }
+    if (count !== undefined) count += 1
+  }
+  if (bars.length > 0) return dominantMeter(bars)
   const max = beats.reduce((seen, beat) => Math.max(seen, beat.barPosition), 0)
   return max > 0 ? max : DEFAULT_BEATS_PER_BAR
+}
+
+/**
+ * The beats each measure holds — the i-th measure is the grid's i-th
+ * downbeat→downbeat interval (the same projection `measureIndexAt` and the
+ * chord draft use), the last one running to the end of the grid. Pickup beats
+ * before the first downbeat belong to no measure; a grid without downbeats has
+ * no measure at all.
+ */
+export function meterPerMeasure(grid: BeatGrid): readonly number[] {
+  const meters: number[] = []
+  let count: number | undefined
+  for (const beat of grid) {
+    if (beat.downbeat) {
+      if (count !== undefined) meters.push(count)
+      count = 0
+    }
+    if (count !== undefined) count += 1
+  }
+  if (count !== undefined) meters.push(count)
+  return meters
+}
+
+/**
+ * The meter a song is felt in: the most frequent per-measure length, the
+ * first-seen one on a tie. Common time when there is no measure to read.
+ */
+export function dominantMeter(meters: readonly number[]): number {
+  const counts = new Map<number, number>()
+  for (const meter of meters) {
+    counts.set(meter, (counts.get(meter) ?? 0) + 1)
+  }
+  let winner: number | undefined
+  let best = 0
+  for (const [meter, count] of counts) {
+    if (count > best) {
+      winner = meter
+      best = count
+    }
+  }
+  return winner ?? DEFAULT_BEATS_PER_BAR
+}
+
+/**
+ * Re-flag the grid's downbeats every `beatsPerBar` beats — the user's meter
+ * correction when the detector heard the wrong bar length (a 4/4 song read as
+ * 6 temps). Beat instants survive verbatim; the new bars anchor on the first
+ * existing downbeat so the detected bar phase (and any pickup before it) is
+ * kept, or on the first beat when the grid never had one. The bar length
+ * clamps to whole bars of at least one beat, like `buildManualGrid`.
+ */
+export function remeterGrid(grid: BeatGrid, beatsPerBar: number): BeatGrid {
+  const bar = Math.max(1, Math.floor(beatsPerBar) || 1)
+  const anchor = Math.max(
+    0,
+    grid.findIndex((beat) => beat.downbeat)
+  )
+  return grid.map((beat, index) => ({
+    timeSeconds: beat.timeSeconds,
+    // Beats before the anchor stay a pickup — no retroactive downbeat.
+    downbeat: index >= anchor && (index - anchor) % bar === 0
+  }))
 }
 
 /**

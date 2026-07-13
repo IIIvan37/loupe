@@ -345,6 +345,7 @@ export function WorkstationShell({
         onFoldTempo={tempoDetection.fold}
         onRetryTempo={tempoDetection.retry}
         onOverrideBpm={tempoDetection.setBpm}
+        onOverrideMeter={tempoDetection.setMeter}
         onTapTempo={tempoDetection.tap}
         onAlignTempoPhase={tempoDetection.alignPhase}
         onReimport={openFilePicker}

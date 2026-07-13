@@ -1,6 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import {
+  chartMeters,
   chartSectionAnchors,
   deduceStructure,
   relabelChartBySections,
@@ -435,5 +436,147 @@ describe('chartSectionAnchors', () => {
   it('returns nothing without downbeats or without grid content', () => {
     expect(chartSectionAnchors('[A]\n| C |', [])).toEqual([])
     expect(chartSectionAnchors('', grid(4, 2))).toEqual([])
+  })
+})
+
+/** A grid whose i-th measure holds `meters[i]` beats (beats every 0.5s). */
+function meteredGrid(meters: readonly number[]): BeatGrid {
+  const beats: { timeSeconds: number; downbeat: boolean }[] = []
+  let time = 0
+  for (const beatsInBar of meters) {
+    for (let beat = 0; beat < beatsInBar; beat += 1) {
+      beats.push({ timeSeconds: time, downbeat: beat === 0 })
+      time += 0.5
+    }
+  }
+  return beats
+}
+
+describe('chartMeters', () => {
+  it('reads per-measure meters and their dominant from the grid', () => {
+    expect(chartMeters(meteredGrid([4, 4, 2, 4]))).toEqual({
+      meters: [4, 4, 2, 4],
+      dominant: 4
+    })
+  })
+
+  it('distrusts a final measure cut short of the dominant', () => {
+    // The last downbeat interval runs to the track end: an odd count there is
+    // truncation (a fade-out), not a signature change.
+    expect(chartMeters(meteredGrid([4, 4, 2]))).toEqual({
+      meters: [4, 4, undefined],
+      dominant: 4
+    })
+  })
+})
+
+describe('renderStructuredSource — meter changes', () => {
+  it('marks the measure whose meter leaves the running one, and the return', () => {
+    const section = {
+      label: 'A',
+      measures: ['C', 'Am', 'F', 'G'],
+      meters: [4, 4, 2, 4]
+    }
+    expect(renderStructuredSource([section], 4, 4)).toBe(
+      '| C | Am |\n{time: 2/4}\n| F |\n{time: 4/4}\n| G |'
+    )
+  })
+
+  it('writes no line on a steady meter', () => {
+    const section = { label: 'A', measures: ['C', 'G'], meters: [4, 4] }
+    expect(renderStructuredSource([section], 4, 4)).toBe('| C | G |')
+  })
+
+  it('an unknown meter inherits the running one', () => {
+    const section = {
+      label: 'A',
+      measures: ['C', 'G'],
+      meters: [4, undefined]
+    }
+    expect(renderStructuredSource([section], 4, 4)).toBe('| C | G |')
+  })
+
+  it('a change opening a repeated section lands before the repeat bars', () => {
+    const section = { label: 'A', measures: ['C', 'G'], meters: [3, 3] }
+    expect(renderStructuredSource([section, section], 4, 4)).toBe(
+      '{time: 3/4}\n|: C | G :|'
+    )
+  })
+
+  it('a change inside a repeated section stays inside the bars', () => {
+    const section = {
+      label: 'A',
+      measures: ['C', 'F', 'G'],
+      meters: [4, 2, 4]
+    }
+    expect(renderStructuredSource([section, section], 4, 4)).toBe(
+      '|: C |\n{time: 2/4}\n| F |\n{time: 4/4}\n| G :|'
+    )
+  })
+
+  it('re-opens each written copy at its own meter', () => {
+    // A section ending off its opening meter: every later copy re-states it.
+    const section = { label: 'A', measures: ['C', 'G'], meters: [4, 2] }
+    expect(renderStructuredSource([section, section, section], 2, 4)).toBe(
+      [
+        '| C |',
+        '{time: 2/4}',
+        '| G |',
+        '{time: 4/4}',
+        '| C |',
+        '{time: 2/4}',
+        '| G |',
+        '{time: 4/4}',
+        '| C |',
+        '{time: 2/4}',
+        '| G |'
+      ].join('\n')
+    )
+  })
+
+  it('a change at a section boundary prints before its header', () => {
+    const a = { label: 'A', measures: ['C', 'G'], meters: [4, 4] }
+    const b = { label: 'B', measures: ['F'], meters: [3] }
+    expect(renderStructuredSource([a, b], 4, 4)).toBe(
+      '[A]\n| C | G |\n\n{time: 3/4}\n[B]\n| F |'
+    )
+  })
+})
+
+describe('deduceStructure — meters', () => {
+  it('carries voted meters through a repeated block', () => {
+    const labels = ['C', 'Am', 'F', 'G', 'C', 'Am', 'F', 'G']
+    const meters = [4, 4, 2, 4, 4, 4, 2, 4]
+    const [first] = deduceStructure(labels, meters)
+    expect(first?.meters).toEqual([4, 4, 2, 4])
+  })
+
+  it('cleans a stray meter by majority vote across occurrences', () => {
+    const block = ['C', 'Am', 'F', 'G']
+    const labels = [...block, ...block, ...block]
+    const meters = [4, 4, 4, 4, 4, 6, 4, 4, 4, 4, 4, 4]
+    const [first] = deduceStructure(labels, meters)
+    expect(first?.meters).toEqual([4, 4, 4, 4])
+  })
+
+  it('deduces without meters exactly as before', () => {
+    const [first] = deduceStructure(['C', 'F', 'G', 'C'])
+    expect(first?.meters).toBeUndefined()
+  })
+})
+
+describe('relabelChartBySections — meter changes', () => {
+  it('re-marks the grid meter changes on the relabelled chart', () => {
+    const sections: readonly DetectedSection[] = [
+      { label: 'verse', startSeconds: 0, endSeconds: 7 }
+    ]
+    expect(
+      relabelChartBySections(
+        '| C | Am | F | G |',
+        sections,
+        meteredGrid([4, 4, 2, 4]),
+        4
+      )
+    ).toBe('| C | Am |\n{time: 2/4}\n| F |\n{time: 4/4}\n| G |')
   })
 })

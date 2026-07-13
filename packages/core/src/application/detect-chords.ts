@@ -1,4 +1,5 @@
 import {
+  chartMeters,
   deduceStructure,
   renderStructuredSource
 } from '../domain/chart-structure.ts'
@@ -105,11 +106,22 @@ export async function detectChords(
     // detected `{key: …}` — the header names the key the app found (editable),
     // and the offset it records keeps a later transposition spelling-aware.
     const key = detectKey(spans)
+    // The grid also carries each bar's length: the head names the dominant
+    // signature and the body marks where the song leaves it ({time: N/M},
+    // The Logical Song's 2/4 turnaround), voted per section like the chords.
+    const { meters, dominant } = chartMeters(input.grid)
     const body = respellChartSource(
-      renderStructuredSource(deduceStructure(labels), input.barsPerRow),
+      renderStructuredSource(
+        deduceStructure(labels, meters),
+        input.barsPerRow,
+        dominant
+      ),
       keyAccidental(key)
     )
-    return { ok: true, source: `{key: ${keyName(key)}}\n${body}` }
+    return {
+      ok: true,
+      source: `{key: ${keyName(key)}}\n{time: ${dominant}/4}\n${body}`
+    }
   } catch (e) {
     const code = e instanceof ChordDetectionError ? e.code : 'unknown'
     return { ok: false, code, detail: errorMessage(e) }

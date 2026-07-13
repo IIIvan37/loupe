@@ -18,6 +18,8 @@ export interface TempoDetection {
   readonly fold: (factor: OctaveFactor) => void
   /** Set the tempo by hand (typed or tapped) and seat the click for it. */
   readonly setBpm: (bpm: number) => void
+  /** Correct the meter (beats per bar) and re-seat the click on the new bars. */
+  readonly setMeter: (beatsPerBar: number) => void
   /** One tap of the tap-tempo sequence — lands on `setBpm` once readable. */
   readonly tap: () => void
   /** Anchor a downbeat on the playhead and re-seat the click for the grid. */
@@ -121,6 +123,15 @@ export function useTempoDetection({
     }
   }
 
+  // The waveform grid and the chart header follow the corrected analysis on
+  // their own; the click is re-seated so its accents land on the new bars.
+  function setMeter(beatsPerBar: number): void {
+    const corrected = tempo.overrideMeter(beatsPerBar)
+    if (corrected && loadedAudio) {
+      seatManualClick(corrected.grid, loadedAudio)
+    }
+  }
+
   function alignPhase(playheadSeconds: number): void {
     if (!loadedAudio) {
       return
@@ -140,6 +151,7 @@ export function useTempoDetection({
     retry,
     fold,
     setBpm,
+    setMeter,
     tap,
     alignPhase
   }

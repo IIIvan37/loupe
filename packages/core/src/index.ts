@@ -252,10 +252,12 @@ export {
   DEFAULT_BEATS_PER_BAR,
   detectMeter,
   foldTempoOctave,
+  MAX_BEATS_PER_BAR,
   MAX_MANUAL_BPM,
   MIN_MANUAL_BPM,
   measureIndexAt,
   normalizeManualBpm,
+  remeterGrid,
   sanitizeBeatGrid,
   tapTempoBpm,
   tempoAt

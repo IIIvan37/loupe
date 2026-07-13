@@ -193,6 +193,51 @@ describe('WorkstationShell tempo & metronome', () => {
     expect(detect).toHaveBeenCalledTimes(1)
   })
 
+  it('corrects a misdetected meter from the panel and keeps it on reopen', async () => {
+    // A 4/4 song the detector read as 6 temps (The Logical Song case): twelve
+    // beats every 0.5 s whose bar positions cycle over six.
+    const detect = vi.fn(async () => ({
+      bpm: 120,
+      beats: Array.from({ length: 12 }, (_, index) => ({
+        timeSeconds: index * 0.5,
+        barPosition: (index % 6) + 1
+      }))
+    }))
+    const { user } = renderShell({
+      projectStores: fakeProjectStores(),
+      tempoDetector: { detect }
+    })
+    await importTrack(user)
+    await expectBpmReadout(120)
+    expect(document.querySelectorAll('[data-beat="downbeat"]')).toHaveLength(2)
+
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('tempo.meter-field')
+    })
+    expect(field).toHaveValue(6)
+    await user.clear(field)
+    await user.type(field, '4{Enter}')
+
+    // The downbeats re-flag every four beats (0, 4, 8); every instant stays.
+    expect(document.querySelectorAll('[data-beat="downbeat"]')).toHaveLength(3)
+    expect(document.querySelectorAll('[data-beat]')).toHaveLength(12)
+
+    await saveProjectAs(user, 'Mètre corrigé')
+    await openProjectsDialog(user)
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('projects.open') })
+    )
+
+    // The corrected meter comes back from the manifest — never re-detected.
+    await waitFor(() =>
+      expect(
+        screen.getByRole('spinbutton', { name: i18n._('tempo.meter-field') })
+      ).toHaveValue(4)
+    )
+    expect(document.querySelectorAll('[data-beat="downbeat"]')).toHaveLength(3)
+    expect(detect).toHaveBeenCalledTimes(1)
+  })
+
   it('shows the metronome as a mixer stem automatically once detected', async () => {
     const detector = {
       detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })

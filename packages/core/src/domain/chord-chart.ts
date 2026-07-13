@@ -42,10 +42,23 @@ export interface ChartForm {
   readonly fine?: number
 }
 
+/**
+ * A time-signature change in the grid: from the `measure`-th WRITTEN measure
+ * on, the chart is felt in `signature` (`2/4`). Set by a full-line
+ * `{time: N/M}` between rows — the standard (ChordPro) meter notation — like a
+ * printed signature change, it holds until the next one.
+ */
+export interface MeterChange {
+  readonly measure: number
+  readonly signature: string
+}
+
 export interface ChordChart {
   readonly sections: readonly Section[]
   /** Present only when the source carries `{d.c.}` / `{coda}` / `{fine}`. */
   readonly form?: ChartForm
+  /** Present only when the source carries mid-grid `{time: N/M}` lines. */
+  readonly meterChanges?: readonly MeterChange[]
   /**
    * The head-of-source `{key: value}` overrides (`{title: …}`, `{key: …}`,
    * `{tempo: …}`…) that make a chart self-supporting away from its session.
@@ -361,10 +374,15 @@ function walkForm(
   return played
 }
 
+/** A full-line `{time: N/M}` meter mark — the standard signature-change
+    notation. Only a numeric N/M qualifies; anything else stays grid content. */
+const TIME_MARK = /^\{\s*time\s*:\s*(\d+)\s*\/\s*(\d+)\s*\}$/i
+
 export function parseChart(text: string): ChordChart {
   const sections: Section[] = []
   const directives: Record<string, string> = {}
   const form: { -readonly [K in keyof ChartForm]: ChartForm[K] } = {}
+  const meterChanges: MeterChange[] = []
   let written = 0
   let current: { label?: string; measures: Measure[] } | undefined
 
@@ -391,6 +409,17 @@ export function parseChart(text: string): ChordChart {
       }
     }
 
+    // Mid-grid, a `{time: N/M}` line is a signature change (never reached at
+    // the head — the directive branch above consumes it as the chart's meter).
+    const time = TIME_MARK.exec(line)
+    if (time) {
+      meterChanges.push({
+        measure: written,
+        signature: `${time[1]}/${time[2]}`
+      })
+      continue
+    }
+
     const header = HEADER.exec(line)
     if (header) {
       current = { label: header[1] as string, measures: [] }
@@ -410,6 +439,7 @@ export function parseChart(text: string): ChordChart {
   return {
     sections,
     directives,
-    ...(Object.keys(form).length > 0 && { form })
+    ...(Object.keys(form).length > 0 && { form }),
+    ...(meterChanges.length > 0 && { meterChanges })
   }
 }

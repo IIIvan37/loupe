@@ -136,6 +136,29 @@ describe('sessionSignature', () => {
     expect(sessionSignature(explicit)).toBe(sessionSignature(implicit))
   })
 
+  it('changes when the meter correction changes', () => {
+    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const detected: SignedSession = {
+      ...base,
+      tempo: { metronome, beatsPerBar: 6 }
+    }
+    const corrected: SignedSession = {
+      ...base,
+      tempo: { metronome, beatsPerBar: 4 }
+    }
+    expect(sessionSignature(corrected)).not.toBe(sessionSignature(detected))
+  })
+
+  it('signs an absent meter like the explicit common time', () => {
+    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const implicit: SignedSession = { ...base, tempo: { metronome } }
+    const explicit: SignedSession = {
+      ...base,
+      tempo: { metronome, beatsPerBar: 4 }
+    }
+    expect(sessionSignature(explicit)).toBe(sessionSignature(implicit))
+  })
+
   it('changes when a manual tempo override is set', () => {
     // The override is a user edit (typed/tapped/aligned), unlike the derived
     // detection — setting one must read « Non enregistré ».

@@ -41,7 +41,8 @@ export function ChartHeader({ derived, directives }: ChartHeaderProps) {
     (derived.bpm === undefined ? undefined : String(Math.round(derived.bpm)))
   const style = over(directives.style)
   const signature =
-    derived.beatsPerBar === undefined ? undefined : `${derived.beatsPerBar}/4`
+    over(directives.time) ??
+    (derived.beatsPerBar === undefined ? undefined : `${derived.beatsPerBar}/4`)
 
   const fields = [title, artist, key, tempo, style, signature]
   if (fields.every((field) => field === undefined)) return null

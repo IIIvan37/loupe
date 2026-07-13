@@ -354,3 +354,85 @@ describe('useTempo', () => {
     expect(result.current.analysis).toBeUndefined()
   })
 })
+
+describe('useTempo — meter correction', () => {
+  it('re-flags the grid downbeats on a meter correction', async () => {
+    const times = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]
+    const { result } = renderHook(() => useTempo(detectorOf(120, times)))
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    let corrected: ReturnType<typeof result.current.overrideMeter>
+    act(() => {
+      corrected = result.current.overrideMeter(2)
+    })
+    expect(result.current.analysis?.beatsPerBar).toBe(2)
+    expect(result.current.analysis?.grid.map((beat) => beat.downbeat)).toEqual([
+      true,
+      false,
+      true,
+      false,
+      true,
+      false,
+      true,
+      false
+    ])
+    // The corrected analysis is returned so the caller can re-seat the click.
+    expect(corrected).toBe(result.current.analysis)
+  })
+
+  it('keeps every beat instant through a meter correction', async () => {
+    const times = [0, 0.5, 1, 1.5]
+    const { result } = renderHook(() => useTempo(detectorOf(120, times)))
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    act(() => {
+      result.current.overrideMeter(3)
+    })
+    expect(
+      result.current.analysis?.grid.map((beat) => beat.timeSeconds)
+    ).toEqual(times)
+    expect(result.current.analysis?.bpm).toBe(120)
+  })
+
+  it('cannot correct the meter before any analysis exists', () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    let corrected: ReturnType<typeof result.current.overrideMeter>
+    act(() => {
+      corrected = result.current.overrideMeter(3)
+    })
+    expect(corrected).toBeUndefined()
+  })
+
+  it('an unchanged meter is a no-op — nothing to re-seat', async () => {
+    const { result } = renderHook(() =>
+      useTempo(detectorOf(120, [0, 0.5, 1, 1.5, 2]))
+    )
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    let corrected: ReturnType<typeof result.current.overrideMeter>
+    act(() => {
+      corrected = result.current.overrideMeter(4)
+    })
+    expect(corrected).toBeUndefined()
+  })
+
+  it('rejects a degenerate or out-of-range meter', async () => {
+    const { result } = renderHook(() =>
+      useTempo(detectorOf(120, [0, 0.5, 1, 1.5, 2]))
+    )
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    for (const bad of [0, -1, Number.NaN, 13]) {
+      let corrected: ReturnType<typeof result.current.overrideMeter>
+      act(() => {
+        corrected = result.current.overrideMeter(bad)
+      })
+      expect(corrected).toBeUndefined()
+    }
+    expect(result.current.analysis?.beatsPerBar).toBe(4)
+  })
+})

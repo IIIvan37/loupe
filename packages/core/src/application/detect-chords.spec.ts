@@ -14,6 +14,34 @@ function grid4(bars: number): BeatGrid {
   }))
 }
 
+/** A grid whose i-th measure holds `meters[i]` beats (beats every 0.5s). */
+function mixedGrid(meters: readonly number[]): BeatGrid {
+  const beats: { timeSeconds: number; downbeat: boolean }[] = []
+  let time = 0
+  for (const beatsInBar of meters) {
+    for (let beat = 0; beat < beatsInBar; beat += 1) {
+      beats.push({ timeSeconds: time, downbeat: beat === 0 })
+      time += 0.5
+    }
+  }
+  return beats
+}
+
+/** One span per measure of `grid`, holding `labels[i]` over the i-th bar. */
+function spansPerMeasure(
+  labels: readonly string[],
+  grid: BeatGrid
+): readonly DetectedChordSpan[] {
+  const downbeats = grid
+    .filter((beat) => beat.downbeat)
+    .map((beat) => beat.timeSeconds)
+  return labels.map((label, index) => ({
+    startSeconds: downbeats[index] as number,
+    endSeconds: downbeats[index + 1] ?? (downbeats[index] as number) + 2,
+    label
+  }))
+}
+
 /** Fake detector: returns fixed spans, recording the audio it was handed. */
 function fakeDetector(
   spans: readonly DetectedChordSpan[]
@@ -30,10 +58,10 @@ function fakeDetector(
   }
 }
 
-/** A draft's grid rows, without the leading detected-key directive line — the
-    key itself is asserted in the dedicated tonality tests below. */
+/** A draft's grid rows, without the leading detected-key and time-signature
+    directive lines — each head is asserted in its own dedicated tests below. */
 function grid(source: string): string {
-  return source.replace(/^\{key:[^}]*\}\n/, '')
+  return source.replace(/^\{key:[^}]*\}\n/, '').replace(/^\{time:[^}]*\}\n/, '')
 }
 
 describe('detectChords', () => {
@@ -133,6 +161,42 @@ describe('detectChords', () => {
     )
     if (!result.ok) throw new Error('expected ok')
     expect(grid(result.source)).toBe('|: C | Am | F | G :|')
+  })
+
+  it('heads the draft with the dominant time signature and marks meter changes', async () => {
+    // Four-beat bars with ONE two-beat bar (The Logical Song's 2/4 turnaround):
+    // the draft names the dominant 4/4 up front and marks the change in-grid.
+    const grid = mixedGrid([4, 4, 2, 4, 4])
+    const spans = spansPerMeasure(['C', 'Am', 'F', 'G', 'C'], grid)
+    const result = await detectChords(
+      { audio, grid, barsPerRow: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.source).toBe(
+      [
+        '{key: C}',
+        '{time: 4/4}',
+        '| C | Am |',
+        '{time: 2/4}',
+        '| F |',
+        '{time: 4/4}',
+        '| G | C |'
+      ].join('\n')
+    )
+  })
+
+  it('writes no meter change on a steady grid', async () => {
+    const spans: readonly DetectedChordSpan[] = [
+      { startSeconds: 0, endSeconds: 2, label: 'C' },
+      { startSeconds: 2, endSeconds: 4, label: 'G' }
+    ]
+    const result = await detectChords(
+      { audio, grid: grid4(2), barsPerRow: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.source).toBe('{key: C}\n{time: 4/4}\n| C | G |')
   })
 
   it('rejects a detection carrying non-finite times', async () => {

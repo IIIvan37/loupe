@@ -52,6 +52,8 @@ interface KeyedMeasure {
   /** The D.C. / Fine mark(s) printed over this measure's closing bar. */
   readonly markAfter?: string
   readonly codaHere: boolean
+  /** The `{time: N/M}` signature taking over on this measure, if any. */
+  readonly meterHere?: string
 }
 interface KeyedSection {
   readonly key: string
@@ -69,6 +71,13 @@ function keyed(
   currentMeasureIndex?: number
 ): readonly KeyedSection[] {
   const form = chart.form
+  // Signature changes are recorded at their written measure — index the lookup.
+  const meterAt = new Map(
+    (chart.meterChanges ?? []).map((change) => [
+      change.measure,
+      change.signature
+    ])
+  )
   // The playhead's measure counts through the whole chart, not per section.
   let global = 0
   // A volta prints its number once, on the measure opening the group.
@@ -98,7 +107,8 @@ function keyed(
         voltaOpens,
         fermata: measure.fermata === true,
         ...(markAfter !== '' && { markAfter }),
-        codaHere: form?.coda === index
+        codaHere: form?.coda === index,
+        ...(meterAt.has(index) && { meterHere: meterAt.get(index) as string })
       }
     })
     const base = { key: `s${s}`, measures }
@@ -188,6 +198,9 @@ export function LeadSheet({
               >
                 {measure.codaHere && (
                   <span className={styles.codaSign}>⊕</span>
+                )}
+                {measure.meterHere !== undefined && (
+                  <span className={styles.meterSign}>{measure.meterHere}</span>
                 )}
                 {measure.voltaOpens && (
                   <span className={styles.voltaLabel}>{measure.volta}.</span>

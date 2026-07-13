@@ -1,5 +1,6 @@
 import {
   chartTransposedBy,
+  DEFAULT_BEATS_PER_BAR,
   type LoopLibrary,
   type ManualTempo,
   type MarkerList,
@@ -29,6 +30,10 @@ export interface SignedSession {
         readonly metronome: MixerChannel
         readonly octaveShift?: number
         readonly manual?: ManualTempo | undefined
+        /** The bar length behind the grid — detected, or the user's meter
+         * correction. Signed (unlike the grid) so a correction reads as an
+         * unsaved edit; absent ⇔ common time on manifests that predate it. */
+        readonly beatsPerBar?: number | undefined
       }
     | undefined
   /** The chord chart source text; absent ⇔ the user has typed none. */
@@ -56,6 +61,9 @@ export function sessionSignature(session: SignedSession): string {
   // Absent manual override (a manifest that predates it, or an untouched
   // detection) reads as null, so a reopened old project still signs equal.
   const manual = session.tempo?.manual
+  // Absent meter (a manifest that predates it) reads as common time, the same
+  // default the restore path seats — a reopened old project signs equal.
+  const beatsPerBar = session.tempo?.beatsPerBar ?? DEFAULT_BEATS_PER_BAR
   // Absent chart (a manifest that predates it) reads like an empty one, so a
   // reopened old project still signs « Enregistré » with the empty textarea.
   const chordChart = session.chordChart?.source ?? ''
@@ -83,6 +91,7 @@ export function sessionSignature(session: SignedSession): string {
     metronome: [metronome.gainDb, metronome.muted, metronome.soloed],
     octaveShift,
     manualTempo: manual ? [manual.bpm, manual.phaseSeconds] : null,
+    beatsPerBar,
     chordChart: chordChart === '' ? null : chordChart,
     // Absent chart or pre-offset manifest reads as untransposed 0, so a
     // reopened old project still signs equal.
