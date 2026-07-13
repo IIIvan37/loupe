@@ -141,13 +141,21 @@ class Api:
 
         @web_app.middleware("http")
         async def require_token(request: Request, call_next):
-            # CORS preflight carries no Authorization — let it through to the
-            # CORS middleware, which answers it.
             if request.method == "OPTIONS":
                 return await call_next(request)
-            header = request.headers.get("authorization", "")
-            if header != f"Bearer {token}":
-                return JSONResponse({"detail": "unauthorized"}, status_code=401)
+            if request.headers.get("authorization", "") != f"Bearer {token}":
+                # An auth short-circuit bypasses the CORS middleware, so echo the
+                # allow-origin ourselves — else the browser masks the 401 as an
+                # opaque CORS/network error instead of surfacing it readably.
+                origin = request.headers.get("origin", "")
+                cors = (
+                    {"Access-Control-Allow-Origin": origin}
+                    if origin in ALLOWED_ORIGINS
+                    else {}
+                )
+                return JSONResponse(
+                    {"detail": "unauthorized"}, status_code=401, headers=cors
+                )
             return await call_next(request)
 
         @web_app.post("/warmup")
