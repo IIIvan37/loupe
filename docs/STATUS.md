@@ -115,8 +115,15 @@ règles mesurées + garde monotone anti-inversion). Pas de grille requise (bouto
 autonome). Revue 2 angles → 3 fixes. Gate vert **1207 tests**, Stryker ciblé
 detect-structure 100 % / song-structure ~91 %.
 [rapport S.2](sessions/2026-07-13-structure-core-s2.md).
-**Next : ouvrir/merger la PR S.2, puis S.3 web (checkpoint d'approche UI : bouton
-« Détecter la structure » + marqueurs de structure + brouillon d'accords).**
+**S.2 mergé (PR #119).**
+**S.3 web — checkpoint d'approche FAIT (2026-07-13, tranché avec le produit) :**
+bouton « Détecter la structure » **dans la barre de repères**, la détection
+**pose les marqueurs ET réétiquette la grille d'accords** quand elle existe.
+Détail dans [le plan S.3](structure-detection-plan.md). À implémenter :
+`createHttpStructureDetector` + `useStructureDetection` + bouton barre repères
+(pose marqueurs traduits, confirmation deux temps) + réétiquetage grille.
+**Next : coder S.3 (adapter → hook → bouton/marqueurs → réétiquetage), TDD +
+vérif intégration.**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [P.4 print](sessions/2026-07-13-p4-print.md) ·
 [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·

@@ -137,15 +137,30 @@ si besoin.
   nettoyant par type de section est conservé (deux couplets votent
   toujours). Codes d'erreur typés bout-en-bout (patron N.1).
 
-### S.3 — Web : adapter, hook, marqueurs, brouillon *(UI — checkpoint d'approche)*
+### S.3 — Web : adapter, hook, marqueurs, brouillon *(UI — checkpoint FAIT 2026-07-13)*
 
-- `createHttpStructureDetector` + `useStructureDetection` (AbortSignal
-  bout-en-bout, patron O.5).
-- Pose des marqueurs : additive, labels traduits ; confirmation deux temps
+**Checkpoint d'approche tranché (2026-07-13) :**
+- **Bouton « Détecter la structure » dans la BARRE DE REPÈRES** (à côté de
+  « + Repère » / « Effacer ») — cohérent avec sa sortie (des marqueurs),
+  visible sans ouvrir le panneau d'accords, indépendant de la grille.
+- **La détection pose les marqueurs ET réétiquette la grille d'accords**
+  quand elle existe : marqueurs de section + en-têtes `[Couplet]`/`[Refrain]`
+  au lieu de `[A]`/`[B]` sur le brouillon.
+
+Implémentation :
+- `createHttpStructureDetector` (mix → WAV `POST /structure` → JSON
+  `{segments}` → `DetectedSection[]`) + `useStructureDetection` (AbortSignal
+  bout-en-bout, patron O.5 ; classifie les échecs transport en
+  `StructureDetectionError`).
+- Pose des marqueurs : un marqueur au début de chaque section, label traduit
+  via Lingui (« Intro », « Couplet », « Refrain »… mapping label brut
+  SongFormer → copie FR) ; confirmation deux temps « Remplacer les repères ? »
   si des marqueurs existent déjà (patron « armed work »).
-- Brouillon d'accords structuré par les sections détectées quand les deux
-  détections ont tourné ; en-têtes `[Couplet]`/`[Refrain]` au lieu de
-  `[A]`/`[B]`.
+- Réétiquetage grille : quand une grille existe, les sections détectées
+  nomment ses en-têtes (`[Couplet]`…). Sous-slice possible S.3b si S.3a
+  (marqueurs) suffit à valider l'usage d'abord.
+- Marqueurs v1 = marqueurs ordinaires étiquetés (aucun changement du domaine
+  `Marker`).
 
 ## Risques & garde-fous
 
