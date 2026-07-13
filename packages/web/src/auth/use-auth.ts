@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { clearAnalysisToken } from '../audio/analysis-token.ts'
+import { clearAnalysisToken, onAnalysisUsage } from '../audio/analysis-token.ts'
 import type {
   AccountStatus,
   AuthPort,
@@ -72,6 +72,16 @@ export function useAuth(auth: AuthPort): UseAuth {
       live = false
     }
   }, [auth, signedInEmail])
+
+  // A completed analysis spends a quota unit; reflect the fresh count the mint
+  // returned, live, without waiting for a reload or a re-fetch.
+  useEffect(() => {
+    return onAnalysisUsage(({ used, quota }) => {
+      setStatus((prev) =>
+        prev ? { ...prev, used, quota } : { member: true, used, quota }
+      )
+    })
+  }, [])
 
   const sendMagicLink = useCallback(
     (email: string) => {

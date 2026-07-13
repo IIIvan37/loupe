@@ -43,6 +43,23 @@ export function clearAnalysisToken(): void {
   cached = undefined
 }
 
+/** This month's usage as the last mint reported it. */
+export interface AnalysisUsage {
+  readonly used: number
+  readonly quota: number
+}
+
+// A fresh mint spends a quota unit server-side; the header chip subscribes here
+// so it updates live instead of only on the next page load.
+const usageListeners = new Set<(usage: AnalysisUsage) => void>()
+
+export function onAnalysisUsage(
+  listener: (usage: AnalysisUsage) => void
+): () => void {
+  usageListeners.add(listener)
+  return () => usageListeners.delete(listener)
+}
+
 export type EnsureTokenResult =
   | { readonly ok: true; readonly used?: number; readonly quota?: number }
   | { readonly ok: false; readonly reason: MintFailureReason }
@@ -67,5 +84,11 @@ export async function ensureAnalysisToken(
     return { ok: false, reason: result.reason }
   }
   cached = { token: result.token, expiresAt: result.expiresAt }
+  if (result.used !== undefined && result.quota !== undefined) {
+    const usage = { used: result.used, quota: result.quota }
+    for (const listener of usageListeners) {
+      listener(usage)
+    }
+  }
   return { ok: true, used: result.used, quota: result.quota }
 }

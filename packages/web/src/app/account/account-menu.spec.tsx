@@ -1,9 +1,13 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import {
+  clearAnalysisToken,
+  ensureAnalysisToken
+} from '../../audio/analysis-token.ts'
 import type {
   AccountStatus,
   AuthPort,
@@ -124,6 +128,35 @@ describe('AccountMenu', () => {
     await waitFor(() =>
       expect(screen.getByText(i18n._('account.code-invalid'))).toBeInTheDocument()
     )
+  })
+
+  it('updates the quota chip live when an analysis reports new usage', async () => {
+    const auth = fakeAuth({
+      state: SIGNED_IN,
+      status: { member: true, used: 3, quota: 20 }
+    })
+    renderMenu(auth)
+    expect(await screen.findByText('3/20')).toBeInTheDocument()
+
+    // A completed analysis mints a token and reports fresh usage; the gate's
+    // pub-sub pushes it to the chip without a reload.
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    clearAnalysisToken()
+    const minting = {
+      ...auth,
+      mintToken: async () => ({
+        ok: true as const,
+        token: 't',
+        expiresAt: 9_000_000_000,
+        used: 4,
+        quota: 20
+      })
+    }
+    await act(async () => {
+      await ensureAnalysisToken(minting)
+    })
+    expect(await screen.findByText('4/20')).toBeInTheDocument()
+    vi.unstubAllEnvs()
   })
 
   it('renders the gate notice atop the popover', async () => {

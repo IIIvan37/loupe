@@ -54,7 +54,7 @@ cd server && .venv/bin/modal deploy modal_app.py
 
 ```sh
 VITE_STRUCTURE_URL=https://<your>--loupe-structure-api-web.modal.run
-VITE_SUPABASE_URL=https://<your-project-ref>.supabase.co
+VITE_SUPABASE_URL=https://loupe.supabase.co
 VITE_SUPABASE_ANON_KEY=<anon key>          # public by design (RLS guards data)
 ```
 

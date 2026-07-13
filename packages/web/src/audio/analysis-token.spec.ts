@@ -4,7 +4,8 @@ import {
   cachedAnalysisToken,
   clearAnalysisToken,
   ensureAnalysisToken,
-  isAnalysisOffloaded
+  isAnalysisOffloaded,
+  onAnalysisUsage
 } from './analysis-token.ts'
 
 /** An AuthPort whose mint returns a scripted result and counts its calls. */
@@ -94,6 +95,29 @@ describe('analysis token gate', () => {
     expect(cachedAnalysisToken()).toBeUndefined()
     await ensureAnalysisToken(auth)
     expect(auth.mints).toBe(2)
+  })
+
+  it('notifies usage listeners on a fresh mint (drives the live header chip)', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const seen: Array<{ used: number; quota: number }> = []
+    const unsubscribe = onAnalysisUsage((u) => seen.push(u))
+
+    await ensureAnalysisToken(fakeAuth(OK))
+    expect(seen).toEqual([{ used: 3, quota: 20 }])
+
+    // A cached token reuses without minting, so no further notification.
+    await ensureAnalysisToken(fakeAuth(OK))
+    expect(seen).toHaveLength(1)
+    unsubscribe()
+  })
+
+  it('does not notify usage when not offloaded (no mint happened)', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', '')
+    const seen: Array<{ used: number; quota: number }> = []
+    const unsubscribe = onAnalysisUsage((u) => seen.push(u))
+    await ensureAnalysisToken(fakeAuth(OK))
+    expect(seen).toHaveLength(0)
+    unsubscribe()
   })
 
   it('clearAnalysisToken drops the cache (sign-out)', async () => {
