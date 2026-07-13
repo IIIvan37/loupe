@@ -50,8 +50,11 @@ Supabase. But = lever le risque d'intégration au moins cher.
 
 - `create-structure-detector.ts` lit `VITE_STRUCTURE_URL` (fallback
   `VITE_SEPARATOR_URL`).
-- `postWavForJson` injecte `Authorization: Bearer` depuis `VITE_MODAL_TOKEN`
-  (**embarqué, temporaire — remplacé par Supabase au J2** ; le noter).
+- `postWavForJson` injecte `Authorization: Bearer` depuis un token lu **au
+  runtime** (`localStorage`, `analysisToken()`) — **jamais un `VITE_*` embarqué**
+  (un secret inliné dans le bundle est extractible ET refusé par le security
+  gate). Un dev le seed via `localStorage.setItem('loupe.modal.token', …)` ;
+  **remplacé par le token minté Supabase au J2** (déjà runtime → swap minime).
 - *Accept.* : envs posées → la structure tape Modal ; specs existantes vertes
   (l'adapter est injecté en test, donc rien à réécrire).
 

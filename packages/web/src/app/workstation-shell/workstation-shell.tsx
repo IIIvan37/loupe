@@ -41,6 +41,7 @@ import { ShellDropLayer } from './shell-drop-layer.tsx'
 import { ShellHeader } from './shell-header.tsx'
 import { ShellMain } from './shell-main.tsx'
 import { useFilePicker } from './use-file-picker.ts'
+import { useModalWarmup } from './use-modal-warmup.ts'
 import { useProjectSession } from './use-project-session.ts'
 import { useSeparateAndLoad } from './use-separate-and-load.ts'
 import { useShellDrop } from './use-shell-drop.ts'
@@ -134,15 +135,15 @@ export function WorkstationShell({
   } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsActive)
   const markers = useMarkers()
   const tempo = useTempo(tempoDetector)
-  // The chart's source (session state) + « Détecter les accords » drafting into
-  // it. Built before the structure flow, which relabels this same source (S.3b).
+  useModalWarmup(loadedAudio) // warm the Modal container on import (no-op locally)
+  // Chart source (session state) + « Détecter les accords » — built before the
+  // structure flow, which relabels this same source (S.3b).
   const { chart: chordChart, detection: chordDetection } = useChordChartSession({
     loadedAudio,
     grid: tempo.analysis?.grid ?? [],
     detector: chordDetector
   })
-  // « Détecter la structure » (markers bar) → section markers, and — when a grid
-  // exists — the detected section names onto its headers.
+  // « Détecter la structure » → section markers + (if a grid exists) its headers.
   const structureDetection = useStructureMarkers({
     loadedAudio,
     grid: tempo.analysis?.grid ?? [],

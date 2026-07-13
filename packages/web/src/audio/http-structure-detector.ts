@@ -39,7 +39,8 @@ function isWireSegment(value: unknown): value is WireSegment {
  * `StructureDetector` port documents the contract.
  */
 export function createHttpStructureDetector(
-  baseUrl: string
+  baseUrl: string,
+  token?: string
 ): StructureDetector {
   return {
     async detect(
@@ -52,7 +53,8 @@ export function createHttpStructureDetector(
           baseUrl,
           '/structure',
           audio,
-          signal
+          signal,
+          token
         )) as Partial<StructureResponse>
       } catch (e) {
         // Translate the shared transport failures into the port's typed error;
