@@ -97,9 +97,13 @@ strippée, tokens encre-sur-papier ; contrat : UNE région par page).
 2 fixés en TDD (dont Cmd+P page blanche, reproduit navigateur), 4
 appliqués, 3 arbitrés. Browser-verify du rendu contre la maquette. Gate
 vert **1181 tests** (+8), Stryker skippé (core intouché).
-**Next : pousser la branche + ouvrir/merger la PR P.4 impression — le
-Lot P est alors complet. Ensuite : phase 2 structure (port audio) en
-veille, ou reprendre la roadmap.**
+**P.4 impression mergé (PR #117) — Lot P complet.**
+**Next : phase 2 structure — retour produit du 2026-07-13 : la déduction
+MDL déçoit, direction segmentation audio + marqueurs de structure. Plan
+écrit et partiellement arbitré (bouton séparé tranché ; moteur SongFormer
+n°1, repli all-in-one-fix) :
+[structure-detection-plan.md](structure-detection-plan.md) — le spike S.0
+attend un go explicite.**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [P.4 print](sessions/2026-07-13-p4-print.md) ·
 [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·
