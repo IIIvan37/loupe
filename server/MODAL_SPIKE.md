@@ -31,28 +31,39 @@ cd server
   a few L4-seconds (cents, within the $30/mo free credit).
 - **Later runs** reuse the cached image and just re-run the timing.
 
-## Results (v1 — naive, weights baked, L4) — 2026-07-13
+## Results (L4, weights baked) — 2026-07-13
 
-```
-COLD  wall= 61.7s   (boot ~6s + load 31.6s + first-infer 23.8s)
-WARM  wall=  0.9s   (infer 0.5s)
-```
+| Variant | COLD wall | WARM wall | Note |
+|---|---|---|---|
+| **v1** naive (baked weights) | **61.7 s** | 0.5 s | load 31.6 + first-infer 23.8 |
+| **v2a** + warmup in `enter()` | ~50 s | 0.5 s | request infer → **0.5 s** (autotune moved to boot) |
+| **v2b** + CPU memory snapshot | **54.7 s** | 0.9 s | restore ~34 s — **no win**, rejected |
 
-- **Warm is excellent (0.5 s).** With `scaledown_window=120s` a session pays the
-  cold price only once.
-- **Cold ~62 s**, split into: `load 31.6s` (SSL imports + ~2 GB weights → GPU,
-  the snapshot target) and `first-infer 23.8s` (CUDA/cuDNN autotune on the first
-  forward — NOT real inference; a warmup in `@modal.enter()` absorbs it).
+- **Warm is excellent (0.5 s)** and stays so with the warmup (`scaledown_window`
+  keeps a session's container warm).
+- **The warmup works**: a dummy forward in `@modal.enter()` absorbs the ~24 s
+  CUDA/cuDNN autotune, so the real request's `infer` is ~0.5 s cold AND warm.
+- **CPU memory snapshots do NOT help here** and were rejected. The snapshotted
+  state is multi-GB of weights in RAM; restoring that image (~34 s) is as slow as
+  reloading from the baked files. Snapshots win when imports/JIT dominate (small
+  state), not when GBs of weights do. Measured via `modal deploy` + a client
+  invoking a restored container (`modal run` can't snapshot — ephemeral apps).
 - Bake worked (5 files fetched at build, never on the cold path). Pipeline
   verified end-to-end (`segments=1` on the synthetic probe).
 
-**Decisions this fed:**
-1. **Tempo auto-on-import must NOT hit a cold Modal call** (62 s before the grid
-   is unacceptable) — keep tempo instant (local/WASM) or make analysis explicit.
-   On-demand tasks (structure/chords/separation) can afford a one-off "Analysing…".
-2. **Sync stays viable** (62 s fits a generous HTTP timeout) once cold is reduced.
+**The ~50 s cold floor** (load + move-to-GPU + autotune) does not fall further
+without **GPU memory snapshots (alpha)** — the only lever that captures the warmed
+GPU state — or a paid always-warm container (`min_containers=1` ≈ $575/mo L4 idle,
+too much for beta).
 
-**Next: v2** — memory snapshots + enter-warmup, target ~15-20 s cold / 0.5 s warm.
+**Decisions this fed:**
+1. **Tempo auto-on-import must NOT hit a cold Modal call** (~50 s before the grid
+   is unacceptable) — keep tempo instant (local/WASM) or make analysis explicit.
+2. **Sync stays viable** (~50 s fits a generous HTTP timeout).
+3. **Product mitigation = warm-on-import prefetch**: fire a background warmup to
+   Modal when a track loads, so the container is hot by the time the user clicks
+   an on-demand analysis. Hide the cold start behind think-time rather than fight
+   it. See `docs/structure-modal-offload-plan.md` §5.
 
 ## Read the output
 
@@ -74,25 +85,25 @@ WARM  wall= …s  infer= …s  segments=…
 - **Tempo auto-import** — the cold number tells us whether every import can afford
   a Modal round-trip, or whether tempo needs to stay instant (local/WASM).
 
-## Next lever — memory snapshots (v2)
+## Tried and rejected — CPU memory snapshots
 
-If the naive cold start is too slow, in `modal_structure_spike.py`:
+`enable_memory_snapshot=True` with a CPU-load-under-`snap=True` /
+GPU-move-under-`snap=False` split (needs `modal deploy`, not `modal run`). The
+restore of the multi-GB weight state took ~34 s → no win (see the table above).
+Kept out of the recommended shape.
 
-1. Add `enable_memory_snapshot=True` to the `@app.cls(...)` decorator.
-2. Split the load: import + load weights to **CPU** in `@modal.enter(snap=True)`
-   (captured in the CPU snapshot), then move the models to **cuda** in a second
-   `@modal.enter(snap=False)` (GPU only attaches after restore).
-   - This needs `inference.Models` to expose a `.to(device)`; if not, load on CPU
-     under snapshot and re-`.to("cuda")` each sub-model post-restore.
-3. Re-run and compare the cold `load` seconds.
+## The one remaining lever — GPU memory snapshots (alpha)
 
-GPU memory snapshots (capture the vRAM, weights included) are alpha — try only if
-CPU snapshots aren't enough.
+The only thing that would cut the ~50 s cold materially: capture the *warmed GPU*
+state so a restored container skips load + move + autotune. It's alpha; try it if
+the warm-on-import mitigation proves insufficient in practice.
 
 ## Cleanup
 
 The spike app is `loupe-structure-spike` on Modal. Nothing runs when idle
-(`min_containers=0`). To remove it entirely: `modal app stop loupe-structure-spike`.
+(`min_containers=0`). Remove it entirely with:
+
+    .venv/bin/modal app stop loupe-structure-spike
 
 ## Assumptions verified on first successful run
 
