@@ -112,29 +112,34 @@ input[type='range']:disabled {
 
 /*
  * ——— Print: the chart is the page (Lot P.4). ———
- * The lead-sheet root carries `data-print-region`. When one is on the page,
- * every branch that does not lead to it leaves the flow entirely, and the
- * ancestor chain flattens to plain unbounded blocks — no app layout (grids,
- * scrollports, dvh heights, fixed bars) survives on paper, and the sheet
- * paginates naturally from the top of the document. Without a chart the rules
- * are inert and the app prints as-is.
+ * The lead-sheet root carries `data-print-region` — only while it has content
+ * to print, so without a chart these rules are inert and the app prints
+ * as-is. Contract: at most ONE region on the page; a second printable
+ * surface needs a selection mechanism first, not a second attribute.
+ *
+ * Two moves: every off-path CHILD of the region's ancestors leaves the flow
+ * at its subtree root, and the ancestor chain itself (html and body
+ * included) flattens to plain unbounded blocks — no app layout (grids,
+ * scrollports, dvh heights, fixed bars, dialog scroll-locks) and no panel
+ * chrome survives on paper. The sheet paginates from the top of the page.
  */
 @media print {
-  body:has([data-print-region])
-    *:not([data-print-region]):not([data-print-region] *):not(
-      :has([data-print-region])
-    ) {
+  :has([data-print-region])
+    > *:not([data-print-region]):not(:has([data-print-region])) {
     display: none;
   }
 
-  body:has([data-print-region]) :has([data-print-region]) {
+  :has([data-print-region]) {
     display: block;
+    position: static;
     block-size: auto;
     min-block-size: 0;
     max-block-size: none;
     overflow: visible;
     margin: 0;
     padding: 0;
+    border: none;
+    background: none;
   }
 
   /* Ink on paper: the chart draws every line and glyph with these tokens; the

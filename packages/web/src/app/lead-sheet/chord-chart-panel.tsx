@@ -1,8 +1,12 @@
-import { chartMatchesPitch, type ChordDetectionErrorCode } from '@app/core'
+import {
+  chartMatchesPitch,
+  type ChordDetectionErrorCode,
+  parseChart
+} from '@app/core'
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { LiveStatus } from '../ui/live-status.tsx'
 import { signedSemitones } from '../ui/signed-semitones.ts'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
@@ -12,6 +16,7 @@ import {
   DEFAULT_BARS_PER_ROW,
   readStoredBarsPerRow
 } from './bars-per-row-preference.ts'
+import { chartHasContent } from './chart-content.ts'
 import { LeadSheet } from './lead-sheet.tsx'
 import styles from './chord-chart-panel.module.css'
 
@@ -124,6 +129,12 @@ export function ChordChartPanel({
       editorRef.current?.focus()
     }
   }, [editing])
+  // What « Imprimer » guards on: the sheet parses the same source anyway, so
+  // one extra parse per source change is nothing — no lifted state needed.
+  const printable = useMemo(
+    () => chartHasContent(parseChart(source)),
+    [source]
+  )
   // The detected draft REPLACES the source — a non-empty grid is armed work,
   // so the first activation only swaps the button to « Confirmer ? ».
   const overwrite = useTwoStepConfirm<true>()
@@ -230,9 +241,10 @@ export function ChordChartPanel({
         <button
           type="button"
           className={styles.printButton}
-          // Printing an empty grid would output a bare header — nothing the
-          // user asked to put on paper, so the action waits for a chart.
-          disabled={source.trim().length === 0}
+          // A source that renders no chart would print a blank page — the
+          // action waits for content, the same test the sheet uses to emit
+          // its print region.
+          disabled={!printable}
           onClick={() => window.print()}
         >
           {t({ id: 'chords.print', message: 'Imprimer' })}

@@ -65,137 +65,137 @@ msgid "chart.key-of"
 msgstr "key of {key}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:254
+#: src/app/lead-sheet/bars-per-row-field.tsx:73
 msgid "chords.bars-per-row"
 msgstr "Mesures par ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:259
+#: src/app/lead-sheet/bars-per-row-field.tsx:78
 msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:323
+#: src/app/lead-sheet/chord-chart-panel.tsx:279
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:319
+#: src/app/lead-sheet/chord-chart-panel.tsx:275
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:210
+#: src/app/lead-sheet/chord-chart-panel.tsx:201
 msgid "chords.detect-done"
 msgstr "Grille pré-remplie depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:173
+#: src/app/lead-sheet/chord-chart-panel.tsx:164
 msgid "chords.detect-failed"
 msgstr "Échec de la détection des accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:26
+#: src/app/lead-sheet/chord-chart-panel.tsx:27
 msgid "chords.detect-needs-grid"
 msgstr "Détecter d'abord le tempo — la grille de mesures ancre les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:22
+#: src/app/lead-sheet/chord-chart-panel.tsx:23
 msgid "chords.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:208
-#: src/app/lead-sheet/chord-chart-panel.tsx:317
+#: src/app/lead-sheet/chord-chart-panel.tsx:199
+#: src/app/lead-sheet/chord-chart-panel.tsx:273
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:302
+#: src/app/lead-sheet/chord-chart-panel.tsx:258
 #: src/app/workstation-shell/shell-test-kit.tsx:249
 msgid "chords.edit"
 msgstr "Modifier"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:379
+#: src/app/lead-sheet/chord-chart-panel.tsx:335
 msgid "chords.empty-hint"
 msgstr "Aucune grille — saisir les accords via « Modifier » ou lancer la détection."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:44
+#: src/app/lead-sheet/chord-chart-panel.tsx:45
 msgid "chords.error.engine-unavailable"
 msgstr "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:40
+#: src/app/lead-sheet/chord-chart-panel.tsx:41
 msgid "chords.error.no-chords"
 msgstr "Aucun accord détecté sur ce morceau."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:50
+#: src/app/lead-sheet/chord-chart-panel.tsx:51
 msgid "chords.error.timeout"
 msgstr "L'analyse des accords a expiré sur le serveur — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:54
+#: src/app/lead-sheet/chord-chart-panel.tsx:55
 msgid "chords.error.too-large"
 msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:58
+#: src/app/lead-sheet/chord-chart-panel.tsx:59
 msgid "chords.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:352
+#: src/app/lead-sheet/chord-chart-panel.tsx:308
 msgid "chords.follow-pitch"
 msgstr "Transposer la grille pour suivre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:348
+#: src/app/lead-sheet/chord-chart-panel.tsx:304
 msgid "chords.follow-pitch-confirm"
 msgstr "Réécrire la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:203
+#: src/app/lead-sheet/chord-chart-panel.tsx:194
 msgid "chords.followed"
 msgstr "Grille transposée"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:395
+#: src/app/lead-sheet/chord-chart-panel.tsx:351
 #: src/app/workstation-shell/shell-test-kit.tsx:245
 #: src/app/workstation-shell/shell-test-kit.tsx:250
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:336
+#: src/app/lead-sheet/chord-chart-panel.tsx:292
 msgid "chords.pitch-mismatch"
 msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:399
+#: src/app/lead-sheet/chord-chart-panel.tsx:355
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:293
+#: src/app/lead-sheet/chord-chart-panel.tsx:249
 msgid "chords.print"
 msgstr "Imprimer"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:222
+#: src/app/lead-sheet/chord-chart-panel.tsx:213
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:266
+#: src/app/lead-sheet/chord-chart-panel.tsx:221
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:277
+#: src/app/lead-sheet/chord-chart-panel.tsx:232
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 

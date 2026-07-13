@@ -656,4 +656,24 @@ describe('ChordChartPanel printing (P.4)', () => {
       screen.getByRole('button', { name: printName() })
     ).toBeDisabled()
   })
+
+  it('a source that renders no chart stays unprintable', async () => {
+    // '{fine}' parses to a form mark only — no sections, no directives, so
+    // the sheet renders nothing and printing would output a blank page.
+    const user = userEvent.setup()
+    render(<Host />, { wrapper: I18nTestingProvider })
+    await typeGrid(user, '{{fine}')
+    expect(
+      screen.getByRole('button', { name: printName() })
+    ).toBeDisabled()
+  })
+
+  it('directives alone print — the chart head is page content', async () => {
+    const user = userEvent.setup()
+    render(<Host />, { wrapper: I18nTestingProvider })
+    await typeGrid(user, '{{title: Your Song}')
+    expect(
+      screen.getByRole('button', { name: printName() })
+    ).toBeEnabled()
+  })
 })
