@@ -23,8 +23,9 @@ select = ["E", "F", "I", "B", "C4", "UP", "SIM"]
 
 [tool.pyright]
 include = ["app"]
-# separation.py / tempo.py are the torch/librosa humble objects; they import the
-# heavy ML stack that CI deliberately doesn't install, so they're type-checked
+# separation.py / tempo.py / chords.py / structure.py (+ the vendored btc /
+# songformer trees) are the torch/librosa humble objects; they import the heavy
+# ML stack that CI deliberately doesn't install, so they're type-checked
 # manually rather than in the torch-free CI. Everything decidable lives elsewhere.
 exclude = [
     "app/separation.py",

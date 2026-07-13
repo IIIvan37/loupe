@@ -80,5 +80,17 @@ class TestStitchSegments:
         out = stitch_segments([(window, segs)], duration=120.0)
         assert out[0]["end"] == 120.0
 
+    def test_the_interior_is_contiguous_even_across_a_dropped_tail(self) -> None:
+        # A sub-second tail chunk_plan dropped leaves the last owned window
+        # ending before `duration`; stitch does NOT anchor the tail (the core
+        # snap does), but the interior it returns stays back-to-back.
+        window = _win(0.0, 180.0, 0.0, 180.7)
+        segs = [
+            {"start": 0.0, "end": 120.0, "label": "verse"},
+            {"start": 120.0, "end": 180.0, "label": "outro"},
+        ]
+        out = stitch_segments([(window, segs)], duration=180.7)
+        assert out[0]["end"] == out[1]["start"] == 120.0
+
     def test_no_chunks_stitch_to_nothing(self) -> None:
         assert stitch_segments([], duration=120.0) == []

@@ -48,10 +48,13 @@ from fastapi import APIRouter, HTTPException, Request  # isort: skip
 
 # The vendored SongFormer code (and its MuQ/MusicFM backbones) import their own
 # packages top-level (`from muq import …`, `from models.SongFormer import …`),
-# kept verbatim — so the vendored dir goes on the path before we import them.
+# kept verbatim — so the vendored dir goes on the path. APPENDED, not inserted
+# at 0: those top-level names are generic (`models`, `dataset`, `postprocessing`),
+# so a real installed/first-party package of the same name must still win — the
+# vendored dir only resolves names nothing else provides.
 _VENDOR = Path(__file__).parent / "songformer"
 if str(_VENDOR) not in sys.path:
-    sys.path.insert(0, str(_VENDOR))
+    sys.path.append(str(_VENDOR))
 
 from .songformer import inference  # noqa: E402  (needs _VENDOR on sys.path)
 
@@ -68,7 +71,10 @@ _MUSICFM_SHA256 = "218b483a0256ddef736267425fabb166fd97008983696bb9270def464b47b
 _MUSICFM_STATS_URL = "https://huggingface.co/minzwon/MusicFM/resolve/main/msd_stats.json"
 _MUSICFM_STATS_SHA256 = "c36c61ab10ca4d2e7fdfefc3fcc15205316bec276a06a47baa3641a62c546f22"
 # MuQ-large fetches through the HF hub inside `MuQ.from_pretrained`; pin the
-# exact commit so the SSL backbone is reproducible like the sha256'd weights.
+# exact commit for reproducibility. This is weaker than the sha256 pins above
+# (it fixes the source revision, not the bytes), but the repo serves a
+# `model.safetensors` (no arbitrary-object unpickle), so the exposure is a
+# non-reproducible fetch, not an unaudited unpickle.
 _MUQ_NAME = "OpenMuQ/MuQ-large-msd-iter"
 _MUQ_REVISION = "0562a57814f6f8bbd9fdea0a25921a2fce1a841a"
 
@@ -121,15 +127,23 @@ def _load() -> inference.Models:
                         _MUSICFM_STATS_URL, _MUSICFM_STATS_SHA256, _CACHE_DIR / "msd_stats.json"
                     )
                 )
-                _models = inference.load_models(
-                    songformer_ckpt=songformer,
-                    songformer_config=_CONFIG,
-                    musicfm_ckpt=musicfm,
-                    musicfm_stats=stats,
-                    muq_name=_MUQ_NAME,
-                    muq_revision=_MUQ_REVISION,
-                    device=torch.device(_device()),
-                )
+                try:
+                    _models = inference.load_models(
+                        songformer_ckpt=songformer,
+                        songformer_config=_CONFIG,
+                        musicfm_ckpt=musicfm,
+                        musicfm_stats=stats,
+                        muq_name=_MUQ_NAME,
+                        muq_revision=_MUQ_REVISION,
+                        device=torch.device(_device()),
+                    )
+                except Exception as exc:
+                    # Model provisioning failed on a valid request — the MuQ hub
+                    # fetch (not sha256-pinned), a checkpoint load, or the device.
+                    # It's a host problem, not the client's audio, so surface it
+                    # as WeightsUnavailable → 503 like the pinned-weights path,
+                    # not a generic 400.
+                    raise WeightsUnavailable(f"structure model could not load: {exc}") from exc
     return _models
 
 
@@ -150,9 +164,14 @@ def _analyse(data: bytes) -> dict:
         )
     sr = inference.INPUT_SAMPLING_RATE
     duration = len(signal) / sr
+    plan = chunk_plan(duration, _CHUNK_SECONDS, _OVERLAP_SECONDS)
+    if not plan:
+        # No analysable window (a sub-second clip) — answer like /chords does
+        # for too-short audio (→ 400) rather than a misleading empty 200.
+        raise ValueError("audio too short to analyse")
     models = _load()
     chunks: list[tuple] = []
-    for window in chunk_plan(duration, _CHUNK_SECONDS, _OVERLAP_SECONDS):
+    for window in plan:
         a0, a1 = int(window["proc_start"] * sr), int(window["proc_end"] * sr)
         win = max(1, math.ceil(window["proc_end"] - window["proc_start"]))
         boundaries = inference.analyse_array(models, signal[a0:a1], win_size=win)

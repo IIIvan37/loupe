@@ -75,8 +75,13 @@ def stitch_segments(
         else:
             merged.append({"start": seg["start"], "end": seg["end"], "label": seg["label"]})
 
-    # Close the seam holes ownership-trimming leaves: a marker draft wants
-    # back-to-back sections, so each extends to the next section's start.
+    # Close the seam holes ownership-trimming leaves so the interior is
+    # back-to-back: each section extends to the next one's start. The head
+    # and tail are NOT anchored here — a sub-second owned tail that
+    # `chunk_plan` dropped leaves the last section ending before `duration`;
+    # anchoring the first boundary to 0 and the last to the track end is the
+    # pure core's job (it snaps boundaries to the beat grid, and has the
+    # measured first=0 / last=duration rules).
     for i in range(len(merged) - 1):
         merged[i]["end"] = merged[i + 1]["start"]
     return merged
