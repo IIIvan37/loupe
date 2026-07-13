@@ -83,25 +83,26 @@ l'historique.
 **P.2 — grammaire de forme + déroulement mergé (PR #114)** — voir
 l'historique.
 **P.3 mergé (PR #115)** — édition repliée, chart-first — voir l'historique.
-**P.4 phase 1 — déduction de structure, sur `feat/p4-structure-deduction`
-(PR à ouvrir)** : le brouillon de détection n'est plus plat — domaine pur
-`chart-structure.ts` : `deduceStructure` (structure = compression MDL,
-tuilages uniformes 16/12/8/4 vs morceau entier, matching flou ≥ 3/4 des
-mesures **détectées** — le silence ne vote pas, vote majoritaire qui
-nettoie les accords mal détectés) + `renderStructuredSource` (en-têtes
-`[A]`/`[B]`, paire adjacente pliée en `|: … :|`, un objet section partagé
-par type — pli sur l'identité). `detectChords` composé dessus. 2 propriétés
-fast-check (round-trip render→parse→unroll, générateur avec chansons
-structurées). **Stryker 100 % sur chart-structure.ts** (104 mutants, 2 runs
-ciblés). Revue 8 angles : 5 constats fixés en TDD (dont silence-compte-
-comme-accord qui effaçait un accord réel), 3 arbitrés (tie de vote garde la
-1re occurrence ; runs > 2 écrits ; pas d'offset de phase — DP MDL en
-phase 2 si besoin). Gate vert **1173 tests** (+22).
-**Next : pousser la branche + ouvrir/merger la PR P.4 (phase 1). Ensuite :
-P.4 impression (en veille) ou phase 2 structure (port audio) si l'usage le
-réclame.**
+**P.4 phase 1 mergé (PR #116)** — déduction de structure MDL — voir
+l'historique.
+**P.4 impression, sur `feat/p4-print` (PR à ouvrir)** : bouton
+« Imprimer » (désactivé sans contenu — prédicat `chartHasContent` partagé
+avec la feuille), `data-print-region` émis par la LeadSheet **seulement
+avec du contenu** (sans chart, Cmd+P imprime l'app), stylesheet
+`@media print` globale à deux règles enfant (`:has` — branches hors-chemin
+hors du flux, chaîne d'ancêtres aplatie html/body compris, peinture
+strippée, tokens encre-sur-papier ; contrat : UNE région par page).
+`BarsPerRowField` extrait (react-doctor no-giant-component),
+`.chipButton:disabled` sur la peau partagée. Revue 8 angles vérifiée :
+2 fixés en TDD (dont Cmd+P page blanche, reproduit navigateur), 4
+appliqués, 3 arbitrés. Browser-verify du rendu contre la maquette. Gate
+vert **1181 tests** (+8), Stryker skippé (core intouché).
+**Next : pousser la branche + ouvrir/merger la PR P.4 impression — le
+Lot P est alors complet. Ensuite : phase 2 structure (port audio) en
+veille, ou reprendre la roadmap.**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·
+See [P.4 print](sessions/2026-07-13-p4-print.md) ·
+[P.4](sessions/2026-07-13-p4-structure-deduction.md) ·
 [P.3](sessions/2026-07-12-p3-collapsed-edit.md) ·
 [P.2](sessions/2026-07-12-p2-form-unroll.md) ·
 [P.1](sessions/2026-07-12-p1-chart-rendering.md) ·
@@ -116,7 +117,11 @@ See [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·
 
 ### Lot P — lead-sheet chart (2026-07-12 → …)
 
-- 2026-07-13 · **P.4 phase 1 — déduction de structure** (PR à ouvrir) :
+- 2026-07-13 · **P.4 impression** (PR à ouvrir) : « Imprimer » +
+  `data-print-region` conditionnel + stylesheet print `:has` (chart seule,
+  html/body aplatis), BarsPerRowField extrait →
+  [rapport](sessions/2026-07-13-p4-print.md)
+- 2026-07-13 · **P.4 phase 1 — déduction de structure** (PR #116 mergée) :
   `deduceStructure` MDL + vote nettoyant + `renderStructuredSource`
   (`[A]`, `|: :|`), detectChords structuré, Stryker 100 % sur le fichier →
   [rapport](sessions/2026-07-13-p4-structure-deduction.md)
