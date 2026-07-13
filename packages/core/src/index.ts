@@ -11,6 +11,16 @@ export {
   detectChords
 } from './application/detect-chords.ts'
 export type {
+  DetectStructureDeps,
+  DetectStructureInput,
+  DetectStructureResult,
+  StructureDetectionErrorCode
+} from './application/detect-structure.ts'
+export {
+  detectStructure,
+  StructureDetectionError
+} from './application/detect-structure.ts'
+export type {
   DetectTempoDeps,
   DetectTempoInput,
   DetectTempoResult,
@@ -52,6 +62,7 @@ export type {
   StemPlaybackEngine,
   StemSeparator,
   StemSource,
+  StructureDetector,
   TempoDetector,
   TrackMetadata,
   TrackMetadataReader,
@@ -196,6 +207,8 @@ export type {
   SeparationStatus
 } from './domain/separation.ts'
 export { initialSeparation, separationReducer } from './domain/separation.ts'
+export type { DetectedSection } from './domain/song-structure.ts'
+export { snapSectionsToGrid } from './domain/song-structure.ts'
 export type {
   SpeedTrainerPolicy,
   SpeedTrainerState
