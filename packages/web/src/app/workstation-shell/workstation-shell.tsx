@@ -237,11 +237,6 @@ export function WorkstationShell({
 
   // Separate the loaded track and wire the stems (+ metronome) into the mixer.
   const separateAndLoad = useSeparateAndLoad({ separation, tempo, mixer, metronome })
-  const handleSeparate = () => {
-    if (loadedAudio) {
-      separateAndLoad(loadedAudio)
-    }
-  }
 
   // Reload/close would silently drop unsaved work — let the browser confirm.
   useUnloadGuard(session.unsavedWork)
@@ -302,6 +297,7 @@ export function WorkstationShell({
         }}
         exportError={separation.exportError}
         onDismissExportError={separation.dismissExportError}
+        structureGateReason={structureDetection.gateReason}
       />
       <ShellDialogs
         shortcutsOpen={shortcutsOpen}
@@ -350,7 +346,7 @@ export function WorkstationShell({
         onReimport={openFilePicker}
         canSeparate={isLoaded && loadedAudio !== undefined}
         serverHealth={serverHealth}
-        onSeparate={handleSeparate}
+        onSeparate={() => separateAndLoad(loadedAudio)}
         chordChart={chordChart}
         pitchSemitones={pitchSemitones}
         chartHeader={deriveChartHeader(metadata, session.trackName, tempo.analysis)}

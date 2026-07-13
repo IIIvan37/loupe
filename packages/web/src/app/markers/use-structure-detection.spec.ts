@@ -7,8 +7,15 @@ import {
   type StructureDetector
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useStructureDetection } from './use-structure-detection.ts'
+
+// The analysis gate only engages on the offload path (VITE_STRUCTURE_URL set).
+// A developer's .env.local may set it, so pin it OFF for the default cases —
+// their synchronous detector semantics assume the token-less local path. The
+// two gate cases opt back in.
+beforeEach(() => vi.stubEnv('VITE_STRUCTURE_URL', ''))
+afterEach(() => vi.unstubAllEnvs())
 
 const AUDIO: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
@@ -252,5 +259,54 @@ describe('useStructureDetection', () => {
     )
     await act(() => result.current.detect())
     expect(detect).not.toHaveBeenCalled()
+  })
+
+  it('blocks the analysis and surfaces the reason when the gate fails', async () => {
+    // The gate only runs on the offload path; stub it on for these two tests.
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const detect = vi.fn(async () => [])
+    const { result } = renderHook(() =>
+      useStructureDetection({
+        loadedAudio: AUDIO,
+        grid: NO_GRID,
+        onSections: vi.fn(),
+        detector: { detect },
+        gate: async () => ({ ok: false, reason: 'quota-exceeded' })
+      })
+    )
+    await act(() => result.current.detect())
+    // The core detector never ran — the gate stopped it — and the reason is out.
+    expect(detect).not.toHaveBeenCalled()
+    expect(result.current.gateReason).toBe('quota-exceeded')
+    expect(result.current.detecting).toBe(false)
+    expect(result.current.error).toBeUndefined()
+  })
+
+  it('runs and clears any prior gate reason once the gate passes', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const onSections = vi.fn()
+    const gate = vi
+      .fn<
+        () => Promise<{ ok: true } | { ok: false; reason: 'sign-in-required' }>
+      >()
+      .mockResolvedValueOnce({ ok: false, reason: 'sign-in-required' })
+      .mockResolvedValue({ ok: true })
+    const { result } = renderHook(() =>
+      useStructureDetection({
+        loadedAudio: AUDIO,
+        grid: NO_GRID,
+        onSections,
+        detector: detectorOf([
+          { startSeconds: 0, endSeconds: 12, label: 'intro' }
+        ]),
+        gate
+      })
+    )
+    await act(() => result.current.detect())
+    expect(result.current.gateReason).toBe('sign-in-required')
+
+    await act(() => result.current.detect())
+    expect(result.current.gateReason).toBeUndefined()
+    expect(onSections).toHaveBeenCalledOnce()
   })
 })

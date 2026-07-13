@@ -1,0 +1,5 @@
+{
+  "//": "Deno config for the Edge Functions. Its presence stops Deno walking up to the pnpm workspace root (which it would otherwise try to migrate into package.json).",
+  "lint": { "rules": { "tags": ["recommended"] } },
+  "fmt": { "semiColons": false, "singleQuote": true }
+}

@@ -1,7 +1,10 @@
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
+import { appAuth } from '../../auth/app-auth.ts'
+import type { AuthPort, MintFailureReason } from '../../auth/auth-port.ts'
 import type { ServerHealth } from '../../projects/use-server-health.ts'
+import { AccountMenuSlot } from '../account/account-menu-slot.tsx'
 import { Header } from '../header/header.tsx'
 import type { UrlImport } from '../header/use-import-from-url.ts'
 import { AlertBanner } from '../ui/alert-banner.tsx'
@@ -57,6 +60,11 @@ interface ShellHeaderProps {
   /** The stem-export failure banner (owned by the separation hook). */
   readonly exportError: string | undefined
   readonly onDismissExportError: () => void
+  /** The auth port (J2): injected in tests, else the app singleton. `null` when
+   * Supabase isn't configured → no account control. */
+  readonly auth?: AuthPort | null
+  /** A blocked structure analysis pops the account menu open with a prompt. */
+  readonly structureGateReason?: MintFailureReason | undefined
 }
 
 /**
@@ -75,10 +83,15 @@ export function ShellHeader({
   onShowShortcuts,
   onShowProjects,
   exportError,
-  onDismissExportError
+  onDismissExportError,
+  auth,
+  structureGateReason
 }: ShellHeaderProps) {
   const { t } = useLingui()
   const { projects, trackName, currentProject } = session
+  // The account port: injected in tests, else the app singleton (null when
+  // Supabase isn't configured → no control, the analysis gate is a no-op).
+  const resolvedAuth = auth !== undefined ? auth : appAuth()
 
   // A running URL download narrates itself in the state chip, phase by phase.
   const downloadMessage =
@@ -149,6 +162,14 @@ export function ShellHeader({
           downloadMessage !== undefined ? urlImport.cancel : undefined
         }
         onShowProjects={onShowProjects}
+        accountSlot={
+          resolvedAuth && (
+            <AccountMenuSlot
+              auth={resolvedAuth}
+              gateReason={structureGateReason}
+            />
+          )
+        }
       />
       {urlImport.error !== undefined && (
         <AlertBanner

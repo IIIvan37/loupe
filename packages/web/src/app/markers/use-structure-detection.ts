@@ -7,7 +7,13 @@ import {
   type StructureDetector
 } from '@app/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  type EnsureTokenResult,
+  ensureAnalysisToken,
+  isAnalysisOffloaded
+} from '../../audio/analysis-token.ts'
 import { createStructureDetector } from '../../audio/create-structure-detector.ts'
+import type { MintFailureReason } from '../../auth/auth-port.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 
 export interface StructureDetection {
@@ -19,6 +25,13 @@ export interface StructureDetection {
    * goes to the console, never the UI.
    */
   readonly error: StructureDetectionErrorCode | undefined
+  /**
+   * Why the analysis was BLOCKED before it ran (offload only): the user must
+   * sign in, redeem a code, or has spent the quota. A web-auth concern kept out
+   * of the core's `error` codes — the shell opens the account menu on it.
+   * Cleared by the next run.
+   */
+  readonly gateReason: MintFailureReason | undefined
   /** Whether the last run landed sections (drives the a11y announcement). */
   readonly succeeded: boolean
   /** Detect the loaded track's structure and hand the sections to `onSections`. */
@@ -39,12 +52,16 @@ export function useStructureDetection({
   loadedAudio,
   grid,
   onSections,
-  detector
+  detector,
+  gate = ensureAnalysisToken
 }: {
   readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
   readonly onSections: (sections: readonly DetectedSection[]) => void
   readonly detector?: StructureDetector | undefined
+  /** Acquire the analyse token before running (offload gate). Defaults to the
+   * app gate; a no-op pass locally. Injected in tests. */
+  readonly gate?: () => Promise<EnsureTokenResult>
 }): StructureDetection {
   const engine = useMemo(
     () => detector ?? createStructureDetector(),
@@ -52,6 +69,7 @@ export function useStructureDetection({
   )
   const [detecting, setDetecting] = useState(false)
   const [error, setError] = useState<StructureDetectionErrorCode>()
+  const [gateReason, setGateReason] = useState<MintFailureReason>()
   const [succeeded, setSucceeded] = useState(false)
   const runIdRef = useRef(0)
   // The in-flight run's abort controller: a superseded run must release the
@@ -69,6 +87,7 @@ export function useStructureDetection({
     // The outcome belongs to the replaced track: a stale error (or a stale
     // success announcement) must not survive onto the new one.
     setError(undefined)
+    setGateReason(undefined)
     setSucceeded(false)
   }
 
@@ -89,6 +108,18 @@ export function useStructureDetection({
     const { loadedAudio: audio, grid: beatGrid } = inputRef.current
     if (!audio) {
       return
+    }
+    // Gate first (offload only): a token failure blocks the run and tells the
+    // shell to open the account menu — the analysis never reaches the core.
+    // Only awaited when offloaded, so the token-less local path starts the
+    // detector synchronously (the abort/busy semantics below rely on that).
+    setGateReason(undefined)
+    if (isAnalysisOffloaded()) {
+      const gated = await gate()
+      if (!gated.ok) {
+        setGateReason(gated.reason)
+        return
+      }
     }
     controllerRef.current?.abort()
     const controller = new AbortController()
@@ -123,5 +154,5 @@ export function useStructureDetection({
     }
   }
 
-  return { detecting, error, succeeded, detect }
+  return { detecting, error, gateReason, succeeded, detect }
 }
