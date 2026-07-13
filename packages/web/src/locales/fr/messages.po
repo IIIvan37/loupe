@@ -75,127 +75,127 @@ msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:279
+#: src/app/lead-sheet/chord-chart-panel.tsx:280
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:275
+#: src/app/lead-sheet/chord-chart-panel.tsx:276
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:201
+#: src/app/lead-sheet/chord-chart-panel.tsx:202
 msgid "chords.detect-done"
 msgstr "Grille pré-remplie depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:164
+#: src/app/lead-sheet/chord-chart-panel.tsx:165
 msgid "chords.detect-failed"
 msgstr "Échec de la détection des accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:27
+#: src/app/lead-sheet/chord-chart-panel.tsx:28
 msgid "chords.detect-needs-grid"
 msgstr "Détecter d'abord le tempo — la grille de mesures ancre les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:23
+#: src/app/lead-sheet/chord-chart-panel.tsx:24
 msgid "chords.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:199
-#: src/app/lead-sheet/chord-chart-panel.tsx:273
+#: src/app/lead-sheet/chord-chart-panel.tsx:200
+#: src/app/lead-sheet/chord-chart-panel.tsx:274
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:258
+#: src/app/lead-sheet/chord-chart-panel.tsx:259
 #: src/app/workstation-shell/shell-test-kit.tsx:249
 msgid "chords.edit"
 msgstr "Modifier"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:335
+#: src/app/lead-sheet/chord-chart-panel.tsx:336
 msgid "chords.empty-hint"
 msgstr "Aucune grille — saisir les accords via « Modifier » ou lancer la détection."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:45
+#: src/app/lead-sheet/chord-chart-panel.tsx:46
 msgid "chords.error.engine-unavailable"
 msgstr "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:41
+#: src/app/lead-sheet/chord-chart-panel.tsx:42
 msgid "chords.error.no-chords"
 msgstr "Aucun accord détecté sur ce morceau."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:51
+#: src/app/lead-sheet/chord-chart-panel.tsx:52
 msgid "chords.error.timeout"
 msgstr "L'analyse des accords a expiré sur le serveur — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:55
+#: src/app/lead-sheet/chord-chart-panel.tsx:56
 msgid "chords.error.too-large"
 msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:59
+#: src/app/lead-sheet/chord-chart-panel.tsx:60
 msgid "chords.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:308
+#: src/app/lead-sheet/chord-chart-panel.tsx:309
 msgid "chords.follow-pitch"
 msgstr "Transposer la grille pour suivre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:304
+#: src/app/lead-sheet/chord-chart-panel.tsx:305
 msgid "chords.follow-pitch-confirm"
 msgstr "Réécrire la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:194
+#: src/app/lead-sheet/chord-chart-panel.tsx:195
 msgid "chords.followed"
 msgstr "Grille transposée"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:351
+#: src/app/lead-sheet/chord-chart-panel.tsx:352
 #: src/app/workstation-shell/shell-test-kit.tsx:245
 #: src/app/workstation-shell/shell-test-kit.tsx:250
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:292
+#: src/app/lead-sheet/chord-chart-panel.tsx:293
 msgid "chords.pitch-mismatch"
 msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:355
+#: src/app/lead-sheet/chord-chart-panel.tsx:356
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:249
+#: src/app/lead-sheet/chord-chart-panel.tsx:250
 msgid "chords.print"
 msgstr "Imprimer"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:213
+#: src/app/lead-sheet/chord-chart-panel.tsx:214
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:221
+#: src/app/lead-sheet/chord-chart-panel.tsx:222
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:232
+#: src/app/lead-sheet/chord-chart-panel.tsx:233
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
@@ -272,7 +272,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:310
+#: src/app/workstation-shell/workstation-shell.tsx:325
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -325,7 +325,7 @@ msgstr "Confirmer l'import — la session actuelle sera remplacée"
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:120
 #: src/app/workstation-shell/shell-test-kit.tsx:225
-#: src/app/workstation-shell/workstation-shell.tsx:216
+#: src/app/workstation-shell/workstation-shell.tsx:231
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
@@ -545,7 +545,7 @@ msgid "loops.trainer-title"
 msgstr "Rampe de tempo"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:23
+#: src/app/markers/marker-controls.tsx:122
 msgid "markers.add"
 msgstr "+ Repère"
 
@@ -585,7 +585,7 @@ msgid "markers.rename-title"
 msgstr "Renommer le repère"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:15
+#: src/app/markers/marker-controls.tsx:114
 msgid "markers.section-label"
 msgstr "Repères"
 
@@ -837,6 +837,106 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:146
+msgid "structure.detect"
+msgstr "Détecter la structure"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:142
+msgid "structure.detect-confirm"
+msgstr "Remplacer les repères ?"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:104
+msgid "structure.detect-done"
+msgstr "Repères de structure posés depuis la détection"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:95
+msgid "structure.detect-failed"
+msgstr "Échec de la détection de la structure"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:12
+msgid "structure.detect-needs-server"
+msgstr "Lancer le serveur local pour détecter la structure."
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:102
+msgid "structure.detecting"
+msgstr "Détection de la structure…"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:137
+msgid "structure.detecting-short"
+msgstr "Détection…"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:29
+msgid "structure.error.engine-unavailable"
+msgstr "Le moteur de structure n'est pas installé sur le serveur — voir server/README."
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:25
+msgid "structure.error.no-structure"
+msgstr "Aucune structure détectée sur ce morceau."
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:35
+msgid "structure.error.timeout"
+msgstr "L'analyse de la structure a expiré sur le serveur — réessayer."
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:39
+msgid "structure.error.too-large"
+msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:43
+msgid "structure.error.unknown"
+msgstr "Erreur inattendue — détails dans la console du navigateur."
+
+#. js-lingui-explicit-id
+#: src/app/markers/section-label.ts:20
+msgid "structure.section.bridge"
+msgstr "Pont"
+
+#. js-lingui-explicit-id
+#: src/app/markers/section-label.ts:19
+msgid "structure.section.chorus"
+msgstr "Refrain"
+
+#. js-lingui-explicit-id
+#: src/app/markers/section-label.ts:21
+msgid "structure.section.inst"
+msgstr "Instrumental"
+
+#. js-lingui-explicit-id
+#: src/app/markers/section-label.ts:13
+msgid "structure.section.intro"
+msgstr "Intro"
+
+#. js-lingui-explicit-id
+#: src/app/markers/section-label.ts:22
+msgid "structure.section.outro"
+msgstr "Outro"
+
+#. js-lingui-explicit-id
+#: src/app/markers/section-label.ts:15
+msgid "structure.section.pre-chorus"
+msgstr "Pré-refrain"
+
+#. js-lingui-explicit-id
+#: src/app/markers/section-label.ts:23
+msgid "structure.section.silence"
+msgstr "Silence"
+
+#. js-lingui-explicit-id
+#: src/app/markers/section-label.ts:14
+msgid "structure.section.verse"
+msgstr "Couplet"
+
+#. js-lingui-explicit-id
 #: src/app/tempo/tempo-panel.tsx:215
 msgid "tempo.align"
 msgstr "Caler la grille sur la tête de lecture"
@@ -930,7 +1030,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:193
+#: src/app/workstation-shell/workstation-shell.tsx:208
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 

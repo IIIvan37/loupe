@@ -131,6 +131,7 @@ describe('restoreSession', () => {
         rename: vi.fn(),
         move: vi.fn(),
         remove: vi.fn(),
+        setSections: vi.fn(),
         clear: vi.fn(),
         restore: vi.fn()
       } satisfies Markers,

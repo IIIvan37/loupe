@@ -84,6 +84,7 @@ export default defineConfig({
         '**/audio/download-blob.ts',
         '**/audio/create-chord-detector.ts',
         '**/audio/create-separator.ts',
+        '**/audio/create-structure-detector.ts',
         '**/audio/create-tempo-detector.ts',
         '**/audio/create-track-source.ts',
         '**/audio/music-metadata-reader.ts'

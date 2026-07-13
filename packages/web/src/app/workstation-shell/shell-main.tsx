@@ -15,6 +15,7 @@ import type { useLoopEditing } from '../loops/use-loop-editing.ts'
 import type { useLoops } from '../loops/use-loops.ts'
 import type { SpeedTrainer } from '../loops/use-speed-trainer.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
+import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import type { useMarkers } from '../markers/use-markers.ts'
 import type { useMixer } from '../mixer/use-mixer.ts'
 import type { ServerHealth } from '../../projects/use-server-health.ts'
@@ -75,6 +76,8 @@ interface ShellMainProps {
   readonly chartHeader: ChartHeaderData
   /** « Détecter les accords » — the chord-detection flow the panel drives. */
   readonly chordDetection: ChordDetection
+  /** « Détecter la structure » — the flow that places section markers. */
+  readonly structureDetection: StructureDetection
 }
 
 /**
@@ -112,7 +115,8 @@ export function ShellMain({
   chordChart,
   pitchSemitones,
   chartHeader,
-  chordDetection
+  chordDetection,
+  structureDetection
 }: ShellMainProps) {
   // Stems the separation masked as near-silent — captioned in the mixer gutter.
   const undetectedStems =
@@ -148,6 +152,20 @@ export function ShellMain({
           <MarkerControls
             disabled={!isLoaded}
             onAdd={() => markers.addAt(position.get())}
+            detection={{
+              detecting: structureDetection.detecting,
+              error: structureDetection.error,
+              succeeded: structureDetection.succeeded,
+              // A detection replaces the current markers — arm the confirm.
+              hasMarkers: markers.markers.length > 0,
+              onDetect: () => void structureDetection.detect(),
+              // The structure engine only needs the server to ANSWER (it runs
+              // on CPU); no grid is required, so 'server' is the only block.
+              blockedReason:
+                serverHealth === 'offline' || serverHealth === 'checking'
+                  ? 'server'
+                  : undefined
+            }}
           />
           <ShellStage
             isLoaded={isLoaded}

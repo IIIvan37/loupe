@@ -9,6 +9,7 @@ import {
 import { msg } from '@lingui/core/macro'
 import { useState } from 'react'
 import { i18n } from '../../i18n/i18n.ts'
+import type { SectionMarker } from './section-markers.ts'
 
 // The auto label minted for a fresh marker: « Repère 1 », « Repère 2 », …
 const defaultMarkerName = msg({
@@ -25,6 +26,13 @@ export interface Markers {
   /** Move an existing marker to a new time (same id and label kept). */
   readonly move: (id: string, timeSeconds: number) => void
   readonly remove: (id: string) => void
+  /**
+   * Replace the whole list with section markers (structure detection): each
+   * point becomes a fresh, identity-minted marker. Detection owns the timeline,
+   * so this supersedes the current markers — the button confirms first when any
+   * exist.
+   */
+  readonly setSections: (sections: readonly SectionMarker[]) => void
   /** Drop every marker — e.g. when a new track is loaded. */
   readonly clear: () => void
   /** Replace the whole list with a persisted one (opening a project). */
@@ -70,6 +78,20 @@ export function useMarkers(): Markers {
     setMarkers((current) => removeMarker(current, id))
   }
 
+  function setSections(sections: readonly SectionMarker[]): void {
+    setMarkers(
+      sections.reduce<MarkerList>(
+        (list, section) =>
+          addMarker(list, {
+            id: crypto.randomUUID(),
+            timeSeconds: section.timeSeconds,
+            label: section.label
+          }),
+        emptyMarkerList
+      )
+    )
+  }
+
   function clear(): void {
     setMarkers(emptyMarkerList)
   }
@@ -78,5 +100,5 @@ export function useMarkers(): Markers {
     setMarkers(next)
   }
 
-  return { markers, addAt, rename, move, remove, clear, restore }
+  return { markers, addAt, rename, move, remove, setSections, clear, restore }
 }
