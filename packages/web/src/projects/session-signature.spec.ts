@@ -159,6 +159,34 @@ describe('sessionSignature', () => {
     expect(sessionSignature(explicit)).toBe(sessionSignature(implicit))
   })
 
+  it('changes when the downbeat pattern changes under the same meter', () => {
+    // A meter correction re-flags the grid uniformly: even landing back on
+    // the same beatsPerBar, a lost irregular bar must read as an unsaved edit.
+    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const beats = (downbeatEvery: (index: number) => boolean) =>
+      Array.from({ length: 8 }, (_, index) => ({
+        timeSeconds: index * 0.5,
+        downbeat: downbeatEvery(index)
+      }))
+    const irregular: SignedSession = {
+      ...base,
+      tempo: {
+        metronome,
+        beatsPerBar: 4,
+        grid: beats((index) => index === 0 || index === 4 || index === 6)
+      }
+    }
+    const regular: SignedSession = {
+      ...base,
+      tempo: {
+        metronome,
+        beatsPerBar: 4,
+        grid: beats((index) => index % 4 === 0)
+      }
+    }
+    expect(sessionSignature(irregular)).not.toBe(sessionSignature(regular))
+  })
+
   it('changes when a manual tempo override is set', () => {
     // The override is a user edit (typed/tapped/aligned), unlike the derived
     // detection — setting one must read « Non enregistré ».

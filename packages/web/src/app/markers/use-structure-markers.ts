@@ -23,12 +23,15 @@ import {
 export function useStructureMarkers({
   loadedAudio,
   grid,
+  beatsPerBar,
   markers,
   chart,
   detector
 }: {
   readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
+  /** The session's felt bar length, for the relabel's {time:} marks. */
+  readonly beatsPerBar?: number | undefined
   readonly markers: Markers
   /** The chord grid's lifted source — relabelled in place when it has content.
    * `setSource` keeps the key offset (the chords are unchanged), unlike a draft. */
@@ -51,7 +54,8 @@ export function useStructureMarkers({
             chart.source,
             sections,
             grid,
-            readStoredBarsPerRow() ?? DEFAULT_BARS_PER_ROW
+            readStoredBarsPerRow() ?? DEFAULT_BARS_PER_ROW,
+            beatsPerBar
           )
         )
       }

@@ -20,26 +20,51 @@ type MeasureLabels = readonly (string | undefined)[]
 type Meters = readonly (number | undefined)[]
 
 /** A signature-change line: the standard `{time: N/M}` notation. The grid's
-    beats are the ♩ pulse, so the denominator is always a quarter. */
-function timeLine(meter: number): string {
+    beats are the ♩ pulse, so the denominator is always a quarter. The ONE
+    place the notation is spelled — the draft head (detectChords) and the
+    in-grid marks print through it, so the two can never drift. */
+export function timeLine(meter: number): string {
   return `{time: ${meter}/4}`
 }
 
 /**
  * The meters a chart draft may print from a grid: the per-measure beat counts
- * and their dominant. The FINAL measure is distrusted unless it lands back on
- * the dominant — the last downbeat interval runs to the track's end, so an odd
- * count there is usually truncation (a fade-out), never a signature change.
+ * and their dominant. Three policies keep detector noise off the chart:
+ *
+ * - The session's `beatsPerBar` is the authority when given — after an octave
+ *   fold the grid's raw beat density doubles or halves while the felt meter
+ *   does not, so every count rescales to the felt bar (a non-integer rescale
+ *   is noise: no meter worth printing).
+ * - Only complete bars elect the voted dominant (the trailing one runs to the
+ *   track end) — the same electorate as `detectMeter`, so the chart head can
+ *   never contradict the tempo panel.
+ * - EDGE bars are distrusted unless they land on the dominant: the first
+ *   interval is often a pickup, the last is usually truncation (a fade-out) —
+ *   neither is a signature change. This also guarantees the render never
+ *   opens with a bare `{time:}` lead that would collide with the draft's own
+ *   head directive in `parseChart`'s head zone.
  */
-export function chartMeters(grid: BeatGrid): {
+export function chartMeters(
+  grid: BeatGrid,
+  beatsPerBar?: number
+): {
   readonly meters: Meters
   readonly dominant: number
 } {
   const counted = meterPerMeasure(grid)
-  const dominant = dominantMeter(counted)
-  const meters = counted.map((meter, index) =>
-    index < counted.length - 1 || meter === dominant ? meter : undefined
-  )
+  const complete = counted.slice(0, -1)
+  const voted = dominantMeter(complete.length > 0 ? complete : counted)
+  const dominant = beatsPerBar ?? voted
+  const factor = dominant / voted
+  const meters = counted.map((count, index) => {
+    const meter = count * factor
+    const interior = index > 0 && index < counted.length - 1
+    return Number.isInteger(meter) &&
+      meter >= 1 &&
+      (interior || meter === dominant)
+      ? meter
+      : undefined
+  })
   return { meters, dominant }
 }
 
@@ -94,22 +119,26 @@ export function renderStructuredSource(
           ? opening
           : undefined
       if (lead !== undefined) running = lead
-      let body: string
-      if (run.count === 2) {
-        const folded = segmentRows(measures, meters, running, barsPerRow)
-        body = withRepeatBars(folded.text)
-        running = folded.running
-      } else {
-        const copies: string[] = []
-        for (let copy = 0; copy < run.count; copy += 1) {
-          // A section ending off its opening meter re-states it on the next
-          // written copy — the walk's running meter carries across copies.
-          const rendered = segmentRows(measures, meters, running, barsPerRow)
-          copies.push(rendered.text)
-          running = rendered.running
+      // Every copy walks segmentRows so a section ending off its opening
+      // meter re-states it on the next written copy (memoized per entry
+      // meter — identical copies render once). A pair folds into |: … :|
+      // ONLY when both passes read identically: repeat bars cannot re-state
+      // a meter, so a non-returning change forbids the fold.
+      const memo = new Map<number | undefined, ReturnType<typeof segmentRows>>()
+      const copies: string[] = []
+      for (let copy = 0; copy < run.count; copy += 1) {
+        let rendered = memo.get(running)
+        if (rendered === undefined) {
+          rendered = segmentRows(measures, meters, running, barsPerRow)
+          memo.set(running, rendered)
         }
-        body = copies.join('\n')
+        copies.push(rendered.text)
+        running = rendered.running
       }
+      const body =
+        run.count === 2 && copies[0] === copies[1]
+          ? withRepeatBars(copies[0] as string)
+          : copies.join('\n')
       const headed =
         runs.length === 1 ? body : `[${run.section.label}]\n${body}`
       return lead === undefined ? headed : `${timeLine(lead)}\n${headed}`
@@ -172,15 +201,17 @@ export function relabelChartBySections(
   source: string,
   sections: readonly DetectedSection[],
   grid: BeatGrid,
-  barsPerRow: number
+  barsPerRow: number,
+  beatsPerBar?: number
 ): string {
   const labels = playedLabels(source)
   if (labels.length === 0 || sections.length === 0) {
     return source
   }
   // The grid also knows each measure's length: re-mark the meter changes on
-  // the relabelled chart, exactly as the detection draft does.
-  const { meters, dominant } = chartMeters(grid)
+  // the relabelled chart, exactly as the detection draft does (the session's
+  // beatsPerBar keeps a folded grid's density from reading as the meter).
+  const { meters, dominant } = chartMeters(grid, beatsPerBar)
   return renderStructuredSource(
     cutBySections(labels, meters, sections, grid),
     barsPerRow,
@@ -379,19 +410,18 @@ function sectionLabel(index: number): string {
  * (first occurrence) — so grouping cleans the chart, not just the layout.
  * Generic on the cell value: chord labels and bar meters ride the same vote.
  */
-function votedBlock<T>(occurrences: readonly (readonly T[])[]): readonly T[] {
-  const representative = occurrences[0] as readonly T[]
+function votedBlock<T>(
+  occurrences: readonly (readonly (T | undefined)[])[]
+): readonly (T | undefined)[] {
+  const representative = occurrences[0] as readonly (T | undefined)[]
   return representative.map((value, position) => {
-    const counts = new Map<T, number>()
+    const counts = new Map<T | undefined, number>()
     for (const block of occurrences) {
-      counts.set(
-        block[position] as T,
-        (counts.get(block[position] as T) ?? 0) + 1
-      )
+      counts.set(block[position], (counts.get(block[position]) ?? 0) + 1)
     }
     let winner = value
     // The representative's own value is always counted, so its tally exists.
-    let best = counts.get(value) as number
+    let best = counts.get(value) ?? 0
     for (const [candidate, count] of counts) {
       if (count > best) {
         winner = candidate

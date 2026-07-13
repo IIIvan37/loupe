@@ -68,16 +68,10 @@ interface KeyedSection {
  */
 function keyed(
   chart: ChordChart,
+  meterAt: ReadonlyMap<number, string>,
   currentMeasureIndex?: number
 ): readonly KeyedSection[] {
   const form = chart.form
-  // Signature changes are recorded at their written measure — index the lookup.
-  const meterAt = new Map(
-    (chart.meterChanges ?? []).map((change) => [
-      change.measure,
-      change.signature
-    ])
-  )
   // The playhead's measure counts through the whole chart, not per section.
   let global = 0
   // A volta prints its number once, on the measure opening the group.
@@ -94,6 +88,7 @@ function keyed(
         ...(form?.fine === index + 1 ? ['Fine'] : []),
         ...(form?.dc === index + 1 ? ['D.C.'] : [])
       ].join(' · ')
+      const meterHere = meterAt.get(index)
       return {
         key: `s${s}m${m}`,
         current: index === currentMeasureIndex,
@@ -108,7 +103,7 @@ function keyed(
         fermata: measure.fermata === true,
         ...(markAfter !== '' && { markAfter }),
         codaHere: form?.coda === index,
-        ...(meterAt.has(index) && { meterHere: meterAt.get(index) as string })
+        ...(meterHere !== undefined && { meterHere })
       }
     })
     const base = { key: `s${s}`, measures }
@@ -133,9 +128,20 @@ export function LeadSheet({
   // ticks); only re-parse and re-key when the inputs actually change.
   // Parsing and unrolling depend on the source alone; only the (cheap)
   // keying re-runs as the playhead moves from measure to measure.
-  const { chart, unrolled } = useMemo(() => {
+  const { chart, unrolled, meterAt } = useMemo(() => {
     const parsed = parseChart(source)
-    return { chart: parsed, unrolled: unrollChart(parsed) }
+    // Signature changes are recorded at their written measure — index the
+    // lookup here, off the per-measure keying pass the playhead re-runs.
+    return {
+      chart: parsed,
+      unrolled: unrollChart(parsed),
+      meterAt: new Map(
+        (parsed.meterChanges ?? []).map((change) => [
+          change.measure,
+          change.signature
+        ])
+      )
+    }
   }, [source])
   const { sections, directives } = useMemo(() => {
     // The playhead index counts PLAYED measures; the form's unroll says which
@@ -145,10 +151,10 @@ export function LeadSheet({
         ? undefined
         : unrolled[currentMeasureIndex]
     return {
-      sections: keyed(chart, written),
+      sections: keyed(chart, meterAt, written),
       directives: chart.directives
     }
-  }, [chart, unrolled, currentMeasureIndex])
+  }, [chart, meterAt, unrolled, currentMeasureIndex])
   const layout =
     barsPerRow === undefined
       ? undefined

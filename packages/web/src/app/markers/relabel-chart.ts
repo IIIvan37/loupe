@@ -17,11 +17,12 @@ export function relabelChartFromSections(
   source: string,
   sections: readonly DetectedSection[],
   grid: BeatGrid,
-  barsPerRow: number
+  barsPerRow: number,
+  beatsPerBar?: number
 ): string {
   const named = sections.map((section) => ({
     ...section,
     label: sectionDisplayLabel(section.label)
   }))
-  return relabelChartBySections(source, named, grid, barsPerRow)
+  return relabelChartBySections(source, named, grid, barsPerRow, beatsPerBar)
 }

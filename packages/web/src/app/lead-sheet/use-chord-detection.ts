@@ -39,11 +39,15 @@ export interface ChordDetection {
 export function useChordDetection({
   loadedAudio,
   grid,
+  beatsPerBar,
   onDraft,
   detector
 }: {
   readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
+  /** The session's felt bar length — the meter the draft's {time:} head
+   * prints (a folded grid's raw beat density is not the meter). */
+  readonly beatsPerBar?: number | undefined
   readonly onDraft: (source: string) => void
   readonly detector?: ChordDetector | undefined
 }): ChordDetection {
@@ -72,7 +76,7 @@ export function useChordDetection({
 
   // Held in a latest-ref so `detect` always reads the committed-fresh values
   // without re-identifying itself (the panel keys nothing on it).
-  const inputRef = useLatest({ loadedAudio, grid, onDraft })
+  const inputRef = useLatest({ loadedAudio, grid, beatsPerBar, onDraft })
 
   // Abort in an EFFECT, not the render-time block above: the replaced track's
   // pending upload still holds the server's analysis slot, and an effect
@@ -84,7 +88,11 @@ export function useChordDetection({
   }, [loadedAudio])
 
   async function detect(barsPerRow: number): Promise<void> {
-    const { loadedAudio: audio, grid: beatGrid } = inputRef.current
+    const {
+      loadedAudio: audio,
+      grid: beatGrid,
+      beatsPerBar: bar
+    } = inputRef.current
     if (!audio) {
       return
     }
@@ -96,7 +104,13 @@ export function useChordDetection({
     setError(undefined)
     setSucceeded(false)
     const result = await detectChords(
-      { audio, grid: beatGrid, barsPerRow, signal: controller.signal },
+      {
+        audio,
+        grid: beatGrid,
+        barsPerRow,
+        beatsPerBar: bar,
+        signal: controller.signal
+      },
       { detector: engine }
     )
     // Commit only if this is still the latest run (no newer detect), the

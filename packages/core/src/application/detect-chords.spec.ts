@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { DetectedChordSpan } from '../domain/chord-detection.ts'
+import { meteredGrid } from '../domain/metered-grid-fixture.ts'
 import type { BeatGrid } from '../domain/tempo.ts'
 import { ChordDetectionError, detectChords } from './detect-chords.ts'
 import type { ChordDetector, DecodedAudio } from './ports.ts'
@@ -12,19 +13,6 @@ function grid4(bars: number): BeatGrid {
     timeSeconds: index * 0.5,
     downbeat: index % 4 === 0
   }))
-}
-
-/** A grid whose i-th measure holds `meters[i]` beats (beats every 0.5s). */
-function mixedGrid(meters: readonly number[]): BeatGrid {
-  const beats: { timeSeconds: number; downbeat: boolean }[] = []
-  let time = 0
-  for (const beatsInBar of meters) {
-    for (let beat = 0; beat < beatsInBar; beat += 1) {
-      beats.push({ timeSeconds: time, downbeat: beat === 0 })
-      time += 0.5
-    }
-  }
-  return beats
 }
 
 /** One span per measure of `grid`, holding `labels[i]` over the i-th bar. */
@@ -166,10 +154,50 @@ describe('detectChords', () => {
   it('heads the draft with the dominant time signature and marks meter changes', async () => {
     // Four-beat bars with ONE two-beat bar (The Logical Song's 2/4 turnaround):
     // the draft names the dominant 4/4 up front and marks the change in-grid.
-    const grid = mixedGrid([4, 4, 2, 4, 4])
+    const grid = meteredGrid([4, 4, 2, 4, 4])
     const spans = spansPerMeasure(['C', 'Am', 'F', 'G', 'C'], grid)
     const result = await detectChords(
       { audio, grid, barsPerRow: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.source).toBe(
+      [
+        '{key: C}',
+        '{time: 4/4}',
+        '| C | Am |',
+        '{time: 2/4}',
+        '| F |',
+        '{time: 4/4}',
+        '| G | C |'
+      ].join('\n')
+    )
+  })
+
+  it('never lets a short first bar collide with the {time:} head', async () => {
+    // A pickup-length first interval (a common artifact at track start) must
+    // NOT print a lead {time: 2/4} line above the grid — parseChart would
+    // read it as a second head directive and drop the dominant.
+    const pickupGrid = meteredGrid([2, 4, 4, 4])
+    const spans = spansPerMeasure(['C', 'Am', 'F', 'G'], pickupGrid)
+    const result = await detectChords(
+      { audio, grid: pickupGrid, barsPerRow: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(grid(result.source)).toBe('| C | Am | F | G |')
+    expect(result.source).toContain('{time: 4/4}')
+    expect(result.source).not.toContain('{time: 2/4}')
+  })
+
+  it('prints the felt meter, not the doubled density of a folded grid', async () => {
+    // After an octave ×2 fold every downbeat interval counts twice the felt
+    // bar; the session's beatsPerBar is the authority the head prints, and
+    // the 2/4 turnaround still marks as 2/4 — never 4/8.
+    const grid = meteredGrid([8, 8, 4, 8, 8], 0.25)
+    const spans = spansPerMeasure(['C', 'Am', 'F', 'G', 'C'], grid)
+    const result = await detectChords(
+      { audio, grid, barsPerRow: 4, beatsPerBar: 4 },
       { detector: fakeDetector(spans) }
     )
     if (!result.ok) throw new Error('expected ok')

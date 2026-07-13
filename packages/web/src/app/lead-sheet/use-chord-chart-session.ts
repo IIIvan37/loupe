@@ -15,11 +15,13 @@ import {
 export function useChordChartSession({
   loadedAudio,
   grid,
+  beatsPerBar,
   detector,
   onSourceEdited
 }: {
   readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
+  readonly beatsPerBar?: number | undefined
   readonly detector?: ChordDetector | undefined
   /**
    * Fired after every USER edit of the source — typing and seated drafts, but
@@ -47,6 +49,7 @@ export function useChordChartSession({
   const detection = useChordDetection({
     loadedAudio,
     grid,
+    beatsPerBar,
     // A landed draft is in the track's own key — it resets the key offset.
     onDraft: chart.seatDraft,
     detector

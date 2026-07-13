@@ -9,6 +9,7 @@ import {
 } from './chart-structure.ts'
 import { parseChart, renderChartSource, unrollChart } from './chord-chart.ts'
 import { formatChordSymbol } from './chord-symbol.ts'
+import { meteredGrid } from './metered-grid-fixture.ts'
 import type { DetectedSection } from './song-structure.ts'
 import type { BeatGrid } from './tempo.ts'
 
@@ -439,19 +440,6 @@ describe('chartSectionAnchors', () => {
   })
 })
 
-/** A grid whose i-th measure holds `meters[i]` beats (beats every 0.5s). */
-function meteredGrid(meters: readonly number[]): BeatGrid {
-  const beats: { timeSeconds: number; downbeat: boolean }[] = []
-  let time = 0
-  for (const beatsInBar of meters) {
-    for (let beat = 0; beat < beatsInBar; beat += 1) {
-      beats.push({ timeSeconds: time, downbeat: beat === 0 })
-      time += 0.5
-    }
-  }
-  return beats
-}
-
 describe('chartMeters', () => {
   it('reads per-measure meters and their dominant from the grid', () => {
     expect(chartMeters(meteredGrid([4, 4, 2, 4]))).toEqual({
@@ -467,6 +455,33 @@ describe('chartMeters', () => {
       meters: [4, 4, undefined],
       dominant: 4
     })
+  })
+
+  it('distrusts a short FIRST measure — a pickup, not a signature', () => {
+    // Also what keeps the render from opening with a bare {time:} lead that
+    // parseChart would swallow into the head-directive zone.
+    expect(chartMeters(meteredGrid([2, 4, 4, 4]))).toEqual({
+      meters: [undefined, 4, 4, 4],
+      dominant: 4
+    })
+  })
+
+  it('rescales a folded grid to the felt beats-per-bar', () => {
+    // An octave ×2 fold doubles every count; the session's meter is the
+    // authority the chart prints, so the 2/4 bar survives as 2/4, not 4/8.
+    expect(chartMeters(meteredGrid([8, 8, 4, 8], 0.25), 4)).toEqual({
+      meters: [4, 4, 2, 4],
+      dominant: 4
+    })
+  })
+
+  it('drops a count the rescale cannot map to whole beats', () => {
+    expect(chartMeters(meteredGrid([8, 8, 5, 8], 0.25), 4).meters).toEqual([
+      4,
+      4,
+      undefined,
+      4
+    ])
   })
 })
 
@@ -523,6 +538,23 @@ describe('renderStructuredSource — meter changes', () => {
         '{time: 2/4}',
         '| G |',
         '{time: 4/4}',
+        '| C |',
+        '{time: 2/4}',
+        '| G |',
+        '{time: 4/4}',
+        '| C |',
+        '{time: 2/4}',
+        '| G |'
+      ].join('\n')
+    )
+  })
+
+  it('never folds a pair whose meter does not return by the repeat', () => {
+    // Repeat bars cannot re-state a meter: pass two of |: … :| would be read
+    // in the wrong signature, so the copies are written out instead.
+    const section = { label: 'A', measures: ['C', 'G'], meters: [4, 2] }
+    expect(renderStructuredSource([section, section], 2, 4)).toBe(
+      [
         '| C |',
         '{time: 2/4}',
         '| G |',

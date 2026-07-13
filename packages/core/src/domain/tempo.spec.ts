@@ -1,5 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import { meteredGrid } from './metered-grid-fixture.ts'
 import type { BeatGrid, DetectedBeat } from './tempo.ts'
 import {
   appendTap,
@@ -488,19 +489,6 @@ describe('detectMeter', () => {
     expect(DEFAULT_BEATS_PER_BAR).toBe(4)
   })
 })
-
-/** A grid whose i-th measure holds `meters[i]` beats (beats every 0.5s). */
-function meteredGrid(meters: readonly number[]): BeatGrid {
-  const beats: { timeSeconds: number; downbeat: boolean }[] = []
-  let time = 0
-  for (const beatsInBar of meters) {
-    for (let beat = 0; beat < beatsInBar; beat += 1) {
-      beats.push({ timeSeconds: time, downbeat: beat === 0 })
-      time += 0.5
-    }
-  }
-  return beats
-}
 
 describe('meterPerMeasure', () => {
   it('counts the beats of each downbeat interval', () => {

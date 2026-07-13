@@ -73,9 +73,11 @@ export interface Tempo {
   /**
    * Correct the meter by hand (a 4/4 song the detector read as 6 temps): the
    * grid's downbeats are re-flagged every N beats on the detected bar phase,
-   * every beat instant kept. Returns the corrected analysis so the caller can
-   * re-seat the click, or undefined when there is nothing to correct (no
-   * analysis, the same meter, a degenerate or out-of-range value).
+   * every beat instant kept. Re-committing the CURRENT meter is a correction
+   * too — it regularises a grid whose dominant was right but whose bars were
+   * noisy. Returns the corrected analysis so the caller can re-seat the
+   * click, or undefined when there is nothing to correct (no analysis, a
+   * degenerate or out-of-range value).
    */
   readonly overrideMeter: (beatsPerBar: number) => TempoAnalysis | undefined
   /**
@@ -242,12 +244,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
       return undefined
     }
     const bar = Math.floor(beatsPerBar)
-    if (
-      !Number.isFinite(bar) ||
-      bar < 1 ||
-      bar > MAX_BEATS_PER_BAR ||
-      bar === analysis.beatsPerBar
-    ) {
+    if (!Number.isFinite(bar) || bar < 1 || bar > MAX_BEATS_PER_BAR) {
       return undefined
     }
     const corrected: TempoAnalysis = {
@@ -256,9 +253,11 @@ export function useTempo(detector?: TempoDetector): Tempo {
       beatsPerBar: bar
     }
     // The user's meter is an authority: a late in-flight detection must not
-    // overwrite it (same token dance as the manual tempo).
+    // overwrite it (same token dance as the manual tempo), and a stale
+    // failure message must not outlive a successful correction.
     supersede()
     setDetecting(false)
+    setError(undefined)
     setAnalysis(corrected)
     return corrected
   }

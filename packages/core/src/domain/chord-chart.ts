@@ -374,9 +374,9 @@ function walkForm(
   return played
 }
 
-/** A full-line `{time: N/M}` meter mark — the standard signature-change
-    notation. Only a numeric N/M qualifies; anything else stays grid content. */
-const TIME_MARK = /^\{\s*time\s*:\s*(\d+)\s*\/\s*(\d+)\s*\}$/i
+/** A `{time: …}` payload: the numeric N/M signature (`4/4`, `6/8`). Only this
+    qualifies as a meter mark; any other value stays grid content. */
+const TIME_SIGNATURE = /^(\d+)\s*\/\s*(\d+)$/
 
 export function parseChart(text: string): ChordChart {
   const sections: Section[] = []
@@ -411,13 +411,18 @@ export function parseChart(text: string): ChordChart {
 
     // Mid-grid, a `{time: N/M}` line is a signature change (never reached at
     // the head — the directive branch above consumes it as the chart's meter).
-    const time = TIME_MARK.exec(line)
-    if (time) {
-      meterChanges.push({
-        measure: written,
-        signature: `${time[1]}/${time[2]}`
-      })
-      continue
+    // It rides the SAME directive grammar as the head so the two can never
+    // tokenize differently; only the payload check is its own.
+    const braced = DIRECTIVE.exec(line)
+    if (braced && (braced[1] as string).trim().toLowerCase() === 'time') {
+      const time = TIME_SIGNATURE.exec((braced[2] as string).trim())
+      if (time) {
+        meterChanges.push({
+          measure: written,
+          signature: `${time[1]}/${time[2]}`
+        })
+        continue
+      }
     }
 
     const header = HEADER.exec(line)

@@ -1,4 +1,5 @@
 import {
+  type BeatGrid,
   chartTransposedBy,
   DEFAULT_BEATS_PER_BAR,
   type LoopLibrary,
@@ -9,6 +10,7 @@ import {
   type ProjectActiveLoop,
   type ProjectChordChart,
   type ProjectTuning,
+  sanitizeBeatGrid,
   tuningOrDefault
 } from '@app/core'
 import { DEFAULT_METRONOME_CHANNEL } from '../app/tempo/metronome-stem.ts'
@@ -31,9 +33,13 @@ export interface SignedSession {
         readonly octaveShift?: number
         readonly manual?: ManualTempo | undefined
         /** The bar length behind the grid — detected, or the user's meter
-         * correction. Signed (unlike the grid) so a correction reads as an
-         * unsaved edit; absent ⇔ common time on manifests that predate it. */
+         * correction. Signed so a correction reads as an unsaved edit;
+         * absent ⇔ common time on manifests that predate it. */
         readonly beatsPerBar?: number | undefined
+        /** The beat grid itself: its DOWNBEAT PATTERN is signed (a meter
+         * correction rewrites it — same beatsPerBar, different bars — and
+         * must still read as an unsaved edit). */
+        readonly grid?: BeatGrid | undefined
       }
     | undefined
   /** The chord chart source text; absent ⇔ the user has typed none. */
@@ -64,6 +70,16 @@ export function sessionSignature(session: SignedSession): string {
   // Absent meter (a manifest that predates it) reads as common time, the same
   // default the restore path seats — a reopened old project signs equal.
   const beatsPerBar = session.tempo?.beatsPerBar ?? DEFAULT_BEATS_PER_BAR
+  // The downbeat pattern as beat indices, over the SANITIZED grid — the
+  // restore path re-seats a sanitized grid, so both sides must sign the
+  // grid the same way or a reopened old project would read dirty.
+  const grid = session.tempo?.grid
+  const downbeats =
+    grid === undefined
+      ? null
+      : sanitizeBeatGrid(grid).flatMap((beat, index) =>
+          beat.downbeat ? [index] : []
+        )
   // Absent chart (a manifest that predates it) reads like an empty one, so a
   // reopened old project still signs « Enregistré » with the empty textarea.
   const chordChart = session.chordChart?.source ?? ''
@@ -92,6 +108,7 @@ export function sessionSignature(session: SignedSession): string {
     octaveShift,
     manualTempo: manual ? [manual.bpm, manual.phaseSeconds] : null,
     beatsPerBar,
+    downbeats,
     chordChart: chordChart === '' ? null : chordChart,
     // Absent chart or pre-offset manifest reads as untransposed 0, so a
     // reopened old project still signs equal.

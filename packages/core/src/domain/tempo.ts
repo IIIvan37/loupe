@@ -44,15 +44,10 @@ export function buildBeatGrid(beats: readonly DetectedBeat[]): BeatGrid {
  * stands in; no beats at all falls back to common time.
  */
 export function detectMeter(beats: readonly DetectedBeat[]): number {
-  const bars: number[] = []
-  let count: number | undefined
-  for (const beat of beats) {
-    if (beat.barPosition === 1) {
-      if (count !== undefined) bars.push(count)
-      count = 0
-    }
-    if (count !== undefined) count += 1
-  }
+  // The same downbeat→downbeat projection the chart reads (one loop to rule
+  // measures), minus the trailing bar — open-ended, it runs to the last beat
+  // instead of closing on a downbeat, so it never testifies.
+  const bars = meterPerMeasure(buildBeatGrid(beats)).slice(0, -1)
   if (bars.length > 0) return dominantMeter(bars)
   const max = beats.reduce((seen, beat) => Math.max(seen, beat.barPosition), 0)
   return max > 0 ? max : DEFAULT_BEATS_PER_BAR

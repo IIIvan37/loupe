@@ -1,7 +1,8 @@
 import {
   chartMeters,
   deduceStructure,
-  renderStructuredSource
+  renderStructuredSource,
+  timeLine
 } from '../domain/chart-structure.ts'
 import { respellChartSource } from '../domain/chord-chart.ts'
 import { chordLabelPerMeasure } from '../domain/chord-detection.ts'
@@ -17,6 +18,13 @@ export interface DetectChordsInput {
   readonly grid: BeatGrid
   /** The lead-sheet's row width, so the draft wraps like the user's layout. */
   readonly barsPerRow: number
+  /**
+   * The session's felt bar length. The grid's raw beat density is not the
+   * meter after an octave fold (×2 doubles every count) — this is the
+   * authority the per-measure counts rescale to. Absent, the grid's own
+   * dominant stands in.
+   */
+  readonly beatsPerBar?: number | undefined
   /** Cooperative cancellation, forwarded to the detector port. */
   readonly signal?: AbortSignal
 }
@@ -109,7 +117,7 @@ export async function detectChords(
     // The grid also carries each bar's length: the head names the dominant
     // signature and the body marks where the song leaves it ({time: N/M},
     // The Logical Song's 2/4 turnaround), voted per section like the chords.
-    const { meters, dominant } = chartMeters(input.grid)
+    const { meters, dominant } = chartMeters(input.grid, input.beatsPerBar)
     const body = respellChartSource(
       renderStructuredSource(
         deduceStructure(labels, meters),
@@ -120,7 +128,7 @@ export async function detectChords(
     )
     return {
       ok: true,
-      source: `{key: ${keyName(key)}}\n{time: ${dominant}/4}\n${body}`
+      source: `{key: ${keyName(key)}}\n${timeLine(dominant)}\n${body}`
     }
   } catch (e) {
     const code = e instanceof ChordDetectionError ? e.code : 'unknown'
