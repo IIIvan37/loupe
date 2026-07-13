@@ -98,16 +98,19 @@ strippée, tokens encre-sur-papier ; contrat : UNE région par page).
 appliqués, 3 arbitrés. Browser-verify du rendu contre la maquette. Gate
 vert **1181 tests** (+8), Stryker skippé (core intouché).
 **P.4 impression mergé (PR #117) — Lot P complet.**
-**Next : phase 2 structure — retour produit du 2026-07-13 : la déduction
-MDL déçoit, direction segmentation audio + marqueurs de structure.
-[Plan](structure-detection-plan.md) arbitré (bouton séparé) et **spike S.0
-FAIT : GO pour SongFormer** — tourne sur MPS (torch 2.12), qualité nettement
-au-dessus du MDL sur 2 vrais morceaux (Logical Song, Queen), mais ~16 Go en
-pleine fenêtre → **chunking 180 s obligatoire** (RAM 0,2 Go, RTF 0,09×,
-validé). Cible prod pas tranchée → doit tenir sur ce Mac 16 Go.
-Next : S.1 serveur `POST /structure` (moule chords.py + chunking), après
-raffinage optionnel de la règle de couture (« intro » parasite aux
-frontières).**
+**Phase 2 structure — segmentation audio (la déduction MDL de P.4 déçoit).**
+[Plan](structure-detection-plan.md) · [rapport S.0+S.1](sessions/2026-07-13-structure-detection-s0-s1.md).
+**S.0 spike : GO pour SongFormer + chunking** (MPS/torch 2.12, qualité > MDL
+sur 2 vrais morceaux ; pleine fenêtre OOM 16 Go → chunking 180 s obligatoire,
+RAM 0,2 Go ; snap aux downbeats mesuré, Δ médian 0,14 s).
+**S.1 serveur `POST /structure` sur `feat/structure-server-s1` (PR à ouvrir)** :
+cœur pur TDD (`chunk_plan` + `stitch_segments`, 16 tests) + shell torch
+`structure.py` (moule chords.py, poids épinglés, inférence chunkée, 503/504)
++ SongFormer/MuQ/MusicFM vendorés. Vérifié bout-en-bout (l'endpoint HTTP
+reproduit le spike). Revue 8 angles → 5 fixes. Gate serveur vert **180 tests**.
+**Next : ouvrir/merger la PR S.1, puis S.2 core (`StructureDetector` port +
+`detectStructure` + snap aux downbeats, outside-in) puis S.3 web (bouton
+« Détecter la structure » + marqueurs).**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [P.4 print](sessions/2026-07-13-p4-print.md) ·
 [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·

@@ -16,7 +16,7 @@ import sys
 import pytest
 from fastapi.testclient import TestClient
 
-_OPTIONAL = ("app.separation", "app.tempo", "app.chords", "app.download")
+_OPTIONAL = ("app.separation", "app.tempo", "app.chords", "app.structure", "app.download")
 
 
 @pytest.fixture
@@ -56,6 +56,13 @@ def test_chords_fallback_is_503(app_without_ml):
     res = client.post("/chords", content=b"")
     assert res.status_code == 503
     assert "chord detection unavailable" in res.json()["detail"]
+
+
+def test_structure_fallback_is_503(app_without_ml):
+    client = TestClient(app_without_ml.app, base_url="http://localhost")
+    res = client.post("/structure", content=b"")
+    assert res.status_code == 503
+    assert "structure detection unavailable" in res.json()["detail"]
 
 
 def test_download_fallback_is_ndjson_error(app_without_ml):
