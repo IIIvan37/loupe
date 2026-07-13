@@ -98,15 +98,26 @@ WARM  wall=  0.9s   (infer 0.5s)
   snapshots) + `first-infer 23.8s` (autotune CUDA au 1ᵉ forward, PAS de
   l'inférence — un warmup dans `@modal.enter()` l'absorbe).
 
-Leviers restants (spike v2) : **Memory Snapshots (CPU)** sur le load (~2,5×) +
-**warmup forward** dans `enter()` pour tuer les 23,8 s + GPU snapshots (alpha) si
-besoin. **Cible : ~15-20 s à froid, 0,5 s à chaud.**
+**Spike v2 fait (2026-07-13)** — ce qui marche et ce qui ne marche pas :
+- ✅ **Warmup dans `enter()`** (un forward bidon) : absorbe l'autotune → l'infer
+  réel passe **23,8 s → 0,5 s** (froid ET chaud).
+- ❌ **Memory Snapshots (CPU)** : **rejetés**. L'état à restaurer = plusieurs Go
+  de poids en RAM ; le restore (~34 s) est aussi lent que recharger. Les
+  snapshots gagnent quand les imports/JIT dominent, pas des Go de poids. Cold
+  restauré mesuré = **54,7 s**, aucun gain.
+- **Plancher du froid ≈ 50 s** (load + move GPU + autotune), incompressible sans
+  **GPU memory snapshots (alpha)** — le seul levier qui capturerait l'état GPU
+  chaud — ou un conteneur toujours chaud (`min_containers=1` ≈ $575/mois, non).
 
-Deux conséquences produit tranchées par ces chiffres :
-- **Tempo auto-à-l'import ≠ Modal** (62 s avant la grille = non) → tempo instant
-  local/WASM, ou analyse explicite. Les tâches à la demande peuvent payer un
-  « Analyse… » ponctuel.
-- **Sync reste viable** (62 s tient dans un timeout HTTP) une fois le froid réduit.
+**Conséquences produit :**
+- **Tempo auto-à-l'import ≠ Modal** (~50 s avant la grille = non) → tempo instant
+  local/WASM, ou analyse explicite.
+- **Sync reste viable** (~50 s tient dans un timeout HTTP).
+- **Mitigation retenue = warm-on-import prefetch** : au chargement d'un morceau,
+  tirer un ping de warmup en tâche de fond vers Modal → le conteneur est chaud
+  quand l'user clique une analyse à la demande. **Cacher le froid derrière le
+  temps de réflexion** plutôt que le combattre. (GPU snapshots alpha en réserve
+  si insuffisant.)
 
 ## 6. Coût (rappel, à re-mesurer)
 

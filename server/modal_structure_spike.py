@@ -100,25 +100,31 @@ app = modal.App("loupe-structure-spike")
 
 
 # --- The GPU worker --------------------------------------------------------
-# enable_memory_snapshot is OFF for this first measurement: we want the NAIVE
-# baked-weights cold start (the honest baseline). If it's too slow, the next
-# spike turns it on and loads in @modal.enter(snap=True) — see the runbook.
+# Recommended shape after the spike (see MODAL_SPIKE.md "Results"): bake the
+# weights (v1) AND warm the CUDA kernels in @modal.enter() (a dummy forward), so
+# the real request's inference is ~0.5s instead of ~24s. CPU MEMORY SNAPSHOTS
+# were tried and REJECTED: the state is multi-GB of weights, so restoring the
+# snapshot (~34s) is as slow as reloading — no win. The residual ~50s cold
+# (load + move-to-GPU + autotune) only falls further with GPU snapshots (alpha);
+# the product instead HIDES it (warm-on-import prefetch), see the plan §5.
 @app.cls(
     image=image,
     gpu="L4",
     timeout=900,
-    scaledown_window=120,
-    # enable_memory_snapshot=True,  # <- v2 lever, see MODAL_SPIKE.md
+    scaledown_window=120,  # reuse the warm container across a user's session
 )
 class Structure:
     @modal.enter()
     def load(self) -> None:
-        """Cold-path cost: import the SSL stack + load the three models to GPU."""
-        started = time.perf_counter()
+        """Cold path: load the models to GPU, then warm the kernels off-request."""
         from app import structure  # noqa: PLC0415
 
-        structure._load()  # loads SongFormer + MusicFM + MuQ onto cuda
+        started = time.perf_counter()
+        structure._load()  # SongFormer + MusicFM + MuQ onto cuda
         self.load_seconds = time.perf_counter() - started
+        started = time.perf_counter()
+        structure._analyse(_probe_wav(seconds=8))  # absorb CUDA autotune
+        self.warmup_seconds = time.perf_counter() - started
 
     @modal.method()
     def analyse(self, wav_bytes: bytes) -> dict:
@@ -129,6 +135,7 @@ class Structure:
         result = structure._analyse(wav_bytes)
         return {
             "load_seconds": getattr(self, "load_seconds", None),
+            "warmup_seconds": getattr(self, "warmup_seconds", None),
             "infer_seconds": time.perf_counter() - started,
             "segments": len(result["segments"]),
         }
@@ -174,11 +181,11 @@ def main() -> None:
     warm = worker.analyse.remote(wav)
     warm_wall = time.perf_counter() - warm_wall
 
-    print("\n=== structure cold-start spike (L4, weights baked) ===")
+    print("\n=== structure cold-start spike (L4, weights baked + warmup) ===")
     print(f"COLD  wall={cold_wall:6.1f}s  load={cold['load_seconds']:6.1f}s  "
-          f"infer={cold['infer_seconds']:6.1f}s  segments={cold['segments']}")
-    print(f"WARM  wall={warm_wall:6.1f}s  "
-          f"infer={warm['infer_seconds']:6.1f}s  segments={warm['segments']}")
-    print("\nRead: COLD wall ≈ container boot + model load + infer; WARM wall ≈ "
-          "infer only. If COLD load dominates and hurts, enable memory snapshots "
-          "(see MODAL_SPIKE.md).")
+          f"warmup={cold['warmup_seconds']:6.1f}s  infer={cold['infer_seconds']:5.1f}s")
+    print(f"WARM  wall={warm_wall:6.1f}s  infer={warm['infer_seconds']:5.1f}s")
+    print("\nRead: the warmup moves the CUDA autotune off the request path, so "
+          "COLD infer ≈ WARM infer (~0.5s). The ~50s cold (load + warmup) is paid "
+          "once per session (scaledown_window keeps it warm); hide it with a "
+          "warm-on-import prefetch — see docs/structure-modal-offload-plan.md §5.")
