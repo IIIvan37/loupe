@@ -82,15 +82,31 @@ La séparation garde son endpoint propre (sortie lourde, cycle de vie distinct).
 | **Transfert audio** | Upload direct du WAV (comme aujourd'hui). URL signée si la taille gêne. | Vie privée : la musique quitte la machine (cf. §7). |
 | **Tempo auto-import** | Le tempo tourne AUTO à chaque import → en archi A, chaque import = un aller-retour Modal (+ cold start possible) avant de voir la grille. | La plus grosse conséquence UX. Options : cold start rapide (§5) ; ou rendre l'analyse explicite/dégroupée ; ou plus tard un beat-tracker WASM local pour la grille immédiate. À trancher. |
 
-## 5. Cold start (le seul inconnu technique)
+## 5. Cold start — MESURÉ (spike v1, 2026-07-13)
 
-Sans optim : ~60-120 s (imports torch + JIT + poids SSL). Leviers, à combiner :
-- **Memory Snapshots (CPU)** — accélère imports/JIT (~2,5×).
-- **Poids bakés / Volume** — jamais téléchargés à chaud.
-- **GPU Memory Snapshots (alpha)** — capture la vRAM, poids inclus (jusqu'à 10×).
-- `scaledown_window` modéré → salves d'un même user sur conteneur chaud.
+**Spike v1 fait** (poids bakés, L4, naïf — sans snapshot ; voir
+[server/MODAL_SPIKE.md](../server/MODAL_SPIKE.md)) :
 
-Cible : ~90 s → ~10-15 s. **C'est le risque à lever par un spike en premier.**
+```
+COLD  wall= 61.7s   (boot ~6s + load 31.6s + first-infer 23.8s)
+WARM  wall=  0.9s   (infer 0.5s)
+```
+
+- **À chaud : 0,5 s** — excellent. Avec `scaledown_window=120s`, une session ne
+  paie le froid qu'une fois.
+- **À froid ~62 s** : `load 31.6s` (imports SSL + ~2 Go poids → GPU, cible des
+  snapshots) + `first-infer 23.8s` (autotune CUDA au 1ᵉ forward, PAS de
+  l'inférence — un warmup dans `@modal.enter()` l'absorbe).
+
+Leviers restants (spike v2) : **Memory Snapshots (CPU)** sur le load (~2,5×) +
+**warmup forward** dans `enter()` pour tuer les 23,8 s + GPU snapshots (alpha) si
+besoin. **Cible : ~15-20 s à froid, 0,5 s à chaud.**
+
+Deux conséquences produit tranchées par ces chiffres :
+- **Tempo auto-à-l'import ≠ Modal** (62 s avant la grille = non) → tempo instant
+  local/WASM, ou analyse explicite. Les tâches à la demande peuvent payer un
+  « Analyse… » ponctuel.
+- **Sync reste viable** (62 s tient dans un timeout HTTP) une fois le froid réduit.
 
 ## 6. Coût (rappel, à re-mesurer)
 
