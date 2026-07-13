@@ -49,13 +49,38 @@ impeccable / react-doctor / knip / jscpd / tokens all pass. `WorkstationShell`
 kept < 300 lines (folded the `handleSeparate` guard into `useSeparateAndLoad`).
 `biome`/`knip` exclude `supabase/` (Deno has its own `deno.json` fmt/lint).
 
-## Not done here (needs the user's cloud accounts)
+## Deployed & verified in prod (2026-07-13)
 
-- Provision the cloud Supabase project + `db push` + `functions deploy` + set the
-  shared secret; redeploy `modal_app.py` with `loupe-analyze-jwt`; set
-  `VITE_SUPABASE_*` + `VITE_STRUCTURE_URL` in `.env.local`.
-- **Full end-to-end browser-verify** on :5173 is blocked until the above — the
-  runbook lists the curl checks to run against the real infra.
+Project **Loupe** (`kqvpftctrkrtdwuvpnva`, eu-north-1). Migration `db push`ed,
+Edge Function deployed, `modal_app.py` redeployed with the shared secret; the
+full journey works end-to-end: magic-link sign-in → redeem code → « Détecter la
+structure » → section markers → quota decremented.
+
+**Modal link curl-verified** (`/warmup`, no GPU cost): no token → 401 (JWT
+switch took effect, static token dead) · token signed with the shared secret →
+200 · wrong secret → 401.
+
+**Two bugs found only at deploy, now fixed + tested in the PR:**
+- **Edge CORS**: `Access-Control-Allow-Headers` omitted `apikey` (which the
+  browser sends), so the mint preflight failed → "analysis unavailable". REST
+  calls (sign-in/redeem) worked because their CORS is the platform's, not ours.
+- **Stale quota chip**: `useAuth` re-read the account status on sign-in/redeem
+  but not after an analysis. The mint returns used/quota → publish it
+  (`onAnalysisUsage`) → the chip updates live.
+
+**Deploy gotchas (for the runbook / next time):**
+- The shared secret must be **hex** (`openssl rand -hex 32`): a base64 value
+  breaks `supabase secrets set NAME=VALUE` (splits on the `=` padding). Set the
+  SAME value on the Edge Function AND Modal — verify with the sha256 digests
+  (`supabase secrets list` shows a digest, not the value).
+- `supabase functions deploy` fails under **Colima** (eszip bundler can't
+  bind-mount); use **`--use-api`** to bundle server-side.
+- `VITE_SUPABASE_URL` is `https://<project-ref>.supabase.co` — the **ref**, not
+  the project name.
+
+**Known-by-design:** the minted token is cached ~5 min (quota-free reuse for the
+warmup), so quota counts *mints* (≈ a 5-min window), not each click. The hard
+backstop is the Modal spend cap. Tighten in J3 if needed.
 
 ## Local-verify gotchas (Colima)
 

@@ -7,24 +7,30 @@ and in Modal.
 
 ## 0. One secret, three places
 
-Generate it once (32+ bytes):
+Generate it **hex** (not base64 — a `=`/`+`/`/` in the value breaks
+`supabase secrets set NAME=VALUE`, which splits on `=`):
 
 ```sh
-openssl rand -base64 48   # -> ANALYZE_JWT_SECRET
+openssl rand -hex 32   # -> ANALYZE_JWT_SECRET
 ```
 
 It goes to: the Supabase Edge Function secret `ANALYZE_JWT_SECRET`, the Modal
 secret `loupe-analyze-jwt`, and NOWHERE in the web bundle (the app never signs).
+The two must be **identical** — verify with the sha256 digests (`supabase
+secrets list` shows a digest, and `python -c "import hashlib;…"` on the value).
 
 ## 1. Supabase project
 
 ```sh
 supabase login
 supabase link --project-ref <your-project-ref>
-supabase db push                     # applies supabase/migrations/*.sql
-supabase functions deploy mint-analyze-token
-supabase secrets set ANALYZE_JWT_SECRET='<the secret>'
+supabase db push                                    # applies supabase/migrations/*.sql
+supabase functions deploy mint-analyze-token --use-api  # --use-api: bundle server-side
+supabase secrets set ANALYZE_JWT_SECRET="$(cat server/.analyze-jwt-secret.local)"
 ```
+
+> `--use-api` bundles the function server-side — needed because the local eszip
+> bundler can't bind-mount under **Colima** (`failed to open eszip`).
 
 - **Auth**: enable Email (magic link) in the dashboard; add the app origin to the
   redirect allow-list.
@@ -54,9 +60,13 @@ cd server && .venv/bin/modal deploy modal_app.py
 
 ```sh
 VITE_STRUCTURE_URL=https://<your>--loupe-structure-api-web.modal.run
-VITE_SUPABASE_URL=https://loupe.supabase.co
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co   # the REF, not the project name
 VITE_SUPABASE_ANON_KEY=<anon key>          # public by design (RLS guards data)
 ```
+
+> Deployed once already: project **Loupe** = ref `kqvpftctrkrtdwuvpnva`
+> (eu-north-1). Restart the Vite dev server after writing `.env.local` so it
+> picks up the vars.
 
 With these set the header shows the account control; analysis actions gate on
 sign-in → beta code → quota.

@@ -125,8 +125,8 @@ S.3a](sessions/2026-07-13-structure-web-s3.md).
 `/structure` déployé (bearer statique), routage adapter + warm-on-import.
 [plan](modal-offload-impl-plan.md).
 
-**En cours : J2 — auth Supabase (branche `feat/supabase-j2`, gate verte, non
-commitée)** : remplace le token statique par de l'auth par-utilisateur.
+**J2 — auth Supabase (PR #126, branche `feat/supabase-j2`) — DÉPLOYÉ ET VÉRIFIÉ
+EN PROD (2026-07-13)** : remplace le token statique par de l'auth par-utilisateur.
 Décisions produit : gating `beta_codes`, quota ~20/mois, gate paresseuse inline
 (contrôle compte dans le header). **2.1** schéma
 (`supabase/migrations/…j2_auth_quota.sql`) : `beta_codes`/`beta_members`/`usage`
@@ -138,11 +138,15 @@ pytest 100 %) branché dans `modal_app.py`, token statique supprimé ; interop
 djwt↔python prouvée ; serveur 197 pytest. **2.4** web : `AuthPort` (supabase-js),
 gate token async (`analysis-token.ts`), `AccountMenu` header (magic link + code
 + quota), gate câblée dans la détection structure (`gateReason` hors du cœur
-pur), i18n `account.*`. Gate **verte — 1280 tests** (+31), WorkstationShell < 300.
-**Reste** (comptes cloud de l'user) : provisionner Supabase +
-`db push`/`functions deploy` + secret partagé `loupe-analyze-jwt`, redéployer
-`modal_app.py`, `.env.local` (`VITE_SUPABASE_*`) → puis vérif navigateur bout-
-en-bout. [runbook](j2-supabase-runbook.md) ·
+pur), i18n `account.*`. Gate **verte — 1283 tests**, WorkstationShell < 300.
+**Déployé** sur le projet Supabase **Loupe** (`kqvpftctrkrtdwuvpnva`) : migration
+`db push`, Edge Function (`--use-api`), `modal_app.py` redéployé, secret hex
+partagé aligné Edge↔Modal. Parcours complet vérifié (magic link → code →
+détection → marqueurs → quota). Deux bugs corrigés au déploiement (commit
+`a353071`) : CORS `apikey` manquant sur l'Edge (preflight du mint), et chip quota
+non rafraîchi après analyse (`onAnalysisUsage`). Pièges consignés : secret
+**hex** obligatoire (base64 casse le split `=`), `functions deploy --use-api`
+(Colima), `VITE_SUPABASE_URL` = le **ref**. [runbook](j2-supabase-runbook.md) ·
 [rapport J2](sessions/2026-07-13-j2-supabase-auth.md).
 
 **En cours : S.3b — réétiquetage de la grille d'accords (branche
