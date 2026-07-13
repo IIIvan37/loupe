@@ -6,8 +6,10 @@ Implements the HTTP contract the web chord-detector adapter speaks:
       -> 200 application/json   {"chords": [{"start": s, "end": s,
                                              "label": "A:min"}, ...]}
 
-Labels are mir syntax from the 25-class maj-min vocabulary (`N` = no chord);
-translating them into the web grid's own chord tokens is the adapter's job.
+Labels are mir syntax — by default from the 170-class large vocabulary
+(7ths, sus2/4, dim, aug, 6…; `N` = no chord, `X` = out-of-vocabulary), or from
+the 25-class maj-min set when LOUPE_CHORDS_VOCA=majmin. Translating them into
+the web grid's own chord tokens is the adapter's job.
 The model is BTC (Park et al., ISMIR 2019, MIT), vendored under `app/btc/` and
 run on the full mix — its training regime. This module is the thin torch
 shell: decode the WAV, resample, CQT, run the model per window (padding and
@@ -35,7 +37,7 @@ import torch
 
 from .btc import BTC_model
 from .btc_windows import window_plan
-from .chord_spans import chord_spans
+from .chord_spans import LARGE_VOCABULARY, MAJMIN_VOCABULARY, chord_spans
 from .limits import (
     INFERENCE_TIMEOUT_SECONDS,
     MAX_UPLOAD_BYTES,
@@ -56,8 +58,32 @@ router = APIRouter()
 # and carries numpy scalars, so `weights_only=True` cannot load it), so we only
 # ever unpickle the exact audited artifact. Point LOUPE_CHORDS_CHECKPOINT at a
 # local copy to skip the download.
-WEIGHTS_URL = "https://github.com/jayg996/BTC-ISMIR19/raw/master/test/btc_model.pt"
-WEIGHTS_SHA256 = "71c2c5db17e8c43b8a9a9da5db36ef2d667158c07a214eba16344c154c00bf54"
+# Two published checkpoints, same architecture bar the output width. The
+# large-voca one (170 classes: 7ths, sus2/4, dim, aug, 6…) is the default — it
+# is what makes the drafted grid musically usable; set LOUPE_CHORDS_VOCA=majmin
+# to fall back to the 25-class maj-min model. Each is PINNED by sha256:
+# `torch.load` unpickles arbitrary objects (both checkpoints predate
+# safetensors and carry numpy scalars, so `weights_only=True` cannot load
+# them), so we only ever unpickle the exact audited artifact.
+_MAJMIN = {
+    "url": "https://github.com/jayg996/BTC-ISMIR19/raw/master/test/btc_model.pt",
+    "sha256": "71c2c5db17e8c43b8a9a9da5db36ef2d667158c07a214eba16344c154c00bf54",
+    "num_chords": 25,
+    "cache": "btc_model.pt",
+    "vocabulary": MAJMIN_VOCABULARY,
+}
+_LARGE = {
+    "url": "https://github.com/jayg996/BTC-ISMIR19/raw/master/test/btc_model_large_voca.pt",
+    "sha256": "1673d23f8f9a55ae7f9e8b80a51da616debb22675b8d8b67ea6ce0ef37b0ab51",
+    "num_chords": 170,
+    "cache": "btc_model_large_voca.pt",
+    "vocabulary": LARGE_VOCABULARY,
+}
+_CHECKPOINT = _MAJMIN if os.environ.get("LOUPE_CHORDS_VOCA", "").lower() == "majmin" else _LARGE
+
+WEIGHTS_URL = _CHECKPOINT["url"]
+WEIGHTS_SHA256 = _CHECKPOINT["sha256"]
+_VOCABULARY = _CHECKPOINT["vocabulary"]
 _CACHE_DIR = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "loupe" / "btc"
 
 # The training-time hyperparameters of that checkpoint (run_config.yaml in the
@@ -72,7 +98,9 @@ TIMESTEP = 108
 MODEL_CONFIG = {
     "feature_size": 144,
     "timestep": TIMESTEP,
-    "num_chords": 25,
+    # 25 (maj-min) or 170 (large-voca) — the checkpoint's output width. The
+    # CQT feature pipeline is byte-identical across both; only this differs.
+    "num_chords": _CHECKPOINT["num_chords"],
     "input_dropout": 0.2,
     "layer_dropout": 0.2,
     "attention_dropout": 0.2,
@@ -107,7 +135,7 @@ def _weights_path() -> Path:
     override = os.environ.get("LOUPE_CHORDS_CHECKPOINT")
     if override:
         return Path(override)
-    return pinned_weights(WEIGHTS_URL, WEIGHTS_SHA256, _CACHE_DIR / "btc_model.pt")
+    return pinned_weights(WEIGHTS_URL, WEIGHTS_SHA256, _CACHE_DIR / _CHECKPOINT["cache"])
 
 
 def _btc() -> tuple[BTC_model, float, float]:
@@ -165,7 +193,7 @@ def _analyse(data: bytes) -> dict:
             encoded, _ = model.self_attn_layers(segment)
             prediction, _ = model.output_layer(encoded)
             frames.extend(int(p) for p in prediction.squeeze(0))
-    return {"chords": chord_spans(frames, seconds_per_frame, song_length)}
+    return {"chords": chord_spans(frames, seconds_per_frame, song_length, _VOCABULARY)}
 
 
 @router.post("/chords")

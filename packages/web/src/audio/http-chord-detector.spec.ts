@@ -76,6 +76,41 @@ describe('createHttpChordDetector', () => {
     ])
   })
 
+  it('maps the large-vocabulary qualities to lead-sheet tokens', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(
+        jsonResponse({
+          chords: [
+            { start: 0, end: 1, label: 'C:min7' },
+            { start: 1, end: 2, label: 'C:maj6' },
+            { start: 2, end: 3, label: 'C:min6' },
+            { start: 3, end: 4, label: 'C:minmaj7' },
+            { start: 4, end: 5, label: 'C:hdim7' },
+            { start: 5, end: 6, label: 'C:dim7' },
+            { start: 6, end: 7, label: 'C:aug' },
+            { start: 7, end: 8, label: 'C:sus4' }
+          ]
+        })
+      )
+    )
+
+    const spans = await createHttpChordDetector('http://localhost:8000').detect(
+      MIX
+    )
+
+    expect(spans.map((span) => span.label)).toEqual([
+      'Cm7',
+      'C6',
+      'Cm6',
+      'CmM7',
+      'Cm7b5',
+      'Cdim7',
+      'Caug',
+      'Csus4'
+    ])
+  })
+
   it('reads the no-chord labels as silence', async () => {
     // `N` = no chord; `X` = the large vocabulary's "unknown" — both are
     // silence to the grid, never a token.

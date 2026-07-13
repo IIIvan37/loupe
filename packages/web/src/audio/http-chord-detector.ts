@@ -22,10 +22,33 @@ interface ChordsResponse {
 const SILENCE_LABELS = new Set(['N', 'X'])
 
 /**
+ * Each large-vocabulary mir quality as its lead-sheet token suffix (`min7` →
+ * `m7`, `hdim7` → `m7b5`, `maj6` → `6`, `minmaj7` → `mM7`). `maj` is bare (a
+ * major triad is just its root), `min` a lone `m`. A quality not in the table
+ * (a future engine tag) passes through verbatim rather than being dropped.
+ */
+const QUALITY_TOKENS: Readonly<Record<string, string>> = {
+  maj: '',
+  min: 'm',
+  dim: 'dim',
+  aug: 'aug',
+  min6: 'm6',
+  maj6: '6',
+  min7: 'm7',
+  minmaj7: 'mM7',
+  maj7: 'maj7',
+  '7': '7',
+  dim7: 'dim7',
+  hdim7: 'm7b5',
+  sus2: 'sus2',
+  sus4: 'sus4'
+}
+
+/**
  * Translate one mir label into the grid's own token spelling: the `:` joins a
- * root and a quality (`A#:min` → `A#m`, `D:maj` → `D`, `G:7` → `G7`), and the
- * no-chord labels read as silence. This spelling is the port's contract — the
- * pure core never sees engine syntax.
+ * root and a quality (`A#:min` → `A#m`, `D:maj` → `D`, `C:hdim7` → `Cm7b5`),
+ * and the no-chord labels read as silence. This spelling is the port's contract
+ * — the pure core never sees engine syntax.
  */
 function toGridToken(label: string): string | undefined {
   if (SILENCE_LABELS.has(label)) {
@@ -40,13 +63,7 @@ function toGridToken(label: string): string | undefined {
   // bass off so the quality mapping never swallows it.
   const [quality = '', ...bass] = label.slice(colon + 1).split('/')
   const slash = bass.length > 0 ? `/${bass.join('/')}` : ''
-  if (quality === 'min') {
-    return `${root}m${slash}`
-  }
-  if (quality === 'maj') {
-    return root + slash
-  }
-  return root + quality + slash
+  return root + (QUALITY_TOKENS[quality] ?? quality) + slash
 }
 
 function isWireSpan(value: unknown): value is WireSpan {

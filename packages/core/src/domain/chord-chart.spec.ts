@@ -4,6 +4,7 @@ import {
   chartMatchesPitch,
   parseChart,
   renderChartSource,
+  respellChartSource,
   transposeChart,
   transposeChartSource,
   unrollChart
@@ -342,6 +343,42 @@ describe('transposeChartSource', () => {
     expect(transposeChartSource(transposeChartSource(source, 7), -7)).toBe(
       '[Verse]\n| C# | A#m7/F |'
     )
+  })
+})
+
+describe('respellChartSource', () => {
+  it('rewrites sharps to flats under a flat key', () => {
+    expect(respellChartSource('| A# | D# |', 'flat')).toBe('| Bb | Eb |')
+  })
+
+  it('rewrites flats to sharps under a sharp key', () => {
+    expect(respellChartSource('| Db | Gb |', 'sharp')).toBe('| C# | F# |')
+  })
+
+  it('re-spells the slash bass and keeps the quality', () => {
+    expect(respellChartSource('| Cmaj7/G# |', 'flat')).toBe('| Cmaj7/Ab |')
+  })
+
+  it('leaves naturals, headers and layout untouched', () => {
+    expect(respellChartSource('[A]\n| C   F |\n\n| G |', 'flat')).toBe(
+      '[A]\n| C   F |\n\n| G |'
+    )
+  })
+
+  it('re-spells the {key} directive pitch too', () => {
+    expect(respellChartSource('{key: A#}\n| A# |', 'flat')).toBe(
+      '{key: Bb}\n| Bb |'
+    )
+  })
+
+  it('leaves prose directives untouched', () => {
+    expect(respellChartSource('{title: A# Blues}\n| A# |', 'flat')).toBe(
+      '{title: A# Blues}\n| Bb |'
+    )
+  })
+
+  it('passes an unknown token through unchanged', () => {
+    expect(respellChartSource('| N.C. | A# |', 'flat')).toBe('| N.C. | Bb |')
   })
 })
 

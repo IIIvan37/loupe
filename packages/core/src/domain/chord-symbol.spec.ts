@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
   formatChordSymbol,
   parseChordSymbol,
+  respellChordSymbol,
+  respellNote,
   transposeChordSymbol
 } from './chord-symbol.ts'
 
@@ -170,5 +172,67 @@ describe('transposeChordSymbol', () => {
       root: 'C#',
       quality: 'm'
     })
+  })
+})
+
+describe('respellNote', () => {
+  it('rewrites a sharp as its flat under a flat key', () => {
+    expect(respellNote('A#', 'flat')).toBe('Bb')
+  })
+
+  it('rewrites a flat as its sharp under a sharp key', () => {
+    expect(respellNote('Db', 'sharp')).toBe('C#')
+  })
+
+  it('leaves a natural untouched either way', () => {
+    expect(respellNote('F', 'flat')).toBe('F')
+    expect(respellNote('F', 'sharp')).toBe('F')
+  })
+
+  it('passes an unknown name through unchanged', () => {
+    expect(respellNote('H', 'flat')).toBe('H')
+  })
+
+  it('is stable under repeated re-spelling with the same accidental', () => {
+    fc.assert(
+      fc.property(
+        pitchArb,
+        fc.constantFrom('sharp' as const, 'flat' as const),
+        (note, accidental) => {
+          const once = respellNote(note, accidental)
+          expect(respellNote(once, accidental)).toBe(once)
+        }
+      )
+    )
+  })
+})
+
+describe('respellChordSymbol', () => {
+  it('re-spells the root under a flat key', () => {
+    expect(respellChordSymbol({ root: 'A#', quality: 'm' }, 'flat')).toEqual({
+      root: 'Bb',
+      quality: 'm'
+    })
+  })
+
+  it('re-spells the slash bass too', () => {
+    expect(
+      respellChordSymbol({ root: 'D', quality: '', bass: 'G#' }, 'flat')
+    ).toEqual({ root: 'D', quality: '', bass: 'Ab' })
+  })
+
+  it('leaves the quality untouched', () => {
+    expect(respellChordSymbol({ root: 'C#', quality: 'maj7' }, 'flat')).toEqual(
+      {
+        root: 'Db',
+        quality: 'maj7'
+      }
+    )
+  })
+
+  it('does not grow a bass key on a bass-less chord', () => {
+    expect(
+      respellChordSymbol({ root: 'A#', quality: '' }, 'flat')
+    ).toStrictEqual({ root: 'Bb', quality: '' })
   })
 })

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.chord_spans import MAJMIN_VOCABULARY, chord_spans
+from app.chord_spans import LARGE_VOCABULARY, MAJMIN_VOCABULARY, chord_spans
 
 
 class TestChordSpans:
@@ -51,3 +51,25 @@ class TestChordSpans:
         # 12 roots x maj/min + N = the 25 classes of btc_model.pt (voca=False).
         assert len(MAJMIN_VOCABULARY) == 25
         assert MAJMIN_VOCABULARY[24] == "N"
+
+    def test_large_vocabulary_matches_idx2voca_chord(self) -> None:
+        # 12 roots x 14 qualities + X + N = the 170 classes of the large-voca
+        # checkpoint, exactly the repo's idx2voca_chord() ordering.
+        assert len(LARGE_VOCABULARY) == 170
+        assert LARGE_VOCABULARY[0] == "C:min"
+        assert LARGE_VOCABULARY[1] == "C"  # maj prints as the bare root
+        assert LARGE_VOCABULARY[8] == "C:maj7"
+        assert LARGE_VOCABULARY[9] == "C:7"
+        assert LARGE_VOCABULARY[11] == "C:hdim7"
+        assert LARGE_VOCABULARY[13] == "C:sus4"
+        assert LARGE_VOCABULARY[14] == "C#:min"
+        assert LARGE_VOCABULARY[167] == "B:sus4"
+        assert LARGE_VOCABULARY[168] == "X"
+        assert LARGE_VOCABULARY[169] == "N"
+
+    def test_reads_indices_against_the_given_vocabulary(self) -> None:
+        # Index 9 is C:7 in the large vocabulary; the default maj-min set would
+        # read it as G# — the vocabulary argument selects the reading.
+        assert chord_spans([9], 1.0, 1.0, LARGE_VOCABULARY) == [
+            {"start": 0.0, "end": 1.0, "label": "C:7"}
+        ]

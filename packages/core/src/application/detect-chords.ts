@@ -2,7 +2,9 @@ import {
   deduceStructure,
   renderStructuredSource
 } from '../domain/chart-structure.ts'
+import { respellChartSource } from '../domain/chord-chart.ts'
 import { chordLabelPerMeasure } from '../domain/chord-detection.ts'
+import { detectKey, keyAccidental, keyName } from '../domain/chord-key.ts'
 import type { BeatGrid } from '../domain/tempo.ts'
 import { errorMessage } from './error-message.ts'
 import type { ChordDetector, DecodedAudio } from './ports.ts'
@@ -98,10 +100,16 @@ export async function detectChords(
     if (labels.length === 0) {
       return { ok: false, code: 'no-chords', detail: 'no chords detected' }
     }
-    return {
-      ok: true,
-      source: renderStructuredSource(deduceStructure(labels), input.barsPerRow)
-    }
+    // The engine spells every chord with sharps; re-spell the draft under the
+    // detected key so a flat key reads `Bb`, not `A#`, and head it with the
+    // detected `{key: …}` — the header names the key the app found (editable),
+    // and the offset it records keeps a later transposition spelling-aware.
+    const key = detectKey(spans)
+    const body = respellChartSource(
+      renderStructuredSource(deduceStructure(labels), input.barsPerRow),
+      keyAccidental(key)
+    )
+    return { ok: true, source: `{key: ${keyName(key)}}\n${body}` }
   } catch (e) {
     const code = e instanceof ChordDetectionError ? e.code : 'unknown'
     return { ok: false, code, detail: errorMessage(e) }
