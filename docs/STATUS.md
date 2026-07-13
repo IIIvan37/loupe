@@ -108,9 +108,15 @@ cœur pur TDD (`chunk_plan` + `stitch_segments`, 16 tests) + shell torch
 `structure.py` (moule chords.py, poids épinglés, inférence chunkée, 503/504)
 + SongFormer/MuQ/MusicFM vendorés. Vérifié bout-en-bout (l'endpoint HTTP
 reproduit le spike). Revue 8 angles → 5 fixes. Gate serveur vert **180 tests**.
-**Next : ouvrir/merger la PR S.1, puis S.2 core (`StructureDetector` port +
-`detectStructure` + snap aux downbeats, outside-in) puis S.3 web (bouton
-« Détecter la structure » + marqueurs).**
+**S.1 mergé (PR #118).**
+**S.2 core sur `feat/p-structure-core-s2` (PR à ouvrir)** : `StructureDetector`
+port + `detectStructure` use-case + `snapSectionsToGrid` (recalage aux downbeats,
+règles mesurées + garde monotone anti-inversion). Pas de grille requise (bouton
+autonome). Revue 2 angles → 3 fixes. Gate vert **1207 tests**, Stryker ciblé
+detect-structure 100 % / song-structure ~91 %.
+[rapport S.2](sessions/2026-07-13-structure-core-s2.md).
+**Next : ouvrir/merger la PR S.2, puis S.3 web (checkpoint d'approche UI : bouton
+« Détecter la structure » + marqueurs de structure + brouillon d'accords).**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [P.4 print](sessions/2026-07-13-p4-print.md) ·
 [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·
