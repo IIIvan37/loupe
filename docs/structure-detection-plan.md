@@ -115,11 +115,23 @@ si besoin.
 - Port `StructureDetector.detect(audio, signal?) →
   DetectedSection[{ startSeconds, endSeconds, label }]` (miroir de
   `ChordDetector`).
-- Use-case `detectStructure` : projette les segments sur la `BeatGrid`
-  (`measureIndexAt`), arrondit aux frontières de mesure, fusionne les
-  segments < 1 mesure, garde les labels bruts (la traduction
+- Use-case `detectStructure` : recale les frontières des segments sur les
+  **downbeats** de la `BeatGrid`, garde les labels bruts (la traduction
   verse → Couplet vit côté web/Lingui). Sorties : (a) positions+labels
   pour les marqueurs, (b) points de coupe pour la grille.
+- **Spec de snap — MESURÉ sur Queen le 2026-07-13 (beat_this vs SongFormer,
+  `measure_snap.py`)** : les frontières SongFormer tombent déjà **quasi sur
+  les downbeats** — écart médian **0,14 s** (< demi-mesure 0,81 s), 10/13
+  frontières intérieures à ≤ 0,20 s. Le snap est donc un nettoyage de gigue,
+  pas un rattrapage. Règles (= cas de test rouges) tirées des 3 exceptions,
+  toutes des zones sans battue :
+  1. snap au downbeat le plus proche **seulement si |Δ| < ~1 mesure** ;
+     au-delà (anacrouse de tête, outro/fade sans downbeat — beat_this
+     s'arrête à 289 s sur Queen) → **garder le temps brut** ;
+  2. **1re frontière = 0** (ne pas snapper l'anacrouse vers le 1er downbeat) ;
+  3. **dernière frontière = fin de piste** (ne pas la ramener au dernier
+     downbeat détecté) ;
+  4. deux frontières sur le même downbeat (section < 1 mesure) → fusion.
 - **`deduceStructure` phase 2** : accepte des points de coupe externes —
   les sections détectées remplacent le tuilage uniforme ; le vote
   nettoyant par type de section est conservé (deux couplets votent
