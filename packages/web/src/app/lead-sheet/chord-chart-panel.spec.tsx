@@ -626,3 +626,34 @@ describe('ChordChartPanel pitch divergence', () => {
     ).not.toBeInTheDocument()
   })
 })
+
+describe('ChordChartPanel printing (P.4)', () => {
+  function printName() {
+    return i18n._('chords.print')
+  }
+
+  it('offers nothing to print while the grid is empty', () => {
+    render(<Host />, { wrapper: I18nTestingProvider })
+    expect(
+      screen.getByRole('button', { name: printName() })
+    ).toBeDisabled()
+  })
+
+  it('hands a non-empty grid to the browser print dialog', async () => {
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+    const user = userEvent.setup()
+    render(<Host />, { wrapper: I18nTestingProvider })
+    await typeGrid(user, '| C | Am |')
+    await user.click(screen.getByRole('button', { name: printName() }))
+    expect(print).toHaveBeenCalledTimes(1)
+  })
+
+  it('a whitespace-only grid stays unprintable', async () => {
+    const user = userEvent.setup()
+    render(<Host />, { wrapper: I18nTestingProvider })
+    await typeGrid(user, '   ')
+    expect(
+      screen.getByRole('button', { name: printName() })
+    ).toBeDisabled()
+  })
+})

@@ -44,6 +44,17 @@
   composes: chipButton from '../ui/controls.module.css';
 }
 
+/* Print wears the header's chip skin; the skin never disables elsewhere, so
+ * the empty-grid state (nothing to put on paper) is dressed here. */
+.printButton {
+  composes: chipButton from '../ui/controls.module.css';
+}
+
+.printButton:disabled {
+  opacity: var(--disabled-opacity);
+  pointer-events: none;
+}
+
 /* The edit toggle is a disclosure: open state echoes aria-expanded so a
  * sighted user sees what assistive tech announces. */
 .editToggle {

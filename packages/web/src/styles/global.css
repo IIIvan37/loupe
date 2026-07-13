@@ -110,6 +110,44 @@ input[type='range']:disabled {
   opacity: var(--disabled-opacity);
 }
 
+/*
+ * ——— Print: the chart is the page (Lot P.4). ———
+ * The lead-sheet root carries `data-print-region`. When one is on the page,
+ * every branch that does not lead to it leaves the flow entirely, and the
+ * ancestor chain flattens to plain unbounded blocks — no app layout (grids,
+ * scrollports, dvh heights, fixed bars) survives on paper, and the sheet
+ * paginates naturally from the top of the document. Without a chart the rules
+ * are inert and the app prints as-is.
+ */
+@media print {
+  body:has([data-print-region])
+    *:not([data-print-region]):not([data-print-region] *):not(
+      :has([data-print-region])
+    ) {
+    display: none;
+  }
+
+  body:has([data-print-region]) :has([data-print-region]) {
+    display: block;
+    block-size: auto;
+    min-block-size: 0;
+    max-block-size: none;
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Ink on paper: the chart draws every line and glyph with these tokens; the
+     playhead wash is a screen affordance, not chart data. */
+  :root:has([data-print-region]) {
+    --bg: white;
+    --text: black;
+    --dim: black;
+    --amber-glow: transparent;
+    --amber-deep: transparent;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

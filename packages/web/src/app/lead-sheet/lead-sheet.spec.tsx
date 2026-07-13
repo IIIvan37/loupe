@@ -61,6 +61,13 @@ describe('LeadSheet', () => {
     expect(screen.getByText('F').closest('[aria-current]')).not.toBeNull()
   })
 
+  it('anchors the print region on the sheet root (P.4 print stylesheet)', () => {
+    const { container } = render(<LeadSheet source={'| C | Am |'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(container.firstElementChild).toHaveAttribute('data-print-region')
+  })
+
   it('marks nothing while the playhead is before the first bar', () => {
     const { container } = render(<LeadSheet source={'| C | Am |'} />, {
       wrapper: I18nTestingProvider

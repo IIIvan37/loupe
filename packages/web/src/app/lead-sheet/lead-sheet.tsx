@@ -155,7 +155,9 @@ export function LeadSheet({
   const hasChart =
     sections.length > 0 || Object.keys(directives).length > 0
   return (
-    <div className={styles.sheet} style={layout}>
+    // data-print-region anchors the print stylesheet (global.css): everything
+    // outside this subtree is hidden when printing, the sheet fills the page.
+    <div className={styles.sheet} style={layout} data-print-region>
       {hasChart && (
         <ChartHeader derived={header ?? {}} directives={directives} />
       )}
