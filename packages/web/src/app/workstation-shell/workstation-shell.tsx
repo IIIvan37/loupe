@@ -134,22 +134,22 @@ export function WorkstationShell({
   } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsActive)
   const markers = useMarkers()
   const tempo = useTempo(tempoDetector)
-  // « Détecter la structure » (markers bar) → section markers on the timeline.
+  // The chart's source (session state) + « Détecter les accords » drafting into
+  // it. Built before the structure flow, which relabels this same source (S.3b).
+  const { chart: chordChart, detection: chordDetection } = useChordChartSession({
+    loadedAudio,
+    grid: tempo.analysis?.grid ?? [],
+    detector: chordDetector
+  })
+  // « Détecter la structure » (markers bar) → section markers, and — when a grid
+  // exists — the detected section names onto its headers.
   const structureDetection = useStructureMarkers({
     loadedAudio,
     grid: tempo.analysis?.grid ?? [],
     markers,
+    chart: chordChart,
     detector: structureDetector
   })
-  // The chart's source (session state riding the project lifecycle) + the
-  // « Détecter les accords » flow drafting into it — see the hook's doc.
-  const { chart: chordChart, detection: chordDetection } = useChordChartSession(
-    {
-      loadedAudio,
-      grid: tempo.analysis?.grid ?? [],
-      detector: chordDetector
-    }
-  )
   const metronome = useMetronome({ mixer })
   const loops = useLoops()
   const loopEditing = useLoopEditing(loops, {

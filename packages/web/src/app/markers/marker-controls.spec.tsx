@@ -20,6 +20,7 @@ function detectionControl(
     error: undefined,
     succeeded: false,
     hasMarkers: false,
+    hasGrid: false,
     onDetect: vi.fn(),
     ...overrides
   }
@@ -95,6 +96,51 @@ describe('MarkerControls', () => {
       screen.getByRole('button', { name: i18n._('structure.detect-confirm') })
     )
     expect(onDetect).toHaveBeenCalledOnce()
+  })
+
+  it('confirms before relabelling an existing grid, naming the grid', async () => {
+    const user = userEvent.setup()
+    const onDetect = vi.fn()
+    render(
+      <MarkerControls
+        disabled={false}
+        onAdd={() => {}}
+        detection={detectionControl({ hasGrid: true, onDetect })}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('structure.detect') })
+    )
+    expect(onDetect).not.toHaveBeenCalled()
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('structure.detect-confirm-grid')
+      })
+    )
+    expect(onDetect).toHaveBeenCalledOnce()
+  })
+
+  it('names both when markers and a grid are both at stake', async () => {
+    const user = userEvent.setup()
+    render(
+      <MarkerControls
+        disabled={false}
+        onAdd={() => {}}
+        detection={detectionControl({ hasMarkers: true, hasGrid: true })}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('structure.detect') })
+    )
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('structure.detect-confirm-both')
+      })
+    ).toBeInTheDocument()
   })
 
   it('blocks detection while the server is unreachable, explaining why', () => {

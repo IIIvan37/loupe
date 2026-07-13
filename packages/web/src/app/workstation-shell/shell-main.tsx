@@ -156,8 +156,15 @@ export function ShellMain({
               detecting: structureDetection.detecting,
               error: structureDetection.error,
               succeeded: structureDetection.succeeded,
-              // A detection replaces the current markers — arm the confirm.
+              // A detection replaces the markers AND, when one exists, relabels
+              // the grid — either is armed work, so the confirm arms on both.
+              // The relabel needs a beat grid to place the sections on, so a
+              // grid is only "at stake" once the tempo is known (matches the
+              // guard in useStructureMarkers), never over-promising the confirm.
               hasMarkers: markers.markers.length > 0,
+              hasGrid:
+                chordChart.source.trim().length > 0 &&
+                (grid ?? []).some((beat) => beat.downbeat),
               onDetect: () => void structureDetection.detect(),
               // The structure engine only needs the server to ANSWER (it runs
               // on CPU); no grid is required, so 'server' is the only block.

@@ -1,4 +1,7 @@
-import { renderChartSource } from './chord-chart.ts'
+import { parseChart, renderChartSource, unrollChart } from './chord-chart.ts'
+import { formatChordSymbol } from './chord-symbol.ts'
+import type { DetectedSection } from './song-structure.ts'
+import type { BeatGrid } from './tempo.ts'
 
 /**
  * One deduced block of the song: a run of measures the deduction groups under
@@ -58,6 +61,90 @@ export function renderStructuredSource(
       return runs.length === 1 ? body : `[${run.section.label}]\n${body}`
     })
     .join('\n\n')
+}
+
+/**
+ * Relabel an existing grid by the detected structure: keep its chords, but cut
+ * the measures at the detected section boundaries and head each block with that
+ * section's label (`[Couplet]`, `[Refrain]`…). This is what « Détecter la
+ * structure » does when a grid already exists — the neutral `[A]`/`[B]` the
+ * repetition deduces gives way to the engine's named sections.
+ *
+ * The section labels are printed VERBATIM as headers: the caller supplies
+ * display copy (the core keeps no display vocabulary — translating the engine's
+ * raw `verse`/`chorus` is the adapter's job, exactly as for the markers).
+ *
+ * The grid is read as its PLAYED measures (`unrollChart`, so a `|: … :|` grid
+ * stays aligned with the section times, which live in playback seconds), each
+ * measure taken as its first chord — the flat one-token-per-measure model the
+ * printer round-trips (a hand-edited multi-chord bar collapses to its first
+ * chord; auto-drafts are one chord per bar). A blank grid, or a detection with
+ * no section, has nothing to relabel and passes through untouched.
+ */
+export function relabelChartBySections(
+  source: string,
+  sections: readonly DetectedSection[],
+  grid: BeatGrid,
+  barsPerRow: number
+): string {
+  const labels = playedLabels(source)
+  if (labels.length === 0 || sections.length === 0) {
+    return source
+  }
+  return renderStructuredSource(
+    cutBySections(labels, sections, grid),
+    barsPerRow
+  )
+}
+
+/** The grid's chords as one token per PLAYED measure — the chart unrolled so a
+    repeat plays its bars twice, each bar reduced to its first chord. */
+function playedLabels(source: string): MeasureLabels {
+  const chart = parseChart(source)
+  const measures = chart.sections.flatMap((section) => section.measures)
+  return unrollChart(chart).map((index) => {
+    const chord = measures[index]?.chords[0]
+    return chord === undefined ? undefined : formatChordSymbol(chord)
+  })
+}
+
+/** Slice the flat measure labels at the boundary each section falls on (the
+    count of downbeats before its start time), one block per section, dropping a
+    block a section beyond the grid leaves empty. Boundaries are clamped
+    non-decreasing so the cut never inverts; the first section always opens at 0
+    so no leading measure is lost. */
+function cutBySections(
+  labels: MeasureLabels,
+  sections: readonly DetectedSection[],
+  grid: BeatGrid
+): readonly DeducedSection[] {
+  const downbeats = grid
+    .filter((beat) => beat.downbeat)
+    .map((beat) => beat.timeSeconds)
+  // No downbeats means no way to place a section on a measure — one block over
+  // the whole grid, under the first section's name, rather than a mis-cut.
+  if (downbeats.length === 0) {
+    return [{ label: (sections[0] as DetectedSection).label, measures: labels }]
+  }
+  let previous = 0
+  const cuts = sections.map((section, index) => {
+    const measure =
+      index === 0
+        ? 0
+        : downbeats.filter((time) => time < section.startSeconds).length
+    previous = Math.min(Math.max(measure, previous), labels.length)
+    return previous
+  })
+  const result: DeducedSection[] = []
+  sections.forEach((section, index) => {
+    const start = cuts[index] as number
+    const end =
+      index + 1 < cuts.length ? (cuts[index + 1] as number) : labels.length
+    if (end > start) {
+      result.push({ label: section.label, measures: labels.slice(start, end) })
+    }
+  })
+  return result
 }
 
 /** Consecutive plays of THE SAME section object (deduction shares one per

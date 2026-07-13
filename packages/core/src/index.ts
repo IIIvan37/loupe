@@ -94,6 +94,11 @@ export type {
 } from './application/separate-track.ts'
 export { separateTrack } from './application/separate-track.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
+// deduceStructure / renderStructuredSource stay internal to the detectChords
+// use-case; relabelChartBySections is a chart-source transform (family of
+// transposeChart / renderChartSource) the web applies with translated section
+// headers, so it is public like the rest of the chart utilities.
+export { relabelChartBySections } from './domain/chart-structure.ts'
 export type {
   ChartForm,
   ChordChart,

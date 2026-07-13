@@ -9,24 +9,30 @@ export interface SectionMarker {
 }
 
 /**
+ * A raw engine section label (`verse`…) as display copy, resolved through the
+ * shared i18n singleton (like the auto marker name). An unknown label passes
+ * through verbatim so a new engine tag is still shown, not dropped. Shared by
+ * the section markers and the grid relabelling, so both name a section alike.
+ */
+export function sectionDisplayLabel(raw: string): string {
+  const descriptor = sectionLabelDescriptor(raw)
+  return descriptor
+    ? i18n._(descriptor.id, undefined, {
+        message: descriptor.message ?? descriptor.id
+      })
+    : raw
+}
+
+/**
  * Turn detected sections into marker points: a marker at each section's start,
- * its raw engine label (`verse`…) translated to display copy. An unknown label
- * passes through verbatim so a new engine tag still lands a usable marker.
- * Resolved through the shared i18n singleton (like the auto marker name), so
- * the label is a plain committed string — a marker stores no descriptor.
+ * its raw engine label translated to display copy — a plain committed string,
+ * a marker stores no descriptor.
  */
 export function sectionMarkers(
   sections: readonly DetectedSection[]
 ): readonly SectionMarker[] {
-  return sections.map((section) => {
-    const descriptor = sectionLabelDescriptor(section.label)
-    return {
-      timeSeconds: section.startSeconds,
-      label: descriptor
-        ? i18n._(descriptor.id, undefined, {
-            message: descriptor.message ?? descriptor.id
-          })
-        : section.label
-    }
-  })
+  return sections.map((section) => ({
+    timeSeconds: section.startSeconds,
+    label: sectionDisplayLabel(section.label)
+  }))
 }

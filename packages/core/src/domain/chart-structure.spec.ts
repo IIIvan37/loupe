@@ -1,8 +1,28 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { deduceStructure, renderStructuredSource } from './chart-structure.ts'
-import { parseChart, unrollChart } from './chord-chart.ts'
+import {
+  deduceStructure,
+  relabelChartBySections,
+  renderStructuredSource
+} from './chart-structure.ts'
+import { parseChart, renderChartSource, unrollChart } from './chord-chart.ts'
 import { formatChordSymbol } from './chord-symbol.ts'
+import type { DetectedSection } from './song-structure.ts'
+import type { BeatGrid } from './tempo.ts'
+
+/** A 4/4 grid: `bars` downbeats `barSeconds` apart, three off-beats each. */
+function grid(bars: number, barSeconds: number): BeatGrid {
+  const beats = []
+  for (let bar = 0; bar < bars; bar++) {
+    for (let beat = 0; beat < 4; beat++) {
+      beats.push({
+        timeSeconds: bar * barSeconds + (beat * barSeconds) / 4,
+        downbeat: beat === 0
+      })
+    }
+  }
+  return beats
+}
 
 describe('deduceStructure', () => {
   it('keeps an unrepeated grid as one section', () => {
@@ -220,6 +240,138 @@ describe('structure round-trip', () => {
         const source = renderStructuredSource(deduceStructure(labels), 4)
         expect(unrollChart(parseChart(source))).toHaveLength(labels.length)
       })
+    )
+  })
+})
+
+describe('relabelChartBySections', () => {
+  it('names each section header from the detected sections, keeping chords', () => {
+    const source = '| C | Am | F | G |\n| C | Am | F | G |'
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 8, label: 'Couplet' },
+      { startSeconds: 8, endSeconds: 16, label: 'Refrain' }
+    ]
+    expect(relabelChartBySections(source, sections, grid(8, 2), 4)).toBe(
+      '[Couplet]\n| C | Am | F | G |\n\n[Refrain]\n| C | Am | F | G |'
+    )
+  })
+
+  it('keeps each section its own chords — never votes across sections', () => {
+    const source = '| C | Am | F | G |\n| C | Am | Dm | G |'
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 8, label: 'Couplet' },
+      { startSeconds: 8, endSeconds: 16, label: 'Couplet' }
+    ]
+    expect(relabelChartBySections(source, sections, grid(8, 2), 4)).toBe(
+      '[Couplet]\n| C | Am | F | G |\n\n[Couplet]\n| C | Am | Dm | G |'
+    )
+  })
+
+  it('opens the first section at bar 0 even when it starts after a pickup', () => {
+    // The first detected section starts at 4 s, but the two bars before it must
+    // not be lost — the opening section always runs from the grid start.
+    const source = '| C | Am | F | G |\n| C | Am | F | G |'
+    const sections: DetectedSection[] = [
+      { startSeconds: 4, endSeconds: 8, label: 'Couplet' },
+      { startSeconds: 8, endSeconds: 16, label: 'Refrain' }
+    ]
+    expect(relabelChartBySections(source, sections, grid(8, 2), 4)).toBe(
+      '[Couplet]\n| C | Am | F | G |\n\n[Refrain]\n| C | Am | F | G |'
+    )
+  })
+
+  it('omits the header when the detection is one whole-song section', () => {
+    const source = '| C | F | G | C |'
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 8, label: 'Intro' }
+    ]
+    expect(relabelChartBySections(source, sections, grid(4, 2), 4)).toBe(
+      '| C | F | G | C |'
+    )
+  })
+
+  it('unrolls a repeated grid so sections stay time-aligned', () => {
+    const source = '|: C | Am | F | G :|'
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 8, label: 'Couplet' },
+      { startSeconds: 8, endSeconds: 16, label: 'Refrain' }
+    ]
+    expect(relabelChartBySections(source, sections, grid(8, 2), 4)).toBe(
+      '[Couplet]\n| C | Am | F | G |\n\n[Refrain]\n| C | Am | F | G |'
+    )
+  })
+
+  it('collapses a multi-chord measure to its first chord (flat-token v1)', () => {
+    const source = '| C G | Am | F | G |'
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 8, label: 'Intro' }
+    ]
+    expect(relabelChartBySections(source, sections, grid(4, 2), 4)).toBe(
+      '| C | Am | F | G |'
+    )
+  })
+
+  it('drops a section that maps past the grid, keeping what covers it', () => {
+    const source = '| C | Am | F | G |'
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 8, label: 'Couplet' },
+      { startSeconds: 8, endSeconds: 16, label: 'Refrain' }
+    ]
+    expect(relabelChartBySections(source, sections, grid(8, 2), 4)).toBe(
+      '| C | Am | F | G |'
+    )
+  })
+
+  it('returns a blank grid untouched — nothing to relabel', () => {
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 8, label: 'Couplet' }
+    ]
+    expect(relabelChartBySections('', sections, grid(8, 2), 4)).toBe('')
+  })
+
+  it('keeps a gridless chart as one block under the first section name', () => {
+    const source = '| C | Am | F | G |'
+    const flat: BeatGrid = []
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 8, label: 'Couplet' }
+    ]
+    expect(relabelChartBySections(source, sections, flat, 4)).toBe(
+      '| C | Am | F | G |'
+    )
+  })
+
+  it('never loses or invents a measure against the played grid', () => {
+    // A flat grid of `bars` measures, cut into contiguous sections on interior
+    // downbeats — the relabelled source must play back exactly those bars.
+    const chord = fc.constantFrom('C', 'Am', 'F', 'G', 'Dm', 'Em')
+    fc.assert(
+      fc.property(
+        fc.array(chord, { minLength: 1, maxLength: 16 }),
+        fc.array(fc.integer({ min: 1, max: 15 }), { maxLength: 4 }),
+        (chords, rawCuts) => {
+          const bars = chords.length
+          const source = renderChartSource(chords, 4)
+          const barSeconds = 2
+          const cuts = [...new Set(rawCuts.filter((cut) => cut < bars))].sort(
+            (a, b) => a - b
+          )
+          const starts = [0, ...cuts]
+          const sections: DetectedSection[] = starts.map((start, index) => ({
+            startSeconds: start * barSeconds,
+            endSeconds: (starts[index + 1] ?? bars) * barSeconds,
+            label: `S${index}`
+          }))
+          const chart = parseChart(
+            relabelChartBySections(source, sections, grid(bars, barSeconds), 4)
+          )
+          const measures = chart.sections.flatMap((section) => section.measures)
+          const played = unrollChart(chart).map((index) => {
+            const first = measures[index]?.chords[0]
+            return first ? formatChordSymbol(first) : undefined
+          })
+          expect(played).toEqual(chords)
+        }
+      )
     )
   })
 })
