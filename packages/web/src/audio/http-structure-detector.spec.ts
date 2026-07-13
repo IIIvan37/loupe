@@ -33,6 +33,35 @@ describe('createHttpStructureDetector', () => {
     expect(init?.body).toBeInstanceOf(Uint8Array)
   })
 
+  it('sends the bearer token when one is given (the Modal endpoint)', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ segments: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await createHttpStructureDetector(
+      'https://modal.example',
+      'secret-tok'
+    ).detect(MIX)
+
+    const [, init] = fetchMock.mock.calls[0] ?? []
+    expect(new Headers(init?.headers).get('Authorization')).toBe(
+      'Bearer secret-tok'
+    )
+  })
+
+  it('sends no Authorization against the token-less local server', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ segments: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await createHttpStructureDetector('http://localhost:8000').detect(MIX)
+
+    const [, init] = fetchMock.mock.calls[0] ?? []
+    expect(new Headers(init?.headers).get('Authorization')).toBeNull()
+  })
+
   it('forwards the abort signal to the fetch', async () => {
     const fetchMock = vi
       .fn<typeof fetch>()

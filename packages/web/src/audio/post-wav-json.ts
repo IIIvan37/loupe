@@ -67,14 +67,20 @@ export async function postWavForJson(
   baseUrl: string,
   path: string,
   audio: DecodedAudio,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  /** A bearer token — sent as `Authorization` when the endpoint gates on it
+   * (the Modal offload, J1). Omitted for the token-less local server. */
+  token?: string
 ): Promise<unknown> {
   const wav = encodeWavMemo(audio)
   let response: Response
   try {
     response = await fetch(`${baseUrl}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'audio/wav' },
+      headers: {
+        'Content-Type': 'audio/wav',
+        ...(token !== undefined && { Authorization: `Bearer ${token}` })
+      },
       body: wav,
       signal: signal ?? null
     })

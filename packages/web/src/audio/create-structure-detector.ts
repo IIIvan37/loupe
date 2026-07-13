@@ -1,12 +1,12 @@
 import type { StructureDetector } from '@app/core'
-import { SERVER_URL } from '../projects/server-url.ts'
+import { ANALYSIS_URL, analysisToken } from './analysis-endpoint.ts'
 import { createHttpStructureDetector } from './http-structure-detector.ts'
 
 /**
- * Build the `StructureDetector` adapter. Structure estimation runs on the same
- * local server as separation (vendored SongFormer), reached over HTTP — point
- * it at the server with `VITE_SEPARATOR_URL` (defaults to `http://localhost:8000`).
+ * Build the `StructureDetector` adapter. Structure estimation runs on the GPU
+ * inference endpoint (`ANALYSIS_URL`): the Modal offload when configured
+ * (`VITE_STRUCTURE_URL` + a runtime token), else the local server.
  */
 export function createStructureDetector(): StructureDetector {
-  return createHttpStructureDetector(SERVER_URL)
+  return createHttpStructureDetector(ANALYSIS_URL, analysisToken())
 }
