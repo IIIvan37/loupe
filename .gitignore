@@ -10,3 +10,8 @@ reports/
 # Local scratch media (imported tracks, exported charts) — never project assets
 *.mp3
 *.pdf
+
+# Modal MVP static token + local env secrets (never commit)
+.modal-token.local
+*.local
+.env*.local
