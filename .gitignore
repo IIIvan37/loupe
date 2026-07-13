@@ -6,3 +6,7 @@ reports/
 *.log
 .DS_Store
 .venv/
+
+# Local scratch media (imported tracks, exported charts) — never project assets
+*.mp3
+*.pdf
