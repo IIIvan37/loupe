@@ -73,14 +73,19 @@ export async function detectStructure(
 ): Promise<DetectStructureResult> {
   try {
     const sections = await deps.detector.detect(input.audio, input.signal)
-    // Garbage times (an adapter parsing a malformed number) must surface as an
-    // error, not become a broken marker.
-    const finite = sections.every(
+    // A broken section (an adapter parsing a malformed number, a zero-/
+    // negative-length span, a missing label) must surface as an error, not
+    // become a garbage marker — especially on the gridless path, where no
+    // snapping runs to clean it up.
+    const valid = sections.every(
       (section) =>
         Number.isFinite(section.startSeconds) &&
-        Number.isFinite(section.endSeconds)
+        Number.isFinite(section.endSeconds) &&
+        section.endSeconds > section.startSeconds &&
+        typeof section.label === 'string' &&
+        section.label.length > 0
     )
-    if (!finite) {
+    if (!valid) {
       return {
         ok: false,
         code: 'unknown',

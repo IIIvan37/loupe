@@ -208,7 +208,9 @@ export type {
 } from './domain/separation.ts'
 export { initialSeparation, separationReducer } from './domain/separation.ts'
 export type { DetectedSection } from './domain/song-structure.ts'
-export { snapSectionsToGrid } from './domain/song-structure.ts'
+// snapSectionsToGrid stays internal to the detectStructure use-case — like the
+// chord slice's chordLabelPerMeasure / deduceStructure folds, an adapter only
+// ever consumes the use-case, never the domain fold.
 export type {
   SpeedTrainerPolicy,
   SpeedTrainerState

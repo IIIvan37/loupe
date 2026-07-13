@@ -126,6 +126,39 @@ describe('snapSectionsToGrid', () => {
     ])
   })
 
+  it('never lets an interior boundary snap across a kept endpoint', () => {
+    // A pickup: the first section starts at 5 (before the first downbeat).
+    // The boundary at 6 is nearest the downbeat at 4 (tie broken earlier) —
+    // but 4 is before the kept start 5, so snapping there would invert order
+    // and swallow the intro. It must stay raw instead.
+    const sections: DetectedSection[] = [
+      { startSeconds: 5, endSeconds: 6, label: 'intro' },
+      { startSeconds: 6, endSeconds: 14, label: 'verse' }
+    ]
+    const g = [
+      { timeSeconds: 0, downbeat: true },
+      { timeSeconds: 4, downbeat: true },
+      { timeSeconds: 8, downbeat: true },
+      { timeSeconds: 12, downbeat: true }
+    ]
+    const out = snapSectionsToGrid(sections, g)
+    expect(out.map((s) => s.label)).toEqual(['intro', 'verse'])
+    expect(boundaries(out)).toEqual([5, 6, 14])
+  })
+
+  it('does not snap an interior boundary onto the last endpoint', () => {
+    // The boundary at 15.5 is nearest the downbeat at 16 — but 16 is the track
+    // end (the kept last boundary); snapping there would collapse the final
+    // section, so it stays raw.
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 15.5, label: 'a' },
+      { startSeconds: 15.5, endSeconds: 16, label: 'b' }
+    ]
+    const out = snapSectionsToGrid(sections, grid(9, 2)) // downbeats 0,2,…,16
+    expect(out.map((s) => s.label)).toEqual(['a', 'b'])
+    expect(boundaries(out)).toEqual([0, 15.5, 16])
+  })
+
   it('cannot define a bar from a single downbeat — sections pass through', () => {
     // One downbeat = no interval = no bar length, so nothing snaps even though
     // the boundary sits right on that downbeat.

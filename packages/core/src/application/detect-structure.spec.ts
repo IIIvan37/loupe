@@ -100,6 +100,39 @@ describe('detectStructure', () => {
     })
   })
 
+  it('rejects a non-positive-length section (nothing to mark)', async () => {
+    // Even on the gridless path (no snapping to clean it up), a zero- or
+    // negative-length section is invalid — it must not become a marker.
+    const result = await detectStructure(
+      { audio, grid: [] },
+      {
+        detector: detectorReturning([
+          { startSeconds: 5, endSeconds: 5, label: 'x' }
+        ])
+      }
+    )
+    expect(result).toEqual({
+      ok: false,
+      code: 'unknown',
+      detail: 'invalid structure detection'
+    })
+  })
+
+  it('rejects a section with a blank label', async () => {
+    const result = await detectStructure(
+      { audio, grid: grid(5, 2) },
+      {
+        detector: detectorReturning([
+          { startSeconds: 0, endSeconds: 8, label: '' }
+        ])
+      }
+    )
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.code).toBe('unknown')
+    }
+  })
+
   it('the typed detector error is a named StructureDetectionError', () => {
     const err = new StructureDetectionError('timeout', 'slow')
     expect(err).toBeInstanceOf(Error)

@@ -57,12 +57,27 @@ export function snapSectionsToGrid(
     (sections[0] as DetectedSection).startSeconds,
     ...sections.map((s) => s.endSeconds)
   ]
+  const last = boundaries[boundaries.length - 1] as number
+  // Snap left to right, keeping the boundary order so the timeline never
+  // inverts: take a snap only when its downbeat stays strictly inside the raw
+  // endpoints (never crossing a pickup start or an outro end), then clamp it to
+  // never fall behind the previous snapped boundary. A boundary that would go
+  // backward collapses against its neighbour (dropped below), never overlaps.
+  let previous = boundaries[0] as number
   const snapped = boundaries.map((time, index) => {
     if (index === 0 || index === boundaries.length - 1) {
       return time
     }
     const nearest = nearestDownbeat(downbeats, time)
-    return Math.abs(nearest - time) <= bar ? nearest : time
+    const candidate = Math.abs(nearest - time) <= bar ? nearest : time
+    // `>=` lets a boundary land on the previous one (a sub-bar section then
+    // collapses below), but a downbeat BEFORE it (a would-be inversion) is
+    // rejected back to the raw time; `< last` protects the final section.
+    const inBounds =
+      candidate >= previous && candidate < last ? candidate : time
+    const kept = Math.max(inBounds, previous)
+    previous = kept
+    return kept
   })
   // Rebuild, dropping any section a collapse made non-positive in length.
   const result: DetectedSection[] = []
