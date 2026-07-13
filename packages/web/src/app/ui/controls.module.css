@@ -35,7 +35,7 @@
   color: var(--dim);
 }
 
-.ghostButton:hover {
+.ghostButton:hover:not(:disabled) {
   border-color: var(--line-strong);
   color: var(--text);
 }
@@ -52,6 +52,12 @@
   padding: var(--space-2xs) var(--space-xs);
   font-size: var(--font-size-s);
   font-variant-numeric: tabular-nums;
+}
+
+/* Same disabled treatment as quietButton below — the skin owns it so every
+   chip that ever disables (print, future ones) dims the same way. */
+.chipButton:disabled {
+  opacity: var(--disabled-opacity);
 }
 
 /* Inline numeric field dressed as the read-out it edits (tempo BPM, chart

@@ -6,6 +6,7 @@ import {
 } from '@app/core'
 import { type CSSProperties, useCallback, useMemo } from 'react'
 import { cx } from '../../lib/cx.ts'
+import { chartHasContent } from './chart-content.ts'
 import { ChartHeader, type ChartHeaderData } from './chart-header.tsx'
 import { ChordGlyph } from './chord-glyph.tsx'
 import styles from './lead-sheet.module.css'
@@ -152,10 +153,17 @@ export function LeadSheet({
   }, [])
   // A chart head over no chart is noise (and would double the app header's
   // title): the head only prints once the source holds a grid or directives.
-  const hasChart =
-    sections.length > 0 || Object.keys(directives).length > 0
+  const hasChart = chartHasContent(chart)
   return (
-    <div className={styles.sheet} style={layout}>
+    // data-print-region anchors the print stylesheet (global.css): everything
+    // outside this subtree is hidden when printing, the sheet fills the page.
+    // The stylesheet fires on the attribute's PRESENCE, so an empty sheet
+    // must not carry it — Cmd+P would print a blank page instead of the app.
+    <div
+      className={styles.sheet}
+      style={layout}
+      data-print-region={hasChart || undefined}
+    >
       {hasChart && (
         <ChartHeader derived={header ?? {}} directives={directives} />
       )}

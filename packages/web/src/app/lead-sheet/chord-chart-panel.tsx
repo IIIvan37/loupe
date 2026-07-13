@@ -1,20 +1,22 @@
-import { chartMatchesPitch, type ChordDetectionErrorCode } from '@app/core'
+import {
+  chartMatchesPitch,
+  type ChordDetectionErrorCode,
+  parseChart
+} from '@app/core'
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { LiveStatus } from '../ui/live-status.tsx'
 import { signedSemitones } from '../ui/signed-semitones.ts'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
 import type { ChartHeaderData } from './chart-header.tsx'
+import { BarsPerRowField } from './bars-per-row-field.tsx'
 import {
   DEFAULT_BARS_PER_ROW,
-  isValidBarsPerRow,
-  MAX_BARS_PER_ROW,
-  MIN_BARS_PER_ROW,
-  readStoredBarsPerRow,
-  storeBarsPerRow
+  readStoredBarsPerRow
 } from './bars-per-row-preference.ts'
+import { chartHasContent } from './chart-content.ts'
 import { LeadSheet } from './lead-sheet.tsx'
 import styles from './chord-chart-panel.module.css'
 
@@ -113,22 +115,6 @@ export function ChordChartPanel({
   const [barsPerRow, setBarsPerRow] = useState(
     () => readStoredBarsPerRow() ?? DEFAULT_BARS_PER_ROW
   )
-  // The last deliberate choice — what an abandoned or rejected edit settles
-  // back to on blur, so a mid-edit preview never clobbers the preference.
-  const settledBars = useRef(barsPerRow)
-  // What the field shows while being edited — an emptied or out-of-range
-  // draft is no layout, so the sheet keeps the last committed value.
-  const [barsDraft, setBarsDraft] = useState<string | undefined>(undefined)
-  // Browsers surface unparseable number-input content as '' + validity
-  // .badInput — without this flag that garbage would pass as « transient ».
-  const [barsBadInput, setBarsBadInput] = useState(false)
-  // An empty draft is a transient mid-edit state; only content that cannot
-  // become a layout gets flagged (the old behaviour rejected silently).
-  const barsDraftInvalid =
-    barsBadInput ||
-    (barsDraft !== undefined &&
-      barsDraft !== '' &&
-      !isValidBarsPerRow(Number(barsDraft)))
   // The chart is the view; the source editor is a mode, folded by default
   // (P.3). View state only — the source itself stays lifted in the shell.
   const [editing, setEditing] = useState(false)
@@ -143,6 +129,12 @@ export function ChordChartPanel({
       editorRef.current?.focus()
     }
   }, [editing])
+  // What « Imprimer » guards on: the sheet parses the same source anyway, so
+  // one extra parse per source change is nothing — no lifted state needed.
+  const printable = useMemo(
+    () => chartHasContent(parseChart(source)),
+    [source]
+  )
   // The detected draft REPLACES the source — a non-empty grid is armed work,
   // so the first activation only swaps the button to « Confirmer ? ».
   const overwrite = useTwoStepConfirm<true>()
@@ -221,43 +213,7 @@ export function ChordChartPanel({
         <h2 className={styles.title}>
           {t({ id: 'chords.title', message: "Grille d'accords" })}
         </h2>
-        <span className={styles.layout}>
-          <input
-            type="number"
-            className={styles.barsField}
-            inputMode="numeric"
-            min={MIN_BARS_PER_ROW}
-            max={MAX_BARS_PER_ROW}
-            value={barsDraft ?? barsPerRow}
-            onChange={(event) => {
-              setBarsDraft(event.target.value)
-              setBarsBadInput(event.target.validity?.badInput ?? false)
-              const bars = Number(event.target.value)
-              // A live preview only — the choice settles (and persists) on
-              // blur, so a rejected edit's prefix never sticks.
-              if (isValidBarsPerRow(bars)) {
-                setBarsPerRow(bars)
-              }
-            }}
-            onBlur={() => {
-              const bars = Number(barsDraft)
-              if (barsDraft !== undefined && isValidBarsPerRow(bars)) {
-                settledBars.current = bars
-                storeBarsPerRow(bars)
-              } else {
-                setBarsPerRow(settledBars.current)
-              }
-              setBarsDraft(undefined)
-              setBarsBadInput(false)
-            }}
-            aria-invalid={barsDraftInvalid || undefined}
-            aria-label={t({
-              id: 'chords.bars-per-row',
-              message: 'Mesures par ligne'
-            })}
-          />
-          {t({ id: 'chords.bars-per-row-unit', message: 'mes. / ligne' })}
-        </span>
+        <BarsPerRowField value={barsPerRow} onChange={setBarsPerRow} />
         <span className={styles.transpose}>
           <button
             type="button"
@@ -282,6 +238,17 @@ export function ChordChartPanel({
             +½
           </button>
         </span>
+        <button
+          type="button"
+          className={styles.printButton}
+          // A source that renders no chart would print a blank page — the
+          // action waits for content, the same test the sheet uses to emit
+          // its print region.
+          disabled={!printable}
+          onClick={() => window.print()}
+        >
+          {t({ id: 'chords.print', message: 'Imprimer' })}
+        </button>
         <button
           type="button"
           className={styles.editToggle}

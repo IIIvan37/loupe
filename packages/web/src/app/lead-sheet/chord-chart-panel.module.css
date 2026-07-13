@@ -44,6 +44,11 @@
   composes: chipButton from '../ui/controls.module.css';
 }
 
+/* Print wears the header's chip skin (its disabled look included). */
+.printButton {
+  composes: chipButton from '../ui/controls.module.css';
+}
+
 /* The edit toggle is a disclosure: open state echoes aria-expanded so a
  * sighted user sees what assistive tech announces. */
 .editToggle {
