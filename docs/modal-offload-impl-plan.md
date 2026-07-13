@@ -11,6 +11,15 @@
   l'**adapter (web)** + de l'**infra (Modal/Supabase)**. TDD si un jour le core
   bouge (non prévu) ; les slices web suivent `react-testing-patterns` ; la gate
   reste verte.
+- **Partage par nature de la donnée, PAS « tout Modal »** (cf.
+  [plan §1](structure-modal-offload-plan.md#1-décision--périmètre)) : seule
+  l'**inférence GPU** part sur Modal. **Restent LOCAUX** : le stockage
+  **projets + audio** (`ProjectStore`/`ProjectAudioStore`, `/projects` + `/audio`)
+  et le **download yt-dlp** (`TrackSource`, `/download`) — droit d'auteur : la
+  musique de l'user ne quitte pas sa machine, et yt-dlp tourne sur son IP. Donc
+  **le serveur Python local ne disparaît pas, il rétrécit** (garde storage +
+  download, perd l'inférence) ; Tauri le remplacera par du Rust (fs + sidecar
+  yt-dlp), zéro Python.
 - **Sur l'app web actuelle** — Tauri est du packaging orthogonal, plus tard.
 - **Décisions déjà prises** : tempo = *accepter le cold à l'import* (pas de tracker
   WASM) ; jalon 1 = *MVP token statique* avant Supabase.

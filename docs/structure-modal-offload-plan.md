@@ -7,20 +7,30 @@
 
 ## 1. Décision & périmètre
 
-- **Archi retenue : thin client, tout Modal.** Le vrai fardeau d'un produit
-  grand public en Tauri n'est pas le coût GPU (borné par quota + plafond) mais
-  **shipper/maintenir un sidecar Python torch+CUDA** sur du hardware au hasard.
-  Tout-Modal le supprime : installeur léger, marche partout, une seule infra.
-- **Périmètre : les 4 endpoints ML → Modal.**
-  - Structure (SongFormer) — lourd GPU, pas d'ONNX. Le bottleneck confirmé.
-  - Séparation (Demucs) — lourd GPU. Sur Modal malgré le chemin ONNX local :
-    cohérence + suppression du sidecar l'emportent (transfert des stems assumé).
-  - Tempo (beat_this) / accords (BTC) — torch CPU (légers) mais **pas de sidecar
-    local** dans l'archi A → ils passent aussi par Modal.
-- **Reste local (Web Audio, aucun changement)** : playback, loop, pitch/tempo
-  (rubberband), timeline. **La pratique marche hors-ligne ; seule l'analyse ML
-  est online.**
-- **Cible packaging** : Tauri (webview système). Thin client → pas de sidecar.
+- **Archi retenue : thin *ML* client.** Le partage n'est PAS « tout Modal » mais
+  **par nature de la donnée** — l'inférence GPU (sans état) part au cloud, la
+  donnée de l'utilisateur reste chez lui :
+
+  | | Où | Pourquoi |
+  |---|---|---|
+  | Inférence GPU (structure, sépa, tempo, accords) | **Modal** | Sans état, aucune rétention |
+  | Projets + audio (stockage) | **Local** | Héberger la musique (sous droits) de l'user = responsabilité juridique |
+  | Download yt-dlp | **Local** | Fetch YouTube sur IP datacenter = exposition juridique + blocage technique |
+
+- **Sur Modal : les 4 endpoints ML.** Le fardeau qu'on supprime = **shipper un
+  sidecar Python torch+CUDA** sur du hardware au hasard (structure/sépa lourds
+  GPU ; tempo/accords torch-CPU passent aussi, faute de sidecar local ML).
+- **Reste LOCAL** : (a) le **stockage projets + audio** (ports `ProjectStore` /
+  `ProjectAudioStore`) et le **download** (`TrackSource`) — la donnée de l'user
+  ne quitte pas sa machine ; (b) playback/loop/pitch/tempo (rubberband, Web
+  Audio). **La pratique marche hors-ligne ; seule l'analyse ML est online.**
+- **Exposition résiduelle** : l'analyse envoie l'audio à Modal (transitoire, non
+  conservé) — moindre. Les grosses responsabilités (héberger les projets, fetch
+  YouTube depuis notre IP) sont supprimées.
+- **Cible packaging** : Tauri (webview système). Pas de sidecar **ML** ; la
+  couche de données locale (projets + yt-dlp) passe côté **Rust** (fs + binaire
+  sidecar), donc **zéro Python** — les adapters `ProjectStore`/`TrackSource`
+  échangent HTTP-vers-Python → commande Tauri, cœur intouché.
 
 ## 2. Ce qui NE change pas (le seam est déjà construit)
 
