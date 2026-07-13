@@ -77,6 +77,21 @@ describe('detectChords', () => {
     expect(result.source).toBe('| C | Am |\n| F |')
   })
 
+  it('folds a progression detected twice in a row into repeat bars', async () => {
+    const twice = ['C', 'Am', 'F', 'G', 'C', 'Am', 'F', 'G']
+    const spans: readonly DetectedChordSpan[] = twice.map((label, index) => ({
+      startSeconds: index * 2,
+      endSeconds: index * 2 + 2,
+      label
+    }))
+    const result = await detectChords(
+      { audio, grid: grid4(8), barsPerRow: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.source).toBe('|: C | Am | F | G :|')
+  })
+
   it('rejects a detection carrying non-finite times', async () => {
     const result = await detectChords(
       { audio, grid: grid4(2), barsPerRow: 4 },

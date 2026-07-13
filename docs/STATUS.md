@@ -82,20 +82,27 @@ barres dessinées, `ChartHeader` dérivé + Petaluma Script OFL — voir
 l'historique.
 **P.2 — grammaire de forme + déroulement mergé (PR #114)** — voir
 l'historique.
-**P.3 — édition repliée, sur `feat/p3-collapsed-edit` (PR à ouvrir)** :
-vue par défaut = la chart seule, textarea repliée derrière « Modifier »
-(toggle en place validé au checkpoint — pas de dialog), disclosure
-accessible (`aria-expanded` + `aria-controls`, focus remis à l'éditeur),
-hint d'état vide `chords.empty-hint` (le placeholder pédagogique était le
-seul guidage premier-lancement). Modèle intouché (source liftée,
-bars-per-row, brouillon de détection). Helpers de specs idempotents
-`typeGrid`/`chartEditor`. Revue 8 angles : 2 constats fixés en TDD
-(aria-controls, état vide muet), 6 arbitrés. Gate vert **1151 tests** (+7),
-Stryker skipped (core intouché).
-**Next : ouvrir + merger la PR P.3 — Lot P clos (P.4 impression en
-veille).**
+**P.3 mergé (PR #115)** — édition repliée, chart-first — voir l'historique.
+**P.4 phase 1 — déduction de structure, sur `feat/p4-structure-deduction`
+(PR à ouvrir)** : le brouillon de détection n'est plus plat — domaine pur
+`chart-structure.ts` : `deduceStructure` (structure = compression MDL,
+tuilages uniformes 16/12/8/4 vs morceau entier, matching flou ≥ 3/4 des
+mesures **détectées** — le silence ne vote pas, vote majoritaire qui
+nettoie les accords mal détectés) + `renderStructuredSource` (en-têtes
+`[A]`/`[B]`, paire adjacente pliée en `|: … :|`, un objet section partagé
+par type — pli sur l'identité). `detectChords` composé dessus. 2 propriétés
+fast-check (round-trip render→parse→unroll, générateur avec chansons
+structurées). **Stryker 100 % sur chart-structure.ts** (104 mutants, 2 runs
+ciblés). Revue 8 angles : 5 constats fixés en TDD (dont silence-compte-
+comme-accord qui effaçait un accord réel), 3 arbitrés (tie de vote garde la
+1re occurrence ; runs > 2 écrits ; pas d'offset de phase — DP MDL en
+phase 2 si besoin). Gate vert **1173 tests** (+22).
+**Next : pousser la branche + ouvrir/merger la PR P.4 (phase 1). Ensuite :
+P.4 impression (en veille) ou phase 2 structure (port audio) si l'usage le
+réclame.**
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
-See [P.3](sessions/2026-07-12-p3-collapsed-edit.md) ·
+See [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·
+[P.3](sessions/2026-07-12-p3-collapsed-edit.md) ·
 [P.2](sessions/2026-07-12-p2-form-unroll.md) ·
 [P.1](sessions/2026-07-12-p1-chart-rendering.md) ·
 [O.5](sessions/2026-07-12-grouped-lows-o5.md) ·
@@ -109,7 +116,11 @@ See [P.3](sessions/2026-07-12-p3-collapsed-edit.md) ·
 
 ### Lot P — lead-sheet chart (2026-07-12 → …)
 
-- 2026-07-12 · **P.3 — édition repliée** (PR à ouvrir) : chart-first,
+- 2026-07-13 · **P.4 phase 1 — déduction de structure** (PR à ouvrir) :
+  `deduceStructure` MDL + vote nettoyant + `renderStructuredSource`
+  (`[A]`, `|: :|`), detectChords structuré, Stryker 100 % sur le fichier →
+  [rapport](sessions/2026-07-13-p4-structure-deduction.md)
+- 2026-07-12 · **P.3 — édition repliée** (PR #115 mergée) : chart-first,
   textarea derrière « Modifier » (aria-expanded/controls, focus remis),
   hint d'état vide, helpers typeGrid/chartEditor →
   [rapport](sessions/2026-07-12-p3-collapsed-edit.md)

@@ -1,4 +1,7 @@
-import { renderChartSource } from '../domain/chord-chart.ts'
+import {
+  deduceStructure,
+  renderStructuredSource
+} from '../domain/chart-structure.ts'
 import { chordLabelPerMeasure } from '../domain/chord-detection.ts'
 import type { BeatGrid } from '../domain/tempo.ts'
 import { errorMessage } from './error-message.ts'
@@ -58,10 +61,12 @@ export type DetectChordsResult =
     }
 
 /**
- * Orchestration use-case, pure: hand the loaded PCM to the chord detector port
- * and fold its timestamped spans into ONE chord per measure on the beat grid
- * (`chordLabelPerMeasure`), rendered as grid SOURCE text — the draft the
- * chord-chart editor pre-fills and the user corrects; imperfect estimation is
+ * Orchestration use-case, pure: hand the loaded PCM to the chord detector port,
+ * fold its timestamped spans into ONE chord per measure on the beat grid
+ * (`chordLabelPerMeasure`), deduce the song's structure from the repetition in
+ * that sequence (`deduceStructure`) and render it as grid SOURCE text — the
+ * draft the chord-chart editor pre-fills and the user corrects; imperfect
+ * estimation is
  * absorbed by editing, never exposed raw. A grid without downbeats cannot
  * anchor measures, so it is rejected BEFORE the engine runs (application
  * policy, like `importFromUrl`'s URL guard); a detection yielding no measures
@@ -93,7 +98,10 @@ export async function detectChords(
     if (labels.length === 0) {
       return { ok: false, code: 'no-chords', detail: 'no chords detected' }
     }
-    return { ok: true, source: renderChartSource(labels, input.barsPerRow) }
+    return {
+      ok: true,
+      source: renderStructuredSource(deduceStructure(labels), input.barsPerRow)
+    }
   } catch (e) {
     const code = e instanceof ChordDetectionError ? e.code : 'unknown'
     return { ok: false, code, detail: errorMessage(e) }
