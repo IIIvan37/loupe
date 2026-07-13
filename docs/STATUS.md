@@ -116,28 +116,32 @@ autonome). Revue 2 angles → 3 fixes. Gate vert **1207 tests**, Stryker ciblé
 detect-structure 100 % / song-structure ~91 %.
 [rapport S.2](sessions/2026-07-13-structure-core-s2.md).
 **S.2 mergé (PR #119).**
-**S.3a web — marqueurs de structure (PR #120 mergée) :**
-bouton « Détecter la structure » **dans la barre de repères** →
-`createHttpStructureDetector` (`POST /structure`, labels bruts, AbortSignal O.5)
-+ `useStructureDetection` (décalque de `useChordDetection`) + `sectionMarkers`
-(vocab SongFormer → Lingui) + `useMarkers.setSections` (remplace la liste,
-« detection owns the timeline ») + confirmation deux temps « Remplacer les
-repères ? ». **Pas de grille requise** (marche avant le tempo). Revue 8 angles →
-0 bug, 1 cleanup appliqué (`SectionMarker` typé). `WorkstationShell` remis sous
-300 lignes (extraits `useStructureMarkers` + `useFilePicker`). Gate vert
-**1236 tests** (+29), Stryker skippé (core intouché).
-[rapport S.3a](sessions/2026-07-13-structure-web-s3.md).
-**S.3b — réétiquetage de la grille d'accords — DIFFÉRÉ (décision produit)** :
-en-têtes `[Couplet]`/`[Refrain]` depuis les sections détectées, nécessite un
-**nouveau fold core** (sections + grille → source structurée). À reprendre après
-vérif navigateur des marqueurs.
-**Vérif navigateur S.3a OK (2026-07-13)** : *The Logical Song* (Supertramp) →
-`POST /structure` 200 → 9 sections traduites (Intro/Couplet/Refrain/
-Instrumental/…/Outro/Silence) rendues dans la barre de repères **et** le
-panneau, annonce a11y « Repères de structure posés », bouton sans grille
-requise (marche avant le tempo). Piège relevé : l'app doit tourner sur
-`localhost:5173` (allowlist d'origine du serveur), sinon « Serveur hors ligne ».
-**Next : décision produit sur S.3b (réétiquetage de la grille d'accords).**
+**S.3a web — marqueurs de structure (PR #120 mergée)** : bouton « Détecter la
+structure » dans la barre de repères → marqueurs de section (vérif navigateur OK
+sur *The Logical Song*). Détail dans l'historique + [rapport
+S.3a](sessions/2026-07-13-structure-web-s3.md).
+
+**En cours : S.3b — réétiquetage de la grille d'accords (branche
+`feat/p-structure-web-s3b`)** — décision produit reprise : *le bouton
+« Détecter la structure » réétiquette la grille existante en gardant ses
+accords*. **Core** : fold pur `relabelChartBySections(source, sections, grid,
+barsPerRow)` — grille lue en mesures **jouées** (`unrollChart`, aligné sur les
+temps de section en secondes de lecture), 1er accord par mesure (modèle token
+plat), chaque frontière de section mappée en index de mesure (compte des
+downbeats avant son `startSeconds`), coupe → un bloc par section sous son
+en-tête, **pas de vote inter-sections** (accords gardés verbatim → l'offset de
+clé reste valide). Export public (famille `transposeChart`/`renderChartSource`).
+**Web** : `sectionDisplayLabel` (raw→Lingui, partagé marqueurs/grille),
+`relabel-chart.ts` (traduit puis appelle le core), `useStructureMarkers`
+réétiquette via `chart.setSource` quand la grille a du contenu **et** un beat
+grid ; `MarkerControls` arme la confirmation sur `hasMarkers || hasGrid` et
+nomme l'enjeu (« Remplacer les repères et la grille ? » / « Réétiqueter la
+grille d'accords ? » / S.3a « Remplacer les repères ? »). Session chart
+construite **avant** le flux structure (même source). **Limites v1** : mesure
+multi-accords → 1er accord seulement ; pas de repli `|: :|` (chaque section sous
+son en-tête). Gate **vert — 1249 tests** (+13), react-doctor clean
+(WorkstationShell < 300 lignes).
+[rapport S.3b](sessions/2026-07-13-structure-web-s3b.md).
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 [P.4 print](sessions/2026-07-13-p4-print.md) ·

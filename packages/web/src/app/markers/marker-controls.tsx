@@ -56,6 +56,8 @@ export interface StructureDetectionControl {
   readonly succeeded: boolean
   /** Whether markers already exist — a detection replaces them, so it confirms. */
   readonly hasMarkers: boolean
+  /** Whether a chord grid exists — a detection relabels it, so it confirms too. */
+  readonly hasGrid: boolean
   readonly onDetect: () => void
 }
 
@@ -69,21 +71,40 @@ interface MarkerControlsProps {
 /** Dumb-ish control: drop a named marker, or auto-detect the song's sections. */
 export function MarkerControls({ disabled, onAdd, detection }: MarkerControlsProps) {
   const { t } = useLingui()
-  // A detection REPLACES the markers — an existing set is armed work, so the
-  // first activation only swaps the button to « Remplacer les repères ? ».
+  // A detection REPLACES the markers and RELABELS the grid — either is armed
+  // work, so the first activation only swaps the button to a confirm naming
+  // what it will overwrite.
   const overwrite = useTwoStepConfirm<true>()
 
   function onDetectClick(): void {
     if (!detection) {
       return
     }
-    if (detection.hasMarkers && overwrite.pending === null) {
+    if ((detection.hasMarkers || detection.hasGrid) && overwrite.pending === null) {
       overwrite.arm(true)
       return
     }
     overwrite.disarm()
     detection.onDetect()
   }
+
+  // The confirm names exactly the work at stake: both, the grid alone, or the
+  // markers alone (the S.3a wording, unchanged when no grid exists).
+  const confirmLabel =
+    detection?.hasGrid && detection.hasMarkers
+      ? t({
+          id: 'structure.detect-confirm-both',
+          message: 'Remplacer les repères et la grille ?'
+        })
+      : detection?.hasGrid
+        ? t({
+            id: 'structure.detect-confirm-grid',
+            message: 'Réétiqueter la grille d’accords ?'
+          })
+        : t({
+            id: 'structure.detect-confirm',
+            message: 'Remplacer les repères ?'
+          })
 
   const blockedHint =
     detection?.blockedReason === 'server' ? t(NEEDS_SERVER) : undefined
@@ -139,10 +160,7 @@ export function MarkerControls({ disabled, onAdd, detection }: MarkerControlsPro
                   message: 'Détection…'
                 })
               : overwrite.pending
-                ? t({
-                    id: 'structure.detect-confirm',
-                    message: 'Remplacer les repères ?'
-                  })
+                ? confirmLabel
                 : t({
                     id: 'structure.detect',
                     message: 'Détecter la structure'

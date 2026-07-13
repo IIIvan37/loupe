@@ -272,7 +272,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:325
+#: src/app/workstation-shell/workstation-shell.tsx:317
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -325,7 +325,7 @@ msgstr "Confirmer l'import — la session actuelle sera remplacée"
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:120
 #: src/app/workstation-shell/shell-test-kit.tsx:225
-#: src/app/workstation-shell/workstation-shell.tsx:231
+#: src/app/workstation-shell/use-file-picker.ts:24
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
@@ -545,7 +545,7 @@ msgid "loops.trainer-title"
 msgstr "Rampe de tempo"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:122
+#: src/app/markers/marker-controls.tsx:143
 msgid "markers.add"
 msgstr "+ Repère"
 
@@ -555,7 +555,7 @@ msgid "markers.confirm-remove"
 msgstr "Confirmer la suppression de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/markers/use-markers.ts:14
+#: src/app/markers/use-markers.ts:15
 msgid "markers.default-name"
 msgstr "Repère {number}"
 
@@ -585,7 +585,7 @@ msgid "markers.rename-title"
 msgstr "Renommer le repère"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:114
+#: src/app/markers/marker-controls.tsx:135
 msgid "markers.section-label"
 msgstr "Repères"
 
@@ -837,22 +837,32 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:146
+#: src/app/markers/marker-controls.tsx:164
 msgid "structure.detect"
 msgstr "Détecter la structure"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:142
+#: src/app/markers/marker-controls.tsx:104
 msgid "structure.detect-confirm"
 msgstr "Remplacer les repères ?"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:104
+#: src/app/markers/marker-controls.tsx:95
+msgid "structure.detect-confirm-both"
+msgstr "Remplacer les repères et la grille ?"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:100
+msgid "structure.detect-confirm-grid"
+msgstr "Réétiqueter la grille d’accords ?"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:125
 msgid "structure.detect-done"
 msgstr "Repères de structure posés depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:95
+#: src/app/markers/marker-controls.tsx:116
 msgid "structure.detect-failed"
 msgstr "Échec de la détection de la structure"
 
@@ -862,12 +872,12 @@ msgid "structure.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter la structure."
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:102
+#: src/app/markers/marker-controls.tsx:123
 msgid "structure.detecting"
 msgstr "Détection de la structure…"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:137
+#: src/app/markers/marker-controls.tsx:158
 msgid "structure.detecting-short"
 msgstr "Détection…"
 
