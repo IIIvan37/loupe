@@ -15,16 +15,35 @@ import {
 export function useChordChartSession({
   loadedAudio,
   grid,
-  detector
+  detector,
+  onSourceEdited
 }: {
   readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
   readonly detector?: ChordDetector | undefined
+  /**
+   * Fired after every USER edit of the source — typing and seated drafts, but
+   * never a restore or reset — with the new text. The shell re-derives the
+   * structure markers here (the chart's headers are the timeline's authority);
+   * restores stay silent so saved hand-fixes survive reopening.
+   */
+  readonly onSourceEdited?: ((source: string) => void) | undefined
 }): {
   readonly chart: ReturnType<typeof useChordChart>
   readonly detection: ChordDetection
 } {
-  const chart = useChordChart()
+  const edited = useChordChart()
+  const chart = {
+    ...edited,
+    setSource: (source: string) => {
+      edited.setSource(source)
+      onSourceEdited?.(source)
+    },
+    seatDraft: (draft: string) => {
+      edited.seatDraft(draft)
+      onSourceEdited?.(draft)
+    }
+  }
   const detection = useChordDetection({
     loadedAudio,
     grid,

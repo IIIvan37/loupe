@@ -156,12 +156,16 @@ export function ShellMain({
               detecting: structureDetection.detecting,
               error: structureDetection.error,
               succeeded: structureDetection.succeeded,
-              // A detection replaces the markers AND, when one exists, relabels
-              // the grid — either is armed work, so the confirm arms on both.
-              // The relabel needs a beat grid to place the sections on, so a
-              // grid is only "at stake" once the tempo is known (matches the
-              // guard in useStructureMarkers), never over-promising the confirm.
-              hasMarkers: markers.markers.length > 0,
+              // A detection replaces the STRUCTURE markers AND, when one
+              // exists, relabels the grid — either is armed work, so the
+              // confirm arms on both. Hand-dropped cues survive a run, so they
+              // arm nothing. The relabel needs a beat grid to place the
+              // sections on, so a grid is only "at stake" once the tempo is
+              // known (matches the guard in useStructureMarkers), never
+              // over-promising the confirm.
+              hasMarkers: markers.markers.some(
+                (marker) => marker.kind === 'structure'
+              ),
               hasGrid:
                 chordChart.source.trim().length > 0 &&
                 (grid ?? []).some((beat) => beat.downbeat),

@@ -4,7 +4,8 @@ import {
   type Marker,
   type MarkerList,
   moveMarker,
-  removeMarker
+  removeMarker,
+  replaceStructureMarkers
 } from '@app/core'
 import { msg } from '@lingui/core/macro'
 import { useState } from 'react'
@@ -27,10 +28,10 @@ export interface Markers {
   readonly move: (id: string, timeSeconds: number) => void
   readonly remove: (id: string) => void
   /**
-   * Replace the whole list with section markers (structure detection): each
-   * point becomes a fresh, identity-minted marker. Detection owns the timeline,
-   * so this supersedes the current markers — the button confirms first when any
-   * exist.
+   * Replace the STRUCTURE markers with fresh section points (a detection run,
+   * or the chart's headers after an edit — the chart text is the authority):
+   * each point becomes a fresh, identity-minted `kind: 'structure'` marker.
+   * Hand-dropped cues survive the replacement.
    */
   readonly setSections: (sections: readonly SectionMarker[]) => void
   /** Drop every marker — e.g. when a new track is loaded. */
@@ -79,15 +80,15 @@ export function useMarkers(): Markers {
   }
 
   function setSections(sections: readonly SectionMarker[]): void {
-    setMarkers(
-      sections.reduce<MarkerList>(
-        (list, section) =>
-          addMarker(list, {
-            id: crypto.randomUUID(),
-            timeSeconds: section.timeSeconds,
-            label: section.label
-          }),
-        emptyMarkerList
+    setMarkers((current) =>
+      replaceStructureMarkers(
+        current,
+        sections.map((section) => ({
+          id: crypto.randomUUID(),
+          timeSeconds: section.timeSeconds,
+          label: section.label,
+          kind: 'structure'
+        }))
       )
     )
   }

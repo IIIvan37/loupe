@@ -171,26 +171,32 @@ son en-tête). Gate **vert — 1249 tests** (+13), react-doctor clean
 (WorkstationShell < 300 lignes).
 [rapport S.3b](sessions/2026-07-13-structure-web-s3b.md).
 
-**En cours : grille d'accords — orthographe tonale + vocabulaire étendu
-(branche `feat/chord-grid-vocab-key`, PR à ouvrir).** Deux améliorations de la
-génération de grille avant la démo (les points #2 marqueurs↔structure et #3
-signatures rythmiques restent pour la suite ; multi-accords/mesure reporté).
-**#1 Orthographe tonale (core pur)** : `detectKey` (profil de hauteurs pondéré
-durée → corrélation Krumhansl → tonique+mode), `keyAccidental`/`keyName`,
-`respellNote`/`respellChordSymbol` + `respellChartSource` (squelette factorisé
-avec `transposeChartSource`). Le use-case `detectChords` détecte la tonalité,
-ré-épelle le brouillon (`A#`→`Bb` en tonalité bémol) et préfixe `{key: …}`
-(l'app affiche « key of X », éditable). **Vocabulaire étendu (serveur)** :
-bascule vers le grand checkpoint BTC `btc_model_large_voca.pt` (170 classes :
-7es, sus2/4, dim, aug, 6… ; sha256 épinglé, CQT inchangé, repli
-`LOUPE_CHORDS_VOCA=majmin`), table `LARGE_VOCABULARY` générée
-(`idx2voca_chord()` verbatim). **Web** : `toGridToken` mappe les qualités
-étendues (`min7`→`m7`, `hdim7`→`m7b5`…). Vérifié end-to-end sur *The Logical
-Song* : détection `C:min6/G#:maj7/G:min7/F:7`, tonalité Do mineur, brouillon
-`Eb/Abmaj7/Bb`. Gate **vert — 1322 tests**, serveur **199 pytest**, Stryker
-**93,94 %** (chord-symbol/detect-chords 100 %, chord-key 73,7 % — survivants =
-mutants équivalents de la corrélation Krumhansl).
+**Grille d'accords — orthographe tonale + vocabulaire étendu mergé (PR #127)**
+— pré-démo #1 : `detectKey` Krumhansl → `{key}` + ré-épellage #/b, grand
+checkpoint BTC 170 classes (7es/sus/dim…), nommage validé utilisateur →
 [rapport](sessions/2026-07-13-chord-grid-vocab-key.md).
+
+**En cours : marqueurs ↔ structure (pré-démo #2, branche
+`feat/marker-kinds-structure-sync`, PR à ouvrir).** Deux types de marqueurs,
+la grille = autorité. **Core** : `Marker.kind?: 'structure'` (absent ⇔
+indicatif, persistance rétro-compatible), `replaceStructureMarkers` (remplace
+les structure, préserve les indicatifs), `chartSectionAnchors(source, grid)`
+(un ancrage par en-tête `[Section]` au downbeat où sa 1re mesure se JOUE —
+`unrollChart` ; skips : label vide, en-tête sans mesure, hors grille, jamais
+jouée al Fine, sans downbeat). **Web** : `setSections` ne remplace plus que
+les structure (la détection ne balaie plus les repères manuels) ;
+`onSourceEdited` sur `useChordChartSession` → `syncStructureMarkersFromChart`
+re-dérive **à chaque édition utilisateur** (frappe live, brouillon) — jamais
+au restore (une correction sauvegardée survit à la réouverture) ; garde sans
+downbeat (les marqueurs d'une détection sans grille survivent). Rail :
+`data-kind` + peau **teal** (dérivé) vs ambre (à vous), marqueurs de structure
+**éditables mais écrasables** (décision : corriger vite un marqueur détecté
+faux). Confirm précisée (`hasMarkers` filtre par kind, « Remplacer les repères
+de structure ? »), `kind` dans la signature de session. Acceptance : en-tête
+tapé ⇒ marqueur live ; cue survit détection + édition ; round-trip des deux
+kinds. Gate **vert — 1340 tests** (+18), Stryker **~94 %** (marker-list 100 %).
+[rapport](sessions/2026-07-13-marker-kinds-structure-sync.md).
+Reste pré-démo : **#3 signatures rythmiques** (4/4, 2/4 et changements).
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 [P.4 print](sessions/2026-07-13-p4-print.md) ·

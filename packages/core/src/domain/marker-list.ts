@@ -42,3 +42,17 @@ export function moveMarker(
 export function removeMarker(list: MarkerList, id: string): MarkerList {
   return list.filter((marker) => marker.id !== id)
 }
+
+/**
+ * Replace every structure marker with `structural` (the fresh chart-derived
+ * set), keeping the cues untouched — the merge the chart-is-authority rule
+ * needs on each edit. Time order is preserved via `addMarker`. Pure — a new
+ * list out; ids on `structural` are minted by the adapter.
+ */
+export function replaceStructureMarkers(
+  list: MarkerList,
+  structural: MarkerList
+): MarkerList {
+  const cues = list.filter((marker) => marker.kind !== 'structure')
+  return structural.reduce(addMarker, cues)
+}

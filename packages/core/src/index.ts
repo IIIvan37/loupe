@@ -94,11 +94,17 @@ export type {
 } from './application/separate-track.ts'
 export { separateTrack } from './application/separate-track.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
+// chartSectionAnchors is the chart→timeline half of the marker sync: the web
+// re-derives the structure markers from the edited source (chart = authority).
+export type { SectionAnchor } from './domain/chart-structure.ts'
 // deduceStructure / renderStructuredSource stay internal to the detectChords
 // use-case; relabelChartBySections is a chart-source transform (family of
 // transposeChart / renderChartSource) the web applies with translated section
 // headers, so it is public like the rest of the chart utilities.
-export { relabelChartBySections } from './domain/chart-structure.ts'
+export {
+  chartSectionAnchors,
+  relabelChartBySections
+} from './domain/chart-structure.ts'
 export type {
   ChartForm,
   ChordChart,
@@ -154,7 +160,8 @@ export {
   addMarker,
   emptyMarkerList,
   moveMarker,
-  removeMarker
+  removeMarker,
+  replaceStructureMarkers
 } from './domain/marker-list.ts'
 export type { ClickTrackOptions, CountIn } from './domain/metronome.ts'
 export { buildCountIn, synthesizeClickTrack } from './domain/metronome.ts'

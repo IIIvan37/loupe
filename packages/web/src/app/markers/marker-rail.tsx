@@ -124,6 +124,7 @@ export function MarkerRail({
             <span
               key={marker.id}
               className={styles.marker}
+              data-kind={marker.kind}
               style={{ left: `${ratio * 100}%` }}
             >
               <span className={styles.pin} aria-hidden="true" />
