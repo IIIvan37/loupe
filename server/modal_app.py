@@ -2,7 +2,9 @@
 
 The production counterpart of `modal_structure_spike.py`: an HTTP endpoint that
 mounts ONLY the structure router (the lazy-router pattern of `app.main`), gated
-by a static bearer token (J1 MVP — replaced by Supabase-minted tokens at J2).
+by a SHORT-LIVED bearer token the Supabase Edge Function mints per analysis
+(J2). The endpoint verifies it with the shared HS256 secret and never holds a
+long-lived credential.
 
 Contract (unchanged — the web adapter already speaks it):
 
@@ -16,8 +18,8 @@ Only stateless inference runs here. Project/audio storage and yt-dlp download
 stay LOCAL (rights): they are NOT part of this app.
 
 Deploy:  cd server && .venv/bin/modal deploy modal_app.py
-Needs a Modal secret `loupe-modal-token` holding LOUPE_MODAL_TOKEN (see
-MODAL_SPIKE.md / the J1 runbook).
+Needs a Modal secret `loupe-analyze-jwt` holding ANALYZE_JWT_SECRET, the SAME
+value set as the Supabase Edge Function secret (see the J2 runbook).
 """
 
 from __future__ import annotations
@@ -110,7 +112,7 @@ def _probe_wav(seconds: int = 8, sample_rate: int = 16_000) -> bytes:
     gpu="L4",
     timeout=900,
     scaledown_window=300,  # keep the container warm across a user's session
-    secrets=[modal.Secret.from_name("loupe-modal-token")],
+    secrets=[modal.Secret.from_name("loupe-analyze-jwt")],
 )
 class Api:
     @modal.enter()
@@ -124,13 +126,19 @@ class Api:
     @modal.asgi_app()
     def web(self):
         """The FastAPI surface: auth + CORS + the structure router + /warmup."""
+        import time
+
         from fastapi import FastAPI, Request
         from fastapi.middleware.cors import CORSMiddleware
         from fastapi.responses import JSONResponse
 
+        from app.analyze_auth import InvalidAnalyzeToken, verify_analyze_token
         from app.structure import router as structure_router
 
-        token = os.environ["LOUPE_MODAL_TOKEN"]
+        # J2: the client presents a SHORT-LIVED token minted by the Supabase
+        # Edge Function, signed HS256 with this shared secret. The static J1
+        # token is gone — no long-lived credential ships in the app.
+        secret = os.environ["ANALYZE_JWT_SECRET"]
         web_app = FastAPI()
         web_app.add_middleware(
             CORSMiddleware,
@@ -143,7 +151,11 @@ class Api:
         async def require_token(request: Request, call_next):
             if request.method == "OPTIONS":
                 return await call_next(request)
-            if request.headers.get("authorization", "") != f"Bearer {token}":
+            header = request.headers.get("authorization", "")
+            token = header[7:] if header.startswith("Bearer ") else ""
+            try:
+                verify_analyze_token(token, secret, now=int(time.time()))
+            except InvalidAnalyzeToken:
                 # An auth short-circuit bypasses the CORS middleware, so echo the
                 # allow-origin ourselves — else the browser masks the 401 as an
                 # opaque CORS/network error instead of surfacing it readably.

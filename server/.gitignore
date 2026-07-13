@@ -7,3 +7,5 @@ __pycache__/
 .coverage
 .pytest_cache/
 htmlcov/
+
+server/.analyze-jwt-secret.local

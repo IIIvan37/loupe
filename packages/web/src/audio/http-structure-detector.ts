@@ -40,13 +40,16 @@ function isWireSegment(value: unknown): value is WireSegment {
  */
 export function createHttpStructureDetector(
   baseUrl: string,
-  token?: string
+  /** Resolves the bearer to send, or undefined for the token-less local server.
+   * Async + read per call so each upload uses the freshly-minted token (J2). */
+  tokenProvider?: () => Promise<string | undefined>
 ): StructureDetector {
   return {
     async detect(
       audio: DecodedAudio,
       signal?: AbortSignal
     ): Promise<readonly DetectedSection[]> {
+      const token = tokenProvider ? await tokenProvider() : undefined
       let body: Partial<StructureResponse>
       try {
         body = (await postWavForJson(

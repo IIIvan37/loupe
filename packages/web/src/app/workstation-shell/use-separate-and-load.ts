@@ -26,8 +26,11 @@ export function useSeparateAndLoad({
   tempo,
   mixer,
   metronome
-}: SeparateAndLoadDeps): (audio: DecodedAudio) => void {
+}: SeparateAndLoadDeps): (audio: DecodedAudio | undefined) => void {
   return (audio) => {
+    if (!audio) {
+      return
+    }
     void separation.separate(audio).then((result) => {
       if (!result) {
         return

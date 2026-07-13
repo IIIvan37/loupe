@@ -1,0 +1,99 @@
+/* The header account control + its sign-in / redeem / quota popover. Reuses the
+   shared popover skin tokens (panel, line, motion, buttons) so it reads as one
+   surface with the rename / import popovers. */
+
+/* The neutral outlined face the header uses for its actions (kept local, like
+   the header's own .secondaryAction), plus the account chip's inline layout. */
+.trigger {
+  composes: touchTarget from '../ui/controls.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-m);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+}
+
+.trigger:hover {
+  border-color: var(--line-strong);
+  background: var(--panel-2);
+}
+
+.email {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* This month's usage, teal + mono — the "what the machine counted" semantic. */
+.quota {
+  color: var(--teal);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+}
+
+.positioner {
+  composes: positioner from '../ui/popover-form.module.css';
+}
+
+.popup {
+  composes: popup from '../ui/popover-form.module.css';
+  width: 20rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.redeem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  padding-top: var(--space-s);
+  border-top: 1px solid var(--line);
+}
+
+.title {
+  composes: title from '../ui/popover-form.module.css';
+}
+
+.notice {
+  color: var(--text);
+  font-size: var(--font-size-s);
+  padding: var(--space-xs);
+  background: var(--panel-2);
+  border-radius: var(--radius);
+}
+
+.hint {
+  color: var(--dim);
+  font-size: var(--font-size-s);
+}
+
+.label {
+  composes: label from '../ui/popover-form.module.css';
+}
+
+.input {
+  composes: input from '../ui/popover-form.module.css';
+}
+
+.error {
+  color: var(--danger);
+  font-size: var(--font-size-xs);
+}
+
+.submit {
+  composes: submit from '../ui/popover-form.module.css';
+  align-self: flex-start;
+}
+
+.ghost {
+  composes: ghost from '../ui/popover-form.module.css';
+  align-self: flex-start;
+}

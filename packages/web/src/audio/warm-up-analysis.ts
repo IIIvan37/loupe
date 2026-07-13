@@ -1,4 +1,5 @@
-import { ANALYSIS_URL, analysisToken } from './analysis-endpoint.ts'
+import { ANALYSIS_URL } from './analysis-endpoint.ts'
+import { cachedAnalysisToken } from './analysis-token.ts'
 
 /**
  * Warm the GPU inference container ahead of use — the mitigation the spike
@@ -6,12 +7,14 @@ import { ANALYSIS_URL, analysisToken } from './analysis-endpoint.ts'
  * the container is hot by the time the user asks for an analysis, hiding the
  * cold start behind their think-time.
  *
- * Best-effort and silent: no token means the local server (no `/warmup`, skip);
- * any failure just means the first real request pays the cold start — never
- * surfaced. Aborted when the track is replaced (the caller's signal).
+ * Best-effort and silent: it only warms with an ALREADY-cached token — it never
+ * mints, because minting spends a quota unit (J2) and a prefetch must be free.
+ * No token (local server, or not signed in / not yet analysed this session) →
+ * skip; the first real analysis then pays the cold start. Any failure is
+ * swallowed. Aborted when the track is replaced (the caller's signal).
  */
 export async function warmUpAnalysis(signal?: AbortSignal): Promise<void> {
-  const token = analysisToken()
+  const token = cachedAnalysisToken()
   if (token === undefined) {
     return
   }

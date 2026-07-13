@@ -1,4 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro'
+import type { ReactNode } from 'react'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
 import { Icon } from '../ui/icon.tsx'
@@ -56,6 +57,9 @@ interface HeaderProps {
   readonly onCancelBusy?: (() => void) | undefined
   /** Reveal the saved-projects dialog. The shell owns its state. */
   readonly onShowProjects?: () => void
+  /** The account control (sign-in / quota), when analysis is offloaded (J2).
+   * A slot so the dumb header stays free of auth wiring. */
+  readonly accountSlot?: ReactNode
 }
 
 interface SaveControlsProps {
@@ -175,7 +179,8 @@ export function Header({
   dirty,
   busyMessage,
   onCancelBusy,
-  onShowProjects
+  onShowProjects,
+  accountSlot
 }: HeaderProps) {
   const { t } = useLingui()
   // The one document-state chip: a running operation narrates itself; otherwise
@@ -278,6 +283,7 @@ export function Header({
             <Trans id="header.projects">Projets</Trans>
           </button>
         )}
+        {accountSlot}
         {serverStatus && (
           <span className={styles.serverStatus} data-tone={serverStatus.tone}>
             <span className={styles.statusDot} aria-hidden="true" />
