@@ -54,7 +54,8 @@ export interface StructureDetectionControl {
   /** Why the last run failed — a code mapped here to translated copy. */
   readonly error: StructureDetectionErrorCode | undefined
   readonly succeeded: boolean
-  /** Whether markers already exist — a detection replaces them, so it confirms. */
+  /** Whether STRUCTURE markers exist — a detection replaces them, so it
+   * confirms. Hand-dropped cues survive a run, so they arm nothing. */
   readonly hasMarkers: boolean
   /** Whether a chord grid exists — a detection relabels it, so it confirms too. */
   readonly hasGrid: boolean
@@ -94,7 +95,7 @@ export function MarkerControls({ disabled, onAdd, detection }: MarkerControlsPro
     detection?.hasGrid && detection.hasMarkers
       ? t({
           id: 'structure.detect-confirm-both',
-          message: 'Remplacer les repères et la grille ?'
+          message: 'Remplacer les repères de structure et la grille ?'
         })
       : detection?.hasGrid
         ? t({
@@ -103,7 +104,7 @@ export function MarkerControls({ disabled, onAdd, detection }: MarkerControlsPro
           })
         : t({
             id: 'structure.detect-confirm',
-            message: 'Remplacer les repères ?'
+            message: 'Remplacer les repères de structure ?'
           })
 
   const blockedHint =

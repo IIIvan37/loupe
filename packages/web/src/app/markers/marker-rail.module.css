@@ -57,6 +57,19 @@
   background: var(--panel-2);
 }
 
+/* Structure markers mirror the chart's [Section] headers (derived → teal, per
+   the token rule: amber is yours, teal is what the app worked out). They stay
+   editable, but the chart is the authority — the next grid edit re-derives
+   them, so the hue also signals « owned by the grid ». */
+.marker[data-kind='structure'] .pin {
+  background: var(--teal);
+}
+
+.marker[data-kind='structure'] .tag {
+  border-color: var(--teal-deep);
+  color: var(--teal);
+}
+
 /* Visible keyboard focus on the seekable marker tags (baseline ring). */
 .tag:focus-visible {
   outline: 2px solid var(--amber);

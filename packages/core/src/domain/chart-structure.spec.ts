@@ -1,6 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import {
+  chartSectionAnchors,
   deduceStructure,
   relabelChartBySections,
   renderStructuredSource
@@ -373,5 +374,66 @@ describe('relabelChartBySections', () => {
         }
       )
     )
+  })
+})
+
+describe('chartSectionAnchors', () => {
+  it('anchors each labelled section at the downbeat of its first measure', () => {
+    const source = '[Couplet]\n| C | Am |\n[Refrain]\n| F | G |'
+    expect(chartSectionAnchors(source, grid(4, 2))).toEqual([
+      { timeSeconds: 0, label: 'Couplet' },
+      { timeSeconds: 4, label: 'Refrain' }
+    ])
+  })
+
+  it('skips an unlabelled leading block — no header, no marker', () => {
+    const source = '| C | Am |\n[Refrain]\n| F | G |'
+    expect(chartSectionAnchors(source, grid(4, 2))).toEqual([
+      { timeSeconds: 4, label: 'Refrain' }
+    ])
+  })
+
+  it('anchors in PLAYED measures — a repeat shifts the next section', () => {
+    // [A] plays its two bars twice (|: :|), so [B] first plays at bar 4.
+    const source = '[A]\n|: C | Am :|\n[B]\n| F | G |'
+    expect(chartSectionAnchors(source, grid(8, 2))).toEqual([
+      { timeSeconds: 0, label: 'A' },
+      { timeSeconds: 8, label: 'B' }
+    ])
+  })
+
+  it('skips a section the grid has no downbeat for', () => {
+    const source = '[A]\n| C | Am |\n[B]\n| F | G |'
+    expect(chartSectionAnchors(source, grid(2, 2))).toEqual([
+      { timeSeconds: 0, label: 'A' }
+    ])
+  })
+
+  it('skips an empty-labelled or measure-less header (mid-typing)', () => {
+    const source = '[]\n| C |\n[Couplet]\n[Refrain]\n| F |'
+    expect(chartSectionAnchors(source, grid(4, 2))).toEqual([
+      { timeSeconds: 2, label: 'Refrain' }
+    ])
+  })
+
+  it('ignores head directives when counting measures', () => {
+    const source = '{key: F}\n[Couplet]\n| F | Bb |'
+    expect(chartSectionAnchors(source, grid(4, 2))).toEqual([
+      { timeSeconds: 0, label: 'Couplet' }
+    ])
+  })
+
+  it('skips a section the form never plays (al Fine before it)', () => {
+    // {fine} ends the replay before [B] is ever reached: B has a written
+    // start but no played instant, so it anchors nothing.
+    const source = '[A]\n| C | Am |\n{fine}\n{d.c.}\n[B]\n| F |'
+    expect(chartSectionAnchors(source, grid(8, 2))).toEqual([
+      { timeSeconds: 0, label: 'A' }
+    ])
+  })
+
+  it('returns nothing without downbeats or without grid content', () => {
+    expect(chartSectionAnchors('[A]\n| C |', [])).toEqual([])
+    expect(chartSectionAnchors('', grid(4, 2))).toEqual([])
   })
 })

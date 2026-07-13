@@ -22,6 +22,7 @@ import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
 import { useChordChartSession } from '../lead-sheet/use-chord-chart-session.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
+import { syncStructureMarkersFromChart } from '../markers/chart-marker-sync.ts'
 import { useMarkers } from '../markers/use-markers.ts'
 import { useStructureMarkers } from '../markers/use-structure-markers.ts'
 import { useMixer } from '../mixer/use-mixer.ts'
@@ -137,11 +138,14 @@ export function WorkstationShell({
   const tempo = useTempo(tempoDetector)
   useModalWarmup(loadedAudio) // warm the Modal container on import (no-op locally)
   // Chart source (session state) + « Détecter les accords » — built before the
-  // structure flow, which relabels this same source (S.3b).
+  // structure flow, which relabels this same source (S.3b). Every user edit of
+  // the source re-derives the structure markers (chart = authority).
   const { chart: chordChart, detection: chordDetection } = useChordChartSession({
     loadedAudio,
     grid: tempo.analysis?.grid ?? [],
-    detector: chordDetector
+    detector: chordDetector,
+    onSourceEdited: (source) =>
+      syncStructureMarkersFromChart(source, tempo.analysis?.grid ?? [], markers)
   })
   // « Détecter la structure » → section markers + (if a grid exists) its headers.
   const structureDetection = useStructureMarkers({

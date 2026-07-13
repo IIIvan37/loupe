@@ -97,6 +97,55 @@ export function relabelChartBySections(
   )
 }
 
+/** A section's start on the timeline: the instant of the downbeat where its
+    first measure first PLAYS, under the header's verbatim label. */
+export interface SectionAnchor {
+  readonly timeSeconds: number
+  readonly label: string
+}
+
+/**
+ * Derive the structure markers a chart implies: one anchor per labelled
+ * `[Section]` header, at the downbeat where the section's first measure first
+ * plays (`unrollChart` — a repeat before it shifts it, exactly the projection
+ * playback highlighting uses). This is the chart-is-authority direction of the
+ * marker sync: edit a header, and the timeline follows. Headers that anchor
+ * nothing are skipped — an empty label, a header with no measures yet
+ * (mid-typing), or a section the grid has no downbeat for — and a grid without
+ * downbeats anchors nothing at all.
+ */
+export function chartSectionAnchors(
+  source: string,
+  grid: BeatGrid
+): readonly SectionAnchor[] {
+  const downbeats = grid
+    .filter((beat) => beat.downbeat)
+    .map((beat) => beat.timeSeconds)
+  if (downbeats.length === 0) {
+    return []
+  }
+  const chart = parseChart(source)
+  const played = unrollChart(chart)
+  const anchors: SectionAnchor[] = []
+  let written = 0
+  for (const section of chart.sections) {
+    const start = written
+    written += section.measures.length
+    if ((section.label ?? '') === '' || section.measures.length === 0) {
+      continue
+    }
+    const playedIndex = played.indexOf(start)
+    if (playedIndex === -1 || playedIndex >= downbeats.length) {
+      continue
+    }
+    anchors.push({
+      timeSeconds: downbeats[playedIndex] as number,
+      label: section.label as string
+    })
+  }
+  return anchors
+}
+
 /** The grid's chords as one token per PLAYED measure — the chart unrolled so a
     repeat plays its bars twice, each bar reduced to its first chord. */
 function playedLabels(source: string): MeasureLabels {

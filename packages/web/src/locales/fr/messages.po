@@ -337,7 +337,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:334
+#: src/app/workstation-shell/workstation-shell.tsx:315
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -358,7 +358,7 @@ msgstr "WAV, MP3, FLAC, M4A…"
 
 #. js-lingui-explicit-id
 #. placeholder {0}: Math.round(urlImport.progress.fraction * 100)
-#: src/app/workstation-shell/shell-header.tsx:92
+#: src/app/workstation-shell/shell-header.tsx:101
 msgid "header.downloading"
 msgstr "Téléchargement… {0} %"
 
@@ -388,7 +388,7 @@ msgid "header.import-confirm"
 msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:124
+#: src/app/workstation-shell/shell-header.tsx:133
 #: src/app/workstation-shell/shell-test-kit.tsx:225
 #: src/app/workstation-shell/use-file-picker.ts:24
 msgid "header.import-file"
@@ -430,12 +430,12 @@ msgid "header.import-url-unsupported"
 msgstr "Hôte non supporté — YouTube ou SoundCloud uniquement"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:118
+#: src/app/workstation-shell/shell-header.tsx:127
 msgid "header.no-track"
 msgstr "Aucun morceau"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:109
+#: src/app/workstation-shell/shell-header.tsx:118
 msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
@@ -474,22 +474,22 @@ msgid "header.saved"
 msgstr "Enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:107
+#: src/app/workstation-shell/shell-header.tsx:116
 msgid "header.saving"
 msgstr "Enregistrement du projet…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:31
+#: src/app/workstation-shell/shell-header.tsx:33
 msgid "header.server-no-separation"
 msgstr "Séparation indisponible"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:27
+#: src/app/workstation-shell/shell-header.tsx:29
 msgid "header.server-offline"
 msgstr "Serveur hors ligne"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:38
+#: src/app/workstation-shell/shell-header.tsx:40
 msgid "header.server-ready"
 msgstr "Serveur prêt"
 
@@ -504,12 +504,12 @@ msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:96
+#: src/app/workstation-shell/shell-header.tsx:105
 msgid "header.transcoding"
 msgstr "Extraction de l'audio…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:123
+#: src/app/workstation-shell/shell-header.tsx:132
 msgid "header.unknown-artist"
 msgstr "Artiste inconnu"
 
@@ -610,7 +610,7 @@ msgid "loops.trainer-title"
 msgstr "Rampe de tempo"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:143
+#: src/app/markers/marker-controls.tsx:144
 msgid "markers.add"
 msgstr "+ Repère"
 
@@ -620,17 +620,17 @@ msgid "markers.confirm-remove"
 msgstr "Confirmer la suppression de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/markers/use-markers.ts:15
+#: src/app/markers/use-markers.ts:16
 msgid "markers.default-name"
 msgstr "Repère {number}"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-rail.tsx:137
+#: src/app/markers/marker-rail.tsx:138
 msgid "markers.drag-hint"
 msgstr "Clic : se positionner — glisser ou ←/→ : déplacer"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-rail.tsx:133
+#: src/app/markers/marker-rail.tsx:134
 msgid "markers.go-to"
 msgstr "Aller à {name}"
 
@@ -650,7 +650,7 @@ msgid "markers.rename-title"
 msgstr "Renommer le repère"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:135
+#: src/app/markers/marker-controls.tsx:136
 msgid "markers.section-label"
 msgstr "Repères"
 
@@ -902,32 +902,32 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:164
+#: src/app/markers/marker-controls.tsx:165
 msgid "structure.detect"
 msgstr "Détecter la structure"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:104
+#: src/app/markers/marker-controls.tsx:105
 msgid "structure.detect-confirm"
-msgstr "Remplacer les repères ?"
+msgstr "Remplacer les repères de structure ?"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:95
+#: src/app/markers/marker-controls.tsx:96
 msgid "structure.detect-confirm-both"
-msgstr "Remplacer les repères et la grille ?"
+msgstr "Remplacer les repères de structure et la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:100
+#: src/app/markers/marker-controls.tsx:101
 msgid "structure.detect-confirm-grid"
 msgstr "Réétiqueter la grille d’accords ?"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:125
+#: src/app/markers/marker-controls.tsx:126
 msgid "structure.detect-done"
 msgstr "Repères de structure posés depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:116
+#: src/app/markers/marker-controls.tsx:117
 msgid "structure.detect-failed"
 msgstr "Échec de la détection de la structure"
 
@@ -937,12 +937,12 @@ msgid "structure.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter la structure."
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:123
+#: src/app/markers/marker-controls.tsx:124
 msgid "structure.detecting"
 msgstr "Détection de la structure…"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:158
+#: src/app/markers/marker-controls.tsx:159
 msgid "structure.detecting-short"
 msgstr "Détection…"
 
@@ -1105,7 +1105,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:217
+#: src/app/workstation-shell/workstation-shell.tsx:210
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 

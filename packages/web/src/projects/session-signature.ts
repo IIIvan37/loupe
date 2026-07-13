@@ -69,7 +69,8 @@ export function sessionSignature(session: SignedSession): string {
     markers: session.markers.map((marker) => [
       marker.id,
       marker.timeSeconds,
-      marker.label
+      marker.label,
+      marker.kind
     ]),
     activeLoop: session.activeLoop
       ? [

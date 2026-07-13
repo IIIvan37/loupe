@@ -6,7 +6,9 @@ import type {
 import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { i18n } from '../../i18n/i18n.ts'
 import {
+  beatsAt,
   brokenProjectStores,
+  chartEditor,
   fakeProjectStores,
   importTrack,
   installShellHooks,
@@ -307,6 +309,50 @@ describe('WorkstationShell projects & persistence', () => {
     expect(
       (screen.getByLabelText(i18n._('waveform.zoom-slider')) as HTMLInputElement).value
     ).toBe('3')
+  })
+
+  it('restores both marker kinds when a project is reopened', async () => {
+    const { user } = renderShell({
+      projectStores: fakeProjectStores(),
+      // Beats every 0.25 s → a downbeat per second, so the typed header below
+      // derives a structure marker.
+      tempoDetector: {
+        detect: async () => ({
+          bpm: 240,
+          beats: beatsAt(Array.from({ length: 32 }, (_, i) => i * 0.25))
+        })
+      }
+    })
+    await importTrack(user)
+
+    // A structure marker (derived from the typed header) and a hand cue.
+    await user.type(await chartEditor(user), '[[Couplet]{enter}| C | Am |')
+    await user.click(screen.getByRole('button', { name: i18n._('markers.add') }))
+    const cueName = i18n._('markers.default-name', { number: 2 })
+    await saveProjectAs(user, 'Repères typés')
+
+    // A fresh track wipes the timeline, then the reopen restores it.
+    await importTrack(user, 'autre.wav')
+    await openProjectsDialog(user)
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('projects.open') })
+    )
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('projects.confirm-open', { name: 'Repères typés' })
+      })
+    )
+
+    // Both markers come back, each with its kind — the structure one is still
+    // painted as the chart's (teal), the cue as the user's (amber).
+    const structureTag = await screen.findByRole('button', {
+      name: i18n._('markers.go-to', { name: 'Couplet' })
+    })
+    expect(structureTag.closest('[data-kind="structure"]')).not.toBeNull()
+    const cueTag = screen.getByRole('button', {
+      name: i18n._('markers.go-to', { name: cueName })
+    })
+    expect(cueTag.closest('[data-kind="structure"]')).toBeNull()
   })
 
   /** Fire a cancelable beforeunload and report whether the guard blocked it. */

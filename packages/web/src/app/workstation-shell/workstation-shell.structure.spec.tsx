@@ -144,3 +144,75 @@ describe('WorkstationShell structure detection', () => {
     ).toBeGreaterThan(0)
   })
 })
+
+describe('WorkstationShell chart → marker sync', () => {
+  /** Beats every 0.25 s (240 BPM) → a downbeat per second over 8 s. */
+  const denseTempo = {
+    detect: async () => ({
+      bpm: 240,
+      beats: beatsAt(Array.from({ length: 32 }, (_, i) => i * 0.25))
+    })
+  }
+
+  it('mirrors typed [Section] headers as structure markers, live', async () => {
+    const { user } = renderShell({ tempoDetector: denseTempo })
+    await importTrack(user)
+    const editor = await chartEditor(user)
+
+    await user.type(editor, '[[Couplet]{enter}| C | Am |')
+
+    // The typed header lands on the rail as a marker…
+    expect(
+      await screen.findByRole('button', {
+        name: i18n._('markers.go-to', { name: 'Couplet' })
+      })
+    ).toBeInTheDocument()
+
+    // …and clearing the grid takes it away again (the chart is the authority).
+    await user.clear(editor)
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('button', {
+          name: i18n._('markers.go-to', { name: 'Couplet' })
+        })
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  it('a hand-dropped cue survives structure detection and chart edits', async () => {
+    const { user } = renderShell({
+      healthFetch: healthFetch(null),
+      tempoDetector: denseTempo,
+      structureDetector: detectorOf(SECTIONS)
+    })
+    await importTrack(user)
+
+    // Drop a cue at the playhead — the user's own marker.
+    await user.click(screen.getByRole('button', { name: i18n._('markers.add') }))
+    const cueName = i18n._('markers.default-name', { number: 1 })
+    await screen.findByRole('button', {
+      name: i18n._('markers.go-to', { name: cueName })
+    })
+
+    // Detection replaces the STRUCTURE markers only — the cue stays, and a
+    // lone cue arms no confirm (nothing of the user's would be lost).
+    await user.click(await detectButton())
+    await screen.findAllByText(i18n._('structure.section.verse'))
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('markers.go-to', { name: cueName })
+      })
+    ).toBeInTheDocument()
+
+    // Editing the grid re-derives the structure markers — the cue still stays.
+    await user.type(await chartEditor(user), '[[Pont]{enter}| C | Am |')
+    await screen.findByRole('button', {
+      name: i18n._('markers.go-to', { name: 'Pont' })
+    })
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('markers.go-to', { name: cueName })
+      })
+    ).toBeInTheDocument()
+  })
+})
