@@ -60,10 +60,10 @@
   border-color: var(--amber-deep);
 }
 
+/* The panel title joins the section-label voice (Q.1): the h2 keeps the
+ * outline, the class drops the lone bold face among the column's heads. */
 .title {
-  margin: 0;
-  font-size: var(--font-size-base);
-  font-weight: 600;
+  composes: sectionLabel from '../ui/controls.module.css';
 }
 
 /* The sheet's scrollport: intrinsic bounds (clamp + dvh, no dimensional media

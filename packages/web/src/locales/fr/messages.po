@@ -267,7 +267,7 @@ msgstr "Transposer un demi-ton vers le haut"
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:225
 #: src/app/header/import-menu.tsx:180
-#: src/app/separation/separation-panel.tsx:128
+#: src/app/separation/separation-panel.tsx:133
 #: src/app/ui/popover-form.tsx:59
 #: src/app/workstation-shell/confirm-import-dialog.tsx:55
 msgid "common.cancel"
@@ -801,12 +801,12 @@ msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:135
+#: src/app/separation/separation-panel.tsx:140
 msgid "separation.failed"
 msgstr "La séparation a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:144
+#: src/app/separation/separation-panel.tsx:149
 msgid "separation.idle-hint"
 msgstr "Les pistes séparées (voix, batterie, basse…) s'alignent sous la forme d'onde, chacune avec ses propres contrôles."
 
@@ -816,12 +816,17 @@ msgid "separation.region-label"
 msgstr "Séparation des pistes"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:105
+#: src/app/separation/separation-panel.tsx:110
 msgid "separation.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:106
+#: src/app/separation/separation-panel.tsx:100
+msgid "separation.section-label"
+msgstr "Séparation"
+
+#. js-lingui-explicit-id
+#: src/app/separation/separation-panel.tsx:111
 msgid "separation.separate"
 msgstr "Séparer les pistes"
 
@@ -845,6 +850,21 @@ msgstr "Serveur hors ligne — démarrer le serveur local pour séparer les pist
 #: src/projects/projects-dialog.tsx:165
 msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-main.tsx:215
+msgid "shell.zone.analysis"
+msgstr "Analyse"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-main.tsx:247
+msgid "shell.zone.chart"
+msgstr "Partition"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-main.tsx:154
+msgid "shell.zone.timeline"
+msgstr "Timeline"
 
 #. js-lingui-explicit-id
 #: src/app/keyboard/shortcut-hints.ts:90

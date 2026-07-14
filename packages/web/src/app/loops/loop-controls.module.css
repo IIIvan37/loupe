@@ -1,8 +1,5 @@
 .label {
-  color: var(--dim);
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
+  composes: sectionLabel from '../ui/controls.module.css';
 }
 
 .action {

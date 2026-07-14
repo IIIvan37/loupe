@@ -94,6 +94,11 @@ export function SeparationPanel({
             message: 'Séparation des pistes'
           })}
         >
+          {/* The row label its column siblings (Repères, Tempo, Boucles)
+              always had — same shared voice (Q.1). */}
+          <span className={styles.label}>
+            <Trans id="separation.section-label">Séparation</Trans>
+          </span>
           {!isRunning && (
             <button
               type="button"
