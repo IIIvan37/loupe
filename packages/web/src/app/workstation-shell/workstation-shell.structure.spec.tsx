@@ -1,6 +1,10 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import type { DetectedSection, StructureDetector } from '@app/core'
+import type {
+  ChordDetector,
+  DetectedSection,
+  StructureDetector
+} from '@app/core'
 import { screen, waitFor } from '@testing-library/react'
 import { i18n } from '../../i18n/i18n.ts'
 import {
@@ -177,6 +181,56 @@ describe('WorkstationShell chart → marker sync', () => {
         })
       ).not.toBeInTheDocument()
     })
+  })
+
+  it('detected structure survives a later chord detection, heading its draft', async () => {
+    // The order the bug report names: structure FIRST, chords SECOND. The
+    // chord draft must be cut by the structure already on the timeline — not
+    // deduce its own neutral blocks and erase the markers through the sync.
+    const chordDetector: ChordDetector = {
+      // One chord per one-second measure over the dense grid's 8 bars — the
+      // same four-bar phrase twice, which alone would deduce into a single
+      // headerless |: … :| run and wipe every structure marker.
+      detect: async () =>
+        ['C', 'Am', 'F', 'G', 'C', 'Am', 'F', 'G'].map((label, index) => ({
+          startSeconds: index,
+          endSeconds: index + 1,
+          label
+        }))
+    }
+    const { user } = renderShell({
+      healthFetch: healthFetch(null),
+      tempoDetector: denseTempo,
+      structureDetector: detectorOf([
+        { startSeconds: 0, endSeconds: 4, label: 'verse' },
+        { startSeconds: 4, endSeconds: 8, label: 'chorus' }
+      ]),
+      chordDetector
+    })
+    await importTrack(user)
+
+    await user.click(await detectButton())
+    await screen.findAllByText(i18n._('structure.section.verse'))
+
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('chords.detect') })
+    )
+
+    // The draft is headed by the DETECTED sections, key and meter head kept…
+    const verse = i18n._('structure.section.verse')
+    const chorus = i18n._('structure.section.chorus')
+    await waitFor(async () => {
+      expect(await chartEditor(user)).toHaveValue(
+        '{key: Am}\n{time: 4/4}\n' +
+          `[${verse}]\n| C | Am | F | G |\n\n[${chorus}]\n| C | Am | F | G |`
+      )
+    })
+    // …and the structure markers are still on the rail, not erased.
+    for (const name of [verse, chorus]) {
+      expect(
+        screen.getByRole('button', { name: i18n._('markers.go-to', { name }) })
+      ).toBeInTheDocument()
+    }
   })
 
   it('a hand-dropped cue survives structure detection and chart edits', async () => {

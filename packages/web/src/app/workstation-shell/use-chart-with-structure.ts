@@ -4,9 +4,11 @@ import type {
   StructureDetector,
   TempoAnalysis
 } from '@app/core'
+import { useMemo } from 'react'
 import { useChordChartSession } from '../lead-sheet/use-chord-chart-session.ts'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import { syncStructureMarkersFromChart } from '../markers/chart-marker-sync.ts'
+import { markerSections } from '../markers/section-markers.ts'
 import type { Markers } from '../markers/use-markers.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import { useStructureMarkers } from '../markers/use-structure-markers.ts'
@@ -37,11 +39,19 @@ export function useChartWithStructure({
 } {
   const grid = analysis?.grid ?? []
   const beatsPerBar = analysis?.beatsPerBar
+  // A structure already on the timeline cuts the detected draft — the reverse
+  // order (chords first) leaves this empty and the draft deduces. Memoized so
+  // the derived array's identity only turns over with the marker list.
+  const sections = useMemo(
+    () => markerSections(markers.markers),
+    [markers.markers]
+  )
   const { chart: chordChart, detection: chordDetection } = useChordChartSession(
     {
       loadedAudio,
       grid,
       beatsPerBar,
+      sections,
       detector: chordDetector,
       onSourceEdited: (source) =>
         syncStructureMarkersFromChart(source, grid, markers)

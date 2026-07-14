@@ -1,7 +1,7 @@
-import type { DetectedSection } from '@app/core'
+import type { DetectedSection, MarkerList } from '@app/core'
 import { describe, expect, it } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
-import { sectionMarkers } from './section-markers.ts'
+import { markerSections, sectionMarkers } from './section-markers.ts'
 
 describe('sectionMarkers', () => {
   it('places a marker at each section start with the translated label', () => {
@@ -23,5 +23,53 @@ describe('sectionMarkers', () => {
     expect(
       sectionMarkers([{ startSeconds: 5, endSeconds: 9, label: 'coda' }])
     ).toEqual([{ timeSeconds: 5, label: 'coda' }])
+  })
+})
+
+describe('markerSections', () => {
+  it('reads the structure markers back as sections, cues skipped', () => {
+    // The inverse mapping: the labels are ALREADY display copy, carried
+    // verbatim; each section runs to the next structure marker's start.
+    const markers: MarkerList = [
+      { id: 'a', timeSeconds: 12, label: 'Couplet', kind: 'structure' },
+      { id: 'b', timeSeconds: 3, label: 'Repère 1' },
+      { id: 'c', timeSeconds: 0, label: 'Intro', kind: 'structure' },
+      { id: 'd', timeSeconds: 40, label: 'Refrain', kind: 'structure' }
+    ]
+
+    expect(markerSections(markers)).toEqual([
+      { startSeconds: 0, endSeconds: 12, label: 'Intro' },
+      { startSeconds: 12, endSeconds: 40, label: 'Couplet' },
+      {
+        startSeconds: 40,
+        endSeconds: Number.POSITIVE_INFINITY,
+        label: 'Refrain'
+      }
+    ])
+  })
+
+  it('yields no section from a cue-only list', () => {
+    expect(
+      markerSections([{ id: 'a', timeSeconds: 3, label: 'Repère 1' }])
+    ).toEqual([])
+  })
+
+  it('skips a marker whose label cannot print as a chart header', () => {
+    // The rename input trims and forbids empty, but restore() accepts any
+    // persisted list verbatim — a blank or multi-line label would print a
+    // header parseChart cannot read back, corrupting the draft's round-trip.
+    const markers: MarkerList = [
+      { id: 'a', timeSeconds: 0, label: '  ', kind: 'structure' },
+      { id: 'b', timeSeconds: 4, label: 'Ref\nrain', kind: 'structure' },
+      { id: 'c', timeSeconds: 8, label: 'Outro', kind: 'structure' }
+    ]
+
+    expect(markerSections(markers)).toEqual([
+      {
+        startSeconds: 8,
+        endSeconds: Number.POSITIVE_INFINITY,
+        label: 'Outro'
+      }
+    ])
   })
 })
