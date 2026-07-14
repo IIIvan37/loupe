@@ -32,6 +32,7 @@ export type Command =
   | { readonly type: 'zoomIn' }
   | { readonly type: 'zoomOut' }
   | { readonly type: 'addMarker' }
+  | { readonly type: 'addSectionMarker' }
   | { readonly type: 'toggleLoop' }
   | { readonly type: 'toggleMetronome' }
   | { readonly type: 'tapTempo' }
@@ -64,6 +65,9 @@ export const defaultKeyBindings: KeyBindings = [
   },
   { chord: { key: '+' }, command: { type: 'zoomIn' } },
   { chord: { key: '-' }, command: { type: 'zoomOut' } },
+  // Declared shift, and listed BEFORE the bare `m`: a character binding is
+  // shift-agnostic unless it says otherwise, so order decides Shift+M.
+  { chord: { key: 'm', shift: true }, command: { type: 'addSectionMarker' } },
   { chord: { key: 'm' }, command: { type: 'addMarker' } },
   { chord: { key: 'l' }, command: { type: 'toggleLoop' } },
   { chord: { key: 'k' }, command: { type: 'toggleMetronome' } },
@@ -84,7 +88,16 @@ function chordMatches(chord: KeyChord, pressed: KeyChord): boolean {
     return false
   }
   if (chord.key !== undefined) {
-    // Character match: case-insensitive, and Shift is part of the character.
+    // Character match: case-insensitive. Shift is normally part of the
+    // character (a `+` binding must match however the layout produces it),
+    // so it only discriminates when the binding DECLARES it — the opt-in
+    // that lets Shift+M mean something else than M.
+    if (
+      chord.shift !== undefined &&
+      Boolean(chord.shift) !== Boolean(pressed.shift)
+    ) {
+      return false
+    }
     return pressed.key?.toLowerCase() === chord.key.toLowerCase()
   }
   // Physical-position match: Shift distinguishes a bare key from its variant.

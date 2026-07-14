@@ -852,6 +852,11 @@ msgid "shortcuts.add-marker"
 msgstr "Ajouter un repère"
 
 #. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:94
+msgid "shortcuts.add-section"
+msgstr "Ajouter une section"
+
+#. js-lingui-explicit-id
 #: src/app/keyboard/shortcuts-dialog.tsx:28
 msgid "shortcuts.availability"
 msgstr "Disponibles une fois un morceau chargé."
@@ -892,12 +897,12 @@ msgid "shortcuts.title"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:94
+#: src/app/keyboard/shortcut-hints.ts:98
 msgid "shortcuts.toggle-loop"
 msgstr "Activer / désactiver la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:98
+#: src/app/keyboard/shortcut-hints.ts:102
 msgid "shortcuts.toggle-metronome"
 msgstr "Activer / désactiver le métronome"
 
@@ -1094,7 +1099,7 @@ msgid "tempo.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:103
+#: src/app/keyboard/shortcut-hints.ts:107
 #: src/app/tempo/tempo-panel.tsx:252
 msgid "tempo.tap"
 msgstr "Taper le tempo"

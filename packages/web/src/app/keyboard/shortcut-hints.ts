@@ -91,6 +91,10 @@ const ADD_MARKER = msg({
   id: 'shortcuts.add-marker',
   message: 'Ajouter un repère'
 })
+const ADD_SECTION = msg({
+  id: 'shortcuts.add-section',
+  message: 'Ajouter une section'
+})
 const TOGGLE_LOOP = msg({
   id: 'shortcuts.toggle-loop',
   message: 'Activer / désactiver la boucle'
@@ -120,6 +124,8 @@ function describeCommand(command: Command): string {
       return i18n._(ZOOM_OUT)
     case 'addMarker':
       return i18n._(ADD_MARKER)
+    case 'addSectionMarker':
+      return i18n._(ADD_SECTION)
     case 'toggleLoop':
       return i18n._(TOGGLE_LOOP)
     case 'toggleMetronome':

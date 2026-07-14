@@ -43,6 +43,8 @@ export interface ShortcutActions {
   readonly zoomIn: () => void
   readonly zoomOut: () => void
   readonly addMarker: () => void
+  /** Drop a hand-laid STRUCTURE marker at the playhead (Shift+M). */
+  readonly addSectionMarker: () => void
   /** Loop the active A/B region vs playing through it. */
   readonly toggleLoop: () => void
   /** Mute/unmute the metronome click lane. */
@@ -74,6 +76,9 @@ function dispatch(command: Command, actions: ShortcutActions): void {
       return
     case 'addMarker':
       actions.addMarker()
+      return
+    case 'addSectionMarker':
+      actions.addSectionMarker()
       return
     case 'toggleLoop':
       actions.toggleLoop()

@@ -191,9 +191,11 @@ retrofit `/tempo` sur `classifyTransportError` toujours noté.
 `feat/add-section-marker`, PR à ouvrir).** Retour utilisateur : impossible de
 CRÉER un marqueur de structure (seuls détection et `[headers]` en posaient).
 Bouton « + Section » à côté de « + Repère » (`addSectionAt`, libellé auto
-« Section N », kind structure, écrasable — validé), les sections manuelles
-guident la détection d'accords (#130). Gate **vert — 1419 tests** (+3),
-Stryker skippé (core intouché).
+« Section N », kind structure, écrasable — validé) **+ raccourci `Maj+M`**
+(commande core `addSectionMarker` ; matching shift opt-in sur les bindings
+caractère — un binding muet reste shift-agnostique, règle du `+`), les
+sections manuelles guident la détection d'accords (#130). Gate **vert —
+1421 tests** (+5).
 [rapport](sessions/2026-07-14-add-section-marker.md).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
