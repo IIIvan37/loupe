@@ -18,10 +18,23 @@ const defaultMarkerName = msg({
   message: 'Repère {number}'
 })
 
+// The auto label for a hand-laid section: « Section 1 », « Section 2 », …
+const defaultSectionName = msg({
+  id: 'markers.default-section-name',
+  message: 'Section {number}'
+})
+
 export interface Markers {
   readonly markers: MarkerList
   /** Drop a named marker at the given time (the playhead). */
   readonly addAt: (timeSeconds: number) => void
+  /**
+   * Drop a STRUCTURE marker at the given time (the playhead) — the hand-laid
+   * counterpart of a detection's sections. Overwritable like every structure
+   * marker (the chart is the authority), and read back by the chord
+   * detection, which cuts its draft at the timeline's sections.
+   */
+  readonly addSectionAt: (timeSeconds: number) => void
   /** Rename an existing marker (same id and time kept). */
   readonly rename: (id: string, label: string) => void
   /** Move an existing marker to a new time (same id and label kept). */
@@ -58,6 +71,24 @@ export function useMarkers(): Markers {
           { number: current.length + 1 },
           { message: defaultMarkerName.message ?? defaultMarkerName.id }
         )
+      }
+      return addMarker(current, marker)
+    })
+  }
+
+  function addSectionAt(timeSeconds: number): void {
+    setMarkers((current) => {
+      const number =
+        current.filter((marker) => marker.kind === 'structure').length + 1
+      const marker: Marker = {
+        id: crypto.randomUUID(),
+        timeSeconds,
+        label: i18n._(
+          defaultSectionName.id,
+          { number },
+          { message: defaultSectionName.message ?? defaultSectionName.id }
+        ),
+        kind: 'structure'
       }
       return addMarker(current, marker)
     })
@@ -101,5 +132,15 @@ export function useMarkers(): Markers {
     setMarkers(next)
   }
 
-  return { markers, addAt, rename, move, remove, setSections, clear, restore }
+  return {
+    markers,
+    addAt,
+    addSectionAt,
+    rename,
+    move,
+    remove,
+    setSections,
+    clear,
+    restore
+  }
 }

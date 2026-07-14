@@ -125,7 +125,7 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chart-header.tsx:55
+#: src/app/lead-sheet/chart-header.tsx:54
 msgid "chart.key-of"
 msgstr "key of {key}"
 
@@ -337,7 +337,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:315
+#: src/app/workstation-shell/workstation-shell.tsx:305
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -610,9 +610,14 @@ msgid "loops.trainer-title"
 msgstr "Rampe de tempo"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:144
+#: src/app/markers/marker-controls.tsx:152
 msgid "markers.add"
 msgstr "+ Repère"
+
+#. js-lingui-explicit-id
+#: src/app/markers/marker-controls.tsx:161
+msgid "markers.add-section"
+msgstr "+ Section"
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:108
@@ -623,6 +628,11 @@ msgstr "Confirmer la suppression de {name}"
 #: src/app/markers/use-markers.ts:16
 msgid "markers.default-name"
 msgstr "Repère {number}"
+
+#. js-lingui-explicit-id
+#: src/app/markers/use-markers.ts:22
+msgid "markers.default-section-name"
+msgstr "Section {number}"
 
 #. js-lingui-explicit-id
 #: src/app/markers/marker-rail.tsx:138
@@ -650,7 +660,7 @@ msgid "markers.rename-title"
 msgstr "Renommer le repère"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:136
+#: src/app/markers/marker-controls.tsx:144
 msgid "markers.section-label"
 msgstr "Repères"
 
@@ -902,32 +912,32 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:165
+#: src/app/markers/marker-controls.tsx:183
 msgid "structure.detect"
 msgstr "Détecter la structure"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:105
+#: src/app/markers/marker-controls.tsx:113
 msgid "structure.detect-confirm"
 msgstr "Remplacer les repères de structure ?"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:96
+#: src/app/markers/marker-controls.tsx:104
 msgid "structure.detect-confirm-both"
 msgstr "Remplacer les repères de structure et la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:101
+#: src/app/markers/marker-controls.tsx:109
 msgid "structure.detect-confirm-grid"
 msgstr "Réétiqueter la grille d’accords ?"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:126
+#: src/app/markers/marker-controls.tsx:134
 msgid "structure.detect-done"
 msgstr "Repères de structure posés depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:117
+#: src/app/markers/marker-controls.tsx:125
 msgid "structure.detect-failed"
 msgstr "Échec de la détection de la structure"
 
@@ -937,12 +947,12 @@ msgid "structure.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter la structure."
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:124
+#: src/app/markers/marker-controls.tsx:132
 msgid "structure.detecting"
 msgstr "Détection de la structure…"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:159
+#: src/app/markers/marker-controls.tsx:177
 msgid "structure.detecting-short"
 msgstr "Détection…"
 
@@ -1110,7 +1120,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:210
+#: src/app/workstation-shell/workstation-shell.tsx:200
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 

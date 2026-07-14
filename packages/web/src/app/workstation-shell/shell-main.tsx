@@ -155,6 +155,7 @@ export function ShellMain({
           <MarkerControls
             disabled={!isLoaded}
             onAdd={() => markers.addAt(position.get())}
+            onAddSection={() => markers.addSectionAt(position.get())}
             detection={{
               detecting: structureDetection.detecting,
               error: structureDetection.error,
