@@ -104,12 +104,16 @@ export function deduceStructure(
  * consecutive plays of the same section fold — a pair into `|: … :|` repeat
  * bars, a longer run into written copies — and each run gets its `[A]` header,
  * except when the whole song is one run (a header naming the only block says
- * nothing).
+ * nothing). `headLoneRun` overrides that suppression: a KNOWN section (the
+ * timeline's structure, not a deduction) must keep its header even alone —
+ * headers are what the chart→marker sync reads back, so a suppressed one
+ * would erase the last structure marker.
  */
 export function renderStructuredSource(
   sections: readonly DeducedSection[],
   barsPerRow: number,
-  initialMeter?: number
+  initialMeter?: number,
+  headLoneRun = false
 ): string {
   const runs = groupRuns(sections)
   let running = initialMeter
@@ -146,7 +150,9 @@ export function renderStructuredSource(
           ? withRepeatBars(copies[0] as string)
           : copies.join('\n')
       const headed =
-        runs.length === 1 ? body : `[${run.section.label}]\n${body}`
+        runs.length === 1 && !headLoneRun
+          ? body
+          : `[${run.section.label}]\n${body}`
       return lead === undefined ? headed : `${timeLine(lead)}\n${headed}`
     })
     .join('\n\n')
@@ -290,7 +296,9 @@ function playedLabels(source: string): MeasureLabels {
     block a section beyond the grid leaves empty. Boundaries are clamped
     non-decreasing so the cut never inverts; the first section always opens at 0
     so no leading measure is lost. Exported for the chord-detection draft: an
-    already-detected structure cuts the draft instead of `deduceStructure`. */
+    already-detected structure cuts the draft instead of `deduceStructure`.
+    Precondition: `sections` is non-empty (an empty cut means "no known
+    structure" — the caller falls back to deduction, not to an empty chart). */
 export function cutBySections(
   labels: MeasureLabels,
   meters: Meters,

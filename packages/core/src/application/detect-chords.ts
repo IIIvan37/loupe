@@ -128,12 +128,20 @@ export async function detectChords(
     // signature and the body marks where the song leaves it ({time: N/M},
     // The Logical Song's 2/4 turnaround), voted per section like the chords.
     const { meters, dominant } = chartMeters(input.grid, input.beatsPerBar)
-    const sections =
-      input.sections !== undefined && input.sections.length > 0
-        ? cutBySections(labels, meters, input.sections, input.grid)
-        : deduceStructure(labels, meters)
+    const known = input.sections?.length ? input.sections : undefined
+    const sections = known
+      ? cutBySections(labels, meters, known, input.grid)
+      : deduceStructure(labels, meters)
     const body = respellChartSource(
-      renderStructuredSource(sections, input.barsPerRow, dominant),
+      // A lone KNOWN section keeps its header (deduction suppresses it): the
+      // header is what the chart→marker sync reads back — suppressed, the
+      // draft would erase the timeline's last structure marker.
+      renderStructuredSource(
+        sections,
+        input.barsPerRow,
+        dominant,
+        known !== undefined
+      ),
       keyAccidental(key)
     )
     return {

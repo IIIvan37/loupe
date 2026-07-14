@@ -43,13 +43,20 @@ export function sectionMarkers(
  * so its draft is cut by the structure already on the timeline instead of
  * erasing it. Marker labels are ALREADY display copy, carried verbatim (the
  * draft prints them verbatim too); each section runs to the next structure
- * marker's start, the last one open-ended.
+ * marker's start, the last one open-ended. A label a `[header]` line cannot
+ * carry (blank, or holding a newline — reachable through a restored project,
+ * the rename input forbids both) is skipped: it would corrupt the draft.
  */
 export function markerSections(
   markers: MarkerList
 ): readonly DetectedSection[] {
   const structure = markers
-    .filter((marker) => marker.kind === 'structure')
+    .filter(
+      (marker) =>
+        marker.kind === 'structure' &&
+        marker.label.trim() !== '' &&
+        !marker.label.includes('\n')
+    )
     .toSorted((a, b) => a.timeSeconds - b.timeSeconds)
   return structure.map((marker, index) => ({
     startSeconds: marker.timeSeconds,

@@ -181,6 +181,28 @@ describe('detectChords', () => {
     expect(result.source.startsWith('{key: ')).toBe(true)
   })
 
+  it('heads a LONE known section — its marker must survive the sync', async () => {
+    // Deduction suppresses the header of a single whole-song run (it names
+    // nothing), but a KNOWN section is the timeline's structure: without the
+    // header, the seated draft's chart→marker sync would derive no anchor and
+    // erase the last structure marker.
+    const spans: readonly DetectedChordSpan[] = [
+      { startSeconds: 0, endSeconds: 2, label: 'C' },
+      { startSeconds: 2, endSeconds: 4, label: 'G' }
+    ]
+    const result = await detectChords(
+      {
+        audio,
+        grid: grid4(2),
+        barsPerRow: 4,
+        sections: [{ startSeconds: 0, endSeconds: 4, label: 'Couplet' }]
+      },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(grid(result.source)).toBe('[Couplet]\n| C | G |')
+  })
+
   it('deduces the structure when the known sections are empty', async () => {
     const twice = ['C', 'Am', 'F', 'G', 'C', 'Am', 'F', 'G']
     const spans: readonly DetectedChordSpan[] = twice.map((label, index) => ({

@@ -53,4 +53,23 @@ describe('markerSections', () => {
       markerSections([{ id: 'a', timeSeconds: 3, label: 'Repère 1' }])
     ).toEqual([])
   })
+
+  it('skips a marker whose label cannot print as a chart header', () => {
+    // The rename input trims and forbids empty, but restore() accepts any
+    // persisted list verbatim — a blank or multi-line label would print a
+    // header parseChart cannot read back, corrupting the draft's round-trip.
+    const markers: MarkerList = [
+      { id: 'a', timeSeconds: 0, label: '  ', kind: 'structure' },
+      { id: 'b', timeSeconds: 4, label: 'Ref\nrain', kind: 'structure' },
+      { id: 'c', timeSeconds: 8, label: 'Outro', kind: 'structure' }
+    ]
+
+    expect(markerSections(markers)).toEqual([
+      {
+        startSeconds: 8,
+        endSeconds: Number.POSITIVE_INFINITY,
+        label: 'Outro'
+      }
+    ])
+  })
 })
