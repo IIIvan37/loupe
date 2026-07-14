@@ -143,6 +143,21 @@ describe('deduceStructure', () => {
       verse
     ])
   })
+
+  it('still matches occurrences when jitter splits a bar in only one', () => {
+    // The same verse, but detection split two bars mid-measure in the second
+    // pass ('F G' vs 'F'): on exact cell equality that pass would fall below
+    // the match ratio. Both passes agree on every downbeat chord, so they
+    // must still group as one section — and the vote cleans the splits away.
+    const verse = ['C', 'Am', 'F', 'G']
+    const jittery = ['C', 'Am', 'F G', 'G C']
+    const sections = deduceStructure([...verse, ...jittery, ...verse])
+    expect(sections.map((section) => section.measures)).toEqual([
+      verse,
+      verse,
+      verse
+    ])
+  })
 })
 
 describe('renderStructuredSource', () => {
@@ -314,6 +329,19 @@ describe('relabelChartBySections', () => {
     ]
     expect(relabelChartBySections(source, sections, grid(4, 2), 4)).toBe(
       '| C G | Am | F | G |'
+    )
+  })
+
+  it("drops an unprintable token but keeps the measure's real chords", () => {
+    // A mid-cell token the row grammar reads structurally ('1.') cannot be
+    // re-printed — the relabel keeps the printable chords rather than
+    // wiping the whole bar to N.C.
+    const source = '| C 1. | Am | F | G |'
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 8, label: 'Intro' }
+    ]
+    expect(relabelChartBySections(source, sections, grid(4, 2), 4)).toBe(
+      '| C | Am | F | G |'
     )
   })
 

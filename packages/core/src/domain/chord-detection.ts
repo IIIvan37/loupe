@@ -72,9 +72,15 @@ function cellLabel(
     beats[Math.round(beats.length / 2)]?.timeSeconds ?? (barStart + barEnd) / 2
   const head = dominantLabel(spans, barStart, mid)
   const tail = dominantLabel(spans, mid, barEnd)
-  return head !== undefined && tail !== undefined && head !== tail
-    ? `${head} ${tail}`
-    : dominantLabel(spans, barStart, barEnd)
+  // The join's space is load-bearing grammar downstream (one token per
+  // chord): a multi-word engine label must not fabricate extra chords, so
+  // such a bar keeps its whole-bar vote.
+  const splits =
+    head !== undefined &&
+    tail !== undefined &&
+    head !== tail &&
+    !/\s/.test(head + tail)
+  return splits ? `${head} ${tail}` : dominantLabel(spans, barStart, barEnd)
 }
 
 /** The label holding `[barStart, barEnd)` longest — or none when silence wins. */

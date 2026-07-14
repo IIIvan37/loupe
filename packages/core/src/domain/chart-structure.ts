@@ -1,4 +1,9 @@
-import { parseChart, renderChartSource, unrollChart } from './chord-chart.ts'
+import {
+  isPrintableToken,
+  parseChart,
+  renderChartSource,
+  unrollChart
+} from './chord-chart.ts'
 import { formatChordSymbol } from './chord-symbol.ts'
 import type { DetectedSection } from './song-structure.ts'
 import { type BeatGrid, dominantMeter, meterPerMeasure } from './tempo.ts'
@@ -280,15 +285,17 @@ export function chartSectionAnchors(
 }
 
 /** The grid's chords as one cell per PLAYED measure — the chart unrolled so a
-    repeat plays its bars twice, each bar keeping ALL its chords (`'C G'`). */
+    repeat plays its bars twice, each bar keeping ALL its chords (`'C G'`).
+    A token the printer could not re-print (a mid-cell `1.` or `:` the parser
+    read as a chord) is dropped rather than wiping the bar to `N.C.`. */
 function playedLabels(source: string): MeasureLabels {
   const chart = parseChart(source)
   const measures = chart.sections.flatMap((section) => section.measures)
   return unrollChart(chart).map((index) => {
-    const chords = measures[index]?.chords ?? []
-    return chords.length === 0
-      ? undefined
-      : chords.map(formatChordSymbol).join(' ')
+    const printable = (measures[index]?.chords ?? [])
+      .map(formatChordSymbol)
+      .filter(isPrintableToken)
+    return printable.length === 0 ? undefined : printable.join(' ')
   })
 }
 
@@ -463,7 +470,22 @@ function matchesBlock(a: MeasureLabels, b: MeasureLabels): boolean {
     const other = b[index]
     if (label === undefined && other === undefined) return
     detected += 1
-    if (label === other) agreeing += 1
+    // Detection jitter can split a bar in one occurrence only ('F G' vs
+    // 'F'): agreement on the downbeat chord is agreement — the vote in
+    // votedBlock cleans the minority split afterwards.
+    if (
+      label !== undefined &&
+      other !== undefined &&
+      headChord(label) === headChord(other)
+    ) {
+      agreeing += 1
+    }
   })
   return agreeing >= detected * MATCH_RATIO
+}
+
+/** A cell's head chord — the downbeat token of a possibly split cell. */
+function headChord(cell: string): string {
+  const space = cell.indexOf(' ')
+  return space === -1 ? cell : cell.slice(0, space)
 }

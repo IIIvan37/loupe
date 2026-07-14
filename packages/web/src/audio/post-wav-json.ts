@@ -57,6 +57,24 @@ export function classifyTransportError(
 }
 
 /**
+ * The one-line translate step every analysis adapter's catch block shares:
+ * re-throw a classified transport failure as the port's own typed error
+ * (built by `wrap`), and anything unclassified verbatim — the caller's
+ * "unknown" path, detail preserved. Lives here so a change to the
+ * classification (a new deliberate status, an auth failure) lands once.
+ */
+export function rethrowTransportError(
+  e: unknown,
+  wrap: (failure: TransportFailure, detail: string) => Error
+): never {
+  const failure = classifyTransportError(e)
+  if (failure !== undefined && e instanceof Error) {
+    throw wrap(failure, e.message)
+  }
+  throw e
+}
+
+/**
  * The POST-a-mix-WAV-get-JSON skeleton the analysis adapters share
  * (`/tempo`, `/chords`): encode the loaded PCM (memoised per audio, shared
  * with `/separate`), upload it, fail loudly on a non-2xx answer. Each

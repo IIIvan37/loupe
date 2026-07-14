@@ -259,17 +259,30 @@ export function renderChartSource(
   return rows.join('\n')
 }
 
+/**
+ * Whether one token can sit in a printed cell: exactly one `TOKEN` (no bar
+ * line, no whitespace) that `parseCell` would not re-read structurally (a
+ * bare `:`, a volta `1.`, a fermata `@`). Exported for the structure
+ * relabel, so it keeps a bar's printable chords instead of wiping the whole
+ * cell when one token cannot be re-printed.
+ */
+export function isPrintableToken(token: string): boolean {
+  return (
+    token.match(TOKEN)?.join('') === token &&
+    token !== ':' &&
+    !VOLTA.test(token) &&
+    !FERMATA.test(token)
+  )
+}
+
 /** The tokens a cell may print — `N.C.` when the label isn't a single-space
-    join of plain tokens, or when ANY token would read structurally under
-    `parseCell` (`:`, a volta `1.`, a fermata `@`) and the measure count would
-    drift under `parseChart`. */
+    join of printable tokens: anything else would change the measure count
+    or the chords read back under `parseChart`. */
 function cellToken(label: string | undefined): string {
   const tokens = label?.match(TOKEN)
   return tokens != null &&
     tokens.join(' ') === label &&
-    tokens.every(
-      (token) => token !== ':' && !VOLTA.test(token) && !FERMATA.test(token)
-    )
+    tokens.every(isPrintableToken)
     ? label
     : NO_CHORD
 }

@@ -159,6 +159,17 @@ describe('chordLabelPerMeasure', () => {
     expect(labels).toEqual(['C G', 'G'])
   })
 
+  it('never joins a multi-word engine label into a split cell', () => {
+    // The join's space is load-bearing grammar downstream (one token per
+    // chord): an engine label carrying its own space must not fabricate a
+    // three-chord bar — the bar falls back to its whole-bar vote.
+    const labels = chordLabelPerMeasure(
+      [span(0, 1, 'A min'), span(1, 2, 'G')],
+      grid4(1)
+    )
+    expect(labels).toEqual(['A min'])
+  })
+
   it('splits the final bar too, using its inherited length', () => {
     // The last downbeat's bar extends by the previous bar's length — the
     // half-split applies there like anywhere else.
