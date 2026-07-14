@@ -1027,90 +1027,115 @@ msgid "structure.section.verse"
 msgstr "Couplet"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:261
+#: src/app/tempo/tempo-panel.tsx:293
 msgid "tempo.align"
 msgstr "Caler la grille sur la tête de lecture"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:266
+#: src/app/tempo/tempo-panel.tsx:298
 msgid "tempo.align-short"
 msgstr "Caler"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:26
+#: src/app/tempo/tempo-panel.tsx:28
 msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:181
+#: src/app/tempo/tempo-panel.tsx:213
 #: src/app/workstation-shell/shell-test-kit.tsx:302
 msgid "tempo.bpm-field"
 msgstr "Saisir le tempo (BPM)"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:25
-#: src/app/tempo/tempo-panel.tsx:272
+#: src/app/tempo/tempo-panel.tsx:27
+#: src/app/tempo/tempo-panel.tsx:304
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:236
+#: src/app/tempo/tempo-panel.tsx:268
 msgid "tempo.double"
 msgstr "Doubler le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:224
+#: src/app/tempo/tempo-panel.tsx:37
+msgid "tempo.error.engine-unavailable"
+msgstr "Le moteur de tempo n'est pas installé sur le serveur — voir server/README."
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:42
+msgid "tempo.error.network"
+msgstr "Lancer le serveur local pour détecter le tempo."
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:46
+msgid "tempo.error.timeout"
+msgstr "L'analyse du tempo a expiré sur le serveur — réessayer."
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:50
+msgid "tempo.error.too-large"
+msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:54
+msgid "tempo.error.unknown"
+msgstr "Erreur inattendue — détails dans la console du navigateur."
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:256
 msgid "tempo.halve"
 msgstr "Diviser le tempo par deux"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:172
+#: src/app/tempo/tempo-panel.tsx:204
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:191
+#: src/app/tempo/tempo-panel.tsx:223
 msgid "tempo.manual-badge"
 msgstr "Manuel"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:208
+#: src/app/tempo/tempo-panel.tsx:240
 msgid "tempo.meter-field"
 msgstr "Saisir le mètre (temps par mesure)"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:214
+#: src/app/tempo/tempo-panel.tsx:246
 msgid "tempo.meter-unit"
 msgstr "temps"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:196
+#: src/app/tempo/tempo-panel.tsx:228
 msgid "tempo.range"
 msgstr "{min}–{max} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:169
+#: src/app/tempo/tempo-panel.tsx:201
 msgid "tempo.region-label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:281
+#: src/app/tempo/tempo-panel.tsx:313
 msgid "tempo.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
 #: src/app/keyboard/shortcut-hints.ts:107
-#: src/app/tempo/tempo-panel.tsx:252
+#: src/app/tempo/tempo-panel.tsx:284
 msgid "tempo.tap"
 msgstr "Taper le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:254
+#: src/app/tempo/tempo-panel.tsx:286
 msgid "tempo.tap-short"
 msgstr "Tap"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:187
+#: src/app/tempo/tempo-panel.tsx:219
 msgid "tempo.unit"
 msgstr "BPM"
 

@@ -10,6 +10,7 @@ import {
   type OctaveFactor,
   remeterGrid,
   type TempoAnalysis,
+  type TempoDetectionErrorCode,
   type TempoDetector
 } from '@app/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -23,8 +24,10 @@ export interface Tempo {
   readonly analysis: TempoAnalysis | undefined
   /** Whether a detection is in flight (drives the busy button). */
   readonly detecting: boolean
-  /** Why the last detection failed — cleared by the next run or a reset. */
-  readonly error: string | undefined
+  /** Why the last detection failed — a code the panel maps to translated
+      copy (the raw detail goes to the console). Cleared by the next run or
+      a reset. */
+  readonly error: TempoDetectionErrorCode | undefined
   /**
    * Detect the tempo of the already-loaded PCM (the SAME audio the player has).
    * Resolves with the analysis so the caller can act on it in the same handler
@@ -107,7 +110,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
   const [octaveShift, setOctaveShift] = useState(0)
   const [manual, setManual] = useState<ManualTempo>()
   const [detecting, setDetecting] = useState(false)
-  const [error, setError] = useState<string>()
+  const [error, setError] = useState<TempoDetectionErrorCode>()
   const runIdRef = useRef(0)
   // The in-flight run's abort controller: a superseded run must release the
   // server's analysis slot, not just have its late result dropped.
@@ -153,7 +156,10 @@ export function useTempo(detector?: TempoDetector): Tempo {
         setAnalysis(result.analysis)
         return result.analysis
       }
-      setError(result.error)
+      // The translated copy speaks for the code; the raw detail is for
+      // debugging only — same contract as the chord detection (N.1).
+      console.error('tempo detection failed:', result.code, result.detail)
+      setError(result.code)
     }
     return undefined
   }

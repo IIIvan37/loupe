@@ -488,7 +488,8 @@ describe('WorkstationShell tempo & metronome', () => {
     ).toHaveLength(1)
   })
 
-  it('surfaces a tempo detection failure as an alert', async () => {
+  it('surfaces a tempo detection failure as translated, actionable copy', async () => {
+    // The raw engine text stays in the console — the alert speaks the code.
     const detector = {
       detect: async () => {
         throw new Error('serveur injoignable')
@@ -498,7 +499,7 @@ describe('WorkstationShell tempo & metronome', () => {
     await importTrack(user)
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      'serveur injoignable'
+      i18n._('tempo.error.unknown')
     )
   })
 

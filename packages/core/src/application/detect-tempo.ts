@@ -28,9 +28,42 @@ export interface TempoAnalysis {
   readonly beatsPerBar: number
 }
 
+/**
+ * Why a detection failed, discriminated so the UI can speak each case in the
+ * user's language (Lot G standard) instead of echoing raw engine text — the
+ * same contract `detectChords` established (N.1).
+ */
+export type TempoDetectionErrorCode =
+  | 'engine-unavailable'
+  | 'network'
+  | 'timeout'
+  | 'too-large'
+  | 'unknown'
+
+/**
+ * The typed failure a `TempoDetector` adapter throws when it can tell WHY the
+ * engine call failed (server up but engine missing, network unreachable,
+ * analysis timed out, upload over the server's cap). The use-case forwards
+ * the code; anything else it catches folds into `unknown`.
+ */
+export class TempoDetectionError extends Error {
+  constructor(
+    readonly code: Exclude<TempoDetectionErrorCode, 'unknown'>,
+    detail: string
+  ) {
+    super(detail)
+    this.name = 'TempoDetectionError'
+  }
+}
+
 export type DetectTempoResult =
   | { readonly ok: true; readonly analysis: TempoAnalysis }
-  | { readonly ok: false; readonly error: string }
+  | {
+      readonly ok: false
+      readonly code: TempoDetectionErrorCode
+      /** The raw engine/transport message — for the console, never the UI. */
+      readonly detail: string
+    }
 
 /**
  * Orchestration use-case, pure: hand the loaded PCM to the tempo detector port
@@ -50,6 +83,7 @@ export async function detectTempo(
     const beatsPerBar = detectMeter(detected.beats)
     return { ok: true, analysis: { bpm: detected.bpm, grid, beatsPerBar } }
   } catch (e) {
-    return { ok: false, error: errorMessage(e) }
+    const code = e instanceof TempoDetectionError ? e.code : 'unknown'
+    return { ok: false, code, detail: errorMessage(e) }
   }
 }

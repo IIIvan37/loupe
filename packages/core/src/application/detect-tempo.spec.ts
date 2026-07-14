@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { DetectedBeat } from '../domain/tempo.ts'
-import { detectTempo } from './detect-tempo.ts'
+import { detectTempo, TempoDetectionError } from './detect-tempo.ts'
 import type { DecodedAudio, TempoDetector } from './ports.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
@@ -105,13 +105,32 @@ describe('detectTempo', () => {
     expect(seenSignal).toBe(controller.signal)
   })
 
-  it('returns an error result when the detector throws', async () => {
+  it('folds an untyped detector throw into the unknown code', async () => {
     const boom: TempoDetector = {
       detect: async () => {
         throw new Error('tempo engine down')
       }
     }
     const result = await detectTempo({ audio }, { detector: boom })
-    expect(result).toEqual({ ok: false, error: 'tempo engine down' })
+    expect(result).toEqual({
+      ok: false,
+      code: 'unknown',
+      detail: 'tempo engine down'
+    })
+  })
+
+  it.each([
+    'engine-unavailable',
+    'network',
+    'timeout',
+    'too-large'
+  ] as const)('carries a typed %s TempoDetectionError code through', async (code) => {
+    const boom: TempoDetector = {
+      detect: async () => {
+        throw new TempoDetectionError(code, `HTTP says ${code}`)
+      }
+    }
+    const result = await detectTempo({ audio }, { detector: boom })
+    expect(result).toEqual({ ok: false, code, detail: `HTTP says ${code}` })
   })
 })

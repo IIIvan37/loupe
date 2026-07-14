@@ -3,9 +3,11 @@ import {
   MAX_MANUAL_BPM,
   MIN_MANUAL_BPM,
   type OctaveFactor,
+  type TempoDetectionErrorCode,
   type TempoMap,
   tempoAt
 } from '@app/core'
+import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
@@ -25,6 +27,36 @@ const MAX_OCTAVE_SHIFT = 2
 const STATUS_DETECTING = msg({ id: 'tempo.detecting', message: 'Analyse…' })
 const STATUS_BPM = msg({ id: 'tempo.bpm', message: '{0} BPM' })
 
+/**
+ * One actionable, translated line per failure code (Lot G standard) — the raw
+ * engine/transport detail never reaches the UI (the hook logs it to the
+ * console). Mirrors the chord panel's map, in the tempo panel's words.
+ */
+const ERROR_COPY: Readonly<Record<TempoDetectionErrorCode, MessageDescriptor>> =
+  {
+    'engine-unavailable': msg({
+      id: 'tempo.error.engine-unavailable',
+      message:
+        "Le moteur de tempo n'est pas installé sur le serveur — voir server/README."
+    }),
+    network: msg({
+      id: 'tempo.error.network',
+      message: 'Lancer le serveur local pour détecter le tempo.'
+    }),
+    timeout: msg({
+      id: 'tempo.error.timeout',
+      message: "L'analyse du tempo a expiré sur le serveur — réessayer."
+    }),
+    'too-large': msg({
+      id: 'tempo.error.too-large',
+      message: "Piste trop volumineuse pour l'analyse sur le serveur."
+    }),
+    unknown: msg({
+      id: 'tempo.error.unknown',
+      message: 'Erreur inattendue — détails dans la console du navigateur.'
+    })
+  }
+
 interface TempoPanelProps {
   /** The detected tempo in BPM, or undefined until detection succeeds. */
   readonly bpm: number | undefined
@@ -40,8 +72,8 @@ interface TempoPanelProps {
   readonly position: ExternalValue<number>
   /** Whether the automatic detection is in flight. */
   readonly detecting: boolean
-  /** Why the last detection failed, if it did. */
-  readonly error: string | undefined
+  /** Why the last detection failed — a code mapped to translated copy. */
+  readonly error: TempoDetectionErrorCode | undefined
   /** How far the tempo has been folded (±2); disables a spent direction. */
   readonly octaveShift: number
   /** Whether the tempo is a user override (typed/tapped/aligned), not detected. */
@@ -275,7 +307,7 @@ export function TempoPanel({
       {error !== undefined && (
         <>
           <span role="alert" className={styles.error}>
-            {error}
+            {t(ERROR_COPY[error])}
           </span>
           <button type="button" className={styles.retry} onClick={onRetry}>
             <Trans id="tempo.retry">Réessayer</Trans>
