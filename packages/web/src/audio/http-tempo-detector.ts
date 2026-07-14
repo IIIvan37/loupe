@@ -4,8 +4,8 @@ import type {
   DetectedTempo,
   TempoDetector
 } from '@app/core'
-import { DEFAULT_BEATS_PER_BAR } from '@app/core'
-import { postWavForJson } from './post-wav-json.ts'
+import { DEFAULT_BEATS_PER_BAR, TempoDetectionError } from '@app/core'
+import { postWavForJson, rethrowTransportError } from './post-wav-json.ts'
 
 /** One beat as the enriched tempo endpoint reports it: instant + bar position. */
 interface PositionedBeat {
@@ -54,12 +54,20 @@ export function createHttpTempoDetector(baseUrl: string): TempoDetector {
       audio: DecodedAudio,
       signal?: AbortSignal
     ): Promise<DetectedTempo> {
-      const body = (await postWavForJson(
-        baseUrl,
-        '/tempo',
-        audio,
-        signal
-      )) as Partial<TempoResponse>
+      let body: Partial<TempoResponse>
+      try {
+        body = (await postWavForJson(
+          baseUrl,
+          '/tempo',
+          audio,
+          signal
+        )) as Partial<TempoResponse>
+      } catch (e) {
+        rethrowTransportError(
+          e,
+          (failure, detail) => new TempoDetectionError(failure, detail)
+        )
+      }
       if (typeof body.bpm !== 'number' || !Array.isArray(body.beats)) {
         throw new Error('tempo response was malformed')
       }

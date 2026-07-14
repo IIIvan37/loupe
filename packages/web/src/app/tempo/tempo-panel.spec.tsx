@@ -164,11 +164,19 @@ describe('TempoPanel', () => {
   it('offers to retry when the detection failed', async () => {
     const user = userEvent.setup()
     const onRetry = vi.fn()
-    renderPanel({ bpm: undefined, error: 'server unreachable', onRetry })
+    renderPanel({ bpm: undefined, error: 'network', onRetry })
     await user.click(
       screen.getByRole('button', { name: i18n._('tempo.retry') })
     )
     expect(onRetry).toHaveBeenCalled()
+  })
+
+  it('speaks each failure code as translated, actionable copy', () => {
+    // The raw transport detail never reaches the panel — the code does.
+    renderPanel({ bpm: undefined, error: 'engine-unavailable' })
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      i18n._('tempo.error.engine-unavailable')
+    )
   })
 
   it('offers no retry while the detection has not failed', () => {

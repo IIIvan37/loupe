@@ -13,14 +13,16 @@ export interface DetectedChordSpan {
 }
 
 /**
- * Fold timestamped chord spans into one label per measure — the beat-sync the
+ * Fold timestamped chord spans into one CELL per measure — the beat-sync the
  * detection engines don't provide. The i-th measure is the grid's i-th
  * downbeat→downbeat interval (the same projection `measureIndexAt` plays back),
  * the last downbeat's bar extending by the previous bar's length (or to the end
  * of the detection when the grid holds a single downbeat). Within a bar the
  * labels vote weighted by held duration — so a change mid-bar lands on the
  * downbeat of the bar it dominates — and a bar mostly uncovered by any label
- * stays blank (`undefined`) rather than inheriting a passing chord.
+ * stays blank (`undefined`) rather than inheriting a passing chord. A bar whose
+ * two halves are each dominated by a DIFFERENT chord prints both (`'C G'`, the
+ * two-chord bar of a lead sheet), split at its middle beat.
  */
 export function chordLabelPerMeasure(
   spans: readonly DetectedChordSpan[],
@@ -44,8 +46,41 @@ export function chordLabelPerMeasure(
   const lastBarEnd =
     secondToLast === undefined ? horizon : last + (last - secondToLast)
   return downbeats.map((barStart, index) =>
-    dominantLabel(spans, barStart, downbeats[index + 1] ?? lastBarEnd)
+    cellLabel(spans, grid, barStart, downbeats[index + 1] ?? lastBarEnd)
   )
+}
+
+/**
+ * The cell a bar prints: its dominant label — split in two when each half is
+ * dominated by a different chord, the genuine mid-bar change of a two-chord
+ * bar. The split sits on the bar's middle BEAT (the felt halfway, robust to
+ * intra-bar tempo drift; 2+1 in a three-beat bar), falling back to the time
+ * midpoint when the grid holds too few beats to name one. A half that no
+ * chord dominates (silence, jitter) vetoes the split — a phantom `'C _'`
+ * change would be worse than the whole-bar vote.
+ */
+function cellLabel(
+  spans: readonly DetectedChordSpan[],
+  grid: BeatGrid,
+  barStart: number,
+  barEnd: number
+): string | undefined {
+  const beats = grid.filter(
+    (beat) => beat.timeSeconds >= barStart && beat.timeSeconds < barEnd
+  )
+  const mid =
+    beats[Math.round(beats.length / 2)]?.timeSeconds ?? (barStart + barEnd) / 2
+  const head = dominantLabel(spans, barStart, mid)
+  const tail = dominantLabel(spans, mid, barEnd)
+  // The join's space is load-bearing grammar downstream (one token per
+  // chord): a multi-word engine label must not fabricate extra chords, so
+  // such a bar keeps its whole-bar vote.
+  const splits =
+    head !== undefined &&
+    tail !== undefined &&
+    head !== tail &&
+    !/\s/.test(head + tail)
+  return splits ? `${head} ${tail}` : dominantLabel(spans, barStart, barEnd)
 }
 
 /** The label holding `[barStart, barEnd)` longest — or none when silence wins. */

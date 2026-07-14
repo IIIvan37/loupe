@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import type { DecodedAudio, TempoDetector } from '@app/core'
+import { TempoDetectionError } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useTempo } from './use-tempo.ts'
@@ -34,7 +35,7 @@ describe('useTempo', () => {
     expect(result.current.analysis?.grid).toHaveLength(3)
   })
 
-  it('surfaces the detector failure as an error', async () => {
+  it('surfaces an untyped detector failure as the unknown code', async () => {
     const boom: TempoDetector = {
       detect: async () => {
         throw new Error('server down')
@@ -44,7 +45,20 @@ describe('useTempo', () => {
     await act(async () => {
       await result.current.detect(audio)
     })
-    expect(result.current.error).toBe('server down')
+    expect(result.current.error).toBe('unknown')
+  })
+
+  it('surfaces a typed detector failure as its code', async () => {
+    const down: TempoDetector = {
+      detect: async () => {
+        throw new TempoDetectionError('network', 'fetch failed')
+      }
+    }
+    const { result } = renderHook(() => useTempo(down))
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    expect(result.current.error).toBe('network')
   })
 
   it('aborts the in-flight detection when reset supersedes it', async () => {
@@ -452,7 +466,7 @@ describe('useTempo — meter correction', () => {
     await act(async () => {
       await result.current.detect(audio)
     })
-    expect(result.current.error).toBe('server down')
+    expect(result.current.error).toBe('unknown')
     act(() => {
       result.current.overrideMeter(3)
     })

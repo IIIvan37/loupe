@@ -68,6 +68,21 @@ describe('detectChords', () => {
     expect(grid(result.source)).toBe('| C | Am | F | G |')
   })
 
+  it('drafts a two-chord bar when the change lands mid-measure', async () => {
+    // Bar 2 splits at its middle beat: F over the first half, G the second.
+    const spans: readonly DetectedChordSpan[] = [
+      { startSeconds: 0, endSeconds: 2, label: 'C' },
+      { startSeconds: 2, endSeconds: 3, label: 'F' },
+      { startSeconds: 3, endSeconds: 4, label: 'G' }
+    ]
+    const result = await detectChords(
+      { audio, grid: grid4(2), barsPerRow: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(grid(result.source)).toBe('| C | F G |')
+  })
+
   it('detects a flat key and spells the draft with flats under a key head', async () => {
     // A flat-key progression the engine spelled with sharps (Bb → A#, Eb → D#).
     const flatKey = ['F', 'A#', 'C', 'Dm', 'F', 'A#', 'D#', 'C']

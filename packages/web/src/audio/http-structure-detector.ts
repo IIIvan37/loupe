@@ -4,7 +4,7 @@ import {
   StructureDetectionError,
   type StructureDetector
 } from '@app/core'
-import { classifyTransportError, postWavForJson } from './post-wav-json.ts'
+import { postWavForJson, rethrowTransportError } from './post-wav-json.ts'
 
 /** One section as the structure endpoint reports it: a raw label over [start, end). */
 interface WireSegment {
@@ -60,13 +60,10 @@ export function createHttpStructureDetector(
           token
         )) as Partial<StructureResponse>
       } catch (e) {
-        // Translate the shared transport failures into the port's typed error;
-        // anything unclassified stays untyped → the use-case's unknown code.
-        const failure = classifyTransportError(e)
-        if (failure !== undefined && e instanceof Error) {
-          throw new StructureDetectionError(failure, e.message)
-        }
-        throw e
+        rethrowTransportError(
+          e,
+          (failure, detail) => new StructureDetectionError(failure, detail)
+        )
       }
       if (
         !Array.isArray(body.segments) ||

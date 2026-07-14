@@ -588,19 +588,32 @@ describe('renderChartSource', () => {
   })
 
   it('prints a label the row grammar cannot hold as N.C.', () => {
-    // An empty, spaced or bar-lined label would change the measure count
-    // under parseChart, shifting every following bar off its downbeat.
-    expect(renderChartSource(['', 'A min', 'C|G'], 4)).toBe(
-      '| N.C. | N.C. | N.C. |'
-    )
+    // An empty or bar-lined label would change the measure count under
+    // parseChart, shifting every following bar off its downbeat.
+    expect(renderChartSource(['', 'C|G'], 4)).toBe('| N.C. | N.C. |')
+  })
+
+  it('prints a two-chord cell verbatim — one measure, two chords', () => {
+    expect(renderChartSource(['C G', 'Am'], 4)).toBe('| C G | Am |')
+  })
+
+  it('prints a multi-chord cell it cannot re-print exactly as N.C.', () => {
+    // Irregular spacing would not round-trip through the row grammar.
+    expect(renderChartSource(['C  G', ' C G'], 4)).toBe('| N.C. | N.C. |')
   })
 
   it('prints a structural label as N.C. — a bare : would open a repeat', () => {
     expect(renderChartSource([':', '1.'], 4)).toBe('| N.C. | N.C. |')
   })
 
+  it('prints a cell holding ANY structural token as N.C.', () => {
+    // A : or volta inside a multi-token cell would be read as a repeat bar
+    // or an ending by parseCell, not as a chord.
+    expect(renderChartSource(['C :', '1. C'], 4)).toBe('| N.C. | N.C. |')
+  })
+
   it('prints a fermata-suffixed label as N.C. — @ would not round-trip', () => {
-    expect(renderChartSource(['G@'], 4)).toBe('| N.C. |')
+    expect(renderChartSource(['G@', 'C G@'], 4)).toBe('| N.C. | N.C. |')
   })
 
   it('renders nothing from no measures', () => {
@@ -613,7 +626,17 @@ describe('renderChartSource', () => {
 
   it('round-trips: parsing the render yields one measure per label', () => {
     const label = fc.oneof(
-      fc.constantFrom('C', 'Am', 'F#m7b5', 'Bb', 'Cmaj7/E', 'N.C.', undefined),
+      fc.constantFrom(
+        'C',
+        'Am',
+        'F#m7b5',
+        'Bb',
+        'Cmaj7/E',
+        'N.C.',
+        'C G',
+        'Am F G',
+        undefined
+      ),
       fc.string()
     )
     fc.assert(
@@ -625,7 +648,7 @@ describe('renderChartSource', () => {
           const measures = chart.sections.flatMap((section) => section.measures)
           return (
             measures.length === labels.length &&
-            measures.every((measure) => measure.chords.length === 1)
+            measures.every((measure) => measure.chords.length >= 1)
           )
         }
       )

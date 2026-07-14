@@ -1,4 +1,5 @@
 import type { DecodedAudio } from '@app/core'
+import { TempoDetectionError } from '@app/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createHttpTempoDetector } from './http-tempo-detector.ts'
 
@@ -124,5 +125,48 @@ describe('createHttpTempoDetector', () => {
     await expect(
       createHttpTempoDetector('http://localhost:8000').detect(MIX)
     ).rejects.toThrow('HTTP 500')
+  })
+
+  it.each([
+    [503, 'engine-unavailable'],
+    [504, 'timeout'],
+    [413, 'too-large']
+  ] as const)('types an HTTP %i as the %s code', async (status, code) => {
+    // The statuses this server answers deliberately (same contract as the
+    // chords adapter — classifyTransportError is shared) become the port's
+    // typed error, so the panel can speak each case.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockResolvedValue(new Response('nope', { status }))
+    )
+
+    await expect(
+      createHttpTempoDetector('http://localhost:8000').detect(MIX)
+    ).rejects.toMatchObject({ name: 'TempoDetectionError', code })
+  })
+
+  it('types an unreachable server as a network failure', async () => {
+    // What `fetch` throws when the server is down or offline.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>().mockRejectedValue(new TypeError('fetch failed'))
+    )
+
+    await expect(
+      createHttpTempoDetector('http://localhost:8000').detect(MIX)
+    ).rejects.toMatchObject({ name: 'TempoDetectionError', code: 'network' })
+  })
+
+  it('leaves an unclassified HTTP failure untyped', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn<typeof fetch>()
+        .mockResolvedValue(new Response('boom', { status: 500 }))
+    )
+
+    await expect(
+      createHttpTempoDetector('http://localhost:8000').detect(MIX)
+    ).rejects.not.toBeInstanceOf(TempoDetectionError)
   })
 })

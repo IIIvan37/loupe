@@ -187,16 +187,29 @@ tête + changements mid-grid, `detectMeter` dominant, « N temps » éditable
 Reste pré-démo : vérif navigateur sur The Logical Song ·
 retrofit `/tempo` sur `classifyTransportError` toujours noté.
 
-**En cours : « + Section » — marqueur de structure à la main (branche
-`feat/add-section-marker`, PR à ouvrir).** Retour utilisateur : impossible de
-CRÉER un marqueur de structure (seuls détection et `[headers]` en posaient).
-Bouton « + Section » à côté de « + Repère » (`addSectionAt`, libellé auto
-« Section N », kind structure, écrasable — validé) **+ raccourci `Maj+M`**
-(commande core `addSectionMarker` ; matching shift opt-in sur les bindings
-caractère — un binding muet reste shift-agnostique, règle du `+`), les
-sections manuelles guident la détection d'accords (#130). Gate **vert —
-1421 tests** (+5).
-[rapport](sessions/2026-07-14-add-section-marker.md).
+**« + Section » mergé (PR #134)** — marqueur de structure à la main : bouton
+« + Section » (`addSectionAt`, « Section N », kind structure, écrasable) +
+raccourci `Maj+M`, guide la détection d'accords (#130) →
+[rapport](sessions/2026-07-14-add-section-marker.md). **Fix taille d'icônes
+mergé (PR #135).**
+
+**En cours : multi-accords par mesure + erreurs `/tempo` discriminées
+(branche `feat/multi-chords-per-measure`, PR à ouvrir).** Les deux reliquats
+en une PR. **(1) Multi-accords** (le différé du lot pré-démo, zéro serveur) :
+`chordLabelPerMeasure` vote aussi les deux moitiés de mesure (coupure au beat
+médian) → cellule `'C G'` quand chaque moitié est dominée par son accord ; une
+moitié silencieuse ou un label moteur multi-mots véto le split. `cellToken`
+imprime les cellules multi-tokens (`isPrintableToken` partagé), `playedLabels`
+garde tous les accords au relabel (limitation v1 levée, token structurel
+filtré au lieu d'un wipe `N.C.`), `matchesBlock` compte l'accord de tête
+(le jitter du split ne casse plus le regroupement des sections). **(2) Tempo**
+(reliquat N.1) : `TempoDetectionError`/codes dans `detectTempo`, adapter sur
+`classifyTransportError`, `useTempo.error` = code (détail en console),
+`ERROR_COPY` Lingui `tempo.error.*` dans le panneau ; les trois blocs catch
+des adapters repliés en `rethrowTransportError`. Revue 8 angles → 4 fixés
+(3 correctness TDD + 1 reuse), 3 écartés documentés. Gate **vert — 1444
+tests** (+23), **Stryker 93,4 %**.
+[rapport](sessions/2026-07-14-multi-chords-tempo-errors.md).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

@@ -24,9 +24,13 @@ export type {
   DetectTempoDeps,
   DetectTempoInput,
   DetectTempoResult,
-  TempoAnalysis
+  TempoAnalysis,
+  TempoDetectionErrorCode
 } from './application/detect-tempo.ts'
-export { detectTempo } from './application/detect-tempo.ts'
+export {
+  detectTempo,
+  TempoDetectionError
+} from './application/detect-tempo.ts'
 export type {
   ExportStemsDeps,
   ExportStemsInput,
