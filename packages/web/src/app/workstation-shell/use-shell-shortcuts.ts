@@ -14,7 +14,7 @@ interface ShellShortcutsDeps {
   readonly position: Pick<ExternalValue<number>, 'get'>
   readonly seekToSeconds: (seconds: number) => void
   readonly viewport: Pick<ViewportControl, 'zoomIn' | 'zoomOut'>
-  readonly markers: Pick<Markers, 'addAt'>
+  readonly markers: Pick<Markers, 'addAt' | 'addSectionAt'>
   readonly toggleLoop: () => void
   readonly metronome: Pick<Metronome, 'toggle'>
   readonly tempoDetection: Pick<TempoDetection, 'tap'>
@@ -42,6 +42,7 @@ export function useShellShortcuts({
       zoomIn: viewport.zoomIn,
       zoomOut: viewport.zoomOut,
       addMarker: () => markers.addAt(position.get()),
+      addSectionMarker: () => markers.addSectionAt(position.get()),
       toggleLoop,
       toggleMetronome: metronome.toggle,
       tapTempo: tempoDetection.tap

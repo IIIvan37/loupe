@@ -65,12 +65,20 @@ export interface StructureDetectionControl {
 interface MarkerControlsProps {
   readonly disabled: boolean
   readonly onAdd: () => void
+  /** Drop a hand-laid STRUCTURE marker at the playhead (absent = not wired). */
+  readonly onAddSection?: (() => void) | undefined
   /** « Détecter la structure » — the flow that places section markers. */
   readonly detection?: StructureDetectionControl
 }
 
-/** Dumb-ish control: drop a named marker, or auto-detect the song's sections. */
-export function MarkerControls({ disabled, onAdd, detection }: MarkerControlsProps) {
+/** Dumb-ish control: drop a named marker or a hand-laid section, or
+ * auto-detect the song's sections. */
+export function MarkerControls({
+  disabled,
+  onAdd,
+  onAddSection,
+  detection
+}: MarkerControlsProps) {
   const { t } = useLingui()
   // A detection REPLACES the markers and RELABELS the grid — either is armed
   // work, so the first activation only swaps the button to a confirm naming
@@ -143,6 +151,16 @@ export function MarkerControls({ disabled, onAdd, detection }: MarkerControlsPro
         >
           <Trans id="markers.add">+ Repère</Trans>
         </button>
+        {onAddSection && (
+          <button
+            type="button"
+            className={styles.add}
+            disabled={disabled}
+            onClick={onAddSection}
+          >
+            <Trans id="markers.add-section">+ Section</Trans>
+          </button>
+        )}
         {detection && (
           <button
             type="button"

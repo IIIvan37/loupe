@@ -47,6 +47,35 @@ describe('MarkerControls', () => {
     ).toBeDisabled()
   })
 
+  it('drops a SECTION marker at the playhead', async () => {
+    // Structure markers were only born from detection or typed [headers];
+    // « + Section » lets the user lay the song's structure out by hand.
+    const user = userEvent.setup()
+    const onAddSection = vi.fn()
+    render(
+      <MarkerControls
+        disabled={false}
+        onAdd={() => {}}
+        onAddSection={onAddSection}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('markers.add-section') })
+    )
+    expect(onAddSection).toHaveBeenCalledOnce()
+  })
+
+  it('disables + Section with the rest of the control', () => {
+    render(<MarkerControls disabled onAdd={() => {}} onAddSection={() => {}} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(
+      screen.getByRole('button', { name: i18n._('markers.add-section') })
+    ).toBeDisabled()
+  })
+
   it('shows no detect button until the detection surface is wired', () => {
     render(<MarkerControls disabled={false} onAdd={() => {}} />, {
       wrapper: I18nTestingProvider

@@ -103,6 +103,23 @@ describe('WorkstationShell keyboard shortcuts', () => {
     expect(engine.seekTo).toHaveBeenLastCalledWith(5)
   })
 
+  it('adds a SECTION marker at the playhead with Shift+M', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    act(() => engine.emit(5))
+    // The shifted mnemonic of M — a hand-laid structure marker.
+    fireEvent.keyDown(document.body, { key: 'M', code: 'Semicolon', shiftKey: true })
+
+    const goto = screen.getByRole('button', {
+      name: i18n._('markers.go-to', {
+        name: i18n._('markers.default-section-name', { number: 1 })
+      })
+    })
+    await user.click(goto)
+    expect(engine.seekTo).toHaveBeenLastCalledWith(5)
+  })
+
   it('toggles the loop with the L key', async () => {
     const { user } = renderShell()
     await importTrack(user)

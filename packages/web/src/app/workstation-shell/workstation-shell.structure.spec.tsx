@@ -158,6 +158,38 @@ describe('WorkstationShell chart → marker sync', () => {
     })
   }
 
+  it('« + Section » drops a STRUCTURE marker a detection then replaces', async () => {
+    const { user } = renderShell({
+      healthFetch: healthFetch(null),
+      structureDetector: detectorOf(SECTIONS)
+    })
+    await importTrack(user)
+
+    // The hand-laid section lands on the rail under its auto name…
+    await user.click(
+      screen.getByRole('button', { name: i18n._('markers.add-section') })
+    )
+    const sectionName = i18n._('markers.default-section-name', { number: 1 })
+    await screen.findByRole('button', {
+      name: i18n._('markers.go-to', { name: sectionName })
+    })
+
+    // …and it IS structure: a detection replaces it (no confirm dodging —
+    // structure markers exist, so the two-step confirm arms first).
+    await user.click(await detectButton())
+    await user.click(
+      await screen.findByRole('button', {
+        name: i18n._('structure.detect-confirm')
+      })
+    )
+    await screen.findAllByText(i18n._('structure.section.verse'))
+    expect(
+      screen.queryByRole('button', {
+        name: i18n._('markers.go-to', { name: sectionName })
+      })
+    ).not.toBeInTheDocument()
+  })
+
   it('mirrors typed [Section] headers as structure markers, live', async () => {
     const { user } = renderShell({ tempoDetector: denseTempo })
     await importTrack(user)

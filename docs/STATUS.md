@@ -187,6 +187,17 @@ tête + changements mid-grid, `detectMeter` dominant, « N temps » éditable
 Reste pré-démo : vérif navigateur sur The Logical Song ·
 retrofit `/tempo` sur `classifyTransportError` toujours noté.
 
+**En cours : « + Section » — marqueur de structure à la main (branche
+`feat/add-section-marker`, PR à ouvrir).** Retour utilisateur : impossible de
+CRÉER un marqueur de structure (seuls détection et `[headers]` en posaient).
+Bouton « + Section » à côté de « + Repère » (`addSectionAt`, libellé auto
+« Section N », kind structure, écrasable — validé) **+ raccourci `Maj+M`**
+(commande core `addSectionMarker` ; matching shift opt-in sur les bindings
+caractère — un binding muet reste shift-agnostique, règle du `+`), les
+sections manuelles guident la détection d'accords (#130). Gate **vert —
+1421 tests** (+5).
+[rapport](sessions/2026-07-14-add-section-marker.md).
+
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
 `kind` → chaque détection les préserve comme repères et ajoute son jeu à

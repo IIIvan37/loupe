@@ -129,6 +129,7 @@ describe('restoreSession', () => {
       markers: {
         markers: [],
         addAt: vi.fn(),
+        addSectionAt: vi.fn(),
         rename: vi.fn(),
         move: vi.fn(),
         remove: vi.fn(),

@@ -52,10 +52,19 @@ describe('resolveCommand', () => {
     })
   })
 
-  it('matches character bindings case-insensitively (Shift+M still works)', () => {
+  it('maps Shift+M to adding a SECTION marker', () => {
+    // The hand-laid structure counterpart of M — same mnemonic, shifted.
     expect(
       resolveCommand(defaultKeyBindings, { key: 'M', shift: true })
-    ).toEqual({ type: 'addMarker' })
+    ).toEqual({ type: 'addSectionMarker' })
+  })
+
+  it('keeps an undeclared-shift character binding shift-agnostic', () => {
+    // The '+' rationale: on many layouts the character itself needs Shift, so
+    // a binding that says nothing about shift must keep matching either way.
+    expect(
+      resolveCommand(defaultKeyBindings, { key: 'L', shift: true })
+    ).toEqual({ type: 'toggleLoop' })
   })
 
   it('matches a character binding regardless of the physical position', () => {
