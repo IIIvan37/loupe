@@ -151,6 +151,51 @@ describe('detectChords', () => {
     expect(grid(result.source)).toBe('|: C | Am | F | G :|')
   })
 
+  it('cuts and heads the draft by already-known sections instead of deducing', async () => {
+    // The same progression twice would deduce into repeat bars under neutral
+    // headers — but a structure detection already ran, so the draft must be
+    // cut at ITS boundaries and headed with ITS names (display copy, printed
+    // verbatim like the relabel path). The detected-key head stays.
+    const twice = ['C', 'Am', 'F', 'G', 'C', 'Am', 'F', 'G']
+    const spans: readonly DetectedChordSpan[] = twice.map((label, index) => ({
+      startSeconds: index * 2,
+      endSeconds: index * 2 + 2,
+      label
+    }))
+    const result = await detectChords(
+      {
+        audio,
+        grid: grid4(8),
+        barsPerRow: 4,
+        sections: [
+          { startSeconds: 0, endSeconds: 8, label: 'Couplet' },
+          { startSeconds: 8, endSeconds: 16, label: 'Refrain' }
+        ]
+      },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(grid(result.source)).toBe(
+      '[Couplet]\n| C | Am | F | G |\n\n[Refrain]\n| C | Am | F | G |'
+    )
+    expect(result.source.startsWith('{key: ')).toBe(true)
+  })
+
+  it('deduces the structure when the known sections are empty', async () => {
+    const twice = ['C', 'Am', 'F', 'G', 'C', 'Am', 'F', 'G']
+    const spans: readonly DetectedChordSpan[] = twice.map((label, index) => ({
+      startSeconds: index * 2,
+      endSeconds: index * 2 + 2,
+      label
+    }))
+    const result = await detectChords(
+      { audio, grid: grid4(8), barsPerRow: 4, sections: [] },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(grid(result.source)).toBe('|: C | Am | F | G :|')
+  })
+
   it('heads the draft with the dominant time signature and marks meter changes', async () => {
     // Four-beat bars with ONE two-beat bar (The Logical Song's 2/4 turnaround):
     // the draft names the dominant 4/4 up front and marks the change in-grid.

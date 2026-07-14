@@ -289,8 +289,9 @@ function playedLabels(source: string): MeasureLabels {
     count of downbeats before its start time), one block per section, dropping a
     block a section beyond the grid leaves empty. Boundaries are clamped
     non-decreasing so the cut never inverts; the first section always opens at 0
-    so no leading measure is lost. */
-function cutBySections(
+    so no leading measure is lost. Exported for the chord-detection draft: an
+    already-detected structure cuts the draft instead of `deduceStructure`. */
+export function cutBySections(
   labels: MeasureLabels,
   meters: Meters,
   sections: readonly DetectedSection[],
