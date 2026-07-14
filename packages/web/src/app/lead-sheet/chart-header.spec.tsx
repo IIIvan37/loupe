@@ -70,22 +70,11 @@ describe('ChartHeader', () => {
     expect(screen.getByText('♩ = 120')).toBeInTheDocument()
   })
 
-  it('prints the time signature from the grid beats per bar', () => {
-    render(<ChartHeader derived={{ beatsPerBar: 3 }} directives={NONE} />)
-    expect(screen.getByText('3/4')).toBeInTheDocument()
-  })
-
-  it('a {time: …} directive overrides the derived signature', () => {
+  it('prints no time signature — it lives on the grid as stave notation', () => {
     render(
       <ChartHeader derived={{ beatsPerBar: 4 }} directives={{ time: '6/8' }} />
     )
-    expect(screen.getByText('6/8')).toBeInTheDocument()
-    expect(screen.queryByText('4/4')).toBeNull()
-  })
-
-  it('prints a {time: …} signature even without a beat grid', () => {
-    render(<ChartHeader derived={{}} directives={{ time: '3/4' }} />)
-    expect(screen.getByText('3/4')).toBeInTheDocument()
+    expect(screen.queryByText(/\d\/\d/)).toBeNull()
   })
 
   it('shows the {style: …} directive as the meta line', () => {

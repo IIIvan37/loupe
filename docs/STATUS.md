@@ -196,6 +196,16 @@ fixés + cleanups. Gate **vert — 1401 tests**, Stryker **93,5 %**.
 [rapport](sessions/2026-07-13-time-signatures.md).
 Reste pré-démo : vérif navigateur sur The Logical Song après merge.
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
+
+**En cours : notation empilée des signatures (branche
+`feat/stacked-time-signature`, PR à ouvrir).** Approche validée utilisateur
+(fidèle au chart Elton John) : composant `TimeSignature` (glyphe N-sur-M,
+`role="img"` + `aria-label`), signature de tête ({time:} > beatsPerBar de
+session) dans la gouttière avant la barre d'ouverture du premier système,
+changements de mètre en glyphe empilé dans leur mesure, « 4/4 » texte retiré
+du header meta. Vérif navigateur conforme au PDF (The Logical Song, {time:}
+tête + changement 2/4). Gate **vert — 1405 tests**, Stryker skippé (core
+intouché). [rapport](sessions/2026-07-14-stacked-time-signature.md).
 See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 [P.4 print](sessions/2026-07-13-p4-print.md) ·
 [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·
