@@ -1,5 +1,6 @@
 import {
   chartMeters,
+  cutBySections,
   deduceStructure,
   renderStructuredSource,
   timeLine
@@ -7,6 +8,7 @@ import {
 import { respellChartSource } from '../domain/chord-chart.ts'
 import { chordLabelPerMeasure } from '../domain/chord-detection.ts'
 import { detectKey, keyAccidental, keyName } from '../domain/chord-key.ts'
+import type { DetectedSection } from '../domain/song-structure.ts'
 import type { BeatGrid } from '../domain/tempo.ts'
 import { errorMessage } from './error-message.ts'
 import type { ChordDetector, DecodedAudio } from './ports.ts'
@@ -25,6 +27,14 @@ export interface DetectChordsInput {
    * dominant stands in.
    */
   readonly beatsPerBar?: number | undefined
+  /**
+   * The song's already-known sections (a prior structure detection). When
+   * present, the draft is cut at THEIR boundaries and headed with THEIR
+   * labels — printed verbatim, so the caller supplies display copy, exactly
+   * as the relabel path does — instead of the repetition-deduced `[A]`/`[B]`.
+   * A detection run after the structure must not erase it.
+   */
+  readonly sections?: readonly DetectedSection[] | undefined
   /** Cooperative cancellation, forwarded to the detector port. */
   readonly signal?: AbortSignal
 }
@@ -118,11 +128,19 @@ export async function detectChords(
     // signature and the body marks where the song leaves it ({time: N/M},
     // The Logical Song's 2/4 turnaround), voted per section like the chords.
     const { meters, dominant } = chartMeters(input.grid, input.beatsPerBar)
+    const known = input.sections?.length ? input.sections : undefined
+    const sections = known
+      ? cutBySections(labels, meters, known, input.grid)
+      : deduceStructure(labels, meters)
     const body = respellChartSource(
+      // A lone KNOWN section keeps its header (deduction suppresses it): the
+      // header is what the chart→marker sync reads back — suppressed, the
+      // draft would erase the timeline's last structure marker.
       renderStructuredSource(
-        deduceStructure(labels, meters),
+        sections,
         input.barsPerRow,
-        dominant
+        dominant,
+        known !== undefined
       ),
       keyAccidental(key)
     )

@@ -1,4 +1,9 @@
-import type { BeatGrid, ChordDetector, DecodedAudio } from '@app/core'
+import type {
+  BeatGrid,
+  ChordDetector,
+  DecodedAudio,
+  DetectedSection
+} from '@app/core'
 import { useChordChart } from './use-chord-chart.ts'
 import {
   type ChordDetection,
@@ -16,12 +21,16 @@ export function useChordChartSession({
   loadedAudio,
   grid,
   beatsPerBar,
+  sections,
   detector,
   onSourceEdited
 }: {
   readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
   readonly beatsPerBar?: number | undefined
+  /** The song's already-known sections (the timeline's structure markers) —
+   * a detected draft is cut by them so a prior detection is not erased. */
+  readonly sections?: readonly DetectedSection[] | undefined
   readonly detector?: ChordDetector | undefined
   /**
    * Fired after every USER edit of the source — typing and seated drafts, but
@@ -50,6 +59,7 @@ export function useChordChartSession({
     loadedAudio,
     grid,
     beatsPerBar,
+    sections,
     // A landed draft is in the track's own key — it resets the key offset.
     onDraft: chart.seatDraft,
     detector

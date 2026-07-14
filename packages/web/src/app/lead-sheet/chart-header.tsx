@@ -28,8 +28,10 @@ function over(value: string | undefined): string | undefined {
  * The printed lead-sheet head: `key of X` and `♩ = BPM` on the top line, then
  * title and artist, then the meta line (style). Derived from the session by
  * default, overridden field by field by the source's directives so the chart
- * stays self-supporting. `♩` / `3/4` are chart notation (document content like
- * the chord letters, no catalog entry); `key of` is prose, so it rides Lingui.
+ * stays self-supporting. `♩` is chart notation (document content like the
+ * chord letters, no catalog entry); `key of` is prose, so it rides Lingui.
+ * The time signature is NOT a head field: it prints as stave notation at the
+ * head of the grid's first system (the mockup's stacked 4-over-4).
  */
 export function ChartHeader({ derived, directives }: ChartHeaderProps) {
   const { t } = useLingui()
@@ -40,11 +42,8 @@ export function ChartHeader({ derived, directives }: ChartHeaderProps) {
     over(directives.tempo) ??
     (derived.bpm === undefined ? undefined : String(Math.round(derived.bpm)))
   const style = over(directives.style)
-  const signature =
-    over(directives.time) ??
-    (derived.beatsPerBar === undefined ? undefined : `${derived.beatsPerBar}/4`)
 
-  const fields = [title, artist, key, tempo, style, signature]
+  const fields = [title, artist, key, tempo, style]
   if (fields.every((field) => field === undefined)) return null
 
   return (
@@ -61,14 +60,9 @@ export function ChartHeader({ derived, directives }: ChartHeaderProps) {
       )}
       {title !== undefined && <h3 className={styles.chartTitle}>{title}</h3>}
       {artist !== undefined && <p className={styles.chartArtist}>{artist}</p>}
-      {(style !== undefined || signature !== undefined) && (
+      {style !== undefined && (
         <p className={styles.chartMeta}>
-          {signature !== undefined && (
-            <span className={styles.chartSignature}>{signature}</span>
-          )}
-          {style !== undefined && (
-            <span className={styles.chartStyle}>{style}</span>
-          )}
+          <span className={styles.chartStyle}>{style}</span>
         </p>
       )}
     </header>
