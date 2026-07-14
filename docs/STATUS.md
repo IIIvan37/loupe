@@ -217,7 +217,18 @@ multi-agents : 6 reviewers d'axe + 2 enquêtes ciblées sur les irritants
 rapportés à l'usage (« interface brouillonne », « opérations longues sans
 loader ») ; 55 constats, 45 confirmés après vérification adversariale.
 Séquencement : Q (clarté de l'atelier) → R (feedback unifié) → W.1/W.2 →
-U.1/U.3 → T.1–T.3 → V.1 → le reste. **En cours : Q.1** (zonage de la colonne).
+U.1/U.3 → T.1–T.3 → V.1 → le reste.
+**Q.1 — zonage de la colonne (branche `feat/q1-shell-zoning`, PR à ouvrir)** :
+`ShellSection` (région nommée + h2) × 3 zones — Timeline (Repères + Stage +
+Boucles), Analyse (Séparation + Tempo), Partition (Grille) — gaps `--space-l`
+entre zones / `--space-xs` dedans (approche « labels + gaps seuls » validée) ;
+classe partagée `.sectionLabel` (6 têtes unifiées, fin du gras isolé du titre
+accords, h2→h3 sous la zone), label visible « Séparation » qui nomme sa
+région. Spec zones + browser-verify (a11y tree vérifié). Revue 8 angles →
+3 fixés, 1 reporté W.5. Gate **verte — 1448 tests**, Stryker skippé (core
+intouché). [rapport](sessions/2026-07-14-q1-shell-zoning.md).
+**Prochain : Q.2** (rangée « Analyser » + `DetectionAction` — checkpoint
+d'approche requis, révise N.4/placement séparation).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
