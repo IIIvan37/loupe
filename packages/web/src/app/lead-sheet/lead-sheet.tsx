@@ -10,6 +10,7 @@ import { chartHasContent } from './chart-content.ts'
 import { ChartHeader, type ChartHeaderData } from './chart-header.tsx'
 import { ChordGlyph } from './chord-glyph.tsx'
 import styles from './lead-sheet.module.css'
+import { TimeSignature } from './time-signature.tsx'
 
 interface LeadSheetProps {
   /** The chord grid in the home text format (`[Section]` + `| … |` rows). */
@@ -170,6 +171,15 @@ export function LeadSheet({
   // A chart head over no chart is noise (and would double the app header's
   // title): the head only prints once the source holds a grid or directives.
   const hasChart = chartHasContent(chart)
+  // The whole-chart signature, as stave notation at the head of the first
+  // system (the mockup's stacked 4-over-4 before the opening barline) — the
+  // source's {time:} directive wins over the session's bar length, exactly
+  // like every other head field. An empty directive overrides nothing.
+  const signature =
+    (directives.time ? directives.time : undefined) ??
+    (header?.beatsPerBar === undefined
+      ? undefined
+      : `${header.beatsPerBar}/4`)
   return (
     // data-print-region anchors the print stylesheet (global.css): everything
     // outside this subtree is hidden when printing, the sheet fills the page.
@@ -183,12 +193,18 @@ export function LeadSheet({
       {hasChart && (
         <ChartHeader derived={header ?? {}} directives={directives} />
       )}
-      {sections.map((section) => (
+      {sections.map((section, index) => (
         <section key={section.key} className={styles.section}>
           {section.label !== undefined && (
             <h3 className={styles.label}>{section.label}</h3>
           )}
           <div className={styles.row}>
+            {index === 0 && signature !== undefined && (
+              <TimeSignature
+                signature={signature}
+                className={styles.headSignature}
+              />
+            )}
             {section.measures.map((measure) => (
               <div
                 key={measure.key}
@@ -206,7 +222,10 @@ export function LeadSheet({
                   <span className={styles.codaSign}>⊕</span>
                 )}
                 {measure.meterHere !== undefined && (
-                  <span className={styles.meterSign}>{measure.meterHere}</span>
+                  <TimeSignature
+                    signature={measure.meterHere}
+                    className={styles.meterSign}
+                  />
                 )}
                 {measure.voltaOpens && (
                   <span className={styles.voltaLabel}>{measure.volta}.</span>

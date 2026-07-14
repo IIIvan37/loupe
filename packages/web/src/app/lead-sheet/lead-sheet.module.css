@@ -2,6 +2,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-m);
+  /* Gutter for the head time signature (mockup: the stacked 4-over-4 sits
+   * left of the first system's opening barline). Reserved on every sheet so
+   * the grid never shifts when a meter is detected mid-session. */
+  padding-left: var(--space-l);
 }
 
 /* ——— The chart head: key/tempo line, title + artist, meta line. ——— */
@@ -45,10 +49,6 @@
   align-items: baseline;
 }
 
-.chartSignature {
-  font-size: var(--font-size-l);
-}
-
 /* The style tag prints in the mockup's small bold sans, not in script. */
 .chartStyle {
   font-family: var(--font-ui);
@@ -77,9 +77,34 @@
  * bars (the plan's « double aux frontières de section »).
  */
 .row {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(var(--bars-per-row, 4), minmax(0, 1fr));
   border-left: 3px double var(--text);
+}
+
+/* ——— Time signature as stave notation: numerator over denominator. ——— */
+
+.timeSignature {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-chart);
+  color: var(--text);
+  line-height: 0.95;
+  font-weight: 600;
+}
+
+/* The whole-chart signature, in the gutter before the first system's opening
+ * barline — centered on the row's first line of bars (3rem min-height). */
+.headSignature {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  height: 3rem;
+  justify-content: center;
+  padding-right: var(--space-3xs);
+  font-size: var(--font-size-m);
 }
 
 .measure {
@@ -158,9 +183,11 @@
   font-size: var(--font-size-m);
 }
 
-/* A {time: N/M} signature change, printed where the new meter takes over. */
+/* A {time: N/M} signature change, printed stacked where the new meter takes
+ * over. Same stave notation as the head signature, annotation-small. */
 .meterSign {
-  composes: annotation;
+  position: absolute;
+  top: var(--space-3xs);
   left: var(--space-3xs);
   font-size: var(--font-size-xs);
 }

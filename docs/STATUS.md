@@ -185,25 +185,29 @@ tête + changements mid-grid, `detectMeter` dominant, « N temps » éditable
 (`remeterGrid`), fold méter-aware, DBN madmom sur `/tempo` →
 [rapport](sessions/2026-07-13-time-signatures.md).
 Reste pré-démo : vérif navigateur sur The Logical Song ·
-notation empilée des signatures (point #2 ci-dessous) ·
 retrofit `/tempo` sur `classifyTransportError` toujours noté.
 
-**En cours : fix « la détection d'accords efface la structure » (branche
-`fix/chord-draft-preserves-structure`, PR à ouvrir).** Structure détectée PUIS
-accords : le brouillon déduisait ses blocs neutres `[A]`/`[B]` et la sync
-chart→timeline remplaçait/effaçait les marqueurs détectés. Fix : `detectChords`
-accepte `sections` (les marqueurs `kind:'structure'` relus via le nouveau
-`markerSections`, mémoïsé au shell) et découpe le brouillon par `cutBySections`
-(exporté) sous leurs libellés — le round-trip marqueurs → en-têtes du brouillon
-→ marqueurs est l'invariant. Revue 3 finders : section unique désormais titrée
-(`headLoneRun`), libellés non imprimables filtrés, limites v1 documentées
-(1re section épinglée à 0, section hors grille droppée, course mid-flight,
-re-détection recadrée par ses propres marqueurs). Gate **vert — 1411 tests**
+**Fix « la détection d'accords efface la structure » mergé (PR #130)** :
+structure détectée PUIS accords : le brouillon déduisait ses blocs neutres
+`[A]`/`[B]` et la sync chart→timeline remplaçait/effaçait les marqueurs
+détectés. Fix : `detectChords` accepte `sections` (les marqueurs
+`kind:'structure'` relus via `markerSections`, mémoïsé au shell) et découpe
+le brouillon par `cutBySections` (exporté) sous leurs libellés — le
+round-trip marqueurs → en-têtes du brouillon → marqueurs est l'invariant.
+Revue 3 finders : section unique titrée (`headLoneRun`), libellés non
+imprimables filtrés, limites v1 documentées. Gate **vert — 1411 tests**
 (+10), Stryker 93,5 %.
 [rapport](sessions/2026-07-14-chord-draft-preserves-structure.md).
-**Point #2 de la demande (à faire, slice UI)** : notation musicale empilée des
-signatures (« 4 sur 4 » comme le chart Elton John) à la place du texte « 4/4 »
-— approche à confirmer avant de coder.
+
+**En cours : notation empilée des signatures (PR #131)** — approche validée
+utilisateur (fidèle au chart Elton John) : composant `TimeSignature` (glyphe
+N-sur-M, `role="img"` + `aria-label`), signature de tête ({time:} >
+beatsPerBar de session) dans la gouttière avant la barre d'ouverture du
+premier système, changements de mètre en glyphe empilé dans leur mesure,
+« 4/4 » texte retiré du header meta. Vérif navigateur conforme au PDF (The
+Logical Song, {time:} tête + changement 2/4). Gate **vert — 1405 tests**,
+Stryker skippé (core intouché).
+[rapport](sessions/2026-07-14-stacked-time-signature.md).
 See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 [P.4 print](sessions/2026-07-13-p4-print.md) ·
 [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·

@@ -170,10 +170,35 @@ describe('LeadSheet', () => {
     render(<LeadSheet source={'| C | Am |\n{time: 2/4}\n| F |\n| G |'} />, {
       wrapper: I18nTestingProvider
     })
-    const sign = screen.getByText('2/4')
+    // Stacked stave notation (2 over 4), named as one signature.
+    const sign = screen.getByRole('img', { name: '2/4' })
     expect(sign.closest('[class*="measure"]')).toBe(
       screen.getByText('F').closest('[class*="measure"]')
     )
+  })
+
+  it('opens the first system with the stacked session signature', () => {
+    // The mockup's notation: the signature is a stacked glyph at the head of
+    // the grid (before the first barline), not a "4/4" text in the chart head.
+    render(<LeadSheet source={'| C | Am |'} header={{ beatsPerBar: 4 }} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(screen.getByRole('img', { name: '4/4' })).toBeInTheDocument()
+  })
+
+  it('a head {time: …} directive overrides the session signature', () => {
+    render(
+      <LeadSheet source={'{time: 6/8}\n| C |'} header={{ beatsPerBar: 4 }} />,
+      { wrapper: I18nTestingProvider }
+    )
+    expect(screen.getByRole('img', { name: '6/8' })).toBeInTheDocument()
+  })
+
+  it('draws no head signature when no meter is known', () => {
+    render(<LeadSheet source={'| C | Am |'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(screen.queryByRole('img')).toBeNull()
   })
 
   it('a {time:} line never becomes a measure of the grid', () => {
