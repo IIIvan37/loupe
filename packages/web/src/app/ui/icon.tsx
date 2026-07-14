@@ -46,15 +46,17 @@ interface IconProps {
 /**
  * Dumb inline SVG icon. It is decorative by contract (`aria-hidden`): the host
  * button carries the accessible label, so the icon never competes for the name.
- * Sized in `em` so it scales with the button's font-size.
+ * Sized in `em` so it scales with the button's font-size — at 1.5em an icon
+ * reads clearly inside the s/xs-type buttons (1em painted glyphs at 12–14 px,
+ * too small on every control).
  */
 export function Icon({ name, className }: IconProps) {
   return (
     <svg
       className={className}
       viewBox="0 0 24 24"
-      width="1em"
-      height="1em"
+      width="1.5em"
+      height="1.5em"
       fill="none"
       stroke="currentColor"
       strokeWidth="2"
