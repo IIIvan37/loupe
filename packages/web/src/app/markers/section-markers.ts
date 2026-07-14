@@ -1,4 +1,4 @@
-import type { DetectedSection } from '@app/core'
+import type { DetectedSection, MarkerList } from '@app/core'
 import { i18n } from '../../i18n/i18n.ts'
 import { sectionLabelDescriptor } from './section-label.ts'
 
@@ -34,5 +34,33 @@ export function sectionMarkers(
   return sections.map((section) => ({
     timeSeconds: section.startSeconds,
     label: sectionDisplayLabel(section.label)
+  }))
+}
+
+/**
+ * The inverse mapping: read the timeline's structure markers back as the
+ * song's sections (cues skipped) — what a chord detection hands `detectChords`
+ * so its draft is cut by the structure already on the timeline instead of
+ * erasing it. Marker labels are ALREADY display copy, carried verbatim (the
+ * draft prints them verbatim too); each section runs to the next structure
+ * marker's start, the last one open-ended. A label a `[header]` line cannot
+ * carry (blank, or holding a newline — reachable through a restored project,
+ * the rename input forbids both) is skipped: it would corrupt the draft.
+ */
+export function markerSections(
+  markers: MarkerList
+): readonly DetectedSection[] {
+  const structure = markers
+    .filter(
+      (marker) =>
+        marker.kind === 'structure' &&
+        marker.label.trim() !== '' &&
+        !marker.label.includes('\n')
+    )
+    .toSorted((a, b) => a.timeSeconds - b.timeSeconds)
+  return structure.map((marker, index) => ({
+    startSeconds: marker.timeSeconds,
+    endSeconds: structure[index + 1]?.timeSeconds ?? Number.POSITIVE_INFINITY,
+    label: marker.label
   }))
 }

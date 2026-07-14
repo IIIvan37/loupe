@@ -180,22 +180,30 @@ checkpoint BTC 170 classes (7es/sus/dim…), nommage validé utilisateur →
 (structure vs indicatif), `chartSectionAnchors` + sync chart→timeline sur
 éditions utilisateur, rail teal/ambre →
 [rapport](sessions/2026-07-13-marker-kinds-structure-sync.md).
-**En cours : signatures rythmiques (pré-démo #3, branche
-`feat/time-signatures`, PR à ouvrir).** `{time: N/M}` (notation ChordPro) :
-directive de tête = signature du chart, pleine-ligne mid-grid = changement de
-mètre rendu dans la mesure ; la détection d'accords écrit `{time: dominant/4}`
-en tête + les changements (mètres par intervalle downbeat→downbeat, votés par
-section, `beatsPerBar` de session en autorité — fold-proof ; mesures de bord
-distrusted = anacrouse/troncature jamais marquées et collision de tête
-impossible). `detectMeter` passe au **dominant** des mesures complètes (fix
-Logical Song « 6 temps ») et le « N temps » du panneau devient **éditable**
-(`remeterGrid` : re-flag des downbeats, instants gardés, click re-seaté,
-persisté + signé — downbeat pattern inclus). Fold `|: :|` méter-aware (pas de
-repli si la 2e passe lirait un autre mètre). Revue 8 angles → 3 bugs confirmés
-fixés + cleanups. Gate **vert — 1401 tests**, Stryker **93,5 %**.
+**Signatures rythmiques mergées (PR #129)** — pré-démo #3 : `{time: N/M}`
+tête + changements mid-grid, `detectMeter` dominant, « N temps » éditable
+(`remeterGrid`), fold méter-aware, DBN madmom sur `/tempo` →
 [rapport](sessions/2026-07-13-time-signatures.md).
-Reste pré-démo : vérif navigateur sur The Logical Song après merge.
-Retrofit `/tempo` sur `classifyTransportError` toujours noté.
+Reste pré-démo : vérif navigateur sur The Logical Song ·
+notation empilée des signatures (point #2 ci-dessous) ·
+retrofit `/tempo` sur `classifyTransportError` toujours noté.
+
+**En cours : fix « la détection d'accords efface la structure » (branche
+`fix/chord-draft-preserves-structure`, PR à ouvrir).** Structure détectée PUIS
+accords : le brouillon déduisait ses blocs neutres `[A]`/`[B]` et la sync
+chart→timeline remplaçait/effaçait les marqueurs détectés. Fix : `detectChords`
+accepte `sections` (les marqueurs `kind:'structure'` relus via le nouveau
+`markerSections`, mémoïsé au shell) et découpe le brouillon par `cutBySections`
+(exporté) sous leurs libellés — le round-trip marqueurs → en-têtes du brouillon
+→ marqueurs est l'invariant. Revue 3 finders : section unique désormais titrée
+(`headLoneRun`), libellés non imprimables filtrés, limites v1 documentées
+(1re section épinglée à 0, section hors grille droppée, course mid-flight,
+re-détection recadrée par ses propres marqueurs). Gate **vert — 1411 tests**
+(+10), Stryker 93,5 %.
+[rapport](sessions/2026-07-14-chord-draft-preserves-structure.md).
+**Point #2 de la demande (à faire, slice UI)** : notation musicale empilée des
+signatures (« 4 sur 4 » comme le chart Elton John) à la place du texte « 4/4 »
+— approche à confirmer avant de coder.
 See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 [P.4 print](sessions/2026-07-13-p4-print.md) ·
 [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·
@@ -213,6 +221,9 @@ See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 
 ### Lot P — lead-sheet chart (2026-07-12 → …)
 
+- 2026-07-13 · **Pré-démo #3 — signatures rythmiques** (PR #129 mergée) :
+  `{time: N/M}` tête + mid-grid, dominant meter, beats/bar éditable →
+  [rapport](sessions/2026-07-13-time-signatures.md)
 - 2026-07-13 · **Pré-démo #2 — marqueurs ↔ structure** (PR #128 mergée) :
   marker kinds + sync chart→timeline →
   [rapport](sessions/2026-07-13-marker-kinds-structure-sync.md)

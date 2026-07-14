@@ -3,6 +3,7 @@ import {
   type ChordDetectionErrorCode,
   type ChordDetector,
   type DecodedAudio,
+  type DetectedSection,
   detectChords
 } from '@app/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -40,6 +41,7 @@ export function useChordDetection({
   loadedAudio,
   grid,
   beatsPerBar,
+  sections,
   onDraft,
   detector
 }: {
@@ -48,6 +50,9 @@ export function useChordDetection({
   /** The session's felt bar length — the meter the draft's {time:} head
    * prints (a folded grid's raw beat density is not the meter). */
   readonly beatsPerBar?: number | undefined
+  /** The song's already-known sections (the timeline's structure markers) —
+   * the draft is cut by them so a prior structure detection is not erased. */
+  readonly sections?: readonly DetectedSection[] | undefined
   readonly onDraft: (source: string) => void
   readonly detector?: ChordDetector | undefined
 }): ChordDetection {
@@ -76,7 +81,13 @@ export function useChordDetection({
 
   // Held in a latest-ref so `detect` always reads the committed-fresh values
   // without re-identifying itself (the panel keys nothing on it).
-  const inputRef = useLatest({ loadedAudio, grid, beatsPerBar, onDraft })
+  const inputRef = useLatest({
+    loadedAudio,
+    grid,
+    beatsPerBar,
+    sections,
+    onDraft
+  })
 
   // Abort in an EFFECT, not the render-time block above: the replaced track's
   // pending upload still holds the server's analysis slot, and an effect
@@ -91,7 +102,8 @@ export function useChordDetection({
     const {
       loadedAudio: audio,
       grid: beatGrid,
-      beatsPerBar: bar
+      beatsPerBar: bar,
+      sections: known
     } = inputRef.current
     if (!audio) {
       return
@@ -109,6 +121,7 @@ export function useChordDetection({
         grid: beatGrid,
         barsPerRow,
         beatsPerBar: bar,
+        sections: known,
         signal: controller.signal
       },
       { detector: engine }
