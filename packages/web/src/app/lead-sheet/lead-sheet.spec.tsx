@@ -166,6 +166,23 @@ describe('LeadSheet', () => {
     expect(screen.getByText('⊕')).toBeInTheDocument()
   })
 
+  it('prints the time signature on the measure a {time:} line opens', () => {
+    render(<LeadSheet source={'| C | Am |\n{time: 2/4}\n| F |\n| G |'} />, {
+      wrapper: I18nTestingProvider
+    })
+    const sign = screen.getByText('2/4')
+    expect(sign.closest('[class*="measure"]')).toBe(
+      screen.getByText('F').closest('[class*="measure"]')
+    )
+  })
+
+  it('a {time:} line never becomes a measure of the grid', () => {
+    render(<LeadSheet source={'| C |\n{time: 2/4}\n| F |'} currentMeasureIndex={1} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(screen.getByText('F').closest('[aria-current]')).not.toBeNull()
+  })
+
   it('prints a fermata over a held measure', () => {
     render(<LeadSheet source={'| C@ |'} />, {
       wrapper: I18nTestingProvider

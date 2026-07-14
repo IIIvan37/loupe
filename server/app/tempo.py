@@ -47,13 +47,26 @@ router = APIRouter()
 # first use, like Demucs' weights.
 CHECKPOINT = os.environ.get("LOUPE_TEMPO_CHECKPOINT", "final0")
 
+# madmom's DBN post-processing decodes the most likely BAR SEQUENCE from the
+# model's activations (a state space over bar lengths, meter changes penalised)
+# instead of trusting the raw per-frame downbeat picks. Without it, whole
+# passages can come back flagged at half-bar downbeats — a 4/4 song reading as
+# runs of 2-beat bars (The Logical Song's intro), which the chord chart then
+# dutifully marks as meter changes. On by default; LOUPE_TEMPO_DBN=0 restores
+# the raw picks.
+DBN = os.environ.get("LOUPE_TEMPO_DBN", "1") != "0"
+
 # Pick the best available device, same order as separation. Overridable for the
-# rare host where an accelerator lacks an op the model needs.
+# rare host where an accelerator lacks an op the model needs. The DBN path
+# computes in float64, which MPS cannot represent — with the DBN on (the
+# default) an Apple-Silicon host falls back to CPU (~4.4 s for 250 s of audio,
+# measured; well inside the inference budget). An explicit LOUPE_TEMPO_DEVICE
+# is honoured verbatim either way.
 if os.environ.get("LOUPE_TEMPO_DEVICE"):
     _device = os.environ["LOUPE_TEMPO_DEVICE"]
 elif torch.cuda.is_available():
     _device = "cuda"
-elif torch.backends.mps.is_available():
+elif torch.backends.mps.is_available() and not DBN:
     _device = "mps"
 else:
     _device = "cpu"
@@ -78,7 +91,7 @@ def _audio2beats() -> Audio2Beats:
     if _model is None:
         with _model_lock:
             if _model is None:
-                _model = Audio2Beats(checkpoint_path=CHECKPOINT, device=_device, dbn=False)
+                _model = Audio2Beats(checkpoint_path=CHECKPOINT, device=_device, dbn=DBN)
     return _model
 
 

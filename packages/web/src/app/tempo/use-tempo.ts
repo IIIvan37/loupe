@@ -4,9 +4,11 @@ import {
   type DecodedAudio,
   detectTempo,
   foldTempoOctave,
+  MAX_BEATS_PER_BAR,
   type ManualTempo,
   normalizeManualBpm,
   type OctaveFactor,
+  remeterGrid,
   type TempoAnalysis,
   type TempoDetector
 } from '@app/core'
@@ -68,6 +70,16 @@ export interface Tempo {
     playheadSeconds: number,
     durationSeconds: number
   ) => TempoAnalysis | undefined
+  /**
+   * Correct the meter by hand (a 4/4 song the detector read as 6 temps): the
+   * grid's downbeats are re-flagged every N beats on the detected bar phase,
+   * every beat instant kept. Re-committing the CURRENT meter is a correction
+   * too — it regularises a grid whose dominant was right but whose bars were
+   * noisy. Returns the corrected analysis so the caller can re-seat the
+   * click, or undefined when there is nothing to correct (no analysis, a
+   * degenerate or out-of-range value).
+   */
+  readonly overrideMeter: (beatsPerBar: number) => TempoAnalysis | undefined
   /**
    * Seat a persisted analysis directly (opening a saved project) — no detection,
    * no server. Supersedes any in-flight detect so its late result can't win. The
@@ -227,6 +239,29 @@ export function useTempo(detector?: TempoDetector): Tempo {
     return seatManual({ bpm, phaseSeconds: playheadSeconds }, durationSeconds)
   }
 
+  function overrideMeter(beatsPerBar: number): TempoAnalysis | undefined {
+    if (analysis === undefined) {
+      return undefined
+    }
+    const bar = Math.floor(beatsPerBar)
+    if (!Number.isFinite(bar) || bar < 1 || bar > MAX_BEATS_PER_BAR) {
+      return undefined
+    }
+    const corrected: TempoAnalysis = {
+      bpm: analysis.bpm,
+      grid: remeterGrid(analysis.grid, bar),
+      beatsPerBar: bar
+    }
+    // The user's meter is an authority: a late in-flight detection must not
+    // overwrite it (same token dance as the manual tempo), and a stale
+    // failure message must not outlive a successful correction.
+    supersede()
+    setDetecting(false)
+    setError(undefined)
+    setAnalysis(corrected)
+    return corrected
+  }
+
   function set(next: TempoAnalysis, shift = 0, override?: ManualTempo): void {
     // Supersede any in-flight detect (bump the token) so its late result can't
     // overwrite the persisted analysis we are seating here.
@@ -256,6 +291,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
     octaveShift,
     manual,
     overrideBpm,
+    overrideMeter,
     alignPhase,
     detect,
     set,

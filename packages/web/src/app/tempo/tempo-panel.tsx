@@ -1,4 +1,5 @@
 import {
+  MAX_BEATS_PER_BAR,
   MAX_MANUAL_BPM,
   MIN_MANUAL_BPM,
   type OctaveFactor,
@@ -54,10 +55,67 @@ interface TempoPanelProps {
    * for an emptied field (never 0); the hook rejects non-tempos.
    */
   readonly onOverrideBpm: (bpm: number) => void
+  /**
+   * Correct the meter by hand (a 4/4 song detected as 6 temps). Same commit
+   * contract as the BPM field: the hook rejects non-meters.
+   */
+  readonly onOverrideMeter: (beatsPerBar: number) => void
   /** One tap of the tap-tempo sequence. */
   readonly onTap: () => void
   /** Anchor a downbeat exactly on the given playhead instant. */
   readonly onAlignPhase: (playheadSeconds: number) => void
+}
+
+/**
+ * A numeric field committing on Enter/blur and abandoning on Escape: a draft
+ * shields the field from the live read-out while the user types. An emptied
+ * field commits as NaN, never 0 (`Number('')` is 0 — a floor value out of
+ * nowhere); an untouched field commits nothing.
+ */
+function CommitNumberField({
+  value,
+  min,
+  max,
+  className,
+  label,
+  onCommit
+}: {
+  readonly value: number | undefined
+  readonly min: number
+  readonly max: number
+  readonly className: string | undefined
+  readonly label: string
+  readonly onCommit: (value: number) => void
+}) {
+  const [draft, setDraft] = useState<string>()
+  function commit(): void {
+    if (draft === undefined) {
+      return
+    }
+    onCommit(draft.trim() === '' ? Number.NaN : Number(draft))
+    setDraft(undefined)
+  }
+  return (
+    <input
+      type="number"
+      className={className}
+      inputMode="numeric"
+      min={min}
+      max={max}
+      value={draft ?? (value === undefined ? '' : value)}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={() => commit()}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter') {
+          commit()
+        }
+        if (event.key === 'Escape') {
+          setDraft(undefined)
+        }
+      }}
+      aria-label={label}
+    />
+  )
 }
 
 /**
@@ -79,23 +137,11 @@ export function TempoPanel({
   onFold,
   onRetry,
   onOverrideBpm,
+  onOverrideMeter,
   onTap,
   onAlignPhase
 }: TempoPanelProps) {
   const { t } = useLingui()
-  // What the user is typing, shielding the field from the live read-out until
-  // the edit commits (Enter/blur) or is abandoned (Escape).
-  const [draft, setDraft] = useState<string>()
-
-  // An emptied field commits as NaN, never 0 (`Number('')` is 0 — a floor
-  // tempo out of nowhere); an untouched field commits nothing.
-  function commit(): void {
-    if (draft === undefined) {
-      return
-    }
-    onOverrideBpm(draft.trim() === '' ? Number.NaN : Number(draft))
-    setDraft(undefined)
-  }
   // A single segment is a steady track: show the representative bpm. With more,
   // the read-out follows the playhead and the whole range is shown beside it.
   // Subscribing to the ROUNDED felt bpm re-renders the panel only when the
@@ -127,27 +173,16 @@ export function TempoPanel({
       </span>
       <LiveStatus message={announced} />
       <span className={styles.readout}>
-        <input
-          type="number"
-          className={styles.bpmField}
-          inputMode="numeric"
+        <CommitNumberField
+          value={felt === undefined ? undefined : Math.round(felt)}
           min={MIN_MANUAL_BPM}
           max={MAX_MANUAL_BPM}
-          value={draft ?? (felt === undefined ? '' : Math.round(felt))}
-          onChange={(event) => setDraft(event.target.value)}
-          onBlur={() => commit()}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              commit()
-            }
-            if (event.key === 'Escape') {
-              setDraft(undefined)
-            }
-          }}
-          aria-label={t({
+          className={styles.bpmField}
+          label={t({
             id: 'tempo.bpm-field',
             message: 'Saisir le tempo (BPM)'
           })}
+          onCommit={onOverrideBpm}
         />
         <Trans id="tempo.unit">BPM</Trans>
       </span>
@@ -165,7 +200,18 @@ export function TempoPanel({
       )}
       {bpm !== undefined && beatsPerBar !== undefined && (
         <span className={styles.meter}>
-          <Trans id="tempo.meter">{beatsPerBar} temps</Trans>
+          <CommitNumberField
+            value={beatsPerBar}
+            min={1}
+            max={MAX_BEATS_PER_BAR}
+            className={styles.meterField}
+            label={t({
+              id: 'tempo.meter-field',
+              message: 'Saisir le mètre (temps par mesure)'
+            })}
+            onCommit={onOverrideMeter}
+          />
+          <Trans id="tempo.meter-unit">temps</Trans>
         </span>
       )}
       {bpm !== undefined && (

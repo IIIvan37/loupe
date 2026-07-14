@@ -176,27 +176,25 @@ son en-tête). Gate **vert — 1249 tests** (+13), react-doctor clean
 checkpoint BTC 170 classes (7es/sus/dim…), nommage validé utilisateur →
 [rapport](sessions/2026-07-13-chord-grid-vocab-key.md).
 
-**En cours : marqueurs ↔ structure (pré-démo #2, branche
-`feat/marker-kinds-structure-sync`, PR à ouvrir).** Deux types de marqueurs,
-la grille = autorité. **Core** : `Marker.kind?: 'structure'` (absent ⇔
-indicatif, persistance rétro-compatible), `replaceStructureMarkers` (remplace
-les structure, préserve les indicatifs), `chartSectionAnchors(source, grid)`
-(un ancrage par en-tête `[Section]` au downbeat où sa 1re mesure se JOUE —
-`unrollChart` ; skips : label vide, en-tête sans mesure, hors grille, jamais
-jouée al Fine, sans downbeat). **Web** : `setSections` ne remplace plus que
-les structure (la détection ne balaie plus les repères manuels) ;
-`onSourceEdited` sur `useChordChartSession` → `syncStructureMarkersFromChart`
-re-dérive **à chaque édition utilisateur** (frappe live, brouillon) — jamais
-au restore (une correction sauvegardée survit à la réouverture) ; garde sans
-downbeat (les marqueurs d'une détection sans grille survivent). Rail :
-`data-kind` + peau **teal** (dérivé) vs ambre (à vous), marqueurs de structure
-**éditables mais écrasables** (décision : corriger vite un marqueur détecté
-faux). Confirm précisée (`hasMarkers` filtre par kind, « Remplacer les repères
-de structure ? »), `kind` dans la signature de session. Acceptance : en-tête
-tapé ⇒ marqueur live ; cue survit détection + édition ; round-trip des deux
-kinds. Gate **vert — 1340 tests** (+18), Stryker **~94 %** (marker-list 100 %).
+**Marqueurs ↔ structure mergé (PR #128)** — pré-démo #2 : `Marker.kind`
+(structure vs indicatif), `chartSectionAnchors` + sync chart→timeline sur
+éditions utilisateur, rail teal/ambre →
 [rapport](sessions/2026-07-13-marker-kinds-structure-sync.md).
-Reste pré-démo : **#3 signatures rythmiques** (4/4, 2/4 et changements).
+**En cours : signatures rythmiques (pré-démo #3, branche
+`feat/time-signatures`, PR à ouvrir).** `{time: N/M}` (notation ChordPro) :
+directive de tête = signature du chart, pleine-ligne mid-grid = changement de
+mètre rendu dans la mesure ; la détection d'accords écrit `{time: dominant/4}`
+en tête + les changements (mètres par intervalle downbeat→downbeat, votés par
+section, `beatsPerBar` de session en autorité — fold-proof ; mesures de bord
+distrusted = anacrouse/troncature jamais marquées et collision de tête
+impossible). `detectMeter` passe au **dominant** des mesures complètes (fix
+Logical Song « 6 temps ») et le « N temps » du panneau devient **éditable**
+(`remeterGrid` : re-flag des downbeats, instants gardés, click re-seaté,
+persisté + signé — downbeat pattern inclus). Fold `|: :|` méter-aware (pas de
+repli si la 2e passe lirait un autre mètre). Revue 8 angles → 3 bugs confirmés
+fixés + cleanups. Gate **vert — 1401 tests**, Stryker **93,5 %**.
+[rapport](sessions/2026-07-13-time-signatures.md).
+Reste pré-démo : vérif navigateur sur The Logical Song après merge.
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
 See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 [P.4 print](sessions/2026-07-13-p4-print.md) ·
@@ -215,6 +213,9 @@ See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 
 ### Lot P — lead-sheet chart (2026-07-12 → …)
 
+- 2026-07-13 · **Pré-démo #2 — marqueurs ↔ structure** (PR #128 mergée) :
+  marker kinds + sync chart→timeline →
+  [rapport](sessions/2026-07-13-marker-kinds-structure-sync.md)
 - 2026-07-13 · **P.4 impression** (PR à ouvrir) : « Imprimer » +
   `data-print-region` conditionnel + stylesheet print `:has` (chart seule,
   html/body aplatis), BarsPerRowField extrait →

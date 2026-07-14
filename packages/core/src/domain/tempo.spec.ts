@@ -1,5 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import { meteredGrid } from './metered-grid-fixture.ts'
 import type { BeatGrid, DetectedBeat } from './tempo.ts'
 import {
   appendTap,
@@ -8,11 +9,14 @@ import {
   buildTempoMap,
   DEFAULT_BEATS_PER_BAR,
   detectMeter,
+  dominantMeter,
   foldTempoOctave,
   MAX_MANUAL_BPM,
   MIN_MANUAL_BPM,
   measureIndexAt,
+  meterPerMeasure,
   normalizeManualBpm,
+  remeterGrid,
   sanitizeBeatGrid,
   tapTempoBpm,
   tempoAt
@@ -443,7 +447,7 @@ describe('buildBeatGrid', () => {
 })
 
 describe('detectMeter', () => {
-  it('reads the meter as the largest bar position seen', () => {
+  it('reads the meter from a steady four-beat bar', () => {
     expect(detectMeter(bar4([0, 0.5, 1, 1.5, 2]))).toBe(4)
   })
 
@@ -457,12 +461,135 @@ describe('detectMeter', () => {
     expect(detectMeter(beats)).toBe(3)
   })
 
+  it('reads the DOMINANT bar length, not the largest position seen', () => {
+    // Three four-beat bars around one stray six-beat bar (a detector slip
+    // must not promote the whole song to 6 temps).
+    const positions = [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 1]
+    const beats: readonly DetectedBeat[] = positions.map(
+      (barPosition, index) => ({ timeSeconds: index * 0.5, barPosition })
+    )
+    expect(detectMeter(beats)).toBe(4)
+  })
+
+  it('falls back to the largest position before a full bar exists', () => {
+    // A single open bar (no second downbeat): the positions are all we have.
+    const beats: readonly DetectedBeat[] = [
+      { timeSeconds: 0, barPosition: 1 },
+      { timeSeconds: 0.5, barPosition: 2 },
+      { timeSeconds: 1, barPosition: 3 }
+    ]
+    expect(detectMeter(beats)).toBe(3)
+  })
+
   it('falls back to common time when there are no beats', () => {
     expect(detectMeter([])).toBe(DEFAULT_BEATS_PER_BAR)
   })
 
   it('defaults to a 4-beat bar', () => {
     expect(DEFAULT_BEATS_PER_BAR).toBe(4)
+  })
+})
+
+describe('meterPerMeasure', () => {
+  it('counts the beats of each downbeat interval', () => {
+    expect(meterPerMeasure(meteredGrid([4, 2, 4]))).toEqual([4, 2, 4])
+  })
+
+  it('counts the last measure to the end of the grid', () => {
+    expect(meterPerMeasure(meteredGrid([4, 3]))).toEqual([4, 3])
+  })
+
+  it('ignores pickup beats before the first downbeat', () => {
+    const pickup: BeatGrid = [
+      { timeSeconds: 0, downbeat: false },
+      { timeSeconds: 0.5, downbeat: false }
+    ]
+    expect(meterPerMeasure([...pickup, ...meteredGrid([4])])).toEqual([4])
+  })
+
+  it('is empty without a downbeat', () => {
+    expect(meterPerMeasure(gridOf([0, 0.5, 1]))).toEqual([])
+  })
+
+  it('is empty for an empty grid', () => {
+    expect(meterPerMeasure([])).toEqual([])
+  })
+})
+
+describe('dominantMeter', () => {
+  it('picks the most frequent meter', () => {
+    expect(dominantMeter([4, 4, 2, 4, 4])).toBe(4)
+  })
+
+  it('keeps the first-seen meter on a tie', () => {
+    expect(dominantMeter([4, 2, 4, 2])).toBe(4)
+  })
+
+  it('falls back to common time when there is no measure', () => {
+    expect(dominantMeter([])).toBe(DEFAULT_BEATS_PER_BAR)
+  })
+})
+
+describe('remeterGrid', () => {
+  it('re-flags downbeats every N beats, keeping every instant', () => {
+    // A grid misdetected at 6 temps, corrected to 4.
+    const wrong = meteredGrid([6, 6])
+    const fixed = remeterGrid(wrong, 4)
+    expect(fixed.map((beat) => beat.timeSeconds)).toEqual(
+      wrong.map((beat) => beat.timeSeconds)
+    )
+    expect(fixed.map((beat) => beat.downbeat)).toEqual([
+      true,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ])
+  })
+
+  it('anchors the new bars on the first existing downbeat', () => {
+    // Two pickup beats, then bars: the corrected downbeats keep that phase.
+    const pickup: BeatGrid = [
+      { timeSeconds: 0, downbeat: false },
+      { timeSeconds: 0.5, downbeat: false }
+    ]
+    const fixed = remeterGrid([...pickup, ...meteredGrid([3, 3])], 2)
+    expect(fixed.map((beat) => beat.downbeat)).toEqual([
+      false,
+      false,
+      true,
+      false,
+      true,
+      false,
+      true,
+      false
+    ])
+  })
+
+  it('anchors on the first beat when the grid has no downbeat', () => {
+    const fixed = remeterGrid(gridOf([0, 0.5, 1, 1.5]), 2)
+    expect(fixed.map((beat) => beat.downbeat)).toEqual([
+      true,
+      false,
+      true,
+      false
+    ])
+  })
+
+  it('clamps a degenerate meter to whole bars of at least one beat', () => {
+    const fixed = remeterGrid(gridOf([0, 0.5]), 0)
+    expect(fixed.map((beat) => beat.downbeat)).toEqual([true, true])
+  })
+
+  it('is empty for an empty grid', () => {
+    expect(remeterGrid([], 4)).toEqual([])
   })
 })
 

@@ -194,7 +194,9 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
         ? {
             metronome: tempo.metronome,
             octaveShift: deps.tempo.octaveShift,
-            manual: deps.tempo.manual
+            manual: deps.tempo.manual,
+            beatsPerBar: tempo.beatsPerBar,
+            grid: tempo.grid
           }
         : undefined,
       chordChart: liveChordChart(),

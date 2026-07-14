@@ -13,6 +13,7 @@ type PanelProps = Partial<Parameters<typeof TempoPanel>[0]>
 function renderPanel(props: PanelProps = {}) {
   const onFold = vi.fn()
   const onOverrideBpm = vi.fn()
+  const onOverrideMeter = vi.fn()
   const onTap = vi.fn()
   const onAlignPhase = vi.fn()
   const defaults: Parameters<typeof TempoPanel>[0] = {
@@ -27,6 +28,7 @@ function renderPanel(props: PanelProps = {}) {
     onFold,
     onRetry: () => {},
     onOverrideBpm,
+    onOverrideMeter,
     onTap,
     onAlignPhase
   }
@@ -35,13 +37,27 @@ function renderPanel(props: PanelProps = {}) {
   })
   const rerenderPanel = (next: PanelProps) =>
     view.rerender(<TempoPanel {...defaults} {...next} />)
-  return { onFold, onOverrideBpm, onTap, onAlignPhase, rerenderPanel }
+  return {
+    onFold,
+    onOverrideBpm,
+    onOverrideMeter,
+    onTap,
+    onAlignPhase,
+    rerenderPanel
+  }
 }
 
 /** The editable BPM field, queried by its accessible name. */
 function bpmField(): HTMLInputElement {
   return screen.getByRole('spinbutton', {
     name: i18n._('tempo.bpm-field')
+  })
+}
+
+/** The editable meter (beats per bar) field. */
+function meterField(): HTMLInputElement {
+  return screen.getByRole('spinbutton', {
+    name: i18n._('tempo.meter-field')
   })
 }
 
@@ -74,16 +90,43 @@ describe('TempoPanel', () => {
     ).toBeDisabled()
   })
 
-  it('shows the detected meter beside the BPM', () => {
+  it('shows the detected meter in an editable field beside the BPM', () => {
     renderPanel({ beatsPerBar: 3 })
-    expect(screen.getByText(i18n._('tempo.meter', { beatsPerBar: 3 }))).toBeInTheDocument()
+    expect(meterField()).toHaveValue(3)
   })
 
   it('shows no meter until a tempo is known', () => {
     renderPanel({ bpm: undefined, beatsPerBar: 4 })
     expect(
-      screen.queryByText(i18n._('tempo.meter', { beatsPerBar: 4 }))
+      screen.queryByRole('spinbutton', { name: i18n._('tempo.meter-field') })
     ).not.toBeInTheDocument()
+  })
+
+  it('commits a corrected meter on Enter', async () => {
+    const user = userEvent.setup()
+    const { onOverrideMeter } = renderPanel({ beatsPerBar: 6 })
+    await user.clear(meterField())
+    await user.type(meterField(), '4{Enter}')
+    expect(onOverrideMeter).toHaveBeenCalledWith(4)
+  })
+
+  it('commits a corrected meter on blur', async () => {
+    const user = userEvent.setup()
+    const { onOverrideMeter } = renderPanel({ beatsPerBar: 6 })
+    await user.clear(meterField())
+    await user.type(meterField(), '4')
+    await user.tab()
+    expect(onOverrideMeter).toHaveBeenCalledWith(4)
+  })
+
+  it('abandons a meter edit on Escape', async () => {
+    const user = userEvent.setup()
+    const { onOverrideMeter } = renderPanel({ beatsPerBar: 6 })
+    await user.clear(meterField())
+    await user.type(meterField(), '4{Escape}')
+    await user.tab()
+    expect(onOverrideMeter).not.toHaveBeenCalled()
+    expect(meterField()).toHaveValue(6)
   })
 
   it('shows no octave controls until a tempo is known', () => {

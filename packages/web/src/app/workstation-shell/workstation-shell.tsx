@@ -19,12 +19,9 @@ import { useServerHealth } from '../../projects/use-server-health.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
 import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
-import { useChordChartSession } from '../lead-sheet/use-chord-chart-session.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
-import { syncStructureMarkersFromChart } from '../markers/chart-marker-sync.ts'
 import { useMarkers } from '../markers/use-markers.ts'
-import { useStructureMarkers } from '../markers/use-structure-markers.ts'
 import { useMixer } from '../mixer/use-mixer.ts'
 import { useSeparation } from '../separation/use-separation.ts'
 import { type CountInPlayer, useCountIn } from '../tempo/use-count-in.ts'
@@ -48,6 +45,7 @@ import { useSeparateAndLoad } from './use-separate-and-load.ts'
 import { useShellDrop } from './use-shell-drop.ts'
 import { useShellShortcuts } from './use-shell-shortcuts.ts'
 import { useStemExport } from './use-stem-export.ts'
+import { useChartWithStructure } from './use-chart-with-structure.ts'
 import { useTempoDetection } from './use-tempo-detection.ts'
 import { useUnloadGuard } from './use-unload-guard.ts'
 import styles from './workstation-shell.module.css'
@@ -137,24 +135,16 @@ export function WorkstationShell({
   const markers = useMarkers()
   const tempo = useTempo(tempoDetector)
   useModalWarmup(loadedAudio) // warm the Modal container on import (no-op locally)
-  // Chart source (session state) + « Détecter les accords » — built before the
-  // structure flow, which relabels this same source (S.3b). Every user edit of
-  // the source re-derives the structure markers (chart = authority).
-  const { chart: chordChart, detection: chordDetection } = useChordChartSession({
-    loadedAudio,
-    grid: tempo.analysis?.grid ?? [],
-    detector: chordDetector,
-    onSourceEdited: (source) =>
-      syncStructureMarkersFromChart(source, tempo.analysis?.grid ?? [], markers)
-  })
-  // « Détecter la structure » → section markers + (if a grid exists) its headers.
-  const structureDetection = useStructureMarkers({
-    loadedAudio,
-    grid: tempo.analysis?.grid ?? [],
-    markers,
-    chart: chordChart,
-    detector: structureDetector
-  })
+  // Chart session + « Détecter les accords » / « Détecter la structure » —
+  // the chart↔structure pairing (S.3b) lives in its own hook.
+  const { chordChart, chordDetection, structureDetection } =
+    useChartWithStructure({
+      loadedAudio,
+      analysis: tempo.analysis,
+      markers,
+      chordDetector,
+      structureDetector
+    })
   const metronome = useMetronome({ mixer })
   const loops = useLoops()
   const loopEditing = useLoopEditing(loops, {
@@ -345,6 +335,7 @@ export function WorkstationShell({
         onFoldTempo={tempoDetection.fold}
         onRetryTempo={tempoDetection.retry}
         onOverrideBpm={tempoDetection.setBpm}
+        onOverrideMeter={tempoDetection.setMeter}
         onTapTempo={tempoDetection.tap}
         onAlignTempoPhase={tempoDetection.alignPhase}
         onReimport={openFilePicker}

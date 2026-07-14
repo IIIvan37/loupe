@@ -11,6 +11,11 @@ torchaudio==2.11.0
 # `rotary-embedding-torch` is its one extra runtime dep (pinned for repro).
 beat-this==1.1.0
 rotary-embedding-torch==0.9.1
+# DBN downbeat smoothing for beat_this (`LOUPE_TEMPO_DBN`, on by default) —
+# madmom's PyPI release predates modern Python; pinned to the master commit
+# that builds on 3.14. `mido` is its one extra runtime dep (pinned for repro).
+madmom @ git+https://github.com/CPJKU/madmom.git@27f032e8947204902c675e5e341a3faf5dc86dae
+mido==1.3.3
 yt-dlp==2026.6.9
 # Direct dep of the torch-free WAV decoding (app/wav_decode.py) — would arrive
 # transitively via torch, but the app imports it itself.

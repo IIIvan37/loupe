@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { DetectedChordSpan } from '../domain/chord-detection.ts'
+import { meteredGrid } from '../domain/metered-grid-fixture.ts'
 import type { BeatGrid } from '../domain/tempo.ts'
 import { ChordDetectionError, detectChords } from './detect-chords.ts'
 import type { ChordDetector, DecodedAudio } from './ports.ts'
@@ -11,6 +12,21 @@ function grid4(bars: number): BeatGrid {
   return Array.from({ length: bars * 4 }, (_, index) => ({
     timeSeconds: index * 0.5,
     downbeat: index % 4 === 0
+  }))
+}
+
+/** One span per measure of `grid`, holding `labels[i]` over the i-th bar. */
+function spansPerMeasure(
+  labels: readonly string[],
+  grid: BeatGrid
+): readonly DetectedChordSpan[] {
+  const downbeats = grid
+    .filter((beat) => beat.downbeat)
+    .map((beat) => beat.timeSeconds)
+  return labels.map((label, index) => ({
+    startSeconds: downbeats[index] as number,
+    endSeconds: downbeats[index + 1] ?? (downbeats[index] as number) + 2,
+    label
   }))
 }
 
@@ -30,10 +46,10 @@ function fakeDetector(
   }
 }
 
-/** A draft's grid rows, without the leading detected-key directive line — the
-    key itself is asserted in the dedicated tonality tests below. */
+/** A draft's grid rows, without the leading detected-key and time-signature
+    directive lines — each head is asserted in its own dedicated tests below. */
 function grid(source: string): string {
-  return source.replace(/^\{key:[^}]*\}\n/, '')
+  return source.replace(/^\{key:[^}]*\}\n/, '').replace(/^\{time:[^}]*\}\n/, '')
 }
 
 describe('detectChords', () => {
@@ -133,6 +149,82 @@ describe('detectChords', () => {
     )
     if (!result.ok) throw new Error('expected ok')
     expect(grid(result.source)).toBe('|: C | Am | F | G :|')
+  })
+
+  it('heads the draft with the dominant time signature and marks meter changes', async () => {
+    // Four-beat bars with ONE two-beat bar (The Logical Song's 2/4 turnaround):
+    // the draft names the dominant 4/4 up front and marks the change in-grid.
+    const grid = meteredGrid([4, 4, 2, 4, 4])
+    const spans = spansPerMeasure(['C', 'Am', 'F', 'G', 'C'], grid)
+    const result = await detectChords(
+      { audio, grid, barsPerRow: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.source).toBe(
+      [
+        '{key: C}',
+        '{time: 4/4}',
+        '| C | Am |',
+        '{time: 2/4}',
+        '| F |',
+        '{time: 4/4}',
+        '| G | C |'
+      ].join('\n')
+    )
+  })
+
+  it('never lets a short first bar collide with the {time:} head', async () => {
+    // A pickup-length first interval (a common artifact at track start) must
+    // NOT print a lead {time: 2/4} line above the grid — parseChart would
+    // read it as a second head directive and drop the dominant.
+    const pickupGrid = meteredGrid([2, 4, 4, 4])
+    const spans = spansPerMeasure(['C', 'Am', 'F', 'G'], pickupGrid)
+    const result = await detectChords(
+      { audio, grid: pickupGrid, barsPerRow: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(grid(result.source)).toBe('| C | Am | F | G |')
+    expect(result.source).toContain('{time: 4/4}')
+    expect(result.source).not.toContain('{time: 2/4}')
+  })
+
+  it('prints the felt meter, not the doubled density of a folded grid', async () => {
+    // After an octave ×2 fold every downbeat interval counts twice the felt
+    // bar; the session's beatsPerBar is the authority the head prints, and
+    // the 2/4 turnaround still marks as 2/4 — never 4/8.
+    const grid = meteredGrid([8, 8, 4, 8, 8], 0.25)
+    const spans = spansPerMeasure(['C', 'Am', 'F', 'G', 'C'], grid)
+    const result = await detectChords(
+      { audio, grid, barsPerRow: 4, beatsPerBar: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.source).toBe(
+      [
+        '{key: C}',
+        '{time: 4/4}',
+        '| C | Am |',
+        '{time: 2/4}',
+        '| F |',
+        '{time: 4/4}',
+        '| G | C |'
+      ].join('\n')
+    )
+  })
+
+  it('writes no meter change on a steady grid', async () => {
+    const spans: readonly DetectedChordSpan[] = [
+      { startSeconds: 0, endSeconds: 2, label: 'C' },
+      { startSeconds: 2, endSeconds: 4, label: 'G' }
+    ]
+    const result = await detectChords(
+      { audio, grid: grid4(2), barsPerRow: 4 },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.source).toBe('{key: C}\n{time: 4/4}\n| C | G |')
   })
 
   it('rejects a detection carrying non-finite times', async () => {

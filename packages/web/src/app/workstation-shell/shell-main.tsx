@@ -56,6 +56,8 @@ interface ShellMainProps {
   readonly onRetryTempo: () => void
   /** Set the tempo by hand from the panel's BPM field. */
   readonly onOverrideBpm: (bpm: number) => void
+  /** Correct the meter from the panel's beats-per-bar field. */
+  readonly onOverrideMeter: (beatsPerBar: number) => void
   /** One tap of the panel's tap-tempo sequence. */
   readonly onTapTempo: () => void
   /** Anchor a downbeat on the playhead (the panel's « Caler »). */
@@ -105,6 +107,7 @@ export function ShellMain({
   onFoldTempo,
   onRetryTempo,
   onOverrideBpm,
+  onOverrideMeter,
   onTapTempo,
   onAlignTempoPhase,
   onReimport,
@@ -209,6 +212,7 @@ export function ShellMain({
               onFold={onFoldTempo}
               onRetry={onRetryTempo}
               onOverrideBpm={onOverrideBpm}
+              onOverrideMeter={onOverrideMeter}
               onTap={onTapTempo}
               onAlignPhase={onAlignTempoPhase}
             />

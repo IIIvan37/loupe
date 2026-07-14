@@ -75,6 +75,19 @@ describe('ChartHeader', () => {
     expect(screen.getByText('3/4')).toBeInTheDocument()
   })
 
+  it('a {time: …} directive overrides the derived signature', () => {
+    render(
+      <ChartHeader derived={{ beatsPerBar: 4 }} directives={{ time: '6/8' }} />
+    )
+    expect(screen.getByText('6/8')).toBeInTheDocument()
+    expect(screen.queryByText('4/4')).toBeNull()
+  })
+
+  it('prints a {time: …} signature even without a beat grid', () => {
+    render(<ChartHeader derived={{}} directives={{ time: '3/4' }} />)
+    expect(screen.getByText('3/4')).toBeInTheDocument()
+  })
+
   it('shows the {style: …} directive as the meta line', () => {
     render(<ChartHeader derived={{}} directives={{ style: 'pop ballad' }} />)
     expect(screen.getByText('pop ballad')).toBeInTheDocument()

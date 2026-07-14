@@ -125,7 +125,7 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chart-header.tsx:54
+#: src/app/lead-sheet/chart-header.tsx:55
 msgid "chart.key-of"
 msgstr "key of {key}"
 
@@ -1012,85 +1012,90 @@ msgid "structure.section.verse"
 msgstr "Couplet"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:215
+#: src/app/tempo/tempo-panel.tsx:261
 msgid "tempo.align"
 msgstr "Caler la grille sur la tête de lecture"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:220
+#: src/app/tempo/tempo-panel.tsx:266
 msgid "tempo.align-short"
 msgstr "Caler"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:25
+#: src/app/tempo/tempo-panel.tsx:26
 msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:147
+#: src/app/tempo/tempo-panel.tsx:181
 #: src/app/workstation-shell/shell-test-kit.tsx:302
 msgid "tempo.bpm-field"
 msgstr "Saisir le tempo (BPM)"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:24
-#: src/app/tempo/tempo-panel.tsx:226
+#: src/app/tempo/tempo-panel.tsx:25
+#: src/app/tempo/tempo-panel.tsx:272
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:190
+#: src/app/tempo/tempo-panel.tsx:236
 msgid "tempo.double"
 msgstr "Doubler le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:178
+#: src/app/tempo/tempo-panel.tsx:224
 msgid "tempo.halve"
 msgstr "Diviser le tempo par deux"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:126
+#: src/app/tempo/tempo-panel.tsx:172
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:156
+#: src/app/tempo/tempo-panel.tsx:191
 msgid "tempo.manual-badge"
 msgstr "Manuel"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:168
-msgid "tempo.meter"
-msgstr "{beatsPerBar} temps"
+#: src/app/tempo/tempo-panel.tsx:208
+msgid "tempo.meter-field"
+msgstr "Saisir le mètre (temps par mesure)"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:161
+#: src/app/tempo/tempo-panel.tsx:214
+msgid "tempo.meter-unit"
+msgstr "temps"
+
+#. js-lingui-explicit-id
+#: src/app/tempo/tempo-panel.tsx:196
 msgid "tempo.range"
 msgstr "{min}–{max} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:123
+#: src/app/tempo/tempo-panel.tsx:169
 msgid "tempo.region-label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:235
+#: src/app/tempo/tempo-panel.tsx:281
 msgid "tempo.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
 #: src/app/keyboard/shortcut-hints.ts:103
-#: src/app/tempo/tempo-panel.tsx:206
+#: src/app/tempo/tempo-panel.tsx:252
 msgid "tempo.tap"
 msgstr "Taper le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:208
+#: src/app/tempo/tempo-panel.tsx:254
 msgid "tempo.tap-short"
 msgstr "Tap"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:152
+#: src/app/tempo/tempo-panel.tsx:187
 msgid "tempo.unit"
 msgstr "BPM"
 

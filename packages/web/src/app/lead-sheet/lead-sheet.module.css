@@ -158,6 +158,13 @@
   font-size: var(--font-size-m);
 }
 
+/* A {time: N/M} signature change, printed where the new meter takes over. */
+.meterSign {
+  composes: annotation;
+  left: var(--space-3xs);
+  font-size: var(--font-size-xs);
+}
+
 /* The fermata over its held measure. */
 .fermata {
   composes: annotation;

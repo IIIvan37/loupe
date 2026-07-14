@@ -632,3 +632,54 @@ describe('renderChartSource', () => {
     )
   })
 })
+
+describe('parseChart — meter changes ({time: N/M})', () => {
+  it('records a mid-source {time} line at its written measure', () => {
+    const chart = parseChart('| C | Am |\n{time: 2/4}\n| F |')
+    expect(chart.meterChanges).toEqual([{ measure: 2, signature: '2/4' }])
+  })
+
+  it('a {time} line contributes no section and no measure', () => {
+    const chart = parseChart('| C |\n{time: 2/4}\n| F |')
+    expect(chart.sections).toHaveLength(1)
+    expect(chart.sections[0]?.measures).toHaveLength(2)
+  })
+
+  it('a leading {time} is a head directive, not a change', () => {
+    const chart = parseChart('{time: 4/4}\n| C |')
+    expect(chart.directives).toEqual({ time: '4/4' })
+    expect(chart.meterChanges).toBeUndefined()
+  })
+
+  it('reads several changes, each at its own measure', () => {
+    const chart = parseChart(
+      '| C | Am |\n{time: 2/4}\n| F |\n{time: 4/4}\n| G |'
+    )
+    expect(chart.meterChanges).toEqual([
+      { measure: 2, signature: '2/4' },
+      { measure: 3, signature: '4/4' }
+    ])
+  })
+
+  it('normalizes spacing and reads the mark case-insensitively', () => {
+    const chart = parseChart('| C |\n{ TIME :  6 / 8 }\n| F |')
+    expect(chart.meterChanges).toEqual([{ measure: 1, signature: '6/8' }])
+  })
+
+  it('a malformed time value is grid content, never a change', () => {
+    const chart = parseChart('| C |\n{time: fast}\n| F |')
+    expect(chart.meterChanges).toBeUndefined()
+  })
+
+  it('a {time} change survives transposition verbatim', () => {
+    expect(transposeChartSource('| C |\n{time: 2/4}\n| F |', 2)).toBe(
+      '| D |\n{time: 2/4}\n| G |'
+    )
+  })
+
+  it('a {time} change survives re-spelling verbatim', () => {
+    expect(respellChartSource('| A# |\n{time: 2/4}\n| F |', 'flat')).toBe(
+      '| Bb |\n{time: 2/4}\n| F |'
+    )
+  })
+})

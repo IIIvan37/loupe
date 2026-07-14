@@ -354,3 +354,125 @@ describe('useTempo', () => {
     expect(result.current.analysis).toBeUndefined()
   })
 })
+
+describe('useTempo — meter correction', () => {
+  it('re-flags the grid downbeats on a meter correction', async () => {
+    const times = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]
+    const { result } = renderHook(() => useTempo(detectorOf(120, times)))
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    let corrected: ReturnType<typeof result.current.overrideMeter>
+    act(() => {
+      corrected = result.current.overrideMeter(2)
+    })
+    expect(result.current.analysis?.beatsPerBar).toBe(2)
+    expect(result.current.analysis?.grid.map((beat) => beat.downbeat)).toEqual([
+      true,
+      false,
+      true,
+      false,
+      true,
+      false,
+      true,
+      false
+    ])
+    // The corrected analysis is returned so the caller can re-seat the click.
+    expect(corrected).toBe(result.current.analysis)
+  })
+
+  it('keeps every beat instant through a meter correction', async () => {
+    const times = [0, 0.5, 1, 1.5]
+    const { result } = renderHook(() => useTempo(detectorOf(120, times)))
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    act(() => {
+      result.current.overrideMeter(3)
+    })
+    expect(
+      result.current.analysis?.grid.map((beat) => beat.timeSeconds)
+    ).toEqual(times)
+    expect(result.current.analysis?.bpm).toBe(120)
+  })
+
+  it('cannot correct the meter before any analysis exists', () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    let corrected: ReturnType<typeof result.current.overrideMeter>
+    act(() => {
+      corrected = result.current.overrideMeter(3)
+    })
+    expect(corrected).toBeUndefined()
+  })
+
+  it('re-committing the current meter still regularises the grid', async () => {
+    // The dominant can be right while stray bars are wrong (a detector slip):
+    // typing the same number is a deliberate correction, not a no-op.
+    const slipped: TempoDetector = {
+      detect: async () => ({
+        bpm: 120,
+        beats: [1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4].map(
+          (barPosition, index) => ({ timeSeconds: index * 0.5, barPosition })
+        )
+      })
+    }
+    const { result } = renderHook(() => useTempo(slipped))
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    expect(result.current.analysis?.beatsPerBar).toBe(4)
+    act(() => {
+      result.current.overrideMeter(4)
+    })
+    // Every bar is four beats now — the six-beat slip is gone.
+    expect(
+      result.current.analysis?.grid.filter((beat) => beat.downbeat)
+    ).toHaveLength(4)
+  })
+
+  it('a meter correction clears a stale detection error', async () => {
+    let fail = false
+    const flaky: TempoDetector = {
+      detect: async () => {
+        if (fail) throw new Error('server down')
+        return {
+          bpm: 120,
+          beats: [0, 0.5, 1, 1.5, 2].map((timeSeconds, index) => ({
+            timeSeconds,
+            barPosition: (index % 4) + 1
+          }))
+        }
+      }
+    }
+    const { result } = renderHook(() => useTempo(flaky))
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    fail = true
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    expect(result.current.error).toBe('server down')
+    act(() => {
+      result.current.overrideMeter(3)
+    })
+    expect(result.current.error).toBeUndefined()
+  })
+
+  it('rejects a degenerate or out-of-range meter', async () => {
+    const { result } = renderHook(() =>
+      useTempo(detectorOf(120, [0, 0.5, 1, 1.5, 2]))
+    )
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    for (const bad of [0, -1, Number.NaN, 13]) {
+      let corrected: ReturnType<typeof result.current.overrideMeter>
+      act(() => {
+        corrected = result.current.overrideMeter(bad)
+      })
+      expect(corrected).toBeUndefined()
+    }
+    expect(result.current.analysis?.beatsPerBar).toBe(4)
+  })
+})
