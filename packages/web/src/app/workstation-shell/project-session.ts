@@ -19,6 +19,7 @@ import {
   tuningOrDefault
 } from '@app/core'
 import type { Loops } from '../loops/use-loops.ts'
+import { adoptStructureKinds } from '../markers/section-markers.ts'
 import type { Markers } from '../markers/use-markers.ts'
 import type { Mixer } from '../mixer/use-mixer.ts'
 import type {
@@ -170,7 +171,10 @@ export async function restoreSession(
     deps.setSuppressAutoDetect(false)
     return
   }
-  deps.markers.restore(opened.project.markers)
+  // Pre-kinds saves persisted detected structure markers as plain markers;
+  // the section vocabulary re-adopts its kind so the next detection REPLACES
+  // them instead of duplicating the labels beside them.
+  deps.markers.restore(adoptStructureKinds(opened.project.markers))
   deps.loops.restore(opened.project.loops)
   // A manifest that predates the tuning field means neutral settings — seat
   // them too, so the previous session's tempo/pitch never bleeds in.

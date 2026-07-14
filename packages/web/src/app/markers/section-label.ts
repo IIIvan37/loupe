@@ -29,3 +29,7 @@ export function sectionLabelDescriptor(
 ): MessageDescriptor | undefined {
   return SECTION_LABELS[raw]
 }
+
+/** Every raw tag the map knows — lets a caller match a label against the
+    vocabulary in BOTH spellings (raw tag and resolved display copy). */
+export const SECTION_LABEL_TAGS: readonly string[] = Object.keys(SECTION_LABELS)

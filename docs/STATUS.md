@@ -196,6 +196,17 @@ fixés + cleanups. Gate **vert — 1401 tests**, Stryker **93,5 %**.
 [rapport](sessions/2026-07-13-time-signatures.md).
 Reste pré-démo : vérif navigateur sur The Logical Song après merge.
 Retrofit `/tempo` sur `classifyTransportError` toujours noté.
+
+**En cours : fix « labels dupliqués » (branche
+`fix/restore-structure-marker-kinds`, PR à ouvrir).** Un projet sauvegardé
+avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
+`kind` → chaque détection les préserve comme repères et ajoute son jeu à
+côté. Fix : `adoptStructureKinds` à la restauration (vocabulaire des sections,
+tag brut + copy d'affichage) — auto-réparant à la ré-ouverture. Gate **vert —
+1409 tests**, Stryker skippé (core intouché).
+[rapport](sessions/2026-07-14-restore-structure-marker-kinds.md).
+Trois PRs à merger (#130 structure↔accords, #131 notation empilée, celle-ci)
+— toutes touchent ce fichier, petits conflits attendus.
 See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 [P.4 print](sessions/2026-07-13-p4-print.md) ·
 [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·
