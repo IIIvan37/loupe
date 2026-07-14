@@ -12,6 +12,7 @@ import {
   type TempoAnalysis
 } from '@app/core'
 import { describe, expect, it, vi } from 'vitest'
+import { i18n } from '../../i18n/i18n.ts'
 import type { Loops } from '../loops/use-loops.ts'
 import type { Markers } from '../markers/use-markers.ts'
 import type { Mixer } from '../mixer/use-mixer.ts'
@@ -233,6 +234,42 @@ describe('restoreSession', () => {
       restored.sources,
       savedMixer
     )
+  })
+
+  it('re-adopts the structure kind on a pre-kinds save (no duplicate labels)', async () => {
+    // A project saved before marker kinds persisted its detected structure
+    // markers as plain markers. Restored verbatim they'd read as cues, and
+    // the next « Détecter la structure » would ADD a fresh set beside them —
+    // the duplicated-labels bug. The section vocabulary re-adopts its kind.
+    const deps = fakeDeps(undefined)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: {
+        ...baseProject,
+        markers: [
+          {
+            id: 'm1',
+            timeSeconds: 0,
+            label: i18n._('structure.section.intro')
+          },
+          { id: 'm2', timeSeconds: 3, label: 'Repère 1' }
+        ]
+      },
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    expect(deps.markers.restore).toHaveBeenCalledWith([
+      {
+        id: 'm1',
+        timeSeconds: 0,
+        label: i18n._('structure.section.intro'),
+        kind: 'structure'
+      },
+      { id: 'm2', timeSeconds: 3, label: 'Repère 1' }
+    ])
   })
 
   it('restores nothing when the re-import was superseded by a newer one', async () => {

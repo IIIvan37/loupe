@@ -1,6 +1,6 @@
-import type { DetectedSection, MarkerList } from '@app/core'
+import type { DetectedSection, Marker, MarkerList } from '@app/core'
 import { i18n } from '../../i18n/i18n.ts'
-import { sectionLabelDescriptor } from './section-label.ts'
+import { SECTION_LABEL_TAGS, sectionLabelDescriptor } from './section-label.ts'
 
 /** A section marker point: a translated label at the section's start. */
 export interface SectionMarker {
@@ -63,4 +63,28 @@ export function markerSections(
     endSeconds: structure[index + 1]?.timeSeconds ?? Number.POSITIVE_INFINITY,
     label: marker.label
   }))
+}
+
+/**
+ * Adopt the structure kind on a restored marker list: a project saved before
+ * marker kinds existed persisted its detected structure markers as PLAIN
+ * markers, and restored verbatim they read as cues — the next detection then
+ * keeps them and ADDS a fresh set beside them (the duplicated-labels bug).
+ * A kind-less marker whose label belongs to the section vocabulary — either
+ * spelling: the raw engine tag or its display copy — is a detection's marker,
+ * so it re-becomes `kind: 'structure'` (and thus replaceable). A hand-named
+ * cue that collides with the vocabulary becomes overwritable too — the mild
+ * cost of an unversioned manifest. Saves made since kinds exist round-trip
+ * their `kind` and pass through untouched.
+ */
+export function adoptStructureKinds(markers: MarkerList): MarkerList {
+  const vocabulary = new Set(
+    SECTION_LABEL_TAGS.flatMap((raw) => [raw, sectionDisplayLabel(raw)])
+  )
+  return markers.map(
+    (marker): Marker =>
+      marker.kind === undefined && vocabulary.has(marker.label)
+        ? { ...marker, kind: 'structure' }
+        : marker
+  )
 }
