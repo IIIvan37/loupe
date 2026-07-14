@@ -211,6 +211,14 @@ des adapters repliés en `rethrowTransportError`. Revue 8 angles → 4 fixés
 tests** (+23), **Stryker 93,4 %**.
 [rapport](sessions/2026-07-14-multi-chords-tempo-errors.md).
 
+**Évaluation notée v4 (2026-07-14) : 16,1/20** (16,0 le 2026-07-11) →
+**[feuille de route v4](roadmap-excellence-4.md)** (Lots Q–W). Revue
+multi-agents : 6 reviewers d'axe + 2 enquêtes ciblées sur les irritants
+rapportés à l'usage (« interface brouillonne », « opérations longues sans
+loader ») ; 55 constats, 45 confirmés après vérification adversariale.
+Séquencement : Q (clarté de l'atelier) → R (feedback unifié) → W.1/W.2 →
+U.1/U.3 → T.1–T.3 → V.1 → le reste. **En cours : Q.1** (zonage de la colonne).
+
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
 `kind` → chaque détection les préserve comme repères et ajoute son jeu à
@@ -254,6 +262,13 @@ See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 [O.1](sessions/2026-07-12-dead-accent-token.md).
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
+
+### Roadmap excellence 4 (2026-07-14 → …)
+
+- 2026-07-14 · **Évaluation notée v4** (16,1/20, six axes + 2 enquêtes
+  ciblées sur les irritants d'usage) : revue multi-agents vérifiée
+  adversarialement, 45 constats confirmés →
+  [roadmap-excellence-4](roadmap-excellence-4.md) (Lots Q–W)
 
 ### Lot P — lead-sheet chart (2026-07-12 → …)
 
@@ -535,7 +550,9 @@ See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 
 ## Plans
 
-- [roadmap-excellence-3.md](roadmap-excellence-3.md) — **en cours** (Lots K–O,
+- [roadmap-excellence-4.md](roadmap-excellence-4.md) — **en cours** (Lots Q–W,
+  évaluation notée du 2026-07-14).
+- [roadmap-excellence-3.md](roadmap-excellence-3.md) — **complet** (Lots K–P,
   évaluation notée du 2026-07-11).
 - [roadmap-excellence-2.md](roadmap-excellence-2.md) — **complet** (Lots F–J ;
   J en PRs #81–#85, suivi coché en fin de fichier).
