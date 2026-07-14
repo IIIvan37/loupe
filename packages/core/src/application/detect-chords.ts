@@ -83,8 +83,9 @@ export type DetectChordsResult =
 
 /**
  * Orchestration use-case, pure: hand the loaded PCM to the chord detector port,
- * fold its timestamped spans into ONE chord per measure on the beat grid
- * (`chordLabelPerMeasure`), deduce the song's structure from the repetition in
+ * fold its timestamped spans into one chord CELL per measure on the beat grid
+ * (`chordLabelPerMeasure` — two chords when each half-bar is dominated by its
+ * own), deduce the song's structure from the repetition in
  * that sequence (`deduceStructure`) and render it as grid SOURCE text — the
  * draft the chord-chart editor pre-fills and the user corrects; imperfect
  * estimation is

@@ -238,11 +238,13 @@ const NO_CHORD = 'N.C.'
 /**
  * Print measure labels as grid source text — `| C | Am | F | G |` rows of
  * `barsPerRow` — the draft the chord detection pre-fills and the user corrects.
- * Lives with the parser so the printer can never drift from the row grammar: a
- * blank measure, or a label that is not exactly one `TOKEN` (empty, spaced,
- * containing a bar line), prints as `N.C.` — anything else would change the
- * measure count under `parseChart` and shift every following bar off its
- * downbeat.
+ * A label may hold several single-space-separated chords (`'C G'`, the
+ * two-chord bar): the cell prints them all, still one measure. Lives with the
+ * parser so the printer can never drift from the row grammar: a blank measure,
+ * or a label that would not round-trip as the same cell (empty, irregular
+ * spacing, a bar line, a structural token), prints as `N.C.` — anything else
+ * would change the measure count under `parseChart` and shift every following
+ * bar off its downbeat.
  */
 export function renderChartSource(
   labels: readonly (string | undefined)[],
@@ -257,15 +259,17 @@ export function renderChartSource(
   return rows.join('\n')
 }
 
-/** The single token a cell may print — `N.C.` when the label isn't one, or
-    when the form grammar would read it structurally (`:`, a volta `1.`) and
-    the measure count would drift under `parseChart`. */
+/** The tokens a cell may print — `N.C.` when the label isn't a single-space
+    join of plain tokens, or when ANY token would read structurally under
+    `parseCell` (`:`, a volta `1.`, a fermata `@`) and the measure count would
+    drift under `parseChart`. */
 function cellToken(label: string | undefined): string {
-  return label !== undefined &&
-    label.match(TOKEN)?.join('') === label &&
-    label !== ':' &&
-    !VOLTA.test(label) &&
-    !FERMATA.test(label)
+  const tokens = label?.match(TOKEN)
+  return tokens != null &&
+    tokens.join(' ') === label &&
+    tokens.every(
+      (token) => token !== ':' && !VOLTA.test(token) && !FERMATA.test(token)
+    )
     ? label
     : NO_CHORD
 }

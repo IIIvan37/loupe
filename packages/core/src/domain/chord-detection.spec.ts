@@ -103,11 +103,74 @@ describe('chordLabelPerMeasure', () => {
   })
 
   it('breaks a tie between chords toward the earlier one', () => {
+    // Both chords alternate WITHIN each half — no clean two-chord bar, so the
+    // cell falls back to the whole-bar vote, where the earlier chord wins ties.
+    const labels = chordLabelPerMeasure(
+      [
+        span(0, 0.5, 'C'),
+        span(0.5, 1, 'G'),
+        span(1, 1.5, 'C'),
+        span(1.5, 2, 'G')
+      ],
+      grid4(1)
+    )
+    expect(labels).toEqual(['C'])
+  })
+
+  it('splits a bar whose halves hold different chords into a two-chord cell', () => {
     const labels = chordLabelPerMeasure(
       [span(0, 1, 'C'), span(1, 2, 'G')],
       grid4(1)
     )
+    expect(labels).toEqual(['C G'])
+  })
+
+  it('keeps one chord when a passing chord never dominates a half', () => {
+    // G only holds the last 0.3s — jitter, not a mid-bar change.
+    const labels = chordLabelPerMeasure(
+      [span(0, 1.7, 'C'), span(1.7, 2, 'G')],
+      grid4(1)
+    )
     expect(labels).toEqual(['C'])
+  })
+
+  it('keeps the whole-bar dominant when a half is mostly silence', () => {
+    // The second half is uncovered: a "C _" split would print a phantom
+    // change, so the bar stays a single-chord cell.
+    const labels = chordLabelPerMeasure([span(0, 1, 'C')], grid4(1))
+    expect(labels).toEqual(['C'])
+  })
+
+  it('splits a three-beat bar at its middle beat', () => {
+    // 3/4 bar [0, 1.5): beats at 0, 0.5, 1 — the split lands on the third
+    // beat (1.0s), so the change prints where it is felt (2 + 1 beats).
+    const grid: BeatGrid = [
+      { timeSeconds: 0, downbeat: true },
+      { timeSeconds: 0.5, downbeat: false },
+      { timeSeconds: 1, downbeat: false },
+      { timeSeconds: 1.5, downbeat: true },
+      { timeSeconds: 2, downbeat: false },
+      { timeSeconds: 2.5, downbeat: false }
+    ]
+    const labels = chordLabelPerMeasure(
+      [span(0, 1, 'C'), span(1, 3, 'G')],
+      grid
+    )
+    expect(labels).toEqual(['C G', 'G'])
+  })
+
+  it('splits the final bar too, using its inherited length', () => {
+    // The last downbeat's bar extends by the previous bar's length — the
+    // half-split applies there like anywhere else.
+    const grid: BeatGrid = [
+      { timeSeconds: 0, downbeat: true },
+      { timeSeconds: 2, downbeat: true }
+    ]
+    const labels = chordLabelPerMeasure(
+      [span(0, 2, 'C'), span(2, 3, 'F'), span(3, 4, 'G')],
+      grid
+    )
+    expect(labels).toEqual(['C', 'F G'])
   })
 
   it('ignores detection before the first downbeat (pickup)', () => {

@@ -304,13 +304,16 @@ describe('relabelChartBySections', () => {
     )
   })
 
-  it('collapses a multi-chord measure to its first chord (flat-token v1)', () => {
+  it('keeps every chord of a multi-chord measure', () => {
+    // A two-chord bar (hand-edited or a detection split) survives the
+    // relabel verbatim — collapsing it to its first chord would destroy
+    // the user's grid.
     const source = '| C G | Am | F | G |'
     const sections: DetectedSection[] = [
       { startSeconds: 0, endSeconds: 8, label: 'Intro' }
     ]
     expect(relabelChartBySections(source, sections, grid(4, 2), 4)).toBe(
-      '| C | Am | F | G |'
+      '| C G | Am | F | G |'
     )
   })
 

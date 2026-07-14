@@ -204,10 +204,9 @@ function segmentRows(
  *
  * The grid is read as its PLAYED measures (`unrollChart`, so a `|: … :|` grid
  * stays aligned with the section times, which live in playback seconds), each
- * measure taken as its first chord — the flat one-token-per-measure model the
- * printer round-trips (a hand-edited multi-chord bar collapses to its first
- * chord; auto-drafts are one chord per bar). A blank grid, or a detection with
- * no section, has nothing to relabel and passes through untouched.
+ * measure as its full chord cell (`'C G'` for a two-chord bar — the printer
+ * round-trips multi-token cells). A blank grid, or a detection with no
+ * section, has nothing to relabel and passes through untouched.
  */
 export function relabelChartBySections(
   source: string,
@@ -280,14 +279,16 @@ export function chartSectionAnchors(
   return anchors
 }
 
-/** The grid's chords as one token per PLAYED measure — the chart unrolled so a
-    repeat plays its bars twice, each bar reduced to its first chord. */
+/** The grid's chords as one cell per PLAYED measure — the chart unrolled so a
+    repeat plays its bars twice, each bar keeping ALL its chords (`'C G'`). */
 function playedLabels(source: string): MeasureLabels {
   const chart = parseChart(source)
   const measures = chart.sections.flatMap((section) => section.measures)
   return unrollChart(chart).map((index) => {
-    const chord = measures[index]?.chords[0]
-    return chord === undefined ? undefined : formatChordSymbol(chord)
+    const chords = measures[index]?.chords ?? []
+    return chords.length === 0
+      ? undefined
+      : chords.map(formatChordSymbol).join(' ')
   })
 }
 
