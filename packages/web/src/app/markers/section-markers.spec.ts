@@ -1,11 +1,11 @@
 import type { DetectedSection, MarkerList } from '@app/core'
 import { describe, expect, it } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
-<<<<<<< HEAD
-import { adoptStructureKinds, sectionMarkers } from './section-markers.ts'
-=======
-import { markerSections, sectionMarkers } from './section-markers.ts'
->>>>>>> origin/main
+import {
+  adoptStructureKinds,
+  markerSections,
+  sectionMarkers
+} from './section-markers.ts'
 
 describe('sectionMarkers', () => {
   it('places a marker at each section start with the translated label', () => {
@@ -30,7 +30,6 @@ describe('sectionMarkers', () => {
   })
 })
 
-<<<<<<< HEAD
 describe('adoptStructureKinds', () => {
   it('tags a kind-less section-vocabulary marker as structure', () => {
     // A project saved before marker kinds existed persisted its detected
@@ -63,7 +62,9 @@ describe('adoptStructureKinds', () => {
     const markers: MarkerList = [{ id: 'a', timeSeconds: 5, label: 'outro' }]
 
     expect(adoptStructureKinds(markers)[0]?.kind).toBe('structure')
-=======
+  })
+})
+
 describe('markerSections', () => {
   it('reads the structure markers back as sections, cues skipped', () => {
     // The inverse mapping: the labels are ALREADY display copy, carried
@@ -109,6 +110,5 @@ describe('markerSections', () => {
         label: 'Outro'
       }
     ])
->>>>>>> origin/main
   })
 })

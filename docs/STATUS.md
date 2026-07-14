@@ -184,23 +184,16 @@ checkpoint BTC 170 classes (7es/sus/dim…), nommage validé utilisateur →
 tête + changements mid-grid, `detectMeter` dominant, « N temps » éditable
 (`remeterGrid`), fold méter-aware, DBN madmom sur `/tempo` →
 [rapport](sessions/2026-07-13-time-signatures.md).
-<<<<<<< HEAD
-Reste pré-démo : vérif navigateur sur The Logical Song après merge.
-Retrofit `/tempo` sur `classifyTransportError` toujours noté.
+Reste pré-démo : vérif navigateur sur The Logical Song ·
+retrofit `/tempo` sur `classifyTransportError` toujours noté.
 
-**En cours : fix « labels dupliqués » (branche
-`fix/restore-structure-marker-kinds`, PR à ouvrir).** Un projet sauvegardé
+**Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
 `kind` → chaque détection les préserve comme repères et ajoute son jeu à
 côté. Fix : `adoptStructureKinds` à la restauration (vocabulaire des sections,
 tag brut + copy d'affichage) — auto-réparant à la ré-ouverture. Gate **vert —
-1409 tests**, Stryker skippé (core intouché).
+1408 tests**, Stryker skippé (core intouché).
 [rapport](sessions/2026-07-14-restore-structure-marker-kinds.md).
-Trois PRs à merger (#130 structure↔accords, #131 notation empilée, celle-ci)
-— toutes touchent ce fichier, petits conflits attendus.
-=======
-Reste pré-démo : vérif navigateur sur The Logical Song ·
-retrofit `/tempo` sur `classifyTransportError` toujours noté.
 
 **Fix « la détection d'accords efface la structure » mergé (PR #130)** :
 structure détectée PUIS accords : le brouillon déduisait ses blocs neutres
@@ -214,7 +207,7 @@ imprimables filtrés, limites v1 documentées. Gate **vert — 1411 tests**
 (+10), Stryker 93,5 %.
 [rapport](sessions/2026-07-14-chord-draft-preserves-structure.md).
 
-**En cours : notation empilée des signatures (PR #131)** — approche validée
+**Notation empilée des signatures mergée (PR #131)** — approche validée
 utilisateur (fidèle au chart Elton John) : composant `TimeSignature` (glyphe
 N-sur-M, `role="img"` + `aria-label`), signature de tête ({time:} >
 beatsPerBar de session) dans la gouttière avant la barre d'ouverture du
@@ -223,7 +216,6 @@ premier système, changements de mètre en glyphe empilé dans leur mesure,
 Logical Song, {time:} tête + changement 2/4). Gate **vert — 1405 tests**,
 Stryker skippé (core intouché).
 [rapport](sessions/2026-07-14-stacked-time-signature.md).
->>>>>>> origin/main
 See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 [P.4 print](sessions/2026-07-13-p4-print.md) ·
 [P.4](sessions/2026-07-13-p4-structure-deduction.md) ·
