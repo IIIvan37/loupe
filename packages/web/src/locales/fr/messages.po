@@ -140,12 +140,12 @@ msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:280
+#: src/app/lead-sheet/chord-chart-panel.tsx:282
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:276
+#: src/app/lead-sheet/chord-chart-panel.tsx:278
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
@@ -171,18 +171,18 @@ msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
 #: src/app/lead-sheet/chord-chart-panel.tsx:200
-#: src/app/lead-sheet/chord-chart-panel.tsx:274
+#: src/app/lead-sheet/chord-chart-panel.tsx:276
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:259
+#: src/app/lead-sheet/chord-chart-panel.tsx:261
 #: src/app/workstation-shell/shell-test-kit.tsx:249
 msgid "chords.edit"
 msgstr "Modifier"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:336
+#: src/app/lead-sheet/chord-chart-panel.tsx:338
 msgid "chords.empty-hint"
 msgstr "Aucune grille — saisir les accords via « Modifier » ou lancer la détection."
 
@@ -212,12 +212,12 @@ msgid "chords.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:309
+#: src/app/lead-sheet/chord-chart-panel.tsx:311
 msgid "chords.follow-pitch"
 msgstr "Transposer la grille pour suivre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:305
+#: src/app/lead-sheet/chord-chart-panel.tsx:307
 msgid "chords.follow-pitch-confirm"
 msgstr "Réécrire la grille ?"
 
@@ -227,47 +227,47 @@ msgid "chords.followed"
 msgstr "Grille transposée"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:352
+#: src/app/lead-sheet/chord-chart-panel.tsx:354
 #: src/app/workstation-shell/shell-test-kit.tsx:245
 #: src/app/workstation-shell/shell-test-kit.tsx:250
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:293
+#: src/app/lead-sheet/chord-chart-panel.tsx:295
 msgid "chords.pitch-mismatch"
 msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:356
+#: src/app/lead-sheet/chord-chart-panel.tsx:358
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:250
+#: src/app/lead-sheet/chord-chart-panel.tsx:252
 msgid "chords.print"
 msgstr "Imprimer"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:214
+#: src/app/lead-sheet/chord-chart-panel.tsx:216
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:222
+#: src/app/lead-sheet/chord-chart-panel.tsx:224
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:233
+#: src/app/lead-sheet/chord-chart-panel.tsx:235
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:225
 #: src/app/header/import-menu.tsx:180
-#: src/app/separation/separation-panel.tsx:133
+#: src/app/separation/separation-panel.tsx:130
 #: src/app/ui/popover-form.tsx:59
 #: src/app/workstation-shell/confirm-import-dialog.tsx:55
 msgid "common.cancel"
@@ -786,12 +786,12 @@ msgid "projects.unreachable"
 msgstr "Serveur injoignable — vérifier que le serveur local est lancé"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:14
+#: src/app/separation/separation-panel.tsx:15
 msgid "separation.analysing"
 msgstr "Analyse du mix…"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:22
+#: src/app/separation/separation-panel.tsx:23
 msgid "separation.done"
 msgstr "Pistes séparées"
 
@@ -801,47 +801,42 @@ msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:140
+#: src/app/separation/separation-panel.tsx:137
 msgid "separation.failed"
 msgstr "La séparation a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:149
+#: src/app/separation/separation-panel.tsx:146
 msgid "separation.idle-hint"
 msgstr "Les pistes séparées (voix, batterie, basse…) s'alignent sous la forme d'onde, chacune avec ses propres contrôles."
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:92
-msgid "separation.region-label"
-msgstr "Séparation des pistes"
-
-#. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:110
+#: src/app/separation/separation-panel.tsx:107
 msgid "separation.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:100
+#: src/app/separation/separation-panel.tsx:97
 msgid "separation.section-label"
 msgstr "Séparation"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:111
+#: src/app/separation/separation-panel.tsx:108
 msgid "separation.separate"
 msgstr "Séparer les pistes"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:15
+#: src/app/separation/separation-panel.tsx:16
 msgid "separation.separating"
 msgstr "Séparation des pistes…"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:46
+#: src/app/separation/separation-panel.tsx:47
 msgid "separation.server-no-separation"
 msgstr "Ce serveur ne fournit pas de moteur de séparation."
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:41
+#: src/app/separation/separation-panel.tsx:42
 msgid "separation.server-offline"
 msgstr "Serveur hors ligne — démarrer le serveur local pour séparer les pistes."
 

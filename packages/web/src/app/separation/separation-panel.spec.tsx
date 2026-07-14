@@ -174,7 +174,7 @@ describe('SeparationPanel', () => {
     renderPanel({ status: 'ready', progress: 1, stems })
     expect(
       screen.queryByRole('region', {
-        name: i18n._('separation.region-label')
+        name: i18n._('separation.section-label')
       })
     ).not.toBeInTheDocument()
   })

@@ -22,10 +22,7 @@
 
 /* The tempo is a user override, not the detection. */
 .manualBadge {
-  color: var(--dim);
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
+  composes: sectionLabel from '../ui/controls.module.css';
 }
 
 .meter {
