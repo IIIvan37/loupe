@@ -3,6 +3,7 @@ import type { BeatGrid, LoopRegion, Waveform } from '@app/core'
 import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react'
 import { clamp01 } from '../../lib/clamp01.ts'
 import { pointerRatio } from '../../lib/pointer-ratio.ts'
+import { OperationStatus } from '../ui/operation-status.tsx'
 import type { ImportState } from './use-player.ts'
 import { WaveformCanvas } from './waveform-canvas.tsx'
 import styles from './waveform-view.module.css'
@@ -187,10 +188,12 @@ export function WaveformView({
         </p>
       )
     case 'loading':
+      // The shared operation face (R.1) — no cancel: decodeAudioData is not
+      // abortable. Short (1-5 s) but systematic: every import and reopen.
       return (
-        <p className={styles.hint}>
-          <Trans id="waveform.decoding">Décodage…</Trans>
-        </p>
+        <OperationStatus
+          label={t({ id: 'waveform.decoding', message: 'Décodage…' })}
+        />
       )
     case 'error':
       // Not a dead-end: a plain-words explanation (the decoder's message is

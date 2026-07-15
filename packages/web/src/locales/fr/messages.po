@@ -99,13 +99,13 @@ msgid "analyser.summary-sections"
 msgstr "{0, plural, one {# section} other {# sections}}"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:234
-#: src/app/analyser/analyser-row.tsx:244
+#: src/app/analyser/analyser-row.tsx:220
+#: src/app/analyser/analyser-row.tsx:230
 msgid "analyser.tempo-detecting"
 msgstr "Analyse du tempo…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:248
+#: src/app/analyser/analyser-row.tsx:237
 msgid "analyser.tempo-done"
 msgstr "Tempo détecté"
 
@@ -166,12 +166,12 @@ msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:278
+#: src/app/analyser/analyser-row.tsx:267
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:285
+#: src/app/analyser/analyser-row.tsx:274
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
@@ -197,7 +197,7 @@ msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row.tsx:178
-#: src/app/analyser/analyser-row.tsx:279
+#: src/app/analyser/analyser-row.tsx:268
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
@@ -291,9 +291,9 @@ msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:207
 #: src/app/header/header.tsx:211
 #: src/app/header/import-menu.tsx:180
+#: src/app/ui/operation-status.tsx:68
 #: src/app/ui/popover-form.tsx:59
 #: src/app/workstation-shell/confirm-import-dialog.tsx:55
 msgid "common.cancel"
@@ -812,12 +812,12 @@ msgid "projects.unreachable"
 msgstr "Serveur injoignable — vérifier que le serveur local est lancé"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:30
+#: src/app/analyser/analyser-row.tsx:31
 msgid "separation.analysing"
 msgstr "Analyse du mix…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:38
+#: src/app/analyser/analyser-row.tsx:39
 #: src/app/analyser/analyser-row.tsx:191
 #: src/app/analyser/analysis-summary.ts:8
 msgid "separation.done"
@@ -829,22 +829,22 @@ msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:41
+#: src/app/analyser/analyser-row.tsx:42
 msgid "separation.failed"
 msgstr "La séparation a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:214
+#: src/app/analyser/analyser-row.tsx:197
 msgid "separation.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:215
+#: src/app/analyser/analyser-row.tsx:198
 msgid "separation.separate"
 msgstr "Séparer les pistes"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:31
+#: src/app/analyser/analyser-row.tsx:32
 msgid "separation.separating"
 msgstr "Séparation des pistes…"
 
@@ -950,7 +950,7 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:256
+#: src/app/analyser/analyser-row.tsx:245
 msgid "structure.detect"
 msgstr "Détecter la structure"
 
@@ -990,7 +990,7 @@ msgid "structure.detecting"
 msgstr "Détection de la structure…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:257
+#: src/app/analyser/analyser-row.tsx:246
 msgid "structure.detecting-short"
 msgstr "Détection…"
 
@@ -1152,7 +1152,7 @@ msgid "tempo.region-label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:233
+#: src/app/analyser/analyser-row.tsx:219
 msgid "tempo.retry"
 msgstr "Réessayer"
 
@@ -1248,37 +1248,37 @@ msgid "transport.tempo-slider"
 msgstr "Vitesse en pourcentage"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:192
+#: src/app/waveform/waveform-view.tsx:195
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:202
+#: src/app/waveform/waveform-view.tsx:205
 msgid "waveform.import-error"
 msgstr "L'import a échoué : ce fichier n'a pas pu être lu."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:184
+#: src/app/waveform/waveform-view.tsx:185
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:249
+#: src/app/waveform/waveform-view.tsx:252
 msgid "waveform.mix-image"
 msgstr "Forme d'onde du mix"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:319
+#: src/app/waveform/waveform-view.tsx:322
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:307
+#: src/app/waveform/waveform-view.tsx:310
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:212
+#: src/app/waveform/waveform-view.tsx:215
 msgid "waveform.reimport"
 msgstr "Importer un autre fichier"
 
@@ -1288,14 +1288,14 @@ msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:239
+#: src/app/waveform/waveform-view.tsx:242
 #: src/app/workstation-shell/shell-test-kit.tsx:183
 #: src/app/workstation-shell/shell-test-kit.tsx:233
 msgid "waveform.surface"
 msgstr "Forme d'onde : clic pour se positionner, glisser pour boucler"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:257
+#: src/app/waveform/waveform-view.tsx:260
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 
