@@ -379,7 +379,17 @@ rappel de boucle nommée. `WaveformView` allégé (extraction
 tests** (+22), **Stryker 93,41 %** (12 survivants du premier run tués,
 `snap-loop-region.ts` 100 %).
 [rapport](sessions/2026-07-15-t1-musical-loops.md).
-**Prochain : T.2** (puis T.3, V.1).
+**T.1 mergé (PR #153)** (+ fix format ruff des deux fichiers de tests U.5 qui
+rougissaient la CI de `main`).
+**T.2 — nudge musical (branche `feat/t2-musical-nudge`, PR à ouvrir)** :
+core pur `nudgeSeconds(seconds, direction, grid, coarse)` — beat adjacent
+avec grille (**downbeat avec Shift**), sinon 0,1 s (×10 Shift), repli 0,1 s
+au-delà des bords de la grille ; `waveform-view` (poignées A/B) et
+`marker-rail` (tags, nouvelle prop `beatGrid`) branchés, les deux
+`NUDGE_RATIO = 0.01` supprimés. Gate **verte — 1496 tests** (+12),
+**Stryker 93,51 %** (`nudge-time.ts` 100 %).
+[rapport](sessions/2026-07-15-t2-musical-nudge.md).
+**Prochain : T.3** (puis V.1).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
