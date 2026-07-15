@@ -344,7 +344,7 @@ Au passage : le build d'image Modal cassait (madmom épinglé `git+https`,
 [rapport](sessions/2026-07-15-u2-deno-ci.md).
 **U.4 — cliquets resserrés mergé (PR #151)** : jscpd 1,0 %, Stryker break 90 →
 [rapport](sessions/2026-07-15-u4-ratchets.md).
-**U.5 — basses groupées (branche `feat/u5-grouped-lows`, PR à ouvrir) — LOT U
+**U.5 — basses groupées mergé (PR #152) et DÉPLOYÉ (2026-07-15) — LOT U
 CLOS** : (1) allowlist d'origines **env-drivée sur les trois surfaces** —
 `app/origins.py` pur (extrait de main.py) consommé par main.py + modal_app.py,
 l'Edge Function lit le même `LOUPE_ALLOWED_ORIGINS` via Deno.env
@@ -356,11 +356,15 @@ coverage/pyright) vers `structure_segments.py` pur + 3 pytest ; (3) `tempo.ts`
 identique). Revue 8 angles → **9 fixés** (dont : `*` dans l'env aurait
 CORS-ouvert Modal → filtré fail-closed des deux côtés + testé ; conftest/env
 scrub pour l'hermétisme des tests CORS ; `typicalBar` et le clamp beats/bar
-convergés sur les nouveaux helpers), 4 écartés documentés. **Redéploiement
-Modal + Edge au merge** (sinon comportement inchangé — défauts 5173). Gate
+convergés sur les nouveaux helpers), 4 écartés documentés. Gate
 **verte — 1462 web + 221 pytest**, **Stryker 93,55 %**.
+Redéployé au merge : `modal deploy` + Edge Function (`--use-api`),
+curl-vérifié en prod des deux côtés (Modal 401 + `ACAO`/`Vary: Origin` ;
+handler Edge : ACAO échoé sur l'origine autorisée, rien sur une interdite —
+NB le gateway Supabase exige `apikey` **et** `Authorization` avant d'invoquer
+la fonction, tester avec les deux).
 [rapport](sessions/2026-07-15-u5-grouped-lows.md).
-**Prochain : PR U.5 → merge**, puis T.1–T.3, V.1.
+**Prochain : T.1** (puis T.2–T.3, V.1).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
