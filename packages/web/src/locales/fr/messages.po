@@ -291,7 +291,6 @@ msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:211
 #: src/app/header/import-menu.tsx:180
 #: src/app/ui/operation-status.tsx:72
 #: src/app/ui/popover-form.tsx:59
@@ -331,10 +330,10 @@ msgid "common.rename"
 msgstr "Renommer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:79
-#: src/app/header/header.tsx:91
-#: src/app/header/header.tsx:99
-#: src/app/header/header.tsx:111
+#: src/app/header/header.tsx:83
+#: src/app/header/header.tsx:95
+#: src/app/header/header.tsx:103
+#: src/app/header/header.tsx:115
 #: src/app/loops/loop-controls.tsx:79
 #: src/app/workstation-shell/shell-test-kit.tsx:258
 #: src/app/workstation-shell/shell-test-kit.tsx:347
@@ -363,7 +362,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:311
+#: src/app/workstation-shell/workstation-shell.tsx:315
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -383,25 +382,29 @@ msgid "empty.sub"
 msgstr "WAV, MP3, FLAC, M4A…"
 
 #. js-lingui-explicit-id
-#. placeholder {0}: Math.round(urlImport.progress.fraction * 100)
-#: src/app/workstation-shell/shell-header.tsx:95
+#: src/app/workstation-shell/shell-header.tsx:100
 msgid "header.downloading"
-msgstr "Téléchargement… {0} %"
+msgstr "Téléchargement…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:256
+#: src/app/header/header.tsx:257
 msgid "header.export"
 msgstr "Exporter"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:249
+#: src/app/header/header.tsx:250
 msgid "header.export-needs-stems"
 msgstr "Séparer les pistes pour exporter les stems"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:245
+#: src/app/header/header.tsx:246
 msgid "header.export-ready"
 msgstr "Télécharger les stems en ZIP"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/shell-header.tsx:121
+msgid "header.exporting"
+msgstr "Export des stems…"
 
 #. js-lingui-explicit-id
 #: src/app/header/import-menu.tsx:118
@@ -414,7 +417,7 @@ msgid "header.import-confirm"
 msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:127
+#: src/app/workstation-shell/shell-header.tsx:144
 #: src/app/workstation-shell/shell-test-kit.tsx:225
 #: src/app/workstation-shell/use-file-picker.ts:24
 msgid "header.import-file"
@@ -456,51 +459,51 @@ msgid "header.import-url-unsupported"
 msgstr "Hôte non supporté — YouTube ou SoundCloud uniquement"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:121
+#: src/app/workstation-shell/shell-header.tsx:138
 msgid "header.no-track"
 msgstr "Aucun morceau"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:112
+#: src/app/workstation-shell/shell-header.tsx:125
 msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:275
+#: src/app/header/header.tsx:276
 #: src/app/workstation-shell/shell-test-kit.tsx:278
 msgid "header.projects"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:119
+#: src/app/header/header.tsx:123
 #: src/app/workstation-shell/shell-test-kit.tsx:349
 msgid "header.rename-project"
 msgstr "Renommer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:114
+#: src/app/header/header.tsx:118
 msgid "header.save-as"
 msgstr "Enregistrer sous un autre nom"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:86
+#: src/app/header/header.tsx:90
 msgid "header.save-needs-track"
 msgstr "Importer un morceau pour pouvoir l'enregistrer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:133
-#: src/app/header/header.tsx:135
+#: src/app/header/header.tsx:137
+#: src/app/header/header.tsx:139
 #: src/app/workstation-shell/shell-test-kit.tsx:343
 msgid "header.save-project"
 msgstr "Enregistrer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:182
+#: src/app/header/header.tsx:188
 msgid "header.saved"
 msgstr "Enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:110
+#: src/app/workstation-shell/shell-header.tsx:117
 msgid "header.saving"
 msgstr "Enregistrement du projet…"
 
@@ -520,27 +523,27 @@ msgid "header.server-ready"
 msgstr "Serveur prêt"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:227
+#: src/app/header/header.tsx:228
 msgid "header.shortcuts-tip"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:223
+#: src/app/header/header.tsx:224
 msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:99
+#: src/app/workstation-shell/shell-header.tsx:104
 msgid "header.transcoding"
 msgstr "Extraction de l'audio…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:126
+#: src/app/workstation-shell/shell-header.tsx:143
 msgid "header.unknown-artist"
 msgstr "Artiste inconnu"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:181
+#: src/app/header/header.tsx:187
 msgid "header.unsaved"
 msgstr "● Non enregistré"
 
@@ -1183,7 +1186,7 @@ msgid "toast.dismiss"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/use-stem-export.ts:53
+#: src/app/workstation-shell/use-stem-export.ts:58
 msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
@@ -1198,7 +1201,7 @@ msgid "toast.region"
 msgstr "Notifications"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/use-stem-export.ts:49
+#: src/app/workstation-shell/use-stem-export.ts:54
 msgid "toast.stems-exported"
 msgstr "Stems exportés"
 

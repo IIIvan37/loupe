@@ -11,6 +11,7 @@ import {
   type TrackSourceMetadata
 } from '@app/core'
 import { type ChangeEvent, useRef, useState } from 'react'
+import { nextPaint } from '../../lib/next-paint.ts'
 import { sessionSignature } from '../../projects/session-signature.ts'
 import { type Projects, useProjects } from '../../projects/use-projects.ts'
 import { isSyntheticStem } from '../mixer/synthetic-stem.ts'
@@ -79,6 +80,8 @@ export interface ProjectSession {
    */
   readonly unsavedWork: boolean
   readonly handleSave: (name: string) => void
+  /** Whether a save is being ENCODED (before the store's own busy state). */
+  readonly preparingSave: boolean
   readonly handleOpen: (id: string) => Promise<void>
   readonly onFilePicked: (event: ChangeEvent<HTMLInputElement>) => void
   /**
@@ -106,6 +109,8 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
   const projects = useProjects(deps.stores)
   const [trackName, setTrackName] = useState<string | null>(null)
   const [openingId, setOpeningId] = useState<string | undefined>(undefined)
+  // Encoding the stems for a save freezes the thread — the header narrates it.
+  const [preparingSave, setPreparingSave] = useState(false)
   // The fingerprint of what the current project last saved/loaded — comparing
   // it to the live session's is what the « Enregistré » read-out shows.
   const [savedSignature, setSavedSignature] = useState<string | undefined>(
@@ -209,10 +214,14 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
   }
 
   /** Persist the whole session under a name — bytes, loops, markers, stems. */
-  function handleSave(name: string): void {
+  async function handleSave(name: string): Promise<void> {
     if (!deps.loadedBytes) {
       return
     }
+    // The stems' WAV re-encode below is synchronous: paint the busy line
+    // FIRST or the chip appears only after the freeze (R.4).
+    setPreparingSave(true)
+    await nextPaint()
     const tempo = liveTempo()
     const chordChart = liveChordChart()
     const input = sessionSaveInput({
@@ -241,6 +250,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
           }
         : {})
     })
+    setPreparingSave(false)
     void projects.save(name, input).then((saved) => {
       if (saved) {
         // Sign what was actually persisted — the session now matches it.
@@ -348,6 +358,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       openingId === undefined &&
       (currentProject !== undefined ? dirty : deps.loadedBytes !== undefined),
     handleSave,
+    preparingSave,
     handleOpen,
     onFilePicked,
     importPickedFile,

@@ -49,6 +49,8 @@ interface ShellHeaderProps {
   /** Open the file picker — the shell owns the hidden input, shared with the drop hero. */
   readonly onImport: () => void
   readonly onExportStems: () => void
+  /** Whether the stems zip is being built — narrated by the busy line. */
+  readonly exportingStems: boolean
   readonly onShowShortcuts: () => void
   readonly onShowProjects: () => void
   /** The stem-export failure banner (owned by the separation hook). */
@@ -74,6 +76,7 @@ export function ShellHeader({
   stemsReady,
   onImport,
   onExportStems,
+  exportingStems,
   onShowShortcuts,
   onShowProjects,
   exportError,
@@ -87,16 +90,19 @@ export function ShellHeader({
   // Supabase isn't configured → no control, the analysis gate is a no-op).
   const resolvedAuth = auth !== undefined ? auth : appAuth()
 
-  // A running URL download narrates itself in the state chip, phase by phase.
-  const downloadMessage =
+  // A running URL download narrates itself in the busy line, phase by phase
+  // — the percentage rides the progress bar, not the copy (R.4).
+  const downloadBusy =
     urlImport.progress === undefined
       ? undefined
       : urlImport.progress.phase === 'downloading'
-        ? t({
-            id: 'header.downloading',
-            message: `Téléchargement… ${Math.round(urlImport.progress.fraction * 100)} %`
-          })
-        : t({ id: 'header.transcoding', message: "Extraction de l'audio…" })
+        ? {
+            label: t({ id: 'header.downloading', message: 'Téléchargement…' }),
+            progress: urlImport.progress.fraction
+          }
+        : {
+            label: t({ id: 'header.transcoding', message: "Extraction de l'audio…" })
+          }
 
   // The long operations get one visible status strip (the dialog may be
   // closed while an open is still rebuilding the session).
@@ -104,13 +110,24 @@ export function ShellHeader({
     (p) => p.id === session.openingId
   )
   const name = openingProject?.name
-  const busyMessage =
-    downloadMessage ??
-    (projects.busy === 'save'
-      ? t({ id: 'header.saving', message: 'Enregistrement du projet…' })
-      : name !== undefined
-        ? t({ id: 'header.opening', message: `Ouverture de « ${name} »…` })
-        : undefined)
+  const busy =
+    downloadBusy ??
+    (projects.busy === 'save' || session.preparingSave
+      ? {
+          label: t({ id: 'header.saving', message: 'Enregistrement du projet…' })
+        }
+      : exportingStems
+        ? {
+            label: t({ id: 'header.exporting', message: 'Export des stems…' })
+          }
+        : name !== undefined
+          ? {
+              label: t({
+                id: 'header.opening',
+                message: `Ouverture de « ${name} »…`
+              })
+            }
+          : undefined)
 
   return (
     <>
@@ -148,11 +165,12 @@ export function ShellHeader({
         saveName={currentProject?.name ?? trackName ?? ''}
         canSave={isLoaded}
         hasProject={currentProject !== undefined}
-        saving={projects.busy === 'save'}
+        saving={projects.busy === 'save' || session.preparingSave}
         dirty={session.dirty}
-        busyMessage={busyMessage}
+        busyMessage={busy?.label}
+        busyProgress={busy?.progress}
         onCancelBusy={
-          downloadMessage !== undefined ? urlImport.cancel : undefined
+          downloadBusy !== undefined ? urlImport.cancel : undefined
         }
         onShowProjects={onShowProjects}
         accountSlot={

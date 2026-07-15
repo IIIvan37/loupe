@@ -4,6 +4,7 @@ import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
 import { Icon } from '../ui/icon.tsx'
 import { NameEditor } from '../ui/name-editor.tsx'
+import { OperationStatus } from '../ui/operation-status.tsx'
 import styles from './header.module.css'
 import { ImportMenu } from './import-menu.tsx'
 
@@ -44,8 +45,11 @@ interface HeaderProps {
   readonly saving?: boolean
   /** Whether the session has changes the saved project does not (undefined = no project). */
   readonly dirty?: boolean | undefined
-  /** A long operation in flight (save, open/rebuild) — takes over the state chip. */
+  /** A long operation in flight (save, open/rebuild, export) — takes over
+   * the state chip as a live operation line. */
   readonly busyMessage?: string | undefined
+  /** The operation's real progress in [0, 1] when one streams (URL import). */
+  readonly busyProgress?: number | undefined
   /** Abort the narrated operation, when it is cancellable (the URL download). */
   readonly onCancelBusy?: (() => void) | undefined
   /** Reveal the saved-projects dialog. The shell owns its state. */
@@ -170,17 +174,18 @@ export function Header({
   saving,
   dirty,
   busyMessage,
+  busyProgress,
   onCancelBusy,
   onShowProjects,
   accountSlot
 }: HeaderProps) {
   const { t } = useLingui()
-  // The one document-state chip: a running operation narrates itself; otherwise
-  // the saved/dirty read-out (which only means something once a project exists).
+  // The one document-state slot: a running operation narrates itself through
+  // the shared operation line (R.4); otherwise the saved/dirty read-out
+  // (which only means something once a project exists).
   const savedState = dirty
     ? t({ id: 'header.unsaved', message: '● Non enregistré' })
     : t({ id: 'header.saved', message: 'Enregistré' })
-  const sessionState = busyMessage ?? (hasProject ? savedState : undefined)
 
   return (
     <header className={styles.header}>
@@ -190,26 +195,22 @@ export function Header({
           <p className={styles.title}>{title}</p>
           <p className={styles.artist}>{artist}</p>
         </div>
-        {sessionState !== undefined && (
-          <output
-            className={cx(
-              styles.saveState,
-              busyMessage !== undefined
-                ? styles.saveStateBusy
-                : dirty && styles.saveStateDirty
-            )}
-          >
-            {sessionState}
+        {busyMessage !== undefined ? (
+          <output className={styles.busyLine}>
+            <OperationStatus
+              label={busyMessage}
+              progress={busyProgress}
+              onCancel={onCancelBusy}
+            />
           </output>
-        )}
-        {busyMessage !== undefined && onCancelBusy !== undefined && (
-          <button
-            type="button"
-            className={styles.busyCancel}
-            onClick={onCancelBusy}
-          >
-            <Trans id="common.cancel">Annuler</Trans>
-          </button>
+        ) : (
+          hasProject && (
+            <output
+              className={cx(styles.saveState, dirty && styles.saveStateDirty)}
+            >
+              {savedState}
+            </output>
+          )
         )}
       </Cluster>
 
