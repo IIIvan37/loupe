@@ -213,7 +213,10 @@ export function Header({
         )}
       </Cluster>
 
-      <Cluster gap="var(--space-s)" align="center">
+      {/* Q.4 — the actions read as families, not one flat rank: help, then
+          track I/O (import/export), then document (save/projects), then the
+          account + server infrastructure. The gap does the grouping. */}
+      <Cluster gap="var(--space-m)" align="center">
         <button
           type="button"
           className={styles.iconAction}
@@ -226,56 +229,62 @@ export function Header({
         >
           ?
         </button>
-        <ImportMenu
-          onImportFile={onImport}
-          onImportUrl={onImportUrl}
-          urlBusy={urlImportBusy === true}
-          needsConfirm={importNeedsConfirm === true}
-        />
-        <button
-          type="button"
-          className={styles.secondaryAction}
-          disabled={!canExport}
-          title={
-            canExport
-              ? t({
-                  id: 'header.export-ready',
-                  message: 'Télécharger les stems en ZIP'
-                })
-              : t({
-                  id: 'header.export-needs-stems',
-                  message: 'Séparer les pistes pour exporter les stems'
-                })
-          }
-          onClick={onExportStems}
-        >
-          <Trans id="header.export">Exporter</Trans>
-        </button>
-        {onSaveProject && (
-          <SaveControls
-            onSaveProject={onSaveProject}
-            saveName={saveName ?? ''}
-            canSave={canSave === true}
-            hasProject={hasProject === true}
-            saving={saving === true}
+        <Cluster gap="var(--space-2xs)" align="center">
+          <ImportMenu
+            onImportFile={onImport}
+            onImportUrl={onImportUrl}
+            urlBusy={urlImportBusy === true}
+            needsConfirm={importNeedsConfirm === true}
           />
-        )}
-        {onShowProjects && (
           <button
             type="button"
             className={styles.secondaryAction}
-            onClick={onShowProjects}
+            disabled={!canExport}
+            title={
+              canExport
+                ? t({
+                    id: 'header.export-ready',
+                    message: 'Télécharger les stems en ZIP'
+                  })
+                : t({
+                    id: 'header.export-needs-stems',
+                    message: 'Séparer les pistes pour exporter les stems'
+                  })
+            }
+            onClick={onExportStems}
           >
-            <Trans id="header.projects">Projets</Trans>
+            <Trans id="header.export">Exporter</Trans>
           </button>
-        )}
-        {accountSlot}
-        {serverStatus && (
-          <span className={styles.serverStatus} data-tone={serverStatus.tone}>
-            <span className={styles.statusDot} aria-hidden="true" />
-            {serverStatus.label}
-          </span>
-        )}
+        </Cluster>
+        <Cluster gap="var(--space-2xs)" align="center">
+          {onSaveProject && (
+            <SaveControls
+              onSaveProject={onSaveProject}
+              saveName={saveName ?? ''}
+              canSave={canSave === true}
+              hasProject={hasProject === true}
+              saving={saving === true}
+            />
+          )}
+          {onShowProjects && (
+            <button
+              type="button"
+              className={styles.secondaryAction}
+              onClick={onShowProjects}
+            >
+              <Trans id="header.projects">Projets</Trans>
+            </button>
+          )}
+        </Cluster>
+        <Cluster gap="var(--space-s)" align="center">
+          {accountSlot}
+          {serverStatus && (
+            <span className={styles.serverStatus} data-tone={serverStatus.tone}>
+              <span className={styles.statusDot} aria-hidden="true" />
+              {serverStatus.label}
+            </span>
+          )}
+        </Cluster>
       </Cluster>
     </header>
   )

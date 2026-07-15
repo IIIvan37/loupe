@@ -252,8 +252,15 @@ setSavedSignature). Revue 8 angles → 6 fixés, 2 différés. Gate **verte —
 1449 tests** (dernier commit --no-verify documenté : timeouts de coverage
 sous contention machine, diff hors de cause — le commit précédent échoue à
 l'identique). [rapport](sessions/2026-07-15-q3-analysis-fold.md).
-**Prochain : Q.4** (gaps de sous-groupes du header, micro) puis **Q.5**
-(renommer « Vitesse » — le déplacement LoopControls est fait depuis Q.1).
+**Q.4 + Q.5 (branche `feat/q4-q5-header-speed`, stackée sur Q.3, PR à
+ouvrir) — LOT Q CLOS** : header groupé en familles par le gap (aide · E/S ·
+document · compte/serveur), slider du footer renommé « Vitesse (sans toucher
+au pitch) » (« Tempo » réservé au BPM musical). Au passage : timeout vitest
+5 s → 15 s (flakes de contention mesurés sur les specs shell de réouverture,
+diff hors de cause). Gate **verte — 1449 tests**.
+[rapport](sessions/2026-07-15-q4-q5-header-speed.md).
+**Prochain : merger la pile #137→#138→#139→Q.4/Q.5, puis Lot R** (R.1
+`OperationStatus`).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

@@ -389,17 +389,17 @@ msgid "header.downloading"
 msgstr "Téléchargement… {0} %"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:252
+#: src/app/header/header.tsx:256
 msgid "header.export"
 msgstr "Exporter"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:245
+#: src/app/header/header.tsx:249
 msgid "header.export-needs-stems"
 msgstr "Séparer les pistes pour exporter les stems"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:241
+#: src/app/header/header.tsx:245
 msgid "header.export-ready"
 msgstr "Télécharger les stems en ZIP"
 
@@ -466,7 +466,7 @@ msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:269
+#: src/app/header/header.tsx:275
 #: src/app/workstation-shell/shell-test-kit.tsx:278
 msgid "header.projects"
 msgstr "Projets"
@@ -520,12 +520,12 @@ msgid "header.server-ready"
 msgstr "Serveur prêt"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:224
+#: src/app/header/header.tsx:227
 msgid "header.shortcuts-tip"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:220
+#: src/app/header/header.tsx:223
 msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
@@ -1208,17 +1208,17 @@ msgid "transport.pause"
 msgstr "Pause"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:127
+#: src/app/transport-bar/transport-bar.tsx:130
 msgid "transport.pitch-label"
 msgstr "Hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:140
+#: src/app/transport-bar/transport-bar.tsx:143
 msgid "transport.pitch-reset"
 msgstr "Double-clic pour revenir à 0"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:135
+#: src/app/transport-bar/transport-bar.tsx:138
 msgid "transport.pitch-slider"
 msgstr "Hauteur en demi-tons"
 
@@ -1233,19 +1233,19 @@ msgid "transport.start"
 msgstr "Début"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:103
+#: src/app/transport-bar/transport-bar.tsx:106
 msgid "transport.tempo-label"
-msgstr "Tempo (sans toucher au pitch)"
+msgstr "Vitesse (sans toucher au pitch)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:116
+#: src/app/transport-bar/transport-bar.tsx:119
 msgid "transport.tempo-reset"
 msgstr "Double-clic pour revenir à 100 %"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:111
+#: src/app/transport-bar/transport-bar.tsx:114
 msgid "transport.tempo-slider"
-msgstr "Tempo en pourcentage"
+msgstr "Vitesse en pourcentage"
 
 #. js-lingui-explicit-id
 #: src/app/waveform/waveform-view.tsx:192
