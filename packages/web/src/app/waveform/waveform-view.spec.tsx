@@ -216,6 +216,42 @@ describe('WaveformView', () => {
     expect(end).toBeCloseTo(0.8)
   })
 
+  it('nudges a loop edge to the next beat when a grid exists', () => {
+    const onAdjustRegion = vi.fn()
+    renderLoaded({
+      loopRegion: { startSeconds: 2, endSeconds: 8 },
+      // Beats every 0.5 s around the loop start at 2 s.
+      beatGrid: [1.5, 2, 2.5, 4].map((timeSeconds) => ({
+        timeSeconds,
+        downbeat: timeSeconds === 4
+      })),
+      onAdjustRegion
+    })
+    const startHandle = screen.getByRole('button', {
+      name: i18n._('waveform.move-loop-start')
+    })
+    fireEvent.keyDown(startHandle, { key: 'ArrowRight' })
+    // 2 s → next beat 2.5 s → ratio 0.25 on the 10 s timeline.
+    expect(onAdjustRegion).toHaveBeenCalledWith(0.25, 0.8, false)
+  })
+
+  it('nudges a loop edge a whole bar with Shift', () => {
+    const onAdjustRegion = vi.fn()
+    renderLoaded({
+      loopRegion: { startSeconds: 2, endSeconds: 8 },
+      beatGrid: [1.5, 2, 2.5, 4].map((timeSeconds) => ({
+        timeSeconds,
+        downbeat: timeSeconds === 4
+      })),
+      onAdjustRegion
+    })
+    const startHandle = screen.getByRole('button', {
+      name: i18n._('waveform.move-loop-start')
+    })
+    fireEvent.keyDown(startHandle, { key: 'ArrowRight', shiftKey: true })
+    expect(onAdjustRegion).toHaveBeenCalledWith(0.4, 0.8, false)
+  })
+
   it('renders the waveform image once loaded', () => {
     renderLoaded()
     expect(

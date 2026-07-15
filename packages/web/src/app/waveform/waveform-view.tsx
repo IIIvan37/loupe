@@ -1,5 +1,5 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import type { BeatGrid, LoopRegion, Waveform } from '@app/core'
+import { type BeatGrid, type LoopRegion, nudgeSeconds, type Waveform } from '@app/core'
 import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react'
 import { clamp01 } from '../../lib/clamp01.ts'
 import { pointerRatio } from '../../lib/pointer-ratio.ts'
@@ -48,8 +48,6 @@ interface WaveformViewProps {
 
 // Below this drag distance (fraction of the width) a press counts as a click.
 const DRAG_THRESHOLD = 0.005
-// Keyboard step for nudging a loop edge with the arrow keys.
-const NUDGE_RATIO = 0.01
 
 /** Which loop edge a handle drives. */
 type Edge = 'start' | 'end'
@@ -172,14 +170,22 @@ export function WaveformView({
 
   function nudgeEdge(
     edge: Edge,
-    delta: number,
+    direction: -1 | 1,
+    coarse: boolean,
     region: { readonly start: number; readonly end: number }
   ): void {
+    // Musical units: the adjacent beat (bar with Shift) when a grid exists,
+    // 0.1 s (×10 with Shift) otherwise — see `nudgeSeconds`.
+    const nudge = (ratio: number) =>
+      clamp01(
+        nudgeSeconds(ratio * durationSeconds, direction, beatGrid, coarse) /
+          durationSeconds
+      )
     const moved =
       edge === 'start'
-        ? { start: clamp01(region.start + delta), end: region.end }
-        : { start: region.start, end: clamp01(region.end + delta) }
-    // An arrow nudge is a deliberate fine adjustment — never snapped.
+        ? { start: nudge(region.start), end: region.end }
+        : { start: region.start, end: nudge(region.end) }
+    // An arrow nudge lands on the unit itself — never re-snapped.
     onAdjustRegion(
       Math.min(moved.start, moved.end),
       Math.max(moved.start, moved.end),
@@ -194,10 +200,10 @@ export function WaveformView({
   ): void {
     if (event.key === 'ArrowLeft') {
       event.preventDefault()
-      nudgeEdge(edge, -NUDGE_RATIO, region)
+      nudgeEdge(edge, -1, event.shiftKey, region)
     } else if (event.key === 'ArrowRight') {
       event.preventDefault()
-      nudgeEdge(edge, NUDGE_RATIO, region)
+      nudgeEdge(edge, 1, event.shiftKey, region)
     }
   }
 

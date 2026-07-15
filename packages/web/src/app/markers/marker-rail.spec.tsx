@@ -110,6 +110,33 @@ describe('MarkerRail', () => {
     expect(onMove).toHaveBeenCalledWith('a', expect.closeTo(4.9))
   })
 
+  it('nudges a marker to the next beat when a grid exists', () => {
+    const onMove = vi.fn()
+    // Beats every 0.5 s around the marker at 5 s.
+    const { tag } = renderRail({
+      onMove,
+      beatGrid: [4.5, 5, 5.5, 6].map((timeSeconds) => ({
+        timeSeconds,
+        downbeat: timeSeconds === 6
+      }))
+    })
+    fireEvent.keyDown(tag, { key: 'ArrowRight' })
+    expect(onMove).toHaveBeenCalledWith('a', 5.5)
+  })
+
+  it('nudges a marker a whole bar with Shift', () => {
+    const onMove = vi.fn()
+    const { tag } = renderRail({
+      onMove,
+      beatGrid: [4.5, 5, 5.5, 6].map((timeSeconds) => ({
+        timeSeconds,
+        downbeat: timeSeconds === 6
+      }))
+    })
+    fireEvent.keyDown(tag, { key: 'ArrowRight', shiftKey: true })
+    expect(onMove).toHaveBeenCalledWith('a', 6)
+  })
+
   it('clamps a drag to the end of the track', () => {
     const onMove = vi.fn()
     const { tag } = renderRail({ onMove })

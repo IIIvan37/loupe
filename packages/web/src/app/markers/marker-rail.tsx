@@ -1,5 +1,11 @@
 import { useLingui } from '@lingui/react/macro'
-import { formatTimecode, type Marker, type MarkerList } from '@app/core'
+import {
+  type BeatGrid,
+  formatTimecode,
+  type Marker,
+  type MarkerList,
+  nudgeSeconds
+} from '@app/core'
 import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react'
 import { clamp01 } from '../../lib/clamp01.ts'
 import { pointerRatio } from '../../lib/pointer-ratio.ts'
@@ -12,6 +18,8 @@ interface MarkerRailProps {
   readonly onSeek: (timeSeconds: number) => void
   /** Drop a dragged (or arrow-nudged) marker at a new time. */
   readonly onMove: (id: string, timeSeconds: number) => void
+  /** The detected beat grid ←/→ nudges step along; empty = 0.1 s steps. */
+  readonly beatGrid?: BeatGrid
 }
 
 // The ruler shows nine evenly-spaced timecodes (eighths of the track).
@@ -19,8 +27,6 @@ const RULER_TICKS = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const
 
 // Below this drag distance (fraction of the width) a press counts as a click.
 const DRAG_THRESHOLD = 0.005
-// Keyboard step for nudging a marker with the arrow keys.
-const NUDGE_RATIO = 0.01
 
 /** The in-progress tag drag, or null when idle. */
 interface Drag {
@@ -40,7 +46,8 @@ export function MarkerRail({
   markers,
   durationSeconds,
   onSeek,
-  onMove
+  onMove,
+  beatGrid = []
 }: MarkerRailProps) {
   const { t } = useLingui()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -95,9 +102,16 @@ export function MarkerRail({
       return
     }
     event.preventDefault()
-    const delta = event.key === 'ArrowLeft' ? -NUDGE_RATIO : NUDGE_RATIO
-    const ratio = clamp01(marker.timeSeconds / durationSeconds + delta)
-    onMove(marker.id, ratio * durationSeconds)
+    // Musical units: the adjacent beat (bar with Shift) when a grid exists,
+    // 0.1 s (×10 with Shift) otherwise — see `nudgeSeconds`.
+    const direction = event.key === 'ArrowLeft' ? -1 : 1
+    const nudged = nudgeSeconds(
+      marker.timeSeconds,
+      direction,
+      beatGrid,
+      event.shiftKey
+    )
+    onMove(marker.id, clamp01(nudged / durationSeconds) * durationSeconds)
   }
 
   if (durationSeconds <= 0) {

@@ -113,6 +113,7 @@ export function ShellStage({
           durationSeconds={durationSeconds}
           onSeek={onSeekSeconds}
           onMove={markers.move}
+          beatGrid={beatGrid}
         />
         <WaveformView
           state={mainViewState}
