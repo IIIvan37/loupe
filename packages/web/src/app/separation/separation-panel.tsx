@@ -2,6 +2,7 @@ import type { SeparationState } from '@app/core'
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
+import { useId } from 'react'
 import { i18n } from '../../i18n/i18n.ts'
 import type { ServerHealth } from '../../projects/use-server-health.ts'
 import { LiveStatus } from '../ui/live-status.tsx'
@@ -65,6 +66,7 @@ export function SeparationPanel({
   onCancel
 }: SeparationPanelProps) {
   const { t } = useLingui()
+  const labelId = useId()
   const isRunning = state.status === 'analysing' || state.status === 'separating'
   const percent = Math.round(state.progress * 100)
   const error = state.error
@@ -87,13 +89,13 @@ export function SeparationPanel({
           left to show. Offer the action only while there is something to do:
           separate when idle, retry on failure. */}
       {state.status !== 'ready' && (
-        <section
-          className={styles.panel}
-          aria-label={t({
-            id: 'separation.region-label',
-            message: 'Séparation des pistes'
-          })}
-        >
+        <section className={styles.panel} aria-labelledby={labelId}>
+          {/* The row label its column siblings (Repères, Tempo, Boucles)
+              always had — same shared voice (Q.1). It also NAMES the region:
+              what sighted users read and what AT announces stay one string. */}
+          <span id={labelId} className={styles.label}>
+            <Trans id="separation.section-label">Séparation</Trans>
+          </span>
           {!isRunning && (
             <button
               type="button"

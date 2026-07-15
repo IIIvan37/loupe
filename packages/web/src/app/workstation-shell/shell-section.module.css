@@ -1,0 +1,3 @@
+.label {
+  composes: sectionLabel from '../ui/controls.module.css';
+}

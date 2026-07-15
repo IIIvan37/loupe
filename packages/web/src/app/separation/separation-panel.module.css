@@ -4,6 +4,10 @@
   gap: var(--space-xs);
 }
 
+.label {
+  composes: sectionLabel from '../ui/controls.module.css';
+}
+
 .action {
   composes: quietButton from '../ui/controls.module.css';
   align-self: flex-start;

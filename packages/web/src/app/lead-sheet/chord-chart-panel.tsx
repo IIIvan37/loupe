@@ -210,9 +210,11 @@ export function ChordChartPanel({
       {/* Not a <header>: Testing Library's role mapper would still expose it
           as a second `banner` landmark beside the app header. */}
       <div className={styles.header}>
-        <h2 className={styles.title}>
+        {/* h3: the panel title steps down under its zone's h2 (Partition) —
+            the outline mirrors the section nesting Q.1 introduced. */}
+        <h3 className={styles.title}>
           {t({ id: 'chords.title', message: "Grille d'accords" })}
-        </h2>
+        </h3>
         <BarsPerRowField value={barsPerRow} onChange={setBarsPerRow} />
         <span className={styles.transpose}>
           <button

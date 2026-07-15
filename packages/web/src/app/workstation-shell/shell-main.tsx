@@ -1,4 +1,5 @@
 import { buildTempoMap, measureIndexAt, type OctaveFactor } from '@app/core'
+import { useLingui } from '@lingui/react/macro'
 import { type ComponentProps, useMemo } from 'react'
 import {
   type ExternalValue,
@@ -25,6 +26,7 @@ import { TempoPanel } from '../tempo/tempo-panel.tsx'
 import type { useTempo } from '../tempo/use-tempo.ts'
 import type { useViewport } from '../waveform/use-viewport.ts'
 import type { WaveformView } from '../waveform/waveform-view.tsx'
+import { ShellSection } from './shell-section.tsx'
 import { ShellStage } from './shell-stage.tsx'
 import styles from './workstation-shell.module.css'
 
@@ -121,6 +123,7 @@ export function ShellMain({
   chordDetection,
   structureDetection
 }: ShellMainProps) {
+  const { t } = useLingui()
   // Stems the separation masked as near-silent — captioned in the mixer gutter.
   const undetectedStems =
     separation.state.status === 'ready'
@@ -142,17 +145,15 @@ export function ShellMain({
   return (
     <div className={styles.body}>
       <main className={styles.main}>
-        <Stack gap="var(--space-m)">
-          {/* The import → stems bridge sits at the top, by the import moment;
-              once ready it steps aside and the stems become the mixer. */}
-          <SeparationPanel
-            state={separation.state}
-            canSeparate={canSeparate}
-            serverHealth={serverHealth}
-            onSeparate={onSeparate}
-            onCancel={separation.cancel}
-          />
-          <MarkerControls
+        {/* Q.1 — the column is three named zones, not a flat pile of panels:
+            Timeline (the material), Analyse (what the machine derives from
+            it), Partition (the chart). Wide gaps separate zones, tight gaps
+            group their rows — the spacing IS the hierarchy. */}
+        <Stack gap="var(--space-l)">
+          <ShellSection
+            label={t({ id: 'shell.zone.timeline', message: 'Timeline' })}
+          >
+            <MarkerControls
             disabled={!isLoaded}
             onAdd={() => markers.addAt(position.get())}
             onAddSection={() => markers.addSectionAt(position.get())}
@@ -200,6 +201,28 @@ export function ShellMain({
             onSeekRatio={onSeekRatio}
             onReimport={onReimport}
           />
+          <LoopControls
+            region={loopRegion}
+            isSaved={loopEditing.isSaved}
+            loopEnabled={loopEnabled}
+            onToggleLoop={onToggleLoop}
+            onSaveRegion={loopEditing.saveRegion}
+            onClearRegion={loopEditing.clearRegion}
+            trainer={speedTrainer}
+          />
+          </ShellSection>
+          <ShellSection
+            label={t({ id: 'shell.zone.analysis', message: 'Analyse' })}
+          >
+          {/* The import → stems bridge; once the stems are ready it steps
+              aside and they become the mixer in the timeline stage. */}
+          <SeparationPanel
+            state={separation.state}
+            canSeparate={canSeparate}
+            serverHealth={serverHealth}
+            onSeparate={onSeparate}
+            onCancel={separation.cancel}
+          />
           {isLoaded && (
             <TempoPanel
               bpm={tempo.analysis?.bpm}
@@ -218,16 +241,11 @@ export function ShellMain({
               onAlignPhase={onAlignTempoPhase}
             />
           )}
-          <LoopControls
-            region={loopRegion}
-            isSaved={loopEditing.isSaved}
-            loopEnabled={loopEnabled}
-            onToggleLoop={onToggleLoop}
-            onSaveRegion={loopEditing.saveRegion}
-            onClearRegion={loopEditing.clearRegion}
-            trainer={speedTrainer}
-          />
+          </ShellSection>
           {isLoaded && (
+            <ShellSection
+              label={t({ id: 'shell.zone.chart', message: 'Partition' })}
+            >
             <ChordChartPanel
               source={chordChart.source}
               onSourceChange={chordChart.setSource}
@@ -253,6 +271,7 @@ export function ShellMain({
                       : 'no-grid'
               }}
             />
+            </ShellSection>
           )}
         </Stack>
       </main>
