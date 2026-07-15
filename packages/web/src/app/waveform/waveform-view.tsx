@@ -190,10 +190,13 @@ export function WaveformView({
     case 'loading':
       // The shared operation face (R.1) — no cancel: decodeAudioData is not
       // abortable. Short (1-5 s) but systematic: every import and reopen.
+      // The wrapper keeps the stage gutter its idle/error siblings wear.
       return (
-        <OperationStatus
-          label={t({ id: 'waveform.decoding', message: 'Décodage…' })}
-        />
+        <div className={styles.loading}>
+          <OperationStatus
+            label={t({ id: 'waveform.decoding', message: 'Décodage…' })}
+          />
+        </div>
       )
     case 'error':
       // Not a dead-end: a plain-words explanation (the decoder's message is

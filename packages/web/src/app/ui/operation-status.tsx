@@ -38,8 +38,12 @@ export function OperationStatus({
   )
   useEffect(() => {
     if (detailAfterMs === undefined || detailAfterMs <= 0) {
+      setDetailDue(true)
       return
     }
+    // Re-armed (not just cleared) when the delay changes: the deferral must
+    // hold even if a caller keeps the component mounted across two runs.
+    setDetailDue(false)
     const timer = setTimeout(() => setDetailDue(true), detailAfterMs)
     return () => clearTimeout(timer)
   }, [detailAfterMs])
