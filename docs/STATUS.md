@@ -316,8 +316,23 @@ ACAO + `Vary: Origin`, écho manuel supprimé) ; kit de mint JWT partagé
 **Redéployer Modal au merge** (`modal deploy modal_app.py`). Serveur
 **212 pytest** (+13), pyright 0, gate web verte — 1462 tests, Stryker skippé
 (core intouché). [rapport](sessions/2026-07-15-u1-analyze-gate.md).
-**Prochain : PR U.1 → merge → redéploiement Modal**, puis U.3 (brute-force
-codes beta + plancher secret), U.2/U.4/U.5, T.1–T.3, V.1.
+**U.1 mergé (PR #147)** — redéploiement Modal **encore dû** (sera couvert par
+le deploy U.3).
+**U.3 — brute-force codes beta + plancher secret (branche
+`feat/u3-beta-brute-force`, PR à ouvrir)** : `redeem_beta_code` throttlé
+(ledger `redeem_attempts`, 5 échecs → verrou 15 min répondant le même `false`,
+reset paresseux, nettoyé au succès) + CHECK entropie ≥ 32 chars avec cutoff
+`created_at` pour les legacy (un `NOT VALID` nu casserait leur décrément —
+trouvé en revue) ; plancher secret ≥ 32 des deux côtés (`assert_strong_secret`
+dans `@modal.enter` AVANT le chargement GPU, Edge → 500) ; harnais Deno
+versionné (`scripts/seed-supabase-deno-harness.sh`) ; runbook (seed uuid,
+rotation Modal-d'abord, check pré-deploy) ; copy `account.code-invalid`
+élargie. Vérifié stack local : suites SQL J2+U.3, rafale PostgREST réelle
+(6 RPC → failures=5 locked), Deno 8/8, serveur 214 pytest, gate web 1462.
+Revue 3 finders → 5 fixés, 4 écartés documentés.
+[rapport](sessions/2026-07-15-u3-beta-brute-force.md).
+**Prochain : PR U.3 → merge → déploiements (db push + Edge + Modal — solde
+U.1)**, puis U.2 (CI deno), U.4/U.5, T.1–T.3, V.1.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
