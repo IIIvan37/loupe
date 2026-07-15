@@ -45,6 +45,21 @@ the swaps to keep it to seconds plus the ≤5 min tail of already-minted tokens
    zero-blip rotation would need Modal to verify against `{new, previous}`;
    not implemented, note it here if the beta ever can't absorb the blip.
 
+## 0bis. One origin allowlist, three places (U.5)
+
+The browser-origin allowlist exists on three surfaces, each reading the SAME
+`LOUPE_ALLOWED_ORIGINS` env var (comma-separated) from its own environment,
+all defaulting to the 5173 dev app when unset:
+
+| Surface | Reader | Where to set it |
+| --- | --- | --- |
+| Local server (CORS + OriginGuard) | `server/app/origins.py` (used by `app/main.py`) | shell env |
+| Modal endpoint (CORS) | `server/app/origins.py` (used by `modal_app.py`) | the `loupe-analyze-jwt` Modal secret (add the key, redeploy) |
+| Edge Function (CORS) | `supabase/functions/mint-analyze-token/index.ts` (mirrors the Python parsing) | `supabase secrets set LOUPE_ALLOWED_ORIGINS=…` |
+
+Shipping a deployed/Tauri origin is an env change on each surface — never a
+code edit. Keep the three values identical.
+
 ## 1. Supabase project
 
 ```sh
@@ -82,8 +97,8 @@ modal secret create loupe-analyze-jwt ANALYZE_JWT_SECRET='<the secret>'
 cd server && .venv/bin/modal deploy modal_app.py
 ```
 
-- Add the deployed app origin to `ALLOWED_ORIGINS` in `modal_app.py` (dev is
-  `localhost:5173`).
+- To allow a deployed app origin, add `LOUPE_ALLOWED_ORIGINS` to the
+  `loupe-analyze-jwt` Modal secret and redeploy (see § 0bis — no code edit).
 - Set a hard **spend cap** on the Modal account (defence in depth beside the
   per-user quota).
 

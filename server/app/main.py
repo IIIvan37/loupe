@@ -42,7 +42,6 @@ from __future__ import annotations
 
 import contextlib
 import json
-import os
 from collections.abc import AsyncIterator
 
 from fastapi import FastAPI, HTTPException
@@ -51,17 +50,11 @@ from fastapi.responses import StreamingResponse
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .netguard import LoopbackOnlyMiddleware, OriginGuardMiddleware
+from .origins import allowed_origins, env_list
 from .projects import collect_garbage
 from .projects import router as projects_router
 
-_DEFAULT_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
 _DEFAULT_HOSTS = "localhost,127.0.0.1"
-
-
-def _env_list(name: str, default: str) -> list[str]:
-    """Comma-separated env var → trimmed, non-empty entries (falls back to default)."""
-    raw = os.environ.get(name, default)
-    return [item.strip() for item in raw.split(",") if item.strip()]
 
 
 @contextlib.asynccontextmanager
@@ -78,7 +71,7 @@ app = FastAPI(title="loupe server", lifespan=lifespan)
 # Middleware onion, innermost first (add_middleware: last added = outermost):
 # CORS < OriginGuard < TrustedHost < LoopbackOnly — so a request is vetted
 # network-first (loopback, then Host, then Origin) before CORS ever sees it.
-_allowed_origins = _env_list("LOUPE_ALLOWED_ORIGINS", _DEFAULT_ORIGINS)
+_allowed_origins = allowed_origins()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
@@ -91,7 +84,7 @@ app.add_middleware(
 app.add_middleware(OriginGuardMiddleware, allowed_origins=_allowed_origins)
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=_env_list("LOUPE_ALLOWED_HOSTS", _DEFAULT_HOSTS),
+    allowed_hosts=env_list("LOUPE_ALLOWED_HOSTS", _DEFAULT_HOSTS),
 )
 # Outermost: refuse a request that didn't land on loopback before anything else,
 # so a `--host 0.0.0.0` mistake can't expose the server to the LAN even if the
