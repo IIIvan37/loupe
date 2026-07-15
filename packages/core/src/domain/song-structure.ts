@@ -1,4 +1,4 @@
-import type { BeatGrid } from './tempo.ts'
+import type { BeatGrid } from './beat-grid.ts'
 
 /**
  * One functional section of a song: a label (the engine's raw vocabulary —

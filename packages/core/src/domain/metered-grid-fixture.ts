@@ -1,4 +1,4 @@
-import type { BeatGrid } from './tempo.ts'
+import type { BeatGrid } from './beat-grid.ts'
 
 /**
  * Test fixture: a grid whose i-th measure holds `meters[i]` beats, beats every

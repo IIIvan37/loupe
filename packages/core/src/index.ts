@@ -98,6 +98,21 @@ export type {
 } from './application/separate-track.ts'
 export { separateTrack } from './application/separate-track.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
+export type {
+  Beat,
+  BeatGrid,
+  DetectedBeat,
+  OctaveFactor,
+  TempoValue
+} from './domain/beat-grid.ts'
+export {
+  DEFAULT_BEATS_PER_BAR,
+  detectMeter,
+  foldTempoOctave,
+  MAX_BEATS_PER_BAR,
+  measureIndexAt,
+  remeterGrid
+} from './domain/beat-grid.ts'
 // chartSectionAnchors is the chart→timeline half of the marker sync: the web
 // re-derives the structure markers from the edited source (chart = authority).
 export type { SectionAnchor } from './domain/chart-structure.ts'
@@ -158,6 +173,15 @@ export {
   makeLoopRegion,
   wrapToLoop
 } from './domain/loop-region.ts'
+export type { ManualTempo } from './domain/manual-tempo.ts'
+export {
+  appendTap,
+  buildManualGrid,
+  MAX_MANUAL_BPM,
+  MIN_MANUAL_BPM,
+  normalizeManualBpm,
+  tapTempoBpm
+} from './domain/manual-tempo.ts'
 export type { Marker } from './domain/marker.ts'
 export type { MarkerList } from './domain/marker-list.ts'
 export {
@@ -239,33 +263,12 @@ export {
 export { stemExportFilename } from './domain/stem-export.ts'
 export type { StemSet, StemTrack } from './domain/stem-set.ts'
 export { buildStemTrack } from './domain/stem-set.ts'
-export type {
-  Beat,
-  BeatGrid,
-  DetectedBeat,
-  ManualTempo,
-  OctaveFactor,
-  TempoMap,
-  TempoSegment,
-  TempoValue
-} from './domain/tempo.ts'
+export type { TempoMap, TempoSegment } from './domain/tempo-map.ts'
 export {
-  appendTap,
-  buildManualGrid,
   buildTempoMap,
-  DEFAULT_BEATS_PER_BAR,
-  detectMeter,
-  foldTempoOctave,
-  MAX_BEATS_PER_BAR,
-  MAX_MANUAL_BPM,
-  MIN_MANUAL_BPM,
-  measureIndexAt,
-  normalizeManualBpm,
-  remeterGrid,
   sanitizeBeatGrid,
-  tapTempoBpm,
   tempoAt
-} from './domain/tempo.ts'
+} from './domain/tempo-map.ts'
 export { formatTimecode } from './domain/timecode.ts'
 export type { Track } from './domain/track.ts'
 export type {

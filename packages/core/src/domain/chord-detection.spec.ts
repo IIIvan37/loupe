@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import type { BeatGrid } from './beat-grid.ts'
 import {
   chordLabelPerMeasure,
   type DetectedChordSpan
 } from './chord-detection.ts'
-import type { BeatGrid } from './tempo.ts'
 
 /** A four-beat bar grid: downbeats every 2s, beats every 0.5s. */
 function grid4(bars: number): BeatGrid {

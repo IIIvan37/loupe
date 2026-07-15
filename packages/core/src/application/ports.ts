@@ -1,8 +1,8 @@
+import type { DetectedBeat } from '../domain/beat-grid.ts'
 import type { DetectedChordSpan } from '../domain/chord-detection.ts'
 import type { AudioRef, Project } from '../domain/project.ts'
 import type { SeparationPhase } from '../domain/separation.ts'
 import type { DetectedSection } from '../domain/song-structure.ts'
-import type { DetectedBeat } from '../domain/tempo.ts'
 
 /**
  * Raw decoded PCM: one array of samples (normalised to [-1, 1]) per channel,

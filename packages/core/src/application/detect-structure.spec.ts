@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
+import type { BeatGrid } from '../domain/beat-grid.ts'
 import type { DetectedSection } from '../domain/song-structure.ts'
-import type { BeatGrid } from '../domain/tempo.ts'
 import { detectStructure, StructureDetectionError } from './detect-structure.ts'
 import type { DecodedAudio, StructureDetector } from './ports.ts'
 

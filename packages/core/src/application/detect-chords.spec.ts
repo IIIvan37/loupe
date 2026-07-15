@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import type { BeatGrid } from '../domain/beat-grid.ts'
 import type { DetectedChordSpan } from '../domain/chord-detection.ts'
 import { meteredGrid } from '../domain/metered-grid-fixture.ts'
-import type { BeatGrid } from '../domain/tempo.ts'
 import { ChordDetectionError, detectChords } from './detect-chords.ts'
 import type { ChordDetector, DecodedAudio } from './ports.ts'
 

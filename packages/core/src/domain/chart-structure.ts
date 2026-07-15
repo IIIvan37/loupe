@@ -1,3 +1,4 @@
+import { type BeatGrid, dominantMeter, meterPerMeasure } from './beat-grid.ts'
 import {
   isPrintableToken,
   parseChart,
@@ -6,7 +7,6 @@ import {
 } from './chord-chart.ts'
 import { formatChordSymbol } from './chord-symbol.ts'
 import type { DetectedSection } from './song-structure.ts'
-import { type BeatGrid, dominantMeter, meterPerMeasure } from './tempo.ts'
 
 /**
  * One deduced block of the song: a run of measures the deduction groups under

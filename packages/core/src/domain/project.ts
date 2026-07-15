@@ -1,8 +1,9 @@
+import type { BeatGrid } from './beat-grid.ts'
 import type { LoopLibrary } from './loop-library.ts'
 import type { LoopRegion } from './loop-region.ts'
+import type { ManualTempo } from './manual-tempo.ts'
 import type { MarkerList } from './marker-list.ts'
 import type { MixerChannel, MixerState } from './mixer.ts'
-import type { BeatGrid, ManualTempo } from './tempo.ts'
 
 /**
  * An opaque pointer to audio bytes that live outside the hexagon — the original
