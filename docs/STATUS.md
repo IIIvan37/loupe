@@ -296,9 +296,15 @@ deux seules rangées sans wrap), invariant gardé par `dense-rows-wrap.spec.ts`
 au niveau du texte CSS (jsdom ne calcule pas de layout). Gate **verte —
 1462 tests**, Stryker skippé (core intouché).
 [rapport](sessions/2026-07-15-w1-dense-rows-wrap.md).
-**Prochain : W.2** (peau « Confirmer ? » unique — trancher ambre vs
-danger-rouge pour le drop-dialog avant de coder), puis U.1/U.3 (gate cloud +
-sécurité), T.1–T.3, V.1.
+**W.2 — peau « Confirmer ? » unique (branche `feat/w2-confirm-face`, stackée
+sur W.1, PR à ouvrir)** : `.confirmFace` partagée dans controls.module.css
+(danger-rouge acté — l'ambre du drop-dialog était la divergence) ; header,
+projects et drop-dialog la composent, l'analysis-panel garde sa variante
+outline-inset, les quietButton lourds inchangés. Gate **verte — 1462 tests**,
+Stryker skippé (core intouché).
+[rapport](sessions/2026-07-15-w2-confirm-face.md).
+**Prochain : merger la pile W.1 → W.2**, puis U.1/U.3 (gate cloud +
+sécurité), T.1–T.3, V.1 (W.3–W.5 restent au lot W).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
