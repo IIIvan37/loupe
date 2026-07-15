@@ -16,6 +16,7 @@ import { useLingui } from '@lingui/react/macro'
 import { useMemo, useState } from 'react'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import { useServerHealth } from '../../projects/use-server-health.ts'
+import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
 import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
@@ -157,6 +158,8 @@ export function WorkstationShell({
   const serverHealth = useServerHealth({ fetchImpl: healthFetch })
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [projectsOpen, setProjectsOpen] = useState(false)
+  // Whether the Analyse zone is unfolded (Q.3) — practice mode folds it.
+  const analysisFold = useAnalysisFold()
   // Auto-detect on a fresh PCM + the panel's retry + the octave fold.
   const tempoDetection = useTempoDetection({
     tempo,
@@ -195,6 +198,9 @@ export function WorkstationShell({
     metronome,
     setSuppressAutoDetect: tempoDetection.suppressNextAutoDetect,
     onRestoreStarted: () => setProjectsOpen(false),
+    // Practice mode: a reopened, already-analysed project folds the zone.
+    onRestored: analysisFold.seatForRestoredProject,
+    onFreshImport: analysisFold.seatForFreshImport,
     onSaved: (name) =>
       notifySuccess(
         t({ id: 'toast.project-saved', message: `« ${name} » enregistré` })
@@ -315,6 +321,7 @@ export function WorkstationShell({
       ) : (
         <ShellMain
           isLoaded={isLoaded}
+          analysisFold={analysisFold}
           position={position}
         durationSeconds={transport.durationSeconds}
         markers={markers}

@@ -7,12 +7,6 @@ import { NameEditor } from '../ui/name-editor.tsx'
 import styles from './header.module.css'
 import { ImportMenu } from './import-menu.tsx'
 
-interface DetectedReadout {
-  readonly id: string
-  readonly label: string
-  readonly value: string
-}
-
 /** The header's server read-out: a coloured dot plus a short label. */
 export interface ServerStatus {
   readonly tone: 'offline' | 'degraded' | 'ready'
@@ -22,7 +16,6 @@ export interface ServerStatus {
 interface HeaderProps {
   readonly title: string
   readonly artist: string
-  readonly detected: readonly DetectedReadout[]
   /** The local server's health, or undefined while still probing. */
   readonly serverStatus?: ServerStatus | undefined
   /** Open the file picker. The smart shell owns the actual import. */
@@ -153,7 +146,7 @@ function SaveControls({
 
 /**
  * Dumb presentational header, one place per kind of information: the document
- * (title, artist, detected values, saved/busy state) on the left with the logo;
+ * (title, artist, saved/busy state) on the left with the logo;
  * the actions on the right; the server health — infrastructure, not an action —
  * alone at the far right. Detected values (key/BPM/measure) are rendered in
  * teal + mono per the semantic rule (teal = what the machine detected). The
@@ -162,7 +155,6 @@ function SaveControls({
 export function Header({
   title,
   artist,
-  detected,
   serverStatus,
   onImport,
   onImportUrl,
@@ -198,12 +190,6 @@ export function Header({
           <p className={styles.title}>{title}</p>
           <p className={styles.artist}>{artist}</p>
         </div>
-        {detected.map((item) => (
-          <span key={item.id} className={styles.readout}>
-            <span className={styles.readoutLabel}>{item.label}</span>
-            <span className={styles.readoutValue}>{item.value}</span>
-          </span>
-        ))}
         {sessionState !== undefined && (
           <output
             className={cx(

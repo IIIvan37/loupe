@@ -1,3 +1,37 @@
 .label {
   composes: sectionLabel from '../ui/controls.module.css';
 }
+
+.foldHeader {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-s);
+  flex-wrap: wrap;
+}
+
+/* The title IS the disclosure (accordion pattern): same voice as its
+   siblings, plus a chevron that mirrors aria-expanded. */
+.foldToggle {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.foldToggle::after {
+  content: ' ▸';
+}
+
+.foldToggle[aria-expanded='true']::after {
+  content: ' ▾';
+}
+
+/* The acquired-state read-out (teal = what the machine produced). */
+.summary {
+  color: var(--teal);
+  font-size: var(--font-size-s);
+}

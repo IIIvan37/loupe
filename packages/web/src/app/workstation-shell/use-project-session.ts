@@ -54,6 +54,10 @@ export interface ProjectSessionDeps extends SessionRestoreDeps {
   readonly viewport: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
+  /** Called with the restored project once an open has rebuilt the session. */
+  readonly onRestored?: (project: Project) => void
+  /** Called when a fresh user import begins (never on an open's re-import). */
+  readonly onFreshImport?: () => void
   /** Called with the project name once a save has actually persisted. */
   readonly onSaved?: (name: string) => void
 }
@@ -263,6 +267,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       await restoreSession(result, deps)
       // The rebuilt session mirrors the manifest — sign it as the saved state.
       setSavedSignature(sessionSignature(result.project))
+      deps.onRestored?.(result.project)
     } finally {
       setOpeningId(undefined)
     }
@@ -280,6 +285,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     setSavedSignature(undefined)
     // A fresh import must auto-detect: clear any pending open-restore guard.
     deps.setSuppressAutoDetect(false)
+    deps.onFreshImport?.()
     startFreshTrack(name)
   }
 

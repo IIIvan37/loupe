@@ -10,12 +10,6 @@ import type { UrlImport } from '../header/use-import-from-url.ts'
 import { AlertBanner } from '../ui/alert-banner.tsx'
 import type { ProjectSession } from './use-project-session.ts'
 
-/**
- * No real key/tempo detection yet — show nothing rather than a hardcoded lie.
- * The header keeps its `detected` prop for when detection lands.
- */
-const DETECTED: readonly never[] = []
-
 /** How each probed health state reads in the header. */
 const SERVER_STATUS: Record<
   Exclude<ServerHealth, 'checking'>,
@@ -135,7 +129,6 @@ export function ShellHeader({
                 message: 'Importer un fichier audio'
               }))
         }
-        detected={DETECTED}
         serverStatus={
           serverHealth === 'checking'
             ? undefined
