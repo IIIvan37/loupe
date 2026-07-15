@@ -48,8 +48,8 @@ jobs:
       - run: python -m venv .venv
       - run: .venv/bin/pip install --upgrade pip
       - run: .venv/bin/pip install -r requirements-dev.txt
-      - run: .venv/bin/ruff check app tests
-      - run: .venv/bin/ruff format --check app tests
+      - run: .venv/bin/ruff check app tests modal_app.py
+      - run: .venv/bin/ruff format --check app tests modal_app.py
       - run: .venv/bin/pyright
       - run: .venv/bin/python -m pytest
 

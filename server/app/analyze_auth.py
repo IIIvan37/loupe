@@ -55,6 +55,10 @@ def verify_analyze_token(
     """
     if not token or not secret:
         raise InvalidAnalyzeToken("missing token or secret")
+    if not token.isascii():
+        # A compact JWT is ASCII by construction; rejecting here keeps the
+        # signing-input ascii-encode below from leaking a UnicodeEncodeError.
+        raise InvalidAnalyzeToken("token is not ascii")
 
     parts = token.split(".")
     if len(parts) != 3:
@@ -65,6 +69,8 @@ def verify_analyze_token(
         header = json.loads(_b64url_decode(header_b64))
     except json.JSONDecodeError as exc:
         raise InvalidAnalyzeToken("unreadable header") from exc
+    if not isinstance(header, dict):
+        raise InvalidAnalyzeToken("header is not an object")
     if header.get("alg") != "HS256":
         # Reject anything but HS256 — in particular "none", the classic bypass.
         raise InvalidAnalyzeToken("unsupported algorithm")

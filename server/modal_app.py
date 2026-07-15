@@ -126,13 +126,10 @@ class Api:
     @modal.asgi_app()
     def web(self):
         """The FastAPI surface: auth + CORS + the structure router + /warmup."""
-        import time
-
-        from fastapi import FastAPI, Request
+        from fastapi import FastAPI
         from fastapi.middleware.cors import CORSMiddleware
-        from fastapi.responses import JSONResponse
 
-        from app.analyze_auth import InvalidAnalyzeToken, verify_analyze_token
+        from app.analyze_gate import install_analyze_gate
         from app.structure import router as structure_router
 
         # J2: the client presents a SHORT-LIVED token minted by the Supabase
@@ -140,35 +137,16 @@ class Api:
         # token is gone — no long-lived credential ships in the app.
         secret = os.environ["ANALYZE_JWT_SECRET"]
         web_app = FastAPI()
+        # Gate FIRST, CORS after: add_middleware prepends, so CORS wraps the
+        # gate — its 401s get Access-Control-Allow-Origin from the real CORS
+        # layer and preflights never reach the gate (see app/analyze_gate.py).
+        install_analyze_gate(web_app, secret=secret)
         web_app.add_middleware(
             CORSMiddleware,
             allow_origins=ALLOWED_ORIGINS,
             allow_methods=["POST", "OPTIONS"],
             allow_headers=["*"],
         )
-
-        @web_app.middleware("http")
-        async def require_token(request: Request, call_next):
-            if request.method == "OPTIONS":
-                return await call_next(request)
-            header = request.headers.get("authorization", "")
-            token = header[7:] if header.startswith("Bearer ") else ""
-            try:
-                verify_analyze_token(token, secret, now=int(time.time()))
-            except InvalidAnalyzeToken:
-                # An auth short-circuit bypasses the CORS middleware, so echo the
-                # allow-origin ourselves — else the browser masks the 401 as an
-                # opaque CORS/network error instead of surfacing it readably.
-                origin = request.headers.get("origin", "")
-                cors = (
-                    {"Access-Control-Allow-Origin": origin}
-                    if origin in ALLOWED_ORIGINS
-                    else {}
-                )
-                return JSONResponse(
-                    {"detail": "unauthorized"}, status_code=401, headers=cors
-                )
-            return await call_next(request)
 
         @web_app.post("/warmup")
         def warmup() -> dict:
