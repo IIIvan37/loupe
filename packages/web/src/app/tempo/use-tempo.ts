@@ -24,6 +24,8 @@ export interface Tempo {
   readonly analysis: TempoAnalysis | undefined
   /** Whether a detection is in flight (drives the busy button). */
   readonly detecting: boolean
+  /** Abort the in-flight detection — offered as « Annuler » on the busy face. */
+  readonly cancelDetection: () => void
   /** Why the last detection failed — a code the panel maps to translated
       copy (the raw detail goes to the console). Cleared by the next run or
       a reset. */
@@ -289,10 +291,18 @@ export function useTempo(detector?: TempoDetector): Tempo {
     setError(undefined)
   }
 
+  /** Abort the in-flight detection (R.2): the server slot is released, no
+   * outcome is committed — cancelling is not a failure, so no error appears. */
+  function cancelDetection(): void {
+    supersede()
+    setDetecting(false)
+  }
+
   return {
     analysis,
     detecting,
     error,
+    cancelDetection,
     fold,
     octaveShift,
     manual,

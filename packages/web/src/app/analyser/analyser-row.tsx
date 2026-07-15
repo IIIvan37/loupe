@@ -60,6 +60,8 @@ export interface TempoDetectionControl {
   readonly detecting: boolean
   readonly error: TempoDetectionErrorCode | undefined
   readonly onRetry: () => void
+  /** Abort the in-flight detection (the busy face's « Annuler »). */
+  readonly onCancel: () => void
 }
 
 /** The structure-detection surface the shell wires in. */
@@ -74,6 +76,8 @@ export interface StructureDetectionControl {
   /** Whether a chord grid exists — a detection relabels it, so it confirms. */
   readonly hasGrid: boolean
   readonly onDetect: () => void
+  /** Abort the in-flight detection (the busy face's « Annuler »). */
+  readonly onCancel: () => void
 }
 
 /** The chord-detection surface the shell wires in. */
@@ -85,6 +89,8 @@ export interface ChordDetectionControl {
   /** Whether a grid already exists — the detected draft replaces it. */
   readonly hasGrid: boolean
   readonly onDetect: () => void
+  /** Abort the in-flight detection (the busy face's « Annuler »). */
+  readonly onCancel: () => void
 }
 
 interface AnalyserRowProps {
@@ -222,6 +228,7 @@ export function AnalyserRow({
                 message: 'Analyse du tempo…'
               })}
               running={tempo.detecting}
+              progress={{ onCancel: tempo.onCancel }}
               errorLine={t(TEMPO_ERROR_COPY[tempo.error])}
               onRun={tempo.onRetry}
             />
@@ -231,6 +238,7 @@ export function AnalyserRow({
                 id: 'analyser.tempo-detecting',
                 message: 'Analyse du tempo…'
               })}
+              onCancel={tempo.onCancel}
             />
           ) : (
             <p className={styles.done}>
@@ -248,6 +256,7 @@ export function AnalyserRow({
             message: 'Détection…'
           })}
           running={structure.detecting}
+          progress={{ onCancel: structure.onCancel }}
           confirms={structure.hasMarkers || structure.hasGrid}
           confirmLabel={structureConfirm}
           hint={
@@ -270,6 +279,7 @@ export function AnalyserRow({
             message: 'Détection des accords…'
           })}
           running={chords.detecting}
+          progress={{ onCancel: chords.onCancel }}
           confirms={chords.hasGrid}
           confirmLabel={t({
             id: 'chords.detect-confirm',

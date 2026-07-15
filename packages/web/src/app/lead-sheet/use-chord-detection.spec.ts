@@ -44,6 +44,34 @@ function gatedDetector(): ChordDetector & { release: () => void } {
 }
 
 describe('useChordDetection', () => {
+  it('cancels the in-flight run: busy drops, no outcome commits', async () => {
+    const onDraft = vi.fn()
+    const gated = gatedDetector()
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        onDraft,
+        detector: gated
+      })
+    )
+    let run: Promise<void> = Promise.resolve()
+    act(() => {
+      run = result.current.detect(4)
+    })
+    expect(result.current.detecting).toBe(true)
+
+    act(() => result.current.cancel())
+    expect(result.current.detecting).toBe(false)
+
+    // The late resolution must not commit: cancelling is not an outcome.
+    gated.release()
+    await act(() => run)
+    expect(onDraft).not.toHaveBeenCalled()
+    expect(result.current.error).toBeUndefined()
+    expect(result.current.succeeded).toBe(false)
+  })
+
   it('drafts the detected chart source through onDraft', async () => {
     const onDraft = vi.fn()
     const { result } = renderHook(() =>

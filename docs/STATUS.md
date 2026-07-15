@@ -269,9 +269,14 @@ maison (progrès streamé + Annuler, abstraction 4/4), tempo/structure/accords
 en indéterminé, décodage waveform aussi. Browser-verify sous Slow 3G. Revue
 8 angles → 3 fixés. Gate **verte — 1454 tests**.
 [rapport](sessions/2026-07-15-r1-operation-status.md).
-**Prochain : R.2** (exposer cancel() des trois détections → `onCancel` de la
-primitive), puis R.3 (busy avant gate + cold start narré), R.4 (statut peint
-avant zipSync + migration du chip header).
+**R.2 — annulation des détections (branche `feat/r2-detection-cancel`,
+stackée sur R.1, PR à ouvrir)** : `cancel()`/`cancelDetection()` sur les
+trois hooks (abort + bump run-token + busy down — annuler n'est pas un
+échec), câblés sur le `onCancel` des faces busy ; « Annuler » apparaît sur
+les 4 flux. Gate **verte — 1456 tests**.
+[rapport](sessions/2026-07-15-r2-detection-cancel.md).
+**Prochain : R.3** (busy avant gate + cold start narré — la primitive a déjà
+`detail`/`detailAfterMs`), puis R.4 (zipSync + chip header).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
