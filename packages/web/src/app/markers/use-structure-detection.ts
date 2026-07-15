@@ -36,6 +36,8 @@ export interface StructureDetection {
   readonly succeeded: boolean
   /** Detect the loaded track's structure and hand the sections to `onSections`. */
   readonly detect: () => Promise<void>
+  /** Abort the in-flight run — offered as « Annuler » on the busy face. */
+  readonly cancel: () => void
 }
 
 /**
@@ -154,5 +156,13 @@ export function useStructureDetection({
     }
   }
 
-  return { detecting, error, gateReason, succeeded, detect }
+  /** Abort the in-flight run (R.2): the server slot is released, no outcome
+   * is committed — cancelling is not a failure, so no error appears. */
+  function cancel(): void {
+    controllerRef.current?.abort()
+    runIdRef.current += 1
+    setDetecting(false)
+  }
+
+  return { detecting, error, gateReason, succeeded, detect, cancel }
 }

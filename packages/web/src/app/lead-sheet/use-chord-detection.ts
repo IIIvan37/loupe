@@ -30,6 +30,8 @@ export interface ChordDetection {
    * `onDraft`, wrapped at the given bars-per-row (the panel's layout).
    */
   readonly detect: (barsPerRow?: number) => Promise<void>
+  /** Abort the in-flight run — offered as « Annuler » on the busy face. */
+  readonly cancel: () => void
 }
 
 /**
@@ -156,5 +158,13 @@ export function useChordDetection({
     }
   }
 
-  return { detecting, error, succeeded, detect }
+  /** Abort the in-flight run (R.2): the server slot is released, no outcome
+   * is committed — cancelling is not a failure, so no error appears. */
+  function cancel(): void {
+    controllerRef.current?.abort()
+    runIdRef.current += 1
+    setDetecting(false)
+  }
+
+  return { detecting, error, succeeded, detect, cancel }
 }

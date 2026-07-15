@@ -44,6 +44,7 @@ function tempoOf(
     detecting: false,
     error: undefined,
     onRetry: vi.fn(),
+    onCancel: vi.fn(),
     ...overrides
   }
 }
@@ -59,6 +60,7 @@ function structureOf(
     hasMarkers: false,
     hasGrid: false,
     onDetect: vi.fn(),
+    onCancel: vi.fn(),
     ...overrides
   }
 }
@@ -73,6 +75,7 @@ function chordsOf(
     succeeded: false,
     hasGrid: false,
     onDetect: vi.fn(),
+    onCancel: vi.fn(),
     ...overrides
   }
 }
@@ -340,6 +343,15 @@ describe('AnalyserRow structure', () => {
     expect(
       screen.getByText(i18n._('structure.detect-needs-server'))
     ).toBeInTheDocument()
+  })
+
+  it('cancels an in-flight detection from the busy face', async () => {
+    const user = userEvent.setup()
+    const { props } = renderRow({ structure: { detecting: true } })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('common.cancel') })
+    )
+    expect(props.structure.onCancel).toHaveBeenCalledOnce()
   })
 
   it('wears the operation line while a detection is in flight', () => {

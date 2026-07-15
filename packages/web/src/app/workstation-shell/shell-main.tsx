@@ -243,7 +243,8 @@ export function ShellMain({
               bpm: tempo.analysis?.bpm,
               detecting: tempo.detecting,
               error: tempo.error,
-              onRetry: onRetryTempo
+              onRetry: onRetryTempo,
+              onCancel: tempo.cancelDetection
             }}
             structure={{
               detecting: structureDetection.detecting,
@@ -263,6 +264,7 @@ export function ShellMain({
                 chordChart.source.trim().length > 0 &&
                 (grid ?? []).some((beat) => beat.downbeat),
               onDetect: () => void structureDetection.detect(),
+              onCancel: structureDetection.cancel,
               // The structure engine only needs the server to ANSWER (it runs
               // on CPU); no grid is required, so 'server' is the only block.
               blockedReason:
@@ -277,6 +279,7 @@ export function ShellMain({
               hasGrid: chordChart.source.trim().length > 0,
               // No layout arg: the hook falls back to the stored preference.
               onDetect: () => void chordDetection.detect(),
+              onCancel: chordDetection.cancel,
               // The chord engine only needs the server to ANSWER (it runs
               // on CPU — 'no-separation' just means no Demucs device), and
               // the measures need a downbeat-flagged grid to anchor on.
