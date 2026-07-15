@@ -20,6 +20,8 @@
 import { create, getNumericDate } from 'https://deno.land/x/djwt@v3.0.2/mod.ts'
 
 const TOKEN_TTL_SECONDS = 300 // 5 min — long enough to cover a cold Modal start.
+// Floor on the shared HS256 secret (U.3) — mirrored in server/app/analyze_gate.py.
+const MIN_SECRET_LENGTH = 32
 const AUDIENCE = 'loupe-analyze'
 const ISSUER = 'loupe-supabase'
 
@@ -78,8 +80,9 @@ export async function handler(req: Request): Promise<Response> {
   }
 
   const analyzeSecret = Deno.env.get('ANALYZE_JWT_SECRET')
-  if (!analyzeSecret) {
-    // Misconfiguration, not the caller's fault.
+  if (!analyzeSecret || analyzeSecret.length < MIN_SECRET_LENGTH) {
+    // Misconfiguration (absent OR too weak to sign with), not the caller's
+    // fault. Refusing to mint beats silently guarding prod with a weak secret.
     return json({ error: 'server_misconfigured' }, 500, origin)
   }
 

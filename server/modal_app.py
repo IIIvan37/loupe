@@ -119,6 +119,10 @@ class Api:
     def load(self) -> None:
         """Load the models to GPU and warm the kernels, off the request path."""
         from app import structure  # noqa: PLC0415
+        from app.analyze_gate import assert_strong_secret
+
+        # Fail fast on a weak secret — before minutes of billed model loading.
+        assert_strong_secret(os.environ.get("ANALYZE_JWT_SECRET", ""))
 
         structure._load()
         structure._analyse(_probe_wav())  # absorb the CUDA autotune

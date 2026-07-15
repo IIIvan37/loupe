@@ -23,6 +23,23 @@ from fastapi.responses import JSONResponse
 
 from app.analyze_auth import InvalidAnalyzeToken, verify_analyze_token
 
+# Floor on the shared HS256 secret (U.3): 32 chars ≈ the hash's own security
+# level for an alphanumeric secret. A weaker value must abort at startup —
+# never silently guard production. Mirrored in the Edge Function.
+MIN_SECRET_LENGTH = 32
+
+
+def assert_strong_secret(secret: str) -> str:
+    """Return the secret, or raise if it is below the U.3 floor.
+
+    Called by the Modal @enter hook BEFORE the GPU model load (a weak secret
+    must fail fast, not after minutes of billed loading) and again by
+    `install_analyze_gate`.
+    """
+    if len(secret) < MIN_SECRET_LENGTH:
+        raise ValueError(f"ANALYZE_JWT_SECRET must be at least {MIN_SECRET_LENGTH} characters")
+    return secret
+
 
 def install_analyze_gate(
     app: FastAPI,
@@ -37,6 +54,7 @@ def install_analyze_gate(
     OPTIONS passes through untouched (CORS preflights carry no Authorization).
     `now` is injectable so expiry is deterministic under test.
     """
+    assert_strong_secret(secret)
 
     @app.middleware("http")
     async def require_token(request: Request, call_next) -> Response:
