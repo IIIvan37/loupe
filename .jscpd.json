@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/kucherenko/jscpd/master/apps/jscpd/schema.json",
-  "threshold": 2.5,
+  "threshold": 1.0,
   "ignore": ["**/public/**", "**/*.spec.ts", "**/*.spec.tsx"],
   "gitignore": true
 }
