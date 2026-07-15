@@ -458,15 +458,15 @@ pas de dette nouvelle :
 
 ## Suivi
 
-- [ ] **Q.1** zonage Timeline / Analyse / Partition + `.sectionLabel`
-- [ ] **Q.2** rangée « Analyser » + composant `DetectionAction`
-- [ ] **Q.3** zone Analyse repliable + read-out « détecté » du header
-- [ ] **Q.4** header : gaps de sous-groupes
-- [ ] **Q.5** « Vitesse » + LoopControls sous le stage
-- [ ] **R.1** primitive `OperationStatus` (+ branche décodage)
-- [ ] **R.2** annulation des trois détections
-- [ ] **R.3** busy avant gate + cold start narré
-- [ ] **R.4** peindre le statut avant zipSync/mixedStems
+- [x] **Q.1** zonage Timeline / Analyse / Partition + `.sectionLabel`
+- [x] **Q.2** rangée « Analyser » + composant `DetectionAction`
+- [x] **Q.3** zone Analyse repliable + read-out « détecté » du header
+- [x] **Q.4** header : gaps de sous-groupes
+- [x] **Q.5** « Vitesse » + LoopControls sous le stage
+- [x] **R.1** primitive `OperationStatus` (+ branche décodage)
+- [x] **R.2** annulation des trois détections
+- [x] **R.3** busy avant gate + cold start narré
+- [x] **R.4** peindre le statut avant zipSync/mixedStems
 - [ ] **T.1** boucles musicales : section + snap au beat
 - [ ] **T.2** nudge clavier en unités musicales
 - [ ] **T.3** chart cliquable → seek
@@ -475,17 +475,17 @@ pas de dette nouvelle :
 - [ ] **T.6** aide format + gestes + boutons AT honnêtes
 - [ ] **T.7** fine-tune ±50 cents
 - [ ] **T.8** décisions spectre + EQ actées
-- [ ] **U.1** analyze_gate.py + ruff sur modal_app.py
-- [ ] **U.2** job CI deno
-- [ ] **U.3** brute-force codes beta + plancher secret
-- [ ] **U.4** cliquets jscpd 1,0 / Stryker break 90
+- [x] **U.1** analyze_gate.py + ruff sur modal_app.py
+- [x] **U.2** job CI deno
+- [x] **U.3** brute-force codes beta + plancher secret
+- [x] **U.4** cliquets jscpd 1,0 / Stryker break 90
 - [ ] **U.5** basses groupées (origins env, _boundaries_to_segments, tempo.ts)
 - [ ] **V.1** upload d'analyse mono + 24 kHz
 - [ ] **V.2** `unload()` du moteur mono-piste
 - [ ] **V.3** warm des modèles au démarrage local
 - [ ] **V.4** playhead en transform
-- [ ] **W.1** flex-wrap des rangées tempo/accords
-- [ ] **W.2** peau `.confirmFace` unifiée
+- [x] **W.1** flex-wrap des rangées tempo/accords
+- [x] **W.2** peau `.confirmFace` unifiée
 - [ ] **W.3** faux-gras (Space Grotesk 600, Petaluma)
 - [ ] **W.4** typo chart sur l'échelle + verrou font-size
 - [ ] **W.5** basses design groupées
