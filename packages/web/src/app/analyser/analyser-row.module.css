@@ -1,22 +1,37 @@
-.panel {
+.item {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--space-2xs);
+  /* Each item explains itself below its action; cap the line so one item's
+     hint doesn't push its neighbours across the whole row. */
+  max-inline-size: 32ch;
 }
 
-.label {
-  composes: sectionLabel from '../ui/controls.module.css';
+/* A landed analysis keeps a face instead of vanishing — the row's footprint
+   stays stable (teal = what the machine produced). The check mark is
+   presentation, so it lives here, out of the accessible text. */
+.done {
+  margin: 0;
+  color: var(--teal);
+  font-size: var(--font-size-s);
 }
 
-.action {
-  composes: quietButton from '../ui/controls.module.css';
-  align-self: flex-start;
+.done::before {
+  content: '✓ ';
 }
 
+.status {
+  margin: 0;
+  color: var(--dim);
+  font-size: var(--font-size-s);
+}
+
+/* The separation run's read-out — the skin the retired SeparationPanel wore. */
 .progress {
   display: flex;
   flex-direction: column;
   gap: var(--space-2xs);
+  min-inline-size: 16rem;
 }
 
 .progressHead {
@@ -61,18 +76,4 @@
 
 .bar::-moz-progress-bar {
   background: var(--teal);
-}
-
-.error {
-  margin: 0;
-  font-size: var(--font-size-s);
-  color: var(--danger);
-}
-
-/* Idle: one quiet line instead of an empty frame — the lanes appear in the
-   timeline stage once a separation runs, not here. */
-.hint {
-  margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--dim);
 }

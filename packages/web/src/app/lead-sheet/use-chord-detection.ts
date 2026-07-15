@@ -9,6 +9,10 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createChordDetector } from '../../audio/create-chord-detector.ts'
 import { useLatest } from '../../lib/use-latest.ts'
+import {
+  DEFAULT_BARS_PER_ROW,
+  readStoredBarsPerRow
+} from './bars-per-row-preference.ts'
 
 export interface ChordDetection {
   /** Whether a detection is in flight (drives the busy button). */
@@ -25,7 +29,7 @@ export interface ChordDetection {
    * Detect the loaded track's chords and hand the drafted grid source to
    * `onDraft`, wrapped at the given bars-per-row (the panel's layout).
    */
-  readonly detect: (barsPerRow: number) => Promise<void>
+  readonly detect: (barsPerRow?: number) => Promise<void>
 }
 
 /**
@@ -98,7 +102,11 @@ export function useChordDetection({
     return () => controllerRef.current?.abort()
   }, [loadedAudio])
 
-  async function detect(barsPerRow: number): Promise<void> {
+  async function detect(barsPerRow?: number): Promise<void> {
+    // The layout preference is the panel's, persisted on blur — callers that
+    // don't hold the live field (the analyser row) fall back to the stored
+    // value so the detected draft matches the sheet's saved layout.
+    const rows = barsPerRow ?? readStoredBarsPerRow() ?? DEFAULT_BARS_PER_ROW
     const {
       loadedAudio: audio,
       grid: beatGrid,
@@ -119,7 +127,7 @@ export function useChordDetection({
       {
         audio,
         grid: beatGrid,
-        barsPerRow,
+        barsPerRow: rows,
         beatsPerBar: bar,
         sections: known,
         signal: controller.signal

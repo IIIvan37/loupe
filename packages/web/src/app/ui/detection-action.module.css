@@ -1,0 +1,12 @@
+.action {
+  composes: quietButton from './controls.module.css';
+  align-self: flex-start;
+}
+
+.hint {
+  composes: hint from './controls.module.css';
+}
+
+.error {
+  composes: errorLine from './controls.module.css';
+}

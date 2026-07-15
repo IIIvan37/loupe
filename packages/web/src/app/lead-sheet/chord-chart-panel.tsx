@@ -1,10 +1,4 @@
-import {
-  chartMatchesPitch,
-  type ChordDetectionErrorCode,
-  parseChart
-} from '@app/core'
-import type { MessageDescriptor } from '@lingui/core'
-import { msg } from '@lingui/core/macro'
+import { chartMatchesPitch, parseChart } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { LiveStatus } from '../ui/live-status.tsx'
@@ -20,60 +14,6 @@ import { chartHasContent } from './chart-content.ts'
 import { LeadSheet } from './lead-sheet.tsx'
 import styles from './chord-chart-panel.module.css'
 
-/** Blocked-state hints, shared with the failure copy below. */
-const NEEDS_SERVER = msg({
-  id: 'chords.detect-needs-server',
-  message: 'Lancer le serveur local pour détecter les accords.'
-})
-const NEEDS_GRID = msg({
-  id: 'chords.detect-needs-grid',
-  message: "Détecter d'abord le tempo — la grille de mesures ancre les accords."
-})
-
-/**
- * One actionable, translated line per failure code (Lot G standard) — the raw
- * engine/transport detail never reaches the UI (the hook logs it to the
- * console). `network` and `no-downbeat` reuse the blocked-state hints: same
- * user situation, same words.
- */
-const ERROR_COPY: Readonly<Record<ChordDetectionErrorCode, MessageDescriptor>> =
-  {
-    'no-downbeat': NEEDS_GRID,
-    'no-chords': msg({
-      id: 'chords.error.no-chords',
-      message: 'Aucun accord détecté sur ce morceau.'
-    }),
-    'engine-unavailable': msg({
-      id: 'chords.error.engine-unavailable',
-      message:
-        "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
-    }),
-    network: NEEDS_SERVER,
-    timeout: msg({
-      id: 'chords.error.timeout',
-      message: "L'analyse des accords a expiré sur le serveur — réessayer."
-    }),
-    'too-large': msg({
-      id: 'chords.error.too-large',
-      message: "Piste trop volumineuse pour l'analyse sur le serveur."
-    }),
-    unknown: msg({
-      id: 'chords.error.unknown',
-      message: 'Erreur inattendue — détails dans la console du navigateur.'
-    })
-  }
-
-/** The detection surface the shell wires in (absent = feature not wired). */
-export interface ChordDetectionProps {
-  /** Why detection is unavailable (disables the button + explains under it). */
-  readonly blockedReason: 'server' | 'no-grid' | undefined
-  readonly detecting: boolean
-  /** Why the last run failed — a code the panel maps to translated copy. */
-  readonly error: ChordDetectionErrorCode | undefined
-  readonly succeeded: boolean
-  readonly onDetect: (barsPerRow: number) => void
-}
-
 interface ChordChartPanelProps {
   readonly source: string
   readonly onSourceChange: (source: string) => void
@@ -87,7 +27,6 @@ interface ChordChartPanelProps {
   /** The measure being PLAYED (the n-th downbeat, counted through the
    * unrolled form — see LeadSheet), undefined to highlight nothing. */
   readonly currentMeasureIndex?: number | undefined
-  readonly detection?: ChordDetectionProps | undefined
   /** The session-derived chart head (tags, BPM, bar length) — see LeadSheet. */
   readonly header?: ChartHeaderData | undefined
 }
@@ -106,7 +45,6 @@ export function ChordChartPanel({
   pitchSemitones,
   transposedBy,
   currentMeasureIndex,
-  detection,
   header
 }: ChordChartPanelProps) {
   const { t } = useLingui()
@@ -135,39 +73,6 @@ export function ChordChartPanel({
     () => chartHasContent(parseChart(source)),
     [source]
   )
-  // The detected draft REPLACES the source — a non-empty grid is armed work,
-  // so the first activation only swaps the button to « Confirmer ? ».
-  const overwrite = useTwoStepConfirm<true>()
-
-  function onDetectClick(): void {
-    if (!detection) {
-      return
-    }
-    if (source.trim().length > 0 && overwrite.pending === null) {
-      overwrite.arm(true)
-      return
-    }
-    overwrite.disarm()
-    detection.onDetect(barsPerRow)
-  }
-
-  const blockedHint =
-    detection?.blockedReason === 'server'
-      ? t(NEEDS_SERVER)
-      : detection?.blockedReason === 'no-grid'
-        ? t(NEEDS_GRID)
-        : undefined
-
-  // The full failure line — shown AND announced, so a screen-reader user
-  // hears the same actionable reason a sighted user reads.
-  const failureLine =
-    detection?.error !== undefined
-      ? `${t({
-          id: 'chords.detect-failed',
-          message: 'Échec de la détection des accords'
-        })} — ${t(ERROR_COPY[detection.error])}`
-      : undefined
-
   // The « transposing instruments » gap: the audio plays in one key, the grid
   // shows another. Octave-equivalent keys name the same chords, so the flag
   // compares modulo 12; the button still applies the exact gap so the offset
@@ -195,15 +100,6 @@ export function ChordChartPanel({
       t({ id: 'chords.followed', message: 'Grille transposée' })
     )
   }
-
-  const announced = detection?.detecting
-    ? t({ id: 'chords.detecting', message: 'Détection des accords…' })
-    : detection?.succeeded
-      ? t({
-          id: 'chords.detect-done',
-          message: 'Grille pré-remplie depuis la détection'
-        })
-      : failureLine
 
   return (
     <section className={styles.panel}>
@@ -261,34 +157,6 @@ export function ChordChartPanel({
           {t({ id: 'chords.edit', message: 'Modifier' })}
         </button>
       </div>
-      {detection && (
-        <div className={styles.detectRow}>
-          <button
-            type="button"
-            className={styles.detectButton}
-            disabled={
-              detection.blockedReason !== undefined || detection.detecting
-            }
-            onClick={onDetectClick}
-            onBlur={overwrite.disarm}
-          >
-            {detection.detecting
-              ? t({ id: 'chords.detecting', message: 'Détection des accords…' })
-              : overwrite.pending
-                ? t({
-                    id: 'chords.detect-confirm',
-                    message: 'Remplacer la grille ?'
-                  })
-                : t({ id: 'chords.detect', message: 'Détecter les accords' })}
-          </button>
-          {blockedHint !== undefined && (
-            <p className={styles.hint}>{blockedHint}</p>
-          )}
-          {failureLine !== undefined && (
-            <p className={styles.error}>{failureLine}</p>
-          )}
-        </div>
-      )}
       {gridDiverges && (
         <div className={styles.pitchDrift}>
           <p className={styles.hint}>
@@ -317,8 +185,8 @@ export function ChordChartPanel({
       )}
       {/* The panel's one live region, mounted outside the conditional rows:
           the flag row unmounts the instant the grid follows, but the
-          announcement must still be spoken (detection states take over). */}
-      <LiveStatus message={announced ?? followedAnnounce} />
+          announcement must still be spoken. */}
+      <LiveStatus message={followedAnnounce} />
       {/* A detected chart spans the whole track (~120 measures in one click):
           the scrollport bounds the sheet so it never stretches the page and
           pushes the transport out of the viewport (K.1). */}

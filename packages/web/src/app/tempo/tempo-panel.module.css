@@ -53,13 +53,3 @@
   composes: chipButton from '../ui/controls.module.css';
 }
 
-.error {
-  composes: errorLine from '../ui/controls.module.css';
-  margin-inline-start: auto;
-}
-
-.retry {
-  composes: ghostButton from '../ui/controls.module.css';
-  padding: var(--space-2xs) var(--space-xs);
-  font-size: var(--font-size-s);
-}
