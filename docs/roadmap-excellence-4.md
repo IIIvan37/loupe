@@ -467,7 +467,7 @@ pas de dette nouvelle :
 - [x] **R.2** annulation des trois détections
 - [x] **R.3** busy avant gate + cold start narré
 - [x] **R.4** peindre le statut avant zipSync/mixedStems
-- [ ] **T.1** boucles musicales : section + snap au beat
+- [x] **T.1** boucles musicales : section + snap au beat
 - [ ] **T.2** nudge clavier en unités musicales
 - [ ] **T.3** chart cliquable → seek
 - [ ] **T.4** Cmd/Ctrl+S

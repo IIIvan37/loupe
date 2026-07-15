@@ -364,7 +364,22 @@ handler Edge : ACAO échoé sur l'origine autorisée, rien sur une interdite —
 NB le gateway Supabase exige `apikey` **et** `Authorization` avant d'invoquer
 la fonction, tester avec les deux).
 [rapport](sessions/2026-07-15-u5-grouped-lows.md).
-**Prochain : T.1** (puis T.2–T.3, V.1).
+**T.1 — boucles musicales (branche `feat/t1-musical-loops`, PR à ouvrir)** :
+(1) core pur `snapLoopRegionToGrid(region, grid, 'beat'|'bar')` (TDD +
+property tests ; effondrement = une unité minimum, bord hors de l'empan de la
+grille laissé brut — un outro n'est pas rapatrié ; `nearestTime` factorisé,
+partagé avec `snapSectionsToGrid`) ; (2) le drag-to-loop s'aimante à la
+grille en fin de geste, **Alt échappe** (pattern DAW), nudge ←/→ libre — le
+snap vit dans `useLoopEditing` (grille dans ses deps) derrière un flag
+`snap` dérivé du pointerup ; (3) **« Boucler la section »** sur les rangées
+structure du panneau Repères : loupe armée du repère au repère structure
+suivant (clampé à la durée), seam `selectSpan`/`armSpan` partagé avec le
+rappel de boucle nommée. `WaveformView` allégé (extraction
+`ImportErrorStage`/`BeatLines`, budget react-doctor). Gate **verte — 1484
+tests** (+22), **Stryker 93,41 %** (12 survivants du premier run tués,
+`snap-loop-region.ts` 100 %).
+[rapport](sessions/2026-07-15-t1-musical-loops.md).
+**Prochain : T.2** (puis T.3, V.1).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
