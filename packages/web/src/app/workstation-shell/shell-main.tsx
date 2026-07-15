@@ -1,4 +1,10 @@
-import { buildTempoMap, measureIndexAt, type OctaveFactor } from '@app/core'
+import {
+  buildTempoMap,
+  makeLoopRegion,
+  type Marker,
+  measureIndexAt,
+  type OctaveFactor
+} from '@app/core'
 import { isAnalysisOffloaded } from '../../audio/analysis-token.ts'
 import { useLingui } from '@lingui/react/macro'
 import { type ComponentProps, useMemo } from 'react'
@@ -20,6 +26,7 @@ import type { useLoopEditing } from '../loops/use-loop-editing.ts'
 import type { useLoops } from '../loops/use-loops.ts'
 import type { SpeedTrainer } from '../loops/use-speed-trainer.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
+import { markerSections } from '../markers/section-markers.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import type { useMarkers } from '../markers/use-markers.ts'
 import type { useMixer } from '../mixer/use-mixer.ts'
@@ -175,6 +182,26 @@ export function ShellMain({
       chartSource
     ]
   )
+
+  /**
+   * « Boucler la section » : arm the loupe from the marker's start to the
+   * next structure marker (or the end of the track for the last section) —
+   * the same section projection the chart reads (`markerSections`).
+   */
+  function onLoopSection(marker: Marker): void {
+    const section = markerSections(markers.markers).find(
+      (candidate) => candidate.startSeconds === marker.timeSeconds
+    )
+    if (section === undefined) {
+      return
+    }
+    loopEditing.selectSpan(
+      makeLoopRegion(
+        section.startSeconds,
+        Math.min(section.endSeconds, durationSeconds)
+      )
+    )
+  }
 
   return (
     <div className={styles.body}>
@@ -334,6 +361,7 @@ export function ShellMain({
           onSeekMarker={onSeekSeconds}
           onRenameMarker={markers.rename}
           onRemoveMarker={markers.remove}
+          onLoopSection={onLoopSection}
           loops={loops.library}
           activeLoopId={loopEditing.activeLoopId}
           onActivateLoop={loopEditing.activate}

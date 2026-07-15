@@ -188,12 +188,16 @@ export function waveformSurface(): HTMLElement {
  * positioning container (the surface's parent), which we size to 100px.
  * Kept on fireEvent: coordinate-based gestures need explicit clientX values.
  */
-export function pointerGesture(fromX: number, toX: number): void {
+export function pointerGesture(
+  fromX: number,
+  toX: number,
+  options: { readonly altKey?: boolean } = {}
+): void {
   const surface = waveformSurface()
   const container = surface.parentElement as HTMLElement
   container.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
   fireEvent.pointerDown(surface, { button: 0, clientX: fromX })
-  fireEvent.pointerUp(container, { button: 0, clientX: toX })
+  fireEvent.pointerUp(container, { button: 0, clientX: toX, ...options })
 }
 
 /** Render the shell with the default fakes; override any port per test. */

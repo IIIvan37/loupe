@@ -119,7 +119,15 @@ describe('WaveformView', () => {
     const { surface, container } = renderLoaded({ onSelectRegion })
     fireEvent.pointerDown(surface, { button: 0, clientX: 20 })
     fireEvent.pointerUp(container, { button: 0, clientX: 60 })
-    expect(onSelectRegion).toHaveBeenCalledWith(0.2, 0.6)
+    expect(onSelectRegion).toHaveBeenCalledWith(0.2, 0.6, true)
+  })
+
+  it('asks for no snapping when Alt is held at drag end', () => {
+    const onSelectRegion = vi.fn()
+    const { surface, container } = renderLoaded({ onSelectRegion })
+    fireEvent.pointerDown(surface, { button: 0, clientX: 20 })
+    fireEvent.pointerUp(container, { button: 0, clientX: 60, altKey: true })
+    expect(onSelectRegion).toHaveBeenCalledWith(0.2, 0.6, false)
   })
 
   it('normalises a backwards drag', () => {
@@ -127,7 +135,7 @@ describe('WaveformView', () => {
     const { surface, container } = renderLoaded({ onSelectRegion })
     fireEvent.pointerDown(surface, { button: 0, clientX: 60 })
     fireEvent.pointerUp(container, { button: 0, clientX: 20 })
-    expect(onSelectRegion).toHaveBeenCalledWith(0.2, 0.6)
+    expect(onSelectRegion).toHaveBeenCalledWith(0.2, 0.6, true)
   })
 
   it('shows the A/B edit handles only when a loop is active', () => {
@@ -189,7 +197,7 @@ describe('WaveformView', () => {
     fireEvent.pointerDown(endHandle, { button: 0, clientX: 80 })
     fireEvent.pointerMove(endHandle, { clientX: 50 })
     fireEvent.pointerUp(container, { button: 0, clientX: 50 })
-    expect(onAdjustRegion).toHaveBeenLastCalledWith(0.2, 0.5)
+    expect(onAdjustRegion).toHaveBeenLastCalledWith(0.2, 0.5, true)
   })
 
   it('nudges a loop edge with the arrow keys', () => {

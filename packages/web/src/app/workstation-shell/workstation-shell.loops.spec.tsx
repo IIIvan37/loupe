@@ -3,6 +3,8 @@ import '@testing-library/jest-dom/vitest'
 import { act, fireEvent, screen } from '@testing-library/react'
 import { i18n } from '../../i18n/i18n.ts'
 import {
+  beatsAt,
+  expectBpmReadout,
   importTrack,
   installShellHooks,
   openLoops,
@@ -14,6 +16,12 @@ import {
 } from './shell-test-kit.tsx'
 
 installShellHooks()
+
+/** A detector answering a dense steady grid: 40 beats every 0.25 s (240 BPM). */
+function steadyDetector() {
+  const times = Array.from({ length: 40 }, (_, index) => index * 0.25)
+  return { detect: async () => ({ bpm: 240, beats: beatsAt(times) }) }
+}
 
 describe('WorkstationShell loops & speed trainer', () => {
   it('drag-selects an A/B loop, names it via the editor, and recalls it', async () => {
@@ -27,6 +35,33 @@ describe('WorkstationShell loops & speed trainer', () => {
     const recall = await screen.findByRole('button', { name: savedLoop('Mon passage') })
     await user.click(recall)
     expect(engine.seekTo).toHaveBeenCalledWith(2)
+  })
+
+  it('snaps a drag-selected loop to the detected beat grid', async () => {
+    const { user } = renderShell({ tempoDetector: steadyDetector() })
+    await importTrack(user)
+    await expectBpmReadout(240)
+
+    // The raw drag lands off-grid (2.1 s → 5.9 s); the loop must arm on the
+    // nearest beats [2 s, 6 s] — its start handle sits at 20 % of the 10 s
+    // timeline, not 21 %.
+    pointerGesture(21, 59)
+    const startHandle = screen.getByRole('button', {
+      name: i18n._('waveform.move-loop-start')
+    })
+    expect(Number.parseFloat(startHandle.style.left)).toBeCloseTo(20)
+  })
+
+  it('holding Alt keeps the drag free of the grid (DAW escape)', async () => {
+    const { user } = renderShell({ tempoDetector: steadyDetector() })
+    await importTrack(user)
+    await expectBpmReadout(240)
+
+    pointerGesture(21, 59, { altKey: true })
+    const startHandle = screen.getByRole('button', {
+      name: i18n._('waveform.move-loop-start')
+    })
+    expect(Number.parseFloat(startHandle.style.left)).toBeCloseTo(21)
   })
 
   it('ramps the tempo as loop passes complete (speed trainer)', async () => {

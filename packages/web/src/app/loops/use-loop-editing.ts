@@ -1,4 +1,10 @@
-import { type LoopRegion, makeLoopRegion, type NamedLoop } from '@app/core'
+import {
+  type BeatGrid,
+  type LoopRegion,
+  makeLoopRegion,
+  type NamedLoop,
+  snapLoopRegionToGrid
+} from '@app/core'
 import { useState } from 'react'
 import type { Loops } from './use-loops.ts'
 
@@ -7,10 +13,26 @@ export interface LoopEditing {
   readonly isSaved: boolean
   /** The saved loop the active region came from, or null (highlights its chip). */
   readonly activeLoopId: string | null
-  /** A fresh surface drag: a new, unsaved region detached from any saved loop. */
-  readonly selectRegion: (startRatio: number, endRatio: number) => void
+  /**
+   * A fresh surface drag: a new, unsaved region detached from any saved loop.
+   * `snap` pulls the edges onto the beat grid when one exists.
+   */
+  readonly selectRegion: (
+    startRatio: number,
+    endRatio: number,
+    snap?: boolean
+  ) => void
   /** A handle/keyboard edge edit: adjust the region, persisting a saved loop. */
-  readonly adjustRegion: (startRatio: number, endRatio: number) => void
+  readonly adjustRegion: (
+    startRatio: number,
+    endRatio: number,
+    snap?: boolean
+  ) => void
+  /**
+   * Arm the loupe on a span given in seconds (a structure section's bounds) —
+   * a fresh, unsaved region, recalled like a saved loop (seeks its start).
+   */
+  readonly selectSpan: (region: LoopRegion) => void
   /** Save the active region under a name; it becomes the active saved loop. */
   readonly saveRegion: (name: string, region: LoopRegion) => void
   /** Discard a throwaway selection. */
@@ -44,27 +66,43 @@ export function useLoopEditing(
      * trainer stops here: its ramp belongs to the passage it was armed on.
      */
     readonly onRegionReplaced?: () => void
+    /** The detected beat grid drag ends snap to; empty/absent = no snapping. */
+    readonly beatGrid?: BeatGrid
   }
 ): LoopEditing {
+  const beatGrid = transport.beatGrid ?? []
   // The saved loop the active region came from. Null for a fresh, unsaved
   // selection.
   const [activeLoopId, setActiveLoopId] = useState<string | null>(null)
 
-  function regionFromRatios(startRatio: number, endRatio: number): LoopRegion {
-    return makeLoopRegion(
+  function regionFromRatios(
+    startRatio: number,
+    endRatio: number,
+    snap: boolean
+  ): LoopRegion {
+    const raw = makeLoopRegion(
       startRatio * transport.durationSeconds,
       endRatio * transport.durationSeconds
     )
+    return snap ? snapLoopRegionToGrid(raw, beatGrid, 'beat') : raw
   }
 
-  function selectRegion(startRatio: number, endRatio: number): void {
+  function selectRegion(
+    startRatio: number,
+    endRatio: number,
+    snap = false
+  ): void {
     setActiveLoopId(null)
     transport.onRegionReplaced?.()
-    transport.setLoopRegion(regionFromRatios(startRatio, endRatio))
+    transport.setLoopRegion(regionFromRatios(startRatio, endRatio, snap))
   }
 
-  function adjustRegion(startRatio: number, endRatio: number): void {
-    const region = regionFromRatios(startRatio, endRatio)
+  function adjustRegion(
+    startRatio: number,
+    endRatio: number,
+    snap = false
+  ): void {
+    const region = regionFromRatios(startRatio, endRatio, snap)
     transport.setLoopRegion(region)
     const active = loops.library.find((loop) => loop.id === activeLoopId)
     if (active) {
@@ -81,11 +119,21 @@ export function useLoopEditing(
     transport.setLoopRegion(undefined)
   }
 
+  /** Replace the loupe with a new passage and start it from its beginning. */
+  function armSpan(region: LoopRegion): void {
+    transport.onRegionReplaced?.()
+    transport.setLoopRegion(region)
+    transport.seekToSeconds(region.startSeconds)
+  }
+
+  function selectSpan(region: LoopRegion): void {
+    setActiveLoopId(null)
+    armSpan(region)
+  }
+
   function activate(loop: NamedLoop): void {
     setActiveLoopId(loop.id)
-    transport.onRegionReplaced?.()
-    transport.setLoopRegion(loop.region)
-    transport.seekToSeconds(loop.region.startSeconds)
+    armSpan(loop.region)
   }
 
   function remove(id: string): void {
@@ -101,6 +149,7 @@ export function useLoopEditing(
     activeLoopId,
     selectRegion,
     adjustRegion,
+    selectSpan,
     saveRegion,
     clearRegion,
     activate,

@@ -88,6 +88,49 @@ describe('WorkstationShell structure detection', () => {
     ).toBeGreaterThan(0)
   })
 
+  it('arms the loupe on a section and seeks its start from its Repères row', async () => {
+    const { engine, user } = renderShell({
+      healthFetch: healthFetch(null),
+      structureDetector: detectorOf(SECTIONS)
+    })
+    await importTrack(user)
+    await user.click(await detectButton())
+
+    // The « Boucler » action on the verse row (3 s → 7 s) recalls the section
+    // as the active loop, seeking to its start like a saved loop would.
+    await user.click(
+      await screen.findByRole('button', {
+        name: i18n._('markers.loop-named', {
+          name: i18n._('structure.section.verse')
+        })
+      })
+    )
+    expect(engine.seekTo).toHaveBeenLastCalledWith(3)
+  })
+
+  it("loops the last section to the track's end, not to infinity", async () => {
+    const { user } = renderShell({
+      healthFetch: healthFetch(null),
+      structureDetector: detectorOf(SECTIONS)
+    })
+    await importTrack(user)
+    await user.click(await detectButton())
+
+    // The chorus is the last section (open-ended): its loop must close on the
+    // 10 s track end — the end handle sits at 100 % of the timeline.
+    await user.click(
+      await screen.findByRole('button', {
+        name: i18n._('markers.loop-named', {
+          name: i18n._('structure.section.chorus')
+        })
+      })
+    )
+    const endHandle = screen.getByRole('button', {
+      name: i18n._('waveform.move-loop-end')
+    })
+    expect(Number.parseFloat(endHandle.style.left)).toBeCloseTo(100)
+  })
+
   it('relabels an existing grid with the detected section names', async () => {
     const { user } = renderShell({
       healthFetch: healthFetch(null),
