@@ -58,4 +58,3 @@ def test_cors_preflight_rejects_foreign_origin():
     )
     assert res.status_code == 403
     assert res.headers.get("access-control-allow-origin") != EVIL_ORIGIN
-
