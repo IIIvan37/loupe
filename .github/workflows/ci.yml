@@ -53,6 +53,22 @@ jobs:
       - run: .venv/bin/pyright
       - run: .venv/bin/python -m pytest
 
+  edge-functions:
+    name: Edge Functions (deno check · lint · fmt)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      # No live stack: type-check + lint + format only. The only network access
+      # is djwt from deno.land; the integration suite (index.test.ts) stays a
+      # local-stack affair (see docs/j2-supabase-runbook.md).
+      - run: deno check --config supabase/functions/deno.json supabase/functions/mint-analyze-token/*.ts
+      - run: deno lint supabase/functions/mint-analyze-token/
+      - run: deno fmt --check supabase/functions/mint-analyze-token/
+
   commitlint:
     name: Commit messages
     runs-on: ubuntu-latest
