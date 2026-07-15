@@ -22,11 +22,9 @@ function renderPanel(props: PanelProps = {}) {
     tempoMap: [{ fromSeconds: 0, bpm: 120 }],
     position: createExternalValue(0),
     detecting: false,
-    error: undefined,
     octaveShift: 0,
     manual: false,
     onFold,
-    onRetry: () => {},
     onOverrideBpm,
     onOverrideMeter,
     onTap,
@@ -159,31 +157,6 @@ describe('TempoPanel', () => {
     expect(
       screen.getByText(i18n._('tempo.range', { min: 90, max: 120 }))
     ).toBeInTheDocument()
-  })
-
-  it('offers to retry when the detection failed', async () => {
-    const user = userEvent.setup()
-    const onRetry = vi.fn()
-    renderPanel({ bpm: undefined, error: 'network', onRetry })
-    await user.click(
-      screen.getByRole('button', { name: i18n._('tempo.retry') })
-    )
-    expect(onRetry).toHaveBeenCalled()
-  })
-
-  it('speaks each failure code as translated, actionable copy', () => {
-    // The raw transport detail never reaches the panel — the code does.
-    renderPanel({ bpm: undefined, error: 'engine-unavailable' })
-    expect(screen.getByRole('alert')).toHaveTextContent(
-      i18n._('tempo.error.engine-unavailable')
-    )
-  })
-
-  it('offers no retry while the detection has not failed', () => {
-    renderPanel({ error: undefined })
-    expect(
-      screen.queryByRole('button', { name: i18n._('tempo.retry') })
-    ).not.toBeInTheDocument()
   })
 
   it('announces the analysis to screen readers', () => {

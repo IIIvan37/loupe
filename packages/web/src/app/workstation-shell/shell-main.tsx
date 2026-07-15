@@ -6,8 +6,13 @@ import {
   useExternalValue
 } from '../../lib/external-value.ts'
 import { Stack } from '../../layout/stack/stack.tsx'
+import { AnalyserRow } from '../analyser/analyser-row.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import type { ChartHeaderData } from '../lead-sheet/chart-header.tsx'
+import {
+  DEFAULT_BARS_PER_ROW,
+  readStoredBarsPerRow
+} from '../lead-sheet/bars-per-row-preference.ts'
 import { ChordChartPanel } from '../lead-sheet/chord-chart-panel.tsx'
 import type { ChordChartState } from '../lead-sheet/use-chord-chart.ts'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
@@ -20,7 +25,6 @@ import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import type { useMarkers } from '../markers/use-markers.ts'
 import type { useMixer } from '../mixer/use-mixer.ts'
 import type { ServerHealth } from '../../projects/use-server-health.ts'
-import { SeparationPanel } from '../separation/separation-panel.tsx'
 import type { useSeparation } from '../separation/use-separation.ts'
 import { TempoPanel } from '../tempo/tempo-panel.tsx'
 import type { useTempo } from '../tempo/use-tempo.ts'
@@ -157,31 +161,6 @@ export function ShellMain({
             disabled={!isLoaded}
             onAdd={() => markers.addAt(position.get())}
             onAddSection={() => markers.addSectionAt(position.get())}
-            detection={{
-              detecting: structureDetection.detecting,
-              error: structureDetection.error,
-              succeeded: structureDetection.succeeded,
-              // A detection replaces the STRUCTURE markers AND, when one
-              // exists, relabels the grid — either is armed work, so the
-              // confirm arms on both. Hand-dropped cues survive a run, so they
-              // arm nothing. The relabel needs a beat grid to place the
-              // sections on, so a grid is only "at stake" once the tempo is
-              // known (matches the guard in useStructureMarkers), never
-              // over-promising the confirm.
-              hasMarkers: markers.markers.some(
-                (marker) => marker.kind === 'structure'
-              ),
-              hasGrid:
-                chordChart.source.trim().length > 0 &&
-                (grid ?? []).some((beat) => beat.downbeat),
-              onDetect: () => void structureDetection.detect(),
-              // The structure engine only needs the server to ANSWER (it runs
-              // on CPU); no grid is required, so 'server' is the only block.
-              blockedReason:
-                serverHealth === 'offline' || serverHealth === 'checking'
-                  ? 'server'
-                  : undefined
-            }}
           />
           <ShellStage
             isLoaded={isLoaded}
@@ -214,14 +193,70 @@ export function ShellMain({
           <ShellSection
             label={t({ id: 'shell.zone.analysis', message: 'Analyse' })}
           >
-          {/* The import → stems bridge; once the stems are ready it steps
-              aside and they become the mixer in the timeline stage. */}
-          <SeparationPanel
-            state={separation.state}
-            canSeparate={canSeparate}
-            serverHealth={serverHealth}
-            onSeparate={onSeparate}
-            onCancel={separation.cancel}
+          {/* Q.2 — the four analysis actions in one row, each wearing its own
+              state. The row is the import → analyses bridge; the panels below
+              carry only the results and their corrections. */}
+          <AnalyserRow
+            disabled={!isLoaded}
+            separation={{
+              state: separation.state,
+              canSeparate,
+              serverHealth,
+              onSeparate,
+              onCancel: separation.cancel
+            }}
+            tempo={{
+              bpm: tempo.analysis?.bpm,
+              detecting: tempo.detecting,
+              error: tempo.error,
+              onRetry: onRetryTempo
+            }}
+            structure={{
+              detecting: structureDetection.detecting,
+              error: structureDetection.error,
+              succeeded: structureDetection.succeeded,
+              // A detection replaces the STRUCTURE markers AND, when one
+              // exists, relabels the grid — either is armed work, so the
+              // confirm arms on both. Hand-dropped cues survive a run, so they
+              // arm nothing. The relabel needs a beat grid to place the
+              // sections on, so a grid is only "at stake" once the tempo is
+              // known (matches the guard in useStructureMarkers), never
+              // over-promising the confirm.
+              hasMarkers: markers.markers.some(
+                (marker) => marker.kind === 'structure'
+              ),
+              hasGrid:
+                chordChart.source.trim().length > 0 &&
+                (grid ?? []).some((beat) => beat.downbeat),
+              onDetect: () => void structureDetection.detect(),
+              // The structure engine only needs the server to ANSWER (it runs
+              // on CPU); no grid is required, so 'server' is the only block.
+              blockedReason:
+                serverHealth === 'offline' || serverHealth === 'checking'
+                  ? 'server'
+                  : undefined
+            }}
+            chords={{
+              detecting: chordDetection.detecting,
+              error: chordDetection.error,
+              succeeded: chordDetection.succeeded,
+              hasGrid: chordChart.source.trim().length > 0,
+              // The layout preference lives in localStorage (posed on blur by
+              // the panel's field) — read it at click time.
+              onDetect: () =>
+                void chordDetection.detect(
+                  readStoredBarsPerRow() ?? DEFAULT_BARS_PER_ROW
+                ),
+              // The chord engine only needs the server to ANSWER (it runs
+              // on CPU — 'no-separation' just means no Demucs device), and
+              // the measures need a downbeat-flagged grid to anchor on.
+              blockedReason:
+                serverHealth === 'offline' || serverHealth === 'checking'
+                  ? 'server'
+                  : (grid?.some((beat) => beat.downbeat) ?? false)
+                    ? undefined
+                    : 'no-grid'
+            }}
           />
           {isLoaded && (
             <TempoPanel
@@ -230,11 +265,9 @@ export function ShellMain({
               tempoMap={tempoMap}
               position={position}
               detecting={tempo.detecting}
-              error={tempo.error}
               octaveShift={tempo.octaveShift}
               manual={tempo.manual !== undefined}
               onFold={onFoldTempo}
-              onRetry={onRetryTempo}
               onOverrideBpm={onOverrideBpm}
               onOverrideMeter={onOverrideMeter}
               onTap={onTapTempo}
@@ -254,22 +287,6 @@ export function ShellMain({
               pitchSemitones={pitchSemitones}
               header={chartHeader}
               currentMeasureIndex={currentMeasureIndex}
-              detection={{
-                detecting: chordDetection.detecting,
-                error: chordDetection.error,
-                succeeded: chordDetection.succeeded,
-                onDetect: (barsPerRow) =>
-                  void chordDetection.detect(barsPerRow),
-                // The chord engine only needs the server to ANSWER (it runs
-                // on CPU — 'no-separation' just means no Demucs device), and
-                // the measures need a downbeat-flagged grid to anchor on.
-                blockedReason:
-                  serverHealth === 'offline' || serverHealth === 'checking'
-                    ? 'server'
-                    : (grid?.some((beat) => beat.downbeat) ?? false)
-                      ? undefined
-                      : 'no-grid'
-              }}
             />
             </ShellSection>
           )}

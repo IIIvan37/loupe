@@ -7,17 +7,14 @@ import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import {
   ChordChartPanel,
-  type ChordDetectionProps
 } from './chord-chart-panel.tsx'
 import { useChordChart } from './use-chord-chart.ts'
 
 /** The panel as the shell hosts it: controlled by lifted session state. */
 function Host({
-  detection,
   pitchSemitones = 0,
   header
 }: {
-  detection?: ChordDetectionProps
   pitchSemitones?: number
   header?: { title?: string; bpm?: number }
 }) {
@@ -29,7 +26,6 @@ function Host({
       onTranspose={chart.transpose}
       transposedBy={chart.transposedBy}
       pitchSemitones={pitchSemitones}
-      detection={detection}
       header={header}
     />
   )
@@ -273,19 +269,6 @@ describe('ChordChartPanel bars-per-row preference', () => {
   })
 })
 
-function detectionOf(
-  overrides: Partial<ChordDetectionProps> = {}
-): ChordDetectionProps {
-  return {
-    blockedReason: undefined,
-    detecting: false,
-    error: undefined,
-    succeeded: false,
-    onDetect: () => {},
-    ...overrides
-  }
-}
-
 describe('ChordChartPanel long grids', () => {
   // A detected chart covers the whole track: ~120 measures in one click. The
   // panel must absorb any N without stretching the page (K.1).
@@ -350,168 +333,6 @@ describe('ChordChartPanel long grids', () => {
       { wrapper: I18nTestingProvider }
     )
     expect(document.querySelectorAll('[aria-current="true"]')).toHaveLength(1)
-  })
-})
-
-describe('ChordChartPanel detection', () => {
-  it('runs the detection with the panel layout on an empty grid', async () => {
-    const user = userEvent.setup()
-    const onDetect = vi.fn()
-    render(
-      <Host detection={detectionOf({ onDetect })} />,
-      { wrapper: I18nTestingProvider }
-    )
-    await user.click(
-      screen.getByRole('button', { name: i18n._('chords.detect') })
-    )
-    expect(onDetect).toHaveBeenCalledWith(4)
-  })
-
-  it('asks to confirm before overwriting a non-empty grid', async () => {
-    const user = userEvent.setup()
-    const onDetect = vi.fn()
-    render(
-      <Host detection={detectionOf({ onDetect })} />,
-      { wrapper: I18nTestingProvider }
-    )
-    await typeGrid(user,'| C |')
-    await user.click(
-      screen.getByRole('button', { name: i18n._('chords.detect') })
-    )
-    // First activation only arms the confirmation.
-    expect(onDetect).not.toHaveBeenCalled()
-    await user.click(
-      screen.getByRole('button', { name: i18n._('chords.detect-confirm') })
-    )
-    expect(onDetect).toHaveBeenCalledWith(4)
-  })
-
-  it('disables the button and says why while the tempo grid is missing', () => {
-    render(
-      <Host detection={detectionOf({ blockedReason: 'no-grid' })} />,
-      { wrapper: I18nTestingProvider }
-    )
-    expect(
-      screen.getByRole('button', { name: i18n._('chords.detect') })
-    ).toBeDisabled()
-    expect(
-      screen.getByText(i18n._('chords.detect-needs-grid'))
-    ).toBeInTheDocument()
-  })
-
-  it('says the server is required when it is not ready', () => {
-    render(
-      <Host detection={detectionOf({ blockedReason: 'server' })} />,
-      { wrapper: I18nTestingProvider }
-    )
-    expect(
-      screen.getByText(i18n._('chords.detect-needs-server'))
-    ).toBeInTheDocument()
-  })
-
-  it('announces the busy run and shows the failure', () => {
-    const { rerender } = render(
-      <Host detection={detectionOf({ detecting: true })} />,
-      { wrapper: I18nTestingProvider }
-    )
-    expect(screen.getByRole('status')).toHaveTextContent(
-      i18n._('chords.detecting')
-    )
-    rerender(<Host detection={detectionOf({ error: 'unknown' })} />)
-    // The visible line is fully translated: prefix + the code's own copy —
-    // no raw engine text ever reaches the UI (it goes to the console).
-    expect(
-      screen.getAllByText(new RegExp(i18n._('chords.error.unknown')))[0]
-    ).toHaveTextContent(i18n._('chords.detect-failed'))
-    // The live region speaks the actionable copy too — a screen-reader user
-    // gets the same reason a sighted user reads.
-    expect(screen.getByRole('status')).toHaveTextContent(
-      i18n._('chords.error.unknown')
-    )
-  })
-
-  it('explains a missing server engine in the user language', () => {
-    render(<Host detection={detectionOf({ error: 'engine-unavailable' })} />, {
-      wrapper: I18nTestingProvider
-    })
-    expect(
-      screen.getAllByText(new RegExp(i18n._('chords.error.engine-unavailable'))).length
-    ).toBeGreaterThan(0)
-  })
-
-  it('reuses the launch-the-server hint for an unreachable server', () => {
-    render(<Host detection={detectionOf({ error: 'network' })} />, {
-      wrapper: I18nTestingProvider
-    })
-    expect(
-      screen.getAllByText(new RegExp(i18n._('chords.detect-needs-server'))).length
-    ).toBeGreaterThan(0)
-  })
-
-  it('explains a server-side timeout in the user language', () => {
-    render(<Host detection={detectionOf({ error: 'timeout' })} />, {
-      wrapper: I18nTestingProvider
-    })
-    expect(
-      screen.getAllByText(new RegExp(i18n._('chords.error.timeout'))).length
-    ).toBeGreaterThan(0)
-  })
-
-  it('explains an oversized upload in the user language', () => {
-    render(<Host detection={detectionOf({ error: 'too-large' })} />, {
-      wrapper: I18nTestingProvider
-    })
-    expect(
-      screen.getAllByText(new RegExp(i18n._('chords.error.too-large'))).length
-    ).toBeGreaterThan(0)
-  })
-
-  it('explains an empty detection in the user language', () => {
-    render(<Host detection={detectionOf({ error: 'no-chords' })} />, {
-      wrapper: I18nTestingProvider
-    })
-    expect(
-      screen.getAllByText(new RegExp(i18n._('chords.error.no-chords'))).length
-    ).toBeGreaterThan(0)
-  })
-
-  it('reuses the detect-tempo-first hint for a gridless failure', () => {
-    render(<Host detection={detectionOf({ error: 'no-downbeat' })} />, {
-      wrapper: I18nTestingProvider
-    })
-    expect(
-      screen.getAllByText(new RegExp(i18n._('chords.detect-needs-grid'))).length
-    ).toBeGreaterThan(0)
-  })
-
-  it('announces the landed draft', () => {
-    render(<Host detection={detectionOf({ succeeded: true })} />, {
-      wrapper: I18nTestingProvider
-    })
-    expect(screen.getByRole('status')).toHaveTextContent(
-      i18n._('chords.detect-done')
-    )
-  })
-
-  it('keeps the primary action at the top — before the sheet, not below it', () => {
-    const { container } = render(<Host detection={detectionOf()} />, {
-      wrapper: I18nTestingProvider
-    })
-    const button = screen.getByRole('button', { name: i18n._('chords.detect') })
-    const viewport = container.querySelector('[class*="sheetViewport"]')
-    // A long grid pushes everything under it out of view (K.1 bounded the
-    // sheet, but the action must not drift down with it).
-    expect(
-      button.compareDocumentPosition(viewport as Element) &
-        Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy()
-  })
-
-  it('renders no detection controls when the feature is not wired', () => {
-    render(<Host />, { wrapper: I18nTestingProvider })
-    expect(
-      screen.queryByRole('button', { name: i18n._('chords.detect') })
-    ).not.toBeInTheDocument()
   })
 })
 

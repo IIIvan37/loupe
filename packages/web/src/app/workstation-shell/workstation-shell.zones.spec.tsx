@@ -58,13 +58,19 @@ describe('WorkstationShell zones', () => {
     ).toBeInTheDocument()
   })
 
-  it('labels every zone and row with the same section-label voice', async () => {
+  it('offers the separation as an action of the Analyse zone', async () => {
+    // Q.2 folded the lone separation panel into the analyser row: the button
+    // names itself, no standalone row label survives.
     const { user } = renderShell()
     await importTrack(user)
 
-    // The separation row finally carries a visible label, like its siblings.
+    const analysis = screen.getByRole('region', {
+      name: i18n._('shell.zone.analysis')
+    })
     expect(
-      screen.getByText(i18n._('separation.section-label'))
+      within(analysis).getByRole('button', {
+        name: i18n._('separation.separate')
+      })
     ).toBeInTheDocument()
   })
 })

@@ -84,6 +84,17 @@ msgid "alerts.close"
 msgstr "Fermer l'alerte"
 
 #. js-lingui-explicit-id
+#: src/app/analyser/analyser-row.tsx:237
+#: src/app/analyser/analyser-row.tsx:247
+msgid "analyser.tempo-detecting"
+msgstr "Analyse du tempo…"
+
+#. js-lingui-explicit-id
+#: src/app/analyser/analyser-row.tsx:251
+msgid "analyser.tempo-done"
+msgstr "Tempo détecté"
+
+#. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:126
 msgid "analysis.no-loops"
 msgstr "Aucune boucle. En enregistrer une depuis une sélection A/B sur la forme d'onde."
@@ -140,134 +151,134 @@ msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:282
+#: src/app/analyser/analyser-row.tsx:281
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:278
+#: src/app/analyser/analyser-row.tsx:288
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:202
+#: src/app/analyser/analyser-row.tsx:180
 msgid "chords.detect-done"
 msgstr "Grille pré-remplie depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:165
+#: src/app/analyser/analyser-row.tsx:172
 msgid "chords.detect-failed"
 msgstr "Échec de la détection des accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:28
+#: src/app/analyser/detection-copy.ts:56
 msgid "chords.detect-needs-grid"
 msgstr "Détecter d'abord le tempo — la grille de mesures ancre les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:24
+#: src/app/analyser/detection-copy.ts:51
 msgid "chords.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:200
-#: src/app/lead-sheet/chord-chart-panel.tsx:276
+#: src/app/analyser/analyser-row.tsx:178
+#: src/app/analyser/analyser-row.tsx:282
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:261
+#: src/app/lead-sheet/chord-chart-panel.tsx:157
 #: src/app/workstation-shell/shell-test-kit.tsx:249
 msgid "chords.edit"
 msgstr "Modifier"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:338
+#: src/app/lead-sheet/chord-chart-panel.tsx:206
 msgid "chords.empty-hint"
 msgstr "Aucune grille — saisir les accords via « Modifier » ou lancer la détection."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:46
+#: src/app/analyser/detection-copy.ts:70
 msgid "chords.error.engine-unavailable"
 msgstr "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:42
+#: src/app/analyser/detection-copy.ts:66
 msgid "chords.error.no-chords"
 msgstr "Aucun accord détecté sur ce morceau."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:52
+#: src/app/analyser/detection-copy.ts:76
 msgid "chords.error.timeout"
 msgstr "L'analyse des accords a expiré sur le serveur — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:56
+#: src/app/analyser/detection-copy.ts:80
 msgid "chords.error.too-large"
 msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:60
+#: src/app/analyser/detection-copy.ts:84
 msgid "chords.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:311
+#: src/app/lead-sheet/chord-chart-panel.tsx:179
 msgid "chords.follow-pitch"
 msgstr "Transposer la grille pour suivre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:307
+#: src/app/lead-sheet/chord-chart-panel.tsx:175
 msgid "chords.follow-pitch-confirm"
 msgstr "Réécrire la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:195
+#: src/app/lead-sheet/chord-chart-panel.tsx:100
 msgid "chords.followed"
 msgstr "Grille transposée"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:354
+#: src/app/lead-sheet/chord-chart-panel.tsx:222
 #: src/app/workstation-shell/shell-test-kit.tsx:245
 #: src/app/workstation-shell/shell-test-kit.tsx:250
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:295
+#: src/app/lead-sheet/chord-chart-panel.tsx:163
 msgid "chords.pitch-mismatch"
 msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:358
+#: src/app/lead-sheet/chord-chart-panel.tsx:226
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:252
+#: src/app/lead-sheet/chord-chart-panel.tsx:148
 msgid "chords.print"
 msgstr "Imprimer"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:216
+#: src/app/lead-sheet/chord-chart-panel.tsx:112
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:224
+#: src/app/lead-sheet/chord-chart-panel.tsx:120
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:235
+#: src/app/lead-sheet/chord-chart-panel.tsx:131
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
 #. js-lingui-explicit-id
+#: src/app/analyser/analyser-row.tsx:207
 #: src/app/header/header.tsx:225
 #: src/app/header/import-menu.tsx:180
-#: src/app/separation/separation-panel.tsx:130
 #: src/app/ui/popover-form.tsx:59
 #: src/app/workstation-shell/confirm-import-dialog.tsx:55
 msgid "common.cancel"
@@ -610,12 +621,12 @@ msgid "loops.trainer-title"
 msgstr "Rampe de tempo"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:152
+#: src/app/markers/marker-controls.tsx:33
 msgid "markers.add"
 msgstr "+ Repère"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:161
+#: src/app/markers/marker-controls.tsx:42
 msgid "markers.add-section"
 msgstr "+ Section"
 
@@ -660,7 +671,7 @@ msgid "markers.rename-title"
 msgstr "Renommer le repère"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:144
+#: src/app/markers/marker-controls.tsx:25
 msgid "markers.section-label"
 msgstr "Repères"
 
@@ -786,12 +797,13 @@ msgid "projects.unreachable"
 msgstr "Serveur injoignable — vérifier que le serveur local est lancé"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:15
+#: src/app/analyser/analyser-row.tsx:30
 msgid "separation.analysing"
 msgstr "Analyse du mix…"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:23
+#: src/app/analyser/analyser-row.tsx:38
+#: src/app/analyser/analyser-row.tsx:191
 msgid "separation.done"
 msgstr "Pistes séparées"
 
@@ -801,42 +813,33 @@ msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:137
+#: src/app/analyser/analyser-row.tsx:41
 msgid "separation.failed"
 msgstr "La séparation a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:146
-msgid "separation.idle-hint"
-msgstr "Les pistes séparées (voix, batterie, basse…) s'alignent sous la forme d'onde, chacune avec ses propres contrôles."
-
-#. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:107
+#: src/app/analyser/analyser-row.tsx:214
 msgid "separation.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:97
-msgid "separation.section-label"
-msgstr "Séparation"
-
-#. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:108
+#: src/app/analyser/analyser-row.tsx:215
 msgid "separation.separate"
 msgstr "Séparer les pistes"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:16
+#: src/app/analyser/analyser-row.tsx:31
+#: src/app/analyser/analyser-row.tsx:217
 msgid "separation.separating"
 msgstr "Séparation des pistes…"
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:47
+#: src/app/analyser/detection-copy.ts:125
 msgid "separation.server-no-separation"
 msgstr "Ce serveur ne fournit pas de moteur de séparation."
 
 #. js-lingui-explicit-id
-#: src/app/separation/separation-panel.tsx:42
+#: src/app/analyser/detection-copy.ts:120
 msgid "separation.server-offline"
 msgstr "Serveur hors ligne — démarrer le serveur local pour séparer les pistes."
 
@@ -847,17 +850,17 @@ msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:215
+#: src/app/workstation-shell/shell-main.tsx:194
 msgid "shell.zone.analysis"
 msgstr "Analyse"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:247
+#: src/app/workstation-shell/shell-main.tsx:280
 msgid "shell.zone.chart"
 msgstr "Partition"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:154
+#: src/app/workstation-shell/shell-main.tsx:158
 msgid "shell.zone.timeline"
 msgstr "Timeline"
 
@@ -932,72 +935,72 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:183
+#: src/app/analyser/analyser-row.tsx:259
 msgid "structure.detect"
 msgstr "Détecter la structure"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:113
+#: src/app/analyser/analyser-row.tsx:143
 msgid "structure.detect-confirm"
 msgstr "Remplacer les repères de structure ?"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:104
+#: src/app/analyser/analyser-row.tsx:134
 msgid "structure.detect-confirm-both"
 msgstr "Remplacer les repères de structure et la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:109
+#: src/app/analyser/analyser-row.tsx:139
 msgid "structure.detect-confirm-grid"
 msgstr "Réétiqueter la grille d’accords ?"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:134
+#: src/app/analyser/analyser-row.tsx:157
 msgid "structure.detect-done"
 msgstr "Repères de structure posés depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:125
+#: src/app/analyser/analyser-row.tsx:149
 msgid "structure.detect-failed"
 msgstr "Échec de la détection de la structure"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:12
+#: src/app/analyser/detection-copy.ts:18
 msgid "structure.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter la structure."
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:132
+#: src/app/analyser/analyser-row.tsx:155
 msgid "structure.detecting"
 msgstr "Détection de la structure…"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:177
+#: src/app/analyser/analyser-row.tsx:260
 msgid "structure.detecting-short"
 msgstr "Détection…"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:29
+#: src/app/analyser/detection-copy.ts:31
 msgid "structure.error.engine-unavailable"
 msgstr "Le moteur de structure n'est pas installé sur le serveur — voir server/README."
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:25
+#: src/app/analyser/detection-copy.ts:27
 msgid "structure.error.no-structure"
 msgstr "Aucune structure détectée sur ce morceau."
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:35
+#: src/app/analyser/detection-copy.ts:37
 msgid "structure.error.timeout"
 msgstr "L'analyse de la structure a expiré sur le serveur — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:39
+#: src/app/analyser/detection-copy.ts:41
 msgid "structure.error.too-large"
 msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:43
+#: src/app/analyser/detection-copy.ts:45
 msgid "structure.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
@@ -1042,115 +1045,115 @@ msgid "structure.section.verse"
 msgstr "Couplet"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:293
+#: src/app/tempo/tempo-panel.tsx:255
 msgid "tempo.align"
 msgstr "Caler la grille sur la tête de lecture"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:298
+#: src/app/tempo/tempo-panel.tsx:260
 msgid "tempo.align-short"
 msgstr "Caler"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:28
+#: src/app/tempo/tempo-panel.tsx:26
 msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:213
+#: src/app/tempo/tempo-panel.tsx:175
 #: src/app/workstation-shell/shell-test-kit.tsx:302
 msgid "tempo.bpm-field"
 msgstr "Saisir le tempo (BPM)"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:27
-#: src/app/tempo/tempo-panel.tsx:304
+#: src/app/tempo/tempo-panel.tsx:25
+#: src/app/tempo/tempo-panel.tsx:266
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:268
+#: src/app/tempo/tempo-panel.tsx:230
 msgid "tempo.double"
 msgstr "Doubler le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:37
+#: src/app/analyser/detection-copy.ts:93
 msgid "tempo.error.engine-unavailable"
 msgstr "Le moteur de tempo n'est pas installé sur le serveur — voir server/README."
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:42
+#: src/app/analyser/detection-copy.ts:98
 msgid "tempo.error.network"
 msgstr "Lancer le serveur local pour détecter le tempo."
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:46
+#: src/app/analyser/detection-copy.ts:102
 msgid "tempo.error.timeout"
 msgstr "L'analyse du tempo a expiré sur le serveur — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:50
+#: src/app/analyser/detection-copy.ts:106
 msgid "tempo.error.too-large"
 msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:54
+#: src/app/analyser/detection-copy.ts:110
 msgid "tempo.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:256
+#: src/app/tempo/tempo-panel.tsx:218
 msgid "tempo.halve"
 msgstr "Diviser le tempo par deux"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:204
+#: src/app/tempo/tempo-panel.tsx:166
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:223
+#: src/app/tempo/tempo-panel.tsx:185
 msgid "tempo.manual-badge"
 msgstr "Manuel"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:240
+#: src/app/tempo/tempo-panel.tsx:202
 msgid "tempo.meter-field"
 msgstr "Saisir le mètre (temps par mesure)"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:246
+#: src/app/tempo/tempo-panel.tsx:208
 msgid "tempo.meter-unit"
 msgstr "temps"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:228
+#: src/app/tempo/tempo-panel.tsx:190
 msgid "tempo.range"
 msgstr "{min}–{max} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:201
+#: src/app/tempo/tempo-panel.tsx:163
 msgid "tempo.region-label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:313
+#: src/app/analyser/analyser-row.tsx:236
 msgid "tempo.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
 #: src/app/keyboard/shortcut-hints.ts:107
-#: src/app/tempo/tempo-panel.tsx:284
+#: src/app/tempo/tempo-panel.tsx:246
 msgid "tempo.tap"
 msgstr "Taper le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:286
+#: src/app/tempo/tempo-panel.tsx:248
 msgid "tempo.tap-short"
 msgstr "Tap"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:219
+#: src/app/tempo/tempo-panel.tsx:181
 msgid "tempo.unit"
 msgstr "BPM"
 
