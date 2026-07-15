@@ -26,10 +26,22 @@ interface WaveformViewProps {
   readonly durationSeconds: number
   /** Click (no drag) seeks to a fraction (0–1) of the timeline. */
   readonly onSeek: (ratio: number) => void
-  /** A fresh surface drag selects a new (unsaved) A/B region, fractions 0–1. */
-  readonly onSelectRegion: (startRatio: number, endRatio: number) => void
+  /**
+   * A fresh surface drag selects a new (unsaved) A/B region, fractions 0–1.
+   * `snap` asks for beat-grid snapping — true at drag end unless Alt is held
+   * (the DAW escape hatch).
+   */
+  readonly onSelectRegion: (
+    startRatio: number,
+    endRatio: number,
+    snap: boolean
+  ) => void
   /** Moving a handle (or arrow-nudging it) adjusts the existing region in place. */
-  readonly onAdjustRegion: (startRatio: number, endRatio: number) => void
+  readonly onAdjustRegion: (
+    startRatio: number,
+    endRatio: number,
+    snap: boolean
+  ) => void
   /** Open the file picker again — the way out of a failed import. */
   readonly onReimport: () => void
 }
@@ -137,18 +149,24 @@ export function WaveformView({
       return
     }
     const ratio = ratioFrom(event.clientX)
+    const snap = !event.altKey
     if (finished.kind === 'select') {
       const end = ratio ?? finished.current
       if (Math.abs(end - finished.anchor) < DRAG_THRESHOLD) {
         onSeek(end)
       } else {
-        onSelectRegion(Math.min(finished.anchor, end), Math.max(finished.anchor, end))
+        onSelectRegion(
+          Math.min(finished.anchor, end),
+          Math.max(finished.anchor, end),
+          snap
+        )
       }
       return
     }
     onAdjustRegion(
       Math.min(finished.start, finished.end),
-      Math.max(finished.start, finished.end)
+      Math.max(finished.start, finished.end),
+      snap
     )
   }
 
@@ -161,7 +179,12 @@ export function WaveformView({
       edge === 'start'
         ? { start: clamp01(region.start + delta), end: region.end }
         : { start: region.start, end: clamp01(region.end + delta) }
-    onAdjustRegion(Math.min(moved.start, moved.end), Math.max(moved.start, moved.end))
+    // An arrow nudge is a deliberate fine adjustment — never snapped.
+    onAdjustRegion(
+      Math.min(moved.start, moved.end),
+      Math.max(moved.start, moved.end),
+      false
+    )
   }
 
   function onHandleKeyDown(
@@ -199,26 +222,7 @@ export function WaveformView({
         </div>
       )
     case 'error':
-      // Not a dead-end: a plain-words explanation (the decoder's message is
-      // technical and untranslated — kept below as the diagnostic detail) and
-      // the way out, straight back into the file picker.
-      return (
-        <div className={styles.errorStage}>
-          <p role="alert" className={styles.error}>
-            <Trans id="waveform.import-error">
-              L'import a échoué : ce fichier n'a pas pu être lu.
-            </Trans>
-          </p>
-          <p className={styles.errorDetail}>{state.message}</p>
-          <button
-            type="button"
-            className={styles.reimport}
-            onClick={onReimport}
-          >
-            <Trans id="waveform.reimport">Importer un autre fichier</Trans>
-          </button>
-        </div>
-      )
+      return <ImportErrorStage message={state.message} onReimport={onReimport} />
     case 'loaded': {
       const committed = loopRatios(loopRegion, durationSeconds)
       // The edge drag previews live; otherwise the region/handles follow state.
@@ -268,18 +272,9 @@ export function WaveformView({
             )}
           </button>
 
-          {durationSeconds > 0 &&
-            beatGrid.map((beat) => (
-              <span
-                key={beat.timeSeconds}
-                className={beat.downbeat ? styles.downbeat : styles.beat}
-                style={{
-                  left: `${clamp01(beat.timeSeconds / durationSeconds) * 100}%`
-                }}
-                data-beat={beat.downbeat ? 'downbeat' : 'beat'}
-                aria-hidden="true"
-              />
-            ))}
+          {durationSeconds > 0 && (
+            <BeatLines beatGrid={beatGrid} durationSeconds={durationSeconds} />
+          )}
 
           {region && (
             <>
@@ -347,6 +342,54 @@ export function WaveformView({
       )
     }
   }
+}
+
+/**
+ * The failed-import stage: a plain-words explanation (the decoder's message is
+ * technical and untranslated — kept as the diagnostic detail) and the way out,
+ * straight back into the file picker.
+ */
+function ImportErrorStage({
+  message,
+  onReimport
+}: {
+  readonly message: string
+  readonly onReimport: () => void
+}) {
+  return (
+    <div className={styles.errorStage}>
+      <p role="alert" className={styles.error}>
+        <Trans id="waveform.import-error">
+          L'import a échoué : ce fichier n'a pas pu être lu.
+        </Trans>
+      </p>
+      <p className={styles.errorDetail}>{message}</p>
+      <button type="button" className={styles.reimport} onClick={onReimport}>
+        <Trans id="waveform.reimport">Importer un autre fichier</Trans>
+      </button>
+    </div>
+  )
+}
+
+/** The detected beat grid as vertical lines, downbeats drawn stronger. */
+function BeatLines({
+  beatGrid,
+  durationSeconds
+}: {
+  readonly beatGrid: BeatGrid
+  readonly durationSeconds: number
+}) {
+  return beatGrid.map((beat) => (
+    <span
+      key={beat.timeSeconds}
+      className={beat.downbeat ? styles.downbeat : styles.beat}
+      style={{
+        left: `${clamp01(beat.timeSeconds / durationSeconds) * 100}%`
+      }}
+      data-beat={beat.downbeat ? 'downbeat' : 'beat'}
+      aria-hidden="true"
+    />
+  ))
 }
 
 /** Convert the loop region into start/end fractions, or undefined if not usable. */

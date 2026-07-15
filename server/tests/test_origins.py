@@ -20,9 +20,7 @@ class TestAllowedOrigins:
     def test_reads_a_comma_separated_allowlist_from_the_env(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setenv(
-            "LOUPE_ALLOWED_ORIGINS", "https://loupe.example,http://localhost:5173"
-        )
+        monkeypatch.setenv("LOUPE_ALLOWED_ORIGINS", "https://loupe.example,http://localhost:5173")
         assert allowed_origins() == [
             "https://loupe.example",
             "http://localhost:5173",

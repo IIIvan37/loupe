@@ -23,6 +23,7 @@ function renderPanel(
       onSeekMarker={noop}
       onRenameMarker={noop}
       onRemoveMarker={noop}
+      onLoopSection={noop}
       loops={loops}
       activeLoopId={null}
       onActivateLoop={noop}
@@ -42,6 +43,33 @@ describe('AnalysisPanel', () => {
     // The seek row carries the timecode; the remove button does not.
     await user.click(screen.getByRole('button', { name: /0:05/ }))
     expect(onSeekMarker).toHaveBeenCalledWith(5)
+  })
+
+  it('offers « Boucler » on a structure marker row', async () => {
+    const user = userEvent.setup()
+    const onLoopSection = vi.fn()
+    const section = {
+      id: 's',
+      timeSeconds: 10,
+      label: 'Couplet',
+      kind: 'structure' as const
+    }
+    renderPanel({ markers: [section], onLoopSection })
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('markers.loop-named', { name: 'Couplet' })
+      })
+    )
+    expect(onLoopSection).toHaveBeenCalledWith(section)
+  })
+
+  it('offers no « Boucler » on a plain cue (a point, not a span)', () => {
+    renderPanel()
+    expect(
+      screen.queryByRole('button', {
+        name: i18n._('markers.loop-named', { name: 'Repère 1' })
+      })
+    ).not.toBeInTheDocument()
   })
 
   it('renames a marker through the editor', async () => {

@@ -1,6 +1,7 @@
 import {
   formatTimecode,
   type LoopLibrary,
+  type Marker,
   type MarkerList,
   type NamedLoop
 } from '@app/core'
@@ -18,6 +19,8 @@ interface AnalysisPanelProps {
   readonly onSeekMarker: (timeSeconds: number) => void
   readonly onRenameMarker: (id: string, label: string) => void
   readonly onRemoveMarker: (id: string) => void
+  /** Arm the loupe on a structure marker's section (its row's « Boucler »). */
+  readonly onLoopSection: (marker: Marker) => void
   /** The saved A/B loops (recall / rename / remove). */
   readonly loops: LoopLibrary
   /** The loop the active region came from — its row reads as selected. */
@@ -40,6 +43,7 @@ export function AnalysisPanel({
   onSeekMarker,
   onRenameMarker,
   onRemoveMarker,
+  onLoopSection,
   loops,
   activeLoopId,
   onActivateLoop,
@@ -92,6 +96,17 @@ export function AnalysisPanel({
                     time={formatTimecode(marker.timeSeconds)}
                     name={name}
                     onSelect={() => onSeekMarker(marker.timeSeconds)}
+                    // Only a structure marker bounds a section to loop; a cue
+                    // is a point, not a span.
+                    loopLabel={
+                      marker.kind === 'structure'
+                        ? t({
+                            id: 'markers.loop-named',
+                            message: `Boucler ${name}`
+                          })
+                        : undefined
+                    }
+                    onLoop={() => onLoopSection(marker)}
                     renameTitle={t({
                       id: 'markers.rename-title',
                       message: 'Renommer le repère'
@@ -188,6 +203,9 @@ interface EntryRowProps {
   readonly active?: boolean
   /** Seek to the entry (a marker's time, a loop's start). */
   readonly onSelect: () => void
+  /** When present, an extra action loops the entry's span (structure rows). */
+  readonly loopLabel?: string | undefined
+  readonly onLoop?: () => void
   readonly renameTitle: string
   readonly renameLabel: string
   readonly onRename: (name: string) => void
@@ -207,6 +225,8 @@ function EntryRow({
   name,
   active,
   onSelect,
+  loopLabel,
+  onLoop,
   renameTitle,
   renameLabel,
   onRename,
@@ -235,6 +255,17 @@ function EntryRow({
         <span className={styles.entryTime}>{time}</span>
         <span className={styles.entryName}>{name}</span>
       </button>
+      {loopLabel && (
+        <button
+          type="button"
+          className={cx(styles.entryEdit)}
+          aria-label={loopLabel}
+          title={loopLabel}
+          onClick={onLoop}
+        >
+          <Icon name="loop" />
+        </button>
+      )}
       <NameEditor
         title={renameTitle}
         triggerClassName={cx(styles.entryEdit)}

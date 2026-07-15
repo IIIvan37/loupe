@@ -1,5 +1,6 @@
 import type { BeatGrid } from './beat-grid.ts'
 import { median } from './median.ts'
+import { nearestTime } from './nearest-time.ts'
 
 /**
  * One functional section of a song: a label (the engine's raw vocabulary —
@@ -69,7 +70,7 @@ export function snapSectionsToGrid(
     if (index === 0 || index === boundaries.length - 1) {
       return time
     }
-    const nearest = nearestDownbeat(downbeats, time)
+    const nearest = nearestTime(downbeats, time)
     const candidate = Math.abs(nearest - time) <= bar ? nearest : time
     // `>=` lets a boundary land on the previous one (a sub-bar section then
     // collapses below), but a downbeat BEFORE it (a would-be inversion) is
@@ -105,15 +106,4 @@ function typicalBar(downbeats: readonly number[]): number | undefined {
   return median(
     downbeats.slice(1).map((time, index) => time - (downbeats[index] as number))
   )
-}
-
-/** The downbeat closest to `time` (downbeats are in ascending order). */
-function nearestDownbeat(downbeats: readonly number[], time: number): number {
-  let best = downbeats[0] as number
-  for (const downbeat of downbeats) {
-    if (Math.abs(downbeat - time) < Math.abs(best - time)) {
-      best = downbeat
-    }
-  }
-  return best
 }

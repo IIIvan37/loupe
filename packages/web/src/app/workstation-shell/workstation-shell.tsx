@@ -152,7 +152,8 @@ export function WorkstationShell({
     durationSeconds: transport.durationSeconds,
     setLoopRegion,
     seekToSeconds,
-    onRegionReplaced: speedTrainer.stop
+    onRegionReplaced: speedTrainer.stop,
+    beatGrid: tempo.analysis?.grid ?? []
   })
   const viewport = useViewport()
   const serverHealth = useServerHealth({ fetchImpl: healthFetch })
