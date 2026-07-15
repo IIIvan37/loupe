@@ -209,6 +209,7 @@ export {
   mixerReducer,
   UNITY_GAIN_DB
 } from './domain/mixer.ts'
+export { nudgeSeconds } from './domain/nudge-time.ts'
 export {
   clampPitchSemitones,
   MAX_PITCH_SEMITONES,

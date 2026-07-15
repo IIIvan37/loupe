@@ -468,7 +468,7 @@ pas de dette nouvelle :
 - [x] **R.3** busy avant gate + cold start narré
 - [x] **R.4** peindre le statut avant zipSync/mixedStems
 - [x] **T.1** boucles musicales : section + snap au beat
-- [ ] **T.2** nudge clavier en unités musicales
+- [x] **T.2** nudge clavier en unités musicales
 - [ ] **T.3** chart cliquable → seek
 - [ ] **T.4** Cmd/Ctrl+S
 - [ ] **T.5** champs BPM/mètre aria-invalid
