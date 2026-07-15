@@ -338,8 +338,14 @@ avec `ACAO` + `Vary: Origin` (la composition gate→CORS de U.1 en vrai).
 Au passage : le build d'image Modal cassait (madmom épinglé `git+https`,
 `debian_slim` sans git) → `apt_install("ffmpeg", "git")`, déployé,
 **PR #149 ouverte (à merger — fix d'une ligne)**.
-**Prochain : merger #149**, puis U.2 (CI deno — `deno check/lint/fmt` passent
-déjà en local), U.4/U.5, T.1–T.3, V.1.
+**#149 mergée.**
+**U.2 — job CI deno (branche `feat/u2-deno-ci`, PR à ouvrir)** : job
+`edge-functions` (`setup-deno@v2`, `deno check --config … + lint + fmt
+--check` sur `mint-analyze-token/`, sans stack, timeout 5 min) ; l'intégration
+live reste locale (runbook + harnais U.3). Les 3 commandes vertes en local.
+[rapport](sessions/2026-07-15-u2-deno-ci.md).
+**Prochain : PR U.2 (vérifier le job sur la CI de la PR) → merge**, puis U.4
+(cliquets), U.5, T.1–T.3, V.1.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
