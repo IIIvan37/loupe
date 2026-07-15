@@ -3,6 +3,12 @@
   padding: var(--space-m);
 }
 
+/* The decoding line keeps the same gutter as its idle/error siblings. */
+.loading {
+  padding: var(--space-m);
+  max-inline-size: 24rem;
+}
+
 .error {
   color: var(--danger);
   padding: var(--space-m);

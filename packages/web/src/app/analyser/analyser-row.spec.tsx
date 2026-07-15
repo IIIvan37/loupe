@@ -342,11 +342,18 @@ describe('AnalyserRow structure', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows the busy label while a detection is in flight', () => {
+  it('wears the operation line while a detection is in flight', () => {
+    // R.1: the running face is a live bar + label, not a disabled button.
     renderRow({ structure: { detecting: true } })
     expect(
-      screen.getByRole('button', { name: i18n._('structure.detecting-short') })
-    ).toBeDisabled()
+      screen.getByText(i18n._('structure.detecting-short'), {
+        selector: 'span'
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: i18n._('structure.detect') })
+    ).not.toBeInTheDocument()
   })
 
   it('surfaces a failed detection as an actionable line', () => {

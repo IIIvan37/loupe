@@ -11,6 +11,7 @@ import { i18n } from '../../i18n/i18n.ts'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import type { ServerHealth } from '../../projects/use-server-health.ts'
 import { DetectionAction } from '../ui/detection-action.tsx'
+import { OperationStatus } from '../ui/operation-status.tsx'
 import { LiveStatus } from '../ui/live-status.tsx'
 import {
   CHORDS_ERROR_COPY,
@@ -117,7 +118,6 @@ export function AnalyserRow({
   const sepRunning = sep.status === 'analysing' || sep.status === 'separating'
   const sepBlock = SEPARATION_SERVER_BLOCK[separation.serverHealth]
   const sepStep = sepRunning ? i18n._(PROGRESS_LABELS[sep.status]) : undefined
-  const sepPercent = Math.round(sep.progress * 100)
   const sepFailure =
     sep.status === 'error'
       ? i18n._({ ...SEP_FAILED, values: { error: sep.error } })
@@ -190,23 +190,6 @@ export function AnalyserRow({
           <p className={styles.done}>
             <Trans id="separation.done">Pistes séparées</Trans>
           </p>
-        ) : sepRunning ? (
-          <div className={styles.progress}>
-            <div className={styles.progressHead}>
-              <span>{sepStep}</span>
-              <span className={styles.percent}>{sepPercent}%</span>
-            </div>
-            <progress className={styles.bar} value={sepPercent} max={100}>
-              {sepPercent}%
-            </progress>
-            <button
-              type="button"
-              className={styles.cancel}
-              onClick={separation.onCancel}
-            >
-              <Trans id="common.cancel">Annuler</Trans>
-            </button>
-          </div>
         ) : (
           <DetectionAction
             label={
@@ -214,8 +197,11 @@ export function AnalyserRow({
                 ? t({ id: 'separation.retry', message: 'Réessayer' })
                 : t({ id: 'separation.separate', message: 'Séparer les pistes' })
             }
-            // The in-flight face is the progress block above, not this button.
-            running={false}
+            runningLabel={sepStep}
+            running={sepRunning}
+            // The one flow with REAL progress (streamed NDJSON) — and the one
+            // whose cancel already ships (R.2 wires the detections').
+            progress={{ value: sep.progress, onCancel: separation.onCancel }}
             hint={sepBlock === undefined ? undefined : t(sepBlock)}
             errorLine={sepFailure}
             disabled={!separation.canSeparate || sepBlock !== undefined}
@@ -240,9 +226,12 @@ export function AnalyserRow({
               onRun={tempo.onRetry}
             />
           ) : tempo.detecting ? (
-            <p className={styles.status}>
-              <Trans id="analyser.tempo-detecting">Analyse du tempo…</Trans>
-            </p>
+            <OperationStatus
+              label={t({
+                id: 'analyser.tempo-detecting',
+                message: 'Analyse du tempo…'
+              })}
+            />
           ) : (
             <p className={styles.done}>
               <Trans id="analyser.tempo-done">Tempo détecté</Trans>

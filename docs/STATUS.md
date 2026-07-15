@@ -259,8 +259,19 @@ au pitch) » (« Tempo » réservé au BPM musical). Au passage : timeout vitest
 5 s → 15 s (flakes de contention mesurés sur les specs shell de réouverture,
 diff hors de cause). Gate **verte — 1449 tests**.
 [rapport](sessions/2026-07-15-q4-q5-header-speed.md).
-**Prochain : merger la pile #137→#138→#139→Q.4/Q.5, puis Lot R** (R.1
-`OperationStatus`).
+**Lot Q mergé sur `main`** (#137, #138, #140 — #139 fermée par une course
+GitHub, ses commits livrés via #140).
+**R.1 — OperationStatus (branche `feat/r1-operation-status`, PR à ouvrir)** :
+primitive `app/ui/operation-status` (barre réelle/indéterminée + libellé +
+detail différé + Annuler conditionnel) ; la face running de `DetectionAction`
+la porte (fini le label de bouton swappé), la séparation y replie son bloc
+maison (progrès streamé + Annuler, abstraction 4/4), tempo/structure/accords
+en indéterminé, décodage waveform aussi. Browser-verify sous Slow 3G. Revue
+8 angles → 3 fixés. Gate **verte — 1454 tests**.
+[rapport](sessions/2026-07-15-r1-operation-status.md).
+**Prochain : R.2** (exposer cancel() des trois détections → `onCancel` de la
+primitive), puis R.3 (busy avant gate + cold start narré), R.4 (statut peint
+avant zipSync + migration du chip header).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

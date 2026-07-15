@@ -1,14 +1,29 @@
 import { Stack } from '../../layout/stack/stack.tsx'
 import { LiveStatus } from './live-status.tsx'
+import { OperationStatus } from './operation-status.tsx'
 import { useTwoStepConfirm } from './use-two-step-confirm.ts'
 import styles from './detection-action.module.css'
+
+/** What the running face shows beyond the bare indeterminate bar. */
+export interface DetectionProgress {
+  /** Real progress in [0, 1] when the flow streams one. */
+  readonly value?: number | undefined
+  /** A second line for a wait that needs explaining (a cold start). */
+  readonly detail?: string | undefined
+  /** Hold the detail back until the wait grows suspicious (ms). */
+  readonly detailAfterMs?: number | undefined
+  /** Offered as « Annuler » while the run is in flight. */
+  readonly onCancel?: (() => void) | undefined
+}
 
 interface DetectionActionProps {
   /** The action's idle face (« Détecter la structure »), resolved copy. */
   readonly label: string
-  /** Swapped in while the run is in flight (defaults to the idle label). */
+  /** The running face's label (defaults to the idle label). */
   readonly runningLabel?: string | undefined
   readonly running: boolean
+  /** Progress/cancel details of the running face (indeterminate without). */
+  readonly progress?: DetectionProgress | undefined
   /**
    * Whether a run would overwrite existing work: the first activation then
    * only arms a « Confirmer ? » beat wearing `confirmLabel`.
@@ -36,6 +51,7 @@ export function DetectionAction({
   label,
   runningLabel,
   running,
+  progress,
   confirms = false,
   confirmLabel,
   hint,
@@ -57,19 +73,27 @@ export function DetectionAction({
 
   return (
     <Stack gap="var(--space-2xs)">
-      <button
-        type="button"
-        className={styles.action}
-        disabled={disabled || running}
-        onClick={onClick}
-        onBlur={overwrite.disarm}
-      >
-        {running
-          ? (runningLabel ?? label)
-          : overwrite.pending
-            ? (confirmLabel ?? label)
-            : label}
-      </button>
+      {/* The running face IS the operation line (R.1): a live bar instead of
+          a swapped, disabled button label. */}
+      {running ? (
+        <OperationStatus
+          label={runningLabel ?? label}
+          progress={progress?.value}
+          detail={progress?.detail}
+          detailAfterMs={progress?.detailAfterMs}
+          onCancel={progress?.onCancel}
+        />
+      ) : (
+        <button
+          type="button"
+          className={styles.action}
+          disabled={disabled}
+          onClick={onClick}
+          onBlur={overwrite.disarm}
+        >
+          {overwrite.pending ? (confirmLabel ?? label) : label}
+        </button>
+      )}
       {hint !== undefined && <p className={styles.hint}>{hint}</p>}
       {/* Failures interrupt (role="alert") — the shell-wide contract for a
           run that just died; the polite channel below narrates the rest. */}
