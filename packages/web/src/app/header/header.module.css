@@ -133,7 +133,8 @@
 }
 
 /* Document-state chip next to the title: dim when in sync, amber when the
-   session drifted, teal while a long operation narrates itself. */
+   session drifted. A long operation swaps the chip for the shared operation
+   line (R.4). */
 .saveState {
   font-size: var(--font-size-xs);
   color: var(--dim);
@@ -144,14 +145,9 @@
   color: var(--amber);
 }
 
-.saveStateBusy {
-  color: var(--teal);
-}
-
-/* Escape hatch beside the busy chip (a cancellable download) — a quiet ghost,
-   sized to the chip's line so it never inflates the header row. */
-.busyCancel {
-  composes: ghostButton from '../ui/controls.module.css';
-  padding: var(--space-3xs) var(--space-xs);
+/* The operation line must not inflate the header row: cap its footprint. */
+.busyLine {
+  display: block;
   font-size: var(--font-size-xs);
+  max-inline-size: 16rem;
 }

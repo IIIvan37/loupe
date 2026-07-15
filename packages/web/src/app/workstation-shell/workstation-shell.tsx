@@ -255,8 +255,7 @@ export function WorkstationShell({
   })
 
   // The two stem-export entry points (+ their success toasts), off the shell.
-  const { exportStems: handleExportStems, downloadStem: handleDownloadStem } =
-    useStemExport({
+  const stemExport = useStemExport({
       separation,
       tempo,
       metadata,
@@ -289,7 +288,8 @@ export function WorkstationShell({
         isLoaded={isLoaded}
         stemsReady={stemsReady}
         onImport={openFilePicker}
-        onExportStems={handleExportStems}
+        onExportStems={stemExport.exportStems}
+        exportingStems={stemExport.exporting}
         onShowShortcuts={() => setShortcutsOpen(true)}
         onShowProjects={() => {
           void session.projects.refresh()
@@ -331,7 +331,7 @@ export function WorkstationShell({
         loopEditing={loopEditing}
         separation={separation}
         tempo={tempo}
-        onDownloadStem={handleDownloadStem}
+        onDownloadStem={stemExport.downloadStem}
         mainViewState={mainViewState}
         loopRegion={loopRegion}
         loopEnabled={loopEnabled}

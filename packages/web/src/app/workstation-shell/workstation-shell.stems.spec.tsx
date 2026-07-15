@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import {
@@ -152,5 +152,31 @@ describe('WorkstationShell stems & separation', () => {
     expect(
       await screen.findByText(i18n._('toast.stems-exported'))
     ).toBeInTheDocument()
+  })
+
+  it('narrates the export in the header while the zip is built', async () => {
+    // The busy line is painted BEFORE the synchronous zip freezes the thread
+    // (R.4): it must be up as soon as the click handler yields.
+    URL.createObjectURL = vi.fn(() => 'blob:test')
+    URL.revokeObjectURL = vi.fn()
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+
+    const { user } = renderShell({ separator: fakeSeparator() })
+    await importTrack(user)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    )
+    const exportButton = screen.getByRole('button', {
+      name: i18n._('header.export')
+    })
+    await waitFor(() => expect(exportButton).toBeEnabled())
+
+    fireEvent.click(exportButton)
+    // Synchronously after the click: the busy face is already up.
+    expect(screen.getByText(i18n._('header.exporting'))).toBeInTheDocument()
+    await screen.findByText(i18n._('toast.stems-exported'))
+    expect(
+      screen.queryByText(i18n._('header.exporting'))
+    ).not.toBeInTheDocument()
   })
 })

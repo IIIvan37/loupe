@@ -281,8 +281,15 @@ anti-cancel-pendant-mint), et la face busy structure explique après ~4 s
 « Démarrage du moteur d'analyse (jusqu'à ~1 min)… » quand l'analyse est
 offloadée. Gate **verte — 1459 tests**.
 [rapport](sessions/2026-07-15-r3-cold-start.md).
-**Prochain : R.4** (busy peint avant zipSync/mixedStems + migration du chip
-header sur OperationStatus) — dernier du Lot R.
+**R.4 — busy peint avant le gel (branche `feat/r4-export-busy`, stackée sur
+R.3, PR à ouvrir) — LOT R CLOS** : `nextPaint()` (double rAF) avant le zip
+d'export (header narre « Export des stems… ») et avant le ré-encodage WAV du
+save (`preparingSave`) ; le chip busy du header migre sur `OperationStatus`
+(barre réelle pour le téléchargement URL — le % quitte la copy — Annuler
+conditionnel, peau cancel dédupliquée). Gate **verte — 1460 tests**.
+[rapport](sessions/2026-07-15-r4-export-busy.md).
+**Prochain : merger la pile R (#141→#142→#143→R.4)**, puis W.1/W.2 (design),
+U.1/U.3 (gate cloud + sécurité), T.1–T.3, V.1.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

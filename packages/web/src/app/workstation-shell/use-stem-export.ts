@@ -1,8 +1,10 @@
 import { type DecodedAudio, encodeWav, synthesizeClickTrack } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
+import { useState } from 'react'
 import { downloadBlob } from '../../audio/download-blob.ts'
 import { encodeWavMemo } from '../../audio/encode-wav-memo.ts'
 import { exportBaseName } from '../../lib/export-base-name.ts'
+import { nextPaint } from '../../lib/next-paint.ts'
 import { TRACK_STEM_ID } from '../mixer/track-stem.ts'
 import type { Separation } from '../separation/use-separation.ts'
 import { METRONOME_ID } from '../tempo/metronome-stem.ts'
@@ -21,7 +23,9 @@ interface StemExportDeps {
 
 export interface StemExport {
   /** Export ALL present stems as one zip — shared by the header and the mixer. */
-  readonly exportStems: () => void
+  readonly exportStems: () => Promise<void>
+  /** Whether the zip is being built — narrated by the header's busy line. */
+  readonly exporting: boolean
   /**
    * Download one mixer lane as a WAV. The synthetic lanes (the click, and the
    * whole track when un-separated) are rendered on the fly; a separated stem
@@ -46,6 +50,7 @@ export function useStemExport({
   notifySuccess
 }: StemExportDeps): StemExport {
   const { t } = useLingui()
+  const [exporting, setExporting] = useState(false)
   const stemsExportedMessage = t({
     id: 'toast.stems-exported',
     message: 'Stems exportés'
@@ -55,14 +60,22 @@ export function useStemExport({
     message: 'Fichier exporté'
   })
 
-  function exportStems(): void {
-    void separation
-      .exportStems(exportBaseName(metadata.title, trackName))
-      .then((ok) => {
-        if (ok) {
-          notifySuccess(stemsExportedMessage)
-        }
-      })
+  async function exportStems(): Promise<void> {
+    // The zip is synchronous on the main thread (~seconds on a full track,
+    // the off-thread rewrite stays on the watch list): paint the busy line
+    // FIRST, or nothing shows until the toast (R.4).
+    setExporting(true)
+    await nextPaint()
+    try {
+      const ok = await separation.exportStems(
+        exportBaseName(metadata.title, trackName)
+      )
+      if (ok) {
+        notifySuccess(stemsExportedMessage)
+      }
+    } finally {
+      setExporting(false)
+    }
   }
 
   function downloadStem(id: string): void {
@@ -92,5 +105,5 @@ export function useStemExport({
     }
   }
 
-  return { exportStems, downloadStem }
+  return { exportStems, downloadStem, exporting }
 }
