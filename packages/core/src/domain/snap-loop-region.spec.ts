@@ -62,6 +62,55 @@ describe('snapLoopRegionToGrid', () => {
     )
   })
 
+  // A grid with a pickup: beats at 1, 1.5, …, 3 (a 4/4 bar and a downbeat),
+  // exposing the before-the-first-beat boundary the zero-anchored grids hide.
+  const offsetGrid = meteredGrid([4, 1]).map((beat) => ({
+    ...beat,
+    timeSeconds: beat.timeSeconds + 1
+  }))
+
+  it('leaves an edge before the grid untouched (a pickup is not dragged in)', () => {
+    expect(
+      snapLoopRegionToGrid(makeLoopRegion(0.2, 2.4), offsetGrid, 'beat')
+    ).toEqual(makeLoopRegion(0.2, 2.5))
+  })
+
+  it('snaps an edge exactly half a beat before the first beat', () => {
+    expect(
+      snapLoopRegionToGrid(makeLoopRegion(0.75, 2.4), offsetGrid, 'beat')
+    ).toEqual(makeLoopRegion(1, 2.5))
+  })
+
+  it('snaps an edge exactly half a beat past the last beat', () => {
+    // The grid ends at 3.5 s: 3.75 s is on the snapping boundary (inclusive).
+    expect(
+      snapLoopRegionToGrid(makeLoopRegion(2.4, 3.75), grid, 'beat')
+    ).toEqual(makeLoopRegion(2.5, 3.5))
+  })
+
+  it('leaves an edge just past the snapping boundary untouched', () => {
+    // 3.9 s is between half (3.75) and one full interval (4) past the end —
+    // outside the boundary, so it must stay raw.
+    expect(
+      snapLoopRegionToGrid(makeLoopRegion(2.4, 3.9), grid, 'beat')
+    ).toEqual(makeLoopRegion(2.5, 3.9))
+  })
+
+  // A single-beat grid has no interval: only its exact instant can snap.
+  const oneBeat = [{ timeSeconds: 1, downbeat: true }]
+
+  it('snaps nothing around a single-beat grid (no interval to measure by)', () => {
+    expect(
+      snapLoopRegionToGrid(makeLoopRegion(0.4, 1.2), oneBeat, 'beat')
+    ).toEqual(makeLoopRegion(0.4, 1.2))
+  })
+
+  it('keeps a zero-length region sitting on the only beat', () => {
+    expect(snapLoopRegionToGrid(makeLoopRegion(1, 1), oneBeat, 'beat')).toEqual(
+      makeLoopRegion(1, 1)
+    )
+  })
+
   it('leaves the region untouched without a grid (callers snap unconditionally)', () => {
     fc.assert(
       fc.property(arbRegion, arbUnit, (region, unit) => {

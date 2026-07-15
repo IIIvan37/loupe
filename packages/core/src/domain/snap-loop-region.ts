@@ -32,8 +32,9 @@ export function snapLoopRegionToGrid(
  */
 function snapEdge(times: readonly number[], seconds: number): number {
   const first = times[0]
-  const last = times.at(-1)
-  if (first === undefined || last === undefined) return seconds
+  if (first === undefined) return seconds
+  // A non-empty list has a last element — one emptiness check covers both.
+  const last = times.at(-1) as number
   const firstStep = (times[1] ?? first) - first
   const lastStep = last - (times.at(-2) ?? last)
   if (seconds < first - firstStep / 2 || seconds > last + lastStep / 2) {
