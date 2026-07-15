@@ -1,4 +1,5 @@
 import { buildTempoMap, measureIndexAt, type OctaveFactor } from '@app/core'
+import { isAnalysisOffloaded } from '../../audio/analysis-token.ts'
 import { useLingui } from '@lingui/react/macro'
 import { type ComponentProps, useMemo } from 'react'
 import {
@@ -265,6 +266,7 @@ export function ShellMain({
                 (grid ?? []).some((beat) => beat.downbeat),
               onDetect: () => void structureDetection.detect(),
               onCancel: structureDetection.cancel,
+              mayColdStart: isAnalysisOffloaded(),
               // The structure engine only needs the server to ANSWER (it runs
               // on CPU); no grid is required, so 'server' is the only block.
               blockedReason:

@@ -275,8 +275,14 @@ trois hooks (abort + bump run-token + busy down — annuler n'est pas un
 échec), câblés sur le `onCancel` des faces busy ; « Annuler » apparaît sur
 les 4 flux. Gate **verte — 1456 tests**.
 [rapport](sessions/2026-07-15-r2-detection-cancel.md).
-**Prochain : R.3** (busy avant gate + cold start narré — la primitive a déjà
-`detail`/`detailAfterMs`), puis R.4 (zipSync + chip header).
+**R.3 — cold start narré (branche `feat/r3-cold-start`, stackée sur R.2, PR
+à ouvrir)** : busy monté avant `await gate()` (mint couvert, garde de ticket
+anti-cancel-pendant-mint), et la face busy structure explique après ~4 s
+« Démarrage du moteur d'analyse (jusqu'à ~1 min)… » quand l'analyse est
+offloadée. Gate **verte — 1459 tests**.
+[rapport](sessions/2026-07-15-r3-cold-start.md).
+**Prochain : R.4** (busy peint avant zipSync/mixedStems + migration du chip
+header sur OperationStatus) — dernier du Lot R.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

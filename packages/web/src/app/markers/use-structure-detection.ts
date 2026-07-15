@@ -113,13 +113,23 @@ export function useStructureDetection({
     }
     // Gate first (offload only): a token failure blocks the run and tells the
     // shell to open the account menu — the analysis never reaches the core.
-    // Only awaited when offloaded, so the token-less local path starts the
-    // detector synchronously (the abort/busy semantics below rely on that).
+    // The busy face goes up BEFORE the gate's mint round-trip (R.3): the
+    // whole wait since the click is narrated, not just the inference.
     setGateReason(undefined)
+    setDetecting(true)
+    setError(undefined)
+    setSucceeded(false)
     if (isAnalysisOffloaded()) {
+      // A cancel (or a newer run) during the mint bumps the token — this
+      // superseded run must not start the detector when the gate resolves.
+      const ticket = runIdRef.current
       const gated = await gate()
+      if (runIdRef.current !== ticket) {
+        return
+      }
       if (!gated.ok) {
         setGateReason(gated.reason)
+        setDetecting(false)
         return
       }
     }
@@ -127,9 +137,6 @@ export function useStructureDetection({
     const controller = new AbortController()
     controllerRef.current = controller
     const runId = ++runIdRef.current
-    setDetecting(true)
-    setError(undefined)
-    setSucceeded(false)
     const result = await detectStructure(
       { audio, grid: beatGrid, signal: controller.signal },
       { detector: engine }

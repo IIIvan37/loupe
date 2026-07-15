@@ -261,6 +261,64 @@ describe('useStructureDetection', () => {
     expect(detect).not.toHaveBeenCalled()
   })
 
+  it('raises the busy face before the gate mint resolves (R.3)', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    let open: (result: { ok: false; reason: 'sign-in-required' }) => void =
+      () => {}
+    const gatePromise = new Promise<{ ok: false; reason: 'sign-in-required' }>(
+      (resolve) => {
+        open = resolve
+      }
+    )
+    const { result } = renderHook(() =>
+      useStructureDetection({
+        loadedAudio: AUDIO,
+        grid: NO_GRID,
+        onSections: vi.fn(),
+        detector: { detect: vi.fn(async () => []) },
+        gate: () => gatePromise
+      })
+    )
+    let run: Promise<void> = Promise.resolve()
+    act(() => {
+      run = result.current.detect()
+    })
+    // The whole wait since the click is narrated — mint round-trip included.
+    expect(result.current.detecting).toBe(true)
+    act(() => open({ ok: false, reason: 'sign-in-required' }))
+    await act(() => run)
+    expect(result.current.detecting).toBe(false)
+  })
+
+  it('a cancel during the mint stops the superseded run', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    let open: (result: { ok: true }) => void = () => {}
+    const gatePromise = new Promise<{ ok: true }>((resolve) => {
+      open = resolve
+    })
+    const detect = vi.fn(async () => [])
+    const { result } = renderHook(() =>
+      useStructureDetection({
+        loadedAudio: AUDIO,
+        grid: NO_GRID,
+        onSections: vi.fn(),
+        detector: { detect },
+        gate: () => gatePromise
+      })
+    )
+    let run: Promise<void> = Promise.resolve()
+    act(() => {
+      run = result.current.detect()
+    })
+    act(() => result.current.cancel())
+    expect(result.current.detecting).toBe(false)
+    // The gate resolving OK afterwards must not start the detector anyway.
+    act(() => open({ ok: true }))
+    await act(() => run)
+    expect(detect).not.toHaveBeenCalled()
+    expect(result.current.detecting).toBe(false)
+  })
+
   it('blocks the analysis and surfaces the reason when the gate fails', async () => {
     // The gate only runs on the offload path; stub it on for these two tests.
     vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
