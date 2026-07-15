@@ -288,8 +288,17 @@ save (`preparingSave`) ; le chip busy du header migre sur `OperationStatus`
 (barre réelle pour le téléchargement URL — le % quitte la copy — Annuler
 conditionnel, peau cancel dédupliquée). Gate **verte — 1460 tests**.
 [rapport](sessions/2026-07-15-r4-export-busy.md).
-**Prochain : merger la pile R (#141→#142→#143→R.4)**, puis W.1/W.2 (design),
-U.1/U.3 (gate cloud + sécurité), T.1–T.3, V.1.
+**Pile R mergée sur `main`** (#141 → #142 → #143 → #144, retarget avant
+merge — pas de course #139 ; branches distantes r1…r4 à nettoyer).
+**W.1 — rangées denses wrappées (branche `feat/w1-dense-rows-wrap`, PR à
+ouvrir)** : `flex-wrap: wrap` sur `.panel` tempo et `.header` accords (les
+deux seules rangées sans wrap), invariant gardé par `dense-rows-wrap.spec.ts`
+au niveau du texte CSS (jsdom ne calcule pas de layout). Gate **verte —
+1462 tests**, Stryker skippé (core intouché).
+[rapport](sessions/2026-07-15-w1-dense-rows-wrap.md).
+**Prochain : W.2** (peau « Confirmer ? » unique — trancher ambre vs
+danger-rouge pour le drop-dialog avant de coder), puis U.1/U.3 (gate cloud +
+sécurité), T.1–T.3, V.1.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
