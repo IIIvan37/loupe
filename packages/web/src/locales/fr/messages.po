@@ -19,14 +19,14 @@ msgid "account.beta-code"
 msgstr "Code beta"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:167
+#: src/app/account/account-menu.tsx:168
 msgid "account.code-error"
 msgstr "Vérification impossible — réessayer."
 
 #. js-lingui-explicit-id
 #: src/app/account/account-menu.tsx:160
 msgid "account.code-invalid"
-msgstr "Code invalide ou déjà utilisé."
+msgstr "Code invalide, déjà utilisé, ou trop d'essais — réessayer plus tard."
 
 #. js-lingui-explicit-id
 #: src/app/account/account-menu.tsx:103
@@ -54,7 +54,7 @@ msgid "account.quota-this-month"
 msgstr "Analyses ce mois : {used}/{quota}"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:177
+#: src/app/account/account-menu.tsx:178
 msgid "account.redeem"
 msgstr "Valider le code"
 
@@ -74,7 +74,7 @@ msgid "account.sign-in-title"
 msgstr "Se connecter pour analyser"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:187
+#: src/app/account/account-menu.tsx:188
 msgid "account.sign-out"
 msgstr "Se déconnecter"
 
@@ -362,7 +362,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:315
+#: src/app/workstation-shell/workstation-shell.tsx:311
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 

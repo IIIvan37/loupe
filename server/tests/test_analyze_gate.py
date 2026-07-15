@@ -14,6 +14,7 @@ browser as opaque CORS errors.
 
 from __future__ import annotations
 
+import pytest
 from analyze_token_kit import NOW, SECRET, b64url, mint, valid_claims
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -57,6 +58,17 @@ def _composed_client() -> TestClient:
         allow_headers=["*"],
     )
     return TestClient(app)
+
+
+class TestSecretFloor:
+    def test_installing_with_a_short_secret_fails_loudly(self) -> None:
+        # A weak shared secret must abort at startup, not silently guard prod.
+        with pytest.raises(ValueError, match="32"):
+            install_analyze_gate(FastAPI(), secret="too-short")
+
+    def test_installing_with_an_empty_secret_fails_loudly(self) -> None:
+        with pytest.raises(ValueError, match="32"):
+            install_analyze_gate(FastAPI(), secret="")
 
 
 class TestAnalyzeGate:

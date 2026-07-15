@@ -94,6 +94,19 @@ Deno.test('a tampered minted token fails verification', async () => {
   assert(threw, 'a token with a mangled signature must not verify')
 })
 
+Deno.test('a too-short shared secret -> 500 before any minting (no stack needed)', async () => {
+  // U.3 floor: refuse to mint with a weak secret. The env check runs before
+  // the Supabase fetches, so this test needs no live stack.
+  Deno.env.set('ANALYZE_JWT_SECRET', 'too-short')
+  try {
+    const res = await mint('irrelevant-user-jwt')
+    assertEquals(res.status, 500)
+    assertEquals((await res.json()).error, 'server_misconfigured')
+  } finally {
+    Deno.env.set('ANALYZE_JWT_SECRET', SECRET)
+  }
+})
+
 Deno.test('missing bearer token -> 401', async () => {
   const res = await mint(null)
   assertEquals(res.status, 401)

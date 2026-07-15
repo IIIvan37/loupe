@@ -11,7 +11,7 @@ values
   ('11111111-1111-1111-1111-111111111111', 'member@test',    'authenticated', 'authenticated'),
   ('22222222-2222-2222-2222-222222222222', 'outsider@test',  'authenticated', 'authenticated');
 
-insert into public.beta_codes (code, uses_left) values ('GOLDEN', 1);
+insert into public.beta_codes (code, uses_left) values ('golden-code-aaaa-bbbb-cccc-dddddddddddd', 1);
 
 -- Helper: become a given user for the RLS/auth.uid() sensitive calls.
 create or replace function pg_temp.as_user(p_uid uuid) returns void
@@ -32,10 +32,10 @@ declare
 begin
   -- 1) First-time redeem succeeds and consumes the code.
   perform pg_temp.as_user('11111111-1111-1111-1111-111111111111');
-  assert public.redeem_beta_code('GOLDEN') = true, 'redeem should succeed';
+  assert public.redeem_beta_code('golden-code-aaaa-bbbb-cccc-dddddddddddd') = true, 'redeem should succeed';
 
   reset role;
-  assert (select uses_left from public.beta_codes where code = 'GOLDEN') = 0,
+  assert (select uses_left from public.beta_codes where code = 'golden-code-aaaa-bbbb-cccc-dddddddddddd') = 0,
     'code should be drained to 0';
   assert exists (select 1 from public.beta_members
                  where user_id = '11111111-1111-1111-1111-111111111111'),
@@ -44,7 +44,7 @@ begin
   -- 2) Redeem is idempotent: same user again = still true, no extra consumption
   --    (already 0, so this also proves it does not go negative).
   perform pg_temp.as_user('11111111-1111-1111-1111-111111111111');
-  assert public.redeem_beta_code('GOLDEN') = true, 'idempotent redeem stays true';
+  assert public.redeem_beta_code('golden-code-aaaa-bbbb-cccc-dddddddddddd') = true, 'idempotent redeem stays true';
   reset role;
   assert (select count(*) from public.beta_members
           where user_id = '11111111-1111-1111-1111-111111111111') = 1,
@@ -52,7 +52,7 @@ begin
 
   -- 3) An exhausted / unknown code fails for a fresh user.
   perform pg_temp.as_user('22222222-2222-2222-2222-222222222222');
-  assert public.redeem_beta_code('GOLDEN') = false, 'drained code should fail';
+  assert public.redeem_beta_code('golden-code-aaaa-bbbb-cccc-dddddddddddd') = false, 'drained code should fail';
   assert public.redeem_beta_code('NOPE')   = false, 'unknown code should fail';
   reset role;
 

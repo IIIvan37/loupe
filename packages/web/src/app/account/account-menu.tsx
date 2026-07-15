@@ -158,7 +158,8 @@ export function AccountMenu({
                     {redeemPhase === 'invalid' && (
                       <p className={styles.error} role="alert">
                         <Trans id="account.code-invalid">
-                          Code invalide ou déjà utilisé.
+                          Code invalide, déjà utilisé, ou trop d'essais —
+                          réessayer plus tard.
                         </Trans>
                       </p>
                     )}
