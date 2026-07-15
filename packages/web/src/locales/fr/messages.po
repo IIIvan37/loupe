@@ -84,6 +84,21 @@ msgid "alerts.close"
 msgstr "Fermer l'alerte"
 
 #. js-lingui-explicit-id
+#: src/app/analyser/analysis-summary.ts:14
+msgid "analyser.summary-grid"
+msgstr "grille {0} mes."
+
+#. js-lingui-explicit-id
+#: src/app/analyser/analysis-summary.ts:9
+msgid "analyser.summary-meter"
+msgstr "{0} temps"
+
+#. js-lingui-explicit-id
+#: src/app/analyser/analysis-summary.ts:10
+msgid "analyser.summary-sections"
+msgstr "{0, plural, one {# section} other {# sections}}"
+
+#. js-lingui-explicit-id
 #: src/app/analyser/analyser-row.tsx:234
 #: src/app/analyser/analyser-row.tsx:244
 msgid "analyser.tempo-detecting"
@@ -277,7 +292,7 @@ msgstr "Transposer un demi-ton vers le haut"
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row.tsx:207
-#: src/app/header/header.tsx:225
+#: src/app/header/header.tsx:211
 #: src/app/header/import-menu.tsx:180
 #: src/app/ui/popover-form.tsx:59
 #: src/app/workstation-shell/confirm-import-dialog.tsx:55
@@ -316,10 +331,10 @@ msgid "common.rename"
 msgstr "Renommer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:86
-#: src/app/header/header.tsx:98
-#: src/app/header/header.tsx:106
-#: src/app/header/header.tsx:118
+#: src/app/header/header.tsx:79
+#: src/app/header/header.tsx:91
+#: src/app/header/header.tsx:99
+#: src/app/header/header.tsx:111
 #: src/app/loops/loop-controls.tsx:79
 #: src/app/workstation-shell/shell-test-kit.tsx:258
 #: src/app/workstation-shell/shell-test-kit.tsx:347
@@ -348,7 +363,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:305
+#: src/app/workstation-shell/workstation-shell.tsx:311
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -369,22 +384,22 @@ msgstr "WAV, MP3, FLAC, M4A…"
 
 #. js-lingui-explicit-id
 #. placeholder {0}: Math.round(urlImport.progress.fraction * 100)
-#: src/app/workstation-shell/shell-header.tsx:101
+#: src/app/workstation-shell/shell-header.tsx:95
 msgid "header.downloading"
 msgstr "Téléchargement… {0} %"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:266
+#: src/app/header/header.tsx:256
 msgid "header.export"
 msgstr "Exporter"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:259
+#: src/app/header/header.tsx:249
 msgid "header.export-needs-stems"
 msgstr "Séparer les pistes pour exporter les stems"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:255
+#: src/app/header/header.tsx:245
 msgid "header.export-ready"
 msgstr "Télécharger les stems en ZIP"
 
@@ -399,7 +414,7 @@ msgid "header.import-confirm"
 msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:133
+#: src/app/workstation-shell/shell-header.tsx:127
 #: src/app/workstation-shell/shell-test-kit.tsx:225
 #: src/app/workstation-shell/use-file-picker.ts:24
 msgid "header.import-file"
@@ -441,91 +456,91 @@ msgid "header.import-url-unsupported"
 msgstr "Hôte non supporté — YouTube ou SoundCloud uniquement"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:127
+#: src/app/workstation-shell/shell-header.tsx:121
 msgid "header.no-track"
 msgstr "Aucun morceau"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:118
+#: src/app/workstation-shell/shell-header.tsx:112
 msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:283
+#: src/app/header/header.tsx:275
 #: src/app/workstation-shell/shell-test-kit.tsx:278
 msgid "header.projects"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:126
+#: src/app/header/header.tsx:119
 #: src/app/workstation-shell/shell-test-kit.tsx:349
 msgid "header.rename-project"
 msgstr "Renommer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:121
+#: src/app/header/header.tsx:114
 msgid "header.save-as"
 msgstr "Enregistrer sous un autre nom"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:93
+#: src/app/header/header.tsx:86
 msgid "header.save-needs-track"
 msgstr "Importer un morceau pour pouvoir l'enregistrer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:140
-#: src/app/header/header.tsx:142
+#: src/app/header/header.tsx:133
+#: src/app/header/header.tsx:135
 #: src/app/workstation-shell/shell-test-kit.tsx:343
 msgid "header.save-project"
 msgstr "Enregistrer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:190
+#: src/app/header/header.tsx:182
 msgid "header.saved"
 msgstr "Enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:116
+#: src/app/workstation-shell/shell-header.tsx:110
 msgid "header.saving"
 msgstr "Enregistrement du projet…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:33
+#: src/app/workstation-shell/shell-header.tsx:27
 msgid "header.server-no-separation"
 msgstr "Séparation indisponible"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:29
+#: src/app/workstation-shell/shell-header.tsx:23
 msgid "header.server-offline"
 msgstr "Serveur hors ligne"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:40
+#: src/app/workstation-shell/shell-header.tsx:34
 msgid "header.server-ready"
 msgstr "Serveur prêt"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:238
+#: src/app/header/header.tsx:227
 msgid "header.shortcuts-tip"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:234
+#: src/app/header/header.tsx:223
 msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:105
+#: src/app/workstation-shell/shell-header.tsx:99
 msgid "header.transcoding"
 msgstr "Extraction de l'audio…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:132
+#: src/app/workstation-shell/shell-header.tsx:126
 msgid "header.unknown-artist"
 msgstr "Artiste inconnu"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:189
+#: src/app/header/header.tsx:181
 msgid "header.unsaved"
 msgstr "● Non enregistré"
 
@@ -804,6 +819,7 @@ msgstr "Analyse du mix…"
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row.tsx:38
 #: src/app/analyser/analyser-row.tsx:191
+#: src/app/analyser/analysis-summary.ts:8
 msgid "separation.done"
 msgstr "Pistes séparées"
 
@@ -849,17 +865,17 @@ msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:190
+#: src/app/workstation-shell/shell-main.tsx:223
 msgid "shell.zone.analysis"
 msgstr "Analyse"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:272
+#: src/app/workstation-shell/shell-main.tsx:310
 msgid "shell.zone.chart"
 msgstr "Partition"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:154
+#: src/app/workstation-shell/shell-main.tsx:187
 msgid "shell.zone.timeline"
 msgstr "Timeline"
 
@@ -1054,6 +1070,7 @@ msgid "tempo.align-short"
 msgstr "Caler"
 
 #. js-lingui-explicit-id
+#: src/app/analyser/analysis-summary.ts:7
 #: src/app/tempo/tempo-panel.tsx:26
 msgid "tempo.bpm"
 msgstr "{0} BPM"
@@ -1166,7 +1183,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:200
+#: src/app/workstation-shell/workstation-shell.tsx:206
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
@@ -1191,17 +1208,17 @@ msgid "transport.pause"
 msgstr "Pause"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:127
+#: src/app/transport-bar/transport-bar.tsx:130
 msgid "transport.pitch-label"
 msgstr "Hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:140
+#: src/app/transport-bar/transport-bar.tsx:143
 msgid "transport.pitch-reset"
 msgstr "Double-clic pour revenir à 0"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:135
+#: src/app/transport-bar/transport-bar.tsx:138
 msgid "transport.pitch-slider"
 msgstr "Hauteur en demi-tons"
 
@@ -1216,19 +1233,19 @@ msgid "transport.start"
 msgstr "Début"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:103
+#: src/app/transport-bar/transport-bar.tsx:106
 msgid "transport.tempo-label"
-msgstr "Tempo (sans toucher au pitch)"
+msgstr "Vitesse (sans toucher au pitch)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:116
+#: src/app/transport-bar/transport-bar.tsx:119
 msgid "transport.tempo-reset"
 msgstr "Double-clic pour revenir à 100 %"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:111
+#: src/app/transport-bar/transport-bar.tsx:114
 msgid "transport.tempo-slider"
-msgstr "Tempo en pourcentage"
+msgstr "Vitesse en pourcentage"
 
 #. js-lingui-explicit-id
 #: src/app/waveform/waveform-view.tsx:192

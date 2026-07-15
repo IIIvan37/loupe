@@ -54,6 +54,11 @@ export default defineConfig({
   ],
   test: {
     globals: true,
+    // The suite has grown to ~120 files; the shell integration specs (two
+    // imports + a project restore) take 0.3–0.5 s alone but can cross the
+    // 5 s default under full parallel load with coverage — load-flakes, not
+    // hangs. 15 s keeps real hangs visible without failing on contention.
+    testTimeout: 15_000,
     // Node by default (the pure core). Web specs opt into jsdom per-file via a
     // `// @vitest-environment jsdom` docblock.
     environment: 'node',

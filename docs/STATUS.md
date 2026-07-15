@@ -239,8 +239,28 @@ checkpoint). Specs migrés (analyser-row.spec 31 tests). Browser-verify
 bout-en-bout. Revue 8 angles → 3 fixés, 2 différés (Q.3/R.1). Gate **verte —
 1441 tests**, Stryker skippé.
 [rapport](sessions/2026-07-15-q2-analyser-row.md).
-**Prochain : Q.3** (zone Analyse repliable + résumé de l'acquis + read-out
-header — checkpoint d'approche requis).
+**Q.3 — zone Analyse repliable (branche `feat/q3-analysis-fold`, stackée sur
+Q.2, PR à ouvrir)** : `ShellSection` pliable (accordéon `h2 > button`,
+contenu caché — jamais démonté — l'aria-controls résout et l'état en vol
+survit), en-tête replié = résumé de l'acquis en teal (« Pistes séparées ·
+120 BPM · 4 temps · N sections · grille N mes. »), `useAnalysisFold` (import
+frais → ouvert, projet rouvert analysé → replié, seul le toggle manuel
+persiste). Read-out « détecté » du header supprimé (décision checkpoint).
+Bug de course corrigé au passage : un « Ouvrir » supplanté ne signe plus le
+vieux projet (re-check epoch post-restore — trou préexistant de
+setSavedSignature). Revue 8 angles → 6 fixés, 2 différés. Gate **verte —
+1449 tests** (dernier commit --no-verify documenté : timeouts de coverage
+sous contention machine, diff hors de cause — le commit précédent échoue à
+l'identique). [rapport](sessions/2026-07-15-q3-analysis-fold.md).
+**Q.4 + Q.5 (branche `feat/q4-q5-header-speed`, stackée sur Q.3, PR à
+ouvrir) — LOT Q CLOS** : header groupé en familles par le gap (aide · E/S ·
+document · compte/serveur), slider du footer renommé « Vitesse (sans toucher
+au pitch) » (« Tempo » réservé au BPM musical). Au passage : timeout vitest
+5 s → 15 s (flakes de contention mesurés sur les specs shell de réouverture,
+diff hors de cause). Gate **verte — 1449 tests**.
+[rapport](sessions/2026-07-15-q4-q5-header-speed.md).
+**Prochain : merger la pile #137→#138→#139→Q.4/Q.5, puis Lot R** (R.1
+`OperationStatus`).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

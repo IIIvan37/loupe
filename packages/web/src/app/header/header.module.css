@@ -40,29 +40,6 @@
   white-space: nowrap;
 }
 
-.readout {
-  display: inline-flex;
-  align-items: baseline;
-  gap: var(--space-2xs);
-  padding: var(--space-2xs) var(--space-xs);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-
-.readoutLabel {
-  color: var(--dim);
-  font-size: var(--font-size-2xs);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-}
-
-/* Detected values: teal + mono (the machine measured these). */
-.readoutValue {
-  font-family: var(--font-mono);
-  color: var(--teal);
-  font-size: var(--font-size-s);
-}
-
 /* Server health: a small coloured dot + label, dim like other metadata,
    set apart from the action buttons by a soft divider (infra, not an action). */
 .serverStatus {

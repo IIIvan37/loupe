@@ -7,6 +7,8 @@ import {
 } from '../../lib/external-value.ts'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalyserRow } from '../analyser/analyser-row.tsx'
+import { analysisSummary } from '../analyser/analysis-summary.ts'
+import type { AnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import type { ChartHeaderData } from '../lead-sheet/chart-header.tsx'
 import { ChordChartPanel } from '../lead-sheet/chord-chart-panel.tsx'
@@ -32,6 +34,8 @@ import styles from './workstation-shell.module.css'
 
 interface ShellMainProps {
   readonly isLoaded: boolean
+  /** Whether the Analyse zone is unfolded — owned by the shell (Q.3). */
+  readonly analysisFold: AnalysisFold
   /** The playhead, streamed outside React state (Lot L.1). */
   readonly position: ExternalValue<number>
   readonly durationSeconds: number
@@ -90,6 +94,7 @@ interface ShellMainProps {
  */
 export function ShellMain({
   isLoaded,
+  analysisFold,
   position,
   durationSeconds,
   markers,
@@ -142,6 +147,34 @@ export function ShellMain({
     measureIndexAt(grid ?? [], seconds)
   )
 
+  // What the machine acquired, for the folded Analyse header (Q.3).
+  const structureSections = markers.markers.filter(
+    (marker) => marker.kind === 'structure'
+  ).length
+  const chartSource = chordChart.source
+  const folded = !analysisFold.open
+  const summary = useMemo(
+    () =>
+      // Only the FOLDED header shows it — don't parse the chart per keystroke
+      // while the zone is open and the summary would be discarded anyway.
+      folded
+        ? analysisSummary({
+            separated: separation.state.status === 'ready',
+            bpm: tempo.analysis?.bpm,
+            beatsPerBar: tempo.analysis?.beatsPerBar,
+            sectionCount: structureSections,
+            chartSource
+          })
+        : undefined,
+    [
+      folded,
+      separation.state.status,
+      tempo.analysis,
+      structureSections,
+      chartSource
+    ]
+  )
+
   return (
     <div className={styles.body}>
       <main className={styles.main}>
@@ -188,6 +221,11 @@ export function ShellMain({
           </ShellSection>
           <ShellSection
             label={t({ id: 'shell.zone.analysis', message: 'Analyse' })}
+            fold={{
+              open: analysisFold.open,
+              onToggle: analysisFold.toggle,
+              summary
+            }}
           >
           {/* Q.2 — the four analysis actions in one row, each wearing its own
               state. The row is the import → analyses bridge; the panels below

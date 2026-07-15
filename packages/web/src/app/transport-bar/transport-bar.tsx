@@ -100,7 +100,10 @@ export function TransportBar({
       <Cluster gap="var(--space-l)" align="center">
         <label className={styles.field}>
           <span className={styles.fieldLabel}>
-            <Trans id="transport.tempo-label">Tempo (sans toucher au pitch)</Trans>
+            {/* « Vitesse », not « Tempo » (Q.5): « Tempo » is reserved for
+                the panel's musical BPM — two same-named read-outs used to
+                measure two different quantities. */}
+            <Trans id="transport.tempo-label">Vitesse (sans toucher au pitch)</Trans>
           </span>
           <input
             type="range"
@@ -110,7 +113,7 @@ export function TransportBar({
             value={tempoPercent}
             aria-label={t({
               id: 'transport.tempo-slider',
-              message: 'Tempo en pourcentage'
+              message: 'Vitesse en pourcentage'
             })}
             disabled={!canPlay}
             title={t({
