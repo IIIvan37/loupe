@@ -67,7 +67,8 @@ def _bake_weights() -> None:
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
-    .apt_install("ffmpeg")
+    # git: requirements.txt pins madmom to a commit via git+https.
+    .apt_install("ffmpeg", "git")
     .pip_install_from_requirements("requirements.txt")
     .env(
         {
