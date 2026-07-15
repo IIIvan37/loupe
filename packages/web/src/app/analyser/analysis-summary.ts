@@ -1,4 +1,4 @@
-import { parseChart, unrollChart } from '@app/core'
+import { parseChart } from '@app/core'
 import { msg } from '@lingui/core/macro'
 import { i18n } from '../../i18n/i18n.ts'
 
@@ -11,10 +11,7 @@ const SECTIONS = msg({
   id: 'analyser.summary-sections',
   message: '{0, plural, one {# section} other {# sections}}'
 })
-const GRID = msg({
-  id: 'analyser.summary-grid',
-  message: '{0, plural, one {grille # mes.} other {grille # mes.}}'
-})
+const GRID = msg({ id: 'analyser.summary-grid', message: 'grille {0} mes.' })
 
 export interface AnalysisSummaryInput {
   readonly separated: boolean
@@ -48,9 +45,12 @@ export function analysisSummary(
   if (input.sectionCount > 0) {
     parts.push(i18n._({ ...SECTIONS, values: { 0: input.sectionCount } }))
   }
+  // The WRITTEN grid size — what the sheet displays — not the unrolled form.
   const measures =
     input.chartSource.trim().length > 0
-      ? unrollChart(parseChart(input.chartSource)).length
+      ? parseChart(input.chartSource).sections.flatMap(
+          (section) => section.measures
+        ).length
       : 0
   if (measures > 0) {
     parts.push(i18n._({ ...GRID, values: { 0: measures } }))

@@ -62,9 +62,13 @@ describe('WorkstationShell analysis fold', () => {
     const analysis = screen.getByRole('region', {
       name: i18n._('shell.zone.analysis')
     })
-    expect(
-      within(analysis).getByText(new RegExp(i18n._('tempo.bpm', { 0: 120 })))
-    ).toBeInTheDocument()
+    // The folded content stays in the DOM (hidden — aria-controls must
+    // resolve), so text queries can hit the tempo panel's live region too:
+    // assert the VISIBLE summary line specifically.
+    const summary = within(analysis)
+      .getAllByText(new RegExp(i18n._('tempo.bpm', { 0: 120 })))
+      .find((element) => element.closest('[hidden]') === null)
+    expect(summary).toBeVisible()
   })
 
   it('reopens the zone from the stored preference', async () => {

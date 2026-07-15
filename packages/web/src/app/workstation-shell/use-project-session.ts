@@ -265,6 +265,12 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       // Same clean slate as a fresh import, then re-import the stored bytes.
       startFreshTrack(result.project.name)
       await restoreSession(result, deps)
+      // Re-check the epoch: a fresh import that landed DURING the restore
+      // superseded it (restoreSession bailed) — signing the old project or
+      // seating its fold would mislabel the track the user now looks at.
+      if (sessionEpochRef.current !== epoch) {
+        return
+      }
       // The rebuilt session mirrors the manifest — sign it as the saved state.
       setSavedSignature(sessionSignature(result.project))
       deps.onRestored?.(result.project)

@@ -54,8 +54,13 @@ export function ShellSection({ label, fold, children }: ShellSectionProps) {
             {label}
           </h2>
         )}
-        {(fold === undefined || fold.open) && (
-          <div id={contentId}>
+        {fold === undefined ? (
+          children
+        ) : (
+          // Folding HIDES rather than unmounts: aria-controls always resolves,
+          // and in-flight state (a running separation, an armed confirm)
+          // survives the fold. Role queries and AT ignore the hidden subtree.
+          <div id={contentId} hidden={!fold.open}>
             <Stack gap="var(--space-xs)">{children}</Stack>
           </div>
         )}

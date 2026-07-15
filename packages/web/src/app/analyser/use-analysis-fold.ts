@@ -41,12 +41,11 @@ export interface AnalysisFold {
   readonly seatForRestoredProject: (project: Project) => void
 }
 
-/** The fold's own definition of « analysed »: a tempo and a chord grid. */
+/** The fold's own definition of « analysed »: a tempo and a chord grid. The
+ * manifest never stores an empty chart (`projectChordChart` owns that rule),
+ * so presence of the fields is the whole test. */
 function isAnalysed(project: Project): boolean {
-  return (
-    project.tempo !== undefined &&
-    (project.chordChart?.source.trim().length ?? 0) > 0
-  )
+  return project.tempo !== undefined && project.chordChart !== undefined
 }
 
 export function useAnalysisFold(): AnalysisFold {

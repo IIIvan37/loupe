@@ -86,7 +86,7 @@ msgstr "Fermer l'alerte"
 #. js-lingui-explicit-id
 #: src/app/analyser/analysis-summary.ts:14
 msgid "analyser.summary-grid"
-msgstr "{0, plural, one {grille # mes.} other {grille # mes.}}"
+msgstr "grille {0} mes."
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analysis-summary.ts:9
@@ -363,7 +363,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:316
+#: src/app/workstation-shell/workstation-shell.tsx:311
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -865,17 +865,17 @@ msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:212
+#: src/app/workstation-shell/shell-main.tsx:223
 msgid "shell.zone.analysis"
 msgstr "Analyse"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:299
+#: src/app/workstation-shell/shell-main.tsx:310
 msgid "shell.zone.chart"
 msgstr "Partition"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:176
+#: src/app/workstation-shell/shell-main.tsx:187
 msgid "shell.zone.timeline"
 msgstr "Timeline"
 
@@ -1183,7 +1183,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:211
+#: src/app/workstation-shell/workstation-shell.tsx:206
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 

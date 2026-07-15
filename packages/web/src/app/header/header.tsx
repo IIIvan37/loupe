@@ -148,9 +148,9 @@ function SaveControls({
  * Dumb presentational header, one place per kind of information: the document
  * (title, artist, saved/busy state) on the left with the logo;
  * the actions on the right; the server health — infrastructure, not an action —
- * alone at the far right. Detected values (key/BPM/measure) are rendered in
- * teal + mono per the semantic rule (teal = what the machine detected). The
- * "Importer" button is the single import entry point; the shell wires it.
+ * alone at the far right. The acquired-state read-out lives in the Analyse
+ * zone's folded header (Q.3), not here. The "Importer" button is the single
+ * import entry point; the shell wires it.
  */
 export function Header({
   title,

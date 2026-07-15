@@ -152,16 +152,27 @@ export function ShellMain({
     (marker) => marker.kind === 'structure'
   ).length
   const chartSource = chordChart.source
+  const folded = !analysisFold.open
   const summary = useMemo(
     () =>
-      analysisSummary({
-        separated: separation.state.status === 'ready',
-        bpm: tempo.analysis?.bpm,
-        beatsPerBar: tempo.analysis?.beatsPerBar,
-        sectionCount: structureSections,
-        chartSource
-      }),
-    [separation.state.status, tempo.analysis, structureSections, chartSource]
+      // Only the FOLDED header shows it — don't parse the chart per keystroke
+      // while the zone is open and the summary would be discarded anyway.
+      folded
+        ? analysisSummary({
+            separated: separation.state.status === 'ready',
+            bpm: tempo.analysis?.bpm,
+            beatsPerBar: tempo.analysis?.beatsPerBar,
+            sectionCount: structureSections,
+            chartSource
+          })
+        : undefined,
+    [
+      folded,
+      separation.state.status,
+      tempo.analysis,
+      structureSections,
+      chartSource
+    ]
   )
 
   return (
