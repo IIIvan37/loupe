@@ -1,8 +1,8 @@
+import type { BeatGrid } from '../domain/beat-grid.ts'
 import {
   type DetectedSection,
   snapSectionsToGrid
 } from '../domain/song-structure.ts'
-import type { BeatGrid } from '../domain/tempo.ts'
 import { errorMessage } from './error-message.ts'
 import type { DecodedAudio, StructureDetector } from './ports.ts'
 

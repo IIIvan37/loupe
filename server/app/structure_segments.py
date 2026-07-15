@@ -32,6 +32,14 @@ class Segment(TypedDict):
 _SEAM_TOLERANCE_SECONDS = 1.5
 
 
+def boundaries_to_segments(boundaries: list[tuple[float, str]]) -> list[Segment]:
+    """SongFormer (time, label) breakpoints → [start, end) segments (slice-local)."""
+    return [
+        {"start": boundaries[i][0], "end": boundaries[i + 1][0], "label": boundaries[i][1]}
+        for i in range(len(boundaries) - 1)
+    ]
+
+
 def stitch_segments(
     chunks: Sequence[tuple[ChunkWindow, Sequence[Segment]]],
     duration: float,

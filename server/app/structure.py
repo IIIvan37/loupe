@@ -40,7 +40,7 @@ from .limits import (
     read_capped_body,
 )
 from .structure_chunks import chunk_plan
-from .structure_segments import Segment, stitch_segments
+from .structure_segments import boundaries_to_segments, stitch_segments
 from .wav_decode import decode_wav_mono
 from .weights_cache import WeightsUnavailable, pinned_weights
 
@@ -147,14 +147,6 @@ def _load() -> inference.Models:
     return _models
 
 
-def _boundaries_to_segments(boundaries: list[tuple[float, str]]) -> list[Segment]:
-    """SongFormer (time, label) breakpoints → [start, end) segments (slice-local)."""
-    return [
-        {"start": boundaries[i][0], "end": boundaries[i + 1][0], "label": boundaries[i][1]}
-        for i in range(len(boundaries) - 1)
-    ]
-
-
 def _analyse(data: bytes) -> dict:
     """Decode + segment a mix WAV, chunked. Compute-bound, runs off the event loop."""
     signal, sample_rate = decode_wav_mono(data)
@@ -175,7 +167,7 @@ def _analyse(data: bytes) -> dict:
         a0, a1 = int(window["proc_start"] * sr), int(window["proc_end"] * sr)
         win = max(1, math.ceil(window["proc_end"] - window["proc_start"]))
         boundaries = inference.analyse_array(models, signal[a0:a1], win_size=win)
-        chunks.append((window, _boundaries_to_segments(boundaries)))
+        chunks.append((window, boundaries_to_segments(boundaries)))
     return {"segments": stitch_segments(chunks, duration)}
 
 

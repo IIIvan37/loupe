@@ -1,9 +1,9 @@
 import {
   type BeatGrid,
   buildBeatGrid,
-  detectMeter,
-  sanitizeBeatGrid
-} from '../domain/tempo.ts'
+  detectMeter
+} from '../domain/beat-grid.ts'
+import { sanitizeBeatGrid } from '../domain/tempo-map.ts'
 import { errorMessage } from './error-message.ts'
 import type { DecodedAudio, TempoDetector } from './ports.ts'
 

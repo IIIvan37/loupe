@@ -30,13 +30,6 @@ import modal
 
 CACHE_DIR = "/cache"
 
-# Origins allowed to call the endpoint from a browser (CORS). Dev app is on
-# 5173; add the deployed/Tauri origins here later.
-ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
-
 
 def _bake_weights() -> None:
     """Download the pinned checkpoints + the MuQ snapshot into the image (build)."""
@@ -135,6 +128,7 @@ class Api:
         from fastapi.middleware.cors import CORSMiddleware
 
         from app.analyze_gate import install_analyze_gate
+        from app.origins import allowed_origins
         from app.structure import router as structure_router
 
         # J2: the client presents a SHORT-LIVED token minted by the Supabase
@@ -146,9 +140,12 @@ class Api:
         # gate — its 401s get Access-Control-Allow-Origin from the real CORS
         # layer and preflights never reach the gate (see app/analyze_gate.py).
         install_analyze_gate(web_app, secret=secret)
+        # Origins come from LOUPE_ALLOWED_ORIGINS (set it on the
+        # `loupe-analyze-jwt` Modal secret to add deployed/Tauri origins);
+        # unset, the shared default is the 5173 dev app.
         web_app.add_middleware(
             CORSMiddleware,
-            allow_origins=ALLOWED_ORIGINS,
+            allow_origins=allowed_origins(),
             allow_methods=["POST", "OPTIONS"],
             allow_headers=["*"],
         )

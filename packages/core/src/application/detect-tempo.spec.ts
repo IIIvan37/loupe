@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { DetectedBeat } from '../domain/tempo.ts'
+import type { DetectedBeat } from '../domain/beat-grid.ts'
 import { detectTempo, TempoDetectionError } from './detect-tempo.ts'
 import type { DecodedAudio, TempoDetector } from './ports.ts'
 

@@ -1,4 +1,5 @@
-import { type Beat, type BeatGrid, buildTempoMap, tempoAt } from './tempo.ts'
+import type { Beat, BeatGrid } from './beat-grid.ts'
+import { buildTempoMap, tempoAt } from './tempo-map.ts'
 
 /** How to render a click track from a beat grid. */
 export interface ClickTrackOptions {

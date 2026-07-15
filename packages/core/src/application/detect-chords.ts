@@ -1,3 +1,4 @@
+import type { BeatGrid } from '../domain/beat-grid.ts'
 import {
   chartMeters,
   cutBySections,
@@ -9,7 +10,6 @@ import { respellChartSource } from '../domain/chord-chart.ts'
 import { chordLabelPerMeasure } from '../domain/chord-detection.ts'
 import { detectKey, keyAccidental, keyName } from '../domain/chord-key.ts'
 import type { DetectedSection } from '../domain/song-structure.ts'
-import type { BeatGrid } from '../domain/tempo.ts'
 import { errorMessage } from './error-message.ts'
 import type { ChordDetector, DecodedAudio } from './ports.ts'
 

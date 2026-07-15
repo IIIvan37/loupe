@@ -25,12 +25,29 @@ const MIN_SECRET_LENGTH = 32
 const AUDIENCE = 'loupe-analyze'
 const ISSUER = 'loupe-supabase'
 
-// Origins allowed to call this function from a browser. Mirror the Modal CORS
-// list; dev app is on 5173.
-const ALLOWED_ORIGINS = new Set([
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-])
+// Origins allowed to call this function from a browser. The SAME allowlist
+// gates the local server and the Modal endpoint (server/app/origins.py, whose
+// parsing this mirrors): every surface reads LOUPE_ALLOWED_ORIGINS from its
+// own environment (`supabase secrets set` here) and falls back to the 5173
+// dev app. Adding an origin is an env change everywhere, never a code edit
+// (see docs/j2-supabase-runbook.md).
+const DEFAULT_ALLOWED_ORIGINS = 'http://localhost:5173,http://127.0.0.1:5173'
+
+export function parseAllowedOrigins(raw: string): Set<string> {
+  // A literal '*' is dropped like the Python side does (it is inert here —
+  // the set is compared against a real Origin header — but the mirror must
+  // not diverge on what a value means).
+  return new Set(
+    raw
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0 && entry !== '*'),
+  )
+}
+
+const ALLOWED_ORIGINS = parseAllowedOrigins(
+  Deno.env.get('LOUPE_ALLOWED_ORIGINS') ?? DEFAULT_ALLOWED_ORIGINS,
+)
 
 function corsHeaders(origin: string | null): Record<string, string> {
   const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : ''

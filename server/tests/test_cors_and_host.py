@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from app.main import _env_list, app
+from app.main import app
 
 # Host header must be an allowed host, else TrustedHostMiddleware 400s every call.
 client = TestClient(app, base_url="http://localhost")
@@ -59,9 +59,3 @@ def test_cors_preflight_rejects_foreign_origin():
     assert res.status_code == 403
     assert res.headers.get("access-control-allow-origin") != EVIL_ORIGIN
 
-
-def test_env_list_trims_and_drops_blanks(monkeypatch):
-    monkeypatch.setenv("LOUPE_TEST_ORIGINS", " a , ,b ")
-    assert _env_list("LOUPE_TEST_ORIGINS", "x") == ["a", "b"]
-    monkeypatch.delenv("LOUPE_TEST_ORIGINS", raising=False)
-    assert _env_list("LOUPE_TEST_ORIGINS", "d1,d2") == ["d1", "d2"]

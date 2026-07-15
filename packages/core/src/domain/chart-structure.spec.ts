@@ -1,5 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import type { BeatGrid } from './beat-grid.ts'
 import {
   chartMeters,
   chartSectionAnchors,
@@ -11,7 +12,6 @@ import { parseChart, renderChartSource, unrollChart } from './chord-chart.ts'
 import { formatChordSymbol } from './chord-symbol.ts'
 import { meteredGrid } from './metered-grid-fixture.ts'
 import type { DetectedSection } from './song-structure.ts'
-import type { BeatGrid } from './tempo.ts'
 
 /** A 4/4 grid: `bars` downbeats `barSeconds` apart, three off-beats each. */
 function grid(bars: number, barSeconds: number): BeatGrid {

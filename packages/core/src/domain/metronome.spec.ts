@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import type { BeatGrid } from './beat-grid.ts'
 import { buildCountIn, synthesizeClickTrack } from './metronome.ts'
-import type { BeatGrid } from './tempo.ts'
 
 const sampleRate = 8000
 
