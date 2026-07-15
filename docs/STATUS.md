@@ -303,8 +303,21 @@ projects et drop-dialog la composent, l'analysis-panel garde sa variante
 outline-inset, les quietButton lourds inchangés. Gate **verte — 1462 tests**,
 Stryker skippé (core intouché).
 [rapport](sessions/2026-07-15-w2-confirm-face.md).
-**Prochain : merger la pile W.1 → W.2**, puis U.1/U.3 (gate cloud +
-sécurité), T.1–T.3, V.1 (W.3–W.5 restent au lot W).
+**Pile W.1 → W.2 mergée** (#145, #146 — W.3–W.5 restent au lot W).
+**U.1 — analyze gate (branche `feat/u1-analyze-gate`, PR à ouvrir)** : le
+middleware d'auth Modal extrait en `app/analyze_gate.py` (humble object —
+ruff/pyright/pytest/coverage 100 %), `modal_app.py` composition pure + ajouté
+aux cibles ruff CI, 11 tests TestClient dont la composition gate→CORS exacte
+de modal_app. Revue 8 angles → 3 fixés : 500s sur tokens adverses
+(header non-objet, payload non-ASCII) → 401 en TDD ; **ordre des middlewares
+inversé** (gate avant CORSMiddleware → la vraie couche CORS décore les 401,
+ACAO + `Vary: Origin`, écho manuel supprimé) ; kit de mint JWT partagé
+(`tests/analyze_token_kit.py`, contract pin unique avec l'Edge Function).
+**Redéployer Modal au merge** (`modal deploy modal_app.py`). Serveur
+**212 pytest** (+13), pyright 0, gate web verte — 1462 tests, Stryker skippé
+(core intouché). [rapport](sessions/2026-07-15-u1-analyze-gate.md).
+**Prochain : PR U.1 → merge → redéploiement Modal**, puis U.3 (brute-force
+codes beta + plancher secret), U.2/U.4/U.5, T.1–T.3, V.1.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
