@@ -247,6 +247,8 @@ export type {
   SeparationStatus
 } from './domain/separation.ts'
 export { initialSeparation, separationReducer } from './domain/separation.ts'
+export type { SnapUnit } from './domain/snap-loop-region.ts'
+export { snapLoopRegionToGrid } from './domain/snap-loop-region.ts'
 export type { DetectedSection } from './domain/song-structure.ts'
 // snapSectionsToGrid stays internal to the detectStructure use-case — like the
 // chord slice's chordLabelPerMeasure / deduceStructure folds, an adapter only
