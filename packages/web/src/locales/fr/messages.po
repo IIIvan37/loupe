@@ -84,13 +84,13 @@ msgid "alerts.close"
 msgstr "Fermer l'alerte"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:237
-#: src/app/analyser/analyser-row.tsx:247
+#: src/app/analyser/analyser-row.tsx:234
+#: src/app/analyser/analyser-row.tsx:244
 msgid "analyser.tempo-detecting"
 msgstr "Analyse du tempo…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:251
+#: src/app/analyser/analyser-row.tsx:248
 msgid "analyser.tempo-done"
 msgstr "Tempo détecté"
 
@@ -151,12 +151,12 @@ msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:281
+#: src/app/analyser/analyser-row.tsx:278
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:288
+#: src/app/analyser/analyser-row.tsx:285
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
@@ -182,7 +182,7 @@ msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row.tsx:178
-#: src/app/analyser/analyser-row.tsx:282
+#: src/app/analyser/analyser-row.tsx:279
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
@@ -829,7 +829,6 @@ msgstr "Séparer les pistes"
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row.tsx:31
-#: src/app/analyser/analyser-row.tsx:217
 msgid "separation.separating"
 msgstr "Séparation des pistes…"
 
@@ -850,17 +849,17 @@ msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:194
+#: src/app/workstation-shell/shell-main.tsx:190
 msgid "shell.zone.analysis"
 msgstr "Analyse"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:280
+#: src/app/workstation-shell/shell-main.tsx:272
 msgid "shell.zone.chart"
 msgstr "Partition"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:158
+#: src/app/workstation-shell/shell-main.tsx:154
 msgid "shell.zone.timeline"
 msgstr "Timeline"
 
@@ -935,7 +934,7 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:259
+#: src/app/analyser/analyser-row.tsx:256
 msgid "structure.detect"
 msgstr "Détecter la structure"
 
@@ -975,7 +974,7 @@ msgid "structure.detecting"
 msgstr "Détection de la structure…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:260
+#: src/app/analyser/analyser-row.tsx:257
 msgid "structure.detecting-short"
 msgstr "Détection…"
 
@@ -1067,7 +1066,6 @@ msgstr "Saisir le tempo (BPM)"
 
 #. js-lingui-explicit-id
 #: src/app/tempo/tempo-panel.tsx:25
-#: src/app/tempo/tempo-panel.tsx:266
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
@@ -1137,7 +1135,7 @@ msgid "tempo.region-label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:236
+#: src/app/analyser/analyser-row.tsx:233
 msgid "tempo.retry"
 msgstr "Réessayer"
 

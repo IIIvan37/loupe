@@ -214,10 +214,7 @@ export function AnalyserRow({
                 ? t({ id: 'separation.retry', message: 'Réessayer' })
                 : t({ id: 'separation.separate', message: 'Séparer les pistes' })
             }
-            runningLabel={t({
-              id: 'separation.separating',
-              message: 'Séparation des pistes…'
-            })}
+            // The in-flight face is the progress block above, not this button.
             running={false}
             hint={sepBlock === undefined ? undefined : t(sepBlock)}
             errorLine={sepFailure}

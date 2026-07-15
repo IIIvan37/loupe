@@ -261,11 +261,8 @@ export function TempoPanel({
           </button>
         )}
       </span>
-      {bpm === undefined && detecting && (
-        <span className={styles.readout}>
-          <Trans id="tempo.detecting">Analyse…</Trans>
-        </span>
-      )}
+      {/* The VISIBLE in-flight read-out lives in the analyser row (Q.2);
+          this panel keeps only the polite announcement above. */}
     </section>
   )
 }

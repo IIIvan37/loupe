@@ -9,10 +9,6 @@ import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalyserRow } from '../analyser/analyser-row.tsx'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
 import type { ChartHeaderData } from '../lead-sheet/chart-header.tsx'
-import {
-  DEFAULT_BARS_PER_ROW,
-  readStoredBarsPerRow
-} from '../lead-sheet/bars-per-row-preference.ts'
 import { ChordChartPanel } from '../lead-sheet/chord-chart-panel.tsx'
 import type { ChordChartState } from '../lead-sheet/use-chord-chart.ts'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
@@ -241,12 +237,8 @@ export function ShellMain({
               error: chordDetection.error,
               succeeded: chordDetection.succeeded,
               hasGrid: chordChart.source.trim().length > 0,
-              // The layout preference lives in localStorage (posed on blur by
-              // the panel's field) — read it at click time.
-              onDetect: () =>
-                void chordDetection.detect(
-                  readStoredBarsPerRow() ?? DEFAULT_BARS_PER_ROW
-                ),
+              // No layout arg: the hook falls back to the stored preference.
+              onDetect: () => void chordDetection.detect(),
               // The chord engine only needs the server to ANSWER (it runs
               // on CPU — 'no-separation' just means no Demucs device), and
               // the measures need a downbeat-flagged grid to anchor on.

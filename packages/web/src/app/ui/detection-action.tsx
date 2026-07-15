@@ -6,8 +6,8 @@ import styles from './detection-action.module.css'
 interface DetectionActionProps {
   /** The action's idle face (« Détecter la structure »), resolved copy. */
   readonly label: string
-  /** Swapped in while the run is in flight. */
-  readonly runningLabel: string
+  /** Swapped in while the run is in flight (defaults to the idle label). */
+  readonly runningLabel?: string | undefined
   readonly running: boolean
   /**
    * Whether a run would overwrite existing work: the first activation then
@@ -65,7 +65,7 @@ export function DetectionAction({
         onBlur={overwrite.disarm}
       >
         {running
-          ? runningLabel
+          ? (runningLabel ?? label)
           : overwrite.pending
             ? (confirmLabel ?? label)
             : label}
@@ -78,7 +78,9 @@ export function DetectionAction({
           {errorLine}
         </p>
       )}
-      {/* Kept mounted so a state change (busy → done) is spoken. */}
+      {/* Kept mounted EVEN when the owner never announces (an idle, empty
+          polite region is inert for AT): a region mounted with its first
+          message would never speak it — only changes after mount are read. */}
       <LiveStatus message={announcement} />
     </Stack>
   )
