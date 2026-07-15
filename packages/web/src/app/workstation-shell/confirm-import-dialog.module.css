@@ -10,8 +10,9 @@
   padding: var(--space-2xs) var(--space-m);
 }
 
+/* Replacing the session is the same destructive second step as the header's
+   import confirm — same armed face, not the amber primary (decision W.2). */
 .confirm {
-  composes: amberButton from '../ui/controls.module.css';
+  composes: confirmFace from '../ui/controls.module.css';
   padding: var(--space-2xs) var(--space-m);
-  font-weight: 600;
 }

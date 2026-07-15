@@ -24,7 +24,8 @@
    purpose (no transition), so the reduced-motion reset has nothing to undo. */
 .amberButton:active:not(:disabled),
 .ghostButton:active:not(:disabled),
-.quietButton:active:not(:disabled) {
+.quietButton:active:not(:disabled),
+.confirmFace:active:not(:disabled) {
   transform: translateY(1px);
 }
 
@@ -103,6 +104,19 @@
 
 .quietButton:disabled {
   opacity: var(--disabled-opacity);
+}
+
+/* The armed second step of a destructive action (« Confirmer ? ») — one
+   red-ish face wherever a second click replaces or deletes: header import,
+   projects dialog, drop dialog. The heaviest confirmations keep quietButton
+   (decision W.2); the analysis-panel row keeps an inset-outline variant of
+   this face so arming never shifts the row's geometry. */
+.confirmFace {
+  border-radius: var(--radius);
+  border: 1px solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+  font-weight: 600;
 }
 
 /* Touch hit-target expanders — composed by small controls so that on coarse

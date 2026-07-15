@@ -75,9 +75,9 @@
 
 /* The header actions wear the shared control skins (single source of truth in
    controls.module.css) plus a comfortable tap strip on coarse pointers; each
-   adds only its own dimensions. The neutral outlined face (.secondaryAction) and
-   the destructive confirm (.confirmAction) are the header's own — they aren't
-   the amber/ghost skins, so they stay local. The keyboard focus ring is the
+   adds only its own dimensions. The neutral outlined face (.secondaryAction) is
+   the header's own — it isn't the amber/ghost skins, so it stays local; the
+   destructive confirm wears the shared .confirmFace. The keyboard focus ring is the
    global :focus-visible / [data-on-amber] baseline (no per-button re-declare). */
 .secondaryAction {
   composes: touchTarget from '../ui/controls.module.css';
@@ -94,8 +94,7 @@
 }
 
 /* Pressed feedback — same 1px dip as the shared skins (controls.module.css). */
-.secondaryAction:active:not(:disabled),
-.confirmAction:active:not(:disabled) {
+.secondaryAction:active:not(:disabled) {
   transform: translateY(1px);
 }
 
@@ -111,15 +110,10 @@
 }
 
 /* The import button's second step — replacing an unsaved session is
-   destructive, so it takes the same red-ish face as the dialog confirms. */
+   destructive, so it wears the shared armed face. */
 .confirmAction {
-  composes: touchTarget from '../ui/controls.module.css';
+  composes: confirmFace touchTarget from '../ui/controls.module.css';
   padding: var(--space-2xs) var(--space-m);
-  border-radius: var(--radius);
-  border: 1px solid var(--danger);
-  background: transparent;
-  color: var(--danger);
-  font-weight: 600;
 }
 
 .iconAction {

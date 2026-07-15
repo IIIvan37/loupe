@@ -79,13 +79,10 @@
   border-color: var(--line-strong);
 }
 
-/* The second step of a destructive/replacing action — red-ish and explicit. */
+/* The second step of a destructive/replacing action — the shared armed face. */
 .confirmAction {
+  composes: confirmFace from '../app/ui/controls.module.css';
   padding: var(--space-3xs) var(--space-xs);
-  border: 1px solid var(--danger);
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--danger);
   font-size: var(--font-size-s);
 }
 

@@ -110,8 +110,9 @@
   background: var(--panel-3);
 }
 
-/* The armed « Confirmer ? » face — same destructive accent as the projects
-   dialog; an inset outline so arming never shifts the row's geometry. */
+/* The armed « Confirmer ? » face — the inset-outline variant of the shared
+   confirmFace (controls.module.css): an outline instead of the border so
+   arming never shifts the row's geometry. */
 .entryConfirm,
 .entryConfirm:hover {
   color: var(--danger);
