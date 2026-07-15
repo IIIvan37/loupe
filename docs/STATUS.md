@@ -331,8 +331,15 @@ rotation Modal-d'abord, check pré-deploy) ; copy `account.code-invalid`
 (6 RPC → failures=5 locked), Deno 8/8, serveur 214 pytest, gate web 1462.
 Revue 3 finders → 5 fixés, 4 écartés documentés.
 [rapport](sessions/2026-07-15-u3-beta-brute-force.md).
-**Prochain : PR U.3 → merge → déploiements (db push + Edge + Modal — solde
-U.1)**, puis U.2 (CI deno), U.4/U.5, T.1–T.3, V.1.
+**U.3 mergé (PR #148) et DÉPLOYÉ (2026-07-15)** : `supabase db push`
+(migration u3 seule, dry-run vérifié), Edge Function redéployée
+(`--use-api`), Modal redéployé (solde U.1). Curl-vérifié en prod : 401 Modal
+avec `ACAO` + `Vary: Origin` (la composition gate→CORS de U.1 en vrai).
+Au passage : le build d'image Modal cassait (madmom épinglé `git+https`,
+`debian_slim` sans git) → `apt_install("ffmpeg", "git")`, déployé,
+**PR #149 ouverte (à merger — fix d'une ligne)**.
+**Prochain : merger #149**, puis U.2 (CI deno — `deno check/lint/fmt` passent
+déjà en local), U.4/U.5, T.1–T.3, V.1.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
