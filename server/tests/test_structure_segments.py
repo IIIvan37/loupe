@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from app.structure_chunks import ChunkWindow
-from app.structure_segments import stitch_segments
+from app.structure_segments import boundaries_to_segments, stitch_segments
 
 
 def _win(own_start: float, own_end: float, proc_start: float, proc_end: float) -> ChunkWindow:
@@ -94,3 +94,21 @@ class TestStitchSegments:
 
     def test_no_chunks_stitch_to_nothing(self) -> None:
         assert stitch_segments([], duration=120.0) == []
+
+
+class TestBoundariesToSegments:
+    def test_consecutive_breakpoints_become_half_open_segments(self) -> None:
+        # SongFormer reports (time, label) breakpoints; each segment runs from
+        # its breakpoint to the next one, labelled by the OPENING breakpoint.
+        # The final breakpoint is the end-of-slice sentinel (its label unused).
+        boundaries = [(0.0, "intro"), (12.5, "verse"), (60.0, "end")]
+        assert boundaries_to_segments(boundaries) == [
+            {"start": 0.0, "end": 12.5, "label": "intro"},
+            {"start": 12.5, "end": 60.0, "label": "verse"},
+        ]
+
+    def test_a_lone_breakpoint_bounds_no_segment(self) -> None:
+        assert boundaries_to_segments([(0.0, "intro")]) == []
+
+    def test_no_breakpoints_make_no_segments(self) -> None:
+        assert boundaries_to_segments([]) == []
