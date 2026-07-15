@@ -339,13 +339,16 @@ Au passage : le build d'image Modal cassait (madmom épinglé `git+https`,
 `debian_slim` sans git) → `apt_install("ffmpeg", "git")`, déployé,
 **PR #149 ouverte (à merger — fix d'une ligne)**.
 **#149 mergée.**
-**U.2 — job CI deno (branche `feat/u2-deno-ci`, PR à ouvrir)** : job
-`edge-functions` (`setup-deno@v2`, `deno check --config … + lint + fmt
---check` sur `mint-analyze-token/`, sans stack, timeout 5 min) ; l'intégration
-live reste locale (runbook + harnais U.3). Les 3 commandes vertes en local.
+**U.2 — job CI deno mergé (PR #150)** : job `edge-functions`
+(`setup-deno@v2`, check + lint + fmt sur `mint-analyze-token/`, sans stack) →
 [rapport](sessions/2026-07-15-u2-deno-ci.md).
-**Prochain : PR U.2 (vérifier le job sur la CI de la PR) → merge**, puis U.4
-(cliquets), U.5, T.1–T.3, V.1.
+**U.4 — cliquets resserrés (branche `feat/u4-ratchets`, PR à ouvrir)** :
+jscpd `threshold` 2,5 → **1,0 %** (0,33 % mesuré) et Stryker
+`break 80 → 90` (low 90, high 95 ; **93,74 %** mesuré au run local). Config
+seule — les 7 survivants de song-structure.ts restent au-dessus du break
+global, pas de trace code nécessaire. Gate **verte — 1462 tests**.
+[rapport](sessions/2026-07-15-u4-ratchets.md).
+**Prochain : PR U.4 → merge**, puis U.5 (basses groupées), T.1–T.3, V.1.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
