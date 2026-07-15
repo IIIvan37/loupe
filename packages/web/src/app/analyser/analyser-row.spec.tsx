@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import type { SeparationState, StemSet } from '@app/core'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
@@ -61,6 +61,7 @@ function structureOf(
     hasGrid: false,
     onDetect: vi.fn(),
     onCancel: vi.fn(),
+    mayColdStart: false,
     ...overrides
   }
 }
@@ -343,6 +344,22 @@ describe('AnalyserRow structure', () => {
     expect(
       screen.getByText(i18n._('structure.detect-needs-server'))
     ).toBeInTheDocument()
+  })
+
+  it('explains a suspicious offloaded wait after a beat (cold start)', () => {
+    vi.useFakeTimers()
+    try {
+      renderRow({ structure: { detecting: true, mayColdStart: true } })
+      expect(
+        screen.queryByText(i18n._('structure.cold-start'))
+      ).not.toBeInTheDocument()
+      act(() => vi.advanceTimersByTime(4000))
+      expect(
+        screen.getByText(i18n._('structure.cold-start'))
+      ).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('cancels an in-flight detection from the busy face', async () => {

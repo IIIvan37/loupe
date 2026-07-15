@@ -78,6 +78,9 @@ export interface StructureDetectionControl {
   readonly onDetect: () => void
   /** Abort the in-flight detection (the busy face's « Annuler »). */
   readonly onCancel: () => void
+  /** Whether the run may hit the offload's cold start (~1 min) — the busy
+   * face then explains the wait once it grows suspicious (R.3). */
+  readonly mayColdStart: boolean
 }
 
 /** The chord-detection surface the shell wires in. */
@@ -256,7 +259,19 @@ export function AnalyserRow({
             message: 'Détection…'
           })}
           running={structure.detecting}
-          progress={{ onCancel: structure.onCancel }}
+          progress={{
+            onCancel: structure.onCancel,
+            // The wait becomes explained instead of worrying: after ~4 s the
+            // line says the engine itself may be starting up.
+            detail: structure.mayColdStart
+              ? t({
+                  id: 'structure.cold-start',
+                  message:
+                    "Démarrage du moteur d'analyse (jusqu'à ~1 min)…"
+                })
+              : undefined,
+            detailAfterMs: 4000
+          }}
           confirms={structure.hasMarkers || structure.hasGrid}
           confirmLabel={structureConfirm}
           hint={
