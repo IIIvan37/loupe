@@ -342,13 +342,25 @@ Au passage : le build d'image Modal cassait (madmom épinglé `git+https`,
 **U.2 — job CI deno mergé (PR #150)** : job `edge-functions`
 (`setup-deno@v2`, check + lint + fmt sur `mint-analyze-token/`, sans stack) →
 [rapport](sessions/2026-07-15-u2-deno-ci.md).
-**U.4 — cliquets resserrés (branche `feat/u4-ratchets`, PR à ouvrir)** :
-jscpd `threshold` 2,5 → **1,0 %** (0,33 % mesuré) et Stryker
-`break 80 → 90` (low 90, high 95 ; **93,74 %** mesuré au run local). Config
-seule — les 7 survivants de song-structure.ts restent au-dessus du break
-global, pas de trace code nécessaire. Gate **verte — 1462 tests**.
+**U.4 — cliquets resserrés mergé (PR #151)** : jscpd 1,0 %, Stryker break 90 →
 [rapport](sessions/2026-07-15-u4-ratchets.md).
-**Prochain : PR U.4 → merge**, puis U.5 (basses groupées), T.1–T.3, V.1.
+**U.5 — basses groupées (branche `feat/u5-grouped-lows`, PR à ouvrir) — LOT U
+CLOS** : (1) allowlist d'origines **env-drivée sur les trois surfaces** —
+`app/origins.py` pur (extrait de main.py) consommé par main.py + modal_app.py,
+l'Edge Function lit le même `LOUPE_ALLOWED_ORIGINS` via Deno.env
+(`parseAllowedOrigins` miroir testé), runbook § 0bis = le tableau des trois
+emplacements ; (2) `boundaries_to_segments` sorti de structure.py (exclu
+coverage/pyright) vers `structure_segments.py` pur + 3 pytest ; (3) `tempo.ts`
+(524 lignes, 4 concepts) splitté verbatim en `beat-grid` / `tempo-map` /
+`manual-tempo` / `median`, API publique inchangée, spec splitté pareil (compte
+identique). Revue 8 angles → **9 fixés** (dont : `*` dans l'env aurait
+CORS-ouvert Modal → filtré fail-closed des deux côtés + testé ; conftest/env
+scrub pour l'hermétisme des tests CORS ; `typicalBar` et le clamp beats/bar
+convergés sur les nouveaux helpers), 4 écartés documentés. **Redéploiement
+Modal + Edge au merge** (sinon comportement inchangé — défauts 5173). Gate
+**verte — 1462 web + 221 pytest**, **Stryker 93,55 %**.
+[rapport](sessions/2026-07-15-u5-grouped-lows.md).
+**Prochain : PR U.5 → merge**, puis T.1–T.3, V.1.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

@@ -126,7 +126,7 @@ describe('detectMeter', () => {
 
   it('reads the DOMINANT bar length, not the largest position seen', () => {
     // Three four-beat bars around one stray six-beat bar (a detector slip
-    // must not promote the whole song to 6 temps).
+    // must not promote the whole song to 6 beats).
     const positions = [1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 1]
     const beats: readonly DetectedBeat[] = positions.map(
       (barPosition, index) => ({ timeSeconds: index * 0.5, barPosition })
@@ -195,7 +195,7 @@ describe('dominantMeter', () => {
 
 describe('remeterGrid', () => {
   it('re-flags downbeats every N beats, keeping every instant', () => {
-    // A grid misdetected at 6 temps, corrected to 4.
+    // A grid misdetected at 6 beats, corrected to 4.
     const wrong = meteredGrid([6, 6])
     const fixed = remeterGrid(wrong, 4)
     expect(fixed.map((beat) => beat.timeSeconds)).toEqual(

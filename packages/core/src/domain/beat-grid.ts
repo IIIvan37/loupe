@@ -95,15 +95,23 @@ export function dominantMeter(meters: readonly number[]): number {
 }
 
 /**
+ * Clamp a user-typed bar length to whole bars of at least one beat — the one
+ * rule `remeterGrid` and `buildManualGrid` must always agree on.
+ */
+export function clampBeatsPerBar(beatsPerBar: number): number {
+  return Math.max(1, Math.floor(beatsPerBar) || 1)
+}
+
+/**
  * Re-flag the grid's downbeats every `beatsPerBar` beats — the user's meter
  * correction when the detector heard the wrong bar length (a 4/4 song read as
- * 6 temps). Beat instants survive verbatim; the new bars anchor on the first
+ * 6 beats). Beat instants survive verbatim; the new bars anchor on the first
  * existing downbeat so the detected bar phase (and any pickup before it) is
  * kept, or on the first beat when the grid never had one. The bar length
  * clamps to whole bars of at least one beat, like `buildManualGrid`.
  */
 export function remeterGrid(grid: BeatGrid, beatsPerBar: number): BeatGrid {
-  const bar = Math.max(1, Math.floor(beatsPerBar) || 1)
+  const bar = clampBeatsPerBar(beatsPerBar)
   const anchor = Math.max(
     0,
     grid.findIndex((beat) => beat.downbeat)

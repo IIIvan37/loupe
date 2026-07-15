@@ -28,6 +28,14 @@ class TestAllowedOrigins:
             "http://localhost:5173",
         ]
 
+    def test_a_wildcard_entry_is_dropped_not_forwarded(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # '*' would flip CORSMiddleware to allow-all (and Modal has no
+        # OriginGuard backstop) — fail closed instead.
+        monkeypatch.setenv("LOUPE_ALLOWED_ORIGINS", "*")
+        assert allowed_origins() == []
+
     def test_trims_whitespace_and_drops_empty_entries(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:

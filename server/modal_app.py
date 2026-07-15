@@ -31,7 +31,6 @@ import modal
 CACHE_DIR = "/cache"
 
 
-
 def _bake_weights() -> None:
     """Download the pinned checkpoints + the MuQ snapshot into the image (build)."""
     from huggingface_hub import snapshot_download

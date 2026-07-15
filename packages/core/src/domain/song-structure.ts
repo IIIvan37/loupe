@@ -1,4 +1,5 @@
 import type { BeatGrid } from './beat-grid.ts'
+import { median } from './median.ts'
 
 /**
  * One functional section of a song: a label (the engine's raw vocabulary —
@@ -101,14 +102,9 @@ function typicalBar(downbeats: readonly number[]): number | undefined {
   if (downbeats.length < 2) {
     return undefined
   }
-  const gaps = downbeats
-    .slice(1)
-    .map((time, index) => time - (downbeats[index] as number))
-    .sort((a, b) => a - b)
-  const mid = Math.floor(gaps.length / 2)
-  return gaps.length % 2 === 0
-    ? ((gaps[mid - 1] as number) + (gaps[mid] as number)) / 2
-    : (gaps[mid] as number)
+  return median(
+    downbeats.slice(1).map((time, index) => time - (downbeats[index] as number))
+  )
 }
 
 /** The downbeat closest to `time` (downbeats are in ascending order). */

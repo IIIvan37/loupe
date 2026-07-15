@@ -1,4 +1,4 @@
-import type { Beat, BeatGrid } from './beat-grid.ts'
+import { type Beat, type BeatGrid, clampBeatsPerBar } from './beat-grid.ts'
 import { median } from './median.ts'
 
 /** The slowest tempo a manual override may set (clamped, not rejected). */
@@ -46,7 +46,7 @@ export function buildManualGrid(
   if (bpm === undefined || !Number.isFinite(durationSeconds)) {
     return []
   }
-  const bar = Math.max(1, Math.floor(beatsPerBar) || 1)
+  const bar = clampBeatsPerBar(beatsPerBar)
   const beatAt = (k: number): number => manual.phaseSeconds + (k * 60) / bpm
   // First beat index at or after the track start. The ceil is only a fast
   // guess — float rounding (down to denormal underflow) can land it one step

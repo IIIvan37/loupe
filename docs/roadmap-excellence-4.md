@@ -479,7 +479,7 @@ pas de dette nouvelle :
 - [x] **U.2** job CI deno
 - [x] **U.3** brute-force codes beta + plancher secret
 - [x] **U.4** cliquets jscpd 1,0 / Stryker break 90
-- [ ] **U.5** basses groupées (origins env, _boundaries_to_segments, tempo.ts)
+- [x] **U.5** basses groupées (origins env, _boundaries_to_segments, tempo.ts)
 - [ ] **V.1** upload d'analyse mono + 24 kHz
 - [ ] **V.2** `unload()` du moteur mono-piste
 - [ ] **V.3** warm des modèles au démarrage local

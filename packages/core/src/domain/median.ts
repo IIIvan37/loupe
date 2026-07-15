@@ -1,4 +1,8 @@
-/** The middle value of a non-empty list (mean of the two middles when even). */
+/**
+ * The middle value of a list (mean of the two middles when even). An EMPTY
+ * list yields NaN, on purpose — `localReferenceGap` load-bears on it (a NaN
+ * floor keeps every beat); do not "harden" this into a throw.
+ */
 export function median(values: readonly number[]): number {
   const sorted = [...values].sort((a, b) => a - b)
   const mid = Math.floor(sorted.length / 2)

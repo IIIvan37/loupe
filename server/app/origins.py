@@ -26,5 +26,17 @@ def env_list(name: str, default: str) -> list[str]:
 
 
 def allowed_origins() -> list[str]:
-    """The origins allowed to call us from a browser."""
-    return env_list("LOUPE_ALLOWED_ORIGINS", DEFAULT_ALLOWED_ORIGINS)
+    """The origins allowed to call us from a browser.
+
+    A literal `*` entry is dropped: CORSMiddleware would read it as
+    wildcard-allow-all — on Modal there is no OriginGuard backstop, so a
+    shortcut taken "to unblock an origin quickly" would CORS-open the deployed
+    endpoint to every page. Refusing it fails CLOSED (empty list), which the
+    operator notices immediately. (The Deno mirror is naturally inert to `*` —
+    it compares the real Origin header against the set.)
+    """
+    return [
+        origin
+        for origin in env_list("LOUPE_ALLOWED_ORIGINS", DEFAULT_ALLOWED_ORIGINS)
+        if origin != "*"
+    ]

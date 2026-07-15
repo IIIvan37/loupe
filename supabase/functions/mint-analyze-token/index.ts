@@ -34,11 +34,14 @@ const ISSUER = 'loupe-supabase'
 const DEFAULT_ALLOWED_ORIGINS = 'http://localhost:5173,http://127.0.0.1:5173'
 
 export function parseAllowedOrigins(raw: string): Set<string> {
+  // A literal '*' is dropped like the Python side does (it is inert here —
+  // the set is compared against a real Origin header — but the mirror must
+  // not diverge on what a value means).
   return new Set(
     raw
       .split(',')
       .map((entry) => entry.trim())
-      .filter((entry) => entry.length > 0),
+      .filter((entry) => entry.length > 0 && entry !== '*'),
   )
 }
 

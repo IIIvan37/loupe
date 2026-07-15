@@ -19,6 +19,9 @@ const SECRET = 'local-dev-analyze-secret-at-least-32-chars-long'
 Deno.env.set('ANALYZE_JWT_SECRET', SECRET)
 Deno.env.set('SUPABASE_URL', API)
 Deno.env.set('SUPABASE_ANON_KEY', ANON)
+// Keep the CORS assertions hermetic: the module reads this at import time,
+// and an operator shell may export it (it drives the local server too).
+Deno.env.delete('LOUPE_ALLOWED_ORIGINS')
 
 const { handler, parseAllowedOrigins } = await import('./index.ts')
 
@@ -152,6 +155,10 @@ Deno.test('parseAllowedOrigins trims entries and drops empties (no stack needed)
     origins,
     new Set(['https://loupe.example', 'http://localhost:5173']),
   )
+  // Set-but-empty means "no origins" (never the defaults), and a literal '*'
+  // is dropped — both mirror server/app/origins.py.
+  assertEquals(parseAllowedOrigins(''), new Set())
+  assertEquals(parseAllowedOrigins('*'), new Set())
 })
 
 Deno.test('quota exhaustion -> 429 once the monthly cap is spent', async () => {

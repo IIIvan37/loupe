@@ -14,16 +14,16 @@ export interface TempoSegment {
 export type TempoMap = readonly TempoSegment[]
 
 /**
- * Derive the tempo map from the beat grid's instants. Pure — the grid is the
- * single source of truth (persisted with the project), the map is re-derived
- * wherever it's needed.
- */
-/**
  * How far a beat interval may stray from its segment's median before it reads
  * as a tempo change rather than jitter (relative, ±8%).
  */
 const TEMPO_RUPTURE_TOLERANCE = 0.08
 
+/**
+ * Derive the tempo map from the beat grid's instants. Pure — the grid is the
+ * single source of truth (persisted with the project), the map is re-derived
+ * wherever it's needed.
+ */
 export function buildTempoMap(grid: BeatGrid): TempoMap {
   return consolidateSegments(segmentGaps(sanitizeBeatGrid(grid)))
 }
