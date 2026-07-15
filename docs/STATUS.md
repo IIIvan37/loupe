@@ -227,8 +227,20 @@ accords, h2→h3 sous la zone), label visible « Séparation » qui nomme sa
 région. Spec zones + browser-verify (a11y tree vérifié). Revue 8 angles →
 3 fixés, 1 reporté W.5. Gate **verte — 1448 tests**, Stryker skippé (core
 intouché). [rapport](sessions/2026-07-14-q1-shell-zoning.md).
-**Prochain : Q.2** (rangée « Analyser » + `DetectionAction` — checkpoint
-d'approche requis, révise N.4/placement séparation).
+**Q.2 — rangée « Analyser » (branche `feat/q2-analyser-row`, stackée sur Q.1,
+PR à ouvrir)** : primitive `DetectionAction` (bouton + confirm deux-temps +
+hint + échec `role="alert"` + LiveStatus) et `AnalyserRow` en tête de zone
+Analyse — Séparer · Tempo · Structure · Accords, chaque item avec son état,
+empreinte stable (✓ au lieu de disparaître). SeparationPanel supprimé, les
+3 panneaux allégés (résultats/corrections seuls), copy regroupée
+(`analyser/detection-copy.ts`, ids inchangés), `detect()` accords replie sur
+la préférence stockée. Révise N.4 + placement séparation (validé au
+checkpoint). Specs migrés (analyser-row.spec 31 tests). Browser-verify
+bout-en-bout. Revue 8 angles → 3 fixés, 2 différés (Q.3/R.1). Gate **verte —
+1441 tests**, Stryker skippé.
+[rapport](sessions/2026-07-15-q2-analyser-row.md).
+**Prochain : Q.3** (zone Analyse repliable + résumé de l'acquis + read-out
+header — checkpoint d'approche requis).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
