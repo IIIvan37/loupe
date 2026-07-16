@@ -118,7 +118,29 @@
   color: var(--amber);
 }
 
-/* The tone row under the fader: LC/HC tags and their compact sliders. */
+/* An active filter marks its trigger even while the popover is closed —
+   amber, the « this shapes what plays » grammar shared with solo. */
+.toggle[data-filtered] {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+/* The EQ popover (Y.1): the tone controls fold behind the trigger so the
+   header keeps its two 48px-contract lines. Shared popover skin, composed. */
+.eqPositioner {
+  composes: positioner from '../ui/popover-form.module.css';
+}
+
+.eqPopup {
+  composes: popup from '../ui/popover-form.module.css';
+  width: 14rem;
+}
+
+.eqTitle {
+  composes: title from '../ui/popover-form.module.css';
+}
+
+/* The tone row inside the popup: LC/HC tags and their sliders. */
 .filters {
   display: flex;
   align-items: center;

@@ -567,9 +567,29 @@ injoignable — réessayer. »). Browser-verify via le port 5174 (origin rejeté
 inchangés. Gate **verte — 1595 tests** (+4), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-x1-offload-gating.md).
 
-**X.2 en PR (#171), Y.1 en PR (#172)** — voir leurs rapports.
-**Z.1 — clics métronome hors bande chroma (branche
-`feat/z1-click-out-of-chroma-band`, PR à ouvrir)** : BEAT/DOWNBEAT 1000/2000
+**X.1 mergé (PR #170).** ⚠️ **CI GitHub en panne de facturation** (jobs tués
+en 3 s, « recent account payments have failed ») — gate locale = seule
+vérification effective, backstop Stryker post-merge inopérant.
+**X.2 — relance après annulation du tempo mergé (PR #171)** : état `cancelled`
+sur `useTempo` (posé au cancel, effacé par detect/set/reset), l'item tempo
+garde une face idle « Détecter le tempo » (DetectionAction sur `onRetry`) au
+lieu de disparaître ; un cancel par-dessus un tempo posé garde « Tempo
+détecté ». Nouvel id `analyser.tempo-detect`. Gate **verte — 1602 tests**
+(+7), Stryker skippé (core intouché). NB : ShellMain à 300 lignes pile
+(budget react-doctor sans marge).
+[rapport](sessions/2026-07-16-x2-tempo-cancel-idle.md).
+**Y.1 — EQ par stem replié en popover (branche `feat/y1-stem-eq-popover`,
+PR #172)** : la rangée LC/HC qui débordait du header 48 px (régression T.8b)
+déménage dans un popover « EQ » par stem (trigger dans la ligne M/S, peau
+popover-form composée, z-index sur le Positioner) ; marque `data-filtered`
+ambre quand un filtre est actif. Checkpoint : repli choisi contre montée à
+64 px ; popover contre dépli en place (headers et lanes ne s'alignent que par
+hauteurs fixes). Browser-verify réel (click-track 120 BPM, métronome seaté) :
+48 px exacts, zéro overflow, LC 400 Hz → indicateur ambre. Gate **verte —
+1597 tests** (+2), Stryker skippé (core intouché).
+[rapport](sessions/2026-07-16-y1-stem-eq-popover.md).
+
+**Z.1 — clics métronome hors bande chroma (PR #173)** : BEAT/DOWNBEAT 1000/2000
 → 2400/3200 Hz (les deux se repliaient sur B et peignaient une fausse note
 pulsante au Spectre) ; bornes `CHROMA_MIN_HZ`/`CHROMA_MAX_HZ` exportées et
 invariant TDD mesuré sur les échantillons (passages à zéro vs CHROMA_MAX_HZ).

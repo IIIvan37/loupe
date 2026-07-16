@@ -1,4 +1,5 @@
 import { MAX_GAIN_DB, MIN_GAIN_DB, type StemFilter } from '@app/core'
+import { Popover } from '@base-ui-components/react/popover'
 import { useLingui } from '@lingui/react/macro'
 import { cx } from '../../lib/cx.ts'
 import { stemColor } from '../stems/stem-color.ts'
@@ -139,65 +140,103 @@ export function StemHeaders({
                 }
               />
               <span className={styles.db}>{formatDb(gainDb)}</span>
-            </div>
-            {/* Tone shaping: a slider parked at its edge is « that side
-                off » — the DAW convention for an EQ at rest. Session-only:
-                a listening aid, never saved with the project. */}
-            <div className={styles.filters}>
-              <span className={styles.filterTag} aria-hidden="true">
-                LC
-              </span>
-              <input
-                type="range"
-                className={styles.filterSlider}
-                data-accent="amber"
-                data-compact=""
-                min={LOW_CUT_OFF_HZ}
-                max={2000}
-                step={10}
-                value={filter.lowCutHz ?? LOW_CUT_OFF_HZ}
-                aria-label={t({
-                  id: 'mixer.low-cut',
-                  message: `Coupe-bas ${name}`
-                })}
-                title={t({
-                  id: 'mixer.low-cut-hint',
-                  message: 'Couper les graves sous cette fréquence'
-                })}
-                onChange={(event) =>
-                  onSetFilter(
-                    stem.id,
-                    stemFilter(event.target.valueAsNumber, filter.highCutHz)
-                  )
-                }
-              />
-              <span className={styles.filterTag} aria-hidden="true">
-                HC
-              </span>
-              <input
-                type="range"
-                className={styles.filterSlider}
-                data-accent="amber"
-                data-compact=""
-                min={200}
-                max={HIGH_CUT_OFF_HZ}
-                step={100}
-                value={filter.highCutHz ?? HIGH_CUT_OFF_HZ}
-                aria-label={t({
-                  id: 'mixer.high-cut',
-                  message: `Coupe-haut ${name}`
-                })}
-                title={t({
-                  id: 'mixer.high-cut-hint',
-                  message: 'Couper les aigus au-dessus de cette fréquence'
-                })}
-                onChange={(event) =>
-                  onSetFilter(
-                    stem.id,
-                    stemFilter(filter.lowCutHz, event.target.valueAsNumber)
-                  )
-                }
-              />
+              {/* Tone shaping lives behind a popover (Y.1): the header keeps
+                  its two 48px-contract lines, the EQ opens on demand.
+                  Session-only: a listening aid, never saved with the
+                  project. A slider parked at its edge is « that side off »
+                  — the DAW convention for an EQ at rest. */}
+              <Popover.Root>
+                <Popover.Trigger
+                  className={cx(styles.toggle)}
+                  aria-label={t({
+                    id: 'mixer.eq',
+                    message: `Égaliseur ${name}`
+                  })}
+                  // Visible mark that this stem is being shaped even while
+                  // the popover is closed.
+                  {...(filter.lowCutHz !== undefined ||
+                  filter.highCutHz !== undefined
+                    ? { 'data-filtered': '' }
+                    : {})}
+                >
+                  EQ
+                </Popover.Trigger>
+                <Popover.Portal>
+                  <Popover.Positioner
+                    className={cx(styles.eqPositioner)}
+                    sideOffset={6}
+                  >
+                    <Popover.Popup className={cx(styles.eqPopup)}>
+                      <Popover.Title className={cx(styles.eqTitle)}>
+                        {t({ id: 'mixer.eq-title', message: `EQ — ${name}` })}
+                      </Popover.Title>
+                      <div className={styles.filters}>
+                        <span className={styles.filterTag} aria-hidden="true">
+                          LC
+                        </span>
+                        <input
+                          type="range"
+                          className={styles.filterSlider}
+                          data-accent="amber"
+                          data-compact=""
+                          min={LOW_CUT_OFF_HZ}
+                          max={2000}
+                          step={10}
+                          value={filter.lowCutHz ?? LOW_CUT_OFF_HZ}
+                          aria-label={t({
+                            id: 'mixer.low-cut',
+                            message: `Coupe-bas ${name}`
+                          })}
+                          title={t({
+                            id: 'mixer.low-cut-hint',
+                            message: 'Couper les graves sous cette fréquence'
+                          })}
+                          onChange={(event) =>
+                            onSetFilter(
+                              stem.id,
+                              stemFilter(
+                                event.target.valueAsNumber,
+                                filter.highCutHz
+                              )
+                            )
+                          }
+                        />
+                        <span className={styles.filterTag} aria-hidden="true">
+                          HC
+                        </span>
+                        <input
+                          type="range"
+                          className={styles.filterSlider}
+                          data-accent="amber"
+                          data-compact=""
+                          min={200}
+                          max={HIGH_CUT_OFF_HZ}
+                          step={100}
+                          value={filter.highCutHz ?? HIGH_CUT_OFF_HZ}
+                          aria-label={t({
+                            id: 'mixer.high-cut',
+                            message: `Coupe-haut ${name}`
+                          })}
+                          title={t({
+                            id: 'mixer.high-cut-hint',
+                            message:
+                              'Couper les aigus au-dessus de cette fréquence'
+                          })}
+                          onChange={(event) =>
+                            onSetFilter(
+                              stem.id,
+                              stemFilter(
+                                filter.lowCutHz,
+                                event.target.valueAsNumber
+                              )
+                            )
+                          }
+                        />
+                      </div>
+                    </Popover.Popup>
+                  </Popover.Positioner>
+                </Popover.Portal>
+              </Popover.Root>
             </div>
           </li>
         )
