@@ -239,7 +239,11 @@ on n'empile pas une migration d'infra sur des régressions connues.
       (serveur local éteint, abort `net::ERR_ABORTED` sous réseau ralenti) ;
       transport à re-mesurer sur vraie musique (zstd ment sur du synthétique) ;
       voir [rapport](sessions/2026-07-16-m13-separation-modal.md)
-- [ ] **M1.4** santé par endpoint effectif + UX hors-ligne + narration
+- [x] **M1.4** santé par endpoint effectif + UX hors-ligne + narration —
+      livré 2026-07-16, vérifié réellement (vraie musique 4:09 séparée en
+      72 s, hors-ligne live, narration visible) ; **sortie de Phase 1
+      atteinte** — voir
+      [rapport](sessions/2026-07-16-m14-sante-horsligne-narration.md)
 - [ ] **T2.1** spike coquille Tauri + inventaire licences (GO/NO-GO)
 - [ ] **T2.2** stores filesystem à parité (dédup, atomicité, GC) + parseProject
 - [ ] **T2.3** sidecar yt-dlp (gardes réimplémentées)
