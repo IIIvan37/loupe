@@ -556,8 +556,19 @@ option gardée ouverte). **Séquencement validé (2026-07-16)** : les cinq 🟠 
 d'abord — X.1 en tête (prérequis de M1.1) —, AA.2 déplacé en T2.2, les 🟢 au
 fil de l'eau, puis Phase 1 Modal.
 
-**Prochain : X.1** (gating/copy de la structure indexés sur l'endpoint
-effectif — slice UI, checkpoint d'approche requis).
+**X.1 — structure dé-gatée du serveur local en mode offload (branche
+`feat/x1-offload-gating`, PR à ouvrir)** : `blockedReason` structure dérivé de
+`serverHealth` seulement quand l'analyse est locale (pas de sonde Modal — le
+conteneur facturé ne se réveille pas au chargement, l'erreur typée parle au
+clic), `mayColdStart` → `offloaded` (cold-start R.3 + choix de copy),
+nouvelle copy `structure.error.network-offload` (« Service d'analyse
+injoignable — réessayer. »). Browser-verify via le port 5174 (origin rejetée
+→ « Serveur hors ligne ») : structure active sans hint, voisins gatés
+inchangés. Gate **verte — 1595 tests** (+4), Stryker skippé (core intouché).
+[rapport](sessions/2026-07-16-x1-offload-gating.md).
+
+**Prochain : X.2** (face idle « Détecter le tempo » après annulation — le 2ᵉ
+des cinq 🟠, cf. roadmap v5).
 
 **Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 
