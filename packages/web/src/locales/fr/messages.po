@@ -428,7 +428,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:313
+#: src/app/workstation-shell/workstation-shell.tsx:323
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -1185,12 +1185,12 @@ msgid "structure.section.verse"
 msgstr "Couplet"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:285
+#: src/app/tempo/tempo-panel.tsx:213
 msgid "tempo.align"
 msgstr "Caler la grille sur la tête de lecture"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:290
+#: src/app/tempo/tempo-panel.tsx:218
 msgid "tempo.align-short"
 msgstr "Caler"
 
@@ -1201,7 +1201,7 @@ msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:195
+#: src/app/tempo/tempo-panel.tsx:123
 #: src/app/workstation-shell/shell-test-kit.tsx:305
 msgid "tempo.bpm-field"
 msgstr "Saisir le tempo (BPM)"
@@ -1212,7 +1212,7 @@ msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:260
+#: src/app/tempo/tempo-panel.tsx:188
 msgid "tempo.double"
 msgstr "Doubler le tempo"
 
@@ -1242,37 +1242,37 @@ msgid "tempo.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:248
+#: src/app/tempo/tempo-panel.tsx:176
 msgid "tempo.halve"
 msgstr "Diviser le tempo par deux"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:186
+#: src/app/tempo/tempo-panel.tsx:114
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:210
+#: src/app/tempo/tempo-panel.tsx:138
 msgid "tempo.manual-badge"
 msgstr "Manuel"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:227
+#: src/app/tempo/tempo-panel.tsx:155
 msgid "tempo.meter-field"
 msgstr "Saisir le mètre (temps par mesure)"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:238
+#: src/app/tempo/tempo-panel.tsx:166
 msgid "tempo.meter-unit"
 msgstr "temps"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:215
+#: src/app/tempo/tempo-panel.tsx:143
 msgid "tempo.range"
 msgstr "{min}–{max} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:183
+#: src/app/tempo/tempo-panel.tsx:111
 msgid "tempo.region-label"
 msgstr "Tempo"
 
@@ -1283,17 +1283,17 @@ msgstr "Réessayer"
 
 #. js-lingui-explicit-id
 #: src/app/keyboard/shortcut-hints.ts:107
-#: src/app/tempo/tempo-panel.tsx:276
+#: src/app/tempo/tempo-panel.tsx:204
 msgid "tempo.tap"
 msgstr "Taper le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:278
+#: src/app/tempo/tempo-panel.tsx:206
 msgid "tempo.tap-short"
 msgstr "Tap"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:206
+#: src/app/tempo/tempo-panel.tsx:134
 msgid "tempo.unit"
 msgstr "BPM"
 
@@ -1308,7 +1308,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:207
+#: src/app/workstation-shell/workstation-shell.tsx:217
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
@@ -1323,52 +1323,67 @@ msgid "toast.stems-exported"
 msgstr "Stems exportés"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:87
+#: src/app/transport-bar/transport-bar.tsx:95
 msgid "transport.end"
 msgstr "Fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:75
+#: src/app/transport-bar/transport-bar.tsx:175
+msgid "transport.fine-tune-field"
+msgstr "Saisir l'ajustement fin (cents)"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:167
+msgid "transport.fine-tune-label"
+msgstr "Ajustement fin"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:187
+msgid "transport.fine-tune-unit"
+msgstr "cents"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:83
 msgid "transport.pause"
 msgstr "Pause"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:130
+#: src/app/transport-bar/transport-bar.tsx:138
 msgid "transport.pitch-label"
 msgstr "Hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:143
+#: src/app/transport-bar/transport-bar.tsx:151
 msgid "transport.pitch-reset"
 msgstr "Double-clic pour revenir à 0"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:138
+#: src/app/transport-bar/transport-bar.tsx:146
 msgid "transport.pitch-slider"
 msgstr "Hauteur en demi-tons"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:76
+#: src/app/transport-bar/transport-bar.tsx:84
 msgid "transport.play"
 msgstr "Lecture"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:63
+#: src/app/transport-bar/transport-bar.tsx:71
 msgid "transport.start"
 msgstr "Début"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:106
+#: src/app/transport-bar/transport-bar.tsx:114
 msgid "transport.tempo-label"
 msgstr "Vitesse (sans toucher au pitch)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:119
+#: src/app/transport-bar/transport-bar.tsx:127
 msgid "transport.tempo-reset"
 msgstr "Double-clic pour revenir à 100 %"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:114
+#: src/app/transport-bar/transport-bar.tsx:122
 msgid "transport.tempo-slider"
 msgstr "Vitesse en pourcentage"
 

@@ -4,6 +4,7 @@ import {
   defaultKeyBindings,
   formatTimecode,
   type PlaybackEngine,
+  type ProjectTuning,
   type ProjectDeps,
   type StemPlaybackEngine,
   type StemSeparator,
@@ -53,6 +54,54 @@ import styles from './workstation-shell.module.css'
 
 /** The visible keyboard layout, derived once — the empty-state hero shows it. */
 const SHORTCUT_HINTS = describeKeyBindings(defaultKeyBindings)
+
+/** The live tuning as a manifest persists it — an untouched fine-tune stays
+ * absent (⇔ 0) so old manifests remain byte-identical. */
+function tuningSnapshot(
+  timeRatio: number,
+  pitchSemitones: number,
+  zoom: number,
+  fineTuneCents: number
+): ProjectTuning {
+  return {
+    timeRatio,
+    pitchSemitones,
+    zoom,
+    ...(fineTuneCents === 0 ? {} : { fineTuneCents })
+  }
+}
+
+/** The transport footer, wired from the player (tempo/pitch/fine-tune). */
+function ShellFooter({
+  player,
+  isLoaded,
+  countIn
+}: {
+  readonly player: ReturnType<typeof usePlayer>
+  readonly isLoaded: boolean
+  readonly countIn: ReturnType<typeof useCountIn>
+}) {
+  const { transport, position } = player
+  return (
+    <TransportBar
+      position={position}
+      duration={formatTimecode(transport.durationSeconds)}
+      // During the count-in the button reads « pause » — pressing it abandons
+      // the count, exactly what a pause means at that instant.
+      isPlaying={transport.isPlaying || countIn.countingIn}
+      canPlay={isLoaded}
+      onPlayPause={countIn.togglePlayback}
+      onSeekToStart={() => player.seekToSeconds(0)}
+      onSeekToEnd={() => player.seekToSeconds(transport.durationSeconds)}
+      tempoPercent={Math.round(player.timeRatio * 100)}
+      pitchSemitones={player.pitchSemitones}
+      onTempoChange={(percent) => player.setTimeRatio(percent / 100)}
+      onPitchChange={player.setPitchSemitones}
+      fineTuneCents={player.fineTuneCents}
+      onFineTuneChange={player.setFineTuneCents}
+    />
+  )
+}
 
 interface WorkstationShellProps {
   /** Ports injected in tests; default to the real Web Audio adapters. */
@@ -111,6 +160,13 @@ export function WorkstationShell({
   // The multitrack engine drives the transport whenever the mixer holds any
   // stem — separation stems, or the track + metronome when un-separated.
   const stemsActive = mixer.channels.length > 0
+  const player = usePlayer(
+    decoder,
+    engine,
+    metadataReader,
+    stemPlayback,
+    stemsActive
+  )
   const {
     importState,
     loadedAudio,
@@ -120,19 +176,19 @@ export function WorkstationShell({
     position,
     timeRatio,
     pitchSemitones,
+    fineTuneCents,
     loopRegion,
     importFile,
     togglePlayback,
     seekToRatio,
     seekToSeconds,
-    setTimeRatio,
-    setPitchSemitones,
+    restoreTuning,
     setLoopRegion,
     loopEnabled,
     toggleLoop,
     restoreLoop,
     speedTrainer
-  } = usePlayer(decoder, engine, metadataReader, stemPlayback, stemsActive)
+  } = player
   const markers = useMarkers()
   const tempo = useTempo(tempoDetector)
   useModalWarmup(loadedAudio) // warm the Modal container on import (no-op locally)
@@ -177,7 +233,7 @@ export function WorkstationShell({
     stemsReady,
     loopRegion,
     loopEnabled,
-    tuning: { timeRatio, pitchSemitones, zoom: viewport.zoom },
+    tuning: tuningSnapshot(timeRatio, pitchSemitones, viewport.zoom, fineTuneCents),
     chordChart,
     restoreChordChart: chordChart.restore,
     markers,
@@ -187,9 +243,7 @@ export function WorkstationShell({
       loopEditing.restore(savedLoopId)
     },
     restoreTuning: (tuning) => {
-      // The player setters re-clamp, so a hand-edited manifest stays in range.
-      setTimeRatio(tuning.timeRatio)
-      setPitchSemitones(tuning.pitchSemitones)
+      restoreTuning(tuning)
       viewport.setZoom(tuning.zoom)
     },
     separation,
@@ -359,20 +413,10 @@ export function WorkstationShell({
         />
       )}
 
-      <TransportBar
-        position={position}
-        duration={formatTimecode(transport.durationSeconds)}
-        // During the count-in the button reads « pause » — pressing it abandons
-        // the count, exactly what a pause means at that instant.
-        isPlaying={transport.isPlaying || countIn.countingIn}
-        canPlay={isLoaded}
-        onPlayPause={countIn.togglePlayback}
-        onSeekToStart={() => seekToSeconds(0)}
-        onSeekToEnd={() => seekToSeconds(transport.durationSeconds)}
-        tempoPercent={Math.round(timeRatio * 100)}
-        pitchSemitones={pitchSemitones}
-        onTempoChange={(percent) => setTimeRatio(percent / 100)}
-        onPitchChange={setPitchSemitones}
+      <ShellFooter
+        player={player}
+        isLoaded={isLoaded}
+        countIn={countIn}
       />
 
       <ToastRegion toaster={toaster} />

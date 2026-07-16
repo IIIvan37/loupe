@@ -1,4 +1,5 @@
 import type { BeatGrid } from './beat-grid.ts'
+import { clampFineTuneCents } from './fine-tune.ts'
 import type { LoopLibrary } from './loop-library.ts'
 import type { LoopRegion } from './loop-region.ts'
 import type { ManualTempo } from './manual-tempo.ts'
@@ -51,6 +52,8 @@ export interface ProjectTuning {
   readonly pitchSemitones: number
   /** View magnification (1× = fully zoomed out). */
   readonly zoom: number
+  /** Fine pitch adjustment in whole cents (±50); absent ⇔ 0 (T.7). */
+  readonly fineTuneCents?: number
 }
 
 /**
@@ -192,6 +195,17 @@ export function tuningOrDefault(
   tuning: ProjectTuning | undefined
 ): ProjectTuning {
   return tuning ?? NEUTRAL_TUNING
+}
+
+/**
+ * Normalise the optional persisted fine-tune: a manifest (or tuning) that
+ * predates the field means no adjustment, so absent reads as 0 — same « old
+ * manifest » rule as `tuningOrDefault`/`chartTransposedBy`, kept in one place
+ * so the fingerprint and the restore path agree on it. A corrupted
+ * (hand-edited) value reads as 0 through the clamp's NaN contract.
+ */
+export function fineTuneOrDefault(tuning: ProjectTuning | undefined): number {
+  return clampFineTuneCents(tuning?.fineTuneCents ?? 0)
 }
 
 /**

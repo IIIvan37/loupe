@@ -311,6 +311,35 @@ describe('WorkstationShell projects & persistence', () => {
     ).toBe('3')
   })
 
+  it('restores the saved fine-tune when a project is reopened', async () => {
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
+    await importTrack(user)
+    const fineTune = () =>
+      screen.getByLabelText(
+        i18n._('transport.fine-tune-field')
+      ) as HTMLInputElement
+    await user.clear(fineTune())
+    await user.type(fineTune(), '30')
+    await user.tab()
+    await saveProjectAs(user, 'Mon projet')
+
+    // A fresh track starts at its own neutral tuning — no bleed-through.
+    await importTrack(user, 'autre.wav')
+    expect(fineTune().value).toBe('0')
+
+    await openProjectsDialog(user)
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('projects.open') })
+    )
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('projects.confirm-open', { name: 'Mon projet' })
+      })
+    )
+
+    await waitFor(() => expect(fineTune().value).toBe('30'))
+  })
+
   it('restores both marker kinds when a project is reopened', async () => {
     const { user } = renderShell({
       projectStores: fakeProjectStores(),

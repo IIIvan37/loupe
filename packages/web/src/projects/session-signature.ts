@@ -2,6 +2,7 @@ import {
   type BeatGrid,
   chartTransposedBy,
   DEFAULT_BEATS_PER_BAR,
+  fineTuneOrDefault,
   type LoopLibrary,
   type ManualTempo,
   type MarkerList,
@@ -103,7 +104,14 @@ export function sessionSignature(session: SignedSession): string {
           session.activeLoop.enabled
         ]
       : null,
-    tuning: [tuning.timeRatio, tuning.pitchSemitones, tuning.zoom],
+    // Fine-tune signs through its « absent ⇔ 0 » reader, so a manifest that
+    // predates the field still signs equal to an untouched session.
+    tuning: [
+      tuning.timeRatio,
+      tuning.pitchSemitones,
+      tuning.zoom,
+      fineTuneOrDefault(session.tuning)
+    ],
     metronome: [metronome.gainDb, metronome.muted, metronome.soloed],
     octaveShift,
     manualTempo: manual ? [manual.bpm, manual.phaseSeconds] : null,

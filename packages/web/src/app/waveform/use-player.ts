@@ -1,11 +1,14 @@
 import {
   type AudioFileDecoder,
+  clampFineTuneCents,
   clampPitchSemitones,
   clampPlaybackRate,
   type DecodedAudio,
+  fineTuneOrDefault,
   type LoopRegion,
   loadTrack,
   type PlaybackEngine,
+  type ProjectTuning,
   type StemPlaybackEngine,
   type Track,
   type TrackMetadata,
@@ -67,6 +70,12 @@ export interface Player {
   readonly seekToSeconds: (seconds: number) => void
   readonly setTimeRatio: (ratio: number) => void
   readonly setPitchSemitones: (semitones: number) => void
+  /** Fine pitch adjustment in cents (±50), separate from the semitones. */
+  readonly fineTuneCents: number
+  readonly setFineTuneCents: (cents: number) => void
+  /** Seat a persisted tuning (project open) — every setter re-clamps, so a
+   * hand-edited manifest stays in range. Zoom stays the viewport's. */
+  readonly restoreTuning: (tuning: ProjectTuning) => void
   /** The active A/B loop (the « loupe »), or undefined when off. */
   readonly loopRegion: LoopRegion | undefined
   readonly setLoopRegion: (region: LoopRegion | undefined) => void
@@ -122,6 +131,7 @@ export function usePlayer(
   )
   const [timeRatio, setTimeRatioState] = useState(1)
   const [pitchSemitones, setPitchSemitonesState] = useState(0)
+  const [fineTuneCents, setFineTuneCentsState] = useState(0)
   const loop = useLoop()
   // The ramp applies its earned tempo through the same clamped path the
   // slider uses (engines + read-out follow) — but through the INTERNAL
@@ -205,6 +215,7 @@ export function usePlayer(
           // previous track's tuning must not bleed in (and get saved with it).
           setTimeRatio(1)
           setPitchSemitones(0)
+          setFineTuneCents(0)
           dispatch({
             type: 'load',
             durationSeconds: result.track.durationSeconds
@@ -267,11 +278,38 @@ export function usePlayer(
     applyTimeRatio(ratio)
   }
 
+  /** The engines hear ONE pitch: semitones + cents/100 (SoundTouch takes the
+   * fraction directly). The two knobs stay separate in state — the chart's
+   * transposition arithmetic (N.3, modulo 12) reads whole semitones only.
+   * The ref carries the pair so back-to-back setter calls in one render
+   * (import reset, project restore) never apply a stale other-half. */
+  const enginePitch = useRef({ semitones: 0, cents: 0 })
+
+  function applyPitch(): void {
+    const { semitones, cents } = enginePitch.current
+    const shifted = semitones + cents / 100
+    playback.setPitchSemitones(shifted)
+    stemPlayback.setPitchSemitones(shifted)
+  }
+
   function setPitchSemitones(semitones: number): void {
     const clamped = clampPitchSemitones(semitones)
     setPitchSemitonesState(clamped)
-    playback.setPitchSemitones(clamped)
-    stemPlayback.setPitchSemitones(clamped)
+    enginePitch.current = { ...enginePitch.current, semitones: clamped }
+    applyPitch()
+  }
+
+  function setFineTuneCents(cents: number): void {
+    const clamped = clampFineTuneCents(cents)
+    setFineTuneCentsState(clamped)
+    enginePitch.current = { ...enginePitch.current, cents: clamped }
+    applyPitch()
+  }
+
+  function restoreTuning(tuning: ProjectTuning): void {
+    setTimeRatio(tuning.timeRatio)
+    setPitchSemitones(tuning.pitchSemitones)
+    setFineTuneCents(fineTuneOrDefault(tuning))
   }
 
   function setLoopRegion(region: LoopRegion | undefined): void {
@@ -309,6 +347,7 @@ export function usePlayer(
     position,
     timeRatio,
     pitchSemitones,
+    fineTuneCents,
     loopRegion: loop.loopRegion,
     importFile,
     togglePlayback,
@@ -316,6 +355,8 @@ export function usePlayer(
     seekToSeconds,
     setTimeRatio,
     setPitchSemitones,
+    setFineTuneCents,
+    restoreTuning,
     setLoopRegion,
     loopEnabled: loop.loopEnabled,
     toggleLoop,

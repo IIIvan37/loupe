@@ -93,3 +93,15 @@
   font-size: var(--font-size-s);
   color: var(--amber);
 }
+
+/* The cents field, dressed as the read-outs around it (numberField skin). */
+.fineTuneField {
+  composes: numberField from '../ui/controls.module.css';
+  color: inherit;
+}
+
+.fineTuneField[aria-invalid='true'],
+.fineTuneField[aria-invalid='true']:hover,
+.fineTuneField[aria-invalid='true']:focus-visible {
+  border-color: var(--danger);
+}
