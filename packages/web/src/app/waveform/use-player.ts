@@ -18,7 +18,6 @@ import { createWebAudioDecoder } from '../../audio/web-audio-decoder.ts'
 import { createWebAudioPlayback } from '../../audio/web-audio-playback.ts'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import type { ExternalValue } from '../../lib/external-value.ts'
-import { useLatest } from '../../lib/use-latest.ts'
 import {
   type SpeedTrainer,
   useSpeedTrainer
@@ -133,14 +132,11 @@ export function usePlayer(
     (percent) => applyTimeRatio(percent / 100),
     () => Math.round(timeRatio * 100)
   )
-  // Read through a ref: the transport hook wants the PCM at hand-back time,
-  // not a new getter identity per import.
-  const loadedAudioRef = useLatest(loadedAudio)
   const { transport, dispatch, position, active } = useTransportEngines({
     playback,
     stemPlayback,
     stemsActive,
-    trackAudio: () => loadedAudioRef.current,
+    trackAudio: loadedAudio,
     loopRegion: loop.loopRegion,
     loopEnabled: loop.loopEnabled,
     onLoopWrap: speedTrainer.recordPass
