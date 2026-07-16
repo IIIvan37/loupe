@@ -8,9 +8,11 @@
  */
 
 /** Musically useful band: below ~C1 the bins are wider than a semitone, above
- * ~C7 the harmonics of every note blur the classes together. */
-const MIN_HZ = 32
-const MAX_HZ = 2100
+ * ~C7 the harmonics of every note blur the classes together. Exported so
+ * in-app synthesized sounds (the metronome click) can PROVE they stay out of
+ * the band instead of painting fake candidate notes (Z.1). */
+export const CHROMA_MIN_HZ = 32
+export const CHROMA_MAX_HZ = 2100
 
 export function chromaFromSpectrum(
   magnitudes: ArrayLike<number>,
@@ -20,7 +22,7 @@ export function chromaFromSpectrum(
   const binHz = sampleRate / (2 * magnitudes.length)
   for (let i = 1; i < magnitudes.length; i++) {
     const hz = i * binHz
-    if (hz < MIN_HZ || hz > MAX_HZ) {
+    if (hz < CHROMA_MIN_HZ || hz > CHROMA_MAX_HZ) {
       continue
     }
     // MIDI note of the bin centre; midi % 12 puts C at 0 (A440 = midi 69).

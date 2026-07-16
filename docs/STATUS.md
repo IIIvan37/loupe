@@ -589,8 +589,16 @@ hauteurs fixes). Browser-verify réel (click-track 120 BPM, métronome seaté) :
 1597 tests** (+2), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-y1-stem-eq-popover.md).
 
-**Prochain : Z.1** (clics métronome hors bande chroma — 4ᵉ des cinq 🟠, core
-pur ⇒ TDD + Stryker).
+**Z.1 — clics métronome hors bande chroma (PR #173)** : BEAT/DOWNBEAT 1000/2000
+→ 2400/3200 Hz (les deux se repliaient sur B et peignaient une fausse note
+pulsante au Spectre) ; bornes `CHROMA_MIN_HZ`/`CHROMA_MAX_HZ` exportées et
+invariant TDD mesuré sur les échantillons (passages à zéro vs CHROMA_MAX_HZ).
+Browser-verify en lecture réelle (kick+nappe 120 BPM, métronome audible) :
+A=100 stable, B=1-2. Gate **verte — 1596 tests** (+1), **Stryker 93,90 %**.
+[rapport](sessions/2026-07-16-z1-click-out-of-chroma-band.md).
+
+**Prochain : AA.1** (Dependabot pip sur server/ — dernier des cinq 🟠,
+config).
 
 **Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 
