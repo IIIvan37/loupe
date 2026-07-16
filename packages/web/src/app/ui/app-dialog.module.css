@@ -40,7 +40,8 @@
 .title {
   font-family: var(--font-logo);
   font-size: var(--font-size-l);
-  font-weight: 600;
+  /* 500 is the only Space Grotesk weight shipped — 600 would synthesize. */
+  font-weight: 500;
 }
 
 .description {

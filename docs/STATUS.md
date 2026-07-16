@@ -448,7 +448,15 @@ re-exécute déjà l'effet). Browser-verify : extrémités alignées à 1× et 4
 (Δ < 1 px), page-follow intact, resize 1200→700 recalcule à ratio constant.
 Gate **verte — 1537 tests** (+1), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-v4-playhead-transform.md).
-**Prochain : W.3–W.5**, ou la prochaine évaluation notée.
+**W.3 — faux-gras synthétisés (branche `feat/w3-faux-bold`, PR à ouvrir)** :
+les trois `font-weight: 600` sur des graisses absentes corrigés — titres
+dialog/popover (Space Grotesk, seul 500 chargé) abaissés à 500 (choix : pas de
+600.css en plus, cohérent avec le logo), `.timeSignature` (Petaluma, 400 seul)
+dégraissé. Browser-verify avant/après (600 forcé = trait synthétisé empâté).
+Règle actée : `--font-logo` ⇒ 500 tant que 600.css n'est pas importé ; jamais
+de `font-weight` sur Petaluma. Gate **verte — 1537 tests**, Stryker skippé
+(core intouché). [rapport](sessions/2026-07-16-w3-faux-bold.md).
+**Prochain : W.4–W.5**, ou la prochaine évaluation notée.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
