@@ -99,6 +99,9 @@ The single place to look before adding a feature, so ports and use-cases get
 > Pure WAV codec (no use-case/port, used by adapters) — `encodeWav` (Slice J2.2,
 > per-stem export) serialises PCM to a 16-bit WAV; `decodeWav` (Slice J2.2b) is
 > its inverse, parsing a WAV the HTTP separator fetched back into `DecodedAudio`.
+> `downmixToMono` (V.1) folds channels into one mono signal by averaging —
+> `buildTrack`'s waveform fold and the web's analysis upload
+> (`encodeAnalysisWavMemo`, mono + 24 kHz) both use it.
 >
 > Pure stem-export domain — Slice J2.6: `stemExportFilename` (`01_Voix.wav`…,
 > numbered in display order) and `padChannels` (bring every channel to one shared

@@ -389,7 +389,7 @@ au-delà des bords de la grille ; `waveform-view` (poignées A/B) et
 `NUDGE_RATIO = 0.01` supprimés. Gate **verte — 1496 tests** (+12),
 **Stryker 93,51 %** (`nudge-time.ts` 100 %).
 [rapport](sessions/2026-07-15-t2-musical-nudge.md).
-**T.3 — chart navigable (branche `feat/t3-navigable-chart`, PR à ouvrir)** :
+**T.3 — chart navigable (mergé, PR #155)** :
 core pur `measureSeekTime(source, grid, writtenIndex, playhead)` — inverse de
 la projection du highlight via `unrollChart`, occurrence **encore devant le
 playhead** (la passe en cours se relance), repli première occurrence,
@@ -402,7 +402,29 @@ tests** (+11), **Stryker 93,95 %** (`measureSeekTime` : survivant frontière
 tué, 1 équivalent documenté). NB shell : détection résolue ⇒ seek via le
 **moteur de stems**.
 [rapport](sessions/2026-07-15-t3-navigable-chart.md).
-**T.1–T.3 clos → prochain : V.1.**
+**T.1–T.3 clos.**
+
+**En cours : V.1 — upload d'analyse mono + 24 kHz (branche
+`feat/v1-analysis-upload`, PR à ouvrir).** Les trois détections uploadaient le
+mix stéréo 44,1 kHz (~42 MB / 4 min) alors que chaque endpoint replie en mono
+et rééchantillonne. **Core** : `downmixToMono` pur (promu du `mixToMono` privé
+de `buildTrack`, TDD + property test, rejette vide et canaux inégaux).
+**Web** : `encodeAnalysisWav` (seam testable, resampler injectable) +
+`encodeAnalysisWavMemo` (WeakMap par `DecodedAudio`, éviction sur rejet) —
+fold mono → 24 kHz via `resample-mono.ts` (humble OfflineAudioContext,
+réutilise `audioBufferFrom`) ; **le resample ne fait jamais échouer une
+détection** (zéro-frame jamais rendu, échec → repli taux source) ;
+`postWavForJson` branché dessus (`/tempo` `/chords` `/structure`),
+`/separate` garde le plein débit. **Mesuré** (The Logical Song 4:09) :
+44 042 028 → **11 984 258 octets (3,67×)**, résultats identiques octet pour
+octet sur `/tempo` et `/chords` (182/182 spans) ; browser-verify avant/après
+revue. Revue 8 angles + 3 vérificateurs → 8 fixés, 3 réfutés documentés
+(hi-res, double-resample accords, parité float32). Au passage : reporter
+Stryker `json` (fini le parsing HTML — `jq` sur
+`reports/mutation/mutation.json`). Gate **verte — 1521 tests** (+14),
+**Stryker 93,93 %** (`downmix.ts` : 1 mutant équivalent documenté).
+[rapport](sessions/2026-07-16-v1-analysis-upload.md).
+**Prochain : V.2** (décharger le moteur mono-piste après hand-off stems).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

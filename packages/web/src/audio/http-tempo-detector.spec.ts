@@ -1,6 +1,7 @@
 import type { DecodedAudio } from '@app/core'
 import { TempoDetectionError } from '@app/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { encodeAnalysisWavMemo } from './encode-analysis-wav-memo.ts'
 import { createHttpTempoDetector } from './http-tempo-detector.ts'
 
 const MIX: DecodedAudio = {
@@ -20,7 +21,7 @@ afterEach(() => {
 })
 
 describe('createHttpTempoDetector', () => {
-  it('posts the mix as a WAV to the tempo endpoint', async () => {
+  it('posts the mix as a mono analysis WAV to the tempo endpoint', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       jsonResponse({
         bpm: 120,
@@ -34,7 +35,10 @@ describe('createHttpTempoDetector', () => {
     const [url, init] = fetchMock.mock.calls[0] ?? []
     expect(url).toBe('http://localhost:8000/tempo')
     expect(init?.method).toBe('POST')
-    expect(init?.body).toBeInstanceOf(Uint8Array)
+    // The memo hands back the identical byte array for the same audio, so
+    // this pins "the analysis WAV was posted" without re-deriving the
+    // encoding policy (which encode-analysis-wav-memo.spec.ts owns).
+    expect(init?.body).toBe(await encodeAnalysisWavMemo(MIX))
   })
 
   it('forwards the abort signal to the fetch', async () => {
