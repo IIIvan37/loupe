@@ -83,9 +83,47 @@ describe('StemHeaders', () => {
     expect(onToggleSolo).toHaveBeenCalledWith('voix')
   })
 
-  it("cuts a stem's lows through the low-cut slider", () => {
+  /** Y.1: the LC/HC sliders live behind the per-stem EQ popover. */
+  async function openEq(name: string) {
+    await userEvent.click(
+      screen.getByRole('button', { name: i18n._('mixer.eq', { name }) })
+    )
+  }
+
+  it('folds the tone controls behind an EQ popover (the 48px row holds)', async () => {
+    renderHeaders([channel('voix', 'Voix')])
+    // Folded by default: no slider in the header row.
+    expect(
+      screen.queryByLabelText(i18n._('mixer.low-cut', { name: 'Voix' }))
+    ).not.toBeInTheDocument()
+    await openEq('Voix')
+    expect(
+      screen.getByLabelText(i18n._('mixer.low-cut', { name: 'Voix' }))
+    ).toBeInTheDocument()
+    expect(
+      screen.getByLabelText(i18n._('mixer.high-cut', { name: 'Voix' }))
+    ).toBeInTheDocument()
+  })
+
+  it('flags the EQ trigger while a filter shapes the stem', () => {
+    renderHeaders([
+      channel('voix', 'Voix', { filter: { lowCutHz: 200 } }),
+      channel('basse', 'Basse')
+    ])
+    expect(
+      screen.getByRole('button', { name: i18n._('mixer.eq', { name: 'Voix' }) })
+    ).toHaveAttribute('data-filtered')
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('mixer.eq', { name: 'Basse' })
+      })
+    ).not.toHaveAttribute('data-filtered')
+  })
+
+  it("cuts a stem's lows through the low-cut slider", async () => {
     const onSetFilter = vi.fn()
     renderHeaders([channel('voix', 'Voix')], { onSetFilter })
+    await openEq('Voix')
     fireEvent.change(
       screen.getByLabelText(i18n._('mixer.low-cut', { name: 'Voix' })),
       { target: { value: '200' } }
@@ -93,9 +131,10 @@ describe('StemHeaders', () => {
     expect(onSetFilter).toHaveBeenCalledWith('voix', { lowCutHz: 200 })
   })
 
-  it("cuts a stem's highs through the high-cut slider", () => {
+  it("cuts a stem's highs through the high-cut slider", async () => {
     const onSetFilter = vi.fn()
     renderHeaders([channel('voix', 'Voix')], { onSetFilter })
+    await openEq('Voix')
     fireEvent.change(
       screen.getByLabelText(i18n._('mixer.high-cut', { name: 'Voix' })),
       { target: { value: '8000' } }
@@ -103,12 +142,13 @@ describe('StemHeaders', () => {
     expect(onSetFilter).toHaveBeenCalledWith('voix', { highCutHz: 8000 })
   })
 
-  it('reads a slider parked at its edge as « that side off »', () => {
+  it('reads a slider parked at its edge as « that side off »', async () => {
     const onSetFilter = vi.fn()
     renderHeaders(
       [channel('voix', 'Voix', { filter: { lowCutHz: 200, highCutHz: 8000 } })],
       { onSetFilter }
     )
+    await openEq('Voix')
     fireEvent.change(
       screen.getByLabelText(i18n._('mixer.low-cut', { name: 'Voix' })),
       { target: { value: '20' } }
