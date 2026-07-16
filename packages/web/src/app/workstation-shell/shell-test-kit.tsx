@@ -179,9 +179,9 @@ export function healthFetch(device: string | null | 'unreachable'): typeof fetch
   }) as typeof fetch
 }
 
-/** The waveform stage button (click to seek, drag to loop). */
+/** The waveform gesture surface (click to seek, drag to loop). */
 export function waveformSurface(): HTMLElement {
-  return screen.getByRole('button', { name: i18n._('waveform.surface') })
+  return screen.getByTestId('waveform-surface')
 }
 
 /**
@@ -234,9 +234,7 @@ export async function importTrack(user: UserEvent, fileName?: string): Promise<v
   // and the summed-mix image) — the track image is transient once a resolving
   // tempo detector loads the metronome and the view switches to the mix.
   await waitFor(() => {
-    expect(
-      screen.getByRole('button', { name: i18n._('waveform.surface') })
-    ).toBeInTheDocument()
+    expect(screen.getByTestId('waveform-surface')).toBeInTheDocument()
   })
 }
 

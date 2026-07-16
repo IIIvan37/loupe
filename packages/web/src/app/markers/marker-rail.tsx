@@ -156,6 +156,14 @@ export function MarkerRail({
                 onPointerDown={(event) => beginDrag(event, marker.id)}
                 onPointerMove={onPointerMove}
                 onPointerUp={(event) => endDrag(event, marker)}
+                // Keyboard activation (Enter/Space) fires a detail-0 click —
+                // the « Aller à » the label promises. A pointer click carries
+                // detail ≥ 1 and has already seeked through pointerup.
+                onClick={(event) => {
+                  if (event.detail === 0) {
+                    onSeek(marker.timeSeconds)
+                  }
+                }}
                 onKeyDown={(event) => onTagKeyDown(event, marker)}
               >
                 {marker.label}

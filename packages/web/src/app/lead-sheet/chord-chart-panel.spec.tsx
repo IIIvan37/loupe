@@ -48,6 +48,28 @@ async function typeGrid(user: ReturnType<typeof userEvent.setup>, text: string) 
   await user.type(screen.getByRole('textbox'), text)
 }
 
+describe('ChordChartPanel format help', () => {
+  it('opens the format guide from the header', async () => {
+    const user = userEvent.setup()
+    render(<Host />, { wrapper: I18nTestingProvider })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.format-help') })
+    )
+    expect(
+      screen.getByRole('heading', { name: i18n._('chords.format-help') })
+    ).toBeInTheDocument()
+  })
+
+  it('teaches the repeat grammar with a concrete example', async () => {
+    const user = userEvent.setup()
+    render(<Host />, { wrapper: I18nTestingProvider })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.format-help') })
+    )
+    expect(screen.getByText('|: C | G :|')).toBeInTheDocument()
+  })
+})
+
 describe('ChordChartPanel collapsed editing', () => {
   it('folds the source editor away by default — the chart is the view', () => {
     render(<Host />, { wrapper: I18nTestingProvider })

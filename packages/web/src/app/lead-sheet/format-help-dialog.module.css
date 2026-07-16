@@ -1,0 +1,23 @@
+/* The grid-format reference card: source snippet + meaning per row, on the
+   shared help-dialog list grammar. */
+.list {
+  composes: rowList from '../ui/app-dialog.module.css';
+}
+
+.row {
+  composes: helpRow from '../ui/app-dialog.module.css';
+}
+
+/* The literal source snippet — mono, wide enough that the meanings align. */
+.example {
+  flex: 0 0 auto;
+  min-width: 11rem;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-s);
+  color: var(--text);
+}
+
+.meaning {
+  margin: 0;
+  font-size: var(--font-size-m);
+}

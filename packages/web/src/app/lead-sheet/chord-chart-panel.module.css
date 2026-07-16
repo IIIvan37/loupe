@@ -105,3 +105,8 @@
 .followButton {
   composes: quietButton from '../ui/controls.module.css';
 }
+
+/* « Aide du format » sits beside « Modifier », same quiet chip. */
+.helpButton {
+  composes: editToggle;
+}

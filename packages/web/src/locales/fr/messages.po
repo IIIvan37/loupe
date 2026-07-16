@@ -131,7 +131,7 @@ msgstr "L'analyse spectrale arrivera avec la détection (jalon ultérieur)."
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:68
-#: src/app/workstation-shell/shell-test-kit.tsx:269
+#: src/app/workstation-shell/shell-test-kit.tsx:267
 msgid "analysis.tab-loops"
 msgstr "Boucles"
 
@@ -207,13 +207,13 @@ msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:160
-#: src/app/workstation-shell/shell-test-kit.tsx:254
+#: src/app/lead-sheet/chord-chart-panel.tsx:162
+#: src/app/workstation-shell/shell-test-kit.tsx:252
 msgid "chords.edit"
 msgstr "Modifier"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:210
+#: src/app/lead-sheet/chord-chart-panel.tsx:220
 msgid "chords.empty-hint"
 msgstr "Aucune grille — saisir les accords via « Modifier » ou lancer la détection."
 
@@ -243,55 +243,116 @@ msgid "chords.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:182
+#: src/app/lead-sheet/chord-chart-panel.tsx:192
 msgid "chords.follow-pitch"
 msgstr "Transposer la grille pour suivre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:178
+#: src/app/lead-sheet/chord-chart-panel.tsx:188
 msgid "chords.follow-pitch-confirm"
 msgstr "Réécrire la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:103
+#: src/app/lead-sheet/chord-chart-panel.tsx:105
 msgid "chords.followed"
 msgstr "Grille transposée"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:226
-#: src/app/workstation-shell/shell-test-kit.tsx:250
-#: src/app/workstation-shell/shell-test-kit.tsx:255
+#: src/app/lead-sheet/chord-chart-panel.tsx:169
+#: src/app/lead-sheet/format-help-dialog.tsx:89
+msgid "chords.format-help"
+msgstr "Aide du format"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:90
+msgid "chords.format-help-intro"
+msgstr "La grille se tape en texte : une ligne par rangée de mesures."
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:75
+msgid "chords.help-directives"
+msgstr "Surcharger l'en-tête du chart"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:57
+msgid "chords.help-fermata"
+msgstr "Point d'orgue"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:61
+msgid "chords.help-form"
+msgstr "Marques de forme (da capo, coda, fin)"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:28
+msgid "chords.help-measures"
+msgstr "Une mesure entre deux barres"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:46
+msgid "chords.help-repeat"
+msgstr "Reprise"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:24
+msgid "chords.help-section"
+msgstr "Nommer une section"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:42
+msgid "chords.help-silence"
+msgstr "Mesure sans accord"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:35
+msgid "chords.help-split"
+msgstr "Un accord par moitié de mesure"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:68
+msgid "chords.help-time"
+msgstr "Signature rythmique (en tête ou en cours de grille)"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:50
+msgid "chords.help-voltas"
+msgstr "Fins alternatives (voltas)"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:236
+#: src/app/workstation-shell/shell-test-kit.tsx:248
+#: src/app/workstation-shell/shell-test-kit.tsx:253
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:166
+#: src/app/lead-sheet/chord-chart-panel.tsx:176
 msgid "chords.pitch-mismatch"
 msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:230
+#: src/app/lead-sheet/chord-chart-panel.tsx:240
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:151
+#: src/app/lead-sheet/chord-chart-panel.tsx:153
 msgid "chords.print"
 msgstr "Imprimer"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:115
+#: src/app/lead-sheet/chord-chart-panel.tsx:117
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:123
+#: src/app/lead-sheet/chord-chart-panel.tsx:125
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:134
+#: src/app/lead-sheet/chord-chart-panel.tsx:136
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
@@ -322,9 +383,9 @@ msgstr "Supprimer"
 
 #. js-lingui-explicit-id
 #: src/app/ui/name-editor.tsx:74
-#: src/app/workstation-shell/shell-test-kit.tsx:262
-#: src/app/workstation-shell/shell-test-kit.tsx:350
-#: src/app/workstation-shell/shell-test-kit.tsx:351
+#: src/app/workstation-shell/shell-test-kit.tsx:260
+#: src/app/workstation-shell/shell-test-kit.tsx:348
+#: src/app/workstation-shell/shell-test-kit.tsx:349
 msgid "common.name"
 msgstr "Nom"
 
@@ -340,8 +401,8 @@ msgstr "Renommer"
 #: src/app/header/header.tsx:103
 #: src/app/header/header.tsx:115
 #: src/app/loops/loop-controls.tsx:79
-#: src/app/workstation-shell/shell-test-kit.tsx:263
-#: src/app/workstation-shell/shell-test-kit.tsx:352
+#: src/app/workstation-shell/shell-test-kit.tsx:261
+#: src/app/workstation-shell/shell-test-kit.tsx:350
 msgid "common.save"
 msgstr "Enregistrer"
 
@@ -367,7 +428,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:324
+#: src/app/workstation-shell/workstation-shell.tsx:313
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -475,13 +536,13 @@ msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:276
-#: src/app/workstation-shell/shell-test-kit.tsx:283
+#: src/app/workstation-shell/shell-test-kit.tsx:281
 msgid "header.projects"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:123
-#: src/app/workstation-shell/shell-test-kit.tsx:354
+#: src/app/workstation-shell/shell-test-kit.tsx:352
 msgid "header.rename-project"
 msgstr "Renommer le projet"
 
@@ -498,7 +559,7 @@ msgstr "Importer un morceau pour pouvoir l'enregistrer"
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:137
 #: src/app/header/header.tsx:139
-#: src/app/workstation-shell/shell-test-kit.tsx:348
+#: src/app/workstation-shell/shell-test-kit.tsx:346
 msgid "header.save-project"
 msgstr "Enregistrer le projet"
 
@@ -589,7 +650,7 @@ msgstr "Renommer la boucle"
 
 #. js-lingui-explicit-id
 #: src/app/loops/loop-controls.tsx:42
-#: src/app/workstation-shell/shell-test-kit.tsx:261
+#: src/app/workstation-shell/shell-test-kit.tsx:259
 msgid "loops.save-region"
 msgstr "Enregistrer la boucle"
 
@@ -814,7 +875,7 @@ msgid "projects.save-failed"
 msgstr "Impossible d'enregistrer le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-test-kit.tsx:288
+#: src/app/workstation-shell/shell-test-kit.tsx:286
 #: src/projects/projects-dialog.tsx:137
 msgid "projects.title"
 msgstr "Projets"
@@ -903,9 +964,50 @@ msgid "shortcuts.add-section"
 msgstr "Ajouter une section"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:28
+#: src/app/keyboard/shortcuts-dialog.tsx:73
 msgid "shortcuts.availability"
 msgstr "Disponibles une fois un morceau chargé."
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcuts-dialog.tsx:26
+msgid "shortcuts.gesture-click"
+msgstr "Clic"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcuts-dialog.tsx:48
+msgid "shortcuts.gesture-dblclick"
+msgstr "Double-clic"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcuts-dialog.tsx:33
+#: src/app/keyboard/shortcuts-dialog.tsx:41
+msgid "shortcuts.gesture-drag"
+msgstr "Glisser"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcuts-dialog.tsx:34
+msgid "shortcuts.gesture-loop"
+msgstr "Créer une boucle A/B sur la forme d'onde (Alt : sans aimantation)"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcuts-dialog.tsx:42
+msgid "shortcuts.gesture-marker"
+msgstr "Déplacer un repère (clic : aller au repère, ←/→ : décaler)"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcuts-dialog.tsx:49
+msgid "shortcuts.gesture-reset"
+msgstr "Réinitialiser un curseur (vitesse, hauteur)"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcuts-dialog.tsx:27
+msgid "shortcuts.gesture-seek"
+msgstr "Se positionner sur la forme d'onde"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcuts-dialog.tsx:89
+msgid "shortcuts.gestures"
+msgstr "Gestes"
 
 #. js-lingui-explicit-id
 #: src/app/keyboard/shortcut-hints.ts:36
@@ -943,7 +1045,7 @@ msgid "shortcuts.seek-forward"
 msgstr "Avancer de {seconds} s"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:27
+#: src/app/keyboard/shortcuts-dialog.tsx:72
 msgid "shortcuts.title"
 msgstr "Raccourcis clavier"
 
@@ -1083,12 +1185,12 @@ msgid "structure.section.verse"
 msgstr "Couplet"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:255
+#: src/app/tempo/tempo-panel.tsx:285
 msgid "tempo.align"
 msgstr "Caler la grille sur la tête de lecture"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:260
+#: src/app/tempo/tempo-panel.tsx:290
 msgid "tempo.align-short"
 msgstr "Caler"
 
@@ -1099,8 +1201,8 @@ msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:175
-#: src/app/workstation-shell/shell-test-kit.tsx:307
+#: src/app/tempo/tempo-panel.tsx:195
+#: src/app/workstation-shell/shell-test-kit.tsx:305
 msgid "tempo.bpm-field"
 msgstr "Saisir le tempo (BPM)"
 
@@ -1110,7 +1212,7 @@ msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:230
+#: src/app/tempo/tempo-panel.tsx:260
 msgid "tempo.double"
 msgstr "Doubler le tempo"
 
@@ -1140,37 +1242,37 @@ msgid "tempo.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:218
+#: src/app/tempo/tempo-panel.tsx:248
 msgid "tempo.halve"
 msgstr "Diviser le tempo par deux"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:166
+#: src/app/tempo/tempo-panel.tsx:186
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:185
+#: src/app/tempo/tempo-panel.tsx:210
 msgid "tempo.manual-badge"
 msgstr "Manuel"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:202
+#: src/app/tempo/tempo-panel.tsx:227
 msgid "tempo.meter-field"
 msgstr "Saisir le mètre (temps par mesure)"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:208
+#: src/app/tempo/tempo-panel.tsx:238
 msgid "tempo.meter-unit"
 msgstr "temps"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:190
+#: src/app/tempo/tempo-panel.tsx:215
 msgid "tempo.range"
 msgstr "{min}–{max} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:163
+#: src/app/tempo/tempo-panel.tsx:183
 msgid "tempo.region-label"
 msgstr "Tempo"
 
@@ -1181,17 +1283,17 @@ msgstr "Réessayer"
 
 #. js-lingui-explicit-id
 #: src/app/keyboard/shortcut-hints.ts:107
-#: src/app/tempo/tempo-panel.tsx:246
+#: src/app/tempo/tempo-panel.tsx:276
 msgid "tempo.tap"
 msgstr "Taper le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:248
+#: src/app/tempo/tempo-panel.tsx:278
 msgid "tempo.tap-short"
 msgstr "Tap"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:181
+#: src/app/tempo/tempo-panel.tsx:206
 msgid "tempo.unit"
 msgstr "BPM"
 
@@ -1276,7 +1378,7 @@ msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:368
+#: src/app/waveform/waveform-view.tsx:367
 msgid "waveform.import-error"
 msgstr "L'import a échoué : ce fichier n'a pas pu être lu."
 
@@ -1286,22 +1388,22 @@ msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:265
+#: src/app/waveform/waveform-view.tsx:264
 msgid "waveform.mix-image"
 msgstr "Forme d'onde du mix"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:326
+#: src/app/waveform/waveform-view.tsx:325
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:314
+#: src/app/waveform/waveform-view.tsx:313
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:374
+#: src/app/waveform/waveform-view.tsx:373
 msgid "waveform.reimport"
 msgstr "Importer un autre fichier"
 
@@ -1311,14 +1413,7 @@ msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:255
-#: src/app/workstation-shell/shell-test-kit.tsx:184
-#: src/app/workstation-shell/shell-test-kit.tsx:238
-msgid "waveform.surface"
-msgstr "Forme d'onde : clic pour se positionner, glisser pour boucler"
-
-#. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:273
+#: src/app/waveform/waveform-view.tsx:272
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 

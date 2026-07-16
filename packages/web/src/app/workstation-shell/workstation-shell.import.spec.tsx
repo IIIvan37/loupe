@@ -262,7 +262,7 @@ describe('WorkstationShell imports', () => {
 
     // Same decode path as the picker → the waveform surface appears.
     expect(
-      await screen.findByRole('button', { name: i18n._('waveform.surface') })
+      await screen.findByTestId('waveform-surface')
     ).toBeInTheDocument()
   })
 
@@ -330,9 +330,7 @@ describe('WorkstationShell imports', () => {
         screen.queryByText(i18n._('drop.confirm-title'))
       ).not.toBeInTheDocument()
     })
-    expect(
-      screen.getByRole('button', { name: i18n._('waveform.surface') })
-    ).toBeInTheDocument()
+    expect(screen.getByTestId('waveform-surface')).toBeInTheDocument()
   })
 
   it('keeps the current session when a drop confirmation is cancelled', async () => {
@@ -350,8 +348,6 @@ describe('WorkstationShell imports', () => {
         screen.queryByText(i18n._('drop.confirm-title'))
       ).not.toBeInTheDocument()
     })
-    expect(
-      screen.getByRole('button', { name: i18n._('waveform.surface') })
-    ).toBeInTheDocument()
+    expect(screen.getByTestId('waveform-surface')).toBeInTheDocument()
   })
 })

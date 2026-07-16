@@ -53,6 +53,27 @@ describe('MarkerRail', () => {
     expect(onSeek).toHaveBeenCalledWith(5)
   })
 
+  it('seeks to a marker from the keyboard (activation click)', () => {
+    const onSeek = vi.fn()
+    const { tag } = renderRail({ onSeek })
+    // Enter/Space on a button fires a click with detail 0 — no pointer ever
+    // touched the tag, so the pointer path cannot have seeked already.
+    fireEvent.click(tag, { detail: 0 })
+    expect(onSeek).toHaveBeenCalledWith(5)
+  })
+
+  it('seeks exactly once on a pointer click', async () => {
+    const user = userEvent.setup()
+    const onSeek = vi.fn()
+    renderRail({ onSeek })
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('markers.go-to', { name: 'Repère 1' })
+      })
+    )
+    expect(onSeek).toHaveBeenCalledTimes(1)
+  })
+
   it('renders nothing until a duration is known', () => {
     render(
       <MarkerRail

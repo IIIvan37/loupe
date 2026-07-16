@@ -31,6 +31,26 @@ describe('ShortcutsDialog', () => {
     ).toBeInTheDocument()
   })
 
+  it('teaches the pointer gestures under their own heading', () => {
+    render(<ShortcutsDialog open onOpenChange={() => {}} hints={HINTS} />, {
+      wrapper: I18nTestingProvider
+    })
+
+    expect(
+      screen.getByRole('heading', { name: i18n._('shortcuts.gestures') })
+    ).toBeInTheDocument()
+  })
+
+  it('documents the drag-to-loop gesture', () => {
+    render(<ShortcutsDialog open onOpenChange={() => {}} hints={HINTS} />, {
+      wrapper: I18nTestingProvider
+    })
+
+    expect(
+      screen.getByText(i18n._('shortcuts.gesture-loop'))
+    ).toBeInTheDocument()
+  })
+
   it('asks to close when the close button is pressed', async () => {
     const user = userEvent.setup()
     const onOpenChange = vi.fn()

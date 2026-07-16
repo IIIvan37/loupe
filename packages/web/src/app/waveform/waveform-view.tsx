@@ -86,7 +86,7 @@ export function WaveformView({
     return pointerRatio(containerRef.current?.getBoundingClientRect(), clientX)
   }
 
-  function beginSelect(event: PointerEvent<HTMLButtonElement>): void {
+  function beginSelect(event: PointerEvent<HTMLDivElement>): void {
     if (event.button !== 0) {
       return
     }
@@ -249,14 +249,13 @@ export function WaveformView({
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
         >
-          <button
-            type="button"
+          {/* Pointer-only gesture surface (click = seek, drag = loop, Alt
+              escapes the snap) — documented in the « ? » help's Gestures
+              section. Deliberately NOT a button: it promised an Enter action
+              it never had (the keyboard path is arrows/L/handle nudges). */}
+          <div
             className={styles.surface}
-            aria-label={t({
-              id: 'waveform.surface',
-              message:
-                "Forme d'onde : clic pour se positionner, glisser pour boucler"
-            })}
+            data-testid="waveform-surface"
             onPointerDown={beginSelect}
           >
             {mixWaveform ? (
@@ -276,7 +275,7 @@ export function WaveformView({
                 })}
               />
             )}
-          </button>
+          </div>
 
           {durationSeconds > 0 && (
             <BeatLines beatGrid={beatGrid} durationSeconds={durationSeconds} />

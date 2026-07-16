@@ -11,6 +11,7 @@ import {
   readStoredBarsPerRow
 } from './bars-per-row-preference.ts'
 import { chartHasContent } from './chart-content.ts'
+import { FormatHelpDialog } from './format-help-dialog.tsx'
 import { LeadSheet } from './lead-sheet.tsx'
 import styles from './chord-chart-panel.module.css'
 
@@ -59,6 +60,7 @@ export function ChordChartPanel({
   // The chart is the view; the source editor is a mode, folded by default
   // (P.3). View state only — the source itself stays lifted in the shell.
   const [editing, setEditing] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const editorRef = useRef<HTMLTextAreaElement>(null)
   // Ties the disclosure button to the region it reveals (aria-controls): the
   // textarea sits far below the toggle in the DOM, AT needs the link.
@@ -159,7 +161,15 @@ export function ChordChartPanel({
         >
           {t({ id: 'chords.edit', message: 'Modifier' })}
         </button>
+        <button
+          type="button"
+          className={styles.helpButton}
+          onClick={() => setHelpOpen(true)}
+        >
+          {t({ id: 'chords.format-help', message: 'Aide du format' })}
+        </button>
       </div>
+      <FormatHelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
       {gridDiverges && (
         <div className={styles.pitchDrift}>
           <p className={styles.hint}>
