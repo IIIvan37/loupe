@@ -169,7 +169,10 @@ export function useSeparation(
         dispatch({ type: 'ready', stems: result.stems })
         committed = { stems: result.stems, sources: result.sources }
       } else {
-        dispatch({ type: 'fail', message: result.error })
+        // The translated copy speaks for the code; the raw detail is for
+        // debugging only — same contract as the detections (N.1, M1.4).
+        console.error('separation failed:', result.code, result.detail)
+        dispatch({ type: 'fail', code: result.code, detail: result.detail })
       }
     }
     return committed

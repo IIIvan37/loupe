@@ -43,6 +43,17 @@ const STATUS_FAILURES: Record<number, TransportFailure> = {
 }
 
 /**
+ * The deliberate-status meaning, for adapters that stream instead of going
+ * through `postWavForJson` (the separation's NDJSON + stem GETs, M1.4) —
+ * the interpretation still lives here, once.
+ */
+export function transportFailureOfStatus(
+  status: number
+): TransportFailure | undefined {
+  return STATUS_FAILURES[status]
+}
+
+/**
  * Name the transport failure a `postWavForJson` throw represents, or
  * undefined when it is not one this server contract explains (those should
  * surface as the caller's "unknown" path, detail preserved).

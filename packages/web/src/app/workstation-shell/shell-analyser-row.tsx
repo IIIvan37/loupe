@@ -6,6 +6,7 @@ import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import type { useSeparation } from '../separation/use-separation.ts'
 import type { useTempo } from '../tempo/use-tempo.ts'
+import { useOnline } from './use-online.ts'
 
 interface ShellAnalyserRowProps {
   /** Disables the manual actions until a track is loaded. */
@@ -48,6 +49,7 @@ export function ShellAnalyserRow({
   chordDetection
 }: ShellAnalyserRowProps) {
   const offloaded = isAnalysisOffloaded()
+  const online = useOnline()
   // 'checking' blocks the local path too — a transient flash beats an upload
   // the server can't take.
   const localServerDown =
@@ -59,6 +61,7 @@ export function ShellAnalyserRow({
   return (
     <AnalyserRow
       disabled={disabled}
+      online={online}
       separation={{
         state: separation.state,
         canSeparate,

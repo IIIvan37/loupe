@@ -5,8 +5,9 @@ import type {
   SeparationProgress,
   StemSeparator
 } from '@app/core'
-import { decodeWav } from '@app/core'
+import { decodeWav, SeparationError } from '@app/core'
 import { encodeWavMemo } from './encode-wav-memo.ts'
+import { transportFailureOfStatus } from './post-wav-json.ts'
 import { streamNdjson } from './read-ndjson.ts'
 
 /** One NDJSON line the server streams during a separation. */
@@ -26,19 +27,48 @@ function authHeaders(token: string | undefined): HeadersInit {
   return token === undefined ? {} : { Authorization: `Bearer ${token}` }
 }
 
+/**
+ * `fetch` with the separation flow's error typing (M1.4, the N.1 contract):
+ * a fetch-level failure is `network` (an abort's DOMException stays untyped —
+ * a cancel is not a failure), a deliberate status maps through the shared
+ * transport interpretation, anything else stays untyped → the `unknown` path.
+ */
+async function typedFetch(
+  url: string,
+  init: RequestInit,
+  context: string
+): Promise<Response> {
+  let response: Response
+  try {
+    response = await fetch(url, init)
+  } catch (e) {
+    if (e instanceof TypeError) {
+      throw new SeparationError('network', e.message)
+    }
+    throw e
+  }
+  if (!response.ok) {
+    const failure = transportFailureOfStatus(response.status)
+    const detail = `${context} failed: HTTP ${response.status}`
+    if (failure !== undefined) {
+      throw new SeparationError(failure, detail)
+    }
+    throw new Error(detail)
+  }
+  return response
+}
+
 async function fetchStem(
   baseUrl: string,
   stem: { id: string; label: string; url: string },
   token: string | undefined,
   signal?: AbortSignal
 ): Promise<SeparatedStem> {
-  const response = await fetch(new URL(stem.url, baseUrl).toString(), {
-    headers: authHeaders(token),
-    signal: signal ?? null
-  })
-  if (!response.ok) {
-    throw new Error(`stem ${stem.id} failed: HTTP ${response.status}`)
-  }
+  const response = await typedFetch(
+    new URL(stem.url, baseUrl).toString(),
+    { headers: authHeaders(token), signal: signal ?? null },
+    `stem ${stem.id}`
+  )
   const audio: DecodedAudio = decodeWav(await response.arrayBuffer())
   return { id: stem.id, label: stem.label, audio }
 }
@@ -67,14 +97,18 @@ export function createHttpSeparator(
       const wav = encodeWavMemo(audio)
       // The signal covers the whole run: aborting also tears down the NDJSON
       // stream (its reader rejects) and any in-flight stem fetch below.
-      const response = await fetch(`${baseUrl}/separate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'audio/wav', ...authHeaders(token) },
-        body: wav,
-        signal: signal ?? null
-      })
-      if (!response.ok || !response.body) {
-        throw new Error(`separation request failed: HTTP ${response.status}`)
+      const response = await typedFetch(
+        `${baseUrl}/separate`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'audio/wav', ...authHeaders(token) },
+          body: wav,
+          signal: signal ?? null
+        },
+        'separation request'
+      )
+      if (!response.body) {
+        throw new Error('separation request failed: empty response body')
       }
 
       const done = await streamNdjson<SeparationEvent>(response.body, (event) =>

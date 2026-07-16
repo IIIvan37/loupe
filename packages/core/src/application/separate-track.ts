@@ -3,6 +3,7 @@ import {
   detectInstruments,
   stemEnergy
 } from '../domain/instrument-detection.ts'
+import type { SeparationErrorCode } from '../domain/separation.ts'
 import { buildStemTrack, type StemSet } from '../domain/stem-set.ts'
 import { errorMessage } from './error-message.ts'
 import type {
@@ -27,6 +28,22 @@ export interface SeparateTrackDeps {
   readonly signal?: AbortSignal
 }
 
+/**
+ * The typed failure a `StemSeparator` adapter throws when it can tell WHY the
+ * run failed (network unreachable, upload over the cap, server timeout). The
+ * use-case forwards the code; anything else it catches folds into `unknown` —
+ * the same contract the detections carry (N.1, extended in M1.4).
+ */
+export class SeparationError extends Error {
+  constructor(
+    readonly code: Exclude<SeparationErrorCode, 'unknown'>,
+    detail: string
+  ) {
+    super(detail)
+    this.name = 'SeparationError'
+  }
+}
+
 export type SeparateTrackResult =
   | {
       readonly ok: true
@@ -34,7 +51,12 @@ export type SeparateTrackResult =
       /** The isolated stems' raw PCM, retained so an adapter can play or export them. */
       readonly sources: readonly SeparatedStem[]
     }
-  | { readonly ok: false; readonly error: string }
+  | {
+      readonly ok: false
+      readonly code: SeparationErrorCode
+      /** The raw engine/transport message — for the console, never the UI. */
+      readonly detail: string
+    }
 
 /**
  * Orchestration use-case, pure: hand the loaded PCM to the separator port and
@@ -74,6 +96,7 @@ export async function separateTrack(
     )
     return { ok: true, stems, sources: separated }
   } catch (e) {
-    return { ok: false, error: errorMessage(e) }
+    const code = e instanceof SeparationError ? e.code : 'unknown'
+    return { ok: false, code, detail: errorMessage(e) }
   }
 }

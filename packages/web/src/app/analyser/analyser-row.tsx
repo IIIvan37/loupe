@@ -14,10 +14,12 @@ import { DetectionAction } from '../ui/detection-action.tsx'
 import { OperationStatus } from '../ui/operation-status.tsx'
 import { LiveStatus } from '../ui/live-status.tsx'
 import {
+  ANALYSIS_OFFLINE,
   ANALYSIS_OFFLOAD_UNREACHABLE,
   CHORDS_ERROR_COPY,
   CHORDS_NEEDS_GRID,
   CHORDS_NEEDS_SERVER,
+  SEPARATION_ERROR_COPY,
   SEPARATION_SERVER_BLOCK,
   STRUCTURE_ERROR_COPY,
   STRUCTURE_NEEDS_SERVER,
@@ -45,11 +47,6 @@ const ANALYSIS_COLD_START = msg({
   message: "Démarrage du moteur d'analyse (jusqu'à ~1 min)…"
 })
 
-/** The failure line, with the transport detail the separation flow surfaces. */
-const SEP_FAILED = msg({
-  id: 'separation.failed',
-  message: 'La séparation a échoué : {error}'
-})
 
 /** The separation surface, unchanged from the retired SeparationPanel. */
 export interface SeparationControl {
@@ -120,6 +117,9 @@ export interface ChordDetectionControl {
 interface AnalyserRowProps {
   /** Disables the manual actions until a track is loaded. */
   readonly disabled: boolean
+  /** Whether the browser sees a network. Offline only gates the OFFLOADED
+   * flows (M1.4) — the local server lives on localhost and keeps working. */
+  readonly online: boolean
   readonly separation: SeparationControl
   readonly tempo: TempoDetectionControl
   readonly structure: StructureDetectionControl
@@ -135,6 +135,7 @@ interface AnalyserRowProps {
  */
 export function AnalyserRow({
   disabled,
+  online,
   separation,
   tempo,
   structure,
@@ -142,19 +143,37 @@ export function AnalyserRow({
 }: AnalyserRowProps) {
   const { t } = useLingui()
 
+  // Offline only blocks what actually needs the network: the OFFLOADED flows
+  // (M1.4). The local engines live on localhost and keep working.
+  const offlineBlocks = (offloaded: boolean) => offloaded && !online
+
   // — Separation: idle/error → action; running → progress + cancel; ready →
   //   a quiet done face (the stems ARE the mixer, nothing left to offer).
   const sep = separation.state
   const sepRunning = sep.status === 'analysing' || sep.status === 'separating'
   // Offloaded, « démarrer le serveur local » would be the wrong remedy: the
-  // local probe only gates the LOCAL engine (M1.3, extends X.1).
+  // local probe only gates the LOCAL engine (M1.3, extends X.1) — offline
+  // gates the offload instead (M1.4).
   const sepBlock = separation.offloaded
-    ? undefined
+    ? offlineBlocks(true)
+      ? ANALYSIS_OFFLINE
+      : undefined
     : SEPARATION_SERVER_BLOCK[separation.serverHealth]
   const sepStep = sepRunning ? i18n._(PROGRESS_LABELS[sep.status]) : undefined
+  // Same X.1 rule as the detections (M1.4): `network` names what actually
+  // failed to answer — the offloaded analysis service, or the local server.
+  const sepErrorCopy =
+    sep.error === undefined
+      ? undefined
+      : sep.error.code === 'network' && separation.offloaded
+        ? ANALYSIS_OFFLOAD_UNREACHABLE
+        : SEPARATION_ERROR_COPY[sep.error.code]
   const sepFailure =
-    sep.status === 'error'
-      ? i18n._({ ...SEP_FAILED, values: { error: sep.error } })
+    sepErrorCopy !== undefined
+      ? `${t({
+          id: 'separation.detect-failed',
+          message: 'Échec de la séparation'
+        })} — ${t(sepErrorCopy)}`
       : undefined
   // Steps while the run is in flight (never the moving percentage — spam),
   // completion once the stems are ready; failures interrupt via the
@@ -202,9 +221,11 @@ export function AnalyserRow({
         })
       : undefined
 
-  // — Chords: mirrors structure, in the chord flow's words.
-  const chordsHint =
-    chords.blockedReason === 'server'
+  // — Chords: mirrors structure, in the chord flow's words. Offline speaks
+  //   first: no grid is beside the point when nothing can run anyway.
+  const chordsHint = offlineBlocks(chords.offloaded)
+    ? t(ANALYSIS_OFFLINE)
+    : chords.blockedReason === 'server'
       ? t(CHORDS_NEEDS_SERVER)
       : chords.blockedReason === 'no-grid'
         ? t(CHORDS_NEEDS_GRID)
@@ -250,8 +271,14 @@ export function AnalyserRow({
             runningLabel={sepStep}
             running={sepRunning}
             // The one flow with REAL progress (streamed NDJSON) — and the one
-            // whose cancel already ships (R.2 wires the detections').
-            progress={{ value: sep.progress, onCancel: separation.onCancel }}
+            // whose cancel already ships (R.2 wires the detections'). The
+            // cold-start narration rides the real bar (M1.4, extends R.3).
+            progress={{
+              value: sep.progress,
+              onCancel: separation.onCancel,
+              detail: separation.offloaded ? t(ANALYSIS_COLD_START) : undefined,
+              detailAfterMs: 4000
+            }}
             hint={sepBlock === undefined ? undefined : t(sepBlock)}
             errorLine={sepFailure}
             disabled={!separation.canSeparate || sepBlock !== undefined}
@@ -300,7 +327,8 @@ export function AnalyserRow({
           ) : (
             // Cancelled before any tempo landed (X.2): an idle face brings
             // the auto-detection back on offer — symmetric with the
-            // structure/chords buttons that never vanish.
+            // structure/chords buttons that never vanish. Offline blocks the
+            // relaunch like its offloaded neighbours (M1.4).
             <DetectionAction
               label={t({
                 id: 'analyser.tempo-detect',
@@ -311,6 +339,7 @@ export function AnalyserRow({
                 message: 'Analyse du tempo…'
               })}
               running={false}
+              disabled={offlineBlocks(tempo.offloaded)}
               onRun={tempo.onRetry}
             />
           )}
@@ -335,13 +364,19 @@ export function AnalyserRow({
           confirms={structure.hasMarkers || structure.hasGrid}
           confirmLabel={structureConfirm}
           hint={
-            structure.blockedReason === 'server'
-              ? t(STRUCTURE_NEEDS_SERVER)
-              : undefined
+            offlineBlocks(structure.offloaded)
+              ? t(ANALYSIS_OFFLINE)
+              : structure.blockedReason === 'server'
+                ? t(STRUCTURE_NEEDS_SERVER)
+                : undefined
           }
           errorLine={structureFailure}
           announcement={structureAnnounced}
-          disabled={disabled || structure.blockedReason !== undefined}
+          disabled={
+            disabled ||
+            structure.blockedReason !== undefined ||
+            offlineBlocks(structure.offloaded)
+          }
           onRun={structure.onDetect}
         />
       </div>
@@ -369,7 +404,11 @@ export function AnalyserRow({
           hint={chordsHint}
           errorLine={chordsFailure}
           announcement={chordsAnnounced}
-          disabled={disabled || chords.blockedReason !== undefined}
+          disabled={
+            disabled ||
+            chords.blockedReason !== undefined ||
+            offlineBlocks(chords.offloaded)
+          }
           onRun={chords.onDetect}
         />
       </div>

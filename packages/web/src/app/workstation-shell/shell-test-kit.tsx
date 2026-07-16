@@ -11,6 +11,7 @@ import type {
   TrackSource,
   TrackSourceMetadata
 } from '@app/core'
+import { SeparationError } from '@app/core'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
 import { afterEach, beforeAll, beforeEach, vi } from 'vitest'
@@ -127,7 +128,9 @@ export function fakeTrackSource(
 /** A separator that always fails, to exercise the error path. */
 export const failingSeparator: StemSeparator = {
   separate: async () => {
-    throw new Error('moteur indisponible')
+    // Typed like the real adapter (M1.4): the code drives the copy the
+    // shell shows; the detail only ever reaches the console.
+    throw new SeparationError('network', 'moteur injoignable')
   }
 }
 

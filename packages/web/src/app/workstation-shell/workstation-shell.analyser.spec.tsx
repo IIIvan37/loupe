@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { i18n } from '../../i18n/i18n.ts'
 import {
   beatsAt,
@@ -121,6 +121,34 @@ describe('WorkstationShell structure gating vs the local server', () => {
     expect(
       screen.queryByText(i18n._('separation.server-offline'))
     ).not.toBeInTheDocument()
+  })
+
+  it('blocks the offloaded analyses when the browser goes offline (M1.4)', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const { user } = renderShell()
+    await importTrack(user)
+
+    const gauge = vi.spyOn(window.navigator, 'onLine', 'get')
+    gauge.mockReturnValue(false)
+    fireEvent(window, new Event('offline'))
+
+    expect(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: i18n._('structure.detect') })
+    ).toBeDisabled()
+    expect(
+      screen.getAllByText(i18n._('analysis.blocked-offline')).length
+    ).toBeGreaterThanOrEqual(2)
+
+    // The network coming back lifts the block — no reload needed.
+    gauge.mockReturnValue(true)
+    fireEvent(window, new Event('online'))
+    expect(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    ).toBeEnabled()
+    gauge.mockRestore()
   })
 
   it('keeps chords actionable despite local health in offload mode (M1.1)', async () => {
