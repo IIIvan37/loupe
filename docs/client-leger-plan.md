@@ -88,8 +88,23 @@ tempo/accords/structure, et l'hexagone strict qui rend chaque swap local.
   (`separations_left` à côté du quota d'analyses), ou plafond de dépense Modal
   seul en garde-fou beta. Toucher au schéma Supabase = migration + tests SQL
   (moule U.3).
+- **Mesuré (2026-07-16, `server/modal_separation_spike.py`)** : htdemucs_6s
+  sur L4, piste 210 s → **4,7 s à chaud** (0,021 s GPU / s d'audio), 16,2 s à
+  froid (load 0,9 + warmup 1,6 + infer 4,8), **0,57 GB de VRAM** (le L4 tient
+  très largement, pas d'A10G). Au tarif L4 ($0.000222/s) : **~$0.001 par
+  séparation à chaud**, ~$0.004 à froid — soit ~10× une analyse, PAS des
+  ordres de grandeur. Le poste dominant est la fenêtre scaledown (300 s ≈
+  $0.067), déjà payée par le conteneur M1.1 si la séparation y monte.
+- **Décision (2026-07-16)** : **quota unique inchangé** — la séparation passe
+  sous le même gate JWT/mint que les trois détections (20 mints/mois), aucun
+  schéma Supabase touché ; garde-fou beta = plafond de dépense Modal ($30 de
+  crédits Starter + alerte de facturation). Unités pondérées / quota séparé
+  rejetés : de la complexité contre un coût mesuré sub-cent.
 
 ### M1.3 — Séparation sur Modal *(le morceau dur)*
+- Gate : celui de M1.1 tel quel — la séparation consomme le même token
+  d'analyse (décision M1.2, quota unique) ; VRAM mesurée 0,57 GB, elle monte
+  dans le MÊME conteneur L4 que les trois détections (warm partagé).
 - Côté Modal : router `separation` monté (image + poids htdemucs), en
   reproduisant le contrat streaming NDJSON (progress + `done`) que le client
   consomme (`http-separator.ts`) — l'AbortSignal bout-en-bout (O.5) doit
@@ -217,7 +232,9 @@ on n'empile pas une migration d'infra sur des régressions connues.
 - [x] **M1.1** tempo + accords sur Modal (prérequis : X.1) — livré 2026-07-16,
       vérifié réellement (Modal v5, un mint pour trois détections, serveur local
       éteint) ; voir [rapport](sessions/2026-07-16-m11-tempo-chords-modal.md)
-- [ ] **M1.2** modèle quota/coût de la séparation (mesure + décision produit)
+- [x] **M1.2** modèle quota/coût de la séparation — mesuré 2026-07-16
+      (~$0.001/séparation à chaud sur L4) ; décision : quota unique inchangé +
+      plafond de dépense Modal (voir § M1.2)
 - [ ] **M1.3** séparation sur Modal (NDJSON, abort, transport mesuré)
 - [ ] **M1.4** santé par endpoint effectif + UX hors-ligne + narration
 - [ ] **T2.1** spike coquille Tauri + inventaire licences (GO/NO-GO)
