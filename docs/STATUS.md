@@ -478,7 +478,15 @@ commenté), reliquats O.2 soldés (`--tracking-label` sur `.sub`,
 `--space-3xs` sur `.tag`, lead-sheet en propriétés logiques). Vérifs
 navigateur (chips kbd, dip partagé). Gate **verte — 1537 tests**, Stryker
 skippé (core intouché). [rapport](sessions/2026-07-16-w5-grouped-lows.md).
-**Prochain : reste de la roadmap v4 ou évaluation notée v5.**
+**W.5 mergé (PR #163) — reste de la v4 : T.4–T.8.**
+**T.4 — Cmd/Ctrl+S = Enregistrer (branche `feat/t4-cmd-s`, PR à ouvrir)** :
+`Command.saveProject` bindé meta+S/ctrl+S (TDD, key-bindings 112/112
+mutants), carte auto-dérivée (2 lignes ⌘+S/⌃+S), un chord Cmd/Ctrl (sans
+Alt) traverse la garde champ-texte (Cmd+S enregistre depuis le textarea de
+la grille), câblage dans `use-shell-shortcuts` (premier save = nom de piste,
+re-save dirty, no-op propre/en-vol). Gate **verte — 1544 tests** (+7),
+**Stryker 93,74 %**. [rapport](sessions/2026-07-16-t4-cmd-s.md).
+**Prochain : T.5** (aria-invalid BPM/mètre), puis T.6, T.7, T.8 (décisions).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

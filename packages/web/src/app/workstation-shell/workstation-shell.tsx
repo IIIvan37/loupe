@@ -252,7 +252,8 @@ export function WorkstationShell({
     markers,
     toggleLoop,
     metronome,
-    tempoDetection
+    tempoDetection,
+    session
   })
 
   // The two stem-export entry points (+ their success toasts), off the shell.

@@ -51,6 +51,8 @@ export interface ShortcutActions {
   readonly toggleMetronome: () => void
   /** One tap of the manual tap-tempo (the median of a run sets the BPM). */
   readonly tapTempo: () => void
+  /** Persist the session (Cmd/Ctrl+S) — the shell decides name and no-ops. */
+  readonly saveProject: () => void
 }
 
 export interface ShortcutOptions {
@@ -89,6 +91,9 @@ function dispatch(command: Command, actions: ShortcutActions): void {
     case 'tapTempo':
       actions.tapTempo()
       return
+    case 'saveProject':
+      actions.saveProject()
+      return
   }
 }
 
@@ -118,10 +123,14 @@ export function useKeyboardShortcuts(
       // handle arrow-nudge calls preventDefault): the global layout stands back.
       // Auto-repeat is ignored too — a held key fires its command once, not at
       // the OS repeat rate (a held T would machine-gun the tap tempo).
+      // A Cmd/Ctrl chord is never literal text (AltGr — ctrl+alt — is), so a
+      // command chord fires even from a field: Cmd+S must save, not summon the
+      // browser's own Save-page over the chord-grid textarea.
+      const commandChord = (event.metaKey || event.ctrlKey) && !event.altKey
       if (
         event.defaultPrevented ||
         event.repeat ||
-        isTextEntry(event.target) ||
+        (isTextEntry(event.target) && !commandChord) ||
         isInsideDialog(event.target)
       ) {
         return

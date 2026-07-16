@@ -36,6 +36,7 @@ export type Command =
   | { readonly type: 'toggleLoop' }
   | { readonly type: 'toggleMetronome' }
   | { readonly type: 'tapTempo' }
+  | { readonly type: 'saveProject' }
 
 export interface KeyBinding {
   readonly chord: KeyChord
@@ -71,7 +72,12 @@ export const defaultKeyBindings: KeyBindings = [
   { chord: { key: 'm' }, command: { type: 'addMarker' } },
   { chord: { key: 'l' }, command: { type: 'toggleLoop' } },
   { chord: { key: 'k' }, command: { type: 'toggleMetronome' } },
-  { chord: { key: 't' }, command: { type: 'tapTempo' } }
+  { chord: { key: 't' }, command: { type: 'tapTempo' } },
+  // The one modifier chord: the accepted web-workshop standard (Figma, Docs)
+  // for « save », hijacking the browser's own Save-page. Meta and Ctrl each
+  // get a binding so macOS and Windows/Linux both land on it.
+  { chord: { key: 's', meta: true }, command: { type: 'saveProject' } },
+  { chord: { key: 's', ctrl: true }, command: { type: 'saveProject' } }
 ]
 
 /** Ctrl/alt/meta must match exactly so OS/browser chords are never hijacked. */

@@ -105,6 +105,10 @@ const TOGGLE_METRONOME = msg({
 })
 // Same action as the tempo panel's tap button — same words, same catalogue id.
 const TAP_TEMPO = msg({ id: 'tempo.tap', message: 'Taper le tempo' })
+const SAVE_PROJECT = msg({
+  id: 'shortcuts.save-project',
+  message: 'Enregistrer le projet'
+})
 
 /** Localised sentence describing what a resolved command does. */
 function describeCommand(command: Command): string {
@@ -132,6 +136,8 @@ function describeCommand(command: Command): string {
       return i18n._(TOGGLE_METRONOME)
     case 'tapTempo':
       return i18n._(TAP_TEMPO)
+    case 'saveProject':
+      return i18n._(SAVE_PROJECT)
   }
 }
 
