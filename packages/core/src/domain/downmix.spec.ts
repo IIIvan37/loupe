@@ -20,6 +20,14 @@ describe('downmixToMono', () => {
     expect(() => downmixToMono([])).toThrow('at least one channel')
   })
 
+  it('rejects channels of different lengths', () => {
+    // A ragged input would read undefined past the shorter channel's end and
+    // silently fold NaN into the mix — fail loudly instead.
+    expect(() =>
+      downmixToMono([new Float32Array([0, 0.5]), new Float32Array([0])])
+    ).toThrow('same length')
+  })
+
   it('stays within the amplitude range of its inputs', () => {
     // The average of in-range samples cannot exceed the range — a downmix
     // never clips audio that was not already clipping.
@@ -34,7 +42,7 @@ describe('downmixToMono', () => {
         ),
         (channels) => {
           const mono = downmixToMono(channels.map((c) => Float32Array.from(c)))
-          expect(mono.length).toBe(4)
+          expect(mono).toHaveLength(4)
           for (const sample of mono) {
             expect(Math.abs(sample)).toBeLessThanOrEqual(1)
           }

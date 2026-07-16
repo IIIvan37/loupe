@@ -1,6 +1,7 @@
 import type { DecodedAudio } from '@app/core'
-import { downmixToMono, encodeWav, TempoDetectionError } from '@app/core'
+import { TempoDetectionError } from '@app/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { encodeAnalysisWavMemo } from './encode-analysis-wav-memo.ts'
 import { createHttpTempoDetector } from './http-tempo-detector.ts'
 
 const MIX: DecodedAudio = {
@@ -34,11 +35,10 @@ describe('createHttpTempoDetector', () => {
     const [url, init] = fetchMock.mock.calls[0] ?? []
     expect(url).toBe('http://localhost:8000/tempo')
     expect(init?.method).toBe('POST')
-    // The analysis upload is the mono fold, not the full stereo mix (here at
-    // the source rate — this environment has no OfflineAudioContext).
-    expect(init?.body).toEqual(
-      encodeWav([downmixToMono(MIX.channels)], MIX.sampleRate)
-    )
+    // The memo hands back the identical byte array for the same audio, so
+    // this pins "the analysis WAV was posted" without re-deriving the
+    // encoding policy (which encode-analysis-wav-memo.spec.ts owns).
+    expect(init?.body).toBe(await encodeAnalysisWavMemo(MIX))
   })
 
   it('forwards the abort signal to the fetch', async () => {

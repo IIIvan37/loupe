@@ -1,3 +1,5 @@
+import { audioBufferFrom } from './web-audio-shared.ts'
+
 /**
  * Resample a mono signal with `OfflineAudioContext` — the browser's native,
  * off-main-thread resampler. Humble object: no logic beyond wiring the Web
@@ -22,10 +24,11 @@ export function createOfflineContextResampler(): ResampleMono | undefined {
   return async (samples, fromRate, toRate) => {
     const frames = Math.ceil((samples.length * toRate) / fromRate)
     const context = new OfflineAudioContext(1, frames, toRate)
-    const buffer = context.createBuffer(1, samples.length, fromRate)
-    buffer.copyToChannel(samples, 0)
     const source = context.createBufferSource()
-    source.buffer = buffer
+    source.buffer = audioBufferFrom(context, {
+      sampleRate: fromRate,
+      channels: [samples]
+    })
     source.connect(context.destination)
     source.start()
     const rendered = await context.startRendering()

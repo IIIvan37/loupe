@@ -92,6 +92,9 @@ export async function postWavForJson(
    * (the Modal offload, J1). Omitted for the token-less local server. */
   token?: string
 ): Promise<unknown> {
+  // The abort signal is deliberately observed at fetch time only: the offline
+  // render cannot be interrupted anyway, and a cancelled encode stays cached,
+  // pre-warming the next detection on the same audio.
   const wav = await encodeAnalysisWavMemo(audio)
   let response: Response
   try {

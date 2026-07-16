@@ -14,11 +14,12 @@ type PositionListener = (seconds: number) => void
 
 /**
  * Copy decoded PCM into a Web Audio buffer on the given context. Shared by the
- * single-track and stem playback adapters, which fill buffers identically. At
- * least one channel and one frame keep `createBuffer` from throwing on silence.
+ * single-track and stem playback adapters (which fill buffers identically) and
+ * the offline analysis resampler. At least one channel and one frame keep
+ * `createBuffer` from throwing on silence.
  */
 export function audioBufferFrom(
-  ctx: AudioContext,
+  ctx: BaseAudioContext,
   audio: DecodedAudio
 ): AudioBuffer {
   const channelCount = Math.max(audio.channels.length, 1)

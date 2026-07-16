@@ -11,6 +11,9 @@ export function downmixToMono(
   if (first === undefined) {
     throw new Error('at least one channel is required')
   }
+  if (channels.some((channel) => channel.length !== first.length)) {
+    throw new Error('all channels must have the same length')
+  }
   const mono = new Float32Array(first.length)
   for (let i = 0; i < mono.length; i++) {
     let sum = 0

@@ -21,9 +21,7 @@ export function buildTrack(
   sampleRate: number,
   bucketCount: number
 ): Track {
-  if (channels.length === 0) {
-    throw new Error('a track needs at least one channel')
-  }
+  // The empty-channels case is rejected by `downmixToMono` below.
   if (sampleRate <= 0) {
     throw new Error('sample rate must be positive')
   }
