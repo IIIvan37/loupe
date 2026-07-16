@@ -503,8 +503,8 @@ pas de dette nouvelle :
 - [x] **U.5** basses groupées (origins env, _boundaries_to_segments, tempo.ts)
 - [x] **V.1** upload d'analyse mono + 24 kHz (PR #156)
 - [x] **V.2** `unload()` du moteur mono-piste (PR de `feat/v2-engine-unload`)
-- [ ] **V.3** warm des modèles au démarrage local
-- [ ] **V.4** playhead en transform
+- [x] **V.3** warm des modèles au démarrage local (PR #159)
+- [x] **V.4** playhead en transform (PR de `feat/v4-playhead-transform`)
 - [x] **V.5** memo AudioBuffer au décodeur (PR de `feat/v5-audio-buffer-memo`)
 - [x] **W.1** flex-wrap des rangées tempo/accords
 - [x] **W.2** peau `.confirmFace` unifiée
