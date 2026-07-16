@@ -2,10 +2,10 @@
 # (cf. roadmap A.1: a failed download tells you to `pip install -U yt-dlp`, it
 # doesn't do it for you). Bump deliberately: edit a pin, reinstall, re-run the
 # gate. yt-dlp especially: update it by hand when extraction breaks.
-fastapi==0.138.2
-uvicorn[standard]==0.49.0
-demucs==4.0.1
-torch==2.12.1
+fastapi==0.139.1
+uvicorn[standard]==0.51.0
+demucs==4.1.0
+torch==2.13.0
 torchaudio==2.11.0
 # Tempo (beat + downbeat) detection — CPJKU's "Beat This!" transformer, MIT.
 # `rotary-embedding-torch` is its one extra runtime dep (pinned for repro).
@@ -16,7 +16,7 @@ rotary-embedding-torch==0.9.1
 # that builds on 3.14. `mido` is its one extra runtime dep (pinned for repro).
 madmom @ git+https://github.com/CPJKU/madmom.git@27f032e8947204902c675e5e341a3faf5dc86dae
 mido==1.3.3
-yt-dlp==2026.6.9
+yt-dlp==2026.7.4
 # Direct dep of the torch-free WAV decoding (app/wav_decode.py) — would arrive
 # transitively via torch, but the app imports it itself.
 numpy==2.4.6
