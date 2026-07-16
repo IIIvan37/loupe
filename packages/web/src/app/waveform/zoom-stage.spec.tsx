@@ -45,9 +45,14 @@ describe('ZoomStage', () => {
   })
 
   it('positions the playhead at its fraction of the timeline', () => {
-    const { container } = renderStage({ position: createExternalValue(4) })
+    // V.4: the playhead moves by transform only (compositor), never `left` —
+    // pixels are the ratio applied to the stage's scrollWidth.
+    const position = createExternalValue(0)
+    const { container } = renderStage({ position })
+    mockGeometry(container.querySelector('[class*="scroll"]') as Element)
+    act(() => position.set(4))
     const playhead = container.querySelector('[class*="playhead"]')
-    expect(playhead).toHaveStyle({ left: '40%' })
+    expect(playhead).toHaveStyle({ transform: 'translateX(400px)' })
   })
 
   it('moves the playhead on a streamed position without re-rendering', () => {
@@ -55,9 +60,41 @@ describe('ZoomStage', () => {
     // a frame tick touches this one DOM node, not the React tree.
     const position = createExternalValue(0)
     const { container } = renderStage({ position })
+    mockGeometry(container.querySelector('[class*="scroll"]') as Element)
     act(() => position.set(2.5))
     const playhead = container.querySelector('[class*="playhead"]')
-    expect(playhead).toHaveStyle({ left: '25%' })
+    expect(playhead).toHaveStyle({ transform: 'translateX(250px)' })
+  })
+
+  it('re-applies the playhead when the stage resizes without a position tick', () => {
+    // A window resize rewidens the stage while paused: with pixel transforms
+    // the playhead must be recomputed by the ResizeObserver, not left stale.
+    const observers: Array<() => void> = []
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          observers.push(callback)
+        }
+        observe() {}
+        disconnect() {}
+      }
+    )
+    try {
+      const position = createExternalValue(5)
+      const { container } = renderStage({ position })
+      const scroll = container.querySelector('[class*="scroll"]') as Element
+      mockGeometry(scroll)
+      act(() => {
+        for (const notify of observers) {
+          notify()
+        }
+      })
+      const playhead = container.querySelector('[class*="playhead"]')
+      expect(playhead).toHaveStyle({ transform: 'translateX(500px)' })
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   describe('page-follow (Lot L.2)', () => {

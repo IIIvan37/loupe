@@ -88,8 +88,10 @@ export function ZoomStage({
             })
           : null
       const playhead = playheadRef.current
-      if (playhead) {
-        playhead.style.left = `${ratio * 100}%`
+      if (playhead && scroll) {
+        // Transform, not `left` (V.4): a per-frame `left` write invalidates
+        // layout on every tick; translateX stays compositor-only.
+        playhead.style.transform = `translateX(${ratio * scroll.scrollWidth}px)`
       }
       if (scroll && next !== null) {
         scroll.scrollLeft = next
@@ -97,7 +99,21 @@ export function ZoomStage({
       }
     }
     apply()
-    return position.subscribe(apply)
+    const unsubscribe = position.subscribe(apply)
+    // Pixel transforms go stale when the stage rewidens without a position
+    // tick (window resize while paused) — `left: %` tracked that for free.
+    const scroll = scrollRef.current
+    const observer =
+      scroll && typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(apply)
+        : null
+    if (scroll && observer) {
+      observer.observe(scroll)
+    }
+    return () => {
+      unsubscribe()
+      observer?.disconnect()
+    }
   }, [position, zoom, durationSeconds])
 
   return (
