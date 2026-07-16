@@ -770,32 +770,42 @@ msgid "markers.section-label"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:86
+#: src/app/mixer/stem-headers.tsx:87
 msgid "mixer.confidence"
 msgstr "Confiance de détection : {percent} %"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:96
+#: src/app/mixer/stem-headers.tsx:97
 msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:186
+#: src/app/mixer/stem-headers.tsx:151
+msgid "mixer.eq"
+msgstr "Égaliseur {name}"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:171
+msgid "mixer.eq-title"
+msgstr "EQ — {name}"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:216
 msgid "mixer.high-cut"
 msgstr "Coupe-haut {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:190
+#: src/app/mixer/stem-headers.tsx:220
 msgid "mixer.high-cut-hint"
 msgstr "Couper les aigus au-dessus de cette fréquence"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:159
+#: src/app/mixer/stem-headers.tsx:186
 msgid "mixer.low-cut"
 msgstr "Coupe-bas {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:163
+#: src/app/mixer/stem-headers.tsx:190
 msgid "mixer.low-cut-hint"
 msgstr "Couper les graves sous cette fréquence"
 
@@ -805,17 +815,17 @@ msgid "mixer.mix-label"
 msgstr "Mix"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:109
+#: src/app/mixer/stem-headers.tsx:110
 msgid "mixer.mute"
 msgstr "Couper {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:70
+#: src/app/mixer/stem-headers.tsx:71
 msgid "mixer.region-label"
 msgstr "Mixer"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:118
+#: src/app/mixer/stem-headers.tsx:119
 msgid "mixer.solo"
 msgstr "Isoler {name}"
 
@@ -825,7 +835,7 @@ msgid "mixer.undetected"
 msgstr "Non détectés"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:133
+#: src/app/mixer/stem-headers.tsx:134
 msgid "mixer.volume"
 msgstr "Volume {name}"
 
@@ -969,7 +979,7 @@ msgid "shell.zone.analysis"
 msgstr "Analyse"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:376
+#: src/app/workstation-shell/shell-main.tsx:373
 msgid "shell.zone.chart"
 msgstr "Partition"
 

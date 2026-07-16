@@ -567,8 +567,20 @@ injoignable — réessayer. »). Browser-verify via le port 5174 (origin rejeté
 inchangés. Gate **verte — 1595 tests** (+4), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-x1-offload-gating.md).
 
-**Prochain : X.2** (face idle « Détecter le tempo » après annulation — le 2ᵉ
-des cinq 🟠, cf. roadmap v5).
+**X.2 en PR (#171, branche `feat/x2-tempo-cancel-idle`)** — voir son rapport.
+**Y.1 — EQ par stem replié en popover (branche `feat/y1-stem-eq-popover`, PR
+à ouvrir)** : la rangée LC/HC qui débordait du header 48 px (régression T.8b)
+déménage dans un popover « EQ » par stem (trigger dans la ligne M/S, peau
+popover-form composée, z-index sur le Positioner) ; marque `data-filtered`
+ambre quand un filtre est actif. Checkpoint : repli choisi contre montée à
+64 px ; popover contre dépli en place (headers et lanes ne s'alignent que par
+hauteurs fixes). Browser-verify réel (click-track 120 BPM, métronome seaté) :
+48 px exacts, zéro overflow, LC 400 Hz → indicateur ambre. Gate **verte —
+1597 tests** (+2), Stryker skippé (core intouché).
+[rapport](sessions/2026-07-16-y1-stem-eq-popover.md).
+
+**Prochain : Z.1** (clics métronome hors bande chroma — 4ᵉ des cinq 🟠, core
+pur ⇒ TDD + Stryker).
 
 **Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 
