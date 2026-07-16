@@ -62,6 +62,13 @@
   --font-size-xl: 1.35rem; /* empty-state heading */
   --font-size-2xl: 2.5rem; /* empty-state hero glyph */
 
+  /* Chart type regime (Petaluma Script): the script face renders ~20% smaller
+     optically than Inter at equal em — on the UI scale the chart title would
+     drop below the artist line and the chord glyphs lose legibility. These two
+     steps deliberately sit off the scale; don't reuse them outside the chart. */
+  --font-size-chart-title: 1.6rem;
+  --font-size-chart-glyph: 1.5rem;
+
   /* Letter-spacing for the small uppercase section labels (panel headings,
      transport captions…) — one value, so every label tracks the same. */
   --tracking-label: 0.08em;
