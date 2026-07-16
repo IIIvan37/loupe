@@ -365,6 +365,27 @@ pas de dette nouvelle :
   hand-back. TDD sur le hand-off (fakes du shell-test-kit), heap snapshot
   avant/après (motif L.3).
 
+### V.5 — Memo AudioBuffer au décodeur : une seule copie du PCM piste *(🟡 moyenne — exploré 2026-07-16, GO)*
+- Constat (revue V.2) : `loadedAudio` est déjà des **vues zéro-copie** dans le
+  storage de l'AudioBuffer de décodage (`decodedAudioFrom`), mais chaque
+  `audioBufferFrom` refait une copie ~88 MB (4 min stéréo) : moteur piste au
+  load, et stem « Piste » au seat métronome (`buildTrackStem` passe
+  `loadedAudio` verbatim → l'identité de l'objet survit jusqu'au moteur).
+- Piste : `WeakMap<DecodedAudio, AudioBuffer>` alimentée par le **décodeur
+  seul** (ses channels SONT des vues du buffer — une seule source de vérité) ;
+  `audioBufferFrom` consulte le memo avant de copier. Gains mesurables :
+  **−88 MB** en mode piste (176 → 88) et **−88 MB** dans l'état par défaut
+  post-seat (le stem Piste partage le buffer de décodage) ; le reload de
+  hand-back V.2 devient gratuit. Éviction automatique (WeakMap).
+- Risque spec vérifié : « acquire the contents » (jouer un buffer pourrait
+  détacher ses ArrayBuffers → vues de `loadedAudio` mortes). **Réfuté
+  empiriquement sur Chrome 150** (vues valides pendant la lecture,
+  `getChannelData` re-renvoie le même array, réutilisation inter-contextes
+  OK, mutation visible). Contrat à documenter : storage partagé =
+  lecture seule (même convention que les vues `stemAudio`, L.3).
+- Vérif : browser heap snapshot — compter les AudioBuffers (pas
+  `usedJSHeapSize`), motif V.2.
+
 ### V.3 — Warm des modèles au démarrage du serveur local *(🟢 basse)*
 - Les trois modèles se construisent à la première requête — or la détection de
   tempo se lance automatiquement à l'import : la première détection de chaque
@@ -484,6 +505,7 @@ pas de dette nouvelle :
 - [x] **V.2** `unload()` du moteur mono-piste (PR de `feat/v2-engine-unload`)
 - [ ] **V.3** warm des modèles au démarrage local
 - [ ] **V.4** playhead en transform
+- [ ] **V.5** memo AudioBuffer au décodeur (exploré, GO — −88 MB piste et défaut)
 - [x] **W.1** flex-wrap des rangées tempo/accords
 - [x] **W.2** peau `.confirmFace` unifiée
 - [ ] **W.3** faux-gras (Space Grotesk 600, Petaluma)
