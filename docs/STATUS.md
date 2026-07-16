@@ -604,8 +604,24 @@ fidèle à A.1 ; pin git madmom non couvert, documenté ; step pip-audit CI
 écarté — le pin git le casse au parsing).
 [rapport](sessions/2026-07-16-aa1-pip-advisories.md).
 
-**Prochain : M1.1** (tempo+accords sur Modal — Phase 1 du
-[plan client léger](client-leger-plan.md)) ; les 🟢 v5 au fil de l'eau.
+**M1.1 — tempo + accords sur Modal (branche `feat/m11-tempo-chords-modal`,
+PR à ouvrir)** : Phase 1 du [plan client léger](client-leger-plan.md).
+`modal_app.py` monte `/tempo` et `/chords` à côté de `/structure` (même gate JWT,
+un conteneur, trois modèles bakés + chauffés dans `@modal.enter`) ; checkpoint
+beat_this `final0` **pinné sha256** (503 `WeightsUnavailable`). Côté web, les
+détecteurs tempo/accords pointent sur `ANALYSIS_URL` avec le bearer court, `useTempo`
+et `useChordDetection` passent le gate `ensureAnalysisToken` (la détection auto du
+tempo à l'import minte), et `AccountMenuSlot` compare les raisons de gate **par
+flux**. X.1 étendu : copy réseau partagée `analysis.error.network-offload`, accords
+dé-gatés de la santé locale en offload, cold-start narré. Refacto `ShellAnalyserRow`
+(budget react-doctor) + fix d'hygiène des 2 raccourcis Cmd+S (fake store).
+**Vérif réelle** (Modal v5, serveur local éteint, compte beta) : `/tempo` + `/chords`
+200 sur Modal, **un seul mint** (quota 10→11), accords « key of Am ». Gate
+**verte — 1629 tests** (+22), pytest 231, **Stryker skippé (core intouché)**.
+[rapport](sessions/2026-07-16-m11-tempo-chords-modal.md).
+
+**Prochain : M1.2** (modèle quota/coût de la séparation — mesure GPU + décision
+produit avant M1.3) ; les 🟢 v5 au fil de l'eau.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
