@@ -533,8 +533,19 @@ déplacer une fréquence, jamais recâbler), `mixer.setFilter` session-only
 chaque fader (bord de slider = côté coupé). Browser-verify : filtrage en
 lecture réelle. Gate **verte — 1591 tests** (+6), Stryker skippé.
 [rapport](sessions/2026-07-16-t8b-stem-eq.md).
-**Prochain : évaluation notée v5** (roadmap v4 : séquencement validé
-entièrement livré).
+**Évaluation notée v5 (2026-07-16) — [feuille de route v5](roadmap-excellence-5.md).**
+Roadmap v4 entièrement livrée (Lots Q, R, T, U, V, W — PRs #137→#169). Revue
+multi-agents 6 axes, chaque constat vérifié adversarialement (35 constats,
+20 confirmés, 15 réfutés/déjà-tranchés). Note globale **17,2/20** (16,1 le
+2026-07-14) — tous les axes montent : qualité 18, fonctionnalités 17,5,
+esthétique 17, sécurité 17, ergonomie 17, performance 16,5. Les quatre
+déductions structurelles de la passe 4 sont vérifiées réellement soldées.
+Reste : cinq 🟠 moyens (gating/copy offload menteurs X.1, cul-de-sac
+d'annulation tempo X.2, régression hauteur header stems T.8b → Y.1,
+clic métronome dans la bande chroma Z.1, veille CVE Python AA.1) + une
+quinzaine de finitions basses, séquencés en Lots X, Y, Z, AA.
+
+**Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
