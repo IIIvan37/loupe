@@ -508,6 +508,6 @@ pas de dette nouvelle :
 - [x] **V.5** memo AudioBuffer au décodeur (PR de `feat/v5-audio-buffer-memo`)
 - [x] **W.1** flex-wrap des rangées tempo/accords
 - [x] **W.2** peau `.confirmFace` unifiée
-- [ ] **W.3** faux-gras (Space Grotesk 600, Petaluma)
-- [ ] **W.4** typo chart sur l'échelle + verrou font-size
-- [ ] **W.5** basses design groupées
+- [x] **W.3** faux-gras (Space Grotesk 600, Petaluma)
+- [x] **W.4** typo chart sur l'échelle + verrou font-size
+- [x] **W.5** basses design groupées
