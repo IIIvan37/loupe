@@ -491,11 +491,11 @@ pas de dette nouvelle :
 - [x] **T.1** boucles musicales : section + snap au beat
 - [x] **T.2** nudge clavier en unités musicales
 - [x] **T.3** chart cliquable → seek
-- [ ] **T.4** Cmd/Ctrl+S
-- [ ] **T.5** champs BPM/mètre aria-invalid
-- [ ] **T.6** aide format + gestes + boutons AT honnêtes
-- [ ] **T.7** fine-tune ±50 cents
-- [ ] **T.8** décisions spectre + EQ actées
+- [x] **T.4** Cmd/Ctrl+S
+- [x] **T.5** champs BPM/mètre aria-invalid
+- [x] **T.6** aide format + gestes + boutons AT honnêtes
+- [x] **T.7** fine-tune ±50 cents
+- [x] **T.8** décisions spectre + EQ actées
 - [x] **U.1** analyze_gate.py + ruff sur modal_app.py
 - [x] **U.2** job CI deno
 - [x] **U.3** brute-force codes beta + plancher secret
