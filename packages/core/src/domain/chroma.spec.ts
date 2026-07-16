@@ -35,6 +35,30 @@ describe('chromaFromSpectrum', () => {
     expect(Math.max(...chroma)).toBe(1)
   })
 
+  it('ignores rumble below the musical band', () => {
+    expect(chromaFromSpectrum(peakAt(20), 44100)).toEqual(new Array(12).fill(0))
+  })
+
+  it('ignores content above the musical band', () => {
+    expect(chromaFromSpectrum(peakAt(4200), 44100)).toEqual(
+      new Array(12).fill(0)
+    )
+  })
+
+  it('keeps a bin sitting exactly on the low edge of the band', () => {
+    // 64 bins at 4096 Hz → bin 1 covers exactly 32 Hz (= MIN_HZ).
+    const spectrum = new Array<number>(64).fill(0)
+    spectrum[1] = 1
+    expect(Math.max(...chromaFromSpectrum(spectrum, 4096))).toBe(1)
+  })
+
+  it('keeps a bin sitting exactly on the high edge of the band', () => {
+    // 100 bins at 42 kHz → bin 10 covers exactly 2100 Hz (= MAX_HZ).
+    const spectrum = new Array<number>(100).fill(0)
+    spectrum[10] = 1
+    expect(Math.max(...chromaFromSpectrum(spectrum, 42000))).toBe(1)
+  })
+
   it('returns all-zero for a silent spectrum', () => {
     const chroma = chromaFromSpectrum(new Array(2048).fill(0), 44100)
     expect(chroma).toEqual(new Array(12).fill(0))
