@@ -300,6 +300,7 @@ export function ShellMain({
               bpm: tempo.analysis?.bpm,
               detecting: tempo.detecting,
               error: tempo.error,
+              cancelled: tempo.cancelled,
               onRetry: onRetryTempo,
               onCancel: tempo.cancelDetection
             }}
@@ -323,9 +324,8 @@ export function ShellMain({
               onDetect: () => void structureDetection.detect(),
               onCancel: structureDetection.cancel,
               offloaded: isAnalysisOffloaded(),
-              // The local health probe only gates the LOCAL engine (X.1):
-              // offloaded, the button stays live (probing Modal would
-              // cold-start the billed container), errors speak at click time.
+              // The local health probe only gates the LOCAL engine (X.1) —
+              // no Modal probe (billed cold start), errors speak at click.
               blockedReason:
                 !isAnalysisOffloaded() &&
                 (serverHealth === 'offline' || serverHealth === 'checking')

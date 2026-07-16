@@ -567,9 +567,19 @@ injoignable — réessayer. »). Browser-verify via le port 5174 (origin rejeté
 inchangés. Gate **verte — 1595 tests** (+4), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-x1-offload-gating.md).
 
-**X.2 en PR (#171, branche `feat/x2-tempo-cancel-idle`)** — voir son rapport.
-**Y.1 — EQ par stem replié en popover (branche `feat/y1-stem-eq-popover`, PR
-à ouvrir)** : la rangée LC/HC qui débordait du header 48 px (régression T.8b)
+**X.1 mergé (PR #170).** ⚠️ **CI GitHub en panne de facturation** (jobs tués
+en 3 s, « recent account payments have failed ») — gate locale = seule
+vérification effective, backstop Stryker post-merge inopérant.
+**X.2 — relance après annulation du tempo mergé (PR #171)** : état `cancelled`
+sur `useTempo` (posé au cancel, effacé par detect/set/reset), l'item tempo
+garde une face idle « Détecter le tempo » (DetectionAction sur `onRetry`) au
+lieu de disparaître ; un cancel par-dessus un tempo posé garde « Tempo
+détecté ». Nouvel id `analyser.tempo-detect`. Gate **verte — 1602 tests**
+(+7), Stryker skippé (core intouché). NB : ShellMain à 300 lignes pile
+(budget react-doctor sans marge).
+[rapport](sessions/2026-07-16-x2-tempo-cancel-idle.md).
+**Y.1 — EQ par stem replié en popover (branche `feat/y1-stem-eq-popover`,
+PR #172)** : la rangée LC/HC qui débordait du header 48 px (régression T.8b)
 déménage dans un popover « EQ » par stem (trigger dans la ligne M/S, peau
 popover-form composée, z-index sur le Positioner) ; marque `data-filtered`
 ambre quand un filtre est actif. Checkpoint : repli choisi contre montée à

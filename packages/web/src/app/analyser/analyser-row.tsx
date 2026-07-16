@@ -60,6 +60,9 @@ export interface TempoDetectionControl {
   readonly bpm: number | undefined
   readonly detecting: boolean
   readonly error: TempoDetectionErrorCode | undefined
+  /** Whether the last run was cancelled — the item then keeps an idle
+   * « Détecter le tempo » face instead of vanishing (X.2). */
+  readonly cancelled: boolean
   readonly onRetry: () => void
   /** Abort the in-flight detection (the busy face's « Annuler »). */
   readonly onCancel: () => void
@@ -231,7 +234,10 @@ export function AnalyserRow({
         <LiveStatus message={sepAnnounced} />
       </div>
 
-      {(tempo.detecting || tempo.error !== undefined || tempo.bpm !== undefined) && (
+      {(tempo.detecting ||
+        tempo.error !== undefined ||
+        tempo.bpm !== undefined ||
+        tempo.cancelled) && (
         <div className={styles.item}>
           {tempo.error !== undefined ? (
             <DetectionAction
@@ -253,10 +259,26 @@ export function AnalyserRow({
               })}
               onCancel={tempo.onCancel}
             />
-          ) : (
+          ) : tempo.bpm !== undefined ? (
             <p className={styles.done}>
               <Trans id="analyser.tempo-done">Tempo détecté</Trans>
             </p>
+          ) : (
+            // Cancelled before any tempo landed (X.2): an idle face brings
+            // the auto-detection back on offer — symmetric with the
+            // structure/chords buttons that never vanish.
+            <DetectionAction
+              label={t({
+                id: 'analyser.tempo-detect',
+                message: 'Détecter le tempo'
+              })}
+              runningLabel={t({
+                id: 'analyser.tempo-detecting',
+                message: 'Analyse du tempo…'
+              })}
+              running={false}
+              onRun={tempo.onRetry}
+            />
           )}
         </div>
       )}
