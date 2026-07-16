@@ -39,6 +39,20 @@
   color: inherit;
 }
 
+/* A draft the hook would clamp or reject is flagged, not silently mutated —
+ * the border echoes the aria-invalid state assistive tech announces. The
+ * :hover/:focus-visible variants outrank the composed numberField state rules
+ * (same specificity, order-dependent otherwise) — same recipe as N.4's
+ * barsField. */
+.bpmField[aria-invalid='true'],
+.bpmField[aria-invalid='true']:hover,
+.bpmField[aria-invalid='true']:focus-visible,
+.meterField[aria-invalid='true'],
+.meterField[aria-invalid='true']:hover,
+.meterField[aria-invalid='true']:focus-visible {
+  border-color: var(--danger);
+}
+
 /* The whole span of a varying tempo, shown beside the playhead read-out. */
 .range {
   color: var(--dim);

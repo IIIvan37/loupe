@@ -117,6 +117,47 @@ describe('TempoPanel', () => {
     expect(onOverrideMeter).toHaveBeenCalledWith(4)
   })
 
+  it('flags a BPM the hook would clamp, while it is being typed', async () => {
+    const user = userEvent.setup()
+    renderPanel()
+    await user.clear(bpmField())
+    await user.type(bpmField(), '500')
+    expect(bpmField()).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('does not flag an in-range BPM draft', async () => {
+    const user = userEvent.setup()
+    renderPanel()
+    await user.clear(bpmField())
+    await user.type(bpmField(), '90')
+    expect(bpmField()).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('drops the BPM flag once the edit settles', async () => {
+    const user = userEvent.setup()
+    renderPanel()
+    await user.clear(bpmField())
+    await user.type(bpmField(), '500')
+    await user.tab()
+    expect(bpmField()).not.toHaveAttribute('aria-invalid')
+  })
+
+  it('flags a meter the hook would reject, while it is being typed', async () => {
+    const user = userEvent.setup()
+    renderPanel()
+    await user.clear(meterField())
+    await user.type(meterField(), '99')
+    expect(meterField()).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('flags a fractional meter the hook would silently floor', async () => {
+    const user = userEvent.setup()
+    renderPanel()
+    await user.clear(meterField())
+    await user.type(meterField(), '4.5')
+    expect(meterField()).toHaveAttribute('aria-invalid', 'true')
+  })
+
   it('abandons a meter edit on Escape', async () => {
     const user = userEvent.setup()
     const { onOverrideMeter } = renderPanel({ beatsPerBar: 6 })
