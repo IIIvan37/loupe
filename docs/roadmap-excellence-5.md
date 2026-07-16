@@ -348,10 +348,10 @@ pas de dette nouvelle :
 > commence par un plan dédié, pas par du code.
 
 ### AB.1 — Plan de migration client léger, écrit et validé *(doc type jalon — préalable à toute slice)*
-- **Plan écrit le 2026-07-16 : [client-leger-plan.md](client-leger-plan.md)**
+- **Plan écrit et validé le 2026-07-16 : [client-leger-plan.md](client-leger-plan.md)**
   (décisions actées : projets locaux, Modal d'abord, yt-dlp en sidecar Tauri,
-  mobile = option gardée ouverte). Reste à valider le séquencement vs les 🟠
-  de cette roadmap (recommandation : les cinq 🟠 d'abord, X.1 en tête).
+  mobile = option gardée ouverte ; séquencement validé : les cinq 🟠 de cette
+  roadmap d'abord, X.1 en tête, AA.2 déplacé en T2.2).
 - Inventaire des rôles actuels du serveur local × cible : détections
   tempo/accords (→ Modal — l'infra existe : gate JWT, quota, upload mono
   24 kHz V.1), séparation (→ Modal — **la** charge GPU dominante), import URL
@@ -425,4 +425,4 @@ pas de dette nouvelle :
 - [ ] **AA.5** budget bundle + supabase dynamique + dialogs lazy
 - [ ] **AA.6** mesure du burst decodeWav (fix si > 150 ms)
 - [ ] **AA.7** décision « membre optionnel » des ports actée
-- [ ] **AB.1** plan de migration client léger (Modal + Tauri) écrit et validé
+- [x] **AB.1** plan de migration client léger (Modal + Tauri) écrit et validé

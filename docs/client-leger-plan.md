@@ -15,9 +15,10 @@
 > 4. **Mobile : option gardée ouverte, pas un engagement.** Tauri 2 cible
 >    iOS/Android depuis la même base ; on n'engage rien sans le spike M-mob.
 >
-> **Décision restante** : corriger d'abord les points de la revue v5 (les cinq
-> 🟠 des Lots X–AA) ou attaquer la Phase 1 directement — voir
-> [Séquencement](#séquencement-vs-roadmap-v5).
+> 5. **Séquencement validé (2026-07-16)** : les cinq 🟠 de la roadmap v5
+>    d'abord (X.1 en tête — prérequis de M1.1), AA.2 déplacé en T2.2, les 🟢
+>    au fil de l'eau, puis Phase 1 — voir
+>    [Séquencement](#séquencement-vs-roadmap-v5).
 
 ## Invariants du plan
 
@@ -189,10 +190,10 @@ l'import URL. Une machine faible fait tout le reste.
 
 ## Séquencement vs roadmap v5
 
-**Décision restante** (utilisateur) : corriger les points de la revue v5 avant
-d'ouvrir la Phase 1, ou entrelacer.
+**Validé par l'utilisateur le 2026-07-16** : la recommandation ci-dessous
+s'applique — les cinq 🟠 d'abord, X.1 en tête, puis Phase 1.
 
-Éléments pour trancher :
+Éléments qui ont motivé la décision :
 
 - **X.1 est de toute façon un prérequis de M1.1** (gating/copy sur l'endpoint
   effectif — sinon la détection auto du tempo raconte le mauvais serveur à

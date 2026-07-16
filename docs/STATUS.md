@@ -552,8 +552,12 @@ pas : **AB.1** = plan de migration dédié (roadmap v5 § Cap) ; ne déplace pas
 les cinq 🟠. **Plan écrit : [client-leger-plan.md](client-leger-plan.md)**
 (projets locaux, Modal d'abord — M1.1 tempo+accords → M1.2/M1.3 séparation →
 M1.4 santé/hors-ligne —, puis Tauri T2.1–T2.5 ; yt-dlp en sidecar ; mobile =
-option gardée ouverte). Décision restante : corriger les 🟠 v5 avant la
-Phase 1 (recommandé, X.1 en tête — c'est un prérequis de M1.1) ou entrelacer.
+option gardée ouverte). **Séquencement validé (2026-07-16)** : les cinq 🟠 v5
+d'abord — X.1 en tête (prérequis de M1.1) —, AA.2 déplacé en T2.2, les 🟢 au
+fil de l'eau, puis Phase 1 Modal.
+
+**Prochain : X.1** (gating/copy de la structure indexés sur l'endpoint
+effectif — slice UI, checkpoint d'approche requis).
 
 **Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 
