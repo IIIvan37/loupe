@@ -23,6 +23,7 @@ function capturingEngine(): PlaybackEngine & {
     seekTo() {},
     setTimeRatio() {},
     setPitchSemitones() {},
+    unload() {},
     onPositionChange() {
       return () => {}
     }

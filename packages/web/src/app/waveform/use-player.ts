@@ -136,6 +136,7 @@ export function usePlayer(
     playback,
     stemPlayback,
     stemsActive,
+    trackAudio: loadedAudio,
     loopRegion: loop.loopRegion,
     loopEnabled: loop.loopEnabled,
     onLoopWrap: speedTrainer.recordPass

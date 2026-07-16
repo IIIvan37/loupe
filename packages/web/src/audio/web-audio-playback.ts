@@ -19,6 +19,9 @@ import { audioBufferFrom, createStretchTransport } from './web-audio-shared.ts'
 export function createWebAudioPlayback(): PlaybackEngine {
   let buffer: AudioBuffer | undefined
   let source: AudioBufferSourceNode | undefined
+  // Last load wins: a lazy hand-back reload racing a fresh import must never
+  // let the slower (stale) load land its buffer on top of the newer one.
+  let loadId = 0
   const transport = createStretchTransport(() => buffer?.duration)
 
   function stopSource(): void {
@@ -51,9 +54,14 @@ export function createWebAudioPlayback(): PlaybackEngine {
 
   return {
     async load(audio: DecodedAudio): Promise<void> {
+      loadId += 1
+      const id = loadId
       stopSource()
       transport.stopAt(0)
       await transport.ensureStretch()
+      if (id !== loadId) {
+        return
+      }
       buffer = audioBufferFrom(transport.audioContext(), audio)
       transport.emit()
     },
@@ -102,6 +110,16 @@ export function createWebAudioPlayback(): PlaybackEngine {
 
     setPitchSemitones(semitones: number): void {
       transport.setPitchSemitones(semitones)
+    },
+
+    unload(): void {
+      // Drop the decoded buffer (the point: ~85 MB float32 for a 4-min track)
+      // without emitting — the caller owns where the shared playhead sits.
+      // Bumping loadId makes unload part of last-load-wins: an in-flight
+      // load must not re-materialise the buffer after this.
+      loadId += 1
+      stopSource()
+      buffer = undefined
     },
 
     onPositionChange: transport.onPositionChange

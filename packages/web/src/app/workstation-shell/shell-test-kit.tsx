@@ -45,6 +45,7 @@ function fakeEngine() {
     setTimeRatio: vi.fn(),
     setPitchSemitones: vi.fn(),
     load: vi.fn(async () => {}),
+    unload: vi.fn(),
     onPositionChange(listener: (seconds: number) => void) {
       listeners.add(listener)
       return () => listeners.delete(listener)
