@@ -647,8 +647,22 @@ bout-en-bout confirmé** sous réseau ralenti (`net::ERR_ABORTED`). Gate
 **verte — 1640 tests** (+11), pytest 233, Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-m13-separation-modal.md).
 
-**Prochain : M1.4** (santé par endpoint effectif + UX hors-ligne + narration
-cold start sur les quatre opérations offloadées) ; les 🟢 v5 au fil de l'eau.
+**M1.4 — santé/hors-ligne/narration (PR à ouvrir) — PHASE 1 MODAL TERMINÉE** :
+erreurs séparation typées bout-en-bout (contrat N.1 : `SeparationError` +
+`separateTrack` en `{code, detail}`, `typedFetch` sur POST + GET stems, copy
+`SEPARATION_ERROR_COPY` + override offload) ; **UX hors-ligne** (`useOnline`,
+le hors-ligne ne bloque QUE les flux offloadés — copy partagée
+`analysis.blocked-offline`, le local marche sans réseau) ; narration
+cold-start sur la barre réelle de séparation ; `hf_xet` dans l'image Modal.
+**Vérif réelle** : « The Logical Song » (4:09) séparée en **72 s** clic→6
+stems tous présents (transport plein débit OK, compression au tiroir),
+narration visible, Offline DevTools bloque/débloque en live. Gate **verte —
+1650 tests** (+10), **Stryker 94,01 %** (core touché).
+[rapport](sessions/2026-07-16-m14-sante-horsligne-narration.md).
+
+**Prochain : T2.1** (spike coquille Tauri + inventaire licences — GO/NO-GO de
+la Phase 2) ; les 🟢 v5 au fil de l'eau ; garde-fou : poser l'alerte de
+facturation Modal avant d'ouvrir la séparation aux beta-testeurs.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

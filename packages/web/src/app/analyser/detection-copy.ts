@@ -1,5 +1,6 @@
 import type {
   ChordDetectionErrorCode,
+  SeparationErrorCode,
   StructureDetectionErrorCode,
   TempoDetectionErrorCode
 } from '@app/core'
@@ -117,6 +118,44 @@ export const TEMPO_ERROR_COPY: Readonly<
   }),
   unknown: msg({
     id: 'tempo.error.unknown',
+    message: 'Erreur inattendue — détails dans la console du navigateur.'
+  })
+}
+
+/** The offline block, shared by the four offloaded analysis flows (M1.4):
+ * everything local keeps working without the network — only the analyses
+ * need it, and each blocked item says so in the same words. */
+export const ANALYSIS_OFFLINE = msg({
+  id: 'analysis.blocked-offline',
+  message: 'Hors ligne — les analyses nécessitent le réseau.'
+})
+
+export const SEPARATION_NEEDS_SERVER = msg({
+  id: 'separation.detect-needs-server',
+  message: 'Lancer le serveur local pour séparer les pistes.'
+})
+
+/** `network` reuses the blocked-state hint — same situation, same words
+ * (M1.4, the N.1 contract extended to separation). */
+export const SEPARATION_ERROR_COPY: Readonly<
+  Record<SeparationErrorCode, MessageDescriptor>
+> = {
+  'engine-unavailable': msg({
+    id: 'separation.error.engine-unavailable',
+    message:
+      "Le moteur de séparation n'est pas installé sur le serveur — voir server/README."
+  }),
+  network: SEPARATION_NEEDS_SERVER,
+  timeout: msg({
+    id: 'separation.error.timeout',
+    message: 'La séparation a expiré sur le serveur — réessayer.'
+  }),
+  'too-large': msg({
+    id: 'separation.error.too-large',
+    message: 'Piste trop volumineuse pour la séparation sur le serveur.'
+  }),
+  unknown: msg({
+    id: 'separation.error.unknown',
     message: 'Erreur inattendue — détails dans la console du navigateur.'
   })
 }

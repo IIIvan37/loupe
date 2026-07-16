@@ -4,7 +4,7 @@ import type {
   SeparationProgress,
   StemSeparator
 } from './ports.ts'
-import { separateTrack } from './separate-track.ts'
+import { SeparationError, separateTrack } from './separate-track.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
@@ -97,21 +97,39 @@ describe('separateTrack — adaptive detection', () => {
 })
 
 describe('separateTrack — when separation fails', () => {
-  it('turns a thrown error into a typed error Result', async () => {
+  it('forwards the code of a typed SeparationError (M1.4, the N.1 contract)', async () => {
+    const separator: StemSeparator = {
+      separate: async () => {
+        throw new SeparationError('network', 'fetch failed')
+      }
+    }
+    const result = await separateTrack({ audio, bucketCount: 1 }, { separator })
+    expect(result).toEqual({
+      ok: false,
+      code: 'network',
+      detail: 'fetch failed'
+    })
+  })
+
+  it('folds an untyped thrown error into the unknown code', async () => {
     const separator: StemSeparator = {
       separate: async () => {
         throw new Error('separator unavailable')
       }
     }
     const result = await separateTrack({ audio, bucketCount: 1 }, { separator })
-    expect(result).toEqual({ ok: false, error: 'separator unavailable' })
+    expect(result).toEqual({
+      ok: false,
+      code: 'unknown',
+      detail: 'separator unavailable'
+    })
   })
 
-  it('stringifies a rejected non-Error value', async () => {
+  it('stringifies a rejected non-Error value into the unknown detail', async () => {
     const separator: StemSeparator = {
       separate: () => Promise.reject('boom')
     }
     const result = await separateTrack({ audio, bucketCount: 1 }, { separator })
-    expect(result).toEqual({ ok: false, error: 'boom' })
+    expect(result).toEqual({ ok: false, code: 'unknown', detail: 'boom' })
   })
 })

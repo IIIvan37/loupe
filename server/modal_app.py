@@ -86,6 +86,10 @@ image = (
     # git: requirements.txt pins madmom to a commit via git+https.
     .apt_install("ffmpeg", "git")
     .pip_install_from_requirements("requirements.txt")
+    # Xet-accelerated HF downloads for the weight bake (build-time only —
+    # runtime never fetches). Its own layer AFTER requirements.txt so adding
+    # it never invalidates the multi-GB torch layer.
+    .pip_install("hf_xet==1.5.2")
     .env(
         {
             "XDG_CACHE_HOME": CACHE_DIR,

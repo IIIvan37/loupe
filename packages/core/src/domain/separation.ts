@@ -10,6 +10,24 @@ export type SeparationPhase = 'analysing' | 'separating'
 export type SeparationStatus = 'idle' | SeparationPhase | 'ready' | 'error'
 
 /**
+ * Why a separation failed, discriminated so the UI can speak each case in the
+ * user's language (Lot G standard) instead of echoing raw engine text — the
+ * same contract the detections carry (N.1, extended to separation in M1.4).
+ */
+export type SeparationErrorCode =
+  | 'engine-unavailable'
+  | 'network'
+  | 'timeout'
+  | 'too-large'
+  | 'unknown'
+
+/** A failed run: the code drives the copy, the detail goes to the console. */
+export interface SeparationFailure {
+  readonly code: SeparationErrorCode
+  readonly detail: string
+}
+
+/**
  * Pure separation state machine: the progress of turning the loaded track into
  * stems. The reducer is the single source of truth the import → separation
  * screen renders — no workers, no timers, just values. Progress events stream in
@@ -20,7 +38,7 @@ export interface SeparationState {
   /** Completion of the running phase in [0, 1]; 1 once ready. */
   readonly progress: number
   readonly stems: StemSet
-  readonly error: string | undefined
+  readonly error: SeparationFailure | undefined
 }
 
 export type SeparationAction =
@@ -31,7 +49,11 @@ export type SeparationAction =
       readonly fraction: number
     }
   | { readonly type: 'ready'; readonly stems: StemSet }
-  | { readonly type: 'fail'; readonly message: string }
+  | {
+      readonly type: 'fail'
+      readonly code: SeparationErrorCode
+      readonly detail: string
+    }
   | { readonly type: 'reset' }
 
 export const initialSeparation: SeparationState = {
@@ -75,7 +97,11 @@ export function separationReducer(
         error: undefined
       }
     case 'fail':
-      return { ...state, status: 'error', error: action.message }
+      return {
+        ...state,
+        status: 'error',
+        error: { code: action.code, detail: action.detail }
+      }
     case 'reset':
       return initialSeparation
   }

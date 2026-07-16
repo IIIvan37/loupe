@@ -31,7 +31,7 @@ describe('separationReducer', () => {
       status: 'error',
       progress: 0.4,
       stems,
-      error: 'boom'
+      error: { code: 'unknown', detail: 'boom' }
     }
     expect(separationReducer(prior, { type: 'start' })).toEqual({
       status: 'analysing',
@@ -87,14 +87,15 @@ describe('separationReducer', () => {
     })
   })
 
-  it('records the message on failure', () => {
+  it('records the typed failure — code for the UI copy, detail for the console', () => {
     const failed = separationReducer(initialSeparation, {
       type: 'fail',
-      message: 'separator unavailable'
+      code: 'network',
+      detail: 'fetch failed'
     })
     expect(failed).toMatchObject({
       status: 'error',
-      error: 'separator unavailable'
+      error: { code: 'network', detail: 'fetch failed' }
     })
   })
 

@@ -119,21 +119,26 @@ msgid "analyser.summary-sections"
 msgstr "{0, plural, one {# section} other {# sections}}"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:298
+#: src/app/analyser/analyser-row.tsx:333
 msgid "analyser.tempo-detect"
 msgstr "Détecter le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:266
-#: src/app/analyser/analyser-row.tsx:283
-#: src/app/analyser/analyser-row.tsx:302
+#: src/app/analyser/analyser-row.tsx:300
+#: src/app/analyser/analyser-row.tsx:317
+#: src/app/analyser/analyser-row.tsx:337
 msgid "analyser.tempo-detecting"
 msgstr "Analyse du tempo…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:291
+#: src/app/analyser/analyser-row.tsx:325
 msgid "analyser.tempo-done"
 msgstr "Tempo détecté"
+
+#. js-lingui-explicit-id
+#: src/app/analyser/detection-copy.ts:128
+msgid "analysis.blocked-offline"
+msgstr "Hors ligne — les analyses nécessitent le réseau."
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/chroma-view.tsx:57
@@ -146,12 +151,12 @@ msgid "analysis.chroma-label"
 msgstr "Notes dominantes du signal en cours de lecture"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:43
+#: src/app/analyser/analyser-row.tsx:45
 msgid "analysis.cold-start"
 msgstr "Démarrage du moteur d'analyse (jusqu'à ~1 min)…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:26
+#: src/app/analyser/detection-copy.ts:27
 msgid "analysis.error.network-offload"
 msgstr "Service d'analyse injoignable — réessayer."
 
@@ -172,7 +177,7 @@ msgstr "Les annotations textuelles arriveront plus tard."
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:76
-#: src/app/workstation-shell/shell-test-kit.tsx:267
+#: src/app/workstation-shell/shell-test-kit.tsx:270
 msgid "analysis.tab-loops"
 msgstr "Boucles"
 
@@ -212,44 +217,44 @@ msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:344
+#: src/app/analyser/analyser-row.tsx:386
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:358
+#: src/app/analyser/analyser-row.tsx:400
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:223
+#: src/app/analyser/analyser-row.tsx:251
 msgid "chords.detect-done"
 msgstr "Grille pré-remplie depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:215
+#: src/app/analyser/analyser-row.tsx:243
 msgid "chords.detect-failed"
 msgstr "Échec de la détection des accords"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:64
+#: src/app/analyser/detection-copy.ts:65
 msgid "chords.detect-needs-grid"
 msgstr "Détecter d'abord le tempo — la grille de mesures ancre les accords."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:59
+#: src/app/analyser/detection-copy.ts:60
 msgid "chords.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:221
-#: src/app/analyser/analyser-row.tsx:345
+#: src/app/analyser/analyser-row.tsx:249
+#: src/app/analyser/analyser-row.tsx:387
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
 #: src/app/lead-sheet/chord-chart-panel.tsx:162
-#: src/app/workstation-shell/shell-test-kit.tsx:252
+#: src/app/workstation-shell/shell-test-kit.tsx:255
 msgid "chords.edit"
 msgstr "Modifier"
 
@@ -259,27 +264,27 @@ msgid "chords.empty-hint"
 msgstr "Aucune grille — saisir les accords via « Modifier » ou lancer la détection."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:78
+#: src/app/analyser/detection-copy.ts:79
 msgid "chords.error.engine-unavailable"
 msgstr "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:74
+#: src/app/analyser/detection-copy.ts:75
 msgid "chords.error.no-chords"
 msgstr "Aucun accord détecté sur ce morceau."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:84
+#: src/app/analyser/detection-copy.ts:85
 msgid "chords.error.timeout"
 msgstr "L'analyse des accords a expiré sur le serveur — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:88
+#: src/app/analyser/detection-copy.ts:89
 msgid "chords.error.too-large"
 msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:92
+#: src/app/analyser/detection-copy.ts:93
 msgid "chords.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
@@ -361,8 +366,8 @@ msgstr "Fins alternatives (voltas)"
 
 #. js-lingui-explicit-id
 #: src/app/lead-sheet/chord-chart-panel.tsx:236
-#: src/app/workstation-shell/shell-test-kit.tsx:248
-#: src/app/workstation-shell/shell-test-kit.tsx:253
+#: src/app/workstation-shell/shell-test-kit.tsx:251
+#: src/app/workstation-shell/shell-test-kit.tsx:256
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
@@ -424,9 +429,9 @@ msgstr "Supprimer"
 
 #. js-lingui-explicit-id
 #: src/app/ui/name-editor.tsx:74
-#: src/app/workstation-shell/shell-test-kit.tsx:260
-#: src/app/workstation-shell/shell-test-kit.tsx:348
-#: src/app/workstation-shell/shell-test-kit.tsx:349
+#: src/app/workstation-shell/shell-test-kit.tsx:263
+#: src/app/workstation-shell/shell-test-kit.tsx:351
+#: src/app/workstation-shell/shell-test-kit.tsx:352
 msgid "common.name"
 msgstr "Nom"
 
@@ -442,8 +447,8 @@ msgstr "Renommer"
 #: src/app/header/header.tsx:103
 #: src/app/header/header.tsx:115
 #: src/app/loops/loop-controls.tsx:79
-#: src/app/workstation-shell/shell-test-kit.tsx:261
-#: src/app/workstation-shell/shell-test-kit.tsx:350
+#: src/app/workstation-shell/shell-test-kit.tsx:264
+#: src/app/workstation-shell/shell-test-kit.tsx:353
 msgid "common.save"
 msgstr "Enregistrer"
 
@@ -469,7 +474,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:371
+#: src/app/workstation-shell/workstation-shell.tsx:373
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -489,7 +494,7 @@ msgid "empty.sub"
 msgstr "WAV, MP3, FLAC, M4A…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:101
+#: src/app/workstation-shell/shell-header.tsx:104
 msgid "header.downloading"
 msgstr "Téléchargement…"
 
@@ -509,7 +514,7 @@ msgid "header.export-ready"
 msgstr "Télécharger les stems en ZIP"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:122
+#: src/app/workstation-shell/shell-header.tsx:125
 msgid "header.exporting"
 msgstr "Export des stems…"
 
@@ -524,8 +529,8 @@ msgid "header.import-confirm"
 msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:145
-#: src/app/workstation-shell/shell-test-kit.tsx:230
+#: src/app/workstation-shell/shell-header.tsx:148
+#: src/app/workstation-shell/shell-test-kit.tsx:233
 #: src/app/workstation-shell/use-file-picker.ts:24
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
@@ -566,24 +571,24 @@ msgid "header.import-url-unsupported"
 msgstr "Hôte non supporté — YouTube ou SoundCloud uniquement"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:139
+#: src/app/workstation-shell/shell-header.tsx:142
 msgid "header.no-track"
 msgstr "Aucun morceau"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:126
+#: src/app/workstation-shell/shell-header.tsx:129
 msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:276
-#: src/app/workstation-shell/shell-test-kit.tsx:281
+#: src/app/workstation-shell/shell-test-kit.tsx:284
 msgid "header.projects"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:123
-#: src/app/workstation-shell/shell-test-kit.tsx:352
+#: src/app/workstation-shell/shell-test-kit.tsx:355
 msgid "header.rename-project"
 msgstr "Renommer le projet"
 
@@ -600,7 +605,7 @@ msgstr "Importer un morceau pour pouvoir l'enregistrer"
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:137
 #: src/app/header/header.tsx:139
-#: src/app/workstation-shell/shell-test-kit.tsx:346
+#: src/app/workstation-shell/shell-test-kit.tsx:349
 msgid "header.save-project"
 msgstr "Enregistrer le projet"
 
@@ -610,22 +615,22 @@ msgid "header.saved"
 msgstr "Enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:118
+#: src/app/workstation-shell/shell-header.tsx:121
 msgid "header.saving"
 msgstr "Enregistrement du projet…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:27
+#: src/app/workstation-shell/shell-header.tsx:30
 msgid "header.server-no-separation"
 msgstr "Séparation indisponible"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:23
+#: src/app/workstation-shell/shell-header.tsx:26
 msgid "header.server-offline"
 msgstr "Serveur hors ligne"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:34
+#: src/app/workstation-shell/shell-header.tsx:37
 msgid "header.server-ready"
 msgstr "Serveur prêt"
 
@@ -640,12 +645,12 @@ msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:105
+#: src/app/workstation-shell/shell-header.tsx:108
 msgid "header.transcoding"
 msgstr "Extraction de l'audio…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:144
+#: src/app/workstation-shell/shell-header.tsx:147
 msgid "header.unknown-artist"
 msgstr "Artiste inconnu"
 
@@ -691,7 +696,7 @@ msgstr "Renommer la boucle"
 
 #. js-lingui-explicit-id
 #: src/app/loops/loop-controls.tsx:42
-#: src/app/workstation-shell/shell-test-kit.tsx:259
+#: src/app/workstation-shell/shell-test-kit.tsx:262
 msgid "loops.save-region"
 msgstr "Enregistrer la boucle"
 
@@ -946,7 +951,7 @@ msgid "projects.save-failed"
 msgstr "Impossible d'enregistrer le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-test-kit.tsx:286
+#: src/app/workstation-shell/shell-test-kit.tsx:289
 #: src/projects/projects-dialog.tsx:137
 msgid "projects.title"
 msgstr "Projets"
@@ -957,49 +962,74 @@ msgid "projects.unreachable"
 msgstr "Serveur injoignable — vérifier que le serveur local est lancé"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:32
+#: src/app/analyser/analyser-row.tsx:34
 msgid "separation.analysing"
 msgstr "Analyse du mix…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:40
-#: src/app/analyser/analyser-row.tsx:234
+#: src/app/analyser/analyser-row.tsx:173
+msgid "separation.detect-failed"
+msgstr "Échec de la séparation"
+
+#. js-lingui-explicit-id
+#: src/app/analyser/detection-copy.ts:133
+msgid "separation.detect-needs-server"
+msgstr "Lancer le serveur local pour séparer les pistes."
+
+#. js-lingui-explicit-id
+#: src/app/analyser/analyser-row.tsx:42
+#: src/app/analyser/analyser-row.tsx:262
 #: src/app/analyser/analysis-summary.ts:8
 msgid "separation.done"
 msgstr "Pistes séparées"
 
 #. js-lingui-explicit-id
-#: src/app/separation/use-separation.ts:230
+#: src/app/analyser/detection-copy.ts:143
+msgid "separation.error.engine-unavailable"
+msgstr "Le moteur de séparation n'est pas installé sur le serveur — voir server/README."
+
+#. js-lingui-explicit-id
+#: src/app/analyser/detection-copy.ts:149
+msgid "separation.error.timeout"
+msgstr "La séparation a expiré sur le serveur — réessayer."
+
+#. js-lingui-explicit-id
+#: src/app/analyser/detection-copy.ts:153
+msgid "separation.error.too-large"
+msgstr "Piste trop volumineuse pour la séparation sur le serveur."
+
+#. js-lingui-explicit-id
+#: src/app/analyser/detection-copy.ts:157
+msgid "separation.error.unknown"
+msgstr "Erreur inattendue — détails dans la console du navigateur."
+
+#. js-lingui-explicit-id
+#: src/app/separation/use-separation.ts:265
 msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:49
-msgid "separation.failed"
-msgstr "La séparation a échoué : {error}"
-
-#. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:240
+#: src/app/analyser/analyser-row.tsx:268
 msgid "separation.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:241
+#: src/app/analyser/analyser-row.tsx:269
 msgid "separation.separate"
 msgstr "Séparer les pistes"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:33
+#: src/app/analyser/analyser-row.tsx:35
 msgid "separation.separating"
 msgstr "Séparation des pistes…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:133
+#: src/app/analyser/detection-copy.ts:172
 msgid "separation.server-no-separation"
 msgstr "Ce serveur ne fournit pas de moteur de séparation."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:128
+#: src/app/analyser/detection-copy.ts:167
 msgid "separation.server-offline"
 msgstr "Serveur hors ligne — démarrer le serveur local pour séparer les pistes."
 
@@ -1010,17 +1040,17 @@ msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:280
+#: src/app/workstation-shell/shell-main.tsx:279
 msgid "shell.zone.analysis"
 msgstr "Analyse"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:381
+#: src/app/workstation-shell/shell-main.tsx:325
 msgid "shell.zone.chart"
 msgstr "Partition"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:244
+#: src/app/workstation-shell/shell-main.tsx:243
 msgid "shell.zone.timeline"
 msgstr "Timeline"
 
@@ -1141,72 +1171,72 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:315
+#: src/app/analyser/analyser-row.tsx:351
 msgid "structure.detect"
 msgstr "Détecter la structure"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:170
+#: src/app/analyser/analyser-row.tsx:196
 msgid "structure.detect-confirm"
 msgstr "Remplacer les repères de structure ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:161
+#: src/app/analyser/analyser-row.tsx:187
 msgid "structure.detect-confirm-both"
 msgstr "Remplacer les repères de structure et la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:166
+#: src/app/analyser/analyser-row.tsx:192
 msgid "structure.detect-confirm-grid"
 msgstr "Réétiqueter la grille d’accords ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:192
+#: src/app/analyser/analyser-row.tsx:218
 msgid "structure.detect-done"
 msgstr "Repères de structure posés depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:184
+#: src/app/analyser/analyser-row.tsx:210
 msgid "structure.detect-failed"
 msgstr "Échec de la détection de la structure"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:18
+#: src/app/analyser/detection-copy.ts:19
 msgid "structure.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter la structure."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:190
+#: src/app/analyser/analyser-row.tsx:216
 msgid "structure.detecting"
 msgstr "Détection de la structure…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:316
+#: src/app/analyser/analyser-row.tsx:352
 msgid "structure.detecting-short"
 msgstr "Détection…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:39
+#: src/app/analyser/detection-copy.ts:40
 msgid "structure.error.engine-unavailable"
 msgstr "Le moteur de structure n'est pas installé sur le serveur — voir server/README."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:35
+#: src/app/analyser/detection-copy.ts:36
 msgid "structure.error.no-structure"
 msgstr "Aucune structure détectée sur ce morceau."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:45
+#: src/app/analyser/detection-copy.ts:46
 msgid "structure.error.timeout"
 msgstr "L'analyse de la structure a expiré sur le serveur — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:49
+#: src/app/analyser/detection-copy.ts:50
 msgid "structure.error.too-large"
 msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:53
+#: src/app/analyser/detection-copy.ts:54
 msgid "structure.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
@@ -1268,7 +1298,7 @@ msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
 #: src/app/tempo/tempo-panel.tsx:123
-#: src/app/workstation-shell/shell-test-kit.tsx:305
+#: src/app/workstation-shell/shell-test-kit.tsx:308
 msgid "tempo.bpm-field"
 msgstr "Saisir le tempo (BPM)"
 
@@ -1283,27 +1313,27 @@ msgid "tempo.double"
 msgstr "Doubler le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:101
+#: src/app/analyser/detection-copy.ts:102
 msgid "tempo.error.engine-unavailable"
 msgstr "Le moteur de tempo n'est pas installé sur le serveur — voir server/README."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:106
+#: src/app/analyser/detection-copy.ts:107
 msgid "tempo.error.network"
 msgstr "Lancer le serveur local pour détecter le tempo."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:110
+#: src/app/analyser/detection-copy.ts:111
 msgid "tempo.error.timeout"
 msgstr "L'analyse du tempo a expiré sur le serveur — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:114
+#: src/app/analyser/detection-copy.ts:115
 msgid "tempo.error.too-large"
 msgstr "Piste trop volumineuse pour l'analyse sur le serveur."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:118
+#: src/app/analyser/detection-copy.ts:119
 msgid "tempo.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
@@ -1343,7 +1373,7 @@ msgid "tempo.region-label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:265
+#: src/app/analyser/analyser-row.tsx:299
 msgid "tempo.retry"
 msgstr "Réessayer"
 
@@ -1374,7 +1404,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:261
+#: src/app/workstation-shell/workstation-shell.tsx:262
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 

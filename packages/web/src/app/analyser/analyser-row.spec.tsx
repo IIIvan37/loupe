@@ -87,6 +87,7 @@ function chordsOf(
 
 interface RowOverrides {
   readonly disabled?: boolean
+  readonly online?: boolean
   readonly separation?: Partial<SeparationControl>
   readonly tempo?: Partial<TempoDetectionControl>
   readonly structure?: Partial<StructureDetectionControl>
@@ -96,6 +97,7 @@ interface RowOverrides {
 function renderRow(overrides: RowOverrides = {}) {
   const props = {
     disabled: overrides.disabled ?? false,
+    online: overrides.online ?? true,
     separation: separationOf(overrides.separation),
     tempo: tempoOf(overrides.tempo),
     structure: structureOf(overrides.structure),
@@ -108,6 +110,7 @@ function renderRow(overrides: RowOverrides = {}) {
     view.rerender(
       <AnalyserRow
         disabled={next.disabled ?? false}
+        online={next.online ?? true}
         separation={separationOf(next.separation)}
         tempo={tempoOf(next.tempo)}
         structure={structureOf(next.structure)}
@@ -128,6 +131,56 @@ function announcedText(): string {
 /* The step labels are mirrored into visually-hidden live regions for screen
  * readers; text queries assert the VISIBLE read-out, so skip that channel. */
 const visibleOnly = { ignore: 'script, style, [role="status"]' }
+
+describe('AnalyserRow offline (M1.4)', () => {
+  it('blocks the offloaded separation when the network is gone', () => {
+    renderRow({ online: false, separation: { offloaded: true } })
+    expect(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    ).toBeDisabled()
+    expect(
+      screen.getByText(i18n._('analysis.blocked-offline'))
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the LOCAL separation actionable offline — localhost needs no network', () => {
+    renderRow({ online: false, separation: { offloaded: false } })
+    expect(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    ).toBeEnabled()
+    expect(
+      screen.queryByText(i18n._('analysis.blocked-offline'))
+    ).not.toBeInTheDocument()
+  })
+
+  it('blocks the offloaded structure and chords when the network is gone', () => {
+    renderRow({
+      online: false,
+      structure: { offloaded: true },
+      chords: { offloaded: true, hasGrid: true }
+    })
+    expect(
+      screen.getByRole('button', { name: i18n._('structure.detect') })
+    ).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: i18n._('chords.detect') })
+    ).toBeDisabled()
+    // One shared reason, spoken once per blocked item.
+    expect(
+      screen.getAllByText(i18n._('analysis.blocked-offline')).length
+    ).toBeGreaterThanOrEqual(2)
+  })
+
+  it('blocks the offloaded tempo relaunch when the network is gone (X.2 face)', () => {
+    renderRow({
+      online: false,
+      tempo: { cancelled: true, offloaded: true }
+    })
+    expect(
+      screen.getByRole('button', { name: i18n._('analyser.tempo-detect') })
+    ).toBeDisabled()
+  })
+})
 
 describe('AnalyserRow separation', () => {
   it('separates the loaded track on demand', async () => {
@@ -226,16 +279,20 @@ describe('AnalyserRow separation', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('surfaces a failure and offers a retry', async () => {
+  it('surfaces a typed failure and offers a retry', async () => {
     const user = userEvent.setup()
     const { props } = renderRow({
       separation: {
-        state: separationState({ status: 'error', error: 'moteur indisponible' })
+        state: separationState({
+          status: 'error',
+          error: { code: 'network', detail: 'fetch failed' }
+        })
       }
     })
+    // The copy speaks for the code; the raw detail never reaches the UI.
     expect(
       screen.getByText(
-        i18n._('separation.failed', { error: 'moteur indisponible' }),
+        `${i18n._('separation.detect-failed')} — ${i18n._('separation.detect-needs-server')}`,
         visibleOnly
       )
     ).toBeInTheDocument()
@@ -261,6 +318,47 @@ describe('AnalyserRow tempo', () => {
     renderRow({ tempo: { detecting: true } })
     expect(
       screen.getByText(i18n._('analyser.tempo-detecting'))
+    ).toBeInTheDocument()
+  })
+
+  it('explains a suspicious offloaded separation wait after a beat (cold start, M1.4)', () => {
+    vi.useFakeTimers()
+    try {
+      renderRow({
+        separation: {
+          state: separationState({ status: 'separating', progress: 0.1 }),
+          offloaded: true
+        }
+      })
+      expect(
+        screen.queryByText(i18n._('analysis.cold-start'))
+      ).not.toBeInTheDocument()
+      act(() => vi.advanceTimersByTime(4000))
+      expect(
+        screen.getByText(i18n._('analysis.cold-start'))
+      ).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('names the analysis service on a network failure of the offloaded separation', () => {
+    // M1.4 (extends X.1): « lancer le serveur local » is the WRONG remedy
+    // when separation runs on the offload — name the real dependency.
+    renderRow({
+      separation: {
+        state: separationState({
+          status: 'error',
+          error: { code: 'network', detail: 'fetch failed' }
+        }),
+        offloaded: true
+      }
+    })
+    expect(
+      screen.getByText(
+        `${i18n._('separation.detect-failed')} — ${i18n._('analysis.error.network-offload')}`,
+        visibleOnly
+      )
     ).toBeInTheDocument()
   })
 

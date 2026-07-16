@@ -98,7 +98,7 @@ export type {
   SeparateTrackInput,
   SeparateTrackResult
 } from './application/separate-track.ts'
-export { separateTrack } from './application/separate-track.ts'
+export { SeparationError, separateTrack } from './application/separate-track.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
 export type {
   Beat,
@@ -254,6 +254,8 @@ export {
 } from './domain/project.ts'
 export type {
   SeparationAction,
+  SeparationErrorCode,
+  SeparationFailure,
   SeparationPhase,
   SeparationState,
   SeparationStatus

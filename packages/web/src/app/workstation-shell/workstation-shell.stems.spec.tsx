@@ -99,8 +99,10 @@ describe('WorkstationShell stems & separation', () => {
 
     await user.click(screen.getByRole('button', { name: i18n._('separation.separate') }))
 
+    // Typed copy (M1.4): the network code speaks in the user's words — the
+    // raw adapter detail (« moteur injoignable ») stays in the console.
     const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent('moteur indisponible')
+    expect(alert).toHaveTextContent(i18n._('separation.detect-needs-server'))
     expect(
       screen.getByRole('button', { name: i18n._('separation.retry') })
     ).toBeInTheDocument()
