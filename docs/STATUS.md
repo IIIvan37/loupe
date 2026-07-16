@@ -549,7 +549,11 @@ quinzaine de finitions basses, séquencés en Lots X, Y, Z, AA.
 possible vers Modal (le serveur local devient optionnel) et porter le shell en
 app de bureau **Tauri**, pour tourner sur des machines peu puissantes. Premier
 pas : **AB.1** = plan de migration dédié (roadmap v5 § Cap) ; ne déplace pas
-les cinq 🟠.
+les cinq 🟠. **Plan écrit : [client-leger-plan.md](client-leger-plan.md)**
+(projets locaux, Modal d'abord — M1.1 tempo+accords → M1.2/M1.3 séparation →
+M1.4 santé/hors-ligne —, puis Tauri T2.1–T2.5 ; yt-dlp en sidecar ; mobile =
+option gardée ouverte). Décision restante : corriger les 🟠 v5 avant la
+Phase 1 (recommandé, X.1 en tête — c'est un prérequis de M1.1) ou entrelacer.
 
 **Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 

@@ -348,6 +348,10 @@ pas de dette nouvelle :
 > commence par un plan dédié, pas par du code.
 
 ### AB.1 — Plan de migration client léger, écrit et validé *(doc type jalon — préalable à toute slice)*
+- **Plan écrit le 2026-07-16 : [client-leger-plan.md](client-leger-plan.md)**
+  (décisions actées : projets locaux, Modal d'abord, yt-dlp en sidecar Tauri,
+  mobile = option gardée ouverte). Reste à valider le séquencement vs les 🟠
+  de cette roadmap (recommandation : les cinq 🟠 d'abord, X.1 en tête).
 - Inventaire des rôles actuels du serveur local × cible : détections
   tempo/accords (→ Modal — l'infra existe : gate JWT, quota, upload mono
   24 kHz V.1), séparation (→ Modal — **la** charge GPU dominante), import URL
