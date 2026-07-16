@@ -43,7 +43,7 @@ function renderLoaded(
     { wrapper: I18nTestingProvider }
   )
   // Ratios are measured against the positioning container (the surface's parent).
-  const surface = screen.getByRole('button', { name: i18n._('waveform.surface') })
+  const surface = screen.getByTestId('waveform-surface')
   const container = surface.parentElement as HTMLElement
   container.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
   return { ...view, surface, container }
@@ -104,6 +104,13 @@ describe('WaveformView', () => {
       screen.getByRole('button', { name: i18n._('waveform.reimport') })
     )
     expect(onReimport).toHaveBeenCalled()
+  })
+
+  it('keeps the gesture surface out of the tab order (pointer-only, no lying button)', () => {
+    const { surface } = renderLoaded()
+    // A <button> promised an Enter action it never had; the drag/click gesture
+    // is pointer-only and documented in the « ? » help instead.
+    expect(surface.tagName).toBe('DIV')
   })
 
   it('seeks on a click (no drag)', () => {

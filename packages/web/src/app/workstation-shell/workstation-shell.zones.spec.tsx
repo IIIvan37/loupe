@@ -35,9 +35,7 @@ describe('WorkstationShell zones', () => {
       within(timeline).getByRole('button', { name: i18n._('markers.add') })
     ).toBeInTheDocument()
     expect(
-      within(timeline).getByRole('button', {
-        name: i18n._('waveform.surface')
-      })
+      within(timeline).getByTestId('waveform-surface')
     ).toBeInTheDocument()
 
     // Analyse: separation and tempo are one phase, side by side.

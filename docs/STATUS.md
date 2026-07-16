@@ -494,7 +494,17 @@ ouvrir)** : `CommitNumberField` gagne `isValid` (« pris verbatim ? ») +
 flaggés pendant la frappe ; contrats `useTempo` inchangés. Gate **verte —
 1549 tests** (+5), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-t5-bpm-meter-invalid.md).
-**Prochain : T.6** (aide format + gestes + AT), puis T.7, T.8 (décisions).
+**T.5 mergé (PR #165).**
+**T.6 — découvrabilité (branche `feat/t6-discoverability`, PR à ouvrir)** :
+dialog « Aide du format » (10 lignes exemple→sens vérifiées contre le
+parseur, grammaire de liste promue dans app-dialog et partagée avec le
+dialog « ? »), section « Gestes » dans l'aide (les `title` survol-seulement
+enfin enseignés), AT honnête — seek clavier des tags (clic detail 0, pas de
+double-seek) et surface waveform `<div>` pointer-only hors tab order
+(testid, kit + 4 specs migrés). Browser-verify du dialog. Gate **verte —
+1556 tests** (+7), Stryker skippé.
+[rapport](sessions/2026-07-16-t6-discoverability.md).
+**Prochain : T.7** (fine-tune ±50 cents), puis T.8 (décisions).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
