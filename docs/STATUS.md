@@ -567,8 +567,18 @@ injoignable — réessayer. »). Browser-verify via le port 5174 (origin rejeté
 inchangés. Gate **verte — 1595 tests** (+4), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-x1-offload-gating.md).
 
-**Prochain : X.2** (face idle « Détecter le tempo » après annulation — le 2ᵉ
-des cinq 🟠, cf. roadmap v5).
+**X.2 en PR (#171), Y.1 en PR (#172), Z.1 en PR (#173)** — voir leurs
+rapports.
+**AA.1 — veille CVE pip (branche `feat/aa1-pip-advisories`, PR à ouvrir) —
+LES CINQ 🟠 v5 LIVRÉS** : bloc `pip` sur `/server` dans dependabot.yml
+(advisories signalées malgré le pinning strict ; bumps = PRs à arbitrer,
+fidèle à A.1 ; pin git madmom non couvert, documenté ; step pip-audit CI
+écarté — le pin git le casse au parsing).
+[rapport](sessions/2026-07-16-aa1-pip-advisories.md).
+
+**Prochain : merger #171/#172/#173/AA.1 (conflits STATUS triviaux), puis
+M1.1** (tempo+accords sur Modal — Phase 1 du
+[plan client léger](client-leger-plan.md)) ; les 🟢 v5 au fil de l'eau.
 
 **Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 
