@@ -28,3 +28,24 @@ updates:
       github-actions:
         patterns:
           - "*"
+
+  # CVE watch on the Python analysis stack (AA.1). The pins are deliberate
+  # (upgrades are an operator action — Lot A.1); advisories notify without
+  # auto-installing, which is exactly the missing piece: a strictly-pinned
+  # torch/transformers/yt-dlp would otherwise never signal a CVE. yt-dlp in
+  # particular parses hostile remote content by construction, and the same
+  # stack runs on Modal. Limitation: the madmom git pin is invisible to
+  # Dependabot — partial but real coverage.
+  - package-ecosystem: pip
+    directory: "/server"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      python-dependencies:
+        update-types:
+          - minor
+          - patch

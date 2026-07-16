@@ -597,10 +597,15 @@ Browser-verify en lecture réelle (kick+nappe 120 BPM, métronome audible) :
 A=100 stable, B=1-2. Gate **verte — 1596 tests** (+1), **Stryker 93,90 %**.
 [rapport](sessions/2026-07-16-z1-click-out-of-chroma-band.md).
 
-**Prochain : AA.1** (Dependabot pip sur server/ — dernier des cinq 🟠,
-config).
+**AA.1 — veille CVE pip (PR #174) —
+LES CINQ 🟠 v5 LIVRÉS** : bloc `pip` sur `/server` dans dependabot.yml
+(advisories signalées malgré le pinning strict ; bumps = PRs à arbitrer,
+fidèle à A.1 ; pin git madmom non couvert, documenté ; step pip-audit CI
+écarté — le pin git le casse au parsing).
+[rapport](sessions/2026-07-16-aa1-pip-advisories.md).
 
-**Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
+**Prochain : M1.1** (tempo+accords sur Modal — Phase 1 du
+[plan client léger](client-leger-plan.md)) ; les 🟢 v5 au fil de l'eau.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
