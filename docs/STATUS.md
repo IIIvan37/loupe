@@ -545,6 +545,12 @@ d'annulation tempo X.2, régression hauteur header stems T.8b → Y.1,
 clic métronome dans la bande chroma Z.1, veille CVE Python AA.1) + une
 quinzaine de finitions basses, séquencés en Lots X, Y, Z, AA.
 
+**Cap produit acté (2026-07-16)** : client léger — migrer tout le calcul
+possible vers Modal (le serveur local devient optionnel) et porter le shell en
+app de bureau **Tauri**, pour tourner sur des machines peu puissantes. Premier
+pas : **AB.1** = plan de migration dédié (roadmap v5 § Cap) ; ne déplace pas
+les cinq 🟠.
+
 **Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé

@@ -339,6 +339,46 @@ pas de dette nouvelle :
 
 ---
 
+## Cap — client léger : le calcul sur Modal, l'app dans Tauri *(direction produit, actée 2026-07-16)*
+
+> **Volonté.** Que loupe tourne sur des machines peu puissantes : **tout ce qui
+> peut migrer vers Modal migre** (le serveur local Python devient optionnel,
+> puis disparaît du chemin nominal), et le shell web devient une **app de
+> bureau Tauri**. Ce cap ne déplace pas les cinq 🟠 de cette passe — il
+> commence par un plan dédié, pas par du code.
+
+### AB.1 — Plan de migration client léger, écrit et validé *(doc type jalon — préalable à toute slice)*
+- Inventaire des rôles actuels du serveur local × cible : détections
+  tempo/accords (→ Modal — l'infra existe : gate JWT, quota, upload mono
+  24 kHz V.1), séparation (→ Modal — **la** charge GPU dominante), import URL
+  yt-dlp (→ à arbitrer : Modal / sidecar Tauri / abandon), stockage
+  projets+stems `~/.loupe` (→ filesystem local via adapter Tauri — les ports
+  `ProjectStore`/`StemsStore` rendent le swap propre, core intouché), sonde de
+  santé (→ X.1 la généralise déjà : sonder l'endpoint effectif).
+- Points durs à instruire dans le plan, pas à découvrir en cours de route :
+  - **Séparation offloadée** : exige l'audio plein débit (~42 MB d'upload /
+    4 min — V.1 ne s'applique pas) et des minutes GPU réelles ; le modèle
+    quota/coût J2 (quota = mints, plafond de dépense Modal) est calibré pour
+    des détections ~0,5 s, pas pour htdemucs — à re-dimensionner.
+  - **Auth partout** : Supabase/beta codes devient le gate de *toutes* les
+    analyses ; définir l'app hors-ligne dégradée mais utilisable (lecture,
+    boucles, grille, projets locaux — seules les détections exigent le réseau).
+  - **Tauri** : origin `tauri://` (ou équivalent) à ajouter aux trois
+    allowlists env-driven (U.5) ; vérifier Web Audio / WASM (SoundTouch) dans
+    la webview cible par plateforme ; **licences** — la distribution d'un
+    binaire change la donne vs un serveur local (Rubber Band GPL notamment).
+  - **Migration des données** : les projets existants de `~/.loupe` doivent
+    survivre au passage (import/reprise).
+- Déjà en faveur du cap : la structure est offloadée bout-en-bout depuis
+  J1/J2 (le chemin Modal est éprouvé), l'hexagone est strict (adapters
+  swappables), les allowlists sont env-driven, et U.1 a réduit modal_app.py à
+  de la composition.
+- Ordre pressenti (à valider dans le plan) : tempo+accords vers Modal (réutilise
+  tout le chemin structure), puis séparation (le morceau dur), puis shell Tauri
+  avec stores locaux, puis retrait du serveur local du chemin nominal.
+
+---
+
 ## Veille (décisions, pas des oublis)
 
 - **TIMELINE / REPÈRES même voix** : décision Q.1 validée au checkpoint
@@ -381,3 +421,4 @@ pas de dette nouvelle :
 - [ ] **AA.5** budget bundle + supabase dynamique + dialogs lazy
 - [ ] **AA.6** mesure du burst decodeWav (fix si > 150 ms)
 - [ ] **AA.7** décision « membre optionnel » des ports actée
+- [ ] **AB.1** plan de migration client léger (Modal + Tauri) écrit et validé
