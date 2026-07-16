@@ -128,6 +128,15 @@ export interface StemSource {
  * mixer drives. The pure core never touches Web Audio; gains are the linear
  * values `effectiveGains` produced.
  */
+/**
+ * Per-stem tone shaping: cut the lows below `lowCutHz` and/or the highs above
+ * `highCutHz`. An absent side is neutral. A listening aid — never persisted.
+ */
+export interface StemFilter {
+  readonly lowCutHz?: number
+  readonly highCutHz?: number
+}
+
 export interface StemPlaybackEngine {
   /**
    * Load the stems as the current multitrack source, ready from the start.
@@ -158,6 +167,8 @@ export interface StemPlaybackEngine {
   onPositionChange(listener: (seconds: number) => void): () => void
   /** The current output spectrum, when the adapter can tap it (browser). */
   spectrum?(): SpectrumFrame | undefined
+  /** Apply a stem's tone filter, when the adapter supports it (browser). */
+  setStemFilter?(id: string, filter: StemFilter): void
 }
 
 /**

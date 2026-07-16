@@ -64,6 +64,7 @@ export type {
   SeparatedStem,
   SeparationProgress,
   SpectrumFrame,
+  StemFilter,
   StemPlaybackEngine,
   StemSeparator,
   StemSource,

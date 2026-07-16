@@ -524,7 +524,17 @@ pass-through unique avant destination dans le transport partagé,
 `ChromaView` (poll 10 Hz dans la feuille, 12 barres C…B). Browser-verify
 lecture réelle : chaîne intacte, barres plausibles. Gate **verte — 1585
 tests** (+15). [rapport](sessions/2026-07-16-t8a-spectrum-chroma.md).
-**Prochain : T.8b** — EQ low/high-cut par stem (dernier du lot T).
+**T.8a mergé (PR #168).**
+**T.8b — EQ par stem (branche `feat/t8b-stem-eq`, PR à ouvrir) — LOT T
+CLOS** : `StemFilter` + `setStemFilter?()` sur le port, deux biquads
+toujours présents parqués plats par stem (Q Butterworth, poser un filtre =
+déplacer une fréquence, jamais recâbler), `mixer.setFilter` session-only
+(reset au mix frais, jamais dans MixerState), rangée LC/HC compacte sous
+chaque fader (bord de slider = côté coupé). Browser-verify : filtrage en
+lecture réelle. Gate **verte — 1591 tests** (+6), Stryker skippé.
+[rapport](sessions/2026-07-16-t8b-stem-eq.md).
+**Prochain : évaluation notée v5** (roadmap v4 : séquencement validé
+entièrement livré).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

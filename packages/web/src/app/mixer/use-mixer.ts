@@ -6,6 +6,7 @@ import {
   type MixerState,
   mixerReducer,
   type SeparatedStem,
+  type StemFilter,
   type StemPlaybackEngine,
   type StemSet,
   type StemTrack
@@ -23,6 +24,8 @@ export interface MixerChannelView {
   readonly gain: number
   /** Effective amplitude clamped to [0, 1] — the lane's opacity. */
   readonly level: number
+  /** The lane's tone filter (session-only, {} = neutral). */
+  readonly filter: StemFilter
 }
 
 export interface Mixer {
@@ -60,6 +63,8 @@ export interface Mixer {
   /** Drop every stem (a new import) — empties the mixer and its lanes. */
   readonly reset: () => void
   readonly setGain: (id: string, gainDb: number) => void
+  /** Shape one stem's tone (low/high-cut) — session-only, never persisted. */
+  readonly setFilter: (id: string, filter: StemFilter) => void
   readonly toggleMute: (id: string) => void
   readonly toggleSolo: (id: string) => void
 }
@@ -78,6 +83,11 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
   // The stems being mixed (present + with PCM), kept for the channel views —
   // display tracks only, never the PCM: that lives once, in the engine.
   const [mixable, setMixable] = useState<readonly StemTrack[]>([])
+  // Per-stem tone filters — a listening aid, session-only: reset with every
+  // fresh mix and NEVER part of MixerState (what a save persists).
+  const [filters, setFilters] = useState<Readonly<Record<string, StemFilter>>>(
+    {}
+  )
 
   // Pair each present stem with its PCM, hand the pairs to the gain graph and
   // adopt the display tracks. Both `load` and `restore` start here; only the
@@ -94,6 +104,8 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
     })
     const next = pairs.map((entry) => entry.stem)
     setMixable(next)
+    // A fresh mix means fresh (neutral) engine nodes — drop the old filters.
+    setFilters({})
     void engine.load(
       pairs.map((entry) => ({ id: entry.source.id, audio: entry.source.audio }))
     )
@@ -180,11 +192,12 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
           muted: channel.muted,
           soloed: channel.soloed,
           gain,
-          level: Math.min(gain, 1)
+          level: Math.min(gain, 1),
+          filter: filters[channel.id] ?? {}
         }
       ]
     })
-  }, [state, mixable])
+  }, [state, mixable, filters])
 
   return {
     channels,
@@ -196,6 +209,10 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
     replaceStem,
     reset,
     setGain: (id, gainDb) => apply({ type: 'setGain', id, gainDb }),
+    setFilter: (id, filter) => {
+      setFilters((prev) => ({ ...prev, [id]: filter }))
+      engine.setStemFilter?.(id, filter)
+    },
     toggleMute: (id) => apply({ type: 'toggleMute', id }),
     toggleSolo: (id) => apply({ type: 'toggleSolo', id })
   }

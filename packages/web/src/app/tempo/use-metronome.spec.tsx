@@ -27,7 +27,8 @@ function fakeMixer(): Mixer {
     reset: vi.fn(),
     setGain: vi.fn(),
     toggleMute: vi.fn(),
-    toggleSolo: vi.fn()
+    toggleSolo: vi.fn(),
+    setFilter: vi.fn()
   }
 }
 

@@ -1,4 +1,4 @@
-import { MAX_GAIN_DB, MIN_GAIN_DB } from '@app/core'
+import { MAX_GAIN_DB, MIN_GAIN_DB, type StemFilter } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { cx } from '../../lib/cx.ts'
 import { stemColor } from '../stems/stem-color.ts'
@@ -8,6 +8,8 @@ import styles from './stem-headers.module.css'
 interface StemHeadersProps {
   readonly channels: readonly MixerChannelView[]
   readonly onSetGain: (id: string, gainDb: number) => void
+  /** Shape one stem's tone (low/high-cut) — session-only. */
+  readonly onSetFilter: (id: string, filter: StemFilter) => void
   readonly onToggleMute: (id: string) => void
   readonly onToggleSolo: (id: string) => void
   /** Download one stem as a WAV. */
@@ -30,7 +32,27 @@ function formatDb(db: number): string {
  * waveform lane (shared `--stem-lane-*` tokens). Pure view: the flags come
  * from the mixer hook; this only renders and reports.
  */
+/** Slider edges meaning « that side off » (the neutral biquad park). */
+const LOW_CUT_OFF_HZ = 20
+const HIGH_CUT_OFF_HZ = 20000
+
+/** The filter both sliders describe — an edge-parked side is omitted. */
+function stemFilter(
+  lowCutHz: number | undefined,
+  highCutHz: number | undefined
+): StemFilter {
+  return {
+    ...(lowCutHz === undefined || lowCutHz <= LOW_CUT_OFF_HZ
+      ? {}
+      : { lowCutHz }),
+    ...(highCutHz === undefined || highCutHz >= HIGH_CUT_OFF_HZ
+      ? {}
+      : { highCutHz })
+  }
+}
+
 export function StemHeaders({
+  onSetFilter,
   channels,
   onSetGain,
   onToggleMute,
@@ -47,7 +69,7 @@ export function StemHeaders({
       className={styles.headers}
       aria-label={t({ id: 'mixer.region-label', message: 'Mixer' })}
     >
-      {channels.map(({ stem, gainDb, muted, soloed }) => {
+      {channels.map(({ stem, gainDb, muted, soloed, filter }) => {
         // Bound locally so the ICU placeholders keep readable names.
         const name = stem.label
         const percent = Math.round(stem.confidence * 100)
@@ -117,6 +139,65 @@ export function StemHeaders({
                 }
               />
               <span className={styles.db}>{formatDb(gainDb)}</span>
+            </div>
+            {/* Tone shaping: a slider parked at its edge is « that side
+                off » — the DAW convention for an EQ at rest. Session-only:
+                a listening aid, never saved with the project. */}
+            <div className={styles.filters}>
+              <span className={styles.filterTag} aria-hidden="true">
+                LC
+              </span>
+              <input
+                type="range"
+                className={styles.filterSlider}
+                data-accent="amber"
+                data-compact=""
+                min={LOW_CUT_OFF_HZ}
+                max={2000}
+                step={10}
+                value={filter.lowCutHz ?? LOW_CUT_OFF_HZ}
+                aria-label={t({
+                  id: 'mixer.low-cut',
+                  message: `Coupe-bas ${name}`
+                })}
+                title={t({
+                  id: 'mixer.low-cut-hint',
+                  message: 'Couper les graves sous cette fréquence'
+                })}
+                onChange={(event) =>
+                  onSetFilter(
+                    stem.id,
+                    stemFilter(event.target.valueAsNumber, filter.highCutHz)
+                  )
+                }
+              />
+              <span className={styles.filterTag} aria-hidden="true">
+                HC
+              </span>
+              <input
+                type="range"
+                className={styles.filterSlider}
+                data-accent="amber"
+                data-compact=""
+                min={200}
+                max={HIGH_CUT_OFF_HZ}
+                step={100}
+                value={filter.highCutHz ?? HIGH_CUT_OFF_HZ}
+                aria-label={t({
+                  id: 'mixer.high-cut',
+                  message: `Coupe-haut ${name}`
+                })}
+                title={t({
+                  id: 'mixer.high-cut-hint',
+                  message: 'Couper les aigus au-dessus de cette fréquence'
+                })}
+                onChange={(event) =>
+                  onSetFilter(
+                    stem.id,
+                    stemFilter(filter.lowCutHz, event.target.valueAsNumber)
+                  )
+                }
+              />
             </div>
           </li>
         )
