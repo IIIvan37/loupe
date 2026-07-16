@@ -102,6 +102,53 @@ describe('createHttpSeparator', () => {
     )
   })
 
+  it('sends the bearer on the POST and on every stem fetch when provided (M1.3)', async () => {
+    // The Modal gate covers /separate AND the /stems downloads: every request
+    // of the run must carry the short-lived analyse token.
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        ndjsonResponse([
+          '{"type":"done","stems":[{"id":"voix","label":"Voix","url":"/stems/1/voix.wav"},{"id":"basse","label":"Basse","url":"/stems/1/basse.wav"}]}'
+        ])
+      )
+      .mockImplementation(async () => wavResponse())
+    vi.stubGlobal('fetch', fetchMock)
+
+    await createHttpSeparator(
+      'http://localhost:8000',
+      async () => 'jwt-123'
+    ).separate(MIX, () => {})
+
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    for (const [, init] of fetchMock.mock.calls) {
+      expect(new Headers(init?.headers).get('authorization')).toBe(
+        'Bearer jwt-123'
+      )
+    }
+  })
+
+  it('sends no Authorization header when the provider yields none', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        ndjsonResponse([
+          '{"type":"done","stems":[{"id":"voix","label":"Voix","url":"/stems/1/voix.wav"}]}'
+        ])
+      )
+      .mockImplementation(async () => wavResponse())
+    vi.stubGlobal('fetch', fetchMock)
+
+    await createHttpSeparator(
+      'http://localhost:8000',
+      async () => undefined
+    ).separate(MIX, () => {})
+
+    for (const [, init] of fetchMock.mock.calls) {
+      expect(new Headers(init?.headers).get('authorization')).toBeNull()
+    }
+  })
+
   it('rejects when the server streams an error event', async () => {
     const fetchMock = vi
       .fn<typeof fetch>()

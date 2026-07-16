@@ -1,14 +1,18 @@
 import type { StemSeparator } from '@app/core'
-import { SERVER_URL } from '../projects/server-url.ts'
+import { ANALYSIS_URL } from './analysis-endpoint.ts'
+import { cachedAnalysisToken } from './analysis-token.ts'
 import { createHttpSeparator } from './http-separator.ts'
 
 /**
- * Build the `StemSeparator` adapter. Separation runs on a local **FastAPI +
- * Demucs** backend (PyTorch, GPU-capable) reached over HTTP — point it at the
- * server with `VITE_SEPARATOR_URL` (defaults to `http://localhost:8000`). The
- * earlier in-browser WASM engines (demucs.cpp GGML / onnxruntime-web) hit a
- * quality+speed wall and were removed.
+ * Build the `StemSeparator` adapter. Separation runs on the GPU inference
+ * endpoint (`ANALYSIS_URL`): the Modal offload when configured
+ * (`VITE_STRUCTURE_URL`), else the local FastAPI + Demucs server (M1.3 — same
+ * path as the three detections). The bearer is the short-lived token the
+ * analysis gate minted just before; undefined on the local path → no
+ * `Authorization`.
  */
 export function createSeparator(): StemSeparator {
-  return createHttpSeparator(SERVER_URL)
+  return createHttpSeparator(ANALYSIS_URL, () =>
+    Promise.resolve(cachedAnalysisToken())
+  )
 }

@@ -58,6 +58,9 @@ export interface SeparationControl {
   readonly serverHealth: ServerHealth
   readonly onSeparate: () => void
   readonly onCancel: () => void
+  /** Whether the engine runs on the offload — the local health probe then
+   * stops gating the action (M1.3, same rule as the three detections). */
+  readonly offloaded: boolean
 }
 
 /** The auto-detected tempo's state read-out + retry (corrections stay in the
@@ -143,7 +146,11 @@ export function AnalyserRow({
   //   a quiet done face (the stems ARE the mixer, nothing left to offer).
   const sep = separation.state
   const sepRunning = sep.status === 'analysing' || sep.status === 'separating'
-  const sepBlock = SEPARATION_SERVER_BLOCK[separation.serverHealth]
+  // Offloaded, « démarrer le serveur local » would be the wrong remedy: the
+  // local probe only gates the LOCAL engine (M1.3, extends X.1).
+  const sepBlock = separation.offloaded
+    ? undefined
+    : SEPARATION_SERVER_BLOCK[separation.serverHealth]
   const sepStep = sepRunning ? i18n._(PROGRESS_LABELS[sep.status]) : undefined
   const sepFailure =
     sep.status === 'error'

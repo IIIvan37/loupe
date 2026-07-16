@@ -91,16 +91,35 @@ describe('WorkstationShell structure gating vs the local server', () => {
     const { user } = renderShell({ healthFetch: healthFetch('unreachable') })
     await importTrack(user)
 
-    // Separation still depends on the local server: its hint is the signal
-    // that the health probe has settled to offline.
+    // The header chip still reflects the LOCAL server (storage stays local):
+    // it is the signal that the health probe has settled to offline.
     expect(
-      await screen.findByText(i18n._('separation.server-offline'))
+      await screen.findByText(i18n._('header.server-offline'))
     ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: i18n._('structure.detect') })
     ).toBeEnabled()
     expect(
       screen.queryByText(i18n._('structure.detect-needs-server'))
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps separation actionable despite local health in offload mode (M1.3)', async () => {
+    // Separation runs on the offload with the three detections now — the
+    // local health probe must not gate it, and « démarrer le serveur local »
+    // would be the wrong remedy.
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const { user } = renderShell({ healthFetch: healthFetch('unreachable') })
+    await importTrack(user)
+
+    expect(
+      await screen.findByText(i18n._('header.server-offline'))
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    ).toBeEnabled()
+    expect(
+      screen.queryByText(i18n._('separation.server-offline'))
     ).not.toBeInTheDocument()
   })
 
@@ -118,7 +137,7 @@ describe('WorkstationShell structure gating vs the local server', () => {
     await importTrack(user)
 
     expect(
-      await screen.findByText(i18n._('separation.server-offline'))
+      await screen.findByText(i18n._('header.server-offline'))
     ).toBeInTheDocument()
     // The no-grid guard still applies — wait for the auto-detected tempo to
     // seat the grid before asserting the health probe no longer blocks.

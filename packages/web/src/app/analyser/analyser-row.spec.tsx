@@ -32,6 +32,7 @@ function separationOf(
     serverHealth: 'ready',
     onSeparate: vi.fn(),
     onCancel: vi.fn(),
+    offloaded: false,
     ...overrides
   }
 }

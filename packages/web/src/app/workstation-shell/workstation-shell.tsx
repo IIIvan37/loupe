@@ -16,7 +16,7 @@ import {
 import { useLingui } from '@lingui/react/macro'
 import { useMemo, useState } from 'react'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
-import type { MintFailureReason } from '../../auth/auth-port.ts'
+import { gateReasonsOf } from '../account/gate-reasons.ts'
 import { useServerHealth } from '../../projects/use-server-health.ts'
 import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
@@ -70,14 +70,6 @@ function tuningSnapshot(
     zoom,
     ...(fineTuneCents === 0 ? {} : { fineTuneCents })
   }
-}
-
-/** One gate reason per analysis flow — the account slot opens per flow, so
- * two flows blocked for the same reason each pop the menu (M1.1). */
-function gateReasonsOf(
-  ...flows: readonly { gateReason: MintFailureReason | undefined }[]
-): readonly (MintFailureReason | undefined)[] {
-  return flows.map((flow) => flow.gateReason)
 }
 
 /** The transport footer, wired from the player (tempo/pitch/fine-tune). */
@@ -362,7 +354,12 @@ export function WorkstationShell({
         }}
         exportError={separation.exportError}
         onDismissExportError={separation.dismissExportError}
-        gateReasons={gateReasonsOf(structureDetection, tempo, chordDetection)}
+        gateReasons={gateReasonsOf(
+          structureDetection,
+          tempo,
+          chordDetection,
+          separation
+        )}
       />
       <ShellDialogs
         shortcutsOpen={shortcutsOpen}
@@ -424,11 +421,7 @@ export function WorkstationShell({
         />
       )}
 
-      <ShellFooter
-        player={player}
-        isLoaded={isLoaded}
-        countIn={countIn}
-      />
+      <ShellFooter player={player} isLoaded={isLoaded} countIn={countIn} />
 
       <ToastRegion toaster={toaster} />
     </div>

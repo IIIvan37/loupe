@@ -137,6 +137,151 @@ describe('useSeparation', () => {
     expect(result.current.sources).toEqual([])
   })
 
+  it('blocks the run and surfaces the reason when the gate fails (M1.3)', async () => {
+    // The gate only runs on the offload path; stub it on for the gate cases.
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const separate = vi.fn()
+    const { result } = renderHook(
+      () =>
+        useSeparation(pcmOf(stems), { separate }, undefined, async () => ({
+          ok: false,
+          reason: 'sign-in-required'
+        })),
+      { wrapper: I18nTestingProvider }
+    )
+    await act(async () => {
+      await result.current.separate(audio)
+    })
+    // The separator never ran — the gate stopped it — and no error shows: a
+    // blocked run is not a failure (the account menu explains instead).
+    expect(separate).not.toHaveBeenCalled()
+    expect(result.current.gateReason).toBe('sign-in-required')
+    expect(result.current.state.status).toBe('idle')
+    vi.unstubAllEnvs()
+  })
+
+  it('runs and clears any prior gate reason once the gate passes', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const gate = vi
+      .fn<
+        () => Promise<{ ok: true } | { ok: false; reason: 'quota-exceeded' }>
+      >()
+      .mockResolvedValueOnce({ ok: false, reason: 'quota-exceeded' })
+      .mockResolvedValue({ ok: true })
+    const { result } = renderHook(
+      () =>
+        useSeparation(
+          pcmOf(stems),
+          { separate: async () => stems },
+          undefined,
+          gate
+        ),
+      { wrapper: I18nTestingProvider }
+    )
+    await act(async () => {
+      await result.current.separate(audio)
+    })
+    expect(result.current.gateReason).toBe('quota-exceeded')
+
+    await act(async () => {
+      await result.current.separate(audio)
+    })
+    expect(result.current.gateReason).toBeUndefined()
+    expect(result.current.state.status).toBe('ready')
+    vi.unstubAllEnvs()
+  })
+
+  it('raises the busy face before the gate mint resolves (R.3)', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    let open: (result: { ok: false; reason: 'error' }) => void = () => {}
+    const gatePromise = new Promise<{ ok: false; reason: 'error' }>(
+      (resolve) => {
+        open = resolve
+      }
+    )
+    const { result } = renderHook(
+      () =>
+        useSeparation(
+          pcmOf(stems),
+          { separate: vi.fn() },
+          undefined,
+          () => gatePromise
+        ),
+      { wrapper: I18nTestingProvider }
+    )
+    let run: Promise<unknown> = Promise.resolve()
+    act(() => {
+      run = result.current.separate(audio)
+    })
+    // The whole wait is narrated — mint round-trip included.
+    expect(result.current.state.status).toBe('analysing')
+    act(() => open({ ok: false, reason: 'error' }))
+    await act(() => run)
+    expect(result.current.state.status).toBe('idle')
+    vi.unstubAllEnvs()
+  })
+
+  it('a cancel during the mint stops the superseded run', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    let open: (result: { ok: true }) => void = () => {}
+    const gatePromise = new Promise<{ ok: true }>((resolve) => {
+      open = resolve
+    })
+    const separate = vi.fn()
+    const { result } = renderHook(
+      () =>
+        useSeparation(pcmOf(stems), { separate }, undefined, () => gatePromise),
+      { wrapper: I18nTestingProvider }
+    )
+    let run: Promise<unknown> = Promise.resolve()
+    act(() => {
+      run = result.current.separate(audio)
+    })
+    act(() => result.current.cancel())
+    expect(result.current.state.status).toBe('idle')
+    // The gate resolving OK afterwards must not start the separator anyway.
+    act(() => open({ ok: true }))
+    await act(() => run)
+    expect(separate).not.toHaveBeenCalled()
+    expect(result.current.state.status).toBe('idle')
+    vi.unstubAllEnvs()
+  })
+
+  it('a reset clears a lingering gate reason', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const { result } = renderHook(
+      () =>
+        useSeparation(pcmOf(stems), { separate: vi.fn() }, undefined, async () => ({
+          ok: false,
+          reason: 'not-a-beta-member'
+        })),
+      { wrapper: I18nTestingProvider }
+    )
+    await act(async () => {
+      await result.current.separate(audio)
+    })
+    expect(result.current.gateReason).toBe('not-a-beta-member')
+    act(() => result.current.reset())
+    expect(result.current.gateReason).toBeUndefined()
+    vi.unstubAllEnvs()
+  })
+
+  it('restore never gates: persisted stems replay without a mint', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const gate = vi.fn()
+    const { separator } = deferredSeparator()
+    const { result } = renderHook(
+      () => useSeparation(pcmOf(stems), separator, undefined, gate),
+      { wrapper: I18nTestingProvider }
+    )
+    await act(async () => {
+      await result.current.restore(audio, stems)
+    })
+    expect(gate).not.toHaveBeenCalled()
+    expect(result.current.state.status).toBe('ready')
+    vi.unstubAllEnvs()
+  })
+
   it('ignores a stale run that finishes after a reset', async () => {
     const { separator, finish } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
