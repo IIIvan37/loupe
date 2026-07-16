@@ -134,6 +134,44 @@ describe('useTempo', () => {
     expect(seenSignal?.aborted).toBe(true)
   })
 
+  it('marks a cancelled detection so the UI can offer a relaunch', () => {
+    // X.2: cancelling is not a failure (no error), but it must not be a dead
+    // end either — the mark lets the row keep an idle « Détecter » face.
+    const pending: TempoDetector = { detect: () => new Promise(() => {}) }
+    const { result } = renderHook(() => useTempo(pending))
+    act(() => {
+      void result.current.detect(audio)
+    })
+    act(() => result.current.cancelDetection())
+    expect(result.current.cancelled).toBe(true)
+    expect(result.current.detecting).toBe(false)
+    expect(result.current.error).toBeUndefined()
+  })
+
+  it('clears the cancelled mark when a new detection starts', async () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 1])))
+    act(() => result.current.cancelDetection())
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    expect(result.current.cancelled).toBe(false)
+    expect(result.current.analysis?.bpm).toBe(120)
+  })
+
+  it('clears the cancelled mark on reset', () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    act(() => result.current.cancelDetection())
+    act(() => result.current.reset())
+    expect(result.current.cancelled).toBe(false)
+  })
+
+  it('clears the cancelled mark when a persisted analysis is seated', () => {
+    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    act(() => result.current.cancelDetection())
+    act(() => result.current.set({ bpm: 100, grid: [], beatsPerBar: 4 }))
+    expect(result.current.cancelled).toBe(false)
+  })
+
   it('clears the analysis on reset', async () => {
     const { result } = renderHook(() => useTempo(detectorOf(120, [0, 1])))
     await act(async () => {

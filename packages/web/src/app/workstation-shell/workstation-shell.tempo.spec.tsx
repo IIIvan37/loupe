@@ -39,6 +39,32 @@ describe('WorkstationShell tempo & metronome', () => {
     expect(document.querySelectorAll('[data-beat]')).toHaveLength(3)
   })
 
+  it('cancelling the auto-detection leaves a relaunch, not a dead end', async () => {
+    // X.2: the first (auto) run hangs and gets cancelled — the row must keep
+    // an idle « Détecter le tempo » face; clicking it re-runs the detection.
+    let runs = 0
+    const detector = {
+      detect: () => {
+        runs += 1
+        return runs === 1
+          ? new Promise<never>(() => {})
+          : Promise.resolve({ bpm: 128, beats: beatsAt([0, 0.47, 0.94]) })
+      }
+    }
+    const { user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('common.cancel') })
+    )
+    await user.click(
+      await screen.findByRole('button', {
+        name: i18n._('analyser.tempo-detect')
+      })
+    )
+    await expectBpmReadout(128)
+  })
+
   it('relaunches a failed tempo detection from the panel', async () => {
     // The first run fails (server unreachable), the retry succeeds.
     let runs = 0

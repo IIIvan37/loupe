@@ -43,6 +43,7 @@ function tempoOf(
     bpm: undefined,
     detecting: false,
     error: undefined,
+    cancelled: false,
     onRetry: vi.fn(),
     onCancel: vi.fn(),
     ...overrides
@@ -279,6 +280,28 @@ describe('AnalyserRow tempo', () => {
     expect(
       screen.getByText(i18n._('tempo.error.engine-unavailable'), visibleOnly)
     ).toBeInTheDocument()
+  })
+
+  it('offers to relaunch after a cancelled detection instead of vanishing', async () => {
+    // X.2: cancelling the auto-detection must not be a dead end — the item
+    // keeps an idle « Détecter le tempo » face wired to the retry path.
+    const user = userEvent.setup()
+    const { props } = renderRow({ tempo: { cancelled: true } })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('analyser.tempo-detect') })
+    )
+    expect(props.tempo.onRetry).toHaveBeenCalledOnce()
+  })
+
+  it('keeps the done face when a later run is cancelled over a seated tempo', () => {
+    // Cancel does not erase an existing analysis: the read-out stays honest.
+    renderRow({ tempo: { bpm: 120, cancelled: true } })
+    expect(
+      screen.getByText(i18n._('analyser.tempo-done'), visibleOnly)
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: i18n._('analyser.tempo-detect') })
+    ).not.toBeInTheDocument()
   })
 })
 
