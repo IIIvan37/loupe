@@ -486,7 +486,15 @@ Alt) traverse la garde champ-texte (Cmd+S enregistre depuis le textarea de
 la grille), câblage dans `use-shell-shortcuts` (premier save = nom de piste,
 re-save dirty, no-op propre/en-vol). Gate **verte — 1544 tests** (+7),
 **Stryker 93,74 %**. [rapport](sessions/2026-07-16-t4-cmd-s.md).
-**Prochain : T.5** (aria-invalid BPM/mètre), puis T.6, T.7, T.8 (décisions).
+**T.4 mergé (PR #164).**
+**T.5 — BPM/mètre au standard N.4 (branche `feat/t5-bpm-meter-invalid`, PR à
+ouvrir)** : `CommitNumberField` gagne `isValid` (« pris verbatim ? ») +
+`aria-invalid`/`badInput` + bordure danger (recette N.4) — BPM hors bornes
+(clamp silencieux), mètre hors bornes (rejet) ou fractionnaire (floor 4,5→4)
+flaggés pendant la frappe ; contrats `useTempo` inchangés. Gate **verte —
+1549 tests** (+5), Stryker skippé (core intouché).
+[rapport](sessions/2026-07-16-t5-bpm-meter-invalid.md).
+**Prochain : T.6** (aide format + gestes + AT), puis T.7, T.8 (décisions).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
