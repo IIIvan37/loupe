@@ -480,8 +480,8 @@ pas de dette nouvelle :
 - [x] **U.3** brute-force codes beta + plancher secret
 - [x] **U.4** cliquets jscpd 1,0 / Stryker break 90
 - [x] **U.5** basses groupées (origins env, _boundaries_to_segments, tempo.ts)
-- [ ] **V.1** upload d'analyse mono + 24 kHz
-- [ ] **V.2** `unload()` du moteur mono-piste
+- [x] **V.1** upload d'analyse mono + 24 kHz (PR #156)
+- [x] **V.2** `unload()` du moteur mono-piste (PR de `feat/v2-engine-unload`)
 - [ ] **V.3** warm des modèles au démarrage local
 - [ ] **V.4** playhead en transform
 - [x] **W.1** flex-wrap des rangées tempo/accords
