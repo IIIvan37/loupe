@@ -26,6 +26,10 @@ export interface Tempo {
   readonly detecting: boolean
   /** Abort the in-flight detection — offered as « Annuler » on the busy face. */
   readonly cancelDetection: () => void
+  /** Whether the last run was cancelled (X.2): not a failure — no error — but
+      not a dead end either, the row keeps an idle « Détecter » face. Cleared
+      by the next run, a seated analysis or a reset. */
+  readonly cancelled: boolean
   /** Why the last detection failed — a code the panel maps to translated
       copy (the raw detail goes to the console). Cleared by the next run or
       a reset. */
@@ -112,6 +116,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
   const [octaveShift, setOctaveShift] = useState(0)
   const [manual, setManual] = useState<ManualTempo>()
   const [detecting, setDetecting] = useState(false)
+  const [cancelled, setCancelled] = useState(false)
   const [error, setError] = useState<TempoDetectionErrorCode>()
   const runIdRef = useRef(0)
   // The in-flight run's abort controller: a superseded run must release the
@@ -141,6 +146,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
     const controller = new AbortController()
     controllerRef.current = controller
     setDetecting(true)
+    setCancelled(false)
     setError(undefined)
     const result = await detectTempo(
       { audio, signal: controller.signal },
@@ -275,6 +281,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
     // overwrite the persisted analysis we are seating here.
     supersede()
     setDetecting(false)
+    setCancelled(false)
     setError(undefined)
     setOctaveShift(shift)
     setManual(override)
@@ -288,19 +295,23 @@ export function useTempo(detector?: TempoDetector): Tempo {
     setOctaveShift(0)
     setManual(undefined)
     setDetecting(false)
+    setCancelled(false)
     setError(undefined)
   }
 
   /** Abort the in-flight detection (R.2): the server slot is released, no
-   * outcome is committed — cancelling is not a failure, so no error appears. */
+   * outcome is committed — cancelling is not a failure, so no error appears.
+   * The cancelled mark keeps a relaunch on offer (X.2). */
   function cancelDetection(): void {
     supersede()
     setDetecting(false)
+    setCancelled(true)
   }
 
   return {
     analysis,
     detecting,
+    cancelled,
     error,
     cancelDetection,
     fold,

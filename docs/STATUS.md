@@ -567,8 +567,20 @@ injoignable — réessayer. »). Browser-verify via le port 5174 (origin rejeté
 inchangés. Gate **verte — 1595 tests** (+4), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-x1-offload-gating.md).
 
-**Prochain : X.2** (face idle « Détecter le tempo » après annulation — le 2ᵉ
-des cinq 🟠, cf. roadmap v5).
+**X.1 mergé (PR #170).** ⚠️ **CI GitHub en panne de facturation** (jobs tués
+en 3 s, « recent account payments have failed ») — gate locale = seule
+vérification effective, backstop Stryker post-merge inopérant.
+**X.2 — relance après annulation du tempo (branche
+`feat/x2-tempo-cancel-idle`, PR à ouvrir)** : état `cancelled` sur `useTempo`
+(posé au cancel, effacé par detect/set/reset), l'item tempo garde une face
+idle « Détecter le tempo » (DetectionAction sur `onRetry`) au lieu de
+disparaître ; un cancel par-dessus un tempo posé garde « Tempo détecté ».
+Nouvel id `analyser.tempo-detect`. Gate **verte — 1602 tests** (+7), Stryker
+skippé (core intouché). NB : ShellMain à 300 lignes pile (budget react-doctor
+sans marge). [rapport](sessions/2026-07-16-x2-tempo-cancel-idle.md).
+
+**Prochain : Y.1** (hauteur du header de piste vs rangée EQ — 3ᵉ des cinq 🟠,
+slice UI, checkpoint d'approche requis).
 
 **Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 
