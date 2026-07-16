@@ -110,6 +110,16 @@ msgid "analyser.tempo-done"
 msgstr "Tempo détecté"
 
 #. js-lingui-explicit-id
+#: src/app/analysis-panel/chroma-view.tsx:57
+msgid "analysis.chroma-idle"
+msgstr "Lancer la lecture pour voir les notes dominantes."
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/chroma-view.tsx:68
+msgid "analysis.chroma-label"
+msgstr "Notes dominantes du signal en cours de lecture"
+
+#. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:141
 msgid "analysis.no-loops"
 msgstr "Aucune boucle. En enregistrer une depuis une sélection A/B sur la forme d'onde."
@@ -428,7 +438,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:323
+#: src/app/workstation-shell/workstation-shell.tsx:367
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -1308,7 +1318,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:217
+#: src/app/workstation-shell/workstation-shell.tsx:261
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
@@ -1328,17 +1338,17 @@ msgid "transport.end"
 msgstr "Fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:175
+#: src/app/transport-bar/transport-bar.tsx:177
 msgid "transport.fine-tune-field"
 msgstr "Saisir l'ajustement fin (cents)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:167
+#: src/app/transport-bar/transport-bar.tsx:169
 msgid "transport.fine-tune-label"
 msgstr "Ajustement fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:187
+#: src/app/transport-bar/transport-bar.tsx:189
 msgid "transport.fine-tune-unit"
 msgstr "cents"
 

@@ -26,6 +26,13 @@ export interface AudioFileDecoder {
  * the actual elapsed position streams back through `onPositionChange`. Implemented
  * by an adapter (web: an `AudioBufferSourceNode`); the core stays timer-free.
  */
+/** One read of the playing signal's magnitude spectrum (analyser bin
+ * convention: bin `i` of N covers `i · sampleRate / 2N` Hz), linear scale. */
+export interface SpectrumFrame {
+  readonly magnitudes: ArrayLike<number>
+  readonly sampleRate: number
+}
+
 export interface PlaybackEngine {
   /** Make `audio` the current track, ready to play from its start. */
   load(audio: DecodedAudio): Promise<void>
@@ -45,6 +52,8 @@ export interface PlaybackEngine {
   unload(): void
   /** Subscribe to position updates (seconds). Returns an unsubscribe function. */
   onPositionChange(listener: (seconds: number) => void): () => void
+  /** The current output spectrum, when the adapter can tap it (browser). */
+  spectrum?(): SpectrumFrame | undefined
 }
 
 /** Tags read from a file (ID3 etc.); each field is absent when the file omits it. */
@@ -147,6 +156,8 @@ export interface StemPlaybackEngine {
   stemAudio(id: string): DecodedAudio | undefined
   /** Subscribe to position updates (seconds). Returns an unsubscribe function. */
   onPositionChange(listener: (seconds: number) => void): () => void
+  /** The current output spectrum, when the adapter can tap it (browser). */
+  spectrum?(): SpectrumFrame | undefined
 }
 
 /**

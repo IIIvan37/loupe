@@ -9,6 +9,7 @@ import {
   loadTrack,
   type PlaybackEngine,
   type ProjectTuning,
+  type SpectrumFrame,
   type StemPlaybackEngine,
   type Track,
   type TrackMetadata,
@@ -76,6 +77,8 @@ export interface Player {
   /** Seat a persisted tuning (project open) — every setter re-clamps, so a
    * hand-edited manifest stays in range. Zoom stays the viewport's. */
   readonly restoreTuning: (tuning: ProjectTuning) => void
+  /** One read of the ACTIVE engine's output spectrum (undefined = no tap). */
+  readonly readSpectrum: () => SpectrumFrame | undefined
   /** The active A/B loop (the « loupe »), or undefined when off. */
   readonly loopRegion: LoopRegion | undefined
   readonly setLoopRegion: (region: LoopRegion | undefined) => void
@@ -357,6 +360,8 @@ export function usePlayer(
     setPitchSemitones,
     setFineTuneCents,
     restoreTuning,
+    readSpectrum: () =>
+      stemsActive ? stemPlayback.spectrum?.() : playback.spectrum?.(),
     setLoopRegion,
     loopEnabled: loop.loopEnabled,
     toggleLoop,

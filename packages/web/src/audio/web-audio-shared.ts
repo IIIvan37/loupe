@@ -1,4 +1,4 @@
-import type { DecodedAudio } from '@app/core'
+import type { DecodedAudio, SpectrumFrame } from '@app/core'
 import type { SoundTouchNode } from '@soundtouchjs/audio-worklet'
 import { recallAudioBuffer } from './audio-buffer-memo.ts'
 
@@ -72,6 +72,7 @@ export function decodedAudioFrom(buffer: AudioBuffer): DecodedAudio {
  */
 async function loadSoundTouchNode(
   ctx: AudioContext,
+  sink: AudioNode,
   params: StretchParams
 ): Promise<SoundTouchNode | undefined> {
   try {
@@ -80,7 +81,7 @@ async function loadSoundTouchNode(
     const { SoundTouchNode } = await import('@soundtouchjs/audio-worklet')
     await SoundTouchNode.register(ctx, SOUNDTOUCH_PROCESSOR_URL)
     const node = new SoundTouchNode({ context: ctx })
-    node.connect(ctx.destination)
+    node.connect(sink)
     node.playbackRate.value = params.timeRatio
     node.pitchSemitones.value = params.pitchSemitones
     return node
@@ -99,8 +100,10 @@ interface StretchTransport {
   audioContext(): AudioContext
   /** Lazily create the SoundTouch node; on failure, fall back to plain output. */
   ensureStretch(): Promise<void>
-  /** Where engine nodes plug in: the stretch bus, or the bare destination. */
+  /** Where engine nodes plug in: the stretch bus, or the analyser tap. */
   outputNode(): AudioNode
+  /** One read of the audible output's spectrum (linear magnitudes). */
+  spectrum(): SpectrumFrame | undefined
   timeRatio(): number
   isPlaying(): boolean
   /** Live position, clamped to the media duration. */
@@ -140,10 +143,24 @@ export function createStretchTransport(
   let startedAt = 0
   let timeRatio = 1
   let pitchSemitones = 0
+  // Everything audible flows destination-ward through this pass-through
+  // analyser — the Spectre tab's one tap on the mix.
+  let tap: AnalyserNode | undefined
 
   function audioContext(): AudioContext {
     context ??= new AudioContext()
     return context
+  }
+
+  function analyserTap(): AnalyserNode {
+    if (!tap) {
+      const ctx = audioContext()
+      tap = ctx.createAnalyser()
+      // ~10.8 Hz bins at 44.1 kHz — a semitone wide from ~C2 up.
+      tap.fftSize = 4096
+      tap.connect(ctx.destination)
+    }
+    return tap
   }
 
   function position(): number {
@@ -182,7 +199,7 @@ export function createStretchTransport(
       // the destination forever and split the mix across two buses.
       // No worklet → basic playback still works (sources → destination), only
       // the tempo/pitch controls go inert. Verified/fixed in the browser.
-      stretchLoading ??= loadSoundTouchNode(audioContext(), {
+      stretchLoading ??= loadSoundTouchNode(audioContext(), analyserTap(), {
         timeRatio,
         pitchSemitones
       })
@@ -195,7 +212,22 @@ export function createStretchTransport(
     },
 
     outputNode(): AudioNode {
-      return stretch ?? audioContext().destination
+      return stretch ?? analyserTap()
+    },
+
+    spectrum(): SpectrumFrame | undefined {
+      if (!tap || !isPlaying) {
+        return undefined
+      }
+      const dbs = new Float32Array(tap.frequencyBinCount)
+      tap.getFloatFrequencyData(dbs)
+      // dBFS → linear magnitude; -Infinity (silence) lands on 0.
+      const magnitudes = new Float32Array(dbs.length)
+      for (let i = 0; i < dbs.length; i++) {
+        const db = dbs[i] ?? Number.NEGATIVE_INFINITY
+        magnitudes[i] = db === Number.NEGATIVE_INFINITY ? 0 : 10 ** (db / 20)
+      }
+      return { magnitudes, sampleRate: audioContext().sampleRate }
     },
 
     timeRatio: () => timeRatio,

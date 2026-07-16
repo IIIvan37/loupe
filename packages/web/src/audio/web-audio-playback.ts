@@ -125,6 +125,7 @@ export function createWebAudioPlayback(): PlaybackEngine {
       buffer = undefined
     },
 
-    onPositionChange: transport.onPositionChange
+    onPositionChange: transport.onPositionChange,
+    spectrum: transport.spectrum
   }
 }
