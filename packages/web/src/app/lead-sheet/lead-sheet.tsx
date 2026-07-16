@@ -256,7 +256,7 @@ export function LeadSheet({
         <ChartHeader derived={header ?? {}} directives={directives} />
       )}
       {sections.map((section, index) => (
-        <section key={section.key} className={styles.section}>
+        <section key={section.key}>
           {section.label !== undefined && (
             <h3 className={styles.label}>{section.label}</h3>
           )}

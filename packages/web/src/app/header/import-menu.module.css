@@ -29,6 +29,8 @@
   background: var(--panel-2);
 }
 
+/* Deliberate divergence from the global +2px ring: the item fills the popup
+   edge to edge, an outset ring would clip on the popup's rounded border. */
 .item:focus-visible {
   outline: 2px solid var(--amber);
   outline-offset: -2px;

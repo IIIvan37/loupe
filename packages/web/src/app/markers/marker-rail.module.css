@@ -44,7 +44,7 @@
 }
 
 .tag {
-  padding: 1px var(--space-2xs);
+  padding: var(--space-3xs) var(--space-2xs);
   border: 1px solid var(--amber-deep);
   border-radius: var(--radius-s);
   background: var(--panel);
@@ -71,7 +71,4 @@
 }
 
 /* Visible keyboard focus on the seekable marker tags (baseline ring). */
-.tag:focus-visible {
-  outline: 2px solid var(--amber);
-  outline-offset: 2px;
-}
+
