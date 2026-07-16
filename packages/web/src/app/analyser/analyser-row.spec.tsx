@@ -46,6 +46,7 @@ function tempoOf(
     cancelled: false,
     onRetry: vi.fn(),
     onCancel: vi.fn(),
+    offloaded: false,
     ...overrides
   }
 }
@@ -78,6 +79,7 @@ function chordsOf(
     hasGrid: false,
     onDetect: vi.fn(),
     onCancel: vi.fn(),
+    offloaded: false,
     ...overrides
   }
 }
@@ -282,6 +284,25 @@ describe('AnalyserRow tempo', () => {
     ).toBeInTheDocument()
   })
 
+  it('prescribes the local server on a network failure of the local engine', () => {
+    renderRow({ tempo: { error: 'network', offloaded: false } })
+    expect(
+      screen.getByText(i18n._('tempo.error.network'), visibleOnly)
+    ).toBeInTheDocument()
+  })
+
+  it('names the analysis service on a network failure of the offloaded engine', () => {
+    // M1.1 (extends X.1): « lancer le serveur local » is the WRONG remedy
+    // when tempo runs on the offload — name the real dependency.
+    renderRow({ tempo: { error: 'network', offloaded: true } })
+    expect(
+      screen.getByText(i18n._('analysis.error.network-offload'), visibleOnly)
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText(i18n._('tempo.error.network'), visibleOnly)
+    ).not.toBeInTheDocument()
+  })
+
   it('offers to relaunch after a cancelled detection instead of vanishing', async () => {
     // X.2: cancelling the auto-detection must not be a dead end — the item
     // keeps an idle « Détecter le tempo » face wired to the retry path.
@@ -374,11 +395,11 @@ describe('AnalyserRow structure', () => {
     try {
       renderRow({ structure: { detecting: true, offloaded: true } })
       expect(
-        screen.queryByText(i18n._('structure.cold-start'))
+        screen.queryByText(i18n._('analysis.cold-start'))
       ).not.toBeInTheDocument()
       act(() => vi.advanceTimersByTime(4000))
       expect(
-        screen.getByText(i18n._('structure.cold-start'))
+        screen.getByText(i18n._('analysis.cold-start'))
       ).toBeInTheDocument()
     } finally {
       vi.useRealTimers()
@@ -434,7 +455,7 @@ describe('AnalyserRow structure', () => {
     renderRow({ structure: { error: 'network', offloaded: true } })
     expect(
       screen.getAllByText(
-        `${i18n._('structure.detect-failed')} — ${i18n._('structure.error.network-offload')}`
+        `${i18n._('structure.detect-failed')} — ${i18n._('analysis.error.network-offload')}`
       ).length
     ).toBeGreaterThan(0)
     expect(
@@ -509,6 +530,38 @@ describe('AnalyserRow chords', () => {
     expect(
       screen.getAllByText(new RegExp(i18n._('chords.detect-needs-grid'))).length
     ).toBeGreaterThan(0)
+  })
+
+  it('names the analysis service on a network failure of the offloaded engine', () => {
+    // M1.1 (extends X.1): « lancer le serveur local » is the WRONG remedy
+    // when chords run on the offload — name the real dependency.
+    renderRow({ chords: { error: 'network', offloaded: true } })
+    expect(
+      screen.getAllByText(
+        `${i18n._('chords.detect-failed')} — ${i18n._('analysis.error.network-offload')}`
+      ).length
+    ).toBeGreaterThan(0)
+    expect(
+      screen.queryByText(i18n._('chords.detect-needs-server'), {
+        exact: false
+      })
+    ).not.toBeInTheDocument()
+  })
+
+  it('explains a suspicious offloaded wait after a beat (cold start)', () => {
+    vi.useFakeTimers()
+    try {
+      renderRow({ chords: { detecting: true, offloaded: true } })
+      expect(
+        screen.queryByText(i18n._('analysis.cold-start'))
+      ).not.toBeInTheDocument()
+      act(() => vi.advanceTimersByTime(4000))
+      expect(
+        screen.getByText(i18n._('analysis.cold-start'))
+      ).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('announces the landed draft', () => {

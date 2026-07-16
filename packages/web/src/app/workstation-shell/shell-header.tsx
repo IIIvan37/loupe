@@ -10,6 +10,9 @@ import type { UrlImport } from '../header/use-import-from-url.ts'
 import { AlertBanner } from '../ui/alert-banner.tsx'
 import type { ProjectSession } from './use-project-session.ts'
 
+/** Stable empty default — a `[]` default would defeat prop comparison. */
+const NO_GATE_REASONS: readonly (MintFailureReason | undefined)[] = []
+
 /** How each probed health state reads in the header. */
 const SERVER_STATUS: Record<
   Exclude<ServerHealth, 'checking'>,
@@ -59,8 +62,9 @@ interface ShellHeaderProps {
   /** The auth port (J2): injected in tests, else the app singleton. `null` when
    * Supabase isn't configured → no account control. */
   readonly auth?: AuthPort | null
-  /** A blocked structure analysis pops the account menu open with a prompt. */
-  readonly structureGateReason?: MintFailureReason | undefined
+  /** A blocked analysis pops the account menu open with a prompt — one slot
+   * per flow (structure, tempo, chords), compared per flow (M1.1). */
+  readonly gateReasons?: readonly (MintFailureReason | undefined)[]
 }
 
 /**
@@ -82,7 +86,7 @@ export function ShellHeader({
   exportError,
   onDismissExportError,
   auth,
-  structureGateReason
+  gateReasons = NO_GATE_REASONS
 }: ShellHeaderProps) {
   const { t } = useLingui()
   const { projects, trackName, currentProject } = session
@@ -175,10 +179,7 @@ export function ShellHeader({
         onShowProjects={onShowProjects}
         accountSlot={
           resolvedAuth && (
-            <AccountMenuSlot
-              auth={resolvedAuth}
-              gateReason={structureGateReason}
-            />
+            <AccountMenuSlot auth={resolvedAuth} gateReasons={gateReasons} />
           )
         }
       />

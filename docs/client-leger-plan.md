@@ -214,7 +214,9 @@ on n'empile pas une migration d'infra sur des régressions connues.
 
 ## Suivi
 
-- [ ] **M1.1** tempo + accords sur Modal (prérequis : X.1)
+- [x] **M1.1** tempo + accords sur Modal (prérequis : X.1) — livré 2026-07-16,
+      vérifié réellement (Modal v5, un mint pour trois détections, serveur local
+      éteint) ; voir [rapport](sessions/2026-07-16-m11-tempo-chords-modal.md)
 - [ ] **M1.2** modèle quota/coût de la séparation (mesure + décision produit)
 - [ ] **M1.3** séparation sur Modal (NDJSON, abort, transport mesuré)
 - [ ] **M1.4** santé par endpoint effectif + UX hors-ligne + narration

@@ -255,7 +255,9 @@ describe('WorkstationShell keyboard shortcuts', () => {
   })
 
   it('saves the session as a project with Cmd+S', async () => {
-    const { user } = renderShell()
+    // A fake store so the save never touches the real HTTP store (which would
+    // fetch localhost:8000 and fail whenever the audio server is off).
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
 
     fireEvent.keyDown(document.body, { key: 's', metaKey: true })
@@ -296,7 +298,7 @@ describe('WorkstationShell keyboard shortcuts', () => {
   })
 
   it('saves with Cmd+S even while typing in a text field', async () => {
-    const { user } = renderShell()
+    const { user } = renderShell({ projectStores: fakeProjectStores() })
     await importTrack(user)
 
     const input = document.createElement('input')

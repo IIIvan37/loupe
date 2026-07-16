@@ -7,7 +7,6 @@ import {
   measureSeekTime,
   type OctaveFactor
 } from '@app/core'
-import { isAnalysisOffloaded } from '../../audio/analysis-token.ts'
 import { useLingui } from '@lingui/react/macro'
 import { type ComponentProps, useMemo } from 'react'
 import {
@@ -15,7 +14,6 @@ import {
   useExternalValue
 } from '../../lib/external-value.ts'
 import { Stack } from '../../layout/stack/stack.tsx'
-import { AnalyserRow } from '../analyser/analyser-row.tsx'
 import { analysisSummary } from '../analyser/analysis-summary.ts'
 import type { AnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
@@ -38,6 +36,7 @@ import { TempoPanel } from '../tempo/tempo-panel.tsx'
 import type { useTempo } from '../tempo/use-tempo.ts'
 import type { useViewport } from '../waveform/use-viewport.ts'
 import type { WaveformView } from '../waveform/waveform-view.tsx'
+import { ShellAnalyserRow } from './shell-analyser-row.tsx'
 import { ShellSection } from './shell-section.tsx'
 import { ShellStage } from './shell-stage.tsx'
 import styles from './workstation-shell.module.css'
@@ -286,70 +285,23 @@ export function ShellMain({
           >
           {/* Q.2 — the four analysis actions in one row, each wearing its own
               state. The row is the import → analyses bridge; the panels below
-              carry only the results and their corrections. */}
-          <AnalyserRow
+              carry only the results and their corrections. The gating policy
+              (offload vs local health, X.1/M1.1) lives in ShellAnalyserRow. */}
+          <ShellAnalyserRow
             disabled={!isLoaded}
-            separation={{
-              state: separation.state,
-              canSeparate,
-              serverHealth,
-              onSeparate,
-              onCancel: separation.cancel
-            }}
-            tempo={{
-              bpm: tempo.analysis?.bpm,
-              detecting: tempo.detecting,
-              error: tempo.error,
-              cancelled: tempo.cancelled,
-              onRetry: onRetryTempo,
-              onCancel: tempo.cancelDetection
-            }}
-            structure={{
-              detecting: structureDetection.detecting,
-              error: structureDetection.error,
-              succeeded: structureDetection.succeeded,
-              // A detection replaces the STRUCTURE markers AND, when one
-              // exists, relabels the grid — either is armed work, so the
-              // confirm arms on both. Hand-dropped cues survive a run, so they
-              // arm nothing. The relabel needs a beat grid to place the
-              // sections on, so a grid is only "at stake" once the tempo is
-              // known (matches the guard in useStructureMarkers), never
-              // over-promising the confirm.
-              hasMarkers: markers.markers.some(
-                (marker) => marker.kind === 'structure'
-              ),
-              hasGrid:
-                chordChart.source.trim().length > 0 &&
-                (grid ?? []).some((beat) => beat.downbeat),
-              onDetect: () => void structureDetection.detect(),
-              onCancel: structureDetection.cancel,
-              offloaded: isAnalysisOffloaded(),
-              // The local health probe only gates the LOCAL engine (X.1) —
-              // no Modal probe (billed cold start), errors speak at click.
-              blockedReason:
-                !isAnalysisOffloaded() &&
-                (serverHealth === 'offline' || serverHealth === 'checking')
-                  ? 'server'
-                  : undefined
-            }}
-            chords={{
-              detecting: chordDetection.detecting,
-              error: chordDetection.error,
-              succeeded: chordDetection.succeeded,
-              hasGrid: chordChart.source.trim().length > 0,
-              // No layout arg: the hook falls back to the stored preference.
-              onDetect: () => void chordDetection.detect(),
-              onCancel: chordDetection.cancel,
-              // The chord engine only needs the server to ANSWER (it runs
-              // on CPU — 'no-separation' just means no Demucs device), and
-              // the measures need a downbeat-flagged grid to anchor on.
-              blockedReason:
-                serverHealth === 'offline' || serverHealth === 'checking'
-                  ? 'server'
-                  : (grid?.some((beat) => beat.downbeat) ?? false)
-                    ? undefined
-                    : 'no-grid'
-            }}
+            separation={separation}
+            canSeparate={canSeparate}
+            serverHealth={serverHealth}
+            onSeparate={onSeparate}
+            tempo={tempo}
+            onRetryTempo={onRetryTempo}
+            structureDetection={structureDetection}
+            hasStructureMarkers={markers.markers.some(
+              (marker) => marker.kind === 'structure'
+            )}
+            hasChartSource={chordChart.source.trim().length > 0}
+            grid={grid}
+            chordDetection={chordDetection}
           />
           {isLoaded && (
             <TempoPanel

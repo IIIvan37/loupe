@@ -6,8 +6,15 @@ import {
   type DecodedAudio
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useChordDetection } from './use-chord-detection.ts'
+
+// The analysis gate only engages on the offload path (VITE_STRUCTURE_URL set).
+// A developer's .env.local may set it, so pin it OFF for the default cases —
+// their synchronous detector semantics assume the token-less local path. The
+// gate cases opt back in.
+beforeEach(() => vi.stubEnv('VITE_STRUCTURE_URL', ''))
+afterEach(() => vi.unstubAllEnvs())
 
 const AUDIO: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
@@ -291,5 +298,126 @@ describe('useChordDetection', () => {
     )
     await act(() => result.current.detect(4))
     expect(detect).not.toHaveBeenCalled()
+  })
+
+  it('blocks the detection and surfaces the reason when the gate fails (M1.1)', async () => {
+    // The gate only runs on the offload path; stub it on for the gate cases.
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const detect = vi.fn()
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        onDraft: vi.fn(),
+        detector: { detect },
+        gate: async () => ({ ok: false, reason: 'quota-exceeded' })
+      })
+    )
+    await act(() => result.current.detect(4))
+    // The detector never ran — the gate stopped it — and the reason is out.
+    expect(detect).not.toHaveBeenCalled()
+    expect(result.current.gateReason).toBe('quota-exceeded')
+    expect(result.current.detecting).toBe(false)
+    expect(result.current.error).toBeUndefined()
+  })
+
+  it('runs and clears any prior gate reason once the gate passes', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const onDraft = vi.fn()
+    const gate = vi
+      .fn<
+        () => Promise<{ ok: true } | { ok: false; reason: 'sign-in-required' }>
+      >()
+      .mockResolvedValueOnce({ ok: false, reason: 'sign-in-required' })
+      .mockResolvedValue({ ok: true })
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        onDraft,
+        detector: detectorOf(['C']),
+        gate
+      })
+    )
+    await act(() => result.current.detect(4))
+    expect(result.current.gateReason).toBe('sign-in-required')
+
+    await act(() => result.current.detect(4))
+    expect(result.current.gateReason).toBeUndefined()
+    expect(onDraft).toHaveBeenCalledOnce()
+  })
+
+  it('raises the busy face before the gate mint resolves (R.3)', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    let open: (result: { ok: false; reason: 'error' }) => void = () => {}
+    const gatePromise = new Promise<{ ok: false; reason: 'error' }>(
+      (resolve) => {
+        open = resolve
+      }
+    )
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        onDraft: vi.fn(),
+        detector: { detect: vi.fn() },
+        gate: () => gatePromise
+      })
+    )
+    let run: Promise<void> = Promise.resolve()
+    act(() => {
+      run = result.current.detect(4)
+    })
+    // The whole wait since the click is narrated — mint round-trip included.
+    expect(result.current.detecting).toBe(true)
+    act(() => open({ ok: false, reason: 'error' }))
+    await act(() => run)
+    expect(result.current.detecting).toBe(false)
+  })
+
+  it('a cancel during the mint stops the superseded run', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    let open: (result: { ok: true }) => void = () => {}
+    const gatePromise = new Promise<{ ok: true }>((resolve) => {
+      open = resolve
+    })
+    const detect = vi.fn()
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        onDraft: vi.fn(),
+        detector: { detect },
+        gate: () => gatePromise
+      })
+    )
+    let run: Promise<void> = Promise.resolve()
+    act(() => {
+      run = result.current.detect(4)
+    })
+    act(() => result.current.cancel())
+    expect(result.current.detecting).toBe(false)
+    // The gate resolving OK afterwards must not start the detector anyway.
+    act(() => open({ ok: true }))
+    await act(() => run)
+    expect(detect).not.toHaveBeenCalled()
+    expect(result.current.detecting).toBe(false)
+  })
+
+  it('skips the gate on the token-less local path', async () => {
+    const gate = vi.fn()
+    const onDraft = vi.fn()
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        onDraft,
+        detector: detectorOf(['C']),
+        gate
+      })
+    )
+    await act(() => result.current.detect(4))
+    expect(gate).not.toHaveBeenCalled()
+    expect(onDraft).toHaveBeenCalledOnce()
   })
 })

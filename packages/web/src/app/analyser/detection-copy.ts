@@ -20,10 +20,11 @@ export const STRUCTURE_NEEDS_SERVER = msg({
   message: 'Lancer le serveur local pour détecter la structure.'
 })
 
-/** The offload's `network` face (X.1): « lancer le serveur local » would be
- * the wrong remedy when the engine runs on Modal — name the real dependency. */
-export const STRUCTURE_OFFLOAD_UNREACHABLE = msg({
-  id: 'structure.error.network-offload',
+/** The offload's `network` face (X.1, shared by the three detections since
+ * M1.1): « lancer le serveur local » would be the wrong remedy when the
+ * engine runs on Modal — name the real dependency. */
+export const ANALYSIS_OFFLOAD_UNREACHABLE = msg({
+  id: 'analysis.error.network-offload',
   message: "Service d'analyse injoignable — réessayer."
 })
 
