@@ -567,8 +567,18 @@ injoignable — réessayer. »). Browser-verify via le port 5174 (origin rejeté
 inchangés. Gate **verte — 1595 tests** (+4), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-x1-offload-gating.md).
 
-**Prochain : X.2** (face idle « Détecter le tempo » après annulation — le 2ᵉ
-des cinq 🟠, cf. roadmap v5).
+**X.2 en PR (#171), Y.1 en PR (#172)** — voir leurs rapports.
+**Z.1 — clics métronome hors bande chroma (branche
+`feat/z1-click-out-of-chroma-band`, PR à ouvrir)** : BEAT/DOWNBEAT 1000/2000
+→ 2400/3200 Hz (les deux se repliaient sur B et peignaient une fausse note
+pulsante au Spectre) ; bornes `CHROMA_MIN_HZ`/`CHROMA_MAX_HZ` exportées et
+invariant TDD mesuré sur les échantillons (passages à zéro vs CHROMA_MAX_HZ).
+Browser-verify en lecture réelle (kick+nappe 120 BPM, métronome audible) :
+A=100 stable, B=1-2. Gate **verte — 1596 tests** (+1), **Stryker 93,90 %**.
+[rapport](sessions/2026-07-16-z1-click-out-of-chroma-band.md).
+
+**Prochain : AA.1** (Dependabot pip sur server/ — dernier des cinq 🟠,
+config).
 
 **Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 
