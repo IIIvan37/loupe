@@ -14,7 +14,13 @@ import {
   type TempoDetector
 } from '@app/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  type EnsureTokenResult,
+  ensureAnalysisToken,
+  isAnalysisOffloaded
+} from '../../audio/analysis-token.ts'
 import { createTempoDetector } from '../../audio/create-tempo-detector.ts'
+import type { MintFailureReason } from '../../auth/auth-port.ts'
 
 /** How far the felt tempo may be nudged from the detection: ±2 octaves. */
 const MAX_OCTAVE_SHIFT = 2
@@ -34,6 +40,14 @@ export interface Tempo {
       copy (the raw detail goes to the console). Cleared by the next run or
       a reset. */
   readonly error: TempoDetectionErrorCode | undefined
+  /**
+   * Why the detection was BLOCKED before it ran (offload only, M1.1): the user
+   * must sign in, redeem a code, or has spent the quota. A web-auth concern
+   * kept out of the core's `error` codes — the shell opens the account menu on
+   * it, and the analyser item keeps an idle « Détecter » face (a blocked run
+   * is not a failure). Cleared by the next run, a seated analysis or a reset.
+   */
+  readonly gateReason: MintFailureReason | undefined
   /**
    * Detect the tempo of the already-loaded PCM (the SAME audio the player has).
    * Resolves with the analysis so the caller can act on it in the same handler
@@ -110,7 +124,12 @@ export interface Tempo {
  * holds the render-ready analysis. A monotonic run token drops a slow detection
  * whose track was replaced by a reset before it resolved.
  */
-export function useTempo(detector?: TempoDetector): Tempo {
+export function useTempo(
+  detector?: TempoDetector,
+  /** Acquire the analyse token before running (offload gate, M1.1). Defaults
+   * to the app gate; a no-op pass locally. Injected in tests. */
+  gate: () => Promise<EnsureTokenResult> = ensureAnalysisToken
+): Tempo {
   const engine = useMemo(() => detector ?? createTempoDetector(), [detector])
   const [analysis, setAnalysis] = useState<TempoAnalysis>()
   const [octaveShift, setOctaveShift] = useState(0)
@@ -118,6 +137,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
   const [detecting, setDetecting] = useState(false)
   const [cancelled, setCancelled] = useState(false)
   const [error, setError] = useState<TempoDetectionErrorCode>()
+  const [gateReason, setGateReason] = useState<MintFailureReason>()
   const runIdRef = useRef(0)
   // The in-flight run's abort controller: a superseded run must release the
   // server's analysis slot, not just have its late result dropped.
@@ -143,11 +163,29 @@ export function useTempo(detector?: TempoDetector): Tempo {
     audio: DecodedAudio
   ): Promise<TempoAnalysis | undefined> {
     const runId = supersede()
-    const controller = new AbortController()
-    controllerRef.current = controller
     setDetecting(true)
     setCancelled(false)
     setError(undefined)
+    setGateReason(undefined)
+    // Gate first (offload only, M1.1): a token failure blocks the run — the
+    // detection (auto-fired on import!) never reaches the core — and the
+    // shell opens the account menu on the reason. The busy face goes up
+    // BEFORE the gate's mint round-trip (R.3): the whole wait is narrated.
+    if (isAnalysisOffloaded()) {
+      const gated = await gate()
+      // A cancel (or a newer run) during the mint bumped the token — this
+      // superseded run must not start the detector when the gate resolves.
+      if (runIdRef.current !== runId) {
+        return undefined
+      }
+      if (!gated.ok) {
+        setGateReason(gated.reason)
+        setDetecting(false)
+        return undefined
+      }
+    }
+    const controller = new AbortController()
+    controllerRef.current = controller
     const result = await detectTempo(
       { audio, signal: controller.signal },
       { detector: engine }
@@ -283,6 +321,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
     setDetecting(false)
     setCancelled(false)
     setError(undefined)
+    setGateReason(undefined)
     setOctaveShift(shift)
     setManual(override)
     setAnalysis(next)
@@ -297,6 +336,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
     setDetecting(false)
     setCancelled(false)
     setError(undefined)
+    setGateReason(undefined)
   }
 
   /** Abort the in-flight detection (R.2): the server slot is released, no
@@ -313,6 +353,7 @@ export function useTempo(detector?: TempoDetector): Tempo {
     detecting,
     cancelled,
     error,
+    gateReason,
     cancelDetection,
     fold,
     octaveShift,

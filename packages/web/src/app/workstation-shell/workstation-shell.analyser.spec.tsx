@@ -3,6 +3,7 @@ import '@testing-library/jest-dom/vitest'
 import { screen, within } from '@testing-library/react'
 import { i18n } from '../../i18n/i18n.ts'
 import {
+  beatsAt,
   healthFetch,
   importTrack,
   installShellHooks,
@@ -100,6 +101,37 @@ describe('WorkstationShell structure gating vs the local server', () => {
     ).toBeEnabled()
     expect(
       screen.queryByText(i18n._('structure.detect-needs-server'))
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps chords actionable despite local health in offload mode (M1.1)', async () => {
+    // Chords run on the offload with structure and tempo now — the local
+    // health probe must not gate them either (the no-grid guard still does,
+    // hence a resolving tempo fake: the grid must exist to isolate 'server').
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const { user } = renderShell({
+      healthFetch: healthFetch('unreachable'),
+      tempoDetector: {
+        detect: async () => ({ bpm: 240, beats: beatsAt([0, 0.25, 0.5, 0.75]) })
+      }
+    })
+    await importTrack(user)
+
+    expect(
+      await screen.findByText(i18n._('separation.server-offline'))
+    ).toBeInTheDocument()
+    // The no-grid guard still applies — wait for the auto-detected tempo to
+    // seat the grid before asserting the health probe no longer blocks.
+    expect(
+      await screen.findByText(i18n._('analyser.tempo-done'), {
+        ignore: 'script, style, [role="status"]'
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: i18n._('chords.detect') })
+    ).toBeEnabled()
+    expect(
+      screen.queryByText(i18n._('chords.detect-needs-server'))
     ).not.toBeInTheDocument()
   })
 })

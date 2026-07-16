@@ -2,8 +2,15 @@
 import type { DecodedAudio, TempoDetector } from '@app/core'
 import { TempoDetectionError } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTempo } from './use-tempo.ts'
+
+// The analysis gate only engages on the offload path (VITE_STRUCTURE_URL set).
+// A developer's .env.local may set it, so pin it OFF for the default cases —
+// their synchronous detector semantics assume the token-less local path. The
+// gate cases opt back in.
+beforeEach(() => vi.stubEnv('VITE_STRUCTURE_URL', ''))
+afterEach(() => vi.unstubAllEnvs())
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
@@ -526,5 +533,120 @@ describe('useTempo — meter correction', () => {
       expect(corrected).toBeUndefined()
     }
     expect(result.current.analysis?.beatsPerBar).toBe(4)
+  })
+
+  it('blocks the detection and surfaces the reason when the gate fails (M1.1)', async () => {
+    // The gate only runs on the offload path; stub it on for the gate cases.
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const detect = vi.fn()
+    const { result } = renderHook(() =>
+      useTempo({ detect }, async () => ({
+        ok: false,
+        reason: 'sign-in-required'
+      }))
+    )
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    // The detector never ran — the gate stopped it — and no error shows: a
+    // blocked run is not a failure (the account menu explains instead).
+    expect(detect).not.toHaveBeenCalled()
+    expect(result.current.gateReason).toBe('sign-in-required')
+    expect(result.current.detecting).toBe(false)
+    expect(result.current.error).toBeUndefined()
+  })
+
+  it('runs and clears any prior gate reason once the gate passes', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const gate = vi
+      .fn<
+        () => Promise<{ ok: true } | { ok: false; reason: 'quota-exceeded' }>
+      >()
+      .mockResolvedValueOnce({ ok: false, reason: 'quota-exceeded' })
+      .mockResolvedValue({ ok: true })
+    const { result } = renderHook(() =>
+      useTempo(detectorOf(120, [0, 0.5, 1]), gate)
+    )
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    expect(result.current.gateReason).toBe('quota-exceeded')
+
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    expect(result.current.gateReason).toBeUndefined()
+    expect(result.current.analysis?.bpm).toBe(120)
+  })
+
+  it('raises the busy face before the gate mint resolves (R.3)', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    let open: (result: { ok: false; reason: 'error' }) => void = () => {}
+    const gatePromise = new Promise<{ ok: false; reason: 'error' }>(
+      (resolve) => {
+        open = resolve
+      }
+    )
+    const { result } = renderHook(() =>
+      useTempo({ detect: vi.fn() }, () => gatePromise)
+    )
+    let run: Promise<unknown> = Promise.resolve()
+    act(() => {
+      run = result.current.detect(audio)
+    })
+    // The whole wait since the import is narrated — mint round-trip included.
+    expect(result.current.detecting).toBe(true)
+    act(() => open({ ok: false, reason: 'error' }))
+    await act(() => run)
+    expect(result.current.detecting).toBe(false)
+  })
+
+  it('a cancel during the mint stops the superseded run', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    let open: (result: { ok: true }) => void = () => {}
+    const gatePromise = new Promise<{ ok: true }>((resolve) => {
+      open = resolve
+    })
+    const detect = vi.fn()
+    const { result } = renderHook(() => useTempo({ detect }, () => gatePromise))
+    let run: Promise<unknown> = Promise.resolve()
+    act(() => {
+      run = result.current.detect(audio)
+    })
+    act(() => result.current.cancelDetection())
+    expect(result.current.detecting).toBe(false)
+    // The gate resolving OK afterwards must not start the detector anyway.
+    act(() => open({ ok: true }))
+    await act(() => run)
+    expect(detect).not.toHaveBeenCalled()
+    expect(result.current.detecting).toBe(false)
+  })
+
+  it('a reset clears a lingering gate reason', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const { result } = renderHook(() =>
+      useTempo({ detect: vi.fn() }, async () => ({
+        ok: false,
+        reason: 'not-a-beta-member'
+      }))
+    )
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    expect(result.current.gateReason).toBe('not-a-beta-member')
+    act(() => result.current.reset())
+    expect(result.current.gateReason).toBeUndefined()
+  })
+
+  it('skips the gate on the token-less local path', async () => {
+    const gate = vi.fn()
+    const { result } = renderHook(() =>
+      useTempo(detectorOf(120, [0, 0.5, 1]), gate)
+    )
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    expect(gate).not.toHaveBeenCalled()
+    expect(result.current.analysis?.bpm).toBe(120)
   })
 })

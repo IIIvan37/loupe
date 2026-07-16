@@ -1,21 +1,28 @@
-"""Deployed Modal endpoint for loupe's GPU inference — J1: structure only.
+"""Deployed Modal endpoint for loupe's GPU inference — the three detections.
 
 The production counterpart of `modal_structure_spike.py`: an HTTP endpoint that
-mounts ONLY the structure router (the lazy-router pattern of `app.main`), gated
-by a SHORT-LIVED bearer token the Supabase Edge Function mints per analysis
-(J2). The endpoint verifies it with the shared HS256 secret and never holds a
-long-lived credential.
+mounts the structure, tempo and chords routers (the lazy-router pattern of
+`app.main`), gated by a SHORT-LIVED bearer token the Supabase Edge Function
+mints per analysis (J2). The endpoint verifies it with the shared HS256 secret
+and never holds a long-lived credential. One app, one container: the three
+models fit together and share the warm (M1.1 — the local server V.3 already
+loads them side by side).
 
-Contract (unchanged — the web adapter already speaks it):
+Contract (unchanged — the web adapters already speak it):
 
     POST /structure   Authorization: Bearer <token>   body = mix WAV
       -> 200 {"segments": [{"start","end","label"}, ...]}
+    POST /tempo       Authorization: Bearer <token>   body = mix WAV
+      -> 200 {"bpm": float, "beats": [{"time","position"}, ...]}
+    POST /chords      Authorization: Bearer <token>   body = mix WAV
+      -> 200 {"chords": [{"start","end","label"}, ...]}
     POST /warmup      Authorization: Bearer <token>
       -> 200 {"ok": true}   (its value is the SIDE EFFECT: spinning up a warm
-         container, so a later /structure is hot — the warm-on-import prefetch)
+         container, so a later analysis is hot — the warm-on-import prefetch)
 
 Only stateless inference runs here. Project/audio storage and yt-dlp download
-stay LOCAL (rights): they are NOT part of this app.
+stay LOCAL (rights): they are NOT part of this app. Separation follows in
+M1.3, after the quota model is re-weighed (M1.2).
 
 Deploy:  cd server && .venv/bin/modal deploy modal_app.py
 Needs a Modal secret `loupe-analyze-jwt` holding ANALYZE_JWT_SECRET, the SAME
@@ -35,7 +42,7 @@ def _bake_weights() -> None:
     """Download the pinned checkpoints + the MuQ snapshot into the image (build)."""
     from huggingface_hub import snapshot_download
 
-    from app import structure  # noqa: PLC0415
+    from app import chords, structure, tempo  # noqa: PLC0415
 
     structure.pinned_weights(
         structure._SONGFORMER_URL,
@@ -56,6 +63,10 @@ def _bake_weights() -> None:
         repo_id=structure._MUQ_NAME,
         revision=structure._MUQ_REVISION,
     )
+    # M1.1: tempo (beat_this) + chords (BTC) ride along — each resolves its own
+    # sha256-pinned checkpoint into the image cache (XDG_CACHE_HOME=/cache).
+    tempo._checkpoint_path()
+    chords._weights_path()
 
 
 image = (
@@ -111,25 +122,32 @@ def _probe_wav(seconds: int = 8, sample_rate: int = 16_000) -> bytes:
 class Api:
     @modal.enter()
     def load(self) -> None:
-        """Load the models to GPU and warm the kernels, off the request path."""
-        from app import structure  # noqa: PLC0415
+        """Load the models and warm the kernels, off the request path."""
+        from app import chords, structure, tempo  # noqa: PLC0415
         from app.analyze_gate import assert_strong_secret
 
         # Fail fast on a weak secret — before minutes of billed model loading.
         assert_strong_secret(os.environ.get("ANALYZE_JWT_SECRET", ""))
 
+        probe = _probe_wav()
         structure._load()
-        structure._analyse(_probe_wav())  # absorb the CUDA autotune
+        structure._analyse(probe)  # absorb the CUDA autotune
+        # M1.1: the probe runs through tempo (cuda) and chords (cpu) too, so
+        # every first request of a session is inference-only.
+        tempo._analyse(probe)
+        chords._analyse(probe)
 
     @modal.asgi_app()
     def web(self):
-        """The FastAPI surface: auth + CORS + the structure router + /warmup."""
+        """The FastAPI surface: auth + CORS + the analysis routers + /warmup."""
         from fastapi import FastAPI
         from fastapi.middleware.cors import CORSMiddleware
 
         from app.analyze_gate import install_analyze_gate
+        from app.chords import router as chords_router
         from app.origins import allowed_origins
         from app.structure import router as structure_router
+        from app.tempo import router as tempo_router
 
         # J2: the client presents a SHORT-LIVED token minted by the Supabase
         # Edge Function, signed HS256 with this shared secret. The static J1
@@ -156,4 +174,6 @@ class Api:
             return {"ok": True}
 
         web_app.include_router(structure_router)
+        web_app.include_router(tempo_router)
+        web_app.include_router(chords_router)
         return web_app

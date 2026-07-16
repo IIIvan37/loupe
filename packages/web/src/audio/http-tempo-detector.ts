@@ -43,24 +43,32 @@ function toDetectedBeats(
 }
 
 /**
- * Driven adapter for `TempoDetector`: offloads beat tracking to the local
- * server (the same one that runs Demucs), which analyses the uploaded mix WAV
- * and answers with `{ bpm, beats }`. The pure core never knows the DSP ran
- * off-device, nor whether the beats arrived positioned or as bare seconds.
+ * Driven adapter for `TempoDetector`: offloads beat tracking to the analysis
+ * endpoint (the Modal offload when configured, else the local server), which
+ * analyses the uploaded mix WAV and answers with `{ bpm, beats }`. The pure
+ * core never knows the DSP ran off-device, nor whether the beats arrived
+ * positioned or as bare seconds.
  */
-export function createHttpTempoDetector(baseUrl: string): TempoDetector {
+export function createHttpTempoDetector(
+  baseUrl: string,
+  /** Resolves the bearer to send, or undefined for the token-less local server.
+   * Async + read per call so each upload uses the freshly-minted token (J2). */
+  tokenProvider?: () => Promise<string | undefined>
+): TempoDetector {
   return {
     async detect(
       audio: DecodedAudio,
       signal?: AbortSignal
     ): Promise<DetectedTempo> {
+      const token = tokenProvider ? await tokenProvider() : undefined
       let body: Partial<TempoResponse>
       try {
         body = (await postWavForJson(
           baseUrl,
           '/tempo',
           audio,
-          signal
+          signal,
+          token
         )) as Partial<TempoResponse>
       } catch (e) {
         rethrowTransportError(

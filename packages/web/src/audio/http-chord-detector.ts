@@ -78,25 +78,33 @@ function isWireSpan(value: unknown): value is WireSpan {
 }
 
 /**
- * Driven adapter for `ChordDetector`: offloads chord estimation to the local
- * server (the same one that runs Demucs), which analyses the uploaded mix WAV
- * and answers with timestamped mir-syntax spans. The pure core never knows the
- * DSP ran off-device, nor that the engine speaks mir — labels arrive already
- * translated into grid tokens, silence as an absent label.
+ * Driven adapter for `ChordDetector`: offloads chord estimation to the
+ * analysis endpoint (the Modal offload when configured, else the local
+ * server), which analyses the uploaded mix WAV and answers with timestamped
+ * mir-syntax spans. The pure core never knows the DSP ran off-device, nor
+ * that the engine speaks mir — labels arrive already translated into grid
+ * tokens, silence as an absent label.
  */
-export function createHttpChordDetector(baseUrl: string): ChordDetector {
+export function createHttpChordDetector(
+  baseUrl: string,
+  /** Resolves the bearer to send, or undefined for the token-less local server.
+   * Async + read per call so each upload uses the freshly-minted token (J2). */
+  tokenProvider?: () => Promise<string | undefined>
+): ChordDetector {
   return {
     async detect(
       audio: DecodedAudio,
       signal?: AbortSignal
     ): Promise<readonly DetectedChordSpan[]> {
+      const token = tokenProvider ? await tokenProvider() : undefined
       let body: Partial<ChordsResponse>
       try {
         body = (await postWavForJson(
           baseUrl,
           '/chords',
           audio,
-          signal
+          signal,
+          token
         )) as Partial<ChordsResponse>
       } catch (e) {
         rethrowTransportError(

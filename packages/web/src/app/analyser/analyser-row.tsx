@@ -14,13 +14,13 @@ import { DetectionAction } from '../ui/detection-action.tsx'
 import { OperationStatus } from '../ui/operation-status.tsx'
 import { LiveStatus } from '../ui/live-status.tsx'
 import {
+  ANALYSIS_OFFLOAD_UNREACHABLE,
   CHORDS_ERROR_COPY,
   CHORDS_NEEDS_GRID,
   CHORDS_NEEDS_SERVER,
   SEPARATION_SERVER_BLOCK,
   STRUCTURE_ERROR_COPY,
   STRUCTURE_NEEDS_SERVER,
-  STRUCTURE_OFFLOAD_UNREACHABLE,
   TEMPO_ERROR_COPY
 } from './detection-copy.ts'
 import styles from './analyser-row.module.css'
@@ -38,6 +38,12 @@ const PROGRESS_LABELS: Readonly<
 
 /** Spoken AND shown once the run lands: the row keeps a stable « done » face. */
 const DONE_LABEL = msg({ id: 'separation.done', message: 'Pistes séparées' })
+
+/** The R.3 cold-start narration, shared by the offloaded busy faces (M1.1). */
+const ANALYSIS_COLD_START = msg({
+  id: 'analysis.cold-start',
+  message: "Démarrage du moteur d'analyse (jusqu'à ~1 min)…"
+})
 
 /** The failure line, with the transport detail the separation flow surfaces. */
 const SEP_FAILED = msg({
@@ -66,6 +72,9 @@ export interface TempoDetectionControl {
   readonly onRetry: () => void
   /** Abort the in-flight detection (the busy face's « Annuler »). */
   readonly onCancel: () => void
+  /** Whether the engine runs on the offload — a `network` failure then names
+   * the analysis service instead of the local server (M1.1, extends X.1). */
+  readonly offloaded: boolean
 }
 
 /** The structure-detection surface the shell wires in. */
@@ -99,6 +108,10 @@ export interface ChordDetectionControl {
   readonly onDetect: () => void
   /** Abort the in-flight detection (the busy face's « Annuler »). */
   readonly onCancel: () => void
+  /** Whether the engine runs on the offload — the busy face then explains a
+   * suspicious wait as a cold start (R.3), and a `network` failure names the
+   * analysis service instead of the local server (M1.1, extends X.1). */
+  readonly offloaded: boolean
 }
 
 interface AnalyserRowProps {
@@ -162,7 +175,7 @@ export function AnalyserRow({
   // service, or the local server (X.1).
   const structureErrorCopy =
     structure.error === 'network' && structure.offloaded
-      ? STRUCTURE_OFFLOAD_UNREACHABLE
+      ? ANALYSIS_OFFLOAD_UNREACHABLE
       : structure.error !== undefined
         ? STRUCTURE_ERROR_COPY[structure.error]
         : undefined
@@ -189,12 +202,20 @@ export function AnalyserRow({
       : chords.blockedReason === 'no-grid'
         ? t(CHORDS_NEEDS_GRID)
         : undefined
+  // Same X.1 rule as structure: a `network` failure names what actually
+  // failed to answer — the offloaded analysis service, or the local server.
+  const chordsErrorCopy =
+    chords.error === 'network' && chords.offloaded
+      ? ANALYSIS_OFFLOAD_UNREACHABLE
+      : chords.error !== undefined
+        ? CHORDS_ERROR_COPY[chords.error]
+        : undefined
   const chordsFailure =
-    chords.error !== undefined
+    chordsErrorCopy !== undefined
       ? `${t({
           id: 'chords.detect-failed',
           message: 'Échec de la détection des accords'
-        })} — ${t(CHORDS_ERROR_COPY[chords.error])}`
+        })} — ${t(chordsErrorCopy)}`
       : undefined
   const chordsAnnounced = chords.detecting
     ? t({ id: 'chords.detecting', message: 'Détection des accords…' })
@@ -248,7 +269,13 @@ export function AnalyserRow({
               })}
               running={tempo.detecting}
               progress={{ onCancel: tempo.onCancel }}
-              errorLine={t(TEMPO_ERROR_COPY[tempo.error])}
+              // Same X.1 rule as structure: `network` names what actually
+              // failed to answer — the offload, or the local server.
+              errorLine={t(
+                tempo.error === 'network' && tempo.offloaded
+                  ? ANALYSIS_OFFLOAD_UNREACHABLE
+                  : TEMPO_ERROR_COPY[tempo.error]
+              )}
               onRun={tempo.onRetry}
             />
           ) : tempo.detecting ? (
@@ -295,13 +322,7 @@ export function AnalyserRow({
             onCancel: structure.onCancel,
             // The wait becomes explained instead of worrying: after ~4 s the
             // line says the engine itself may be starting up.
-            detail: structure.offloaded
-              ? t({
-                  id: 'structure.cold-start',
-                  message:
-                    "Démarrage du moteur d'analyse (jusqu'à ~1 min)…"
-                })
-              : undefined,
+            detail: structure.offloaded ? t(ANALYSIS_COLD_START) : undefined,
             detailAfterMs: 4000
           }}
           confirms={structure.hasMarkers || structure.hasGrid}
@@ -326,7 +347,13 @@ export function AnalyserRow({
             message: 'Détection des accords…'
           })}
           running={chords.detecting}
-          progress={{ onCancel: chords.onCancel }}
+          progress={{
+            onCancel: chords.onCancel,
+            // Same R.3 narration as structure: a suspicious offloaded wait
+            // reads as the engine starting up, not as a hang.
+            detail: chords.offloaded ? t(ANALYSIS_COLD_START) : undefined,
+            detailAfterMs: 4000
+          }}
           confirms={chords.hasGrid}
           confirmLabel={t({
             id: 'chords.detect-confirm',

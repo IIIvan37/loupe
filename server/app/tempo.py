@@ -24,6 +24,7 @@ import asyncio
 import logging
 import os
 import threading
+from pathlib import Path
 
 import anyio.to_thread
 import torch
@@ -38,14 +39,28 @@ from .limits import (
     read_capped_body,
 )
 from .wav_decode import decode_wav_mono
+from .weights_cache import WeightsUnavailable, pinned_weights
 
 logger = logging.getLogger("loupe.tempo")
 router = APIRouter()
 
-# beat_this checkpoint: `final0` (~78 MB, best) by default; set `small0` (~8 MB)
-# to trade a little accuracy for CPU latency. Fetched to ~/.cache/torch/hub on
-# first use, like Demucs' weights.
-CHECKPOINT = os.environ.get("LOUPE_TEMPO_CHECKPOINT", "final0")
+# beat_this checkpoint: the published `final0` (~78 MB, best), fetched to the
+# cache on first use — PINNED by sha256 like the BTC weights: a .ckpt is a
+# pickle, so torch only ever sees the exact audited artifact (M1.1 — the same
+# pin bakes it into the Modal image). Point LOUPE_TEMPO_CHECKPOINT at a local
+# copy (or another beat_this shortname, e.g. `small0`) to skip the pinned
+# download — it is handed to beat_this verbatim.
+WEIGHTS_URL = "https://cloud.cp.jku.at/public.php/dav/files/7ik4RrBKTS273gp/final0.ckpt"
+WEIGHTS_SHA256 = "8c328b45f59d8dd3dff219253ff6a8d6482be57d0133a29140e2febbf8eb8331"
+_CACHE_DIR = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "loupe" / "beat_this"
+
+
+def _checkpoint_path() -> str:
+    """The checkpoint on disk — env override verbatim, or pinned download."""
+    override = os.environ.get("LOUPE_TEMPO_CHECKPOINT")
+    if override:
+        return override
+    return str(pinned_weights(WEIGHTS_URL, WEIGHTS_SHA256, _CACHE_DIR / "beat_this-final0.ckpt"))
 
 # madmom's DBN post-processing decodes the most likely BAR SEQUENCE from the
 # model's activations (a state space over bar lengths, meter changes penalised)
@@ -91,7 +106,9 @@ def _audio2beats() -> Audio2Beats:
     if _model is None:
         with _model_lock:
             if _model is None:
-                _model = Audio2Beats(checkpoint_path=CHECKPOINT, device=_device, dbn=DBN)
+                _model = Audio2Beats(
+                    checkpoint_path=_checkpoint_path(), device=_device, dbn=DBN
+                )
     return _model
 
 
@@ -134,6 +151,11 @@ async def tempo(request: Request) -> dict:
         # the request and say so rather than hanging the client forever.
         logger.exception("tempo analysis timed out")
         raise HTTPException(status_code=504, detail="tempo analysis timed out") from exc
+    except WeightsUnavailable as exc:
+        # Host not provisioned (weights unfetchable / failing their pin) — the
+        # client's audio is fine, so answer like a missing ML stack does.
+        logger.exception("tempo model unavailable")
+        raise HTTPException(status_code=503, detail="tempo model unavailable") from exc
     except Exception as exc:  # malformed upload / analysis failure
         # Log the detail server-side; keep the client message generic so model
         # internals / paths don't leak (esp. reachable cross-origin).

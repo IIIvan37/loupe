@@ -33,6 +33,34 @@ describe('createHttpChordDetector', () => {
     expect(init?.body).toBeInstanceOf(Uint8Array)
   })
 
+  it('sends the bearer the provider resolves (the Modal endpoint)', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ chords: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await createHttpChordDetector('https://modal.example', () =>
+      Promise.resolve('secret-tok')
+    ).detect(MIX)
+
+    const [, init] = fetchMock.mock.calls[0] ?? []
+    expect(new Headers(init?.headers).get('Authorization')).toBe(
+      'Bearer secret-tok'
+    )
+  })
+
+  it('sends no Authorization against the token-less local server', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(jsonResponse({ chords: [] }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await createHttpChordDetector('http://localhost:8000').detect(MIX)
+
+    const [, init] = fetchMock.mock.calls[0] ?? []
+    expect(new Headers(init?.headers).get('Authorization')).toBeNull()
+  })
+
   it('forwards the abort signal to the fetch', async () => {
     const fetchMock = vi
       .fn<typeof fetch>()
