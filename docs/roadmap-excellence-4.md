@@ -505,7 +505,7 @@ pas de dette nouvelle :
 - [x] **V.2** `unload()` du moteur mono-piste (PR de `feat/v2-engine-unload`)
 - [ ] **V.3** warm des modèles au démarrage local
 - [ ] **V.4** playhead en transform
-- [ ] **V.5** memo AudioBuffer au décodeur (exploré, GO — −88 MB piste et défaut)
+- [x] **V.5** memo AudioBuffer au décodeur (PR de `feat/v5-audio-buffer-memo`)
 - [x] **W.1** flex-wrap des rangées tempo/accords
 - [x] **W.2** peau `.confirmFace` unifiée
 - [ ] **W.3** faux-gras (Space Grotesk 600, Petaluma)

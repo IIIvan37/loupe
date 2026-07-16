@@ -1,5 +1,6 @@
 import type { DecodedAudio } from '@app/core'
 import type { SoundTouchNode } from '@soundtouchjs/audio-worklet'
+import { recallAudioBuffer } from './audio-buffer-memo.ts'
 
 /** SoundTouch worklet processor (pure JS), copied to `public/`. */
 const SOUNDTOUCH_PROCESSOR_URL = '/soundtouch-processor.js'
@@ -13,15 +14,25 @@ interface StretchParams {
 type PositionListener = (seconds: number) => void
 
 /**
- * Copy decoded PCM into a Web Audio buffer on the given context. Shared by the
- * single-track and stem playback adapters (which fill buffers identically) and
- * the offline analysis resampler. At least one channel and one frame keep
- * `createBuffer` from throwing on silence.
+ * A Web Audio buffer carrying `audio`'s PCM: the SHARED decode buffer when the
+ * decoder registered one (V.5 — may come from another context, which source
+ * nodes accept), else a fresh copy built on `ctx`. Callers must treat the
+ * result as READ-ONLY — a write into a shared buffer would be audible and
+ * corrupt every analysis. Shared by the playback adapters and the offline
+ * analysis resampler. At least one channel and one frame keep `createBuffer`
+ * from throwing on silence.
  */
 export function audioBufferFrom(
   ctx: BaseAudioContext,
   audio: DecodedAudio
 ): AudioBuffer {
+  // The decode buffer this audio is views into, when the decoder produced it
+  // (V.5): sharing it skips the ~88 MB copy — see audio-buffer-memo.ts for
+  // the read-only contract.
+  const remembered = recallAudioBuffer(audio)
+  if (remembered) {
+    return remembered
+  }
   const channelCount = Math.max(audio.channels.length, 1)
   const frames = Math.max(audio.channels[0]?.length ?? 0, 1)
   const buffer = ctx.createBuffer(channelCount, frames, audio.sampleRate)

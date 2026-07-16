@@ -408,24 +408,28 @@ tué, 1 équivalent documenté). NB shell : détection résolue ⇒ seek via le
 détection 3,67× plus légers, résultats identiques octet pour octet →
 [rapport](sessions/2026-07-16-v1-analysis-upload.md).
 
-**En cours : V.2 — unload du moteur mono-piste au hand-off stems (branche
-`feat/v2-engine-unload`, PR à ouvrir).** Après le seat automatique du
-métronome, l'AudioBuffer du moteur mono-piste (~85 MB float32 / 4 min)
-restait résident à jamais. **Core** : `unload()` sur le port `PlaybackEngine`
-(interface seule — moteur inerte, réglages gardés, `load` réarme). **Hook** :
-le hand-off appelle `unload()`, le hand-back **recharge paresseusement**
-depuis `trackAudio` (valeur simple via `useLatest`) puis remet le moteur à
-l'état VIVANT : seek sur `position.get()` et reprise du play s'il a été
-pressé pendant le reload ; gardes anti-course (PCM changé / re-hand-off en
-vol → restore sauté). **Adapter** : `unload()` + last-load-wins (`loadId`
-bumpé par `load` ET `unload` — un reload supplanté ne re-matérialise jamais
-le buffer). **Browser-verify A/B (motif L.3)** : parcours identique sur main
-et branche, heap snapshot Chrome : **7 AudioBuffers → 6** (le buffer ≈ 88 MB
-libéré ; NB `usedJSHeapSize` aveugle — compter les AudioBuffers). Revue
-8 angles → 5 fixés, 4 écartés documentés (dont : memo AudioBuffer au
-décodeur = piste plus profonde différée, ferait aussi gagner ~85 MB en mode
-piste). Gate **verte — 1532 tests** (+11), Stryker skippé (core = interface
-seule). [rapport](sessions/2026-07-16-v2-engine-unload.md).
+**V.2 — unload du moteur mono-piste au hand-off stems mergé (PR #157)** :
+`unload()` sur le port `PlaybackEngine`, hand-back en reload paresseux
+(seek vivant + reprise du play, gardes anti-course), last-load-wins couvrant
+`load` ET `unload` ; heap A/B 7 → 6 AudioBuffers →
+[rapport](sessions/2026-07-16-v2-engine-unload.md).
+
+**En cours : V.5 — buffer de décodage partagé avec les moteurs (branche
+`feat/v5-audio-buffer-memo`, PR à ouvrir).** Exploration GO puis livraison le
+même jour : `audio-buffer-memo.ts` (WeakMap décodeur → AudioBuffer, modèle
+encode-wav-memo), `audioBufferFrom` sert le buffer partagé sur un hit — les
+deux copies ~88 MB (moteur piste au load + stem « Piste » au seat métronome)
+mesurées évitées (**2 hits** au compteur temporaire ; la copie `createBuffer`
+vit côté audio renderer, invisible du heap JS — leçon de mesure). Lecture +
+détection d'accords vérifiées **après** lecture du buffer partagé (key of Cm
+juste — vues intactes). **Fail-safe** : probe one-shot « acquire the
+contents » (un UA qui détache les vues ne partage jamais → chemin copie
+pré-V.5) ; buffer partagé = **lecture seule** par contrat. Réactualisation
+V.2 : avec le partage, `unload()` ne libère qu'une référence (reclamation
+réelle sur le chemin fallback uniquement). Revue 3 finders → 3 fixés,
+4 écartés documentés (dont la race `addStem` à froid, préexistante,
+consignée en veille). Gate **verte — 1536 tests** (+4), Stryker skippé
+(core intouché). [rapport](sessions/2026-07-16-v5-audio-buffer-memo.md).
 **Prochain : V.3** (warm des modèles au démarrage local) ou **V.4** (playhead
 en `transform`) ; W.3–W.5 restent.
 
@@ -787,3 +791,7 @@ See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 - Vieux manifests *séparés* : re-`attach` sur le detect fire-and-forget peut
   écraser des réglages de fader faits pendant la fenêtre de détection —
   s'auto-répare à la sauvegarde; corriger seulement si ça mord.
+- Race `addStem`/`play` sur bus stretch froid (revue V.5, préexistante) :
+  play pendant l'enregistrement du worklet (~100–500 ms au premier
+  chargement) peut créer deux sources pour un même stem, la première
+  orpheline (inarrêtable jusqu'à sa fin naturelle) — corriger si ça mord.
