@@ -3,6 +3,7 @@ import '@testing-library/jest-dom/vitest'
 import { screen, within } from '@testing-library/react'
 import { i18n } from '../../i18n/i18n.ts'
 import {
+  healthFetch,
   importTrack,
   installShellHooks,
   renderShell
@@ -58,6 +59,47 @@ describe('WorkstationShell analyser row', () => {
     })
     expect(
       within(chart).queryByRole('button', { name: i18n._('chords.detect') })
+    ).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * X.1 — the structure engine runs wherever ANALYSIS_URL points. The local
+ * health probe only gates it when the analysis IS local; on the offload the
+ * button stays actionable (no probe of the Modal endpoint — a page-load probe
+ * would cold-start the billed container) and a failure speaks at click time
+ * with the offload's own words.
+ */
+describe('WorkstationShell structure gating vs the local server', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('blocks structure on local health when the analysis is local', async () => {
+    const { user } = renderShell({ healthFetch: healthFetch('unreachable') })
+    await importTrack(user)
+
+    expect(
+      await screen.findByText(i18n._('structure.detect-needs-server'))
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: i18n._('structure.detect') })
+    ).toBeDisabled()
+  })
+
+  it('keeps structure actionable despite local health in offload mode', async () => {
+    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    const { user } = renderShell({ healthFetch: healthFetch('unreachable') })
+    await importTrack(user)
+
+    // Separation still depends on the local server: its hint is the signal
+    // that the health probe has settled to offline.
+    expect(
+      await screen.findByText(i18n._('separation.server-offline'))
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: i18n._('structure.detect') })
+    ).toBeEnabled()
+    expect(
+      screen.queryByText(i18n._('structure.detect-needs-server'))
     ).not.toBeInTheDocument()
   })
 })
