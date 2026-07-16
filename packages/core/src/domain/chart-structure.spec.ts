@@ -1,10 +1,12 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import type { BeatGrid } from './beat-grid.ts'
+import { measureIndexAt } from './beat-grid.ts'
 import {
   chartMeters,
   chartSectionAnchors,
   deduceStructure,
+  measureSeekTime,
   relabelChartBySections,
   renderStructuredSource
 } from './chart-structure.ts'
@@ -404,6 +406,67 @@ describe('relabelChartBySections', () => {
             return first ? formatChordSymbol(first) : undefined
           })
           expect(played).toEqual(chords)
+        }
+      )
+    )
+  })
+})
+
+describe('measureSeekTime', () => {
+  it('seeks a written measure to the downbeat where it plays', () => {
+    expect(measureSeekTime('| C | Am | F | G |', grid(4, 2), 1, 0)).toBe(2)
+  })
+
+  it('restarts the occurrence the playhead is inside (repeat pass)', () => {
+    // |: C | Am :| unrolls [0, 1, 0, 1]; at 4.5 s the second pass of the
+    // written measure 0 is playing — clicking it restarts THAT pass, no jump
+    // back to the first one.
+    expect(measureSeekTime('|: C | Am :|', grid(4, 2), 0, 4.5)).toBe(4)
+  })
+
+  it('treats a pass ending exactly on the playhead as behind (picks the next)', () => {
+    // At 2 s the first pass of written 0 has just ended (half-open measures):
+    // the click must go to the second pass at 4 s, not restart a passed one.
+    expect(measureSeekTime('|: C | Am :|', grid(4, 2), 0, 2)).toBe(4)
+  })
+
+  it('wraps to the first occurrence once every pass is behind the playhead', () => {
+    expect(measureSeekTime('| C | Am |', grid(2, 2), 0, 100)).toBe(0)
+  })
+
+  it('ignores an occurrence the grid has no downbeat for', () => {
+    // The two-bar grid covers only the first pass of |: C | Am :|.
+    expect(measureSeekTime('|: C | Am :|', grid(2, 2), 0, 100)).toBe(0)
+  })
+
+  it('answers nothing for a measure the form never plays', () => {
+    expect(measureSeekTime('| C | Am |', grid(4, 2), 5, 0)).toBeUndefined()
+  })
+
+  it('answers nothing without a grid', () => {
+    expect(measureSeekTime('| C | Am |', [], 0, 0)).toBeUndefined()
+  })
+
+  it('always seeks to a downbeat where the clicked measure is the one playing', () => {
+    // Written ↔ played round-trip: whatever the playhead, the chosen instant
+    // projects back (measureIndexAt → unroll) onto the clicked written index.
+    const source = '|: C | Am :|\n| F | G |'
+    const roundTripGrid = grid(6, 2)
+    const played = unrollChart(parseChart(source))
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 0, max: 3 }),
+        fc.double({ min: 0, max: 20, noNaN: true }),
+        (writtenIndex, playhead) => {
+          const seek = measureSeekTime(
+            source,
+            roundTripGrid,
+            writtenIndex,
+            playhead
+          )
+          expect(
+            played[measureIndexAt(roundTripGrid, seek as number) as number]
+          ).toBe(writtenIndex)
         }
       )
     )

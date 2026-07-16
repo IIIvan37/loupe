@@ -7,6 +7,7 @@ import {
   chartEditor,
   expectBpmReadout,
   fakeProjectStores,
+  fakeStemEngine,
   importTrack,
   installShellHooks,
   openProjectsDialog,
@@ -135,6 +136,42 @@ describe('WorkstationShell chord chart', () => {
     // 5 s sits in the second bar (4 s → 8 s) → the second measure, Am.
     act(() => engine.emit(5))
     expect(screen.getByText('Am').closest('[aria-current]')).not.toBeNull()
+  })
+
+  it('seeks to a measure when its chart cell is clicked', async () => {
+    // Beats every second, four to the bar → downbeats at 0 s, 4 s, 8 s.
+    const detector = {
+      detect: async () => ({
+        bpm: 60,
+        beats: beatsAt([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+      })
+    }
+    // The resolved detection loads the metronome, so playback (and the seek)
+    // rides the stem engine — assert on it, not the single-track engine.
+    const stemEngine = fakeStemEngine()
+    const { user } = renderShell({ tempoDetector: detector, stemEngine })
+    await importTrack(user)
+    await expectBpmReadout(60)
+    await user.type(await chartEditor(user), '| C | Am | F |')
+
+    // The third written measure first plays on the third downbeat (8 s).
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('chart.measure-seek', { number: 3 })
+      })
+    )
+    expect(stemEngine.seekTo).toHaveBeenCalledWith(8)
+  })
+
+  it('keeps the chart cells inert without a beat grid', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+    await user.type(await chartEditor(user), '| C | Am |')
+    expect(
+      screen.queryByRole('button', {
+        name: i18n._('chart.measure-seek', { number: 1 })
+      })
+    ).not.toBeInTheDocument()
   })
 
   it('highlights no measure without a beat grid', async () => {

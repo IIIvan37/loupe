@@ -29,6 +29,8 @@ interface ChordChartPanelProps {
   readonly currentMeasureIndex?: number | undefined
   /** The session-derived chart head (tags, BPM, bar length) — see LeadSheet. */
   readonly header?: ChartHeaderData | undefined
+  /** Tap a measure to seek playback to it — see LeadSheet. */
+  readonly onSelectMeasure?: ((writtenIndex: number) => void) | undefined
 }
 
 /**
@@ -45,7 +47,8 @@ export function ChordChartPanel({
   pitchSemitones,
   transposedBy,
   currentMeasureIndex,
-  header
+  header,
+  onSelectMeasure
 }: ChordChartPanelProps) {
   const { t } = useLingui()
   // A render preference, not chart data — it rides localStorage (per browser)
@@ -195,6 +198,7 @@ export function ChordChartPanel({
           source={source}
           header={header}
           currentMeasureIndex={currentMeasureIndex}
+          onSelectMeasure={onSelectMeasure}
           barsPerRow={barsPerRow}
         />
       </div>

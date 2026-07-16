@@ -381,7 +381,7 @@ tests** (+22), **Stryker 93,41 %** (12 survivants du premier run tués,
 [rapport](sessions/2026-07-15-t1-musical-loops.md).
 **T.1 mergé (PR #153)** (+ fix format ruff des deux fichiers de tests U.5 qui
 rougissaient la CI de `main`).
-**T.2 — nudge musical (branche `feat/t2-musical-nudge`, PR à ouvrir)** :
+**T.2 — nudge musical mergé (PR #154)** :
 core pur `nudgeSeconds(seconds, direction, grid, coarse)` — beat adjacent
 avec grille (**downbeat avec Shift**), sinon 0,1 s (×10 Shift), repli 0,1 s
 au-delà des bords de la grille ; `waveform-view` (poignées A/B) et
@@ -389,7 +389,20 @@ au-delà des bords de la grille ; `waveform-view` (poignées A/B) et
 `NUDGE_RATIO = 0.01` supprimés. Gate **verte — 1496 tests** (+12),
 **Stryker 93,51 %** (`nudge-time.ts` 100 %).
 [rapport](sessions/2026-07-15-t2-musical-nudge.md).
-**Prochain : T.3** (puis V.1).
+**T.3 — chart navigable (branche `feat/t3-navigable-chart`, PR à ouvrir)** :
+core pur `measureSeekTime(source, grid, writtenIndex, playhead)` — inverse de
+la projection du highlight via `unrollChart`, occurrence **encore devant le
+playhead** (la passe en cours se relance), repli première occurrence,
+property test round-trip écrit↔joué ; les mesures de la `LeadSheet` passent
+en `<button>` (`MeasureBox`, aria-label « Aller à la mesure {number} »)
+**seulement quand une grille existe** (sinon `<div>` inertes — pas
+d'affordance mensongère), même peau ; `onSelectMeasure` câblé
+`ChordChartPanel` → `ShellMain` → seek au downbeat. Gate **verte — 1507
+tests** (+11), **Stryker 93,95 %** (`measureSeekTime` : survivant frontière
+tué, 1 équivalent documenté). NB shell : détection résolue ⇒ seek via le
+**moteur de stems**.
+[rapport](sessions/2026-07-15-t3-navigable-chart.md).
+**T.1–T.3 clos → prochain : V.1.**
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
+import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { LeadSheet } from './lead-sheet.tsx'
 
@@ -59,6 +61,31 @@ describe('LeadSheet', () => {
       { wrapper: I18nTestingProvider }
     )
     expect(screen.getByText('F').closest('[aria-current]')).not.toBeNull()
+  })
+
+  it('reports the WRITTEN index of a clicked measure (across sections)', async () => {
+    const user = userEvent.setup()
+    const onSelectMeasure = vi.fn()
+    render(
+      <LeadSheet
+        source={'[A]\n| C | Am |\n[B]\n| F |'}
+        onSelectMeasure={onSelectMeasure}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('chart.measure-seek', { number: 3 })
+      })
+    )
+    expect(onSelectMeasure).toHaveBeenCalledWith(2)
+  })
+
+  it('keeps the measures inert without an onSelectMeasure (no lying buttons)', () => {
+    render(<LeadSheet source={'| C | Am |'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
   })
 
   it('anchors the print region on the sheet root (P.4 print stylesheet)', () => {

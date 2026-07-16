@@ -3,6 +3,7 @@ import {
   makeLoopRegion,
   type Marker,
   measureIndexAt,
+  measureSeekTime,
   type OctaveFactor
 } from '@app/core'
 import { isAnalysisOffloaded } from '../../audio/analysis-token.ts'
@@ -203,6 +204,27 @@ export function ShellMain({
     )
   }
 
+  /**
+   * Tap-to-seek on the chart (T.3): the written measure projects onto its
+   * played occurrence — the pass under (or next after) the playhead — and the
+   * seek lands on that downbeat. No grid = no handler: the measures stay
+   * inert instead of lying.
+   */
+  const onSelectMeasure =
+    grid === undefined || grid.length === 0
+      ? undefined
+      : (writtenIndex: number) => {
+          const target = measureSeekTime(
+            chordChart.source,
+            grid,
+            writtenIndex,
+            position.get()
+          )
+          if (target !== undefined) {
+            onSeekSeconds(target)
+          }
+        }
+
   return (
     <div className={styles.body}>
       <main className={styles.main}>
@@ -349,6 +371,7 @@ export function ShellMain({
               pitchSemitones={pitchSemitones}
               header={chartHeader}
               currentMeasureIndex={currentMeasureIndex}
+              onSelectMeasure={onSelectMeasure}
             />
             </ShellSection>
           )}
