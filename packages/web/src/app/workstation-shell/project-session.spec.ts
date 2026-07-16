@@ -176,7 +176,8 @@ describe('restoreSession', () => {
         exportError: undefined,
         dismissExportError: vi.fn(),
         cancel: vi.fn(),
-        reset: vi.fn()
+        reset: vi.fn(),
+        gateReason: undefined
       } satisfies Separation,
       mixer: {
         channels: [],

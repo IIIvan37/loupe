@@ -36,6 +36,10 @@ def _app_with_probe() -> FastAPI:
     def probe() -> dict:
         return {"ok": True}
 
+    @app.get("/stems-probe")
+    def stems_probe() -> dict:
+        return {"ok": True}
+
     return app
 
 
@@ -54,7 +58,7 @@ def _composed_client() -> TestClient:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=ALLOWED_ORIGINS,
-        allow_methods=["POST", "OPTIONS"],
+        allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
     )
     return TestClient(app)
@@ -106,6 +110,15 @@ class TestAnalyzeGate:
         garbage = f"{b64url(b'[1]')}.{b64url(b'x')}.sig"
         response = _gated_client().post("/probe", headers={"Authorization": f"Bearer {garbage}"})
         assert response.status_code == 401
+
+    def test_gates_get_requests_too(self) -> None:
+        # M1.3: the stem downloads (GET /stems/...) sit behind the same gate —
+        # a WAV must never be fetchable without the analyse token.
+        assert _gated_client().get("/stems-probe").status_code == 401
+        response = _gated_client().get(
+            "/stems-probe", headers={"Authorization": f"Bearer {_valid_token()}"}
+        )
+        assert response.status_code == 200
 
     def test_options_bypasses_the_gate(self) -> None:
         # CORS preflights carry no Authorization header; the gate must let them

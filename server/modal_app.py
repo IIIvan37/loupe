@@ -1,12 +1,12 @@
-"""Deployed Modal endpoint for loupe's GPU inference — the three detections.
+"""Deployed Modal endpoint for loupe's GPU inference — detections + separation.
 
 The production counterpart of `modal_structure_spike.py`: an HTTP endpoint that
-mounts the structure, tempo and chords routers (the lazy-router pattern of
-`app.main`), gated by a SHORT-LIVED bearer token the Supabase Edge Function
-mints per analysis (J2). The endpoint verifies it with the shared HS256 secret
-and never holds a long-lived credential. One app, one container: the three
-models fit together and share the warm (M1.1 — the local server V.3 already
-loads them side by side).
+mounts the structure, tempo, chords and separation routers (the lazy-router
+pattern of `app.main`), gated by a SHORT-LIVED bearer token the Supabase Edge
+Function mints per analysis (J2). The endpoint verifies it with the shared
+HS256 secret and never holds a long-lived credential. One app, one container:
+the four models fit together (htdemucs_6s peaks at 0.57 GB VRAM — measured in
+M1.2) and share the warm.
 
 Contract (unchanged — the web adapters already speak it):
 
@@ -16,13 +16,19 @@ Contract (unchanged — the web adapters already speak it):
       -> 200 {"bpm": float, "beats": [{"time","position"}, ...]}
     POST /chords      Authorization: Bearer <token>   body = mix WAV
       -> 200 {"chords": [{"start","end","label"}, ...]}
+    POST /separate    Authorization: Bearer <token>   body = mix WAV
+      -> 200 application/x-ndjson (progress… then {"type":"done","stems":[…]})
+    GET  /stems/{job}/{stem}.wav   Authorization: Bearer <token>
+      -> 200 audio/wav             (M1.3 — the gate covers the downloads too)
     POST /warmup      Authorization: Bearer <token>
       -> 200 {"ok": true}   (its value is the SIDE EFFECT: spinning up a warm
          container, so a later analysis is hot — the warm-on-import prefetch)
 
-Only stateless inference runs here. Project/audio storage and yt-dlp download
-stay LOCAL (rights): they are NOT part of this app. Separation follows in
-M1.3, after the quota model is re-weighed (M1.2).
+Only stateless inference runs here: the separated stems live on container-local
+disk just long enough for the client to download them (TTL sweep), then the
+client pushes them into its LOCAL ProjectAudioStore — nothing persists here
+(M1.3). Project/audio storage and yt-dlp download stay LOCAL (rights): they
+are NOT part of this app.
 
 Deploy:  cd server && .venv/bin/modal deploy modal_app.py
 Needs a Modal secret `loupe-analyze-jwt` holding ANALYZE_JWT_SECRET, the SAME
@@ -67,6 +73,12 @@ def _bake_weights() -> None:
     # sha256-pinned checkpoint into the image cache (XDG_CACHE_HOME=/cache).
     tempo._checkpoint_path()
     chords._weights_path()
+    # M1.3: bake the Demucs checkpoints WITHOUT importing app.separation (its
+    # import loads the model — pointless at build). DEMUCS_MODEL is pinned in
+    # the image env, so bake and runtime resolve the same weights.
+    from demucs.pretrained import get_model
+
+    get_model(os.environ["DEMUCS_MODEL"])
 
 
 image = (
@@ -80,6 +92,9 @@ image = (
             "HF_HOME": f"{CACHE_DIR}/hf",
             "PYTHONPATH": "/root",
             "LOUPE_STRUCTURE_DEVICE": "cuda",
+            # One source of truth for the separation model: the bake step and
+            # app.separation both read it (M1.3).
+            "DEMUCS_MODEL": "htdemucs_6s",
         }
     )
     .add_local_dir("app", "/root/app", copy=True)
@@ -115,10 +130,18 @@ def _probe_wav(seconds: int = 8, sample_rate: int = 16_000) -> bytes:
 @app.cls(
     image=image,
     gpu="L4",
-    timeout=900,
+    # Aligned on the local server's /separate wall-clock budget (M1.3): the
+    # app-level LOUPE_SEPARATION_TIMEOUT_SECONDS (1800) must get to speak its
+    # typed NDJSON error before Modal kills the request.
+    timeout=1800,
     scaledown_window=300,  # keep the container warm across a user's session
+    # ONE container, always: the stem WAVs live on container-local disk between
+    # the `done` event and the client's /stems downloads, so a scale-out would
+    # 404 them — and a hard cap doubles as the M1.2 beta spend guardrail.
+    max_containers=1,
     secrets=[modal.Secret.from_name("loupe-analyze-jwt")],
 )
+@modal.concurrent(max_inputs=8)  # the six stem GETs of one run arrive together
 class Api:
     @modal.enter()
     def load(self) -> None:
@@ -136,6 +159,19 @@ class Api:
         # every first request of a session is inference-only.
         tempo._analyse(probe)
         chords._analyse(probe)
+        # M1.3: importing app.separation loads Demucs onto the device (cuda
+        # here); a short probe absorbs its CUDA autotune like the others.
+        import torch
+        from demucs.apply import apply_model
+
+        from app import separation
+
+        with torch.no_grad():
+            apply_model(
+                separation.model,
+                torch.zeros(2, 4 * separation.TARGET_SAMPLE_RATE)[None],
+                device=separation.device,
+            )
 
     @modal.asgi_app()
     def web(self):
@@ -146,6 +182,7 @@ class Api:
         from app.analyze_gate import install_analyze_gate
         from app.chords import router as chords_router
         from app.origins import allowed_origins
+        from app.separation import router as separation_router
         from app.structure import router as structure_router
         from app.tempo import router as tempo_router
 
@@ -161,10 +198,12 @@ class Api:
         # Origins come from LOUPE_ALLOWED_ORIGINS (set it on the
         # `loupe-analyze-jwt` Modal secret to add deployed/Tauri origins);
         # unset, the shared default is the 5173 dev app.
+        # GET serves the separated stems' WAVs (M1.3); their Authorization
+        # header makes those GETs preflighted like the POSTs.
         web_app.add_middleware(
             CORSMiddleware,
             allow_origins=allowed_origins(),
-            allow_methods=["POST", "OPTIONS"],
+            allow_methods=["GET", "POST", "OPTIONS"],
             allow_headers=["*"],
         )
 
@@ -176,4 +215,5 @@ class Api:
         web_app.include_router(structure_router)
         web_app.include_router(tempo_router)
         web_app.include_router(chords_router)
+        web_app.include_router(separation_router)
         return web_app

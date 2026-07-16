@@ -22,12 +22,18 @@ type SeparationEvent =
     }
   | { readonly type: 'error'; readonly message: string }
 
+function authHeaders(token: string | undefined): HeadersInit {
+  return token === undefined ? {} : { Authorization: `Bearer ${token}` }
+}
+
 async function fetchStem(
   baseUrl: string,
   stem: { id: string; label: string; url: string },
+  token: string | undefined,
   signal?: AbortSignal
 ): Promise<SeparatedStem> {
   const response = await fetch(new URL(stem.url, baseUrl).toString(), {
+    headers: authHeaders(token),
     signal: signal ?? null
   })
   if (!response.ok) {
@@ -38,25 +44,32 @@ async function fetchStem(
 }
 
 /**
- * Driven adapter for `StemSeparator`: offloads separation to a local server that
+ * Driven adapter for `StemSeparator`: offloads separation to a server that
  * runs a full Demucs model (PyTorch, GPU-capable) — far beyond what the browser's
  * WASM engines can do. The mix is uploaded as a WAV; the server streams NDJSON
  * progress, then a `done` event listing each stem's WAV URL, which we fetch and
  * decode back into PCM. The pure core never knows separation happened off-device.
  */
-export function createHttpSeparator(baseUrl: string): StemSeparator {
+export function createHttpSeparator(
+  baseUrl: string,
+  /** Resolves the bearer to send, or undefined for the token-less local server.
+   * Read once per run — the SAME token covers the upload and the stem
+   * downloads (the Modal gate covers `/stems` too, M1.3). */
+  tokenProvider?: () => Promise<string | undefined>
+): StemSeparator {
   return {
     async separate(
       audio: DecodedAudio,
       onProgress: (progress: SeparationProgress) => void,
       signal?: AbortSignal
     ): Promise<readonly SeparatedStem[]> {
+      const token = tokenProvider ? await tokenProvider() : undefined
       const wav = encodeWavMemo(audio)
       // The signal covers the whole run: aborting also tears down the NDJSON
       // stream (its reader rejects) and any in-flight stem fetch below.
       const response = await fetch(`${baseUrl}/separate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'audio/wav' },
+        headers: { 'Content-Type': 'audio/wav', ...authHeaders(token) },
         body: wav,
         signal: signal ?? null
       })
@@ -69,7 +82,7 @@ export function createHttpSeparator(baseUrl: string): StemSeparator {
       )
 
       return Promise.all(
-        done.stems.map((stem) => fetchStem(baseUrl, stem, signal))
+        done.stems.map((stem) => fetchStem(baseUrl, stem, token, signal))
       )
     }
   }

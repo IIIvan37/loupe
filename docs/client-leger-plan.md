@@ -235,7 +235,10 @@ on n'empile pas une migration d'infra sur des régressions connues.
 - [x] **M1.2** modèle quota/coût de la séparation — mesuré 2026-07-16
       (~$0.001/séparation à chaud sur L4) ; décision : quota unique inchangé +
       plafond de dépense Modal (voir § M1.2)
-- [ ] **M1.3** séparation sur Modal (NDJSON, abort, transport mesuré)
+- [x] **M1.3** séparation sur Modal — livré 2026-07-16, vérifié réellement
+      (serveur local éteint, abort `net::ERR_ABORTED` sous réseau ralenti) ;
+      transport à re-mesurer sur vraie musique (zstd ment sur du synthétique) ;
+      voir [rapport](sessions/2026-07-16-m13-separation-modal.md)
 - [ ] **M1.4** santé par endpoint effectif + UX hors-ligne + narration
 - [ ] **T2.1** spike coquille Tauri + inventaire licences (GO/NO-GO)
 - [ ] **T2.2** stores filesystem à parité (dédup, atomicité, GC) + parseProject

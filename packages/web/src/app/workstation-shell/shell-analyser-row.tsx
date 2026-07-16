@@ -48,9 +48,8 @@ export function ShellAnalyserRow({
   chordDetection
 }: ShellAnalyserRowProps) {
   const offloaded = isAnalysisOffloaded()
-  // Separation is the one flow still bound to the local server; its gate
-  // stays the probe. 'checking' blocks the detections' local path too — a
-  // transient flash beats an upload the server can't take.
+  // 'checking' blocks the local path too — a transient flash beats an upload
+  // the server can't take.
   const localServerDown =
     serverHealth === 'offline' || serverHealth === 'checking'
   // The measures always need a downbeat-flagged grid to anchor on; locally
@@ -65,7 +64,8 @@ export function ShellAnalyserRow({
         canSeparate,
         serverHealth,
         onSeparate,
-        onCancel: separation.cancel
+        onCancel: separation.cancel,
+        offloaded
       }}
       tempo={{
         bpm: tempo.analysis?.bpm,

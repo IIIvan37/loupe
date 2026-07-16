@@ -14,9 +14,15 @@ import {
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useMemo, useReducer, useRef, useState } from 'react'
+import {
+  type EnsureTokenResult,
+  ensureAnalysisToken,
+  isAnalysisOffloaded
+} from '../../audio/analysis-token.ts'
 import { createSeparator } from '../../audio/create-separator.ts'
 import { downloadBlob } from '../../audio/download-blob.ts'
 import { createZipArchiveWriter } from '../../audio/zip-archive-writer.ts'
+import type { MintFailureReason } from '../../auth/auth-port.ts'
 
 // Per-stem peak resolution. Matches the main view's, so the stems sum cleanly
 // into the audible-mix waveform shown there and the lanes stay crisp when zoomed.
@@ -72,6 +78,9 @@ export interface Separation {
   /** Abort the in-flight run and return to idle; a no-op when none runs. */
   readonly cancel: () => void
   readonly reset: () => void
+  /** Why the offload gate blocked the last run (M1.3) — the account menu
+   * explains; cleared by the next run or a reset. */
+  readonly gateReason: MintFailureReason | undefined
 }
 
 /** What the hook remembers of each separated stem — its identity, never its PCM. */
@@ -90,7 +99,10 @@ type StemDescriptor = Pick<SeparatedStem, 'id' | 'label'>
 export function useSeparation(
   pcmOf: (id: string) => DecodedAudio | undefined,
   separator?: StemSeparator,
-  archive?: ArchiveWriter
+  archive?: ArchiveWriter,
+  /** Acquire the analyse token before a live run (offload gate, M1.3).
+   * Defaults to the app gate; a no-op pass locally. Injected in tests. */
+  gate: () => Promise<EnsureTokenResult> = ensureAnalysisToken
 ): Separation {
   const { t } = useLingui()
   const engine = useMemo(() => separator ?? createSeparator(), [separator])
@@ -106,6 +118,7 @@ export function useSeparation(
   // the engine. Reactive so consumers re-render when a run commits.
   const [descriptors, setDescriptors] = useState<readonly StemDescriptor[]>([])
   const [exportError, setExportError] = useState<string>()
+  const [gateReason, setGateReason] = useState<MintFailureReason>()
 
   // The PCM-backed view of the separated stems, derived from the engine's
   // buffers (zero-copy channel views). Computed on demand — consumers are all
@@ -162,9 +175,28 @@ export function useSeparation(
     return committed
   }
 
-  function separate(
+  async function separate(
     audio: DecodedAudio
   ): Promise<SeparationResult | undefined> {
+    setGateReason(undefined)
+    // Gate first (offload only, M1.3): a token failure blocks the run — the
+    // 42 MB upload never starts — and the shell opens the account menu on the
+    // reason. The busy face goes up BEFORE the gate's mint round-trip (R.3).
+    if (isAnalysisOffloaded()) {
+      const runId = ++runIdRef.current
+      dispatch({ type: 'start' })
+      const gated = await gate()
+      // A cancel (or a newer run) during the mint bumped the token — this
+      // superseded run must not start the separator when the gate resolves.
+      if (runIdRef.current !== runId) {
+        return undefined
+      }
+      if (!gated.ok) {
+        setGateReason(gated.reason)
+        dispatch({ type: 'reset' })
+        return undefined
+      }
+    }
     return run(audio, engine)
   }
 
@@ -251,6 +283,7 @@ export function useSeparation(
     runIdRef.current++
     setDescriptors([])
     setExportError(undefined)
+    setGateReason(undefined)
     dispatch({ type: 'reset' })
   }
 
@@ -266,6 +299,7 @@ export function useSeparation(
     exportError,
     dismissExportError: () => setExportError(undefined),
     cancel,
-    reset
+    reset,
+    gateReason
   }
 }

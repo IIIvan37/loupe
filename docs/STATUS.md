@@ -632,9 +632,23 @@ JWT/mint que les détections, aucun schéma Supabase touché ; garde-fou beta =
 plafond de dépense Modal. Gate **verte**, Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-m12-separation-quota-cost.md).
 
-**Prochain : M1.3** (séparation sur Modal — router `separation` dans
-`modal_app.py`, NDJSON + AbortSignal, transport mesuré, timeout 900→1800 s) ;
-les 🟢 v5 au fil de l'eau.
+**M1.3 — séparation sur Modal (PR à ouvrir)** : router `separation` monté dans
+`modal_app.py` (poids htdemucs_6s bakés, warm `@modal.enter`, timeout 1800 s,
+CORS GET, **`max_containers=1` + concurrence 8** — affinité disque des stems +
+garde-fou de dépense M1.2), déployé v6. Côté web : bearer sur `/separate` ET
+les GET `/stems` (`tokenProvider` de `createHttpSeparator`), `create-separator`
+→ `ANALYSIS_URL`, gate `ensureAnalysisToken` dans `useSeparation` (gateReason →
+menu compte), séparation dé-gatée de la santé locale en offload (X.1 étendu).
+`gateReasonsOf` extrait vers `app/account/gate-reasons.ts` (budget
+react-doctor). **Vérif réelle** (serveur local éteint) : séparation complète
+sur Modal, six stems même job en HTTPS, **~65 s** clic→mixer (piste synthétique
+zstd-compressible — mesurer le transport sur de la vraie musique), **abort
+bout-en-bout confirmé** sous réseau ralenti (`net::ERR_ABORTED`). Gate
+**verte — 1640 tests** (+11), pytest 233, Stryker skippé (core intouché).
+[rapport](sessions/2026-07-16-m13-separation-modal.md).
+
+**Prochain : M1.4** (santé par endpoint effectif + UX hors-ligne + narration
+cold start sur les quatre opérations offloadées) ; les 🟢 v5 au fil de l'eau.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
