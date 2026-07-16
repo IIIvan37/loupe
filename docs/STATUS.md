@@ -620,8 +620,21 @@ dé-gatés de la santé locale en offload, cold-start narré. Refacto `ShellAnal
 **verte — 1629 tests** (+22), pytest 231, **Stryker skippé (core intouché)**.
 [rapport](sessions/2026-07-16-m11-tempo-chords-modal.md).
 
-**Prochain : M1.2** (modèle quota/coût de la séparation — mesure GPU + décision
-produit avant M1.3) ; les 🟢 v5 au fil de l'eau.
+**M1.2 — modèle quota/coût de la séparation (mesure + décision, PR à ouvrir)** :
+spike `server/modal_separation_spike.py` (même moule que le spike structure,
+mix synthétique généré dans le conteneur). Mesuré : htdemucs_6s sur L4, piste
+210 s → **4,7 s à chaud** (~47× temps réel), 16,2 s à froid, **0,57 GB de
+VRAM** (pas d'A10G, même conteneur que M1.1 possible) ; soit **~$0.001 par
+séparation à chaud** au tarif L4 — la prémisse « plusieurs ordres de grandeur
+au-dessus d'une analyse » est réfutée (~10×, sub-cent). **Décision (validée
+2026-07-16) : quota unique inchangé** — la séparation consommera le même gate
+JWT/mint que les détections, aucun schéma Supabase touché ; garde-fou beta =
+plafond de dépense Modal. Gate **verte**, Stryker skippé (core intouché).
+[rapport](sessions/2026-07-16-m12-separation-quota-cost.md).
+
+**Prochain : M1.3** (séparation sur Modal — router `separation` dans
+`modal_app.py`, NDJSON + AbortSignal, transport mesuré, timeout 900→1800 s) ;
+les 🟢 v5 au fil de l'eau.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
