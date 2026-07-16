@@ -113,10 +113,13 @@ export function createWebAudioPlayback(): PlaybackEngine {
     },
 
     unload(): void {
-      // Drop the decoded buffer (the point: ~85 MB float32 for a 4-min track)
-      // without emitting — the caller owns where the shared playhead sits.
-      // Bumping loadId makes unload part of last-load-wins: an in-flight
-      // load must not re-materialise the buffer after this.
+      // Drop the engine's buffer without emitting — the caller owns where the
+      // shared playhead sits. When the buffer is the engine's own copy (UAs
+      // where the V.5 decode-buffer share is disabled) this reclaims ~85 MB
+      // float32 for a 4-min track; with the share it only releases the
+      // reference (`loadedAudio` pins the storage either way). Bumping loadId
+      // makes unload part of last-load-wins: an in-flight load must not
+      // re-materialise the buffer after this.
       loadId += 1
       stopSource()
       buffer = undefined

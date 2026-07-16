@@ -184,8 +184,10 @@ export function useTransportEngines({
     const at = position.get()
     if (stemsActive) {
       stemPlayback.seekTo(at)
-      // The mix drives the transport now: the track engine's buffer (~85 MB
-      // of float32 for 4 min) is dead weight until a hand-back — release it.
+      // The mix drives the transport now: the track engine's buffer is dead
+      // weight until a hand-back — release it. (Real reclamation — ~85 MB of
+      // float32 for 4 min — on UAs where the engine had to copy; a reference
+      // drop when it plays the shared decode buffer, V.5.)
       playback.unload()
     } else {
       // Reload lazily from the kept PCM (when there is none — mid-import — the
