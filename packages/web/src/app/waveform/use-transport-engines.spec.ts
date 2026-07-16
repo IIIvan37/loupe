@@ -1,5 +1,10 @@
 // @vitest-environment jsdom
-import type { LoopRegion, PlaybackEngine, StemPlaybackEngine } from '@app/core'
+import type {
+  DecodedAudio,
+  LoopRegion,
+  PlaybackEngine,
+  StemPlaybackEngine
+} from '@app/core'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import {
@@ -22,6 +27,7 @@ function fakePlayback() {
     seekTo: vi.fn(),
     setTimeRatio: vi.fn(),
     setPitchSemitones: vi.fn(),
+    unload: vi.fn(),
     onPositionChange: (listener) => {
       listeners.add(listener)
       return () => listeners.delete(listener)
@@ -50,15 +56,20 @@ function fakeStemPlayback() {
   return { engine, emit: base.emit }
 }
 
-type Props = Omit<TransportEnginesParams, 'playback' | 'stemPlayback'>
+type Props = Omit<
+  TransportEnginesParams,
+  'playback' | 'stemPlayback' | 'trackAudio'
+>
 
 function mount(
   playback: PlaybackEngine,
   stemPlayback: StemPlaybackEngine,
-  initial: Props
+  initial: Props,
+  trackAudio: () => DecodedAudio | undefined = () => undefined
 ) {
   return renderHook(
-    (props: Props) => useTransportEngines({ playback, stemPlayback, ...props }),
+    (props: Props) =>
+      useTransportEngines({ playback, stemPlayback, trackAudio, ...props }),
     { initialProps: initial }
   )
 }
@@ -270,5 +281,123 @@ describe('useTransportEngines', () => {
     expect(stem.engine.pause).toHaveBeenCalled()
     expect(stem.engine.seekTo).toHaveBeenCalledWith(5)
     expect(result.current.transport.isPlaying).toBe(false)
+  })
+})
+
+describe('useTransportEngines — track engine unload across the hand-off (V.2)', () => {
+  const audio: DecodedAudio = { sampleRate: 8, channels: [[0, 1, -1, 0]] }
+  const props = (stemsActive: boolean): Props => ({
+    stemsActive,
+    loopRegion: undefined,
+    loopEnabled: false
+  })
+
+  /** Mount at the track, move the playhead to 5 s, then hand off to the mix. */
+  function handOff(
+    pb: ReturnType<typeof fakePlayback>,
+    stem: ReturnType<typeof fakeStemPlayback>,
+    trackAudio: () => DecodedAudio | undefined = () => audio
+  ) {
+    const view = mount(pb.engine, stem.engine, props(false), trackAudio)
+    act(() => {
+      view.result.current.dispatch({ type: 'load', durationSeconds: 10 })
+      view.result.current.dispatch({ type: 'seek', toSeconds: 5 })
+    })
+    view.rerender(props(true))
+    return view
+  }
+
+  it('releases the track engine audio when the mix takes over', () => {
+    const pb = fakePlayback()
+    handOff(pb, fakeStemPlayback())
+
+    expect(pb.engine.unload).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not release anything on mount', () => {
+    const pb = fakePlayback()
+    mount(pb.engine, fakeStemPlayback().engine, props(true), () => audio)
+
+    expect(pb.engine.unload).not.toHaveBeenCalled()
+  })
+
+  it('reloads the kept track audio when the transport hands back', () => {
+    const pb = fakePlayback()
+    const view = handOff(pb, fakeStemPlayback())
+
+    view.rerender(props(false))
+
+    expect(pb.engine.load).toHaveBeenCalledWith(audio)
+  })
+
+  it('restores the playhead on the track engine once the reload resolves', async () => {
+    const pb = fakePlayback()
+    const view = handOff(pb, fakeStemPlayback())
+
+    view.rerender(props(false))
+    await act(async () => {})
+
+    expect(pb.engine.seekTo).toHaveBeenCalledWith(5)
+  })
+
+  it('does not seek the track engine before the reload resolves', () => {
+    const pb = fakePlayback()
+    // A reload that never resolves: the seek must be waiting on it.
+    pb.engine.load = vi.fn(() => new Promise<void>(() => {}))
+    const view = handOff(pb, fakeStemPlayback())
+
+    view.rerender(props(false))
+
+    expect(pb.engine.seekTo).not.toHaveBeenCalled()
+  })
+
+  it('skips the playhead restore when a new track took over during the reload', async () => {
+    const pb = fakePlayback()
+    let resolveLoad!: () => void
+    pb.engine.load = vi.fn(
+      () => new Promise<void>((resolve) => (resolveLoad = resolve))
+    )
+    let current: DecodedAudio | undefined = audio
+    const view = handOff(pb, fakeStemPlayback(), () => current)
+
+    view.rerender(props(false))
+    // A fresh import replaces the kept PCM while the reload is in flight.
+    current = { sampleRate: 8, channels: [[1, 0]] }
+    await act(async () => resolveLoad())
+
+    expect(pb.engine.seekTo).not.toHaveBeenCalled()
+  })
+
+  it('skips the playhead restore when the mix re-took the transport during the reload', async () => {
+    const pb = fakePlayback()
+    let resolveLoad!: () => void
+    pb.engine.load = vi.fn(
+      () => new Promise<void>((resolve) => (resolveLoad = resolve))
+    )
+    const view = handOff(pb, fakeStemPlayback())
+
+    view.rerender(props(false))
+    view.rerender(props(true))
+    await act(async () => resolveLoad())
+
+    expect(pb.engine.seekTo).not.toHaveBeenCalled()
+  })
+
+  it('hands back plainly when no track audio is kept', () => {
+    const pb = fakePlayback()
+    const view = handOff(pb, fakeStemPlayback(), () => undefined)
+
+    view.rerender(props(false))
+
+    expect(pb.engine.seekTo).toHaveBeenCalledWith(5)
+  })
+
+  it('does not reload when no track audio is kept', () => {
+    const pb = fakePlayback()
+    const view = handOff(pb, fakeStemPlayback(), () => undefined)
+
+    view.rerender(props(false))
+
+    expect(pb.engine.load).not.toHaveBeenCalled()
   })
 })

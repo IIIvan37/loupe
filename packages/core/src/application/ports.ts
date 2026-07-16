@@ -36,6 +36,13 @@ export interface PlaybackEngine {
   setTimeRatio(ratio: number): void
   /** Transpose by a whole number of semitones, without changing tempo. */
   setPitchSemitones(semitones: number): void
+  /**
+   * Release the loaded track's audio. The engine goes inert (play/seek are
+   * no-ops) but keeps its transport settings; a later `load` brings it back.
+   * Lets a caller drop the single-track PCM while another engine (the stem
+   * mix) drives the transport.
+   */
+  unload(): void
   /** Subscribe to position updates (seconds). Returns an unsubscribe function. */
   onPositionChange(listener: (seconds: number) => void): () => void
 }

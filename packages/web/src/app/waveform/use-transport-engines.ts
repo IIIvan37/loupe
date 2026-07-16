@@ -1,5 +1,6 @@
 import {
   completesLoopPass,
+  type DecodedAudio,
   initialTransport,
   type LoopRegion,
   type PlaybackEngine,
@@ -47,6 +48,12 @@ export interface TransportEnginesParams {
   readonly stemPlayback: StemPlaybackEngine
   /** Whether the multitrack mix drives the transport (vs the single track). */
   readonly stemsActive: boolean
+  /**
+   * The kept PCM of the single track. The hand-off to the mix unloads the
+   * track engine (its buffer is dead weight while the mix plays — V.2); the
+   * hand-back reads this to reload it lazily before restoring the playhead.
+   */
+  readonly trackAudio: () => DecodedAudio | undefined
   /** The live A/B loop — playback wraps to its start when it reaches the end. */
   readonly loopRegion: LoopRegion | undefined
   readonly loopEnabled: boolean
@@ -67,6 +74,7 @@ export function useTransportEngines({
   playback,
   stemPlayback,
   stemsActive,
+  trackAudio,
   loopRegion,
   loopEnabled,
   onLoopWrap
@@ -103,6 +111,9 @@ export function useTransportEngines({
   // end must stop playback, which used to be the reducer's 'tick' job.
   const durationRef = useLatest(transport.durationSeconds)
   const isPlayingRef = useLatest(transport.isPlaying)
+  // The kept PCM, read at hand-back time (never a dep — the hand-off effect
+  // must fire on engine switches only, not on imports).
+  const trackAudioRef = useLatest(trackAudio)
 
   /** The engine the transport currently drives (the stem mix or the track). */
   const active = (): TransportControls =>
@@ -173,8 +184,29 @@ export function useTransportEngines({
     const at = position.get()
     if (stemsActive) {
       stemPlayback.seekTo(at)
+      // The mix drives the transport now: the track engine's buffer (~85 MB
+      // of float32 for 4 min) is dead weight until a hand-back — release it.
+      playback.unload()
     } else {
-      playback.seekTo(at)
+      const audio = trackAudioRef.current()
+      if (audio) {
+        // Reload lazily from the kept PCM, then restore the playhead — but
+        // only if this hand-back still owns the engine: a new import (the PCM
+        // changed) or a re-hand-off may have superseded the reload in flight.
+        playback
+          .load(audio)
+          .then(() => {
+            if (trackAudioRef.current() === audio && !stemsActiveRef.current) {
+              playback.seekTo(at)
+            }
+          })
+          .catch(() => {
+            // A failed reload leaves the engine inert; play() is a no-op and
+            // the user recovers by re-importing — nothing to surface here.
+          })
+      } else {
+        playback.seekTo(at)
+      }
     }
     dispatch({ type: 'pause' })
   }, [stemsActive, playback, stemPlayback, dispatch, position])
