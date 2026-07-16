@@ -404,27 +404,30 @@ tué, 1 équivalent documenté). NB shell : détection résolue ⇒ seek via le
 [rapport](sessions/2026-07-15-t3-navigable-chart.md).
 **T.1–T.3 clos.**
 
-**En cours : V.1 — upload d'analyse mono + 24 kHz (branche
-`feat/v1-analysis-upload`, PR à ouvrir).** Les trois détections uploadaient le
-mix stéréo 44,1 kHz (~42 MB / 4 min) alors que chaque endpoint replie en mono
-et rééchantillonne. **Core** : `downmixToMono` pur (promu du `mixToMono` privé
-de `buildTrack`, TDD + property test, rejette vide et canaux inégaux).
-**Web** : `encodeAnalysisWav` (seam testable, resampler injectable) +
-`encodeAnalysisWavMemo` (WeakMap par `DecodedAudio`, éviction sur rejet) —
-fold mono → 24 kHz via `resample-mono.ts` (humble OfflineAudioContext,
-réutilise `audioBufferFrom`) ; **le resample ne fait jamais échouer une
-détection** (zéro-frame jamais rendu, échec → repli taux source) ;
-`postWavForJson` branché dessus (`/tempo` `/chords` `/structure`),
-`/separate` garde le plein débit. **Mesuré** (The Logical Song 4:09) :
-44 042 028 → **11 984 258 octets (3,67×)**, résultats identiques octet pour
-octet sur `/tempo` et `/chords` (182/182 spans) ; browser-verify avant/après
-revue. Revue 8 angles + 3 vérificateurs → 8 fixés, 3 réfutés documentés
-(hi-res, double-resample accords, parité float32). Au passage : reporter
-Stryker `json` (fini le parsing HTML — `jq` sur
-`reports/mutation/mutation.json`). Gate **verte — 1521 tests** (+14),
-**Stryker 93,93 %** (`downmix.ts` : 1 mutant équivalent documenté).
+**V.1 — upload d'analyse mono + 24 kHz mergé (PR #156)** : uploads de
+détection 3,67× plus légers, résultats identiques octet pour octet →
 [rapport](sessions/2026-07-16-v1-analysis-upload.md).
-**Prochain : V.2** (décharger le moteur mono-piste après hand-off stems).
+
+**En cours : V.2 — unload du moteur mono-piste au hand-off stems (branche
+`feat/v2-engine-unload`, PR à ouvrir).** Après le seat automatique du
+métronome, l'AudioBuffer du moteur mono-piste (~85 MB float32 / 4 min)
+restait résident à jamais. **Core** : `unload()` sur le port `PlaybackEngine`
+(interface seule — moteur inerte, réglages gardés, `load` réarme). **Hook** :
+le hand-off appelle `unload()`, le hand-back **recharge paresseusement**
+depuis `trackAudio` (valeur simple via `useLatest`) puis remet le moteur à
+l'état VIVANT : seek sur `position.get()` et reprise du play s'il a été
+pressé pendant le reload ; gardes anti-course (PCM changé / re-hand-off en
+vol → restore sauté). **Adapter** : `unload()` + last-load-wins (`loadId`
+bumpé par `load` ET `unload` — un reload supplanté ne re-matérialise jamais
+le buffer). **Browser-verify A/B (motif L.3)** : parcours identique sur main
+et branche, heap snapshot Chrome : **7 AudioBuffers → 6** (le buffer ≈ 88 MB
+libéré ; NB `usedJSHeapSize` aveugle — compter les AudioBuffers). Revue
+8 angles → 5 fixés, 4 écartés documentés (dont : memo AudioBuffer au
+décodeur = piste plus profonde différée, ferait aussi gagner ~85 MB en mode
+piste). Gate **verte — 1532 tests** (+11), Stryker skippé (core = interface
+seule). [rapport](sessions/2026-07-16-v2-engine-unload.md).
+**Prochain : V.3** (warm des modèles au démarrage local) ou **V.4** (playhead
+en `transform`) ; W.3–W.5 restent.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
