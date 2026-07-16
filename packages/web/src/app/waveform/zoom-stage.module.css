@@ -29,9 +29,13 @@
 .playhead {
   position: absolute;
   inset-block: 0;
+  /* Anchored at 0 and moved by translateX only (V.4) — compositor-only
+     motion, no per-frame layout. `left` pairs with the physical translateX. */
+  left: 0;
   width: 2px;
   margin-inline-start: -1px;
   background: var(--amber);
   pointer-events: none;
   z-index: var(--z-playhead);
+  will-change: transform;
 }
