@@ -25,8 +25,28 @@
 .amberButton:active:not(:disabled),
 .ghostButton:active:not(:disabled),
 .quietButton:active:not(:disabled),
-.confirmFace:active:not(:disabled) {
+.confirmFace:active:not(:disabled),
+.secondaryAction:active:not(:disabled) {
   transform: translateY(1px);
+}
+
+/* The neutral outlined action (header buttons, import-menu trigger, account
+   chip): face + feedback only — consumers add their own dimensions. */
+.secondaryAction {
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+}
+
+.secondaryAction:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  background: var(--panel-2);
+}
+
+.secondaryAction:disabled {
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
 }
 
 .ghostButton {
@@ -193,4 +213,27 @@
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: var(--tracking-label);
+}
+
+/* One skin for a rendered keyboard key (<kbd>): empty-state hints and the
+   shortcuts dialog show the same keys seconds apart, so they share the chip.
+   The dialog variant only sizes up on its roomier surface. */
+.kbd {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: var(--space-3xs) var(--space-2xs);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  text-align: center;
+}
+
+.kbdDialog {
+  composes: kbd;
+  padding-inline: var(--space-xs);
+  background: var(--panel-3);
+  font-size: var(--font-size-s);
 }

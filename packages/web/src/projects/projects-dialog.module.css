@@ -90,12 +90,3 @@
   color: var(--danger);
   font-size: var(--font-size-xs);
 }
-
-/* Visible keyboard focus on every row action (same ring as the app baseline). */
-.open:focus-visible,
-.rename:focus-visible,
-.delete:focus-visible,
-.confirmAction:focus-visible {
-  outline: 2px solid var(--amber);
-  outline-offset: 2px;
-}

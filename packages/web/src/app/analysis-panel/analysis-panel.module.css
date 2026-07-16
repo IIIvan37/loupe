@@ -40,12 +40,6 @@
   border-block-end-color: var(--amber);
 }
 
-/* Visible keyboard focus (baseline ring). */
-.tab:focus-visible {
-  outline: 2px solid var(--amber);
-  outline-offset: 2px;
-}
-
 .tabPanel {
   padding-block-start: var(--space-m);
   color: var(--dim);

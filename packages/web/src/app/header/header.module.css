@@ -75,32 +75,13 @@
 
 /* The header actions wear the shared control skins (single source of truth in
    controls.module.css) plus a comfortable tap strip on coarse pointers; each
-   adds only its own dimensions. The neutral outlined face (.secondaryAction) is
-   the header's own — it isn't the amber/ghost skins, so it stays local; the
-   destructive confirm wears the shared .confirmFace. The keyboard focus ring is the
-   global :focus-visible / [data-on-amber] baseline (no per-button re-declare). */
+   adds only its own dimensions. The neutral outlined face and the destructive
+   confirm are the shared .secondaryAction / .confirmFace. The keyboard focus
+   ring is the global :focus-visible / [data-on-amber] baseline (no per-button
+   re-declare). */
 .secondaryAction {
-  composes: touchTarget from '../ui/controls.module.css';
+  composes: secondaryAction touchTarget from '../ui/controls.module.css';
   padding: var(--space-2xs) var(--space-m);
-  border-radius: var(--radius);
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--text);
-}
-
-.secondaryAction:hover:not(:disabled) {
-  border-color: var(--line-strong);
-  background: var(--panel-2);
-}
-
-/* Pressed feedback — same 1px dip as the shared skins (controls.module.css). */
-.secondaryAction:active:not(:disabled) {
-  transform: translateY(1px);
-}
-
-.secondaryAction:disabled {
-  opacity: var(--disabled-opacity);
-  cursor: not-allowed;
 }
 
 .primaryAction {

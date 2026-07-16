@@ -5,7 +5,7 @@
   /* Gutter for the head time signature (mockup: the stacked 4-over-4 sits
    * left of the first system's opening barline). Reserved on every sheet so
    * the grid never shifts when a meter is detected mid-session. */
-  padding-left: var(--space-l);
+  padding-inline-start: var(--space-l);
 }
 
 /* ——— The chart head: key/tempo line, title + artist, meta line. ——— */
@@ -27,7 +27,7 @@
 
 /* The tempo sits top-right even when no key line shares the row. */
 .chartTempo {
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .chartTitle {
@@ -80,7 +80,7 @@
   position: relative;
   display: grid;
   grid-template-columns: repeat(var(--bars-per-row, 4), minmax(0, 1fr));
-  border-left: 3px double var(--text);
+  border-inline-start: 3px double var(--text);
 }
 
 /* ——— Time signature as stave notation: numerator over denominator. ——— */
@@ -98,11 +98,11 @@
  * barline — centered on the row's first line of bars (3rem min-height). */
 .headSignature {
   position: absolute;
-  right: 100%;
-  top: 0;
+  inset-inline-end: 100%;
+  inset-block-start: 0;
   height: 3rem;
   justify-content: center;
-  padding-right: var(--space-3xs);
+  padding-inline-end: var(--space-3xs);
   font-size: var(--font-size-m);
 }
 
@@ -117,7 +117,7 @@
   /* The box renders as a <button> when the sheet is navigable (tap-to-seek):
      strip the UA button skin so both faces wear the same bar. */
   border: 0;
-  border-right: 1px solid var(--text);
+  border-inline-end: 1px solid var(--text);
   background: none;
   font: inherit;
   color: inherit;
@@ -131,14 +131,14 @@ button.measure {
 
 /* |: and :| — the double bar plus its two dots, drawn at the measure edge. */
 .measure[data-repeat-start] {
-  border-left: 3px double var(--text);
+  border-inline-start: 3px double var(--text);
 }
 
 .measure[data-repeat-start]::before,
 .measure[data-repeat-end]::after {
   content: ':';
   position: absolute;
-  top: 50%;
+  inset-block-start: 50%;
   transform: translateY(-60%);
   font-family: var(--font-chart);
   font-size: var(--font-size-l);
@@ -146,49 +146,49 @@ button.measure {
 }
 
 .measure[data-repeat-start]::before {
-  left: var(--space-3xs);
+  inset-inline-start: var(--space-3xs);
 }
 
 .measure[data-repeat-end] {
-  border-right: 3px double var(--text);
+  border-inline-end: 3px double var(--text);
 }
 
 .measure[data-repeat-end]::after {
-  right: var(--space-3xs);
+  inset-inline-end: var(--space-3xs);
 }
 
 /* A volta measure carries the bracket line; the number prints once, where
  * the group opens. */
 .volta {
-  border-top: 1px solid var(--text);
+  border-block-start: 1px solid var(--text);
 }
 
 /* The chart-hand annotations share one recipe; each mark only picks its
  * corner and size. */
 .annotation {
   position: absolute;
-  top: var(--space-3xs);
+  inset-block-start: var(--space-3xs);
   font-family: var(--font-chart);
   color: var(--text);
 }
 
 .voltaLabel {
   composes: annotation;
-  left: var(--space-3xs);
+  inset-inline-start: var(--space-3xs);
   font-size: var(--font-size-xs);
 }
 
 /* D.C. / Fine sit over the bar closing their measure, chart-hand small. */
 .formMark {
   composes: annotation;
-  right: var(--space-3xs);
+  inset-inline-end: var(--space-3xs);
   font-size: var(--font-size-s);
 }
 
 /* The ⊕ sign opening the coda. */
 .codaSign {
   composes: annotation;
-  left: var(--space-3xs);
+  inset-inline-start: var(--space-3xs);
   font-size: var(--font-size-m);
 }
 
@@ -196,23 +196,23 @@ button.measure {
  * over. Same stave notation as the head signature, annotation-small. */
 .meterSign {
   position: absolute;
-  top: var(--space-3xs);
-  left: var(--space-3xs);
+  inset-block-start: var(--space-3xs);
+  inset-inline-start: var(--space-3xs);
   font-size: var(--font-size-xs);
 }
 
 /* The fermata over its held measure. */
 .fermata {
   composes: annotation;
-  top: 0;
-  left: 50%;
+  inset-block-start: 0;
+  inset-inline-start: 50%;
   transform: translateX(-50%);
   font-size: var(--font-size-m);
   line-height: 1;
 }
 
 .measure:last-child {
-  border-right: 3px double var(--text);
+  border-inline-end: 3px double var(--text);
 }
 
 /* The measure under the playhead — the amber « what plays » wash, readable in
@@ -247,6 +247,6 @@ button.measure {
 /* The slash bass tucks under the head, shifted right — the mockup's stack. */
 .glyphBass {
   align-self: flex-end;
-  margin-top: -0.15em;
+  margin-block-start: -0.15em;
   font-size: 0.65em;
 }

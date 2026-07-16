@@ -467,7 +467,18 @@ absolus (`rem`/`px`) hors tokens.css — les ratios `em` restent légaux
 (relatifs au contexte, pas à l'échelle), verrou testé en négatif. Gate
 **verte — 1537 tests**, Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-w4-chart-type-scale.md).
-**Prochain : W.5** (dernier du lot W), ou la prochaine évaluation notée.
+**W.4 mergé (PR #162).**
+**W.5 — basses design groupées (branche `feat/w5-grouped-lows`, PR à ouvrir) —
+LOT W CLOS** : `.kbd` et la face `.secondaryAction` promus dans
+controls.module.css (le trigger AccountMenu gagne le dip `:active` ; rangées
+projects-dialog volontairement locales), `styles.section` fantôme retiré +
+check `styles.X ↔ classes` dans check-css-tokens.sh (testé en négatif), les
+8 focus rings identiques à la baseline supprimés (le `-2px` d'import-menu
+commenté), reliquats O.2 soldés (`--tracking-label` sur `.sub`,
+`--space-3xs` sur `.tag`, lead-sheet en propriétés logiques). Vérifs
+navigateur (chips kbd, dip partagé). Gate **verte — 1537 tests**, Stryker
+skippé (core intouché). [rapport](sessions/2026-07-16-w5-grouped-lows.md).
+**Prochain : reste de la roadmap v4 ou évaluation notée v5.**
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

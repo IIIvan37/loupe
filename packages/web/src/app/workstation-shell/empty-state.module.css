@@ -37,7 +37,7 @@
 .sub {
   margin: 0;
   font-size: var(--font-size-s);
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--dim);
 }
@@ -64,16 +64,7 @@
 }
 
 .kbd {
-  display: inline-block;
-  min-width: 1.5rem;
-  padding: var(--space-3xs) var(--space-2xs);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--panel-2);
-  color: var(--text);
-  font-family: var(--font-mono, monospace);
-  font-size: var(--font-size-xs);
-  text-align: center;
+  composes: kbd from '../ui/controls.module.css';
 }
 
 .desc {
