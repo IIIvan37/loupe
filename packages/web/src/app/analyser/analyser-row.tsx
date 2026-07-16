@@ -20,6 +20,7 @@ import {
   SEPARATION_SERVER_BLOCK,
   STRUCTURE_ERROR_COPY,
   STRUCTURE_NEEDS_SERVER,
+  STRUCTURE_OFFLOAD_UNREACHABLE,
   TEMPO_ERROR_COPY
 } from './detection-copy.ts'
 import styles from './analyser-row.module.css'
@@ -78,9 +79,10 @@ export interface StructureDetectionControl {
   readonly onDetect: () => void
   /** Abort the in-flight detection (the busy face's « Annuler »). */
   readonly onCancel: () => void
-  /** Whether the run may hit the offload's cold start (~1 min) — the busy
-   * face then explains the wait once it grows suspicious (R.3). */
-  readonly mayColdStart: boolean
+  /** Whether the engine runs on the offload — the busy face then explains a
+   * suspicious wait as a cold start (R.3), and a `network` failure names the
+   * analysis service instead of the local server (X.1). */
+  readonly offloaded: boolean
 }
 
 /** The chord-detection surface the shell wires in. */
@@ -153,12 +155,20 @@ export function AnalyserRow({
             id: 'structure.detect-confirm',
             message: 'Remplacer les repères de structure ?'
           })
+  // `network` names what actually failed to answer: the offloaded analysis
+  // service, or the local server (X.1).
+  const structureErrorCopy =
+    structure.error === 'network' && structure.offloaded
+      ? STRUCTURE_OFFLOAD_UNREACHABLE
+      : structure.error !== undefined
+        ? STRUCTURE_ERROR_COPY[structure.error]
+        : undefined
   const structureFailure =
-    structure.error !== undefined
+    structureErrorCopy !== undefined
       ? `${t({
           id: 'structure.detect-failed',
           message: 'Échec de la détection de la structure'
-        })} — ${t(STRUCTURE_ERROR_COPY[structure.error])}`
+        })} — ${t(structureErrorCopy)}`
       : undefined
   const structureAnnounced = structure.detecting
     ? t({ id: 'structure.detecting', message: 'Détection de la structure…' })
@@ -263,7 +273,7 @@ export function AnalyserRow({
             onCancel: structure.onCancel,
             // The wait becomes explained instead of worrying: after ~4 s the
             // line says the engine itself may be starting up.
-            detail: structure.mayColdStart
+            detail: structure.offloaded
               ? t({
                   id: 'structure.cold-start',
                   message:

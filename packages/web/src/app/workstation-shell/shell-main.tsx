@@ -322,11 +322,13 @@ export function ShellMain({
                 (grid ?? []).some((beat) => beat.downbeat),
               onDetect: () => void structureDetection.detect(),
               onCancel: structureDetection.cancel,
-              mayColdStart: isAnalysisOffloaded(),
-              // The structure engine only needs the server to ANSWER (it runs
-              // on CPU); no grid is required, so 'server' is the only block.
+              offloaded: isAnalysisOffloaded(),
+              // The local health probe only gates the LOCAL engine (X.1):
+              // offloaded, the button stays live (probing Modal would
+              // cold-start the billed container), errors speak at click time.
               blockedReason:
-                serverHealth === 'offline' || serverHealth === 'checking'
+                !isAnalysisOffloaded() &&
+                (serverHealth === 'offline' || serverHealth === 'checking')
                   ? 'server'
                   : undefined
             }}

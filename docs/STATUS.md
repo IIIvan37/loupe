@@ -533,8 +533,44 @@ déplacer une fréquence, jamais recâbler), `mixer.setFilter` session-only
 chaque fader (bord de slider = côté coupé). Browser-verify : filtrage en
 lecture réelle. Gate **verte — 1591 tests** (+6), Stryker skippé.
 [rapport](sessions/2026-07-16-t8b-stem-eq.md).
-**Prochain : évaluation notée v5** (roadmap v4 : séquencement validé
-entièrement livré).
+**Évaluation notée v5 (2026-07-16) — [feuille de route v5](roadmap-excellence-5.md).**
+Roadmap v4 entièrement livrée (Lots Q, R, T, U, V, W — PRs #137→#169). Revue
+multi-agents 6 axes, chaque constat vérifié adversarialement (35 constats,
+20 confirmés, 15 réfutés/déjà-tranchés). Note globale **17,2/20** (16,1 le
+2026-07-14) — tous les axes montent : qualité 18, fonctionnalités 17,5,
+esthétique 17, sécurité 17, ergonomie 17, performance 16,5. Les quatre
+déductions structurelles de la passe 4 sont vérifiées réellement soldées.
+Reste : cinq 🟠 moyens (gating/copy offload menteurs X.1, cul-de-sac
+d'annulation tempo X.2, régression hauteur header stems T.8b → Y.1,
+clic métronome dans la bande chroma Z.1, veille CVE Python AA.1) + une
+quinzaine de finitions basses, séquencés en Lots X, Y, Z, AA.
+
+**Cap produit acté (2026-07-16)** : client léger — migrer tout le calcul
+possible vers Modal (le serveur local devient optionnel) et porter le shell en
+app de bureau **Tauri**, pour tourner sur des machines peu puissantes. Premier
+pas : **AB.1** = plan de migration dédié (roadmap v5 § Cap) ; ne déplace pas
+les cinq 🟠. **Plan écrit : [client-leger-plan.md](client-leger-plan.md)**
+(projets locaux, Modal d'abord — M1.1 tempo+accords → M1.2/M1.3 séparation →
+M1.4 santé/hors-ligne —, puis Tauri T2.1–T2.5 ; yt-dlp en sidecar ; mobile =
+option gardée ouverte). **Séquencement validé (2026-07-16)** : les cinq 🟠 v5
+d'abord — X.1 en tête (prérequis de M1.1) —, AA.2 déplacé en T2.2, les 🟢 au
+fil de l'eau, puis Phase 1 Modal.
+
+**X.1 — structure dé-gatée du serveur local en mode offload (branche
+`feat/x1-offload-gating`, PR à ouvrir)** : `blockedReason` structure dérivé de
+`serverHealth` seulement quand l'analyse est locale (pas de sonde Modal — le
+conteneur facturé ne se réveille pas au chargement, l'erreur typée parle au
+clic), `mayColdStart` → `offloaded` (cold-start R.3 + choix de copy),
+nouvelle copy `structure.error.network-offload` (« Service d'analyse
+injoignable — réessayer. »). Browser-verify via le port 5174 (origin rejetée
+→ « Serveur hors ligne ») : structure active sans hint, voisins gatés
+inchangés. Gate **verte — 1595 tests** (+4), Stryker skippé (core intouché).
+[rapport](sessions/2026-07-16-x1-offload-gating.md).
+
+**Prochain : X.2** (face idle « Détecter le tempo » après annulation — le 2ᵉ
+des cinq 🟠, cf. roadmap v5).
+
+**Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

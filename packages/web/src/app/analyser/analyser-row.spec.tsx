@@ -61,7 +61,7 @@ function structureOf(
     hasGrid: false,
     onDetect: vi.fn(),
     onCancel: vi.fn(),
-    mayColdStart: false,
+    offloaded: false,
     ...overrides
   }
 }
@@ -349,7 +349,7 @@ describe('AnalyserRow structure', () => {
   it('explains a suspicious offloaded wait after a beat (cold start)', () => {
     vi.useFakeTimers()
     try {
-      renderRow({ structure: { detecting: true, mayColdStart: true } })
+      renderRow({ structure: { detecting: true, offloaded: true } })
       expect(
         screen.queryByText(i18n._('structure.cold-start'))
       ).not.toBeInTheDocument()
@@ -394,6 +394,31 @@ describe('AnalyserRow structure', () => {
         `${i18n._('structure.detect-failed')} — ${i18n._('structure.error.no-structure')}`
       ).length
     ).toBeGreaterThan(0)
+  })
+
+  it('prescribes the local server on a network failure of the local engine', () => {
+    renderRow({ structure: { error: 'network', offloaded: false } })
+    expect(
+      screen.getAllByText(
+        `${i18n._('structure.detect-failed')} — ${i18n._('structure.detect-needs-server')}`
+      ).length
+    ).toBeGreaterThan(0)
+  })
+
+  it('names the analysis service on a network failure of the offloaded engine', () => {
+    // X.1: « lancer le serveur local » is the WRONG remedy when the engine
+    // runs on the offload — the failure line must name the real dependency.
+    renderRow({ structure: { error: 'network', offloaded: true } })
+    expect(
+      screen.getAllByText(
+        `${i18n._('structure.detect-failed')} — ${i18n._('structure.error.network-offload')}`
+      ).length
+    ).toBeGreaterThan(0)
+    expect(
+      screen.queryByText(i18n._('structure.detect-needs-server'), {
+        exact: false
+      })
+    ).not.toBeInTheDocument()
   })
 })
 
