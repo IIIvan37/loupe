@@ -1,5 +1,5 @@
 import type { DecodedAudio } from '@app/core'
-import { encodeWavMemo } from './encode-wav-memo.ts'
+import { encodeAnalysisWavMemo } from './encode-analysis-wav-memo.ts'
 
 /**
  * A non-2xx answer, with the status kept machine-readable so an adapter can
@@ -76,8 +76,10 @@ export function rethrowTransportError(
 
 /**
  * The POST-a-mix-WAV-get-JSON skeleton the analysis adapters share
- * (`/tempo`, `/chords`): encode the loaded PCM (memoised per audio, shared
- * with `/separate`), upload it, fail loudly on a non-2xx answer. Each
+ * (`/tempo`, `/chords`, `/structure`): encode the loaded PCM as the mono,
+ * downsampled analysis WAV (memoised per audio — every endpoint folds and
+ * resamples anyway, so the smaller upload is free), upload it, fail loudly
+ * on a non-2xx answer. Each
  * adapter keeps only its response-shape guard and mapping — a protocol
  * change (auth, abort, error detail) lands once here.
  */
@@ -90,7 +92,7 @@ export async function postWavForJson(
    * (the Modal offload, J1). Omitted for the token-less local server. */
   token?: string
 ): Promise<unknown> {
-  const wav = encodeWavMemo(audio)
+  const wav = await encodeAnalysisWavMemo(audio)
   let response: Response
   try {
     response = await fetch(`${baseUrl}${path}`, {

@@ -1,5 +1,5 @@
 import type { DecodedAudio } from '@app/core'
-import { TempoDetectionError } from '@app/core'
+import { downmixToMono, encodeWav, TempoDetectionError } from '@app/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createHttpTempoDetector } from './http-tempo-detector.ts'
 
@@ -20,7 +20,7 @@ afterEach(() => {
 })
 
 describe('createHttpTempoDetector', () => {
-  it('posts the mix as a WAV to the tempo endpoint', async () => {
+  it('posts the mix as a mono analysis WAV to the tempo endpoint', async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       jsonResponse({
         bpm: 120,
@@ -34,7 +34,11 @@ describe('createHttpTempoDetector', () => {
     const [url, init] = fetchMock.mock.calls[0] ?? []
     expect(url).toBe('http://localhost:8000/tempo')
     expect(init?.method).toBe('POST')
-    expect(init?.body).toBeInstanceOf(Uint8Array)
+    // The analysis upload is the mono fold, not the full stereo mix (here at
+    // the source rate — this environment has no OfflineAudioContext).
+    expect(init?.body).toEqual(
+      encodeWav([downmixToMono(MIX.channels)], MIX.sampleRate)
+    )
   })
 
   it('forwards the abort signal to the fetch', async () => {

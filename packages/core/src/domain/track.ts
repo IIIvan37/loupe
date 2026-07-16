@@ -1,3 +1,4 @@
+import { downmixToMono } from './downmix.ts'
 import { buildWaveform, type Waveform } from './waveform.ts'
 
 /**
@@ -26,25 +27,10 @@ export function buildTrack(
   if (sampleRate <= 0) {
     throw new Error('sample rate must be positive')
   }
-  const mono = mixToMono(channels)
+  const mono = downmixToMono(channels)
   return {
     sampleRate,
     durationSeconds: mono.length / sampleRate,
     waveform: buildWaveform(mono, bucketCount)
   }
-}
-
-/** Average the channels sample-by-sample (a single channel averages with itself). */
-function mixToMono(channels: ReadonlyArray<ArrayLike<number>>): number[] {
-  // `buildTrack` has already rejected the empty case, so channel 0 exists.
-  const length = (channels[0] as ArrayLike<number>).length
-  const mono = new Array<number>(length)
-  for (let i = 0; i < length; i++) {
-    let sum = 0
-    for (const channel of channels) {
-      sum += channel[i] as number
-    }
-    mono[i] = sum / channels.length
-  }
-  return mono
 }
