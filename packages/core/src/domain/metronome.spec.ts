@@ -1,6 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import type { BeatGrid } from './beat-grid.ts'
+import { CHROMA_MAX_HZ } from './chroma.ts'
 import { buildCountIn, synthesizeClickTrack } from './metronome.ts'
 
 const sampleRate = 8000
@@ -95,6 +96,35 @@ describe('synthesizeClickTrack', () => {
       sampleRate
     })
     expect(samples.every((value) => value === 0)).toBe(true)
+  })
+
+  it('keeps both click tones above the chroma analysis band (Z.1)', () => {
+    // The Spectre tab folds everything audible onto pitch classes: a click
+    // inside its band paints a fake candidate note pulsing on every beat.
+    // Measured on the samples (zero crossings ≈ 2·f per second), not on the
+    // constants, so the invariant survives any rewrite of the synth.
+    const rate = 48000
+    const samples = synthesizeClickTrack({
+      beats: [
+        { timeSeconds: 0, downbeat: true },
+        { timeSeconds: 0.5, downbeat: false }
+      ],
+      durationSeconds: 1,
+      sampleRate: rate
+    })
+    const frames = Math.round(0.03 * rate)
+    const toneHz = (startSeconds: number): number => {
+      const start = Math.round(startSeconds * rate)
+      let crossings = 0
+      for (let i = start + 1; i < start + frames; i++) {
+        if ((samples[i - 1] ?? 0) * (samples[i] ?? 0) < 0) {
+          crossings++
+        }
+      }
+      return (crossings * rate) / (2 * frames)
+    }
+    expect(toneHz(0)).toBeGreaterThan(CHROMA_MAX_HZ)
+    expect(toneHz(0.5)).toBeGreaterThan(CHROMA_MAX_HZ)
   })
 })
 

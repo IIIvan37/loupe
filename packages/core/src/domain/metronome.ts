@@ -13,9 +13,13 @@ export interface ClickTrackOptions {
 const CLICK_SECONDS = 0.03
 /** Exponential decay rate of a click's envelope (per second). */
 const DECAY_PER_SECOND = 40
-/** Tone of an accented bar start vs a plain beat, in hertz. */
-const DOWNBEAT_HZ = 2000
-const BEAT_HZ = 1000
+/** Tone of an accented bar start vs a plain beat, in hertz. Both sit ABOVE
+ * the chroma band (CHROMA_MAX_HZ = 2100, chroma.ts): at 1000/2000 Hz the
+ * clicks folded onto the class B and painted a fake candidate note pulsing on
+ * every beat of the Spectre tab (Z.1). The percussive character lives in the
+ * envelope, not the pitch. */
+const DOWNBEAT_HZ = 3200
+const BEAT_HZ = 2400
 /** Peak amplitude of an accented bar start vs a plain beat. */
 const DOWNBEAT_GAIN = 1
 const BEAT_GAIN = 0.6

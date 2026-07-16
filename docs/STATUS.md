@@ -567,20 +567,45 @@ injoignable — réessayer. »). Browser-verify via le port 5174 (origin rejeté
 inchangés. Gate **verte — 1595 tests** (+4), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-x1-offload-gating.md).
 
-**X.2 en PR (#171), Y.1 en PR (#172), Z.1 en PR (#173)** — voir leurs
-rapports.
-**AA.1 — veille CVE pip (branche `feat/aa1-pip-advisories`, PR à ouvrir) —
+**X.1 mergé (PR #170).** ⚠️ **CI GitHub en panne de facturation** (jobs tués
+en 3 s, « recent account payments have failed ») — gate locale = seule
+vérification effective, backstop Stryker post-merge inopérant.
+**X.2 — relance après annulation du tempo mergé (PR #171)** : état `cancelled`
+sur `useTempo` (posé au cancel, effacé par detect/set/reset), l'item tempo
+garde une face idle « Détecter le tempo » (DetectionAction sur `onRetry`) au
+lieu de disparaître ; un cancel par-dessus un tempo posé garde « Tempo
+détecté ». Nouvel id `analyser.tempo-detect`. Gate **verte — 1602 tests**
+(+7), Stryker skippé (core intouché). NB : ShellMain à 300 lignes pile
+(budget react-doctor sans marge).
+[rapport](sessions/2026-07-16-x2-tempo-cancel-idle.md).
+**Y.1 — EQ par stem replié en popover (branche `feat/y1-stem-eq-popover`,
+PR #172)** : la rangée LC/HC qui débordait du header 48 px (régression T.8b)
+déménage dans un popover « EQ » par stem (trigger dans la ligne M/S, peau
+popover-form composée, z-index sur le Positioner) ; marque `data-filtered`
+ambre quand un filtre est actif. Checkpoint : repli choisi contre montée à
+64 px ; popover contre dépli en place (headers et lanes ne s'alignent que par
+hauteurs fixes). Browser-verify réel (click-track 120 BPM, métronome seaté) :
+48 px exacts, zéro overflow, LC 400 Hz → indicateur ambre. Gate **verte —
+1597 tests** (+2), Stryker skippé (core intouché).
+[rapport](sessions/2026-07-16-y1-stem-eq-popover.md).
+
+**Z.1 — clics métronome hors bande chroma (PR #173)** : BEAT/DOWNBEAT 1000/2000
+→ 2400/3200 Hz (les deux se repliaient sur B et peignaient une fausse note
+pulsante au Spectre) ; bornes `CHROMA_MIN_HZ`/`CHROMA_MAX_HZ` exportées et
+invariant TDD mesuré sur les échantillons (passages à zéro vs CHROMA_MAX_HZ).
+Browser-verify en lecture réelle (kick+nappe 120 BPM, métronome audible) :
+A=100 stable, B=1-2. Gate **verte — 1596 tests** (+1), **Stryker 93,90 %**.
+[rapport](sessions/2026-07-16-z1-click-out-of-chroma-band.md).
+
+**AA.1 — veille CVE pip (PR #174) —
 LES CINQ 🟠 v5 LIVRÉS** : bloc `pip` sur `/server` dans dependabot.yml
 (advisories signalées malgré le pinning strict ; bumps = PRs à arbitrer,
 fidèle à A.1 ; pin git madmom non couvert, documenté ; step pip-audit CI
 écarté — le pin git le casse au parsing).
 [rapport](sessions/2026-07-16-aa1-pip-advisories.md).
 
-**Prochain : merger #171/#172/#173/AA.1 (conflits STATUS triviaux), puis
-M1.1** (tempo+accords sur Modal — Phase 1 du
+**Prochain : M1.1** (tempo+accords sur Modal — Phase 1 du
 [plan client léger](client-leger-plan.md)) ; les 🟢 v5 au fil de l'eau.
-
-**Prochain : X.1** (les cinq 🟠 d'abord — cf. séquencement roadmap v5).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
