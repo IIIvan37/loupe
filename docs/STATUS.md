@@ -430,8 +430,19 @@ réelle sur le chemin fallback uniquement). Revue 3 finders → 3 fixés,
 4 écartés documentés (dont la race `addStem` à froid, préexistante,
 consignée en veille). Gate **verte — 1536 tests** (+4), Stryker skippé
 (core intouché). [rapport](sessions/2026-07-16-v5-audio-buffer-memo.md).
-**Prochain : V.3** (warm des modèles au démarrage local) ou **V.4** (playhead
-en `transform`) ; W.3–W.5 restent.
+**V.5 mergé (PR #158).**
+
+**En cours : V.3 — warm des modèles au démarrage local (branche
+`feat/v3-warm-models`, PR à ouvrir).** `app/warm.py` TDD (opt-out
+`LOUPE_WARM_MODELS=0`, loaders best-effort — un échec n'en bloque pas un
+autre, thread démon `model-warmup`), `warm()` public sur tempo/chords/structure
+(une ligne sur les getters double-check-lockés), `main.py` collecte les hooks
+des modules importés et lance le warm-up au lifespan après le GC de boot.
+Smoke réel : 3 modèles chauds en ~23 s, opt-out ⇒ pas de thread. Gate web
+**verte — 1536 tests**, serveur **231 pytest** (+10) coverage 98 %, Stryker
+skippé (core intouché).
+[rapport](sessions/2026-07-16-v3-warm-models.md).
+**Prochain : V.4** (playhead en `transform`) ; W.3–W.5 restent.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

@@ -53,17 +53,26 @@ from .netguard import LoopbackOnlyMiddleware, OriginGuardMiddleware
 from .origins import allowed_origins, env_list
 from .projects import collect_garbage
 from .projects import router as projects_router
+from .warm import Loader, start_model_warmup
 
 _DEFAULT_HOSTS = "localhost,127.0.0.1"
+
+# The `warm()` hooks of whichever detection modules imported successfully —
+# filled by the capability blocks below, consumed by the lifespan warm-up.
+_warm_loaders: list[Loader] = []
 
 
 @contextlib.asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     """Reclaim orphaned audio blobs on boot — the one moment nothing is in
     flight, so a manifest-scan GC can never race an upload. Best-effort: a
-    failed sweep must not stop the server from serving."""
+    failed sweep must not stop the server from serving. Then pre-build the
+    detection models on a daemon thread (V.3): tempo detection fires
+    automatically at import, so the first detection of a session would
+    otherwise pay the model load. Opt-out: LOUPE_WARM_MODELS=0."""
     with contextlib.suppress(Exception):
         collect_garbage()
+    start_model_warmup(_warm_loaders)
     yield
 
 
@@ -110,6 +119,7 @@ else:
 
 try:
     from .tempo import router as tempo_router
+    from .tempo import warm as tempo_warm
 except Exception as exc:  # noqa: BLE001 - torch/beat_this missing on this host
     _tempo_unavailable = f"tempo detection unavailable on this host: {exc}"
 
@@ -119,9 +129,11 @@ except Exception as exc:  # noqa: BLE001 - torch/beat_this missing on this host
         raise HTTPException(status_code=503, detail=_tempo_unavailable)
 else:
     app.include_router(tempo_router)
+    _warm_loaders.append(tempo_warm)
 
 try:
     from .chords import router as chords_router
+    from .chords import warm as chords_warm
 except Exception as exc:  # noqa: BLE001 - torch missing on this host
     _chords_unavailable = f"chord detection unavailable on this host: {exc}"
 
@@ -131,9 +143,11 @@ except Exception as exc:  # noqa: BLE001 - torch missing on this host
         raise HTTPException(status_code=503, detail=_chords_unavailable)
 else:
     app.include_router(chords_router)
+    _warm_loaders.append(chords_warm)
 
 try:
     from .structure import router as structure_router
+    from .structure import warm as structure_warm
 except Exception as exc:  # noqa: BLE001 - torch/SongFormer stack missing on this host
     _structure_unavailable = f"structure detection unavailable on this host: {exc}"
 
@@ -143,6 +157,7 @@ except Exception as exc:  # noqa: BLE001 - torch/SongFormer stack missing on thi
         raise HTTPException(status_code=503, detail=_structure_unavailable)
 else:
     app.include_router(structure_router)
+    _warm_loaders.append(structure_warm)
 
 try:
     from .download import router as download_router

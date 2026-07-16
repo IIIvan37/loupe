@@ -147,6 +147,11 @@ def _load() -> inference.Models:
     return _models
 
 
+def warm() -> None:
+    """Pre-build the models (weights download + load) — the boot warm-up hook."""
+    _load()
+
+
 def _analyse(data: bytes) -> dict:
     """Decode + segment a mix WAV, chunked. Compute-bound, runs off the event loop."""
     signal, sample_rate = decode_wav_mono(data)
