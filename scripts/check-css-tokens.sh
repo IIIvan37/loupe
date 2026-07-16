@@ -19,4 +19,14 @@ if [ -n "$undefined" ]; then
   printf '%s\n' "$undefined" >&2
   exit 1
 fi
-echo "check:tokens ok — every var(--…) has a definition"
+
+# Absolute font-size literals (rem/px) belong on the type scale in tokens.css —
+# a literal in a module is scale drift. Relative `em` ratios stay legal: they
+# size against their local context (superscripts, icon-to-text), not the scale.
+drift=$(grep -rnE 'font-size:[[:space:]]*[0-9.]+(rem|px)' --include='*.css' "$src" | grep -v 'styles/tokens.css' || true)
+if [ -n "$drift" ]; then
+  echo "font-size literals outside tokens.css (use a --font-size-* token):" >&2
+  printf '%s\n' "$drift" >&2
+  exit 1
+fi
+echo "check:tokens ok — every var(--…) has a definition, no font-size drift"

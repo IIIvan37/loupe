@@ -456,7 +456,18 @@ dégraissé. Browser-verify avant/après (600 forcé = trait synthétisé empât
 Règle actée : `--font-logo` ⇒ 500 tant que 600.css n'est pas importé ; jamais
 de `font-weight` sur Petaluma. Gate **verte — 1537 tests**, Stryker skippé
 (core intouché). [rapport](sessions/2026-07-16-w3-faux-bold.md).
-**Prochain : W.4–W.5**, ou la prochaine évaluation notée.
+**W.3 mergé (PR #161).**
+**W.4 — typo chart sur tokens + verrou font-size (branche
+`feat/w4-chart-type-scale`, PR à ouvrir)** : rabattement sur `--font-size-xl`
+tenté d'abord et rejeté sur sonde navigateur (Petaluma rend ~20 % plus petit
+qu'Inter à em égal — hiérarchie titre/artiste inversée, glyphes moins
+lisibles) → tokens chart dédiés commentés (`--font-size-chart-title`/`-glyph`,
+rendu inchangé) ; `check-css-tokens.sh` bloque désormais les `font-size`
+absolus (`rem`/`px`) hors tokens.css — les ratios `em` restent légaux
+(relatifs au contexte, pas à l'échelle), verrou testé en négatif. Gate
+**verte — 1537 tests**, Stryker skippé (core intouché).
+[rapport](sessions/2026-07-16-w4-chart-type-scale.md).
+**Prochain : W.5** (dernier du lot W), ou la prochaine évaluation notée.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
