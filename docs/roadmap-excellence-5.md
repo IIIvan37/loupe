@@ -405,20 +405,20 @@ pas de dette nouvelle :
 
 ## Suivi
 
-- [ ] **X.1** gating/copy structure indexés sur l'endpoint d'analyse
-- [ ] **X.2** face idle « Détecter le tempo » après annulation
+- [x] **X.1** gating/copy structure indexés sur l'endpoint d'analyse
+- [x] **X.2** face idle « Détecter le tempo » après annulation
 - [ ] **X.3** nudge des poignées enseigné (aide + aria-labels)
-- [ ] **Y.1** hauteur du header de piste (contrat 48 px vs rangée EQ)
+- [x] **Y.1** hauteur du header de piste (contrat 48 px vs rangée EQ)
 - [ ] **Y.2** check:tokens sur les var(--…) TSX (+ pinçage couleurs optionnel)
 - [ ] **Y.3** états entryActive/entryConfirm en box-shadow inset
 - [ ] **Y.4** recette aria-invalid promue dans controls.module.css
 - [ ] **Y.5** AccountMenu composes hint/errorLine
 - [ ] **Y.6** hover des mesures cliquables
-- [ ] **Z.1** clics métronome hors bande chroma
+- [x] **Z.1** clics métronome hors bande chroma
 - [ ] **Z.2** chroma à l'arrêt/boucle — ou veille datée
 - [ ] **Z.3** onglet Notes tranché (slice, veille ou retrait)
 - [ ] **Z.4** export de la boucle A/B
-- [ ] **AA.1** Dependabot pip sur server/ (+ pip-audit optionnel)
+- [x] **AA.1** Dependabot pip sur server/ (+ pip-audit optionnel)
 - [ ] **AA.2** parseProject au bord (manifests malformés)
 - [ ] **AA.3** warm-up-analysis testé, exclusion retirée
 - [ ] **AA.4** _probe_wav extrait/testé + modal_app.py sous pyright
