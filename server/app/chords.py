@@ -152,6 +152,11 @@ def _btc() -> tuple[BTC_model, float, float]:
     return _model
 
 
+def warm() -> None:
+    """Pre-build the model (weights download + load) — the boot warm-up hook."""
+    _btc()
+
+
 def _features(signal: np.ndarray, sample_rate: int) -> np.ndarray:
     """Log-CQT features at the model's rate, computed in training-size chunks."""
     if sample_rate != SONG_HZ:

@@ -95,6 +95,11 @@ def _audio2beats() -> Audio2Beats:
     return _model
 
 
+def warm() -> None:
+    """Pre-build the model (weights download + load) — the boot warm-up hook."""
+    _audio2beats()
+
+
 def _analyse(data: bytes) -> dict:
     """Decode + beat-track a mix WAV. Compute-bound, so it runs off the event loop.
 
