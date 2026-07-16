@@ -3,7 +3,8 @@ import {
   type LoopLibrary,
   type Marker,
   type MarkerList,
-  type NamedLoop
+  type NamedLoop,
+  type SpectrumFrame
 } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Tabs } from '@base-ui-components/react/tabs'
@@ -11,9 +12,14 @@ import { cx } from '../../lib/cx.ts'
 import { Icon } from '../ui/icon.tsx'
 import { NameEditor } from '../ui/name-editor.tsx'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
+import { ChromaView } from './chroma-view.tsx'
 import styles from './analysis-panel.module.css'
 
 interface AnalysisPanelProps {
+  /** One read of the audible spectrum — the Spectre tab's live source. */
+  readonly readSpectrum: () => SpectrumFrame | undefined
+  /** Whether the transport is running (the chroma only polls while it is). */
+  readonly playing: boolean
   readonly markers: MarkerList
   /** Jump to a marker's time. */
   readonly onSeekMarker: (timeSeconds: number) => void
@@ -39,6 +45,8 @@ interface AnalysisPanelProps {
  * placeholders for later jalons.
  */
 export function AnalysisPanel({
+  readSpectrum,
+  playing,
   markers,
   onSeekMarker,
   onRenameMarker,
@@ -73,9 +81,7 @@ export function AnalysisPanel({
         </Tabs.List>
 
         <Tabs.Panel value="spectre" className={cx(styles.tabPanel)}>
-          <Trans id="analysis.spectrum-placeholder">
-            L'analyse spectrale arrivera avec la détection (jalon ultérieur).
-          </Trans>
+          <ChromaView readSpectrum={readSpectrum} playing={playing} />
         </Tabs.Panel>
 
         <Tabs.Panel value="reperes" className={cx(styles.tabPanel)}>

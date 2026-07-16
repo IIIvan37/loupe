@@ -377,6 +377,8 @@ export function WorkstationShell({
       ) : (
         <ShellMain
           isLoaded={isLoaded}
+          isPlaying={transport.isPlaying || countIn.countingIn}
+          readSpectrum={player.readSpectrum}
           analysisFold={analysisFold}
           position={position}
         durationSeconds={transport.durationSeconds}

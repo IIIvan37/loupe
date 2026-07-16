@@ -514,8 +514,17 @@ round-trippé shell, champ « Ajustement fin » sur `CommitNumberField`
 extrait en `app/ui/` (flag T.5 inclus), `ShellFooter` extrait (budget 300).
 Gate **verte — 1570 tests** (+14), **Stryker 93,63 %** (2 équivalents
 fine-tune documentés). [rapport](sessions/2026-07-16-t7-fine-tune.md).
-**Prochain : T.8** — les deux décisions produit (spectre, EQ) à trancher
-avec l'utilisateur, puis lot T clos.
+**T.7 mergé (PR #167).**
+**T.8 — décisions actées** (checkpoint utilisateur) : spectre = v1 chroma
+honnête ; EQ = slice BiquadFilter par stem, non persistée.
+**T.8a — Spectre chroma (branche `feat/t8a-spectrum-chroma`, PR à ouvrir)** :
+`chromaFromSpectrum` pur (bande 32–2100 Hz, mutation 34/36 + 1 équivalent),
+`spectrum?()` optionnel sur les ports moteurs, tap `AnalyserNode`
+pass-through unique avant destination dans le transport partagé,
+`ChromaView` (poll 10 Hz dans la feuille, 12 barres C…B). Browser-verify
+lecture réelle : chaîne intacte, barres plausibles. Gate **verte — 1585
+tests** (+15). [rapport](sessions/2026-07-16-t8a-spectrum-chroma.md).
+**Prochain : T.8b** — EQ low/high-cut par stem (dernier du lot T).
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

@@ -1,5 +1,6 @@
 import {
   buildTempoMap,
+  type SpectrumFrame,
   makeLoopRegion,
   type Marker,
   measureIndexAt,
@@ -43,6 +44,10 @@ import styles from './workstation-shell.module.css'
 
 interface ShellMainProps {
   readonly isLoaded: boolean
+  /** Whether the transport is running — the Spectre tab polls only then. */
+  readonly isPlaying: boolean
+  /** One read of the audible spectrum (the active engine's analyser tap). */
+  readonly readSpectrum: () => SpectrumFrame | undefined
   /** Whether the Analyse zone is unfolded — owned by the shell (Q.3). */
   readonly analysisFold: AnalysisFold
   /** The playhead, streamed outside React state (Lot L.1). */
@@ -103,6 +108,8 @@ interface ShellMainProps {
  */
 export function ShellMain({
   isLoaded,
+  isPlaying,
+  readSpectrum,
   analysisFold,
   position,
   durationSeconds,
@@ -380,6 +387,8 @@ export function ShellMain({
 
       <div className={styles.panelSlot}>
         <AnalysisPanel
+          readSpectrum={readSpectrum}
+          playing={isPlaying}
           markers={markers.markers}
           onSeekMarker={onSeekSeconds}
           onRenameMarker={markers.rename}

@@ -220,6 +220,7 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
       return stem ? decodedAudioFrom(stem.buffer) : undefined
     },
 
-    onPositionChange: transport.onPositionChange
+    onPositionChange: transport.onPositionChange,
+    spectrum: transport.spectrum
   }
 }

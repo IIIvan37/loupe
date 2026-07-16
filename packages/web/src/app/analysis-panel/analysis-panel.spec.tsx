@@ -19,6 +19,8 @@ function renderPanel(
 ) {
   return render(
     <AnalysisPanel
+      readSpectrum={() => undefined}
+      playing={false}
       markers={markers}
       onSeekMarker={noop}
       onRenameMarker={noop}
@@ -36,6 +38,17 @@ function renderPanel(
 }
 
 describe('AnalysisPanel', () => {
+  it('shows the chroma read-out under the Spectre tab', async () => {
+    const user = userEvent.setup()
+    renderPanel()
+    await user.click(
+      screen.getByRole('tab', { name: i18n._('analysis.tab-spectrum') })
+    )
+    expect(
+      screen.getByText(i18n._('analysis.chroma-idle'))
+    ).toBeInTheDocument()
+  })
+
   it('lists markers of every kind and seeks one', async () => {
     const user = userEvent.setup()
     const onSeekMarker = vi.fn()
