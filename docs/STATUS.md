@@ -504,7 +504,18 @@ double-seek) et surface waveform `<div>` pointer-only hors tab order
 (testid, kit + 4 specs migrés). Browser-verify du dialog. Gate **verte —
 1556 tests** (+7), Stryker skippé.
 [rapport](sessions/2026-07-16-t6-discoverability.md).
-**Prochain : T.7** (fine-tune ±50 cents), puis T.8 (décisions).
+**T.6 mergé (PR #166).**
+**T.7 — fine-tune ±50 cents (branche `feat/t7-fine-tune`, PR à ouvrir)** :
+`fineTuneCents` séparé de la transposition (N.3/modulo 12 restent en
+demi-tons) — core `clampFineTuneCents` + `fineTuneOrDefault` (absent ⇔ 0),
+moteurs en `demi-tons + cents/100` (paire portée par ref — deux setters
+enchaînés n'appliquent jamais l'autre moitié périmée), persisté/signé/
+round-trippé shell, champ « Ajustement fin » sur `CommitNumberField`
+extrait en `app/ui/` (flag T.5 inclus), `ShellFooter` extrait (budget 300).
+Gate **verte — 1570 tests** (+14), **Stryker 93,63 %** (2 équivalents
+fine-tune documentés). [rapport](sessions/2026-07-16-t7-fine-tune.md).
+**Prochain : T.8** — les deux décisions produit (spectre, EQ) à trancher
+avec l'utilisateur, puis lot T clos.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

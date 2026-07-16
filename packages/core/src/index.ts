@@ -142,6 +142,11 @@ export type { DetectedChordSpan } from './domain/chord-detection.ts'
 export type { ChordSymbol } from './domain/chord-symbol.ts'
 export { formatChordSymbol, parseChordSymbol } from './domain/chord-symbol.ts'
 export { downmixToMono } from './domain/downmix.ts'
+export {
+  clampFineTuneCents,
+  MAX_FINE_TUNE_CENTS,
+  MIN_FINE_TUNE_CENTS
+} from './domain/fine-tune.ts'
 export type {
   DetectedStem,
   StemEnergy
@@ -239,6 +244,7 @@ export type {
 } from './domain/project.ts'
 export {
   chartTransposedBy,
+  fineTuneOrDefault,
   projectChordChart,
   projectFromSession,
   tuningOrDefault

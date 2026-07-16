@@ -5,6 +5,7 @@ import type { MarkerList } from './marker-list.ts'
 import type { MixerState } from './mixer.ts'
 import {
   chartTransposedBy,
+  fineTuneOrDefault,
   mixerMatchesStems,
   type ProjectActiveLoop,
   type ProjectSeparation,
@@ -190,6 +191,40 @@ describe('tuningOrDefault', () => {
   it('returns a persisted tuning unchanged', () => {
     const tuning: ProjectTuning = { timeRatio: 0.7, pitchSemitones: 2, zoom: 4 }
     expect(tuningOrDefault(tuning)).toBe(tuning)
+  })
+})
+
+describe('fineTuneOrDefault', () => {
+  it('reads 0 for a manifest with no tuning at all', () => {
+    expect(fineTuneOrDefault(undefined)).toBe(0)
+  })
+
+  it('reads 0 for a tuning that predates the field', () => {
+    expect(
+      fineTuneOrDefault({ timeRatio: 1, pitchSemitones: 0, zoom: 1 })
+    ).toBe(0)
+  })
+
+  it('returns a persisted fine-tune', () => {
+    expect(
+      fineTuneOrDefault({
+        timeRatio: 1,
+        pitchSemitones: 0,
+        zoom: 1,
+        fineTuneCents: -30
+      })
+    ).toBe(-30)
+  })
+
+  it('reads a corrupted (hand-edited) fine-tune as 0', () => {
+    expect(
+      fineTuneOrDefault({
+        timeRatio: 1,
+        pitchSemitones: 0,
+        zoom: 1,
+        fineTuneCents: Number.NaN
+      })
+    ).toBe(0)
   })
 })
 

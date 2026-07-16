@@ -1,10 +1,13 @@
 import {
   formatTimecode,
+  MAX_FINE_TUNE_CENTS,
   MAX_TEMPO_PERCENT,
+  MIN_FINE_TUNE_CENTS,
   MIN_TEMPO_PERCENT
 } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
+import { CommitNumberField } from '../ui/commit-number-field.tsx'
 import { cx } from '../../lib/cx.ts'
 import {
   type ExternalValue,
@@ -31,6 +34,9 @@ interface TransportBarProps {
   readonly pitchSemitones: number
   readonly onTempoChange: (percent: number) => void
   readonly onPitchChange: (semitones: number) => void
+  /** Fine pitch adjustment in cents (±50), separate from the semitones. */
+  readonly fineTuneCents: number
+  readonly onFineTuneChange: (cents: number) => void
 }
 
 /**
@@ -48,7 +54,9 @@ export function TransportBar({
   tempoPercent,
   pitchSemitones,
   onTempoChange,
-  onPitchChange
+  onPitchChange,
+  fineTuneCents,
+  onFineTuneChange
 }: TransportBarProps) {
   const { t } = useLingui()
   // Subscribing to the FORMATTED timecode re-renders the bar once per elapsed
@@ -151,6 +159,36 @@ export function TransportBar({
             {signedSemitones(pitchSemitones)}
           </span>
         </label>
+        {/* The last cents to the right key: a 30-cents-sharp recording (old
+            pressing, sped-up tape) is untranscribable on whole semitones.
+            Separate knob — never part of the chart's transposition. */}
+        {/* Not a <label>: the input lives inside CommitNumberField and
+            carries its own aria-label — the visible caption is decorative. */}
+        <div className={styles.field}>
+          <span className={styles.fieldLabel} aria-hidden="true">
+            <Trans id="transport.fine-tune-label">Ajustement fin</Trans>
+          </span>
+          <CommitNumberField
+            value={fineTuneCents}
+            min={MIN_FINE_TUNE_CENTS}
+            max={MAX_FINE_TUNE_CENTS}
+            className={styles.fineTuneField}
+            disabled={!canPlay}
+            label={t({
+              id: 'transport.fine-tune-field',
+              message: "Saisir l'ajustement fin (cents)"
+            })}
+            isValid={(cents) =>
+              Number.isInteger(cents) &&
+              cents >= MIN_FINE_TUNE_CENTS &&
+              cents <= MAX_FINE_TUNE_CENTS
+            }
+            onCommit={onFineTuneChange}
+          />
+          <span className={styles.fieldValue}>
+            <Trans id="transport.fine-tune-unit">cents</Trans>
+          </span>
+        </div>
       </Cluster>
     </footer>
   )

@@ -82,6 +82,42 @@ describe('WorkstationShell transport & markers', () => {
     expect(engine.setPitchSemitones).toHaveBeenCalledWith(5)
   })
 
+  it('drives the engine a fractional pitch from the fine-tune field', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    const field = screen.getByLabelText(i18n._('transport.fine-tune-field'))
+    await user.clear(field)
+    await user.type(field, '30')
+    await user.tab()
+    // +30 cents = +0.3 semitone — SoundTouch takes the fraction directly.
+    expect(engine.setPitchSemitones).toHaveBeenLastCalledWith(0.3)
+  })
+
+  it('combines the semitone slider and the fine-tune into one engine pitch', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    const field = screen.getByLabelText(i18n._('transport.fine-tune-field'))
+    await user.clear(field)
+    await user.type(field, '-20')
+    await user.tab()
+    fireEvent.change(screen.getByLabelText(i18n._('transport.pitch-slider')), {
+      target: { value: '5' }
+    })
+    expect(engine.setPitchSemitones).toHaveBeenLastCalledWith(4.8)
+  })
+
+  it('flags a fine-tune beyond ±50 cents while it is typed', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    const field = screen.getByLabelText(i18n._('transport.fine-tune-field'))
+    await user.clear(field)
+    await user.type(field, '80')
+    expect(field).toHaveAttribute('aria-invalid', 'true')
+  })
+
   it('disables the tempo and pitch sliders until a track is loaded', () => {
     renderShell()
     expect(screen.getByLabelText(i18n._('transport.tempo-slider'))).toBeDisabled()
