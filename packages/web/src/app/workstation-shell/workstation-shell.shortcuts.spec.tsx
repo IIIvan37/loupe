@@ -1,14 +1,16 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { act, fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { i18n } from '../../i18n/i18n.ts'
 import {
   beatsAt,
   expectBpmReadout,
+  fakeProjectStores,
   importTrack,
   installShellHooks,
   pointerGesture,
   renderShell,
+  saveProjectAs,
   tapThrice
 } from './shell-test-kit.tsx'
 
@@ -250,5 +252,61 @@ describe('WorkstationShell keyboard shortcuts', () => {
 
     fireEvent.keyDown(document.body, { code: 'Space', metaKey: true })
     expect(engine.play).not.toHaveBeenCalled()
+  })
+
+  it('saves the session as a project with Cmd+S', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    fireEvent.keyDown(document.body, { key: 's', metaKey: true })
+    // The header flips to its « project exists » face once the save lands.
+    expect(
+      await screen.findByRole('button', {
+        name: i18n._('header.rename-project')
+      })
+    ).toBeInTheDocument()
+  })
+
+  it('re-saves a dirty project under its own name with Ctrl+S', async () => {
+    const stores = fakeProjectStores()
+    const save = vi.spyOn(stores.store, 'save')
+    const { user, engine } = renderShell({ projectStores: stores })
+    await importTrack(user)
+    await saveProjectAs(user, 'Mon projet')
+    // Dirty the session: drop a marker at the playhead.
+    act(() => engine.emit(2))
+    fireEvent.keyDown(document.body, { key: 'm' })
+
+    fireEvent.keyDown(document.body, { key: 's', ctrlKey: true })
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(2))
+    expect(save.mock.lastCall?.[0].name).toBe('Mon projet')
+  })
+
+  it('does not re-save a clean project on Cmd+S', async () => {
+    const stores = fakeProjectStores()
+    const save = vi.spyOn(stores.store, 'save')
+    const { user } = renderShell({ projectStores: stores })
+    await importTrack(user)
+    await saveProjectAs(user, 'Mon projet')
+
+    fireEvent.keyDown(document.body, { key: 's', metaKey: true })
+    // Nothing changed since the save — the chord must not re-encode the session.
+    await act(async () => {})
+    expect(save).toHaveBeenCalledTimes(1)
+  })
+
+  it('saves with Cmd+S even while typing in a text field', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    const input = document.createElement('input')
+    document.body.appendChild(input)
+    fireEvent.keyDown(input, { key: 's', metaKey: true })
+    expect(
+      await screen.findByRole('button', {
+        name: i18n._('header.rename-project')
+      })
+    ).toBeInTheDocument()
+    input.remove()
   })
 })

@@ -23,7 +23,9 @@ describe('describeKeyBindings', () => {
       { keys: 'M', description: i18n._('shortcuts.add-marker') },
       { keys: 'L', description: i18n._('shortcuts.toggle-loop') },
       { keys: 'K', description: i18n._('shortcuts.toggle-metronome') },
-      { keys: 'T', description: i18n._('tempo.tap') }
+      { keys: 'T', description: i18n._('tempo.tap') },
+      { keys: '⌘ + S', description: i18n._('shortcuts.save-project') },
+      { keys: '⌃ + S', description: i18n._('shortcuts.save-project') }
     ])
   })
 

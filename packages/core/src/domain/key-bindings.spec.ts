@@ -84,6 +84,22 @@ describe('resolveCommand', () => {
     ).toBeUndefined()
   })
 
+  it('maps Cmd+S to saving the project', () => {
+    expect(
+      resolveCommand(defaultKeyBindings, { key: 's', meta: true })
+    ).toEqual({ type: 'saveProject' })
+  })
+
+  it('maps Ctrl+S to saving the project', () => {
+    expect(
+      resolveCommand(defaultKeyBindings, { key: 's', ctrl: true })
+    ).toEqual({ type: 'saveProject' })
+  })
+
+  it('leaves a bare S unbound', () => {
+    expect(resolveCommand(defaultKeyBindings, { key: 's' })).toBeUndefined()
+  })
+
   it('returns undefined for an unbound key', () => {
     expect(resolveCommand(defaultKeyBindings, { code: 'KeyZ' })).toBeUndefined()
   })

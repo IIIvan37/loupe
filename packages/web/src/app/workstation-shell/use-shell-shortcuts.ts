@@ -4,7 +4,19 @@ import type { Markers } from '../markers/use-markers.ts'
 import type { CountInTransport } from '../tempo/use-count-in.ts'
 import type { Metronome } from '../tempo/use-metronome.ts'
 import type { ViewportControl } from '../waveform/use-viewport.ts'
+import type { ProjectSession } from './use-project-session.ts'
 import type { TempoDetection } from './use-tempo-detection.ts'
+
+/** The session slice the Cmd/Ctrl+S save reads and drives. */
+type SaveSession = Pick<
+  ProjectSession,
+  | 'projects'
+  | 'preparingSave'
+  | 'currentProject'
+  | 'dirty'
+  | 'trackName'
+  | 'handleSave'
+>
 
 /** The slice of each shell hook the keyboard layout drives. */
 interface ShellShortcutsDeps {
@@ -18,6 +30,8 @@ interface ShellShortcutsDeps {
   readonly toggleLoop: () => void
   readonly metronome: Pick<Metronome, 'toggle'>
   readonly tempoDetection: Pick<TempoDetection, 'tap'>
+  /** The project session Cmd/Ctrl+S persists. */
+  readonly session: SaveSession
 }
 
 /**
@@ -33,8 +47,21 @@ export function useShellShortcuts({
   markers,
   toggleLoop,
   metronome,
-  tempoDetection
+  tempoDetection,
+  session
 }: ShellShortcutsDeps): void {
+  // Cmd/Ctrl+S: a first save lands under the track's name (the popover's own
+  // seed) and a dirty project re-saves under its name; a clean project or an
+  // in-flight save no-ops — never a redundant stems re-encode.
+  function saveProject(): void {
+    if (session.projects.busy === 'save' || session.preparingSave) {
+      return
+    }
+    if (session.currentProject !== undefined && !session.dirty) {
+      return
+    }
+    session.handleSave(session.currentProject?.name ?? session.trackName ?? '')
+  }
   useKeyboardShortcuts(
     {
       togglePlayback: countIn.togglePlayback,
@@ -45,7 +72,8 @@ export function useShellShortcuts({
       addSectionMarker: () => markers.addSectionAt(position.get()),
       toggleLoop,
       toggleMetronome: metronome.toggle,
-      tapTempo: tempoDetection.tap
+      tapTempo: tempoDetection.tap,
+      saveProject
     },
     { enabled }
   )
