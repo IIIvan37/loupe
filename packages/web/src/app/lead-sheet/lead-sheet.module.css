@@ -92,7 +92,6 @@
   font-family: var(--font-chart);
   color: var(--text);
   line-height: 0.95;
-  font-weight: 600;
 }
 
 /* The whole-chart signature, in the gutter before the first system's opening
