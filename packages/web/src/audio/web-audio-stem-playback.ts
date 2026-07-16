@@ -1,15 +1,25 @@
-import type { DecodedAudio, StemPlaybackEngine, StemSource } from '@app/core'
+import type {
+  DecodedAudio,
+  StemFilter,
+  StemPlaybackEngine,
+  StemSource
+} from '@app/core'
 import {
   audioBufferFrom,
   createStretchTransport,
   decodedAudioFrom
 } from './web-audio-shared.ts'
 
-/** One loaded stem: its decoded buffer and the gain node feeding the master bus. */
+/** One loaded stem: its decoded buffer and the gain → high-cut-low chain
+ * feeding the master bus (source → gain → highpass → lowpass → bus). */
 interface StemNode {
   readonly id: string
   readonly buffer: AudioBuffer
   readonly gain: GainNode
+  /** Low-cut: a highpass, parked at 0 Hz (flat) until a filter is set. */
+  readonly high: BiquadFilterNode
+  /** High-cut: a lowpass, parked at Nyquist (flat) until a filter is set. */
+  readonly low: BiquadFilterNode
   source: AudioBufferSourceNode | undefined
 }
 
@@ -29,6 +39,8 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
   // Desired linear gains by stem id, kept so `setGain` works before `load` and
   // every (re)created gain node can adopt the current value.
   const desiredGains = new Map<string, number>()
+  // Desired tone filters by stem id — same lifecycle as the gains.
+  const desiredFilters = new Map<string, StemFilter>()
   let stems: StemNode[] = []
   let durationSeconds = 0
   // Bumped by every load: an async tail (worklet registration) that resumes
@@ -76,17 +88,39 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
 
   // Build the stem's buffer and gain WITHOUT connecting the gain — wiring waits
   // for the stretch bus, so callers connect after `ensureStretch` resolves.
+  /** Aim both biquads at the stem's desired filter (absent side = flat). */
+  function aimFilter(stem: StemNode): void {
+    const filter = desiredFilters.get(stem.id)
+    const nyquist = transport.audioContext().sampleRate / 2
+    stem.high.frequency.value = Math.min(filter?.lowCutHz ?? 0, nyquist)
+    stem.low.frequency.value = Math.min(filter?.highCutHz ?? nyquist, nyquist)
+  }
+
   function makeStem(source: StemSource): StemNode {
     const ctx = transport.audioContext()
     const gain = ctx.createGain()
     // Adopt any gain the mixer set before load; default to unity.
     gain.gain.value = desiredGains.get(source.id) ?? 1
-    return {
+    // The tone chain is always present, parked flat — setting a filter only
+    // moves a frequency, never rewires the graph. Butterworth Q (no bump).
+    const high = ctx.createBiquadFilter()
+    high.type = 'highpass'
+    high.Q.value = Math.SQRT1_2
+    const low = ctx.createBiquadFilter()
+    low.type = 'lowpass'
+    low.Q.value = Math.SQRT1_2
+    gain.connect(high)
+    high.connect(low)
+    const stem: StemNode = {
       id: source.id,
       buffer: audioBufferFrom(ctx, source.audio),
       gain,
+      high,
+      low,
       source: undefined
     }
+    aimFilter(stem)
+    return stem
   }
 
   function longestDuration(): number {
@@ -102,6 +136,7 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
       // same-named stems (voix, batterie…) don't inherit yesterday's faders —
       // a restore pushes its saved gains right after this call.
       desiredGains.clear()
+      desiredFilters.clear()
       // Adopt the buffers BEFORE awaiting the stretch bus: `stemAudio` must
       // serve export/save from the moment the load is handed over — the caller
       // releases its own copy of the PCM right after this call.
@@ -112,7 +147,7 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
         return
       }
       for (const stem of stems) {
-        stem.gain.connect(transport.outputNode())
+        stem.low.connect(transport.outputNode())
       }
       transport.emit()
     },
@@ -128,7 +163,7 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
       if (!stems.includes(stem)) {
         return
       }
-      stem.gain.connect(transport.outputNode())
+      stem.low.connect(transport.outputNode())
       // Joining a running mix: start this one buffer at the live position so it
       // lines up with the others (never index 0, so it never owns the end).
       if (transport.isPlaying()) {
@@ -154,6 +189,8 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
         removed.source.disconnect()
       }
       removed?.gain.disconnect()
+      removed?.high.disconnect()
+      removed?.low.disconnect()
       durationSeconds = longestDuration()
     },
 
@@ -221,6 +258,14 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
     },
 
     onPositionChange: transport.onPositionChange,
-    spectrum: transport.spectrum
+    spectrum: transport.spectrum,
+
+    setStemFilter(id: string, filter: StemFilter): void {
+      desiredFilters.set(id, filter)
+      const stem = stems.find((entry) => entry.id === id)
+      if (stem) {
+        aimFilter(stem)
+      }
+    }
   }
 }

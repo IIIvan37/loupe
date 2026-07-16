@@ -19,6 +19,7 @@ function channel(
     soloed: false,
     gain: 1,
     level: 1,
+    filter: {},
     ...partial
   }
 }

@@ -95,6 +95,7 @@ export function ShellStage({
             <StemHeaders
               channels={mixer.channels}
               onSetGain={mixer.setGain}
+              onSetFilter={mixer.setFilter}
               onToggleMute={mixer.toggleMute}
               onToggleSolo={mixer.toggleSolo}
               onDownloadStem={onDownloadStem}

@@ -189,7 +189,8 @@ describe('restoreSession', () => {
         reset: vi.fn(),
         setGain: vi.fn(),
         toggleMute: vi.fn(),
-        toggleSolo: vi.fn()
+        toggleSolo: vi.fn(),
+        setFilter: vi.fn()
       } satisfies Mixer
     }
   }

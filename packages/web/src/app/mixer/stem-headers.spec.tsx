@@ -22,6 +22,7 @@ function channel(
     soloed: false,
     gain: 1,
     level: 1,
+    filter: {},
     ...partial
   }
 }
@@ -34,6 +35,7 @@ function renderHeaders(
     <StemHeaders
       channels={channels}
       onSetGain={() => {}}
+      onSetFilter={() => {}}
       onToggleMute={() => {}}
       onToggleSolo={() => {}}
       onDownloadStem={() => {}}
@@ -79,6 +81,39 @@ describe('StemHeaders', () => {
     expect(button).toHaveAttribute('aria-pressed', 'true')
     await user.click(button)
     expect(onToggleSolo).toHaveBeenCalledWith('voix')
+  })
+
+  it("cuts a stem's lows through the low-cut slider", () => {
+    const onSetFilter = vi.fn()
+    renderHeaders([channel('voix', 'Voix')], { onSetFilter })
+    fireEvent.change(
+      screen.getByLabelText(i18n._('mixer.low-cut', { name: 'Voix' })),
+      { target: { value: '200' } }
+    )
+    expect(onSetFilter).toHaveBeenCalledWith('voix', { lowCutHz: 200 })
+  })
+
+  it("cuts a stem's highs through the high-cut slider", () => {
+    const onSetFilter = vi.fn()
+    renderHeaders([channel('voix', 'Voix')], { onSetFilter })
+    fireEvent.change(
+      screen.getByLabelText(i18n._('mixer.high-cut', { name: 'Voix' })),
+      { target: { value: '8000' } }
+    )
+    expect(onSetFilter).toHaveBeenCalledWith('voix', { highCutHz: 8000 })
+  })
+
+  it('reads a slider parked at its edge as « that side off »', () => {
+    const onSetFilter = vi.fn()
+    renderHeaders(
+      [channel('voix', 'Voix', { filter: { lowCutHz: 200, highCutHz: 8000 } })],
+      { onSetFilter }
+    )
+    fireEvent.change(
+      screen.getByLabelText(i18n._('mixer.low-cut', { name: 'Voix' })),
+      { target: { value: '20' } }
+    )
+    expect(onSetFilter).toHaveBeenCalledWith('voix', { highCutHz: 8000 })
   })
 
   it('moves the dB fader', () => {

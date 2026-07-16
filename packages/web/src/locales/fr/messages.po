@@ -120,43 +120,38 @@ msgid "analysis.chroma-label"
 msgstr "Notes dominantes du signal en cours de lecture"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:141
+#: src/app/analysis-panel/analysis-panel.tsx:147
 msgid "analysis.no-loops"
 msgstr "Aucune boucle. En enregistrer une depuis une sélection A/B sur la forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:84
+#: src/app/analysis-panel/analysis-panel.tsx:90
 msgid "analysis.no-markers"
 msgstr "Aucun repère. En ajouter depuis la barre de repères."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:189
+#: src/app/analysis-panel/analysis-panel.tsx:195
 msgid "analysis.notes-placeholder"
 msgstr "Les annotations textuelles arriveront plus tard."
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:76
-msgid "analysis.spectrum-placeholder"
-msgstr "L'analyse spectrale arrivera avec la détection (jalon ultérieur)."
-
-#. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:68
 #: src/app/workstation-shell/shell-test-kit.tsx:267
 msgid "analysis.tab-loops"
 msgstr "Boucles"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:65
+#: src/app/analysis-panel/analysis-panel.tsx:73
 msgid "analysis.tab-markers"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:71
+#: src/app/analysis-panel/analysis-panel.tsx:79
 msgid "analysis.tab-notes"
 msgstr "Notes"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:62
+#: src/app/analysis-panel/analysis-panel.tsx:70
 msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
@@ -380,7 +375,7 @@ msgid "common.close"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:289
+#: src/app/analysis-panel/analysis-panel.tsx:295
 #: src/app/header/import-menu.tsx:117
 #: src/projects/projects-dialog.tsx:81
 msgid "common.confirm"
@@ -400,7 +395,7 @@ msgid "common.name"
 msgstr "Nom"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:274
+#: src/app/analysis-panel/analysis-panel.tsx:280
 #: src/projects/projects-dialog.tsx:183
 msgid "common.rename"
 msgstr "Renommer"
@@ -634,7 +629,7 @@ msgid "loops.clear-region"
 msgstr "Effacer"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:173
+#: src/app/analysis-panel/analysis-panel.tsx:179
 msgid "loops.confirm-remove"
 msgstr "Confirmer la suppression de {name}"
 
@@ -644,17 +639,17 @@ msgid "loops.inactive"
 msgstr "Boucle inactive"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:169
+#: src/app/analysis-panel/analysis-panel.tsx:175
 msgid "loops.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:162
+#: src/app/analysis-panel/analysis-panel.tsx:168
 msgid "loops.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:158
+#: src/app/analysis-panel/analysis-panel.tsx:164
 msgid "loops.rename-title"
 msgstr "Renommer la boucle"
 
@@ -725,7 +720,7 @@ msgid "markers.add-section"
 msgstr "+ Section"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:123
+#: src/app/analysis-panel/analysis-panel.tsx:129
 msgid "markers.confirm-remove"
 msgstr "Confirmer la suppression de {name}"
 
@@ -750,22 +745,22 @@ msgid "markers.go-to"
 msgstr "Aller à {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:103
+#: src/app/analysis-panel/analysis-panel.tsx:109
 msgid "markers.loop-named"
 msgstr "Boucler {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:119
+#: src/app/analysis-panel/analysis-panel.tsx:125
 msgid "markers.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:114
+#: src/app/analysis-panel/analysis-panel.tsx:120
 msgid "markers.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:110
+#: src/app/analysis-panel/analysis-panel.tsx:116
 msgid "markers.rename-title"
 msgstr "Renommer le repère"
 
@@ -775,14 +770,34 @@ msgid "markers.section-label"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:64
+#: src/app/mixer/stem-headers.tsx:86
 msgid "mixer.confidence"
 msgstr "Confiance de détection : {percent} %"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:74
+#: src/app/mixer/stem-headers.tsx:96
 msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:186
+msgid "mixer.high-cut"
+msgstr "Coupe-haut {name}"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:190
+msgid "mixer.high-cut-hint"
+msgstr "Couper les aigus au-dessus de cette fréquence"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:159
+msgid "mixer.low-cut"
+msgstr "Coupe-bas {name}"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:163
+msgid "mixer.low-cut-hint"
+msgstr "Couper les graves sous cette fréquence"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-stage.tsx:93
@@ -790,17 +805,17 @@ msgid "mixer.mix-label"
 msgstr "Mix"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:87
+#: src/app/mixer/stem-headers.tsx:109
 msgid "mixer.mute"
 msgstr "Couper {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:48
+#: src/app/mixer/stem-headers.tsx:70
 msgid "mixer.region-label"
 msgstr "Mixer"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:96
+#: src/app/mixer/stem-headers.tsx:118
 msgid "mixer.solo"
 msgstr "Isoler {name}"
 
@@ -810,7 +825,7 @@ msgid "mixer.undetected"
 msgstr "Non détectés"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:111
+#: src/app/mixer/stem-headers.tsx:133
 msgid "mixer.volume"
 msgstr "Volume {name}"
 
@@ -949,17 +964,17 @@ msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:273
+#: src/app/workstation-shell/shell-main.tsx:280
 msgid "shell.zone.analysis"
 msgstr "Analyse"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:364
+#: src/app/workstation-shell/shell-main.tsx:371
 msgid "shell.zone.chart"
 msgstr "Partition"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:237
+#: src/app/workstation-shell/shell-main.tsx:244
 msgid "shell.zone.timeline"
 msgstr "Timeline"
 

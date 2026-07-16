@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import {
+  type StemFilter,
   dbToAmplitude,
   type MixerState,
   type SeparatedStem,
@@ -37,6 +38,7 @@ function fakeEngine() {
     setTimeRatio: vi.fn(),
     setPitchSemitones: vi.fn(),
     setGain: vi.fn<(id: string, gain: number) => void>(),
+    setStemFilter: vi.fn<(id: string, filter: StemFilter) => void>(),
     stemAudio: () => undefined,
     onPositionChange: vi.fn(() => () => {})
   }
@@ -174,6 +176,45 @@ describe('useMixer', () => {
 
     const metro = result.current.channels.find((c) => c.stem.id === 'metronome')
     expect(metro?.muted).toBe(true)
+  })
+
+  it('drives the engine filter of one stem and exposes it on the channel', () => {
+    const engine = fakeEngine()
+    const hook = mountLoaded(engine)
+    act(() => {
+      hook.result.current.setFilter('voix', { lowCutHz: 200 })
+    })
+    expect(engine.setStemFilter).toHaveBeenCalledWith('voix', {
+      lowCutHz: 200
+    })
+  })
+
+  it('merges the two filter sides on the same channel', () => {
+    const engine = fakeEngine()
+    const hook = mountLoaded(engine)
+    act(() => {
+      hook.result.current.setFilter('voix', { lowCutHz: 200 })
+    })
+    act(() => {
+      hook.result.current.setFilter('voix', { lowCutHz: 200, highCutHz: 8000 })
+    })
+    expect(
+      hook.result.current.channels.find((c) => c.stem.id === 'voix')?.filter
+    ).toEqual({ lowCutHz: 200, highCutHz: 8000 })
+  })
+
+  it('forgets the filters when a fresh separation loads', () => {
+    const engine = fakeEngine()
+    const hook = mountLoaded(engine)
+    act(() => {
+      hook.result.current.setFilter('voix', { lowCutHz: 200 })
+    })
+    act(() => {
+      hook.result.current.load(stems, sources)
+    })
+    expect(
+      hook.result.current.channels.find((c) => c.stem.id === 'voix')?.filter
+    ).toEqual({})
   })
 
   it('empties the mixer on reset', () => {
