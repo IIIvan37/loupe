@@ -40,7 +40,6 @@
   border-block-end-color: var(--amber);
 }
 
-/* Visible keyboard focus (baseline ring). */
 .tabPanel {
   padding-block-start: var(--space-m);
   color: var(--dim);

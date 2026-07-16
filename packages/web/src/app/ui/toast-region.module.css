@@ -62,7 +62,3 @@
 .close:hover {
   color: var(--text);
 }
-
-/* Visible keyboard focus (baseline ring — amber, like every other control;
-   teal is reserved for what the machine detected). */
-

@@ -5,5 +5,3 @@
 .add {
   composes: quietButton from '../ui/controls.module.css';
 }
-
-/* Visible keyboard focus (baseline ring). */
