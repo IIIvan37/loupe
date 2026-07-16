@@ -77,6 +77,19 @@ def test_health_reports_no_model_without_the_ml_stack(app_without_ml):
     assert client.get("/health").json() == {"status": "ok", "model": None, "device": None}
 
 
+def test_startup_hands_the_collected_warm_hooks_to_the_warmup(app_without_ml, monkeypatch):
+    """The lifespan launches the model warm-up with whatever `warm()` hooks the
+    capability blocks collected — an empty list here, since every ML module is
+    forced missing (the warm-up itself then no-ops)."""
+    handed = []
+    monkeypatch.setattr(
+        app_without_ml, "start_model_warmup", lambda loaders: handed.append(loaders) or None
+    )
+    with TestClient(app_without_ml.app, base_url="http://localhost") as client:
+        assert client.get("/health").status_code == 200
+    assert handed == [[]]
+
+
 def test_startup_runs_the_boot_gc(app_without_ml, monkeypatch):
     """Entering the client context fires the lifespan → the boot-time GC sweep."""
     from app import main as main_mod

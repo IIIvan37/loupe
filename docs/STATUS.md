@@ -431,11 +431,16 @@ réelle sur le chemin fallback uniquement). Revue 3 finders → 3 fixés,
 consignée en veille). Gate **verte — 1536 tests** (+4), Stryker skippé
 (core intouché). [rapport](sessions/2026-07-16-v5-audio-buffer-memo.md).
 **V.5 mergé (PR #158).**
-**V.3 — warm des modèles au démarrage local : PR #159 ouverte** (branche
-`feat/v3-warm-models`) — [rapport](sessions/2026-07-16-v3-warm-models.md).
+**V.3 — warm des modèles au démarrage local mergé (PR #159)** : `app/warm.py`
+TDD (opt-out `LOUPE_WARM_MODELS=0`, loaders best-effort — un échec n'en bloque
+pas un autre, thread démon `model-warmup`), `warm()` public sur
+tempo/chords/structure (une ligne sur les getters double-check-lockés),
+`main.py` collecte les hooks des modules importés et lance le warm-up au
+lifespan après le GC de boot. Smoke réel : 3 modèles chauds en ~23 s, opt-out
+⇒ pas de thread. Serveur **231 pytest** (+10) coverage 98 %.
+[rapport](sessions/2026-07-16-v3-warm-models.md).
 
-**En cours : V.4 — playhead en `transform` (branche
-`feat/v4-playhead-transform`, PR à ouvrir) — dernier item du Lot V.**
+**V.4 — playhead en `transform` mergé (PR #160) — LOT V COMPLET.**
 `left: %` par frame → `translateX(px)` compositor-only + `will-change`
 (`left: 0` physique apparié) ; ResizeObserver gardé sur le scrollport (un
 resize en pause recalcule les px — le `%` suivait gratuitement, le zoom
@@ -443,7 +448,7 @@ re-exécute déjà l'effet). Browser-verify : extrémités alignées à 1× et 4
 (Δ < 1 px), page-follow intact, resize 1200→700 recalcule à ratio constant.
 Gate **verte — 1537 tests** (+1), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-16-v4-playhead-transform.md).
-**Lot V complet au merge de #159 + cette PR** ; W.3–W.5 restent.
+**Prochain : W.3–W.5**, ou la prochaine évaluation notée.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
