@@ -156,6 +156,11 @@ msgid "chart.key-of"
 msgstr "key of {key}"
 
 #. js-lingui-explicit-id
+#: src/app/lead-sheet/lead-sheet.tsx:113
+msgid "chart.measure-seek"
+msgstr "Aller à la mesure {number}"
+
+#. js-lingui-explicit-id
 #: src/app/lead-sheet/bars-per-row-field.tsx:73
 msgid "chords.bars-per-row"
 msgstr "Mesures par ligne"
@@ -362,7 +367,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:315
+#: src/app/workstation-shell/workstation-shell.tsx:312
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -664,12 +669,12 @@ msgid "markers.default-section-name"
 msgstr "Section {number}"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-rail.tsx:138
+#: src/app/markers/marker-rail.tsx:152
 msgid "markers.drag-hint"
 msgstr "Clic : se positionner — glisser ou ←/→ : déplacer"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-rail.tsx:134
+#: src/app/markers/marker-rail.tsx:148
 msgid "markers.go-to"
 msgstr "Aller à {name}"
 
@@ -1196,7 +1201,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:210
+#: src/app/workstation-shell/workstation-shell.tsx:207
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
@@ -1261,37 +1266,37 @@ msgid "transport.tempo-slider"
 msgstr "Vitesse en pourcentage"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:220
+#: src/app/waveform/waveform-view.tsx:226
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:231
+#: src/app/waveform/waveform-view.tsx:368
 msgid "waveform.import-error"
 msgstr "L'import a échoué : ce fichier n'a pas pu être lu."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:208
+#: src/app/waveform/waveform-view.tsx:214
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:278
+#: src/app/waveform/waveform-view.tsx:265
 msgid "waveform.mix-image"
 msgstr "Forme d'onde du mix"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:348
+#: src/app/waveform/waveform-view.tsx:326
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:336
+#: src/app/waveform/waveform-view.tsx:314
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:241
+#: src/app/waveform/waveform-view.tsx:374
 msgid "waveform.reimport"
 msgstr "Importer un autre fichier"
 
@@ -1301,14 +1306,14 @@ msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:268
+#: src/app/waveform/waveform-view.tsx:255
 #: src/app/workstation-shell/shell-test-kit.tsx:183
 #: src/app/workstation-shell/shell-test-kit.tsx:237
 msgid "waveform.surface"
 msgstr "Forme d'onde : clic pour se positionner, glisser pour boucler"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:286
+#: src/app/waveform/waveform-view.tsx:273
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 

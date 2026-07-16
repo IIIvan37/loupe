@@ -237,6 +237,30 @@ export function relabelChartBySections(
 
 /** A section's start on the timeline: the instant of the downbeat where its
     first measure first PLAYS, under the header's verbatim label. */
+export function measureSeekTime(
+  source: string,
+  grid: BeatGrid,
+  writtenIndex: number,
+  playheadSeconds: number
+): number | undefined {
+  const downbeats = grid
+    .filter((beat) => beat.downbeat)
+    .map((beat) => beat.timeSeconds)
+  const played = unrollChart(parseChart(source))
+  const occurrences = played.flatMap((written, index) =>
+    written === writtenIndex && index < downbeats.length ? [index] : []
+  )
+  // The occurrence still ahead of the playhead: the one whose measure is
+  // playing (its end is still to come — a click restarts the current pass)
+  // or the next future pass.
+  const upcoming = occurrences.find(
+    (index) =>
+      (downbeats[index + 1] ?? Number.POSITIVE_INFINITY) > playheadSeconds
+  )
+  const chosen = upcoming ?? occurrences[0]
+  return chosen === undefined ? undefined : downbeats[chosen]
+}
+
 export interface SectionAnchor {
   readonly timeSeconds: number
   readonly label: string

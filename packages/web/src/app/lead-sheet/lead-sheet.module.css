@@ -115,7 +115,17 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-2xs) var(--space-xs);
+  /* The box renders as a <button> when the sheet is navigable (tap-to-seek):
+     strip the UA button skin so both faces wear the same bar. */
+  border: 0;
   border-right: 1px solid var(--text);
+  background: none;
+  font: inherit;
+  color: inherit;
+}
+
+button.measure {
+  cursor: pointer;
 }
 
 /* ——— Form notation: repeat bars, voltas, D.C. / Fine / coda, fermata. ——— */

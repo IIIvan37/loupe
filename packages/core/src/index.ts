@@ -122,6 +122,7 @@ export type { SectionAnchor } from './domain/chart-structure.ts'
 // headers, so it is public like the rest of the chart utilities.
 export {
   chartSectionAnchors,
+  measureSeekTime,
   relabelChartBySections
 } from './domain/chart-structure.ts'
 export type {

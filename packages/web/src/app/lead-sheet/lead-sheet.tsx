@@ -4,6 +4,7 @@ import {
   parseChart,
   unrollChart
 } from '@app/core'
+import { useLingui } from '@lingui/react/macro'
 import { type CSSProperties, useCallback, useMemo } from 'react'
 import { cx } from '../../lib/cx.ts'
 import { chartHasContent } from './chart-content.ts'
@@ -33,6 +34,12 @@ interface LeadSheetProps {
    * chart model, see the plan). Undefined falls back to the stylesheet's 4.
    */
   readonly barsPerRow?: number | undefined
+  /**
+   * Tap a measure to seek playback to it (its WRITTEN index, counted through
+   * the whole chart). Absent — no grid to seek along — keeps the measures
+   * inert `<div>`s: no lying affordance.
+   */
+  readonly onSelectMeasure?: ((writtenIndex: number) => void) | undefined
 }
 
 interface KeyedChord {
@@ -41,6 +48,8 @@ interface KeyedChord {
 }
 interface KeyedMeasure {
   readonly key: string
+  /** The measure's WRITTEN index, global across sections. */
+  readonly index: number
   readonly current: boolean
   readonly chords: readonly KeyedChord[]
   readonly repeatStart: boolean
@@ -60,6 +69,57 @@ interface KeyedSection {
   readonly key: string
   readonly label?: string
   readonly measures: readonly KeyedMeasure[]
+}
+
+interface MeasureBoxProps {
+  /** Interactive = a tap seeks; otherwise an inert <div> (same skin). */
+  readonly interactive: boolean
+  /** The measure's 1-based written number — the button's accessible name. */
+  readonly number: number
+  readonly onSelect: () => void
+  readonly ref: ((node: HTMLElement | null) => void) | undefined
+  readonly className: string
+  readonly 'aria-current': 'true' | undefined
+  readonly 'data-repeat-start': true | undefined
+  readonly 'data-repeat-end': true | undefined
+  readonly children: React.ReactNode
+}
+
+/**
+ * One measure box: a seek `<button>` when the sheet is navigable, the same
+ * box as an inert `<div>` when it is not (print, no grid) — the chords stay
+ * plain content either way, the button's name is its aria-label.
+ */
+function MeasureBox({
+  interactive,
+  number,
+  onSelect,
+  ref,
+  children,
+  ...shared
+}: MeasureBoxProps) {
+  const { t } = useLingui()
+  if (!interactive) {
+    return (
+      <div ref={ref} {...shared}>
+        {children}
+      </div>
+    )
+  }
+  return (
+    <button
+      type="button"
+      ref={ref}
+      aria-label={t({
+        id: 'chart.measure-seek',
+        message: `Aller à la mesure ${number}`
+      })}
+      onClick={onSelect}
+      {...shared}
+    >
+      {children}
+    </button>
+  )
 }
 
 /**
@@ -92,6 +152,7 @@ function keyed(
       const meterHere = meterAt.get(index)
       return {
         key: `s${s}m${m}`,
+        index,
         current: index === currentMeasureIndex,
         chords: measure.chords.map((chord, c) => ({
           key: `s${s}m${m}c${c}`,
@@ -123,7 +184,8 @@ export function LeadSheet({
   source,
   header,
   currentMeasureIndex,
-  barsPerRow
+  barsPerRow,
+  onSelectMeasure
 }: LeadSheetProps) {
   // The sheet re-renders on every playhead frame during playback (the parent
   // ticks); only re-parse and re-key when the inputs actually change.
@@ -165,7 +227,7 @@ export function LeadSheet({
   // measure change, never per playhead frame. `nearest` only scrolls the first
   // scrollable ancestor (the panel's scrollport) and is a no-op when the sheet
   // fits without one — the component stays print-first.
-  const followPlayhead = useCallback((node: HTMLDivElement | null) => {
+  const followPlayhead = useCallback((node: HTMLElement | null) => {
     node?.scrollIntoView({ block: 'nearest' })
   }, [])
   // A chart head over no chart is noise (and would double the app header's
@@ -206,9 +268,14 @@ export function LeadSheet({
               />
             )}
             {section.measures.map((measure) => (
-              <div
+              // Tap-to-seek (iReal/Chordify standard) when a handler exists;
+              // otherwise the measure stays an inert <div> — no lying button.
+              <MeasureBox
                 key={measure.key}
+                interactive={onSelectMeasure !== undefined}
                 ref={measure.current ? followPlayhead : undefined}
+                number={measure.index + 1}
+                onSelect={() => onSelectMeasure?.(measure.index)}
                 className={cx(
                   styles.measure,
                   measure.current && styles.current,
@@ -239,7 +306,7 @@ export function LeadSheet({
                 {measure.markAfter !== undefined && (
                   <span className={styles.formMark}>{measure.markAfter}</span>
                 )}
-              </div>
+              </MeasureBox>
             ))}
           </div>
         </section>
