@@ -9,3 +9,4 @@ __pycache__/
 htmlcov/
 
 server/.analyze-jwt-secret.local
+coverage.xml

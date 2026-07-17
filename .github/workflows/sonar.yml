@@ -1,0 +1,53 @@
+name: SonarCloud
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: sonar-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: SonarCloud analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # Full history: SonarCloud needs it to compute new-code periods and blame.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # coverage/lcov.info for the JS/TS side of the report.
+      - run: pnpm test:coverage
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: server/requirements-dev.txt
+      # Torch-free like ci.yml's server job; adds the XML report Sonar reads.
+      - run: python -m venv .venv
+        working-directory: server
+      - run: .venv/bin/pip install --upgrade pip
+        working-directory: server
+      - run: .venv/bin/pip install -r requirements-dev.txt
+        working-directory: server
+      - run: .venv/bin/python -m pytest --cov-report=xml
+        working-directory: server
+
+      - uses: sonarsource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
