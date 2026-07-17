@@ -211,9 +211,7 @@ describe('useStructureDetection', () => {
         }),
       { initialProps: { audio: AUDIO } }
     )
-    act(() => {
-      void result.current.detect()
-    })
+    void result.current.detect()
     expect(seenSignal?.aborted).toBe(false)
     rerender({ audio: { sampleRate: 4, channels: [[0.5]] } })
     expect(seenSignal?.aborted).toBe(true)
@@ -237,12 +235,8 @@ describe('useStructureDetection', () => {
         detector: pending
       })
     )
-    act(() => {
-      void result.current.detect()
-    })
-    act(() => {
-      void result.current.detect()
-    })
+    void result.current.detect()
+    void result.current.detect()
     expect(signals[0]?.aborted).toBe(true)
     expect(signals[1]?.aborted).toBe(false)
   })

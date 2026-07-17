@@ -79,9 +79,7 @@ describe('useTempo', () => {
       }
     }
     const { result } = renderHook(() => useTempo(pending))
-    act(() => {
-      void result.current.detect(audio)
-    })
+    void result.current.detect(audio)
     act(() => result.current.reset())
     expect(seenSignal?.aborted).toBe(true)
   })
@@ -97,12 +95,8 @@ describe('useTempo', () => {
       }
     }
     const { result } = renderHook(() => useTempo(pending))
-    act(() => {
-      void result.current.detect(audio)
-    })
-    act(() => {
-      void result.current.detect(audio)
-    })
+    void result.current.detect(audio)
+    void result.current.detect(audio)
     expect(signals[0]?.aborted).toBe(true)
     expect(signals[1]?.aborted).toBe(false)
   })
@@ -116,9 +110,7 @@ describe('useTempo', () => {
       }
     }
     const { result, unmount } = renderHook(() => useTempo(pending))
-    act(() => {
-      void result.current.detect(audio)
-    })
+    void result.current.detect(audio)
     unmount()
     expect(seenSignal?.aborted).toBe(true)
   })
@@ -132,9 +124,7 @@ describe('useTempo', () => {
       }
     }
     const { result } = renderHook(() => useTempo(pending))
-    act(() => {
-      void result.current.detect(audio)
-    })
+    void result.current.detect(audio)
     act(() => {
       result.current.overrideBpm(120, 10)
     })
@@ -146,9 +136,7 @@ describe('useTempo', () => {
     // end either — the mark lets the row keep an idle « Détecter » face.
     const pending: TempoDetector = { detect: () => new Promise(() => {}) }
     const { result } = renderHook(() => useTempo(pending))
-    act(() => {
-      void result.current.detect(audio)
-    })
+    void result.current.detect(audio)
     act(() => result.current.cancelDetection())
     expect(result.current.cancelled).toBe(true)
     expect(result.current.detecting).toBe(false)
