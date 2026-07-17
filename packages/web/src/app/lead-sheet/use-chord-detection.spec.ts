@@ -250,9 +250,7 @@ describe('useChordDetection', () => {
         }),
       { initialProps: { audio: AUDIO } }
     )
-    act(() => {
-      void result.current.detect(4)
-    })
+    void result.current.detect(4)
     expect(seenSignal?.aborted).toBe(false)
     rerender({ audio: { sampleRate: 4, channels: [[0.5]] } })
     expect(seenSignal?.aborted).toBe(true)
@@ -276,12 +274,8 @@ describe('useChordDetection', () => {
         detector: pending
       })
     )
-    act(() => {
-      void result.current.detect(4)
-    })
-    act(() => {
-      void result.current.detect(4)
-    })
+    void result.current.detect(4)
+    void result.current.detect(4)
     expect(signals[0]?.aborted).toBe(true)
     expect(signals[1]?.aborted).toBe(false)
   })

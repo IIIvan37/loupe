@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -125,9 +125,9 @@ describe('AccountMenu', () => {
       'NOPE'
     )
     await user.click(screen.getByRole('button', { name: i18n._('account.redeem') }))
-    await waitFor(() =>
-      expect(screen.getByText(i18n._('account.code-invalid'))).toBeInTheDocument()
-    )
+    expect(
+      await screen.findByText(i18n._('account.code-invalid'))
+    ).toBeInTheDocument()
   })
 
   it('updates the quota chip live when an analysis reports new usage', async () => {
