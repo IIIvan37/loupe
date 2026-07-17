@@ -482,6 +482,25 @@ function meterChangeOf(line: string): string | undefined {
   return time ? `${time[1]}/${time[2]}` : undefined
 }
 
+/** A section still under construction — measures stay appendable. */
+interface DraftSection {
+  label?: string
+  measures: Measure[]
+}
+
+/** Append a row to the current section, opening an unlabelled one when no
+    header has started a section yet. */
+function appendRow(
+  sections: DraftSection[],
+  current: DraftSection | undefined,
+  row: readonly Measure[]
+): DraftSection {
+  const target = current ?? { measures: [] }
+  if (current === undefined) sections.push(target)
+  target.measures.push(...row)
+  return target
+}
+
 /** The `ChartForm` key a full-line form mark sets, if the line is one. */
 function formKeyOf(line: string): keyof ChartForm | undefined {
   const mark = FORM_MARK.exec(line)
@@ -490,12 +509,12 @@ function formKeyOf(line: string): keyof ChartForm | undefined {
 }
 
 export function parseChart(text: string): ChordChart {
-  const sections: Section[] = []
+  const sections: DraftSection[] = []
   const directives: Record<string, string> = {}
   const form: { -readonly [K in keyof ChartForm]: ChartForm[K] } = {}
   const meterChanges: MeterChange[] = []
   let written = 0
-  let current: { label?: string; measures: Measure[] } | undefined
+  let current: DraftSection | undefined
 
   for (const rawLine of text.split('\n')) {
     const line = rawLine.trim()
@@ -532,13 +551,9 @@ export function parseChart(text: string): ChordChart {
       continue
     }
 
-    if (!current) {
-      current = { measures: [] }
-      sections.push(current)
-    }
     const row = parseRow(line)
     written += row.length
-    current.measures.push(...row)
+    current = appendRow(sections, current, row)
   }
 
   return {

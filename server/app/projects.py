@@ -51,12 +51,14 @@ PROJECTS_DIR = DATA_DIR / "projects"
 _REF_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 _ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 
+_UNKNOWN_AUDIO_REF = "unknown audio ref"
+
 router = APIRouter()
 
 
 def _audio_path(ref: str) -> Path:
     if not _REF_PATTERN.match(ref):
-        raise HTTPException(status_code=404, detail="unknown audio ref")
+        raise HTTPException(status_code=404, detail=_UNKNOWN_AUDIO_REF)
     return AUDIO_DIR / ref
 
 
@@ -115,7 +117,7 @@ async def put_audio(request: Request) -> dict:
 async def get_audio(ref: str) -> FileResponse:
     path = _audio_path(ref)
     if not path.is_file():
-        raise HTTPException(status_code=404, detail="unknown audio ref")
+        raise HTTPException(status_code=404, detail=_UNKNOWN_AUDIO_REF)
     # Streamed from disk like /stems — a blob runs to hundreds of MB, and
     # read_bytes() would buffer all of it per request.
     return FileResponse(path, media_type="application/octet-stream")
@@ -127,7 +129,7 @@ async def has_audio(ref: str) -> Response:
     hash locally can skip re-uploading a blob the server already has."""
     path = _audio_path(ref)
     if not path.is_file():
-        raise HTTPException(status_code=404, detail="unknown audio ref")
+        raise HTTPException(status_code=404, detail=_UNKNOWN_AUDIO_REF)
     return Response(status_code=200)
 
 
