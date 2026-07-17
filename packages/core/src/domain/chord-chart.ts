@@ -21,6 +21,9 @@ export interface Measure {
   readonly repeatEnd?: true
   /** The alternative ending this measure belongs to (`|1.` / `|2.` bars). */
   readonly volta?: number
+  /** Total passes of the repeat a `:| xN` closes — a bare `:|` is the
+      implicit 2. Only set on a `repeatEnd` measure. */
+  readonly repeatCount?: number
   /** A `@` suffix on any of the measure's chords — hold the last one. */
   readonly fermata?: true
 }
@@ -82,16 +85,49 @@ const TOKEN = /[^|\s]+/g
     to and including the bar its `:|` closes. */
 function parseRow(line: string): Measure[] {
   let carriedVolta: number | undefined
-  return line
+  const measures: Measure[] = []
+  const cells = line
     .split('|')
     .map((cell) => cell.match(TOKEN) ?? [])
     .filter((tokens) => tokens.length > 0)
-    .map((tokens) => {
-      const measure = parseCell(tokens)
-      const volta = measure.volta ?? carriedVolta
-      carriedVolta = measure.repeatEnd === true ? undefined : volta
-      return volta === undefined ? measure : { ...measure, volta }
-    })
+  for (const tokens of cells) {
+    const count = repeatCountCell(tokens, measures.at(-1))
+    if (count !== undefined) {
+      measures[measures.length - 1] = {
+        ...(measures.at(-1) as Measure),
+        repeatCount: count
+      }
+      continue
+    }
+    const measure = parseCell(tokens)
+    const volta = measure.volta ?? carriedVolta
+    carriedVolta = measure.repeatEnd === true ? undefined : volta
+    measures.push(volta === undefined ? measure : { ...measure, volta })
+  }
+  return measures
+}
+
+/** A repeat's pass count: the `x3` (or `×3`) after a closing `:|` bar. */
+const REPEAT_COUNT = /^[x×](\d+)$/i
+
+/** A lone `xN` cell right after a bare `:|` bar of the SAME row reads as the
+    repeat's pass count, not a measure. Anywhere else (no repeat to count, a
+    volta's `:|`) the token stays a chord cell — consuming it would silently
+    change the measure count and shift every later bar off its downbeat. */
+function repeatCountCell(
+  tokens: readonly string[],
+  previous: Measure | undefined
+): number | undefined {
+  if (tokens.length !== 1) return undefined
+  const count = REPEAT_COUNT.exec(tokens[0] as string)
+  if (
+    count === null ||
+    previous?.repeatEnd !== true ||
+    previous.volta !== undefined
+  ) {
+    return undefined
+  }
+  return Number(count[1])
 }
 
 /** One cell's tokens into a measure: edge `:` tokens are the repeat bars of
@@ -374,8 +410,9 @@ function walkForm(
     played.push(index)
     if (measure.repeatEnd) {
       // A volta's :| always sends the walk back for the NEXT ending (it is
-      // only ever reached on its own pass); a bare :| repeats once.
-      if (measure.volta !== undefined || pass === 1) {
+      // only ever reached on its own pass); a bare :| repeats until its pass
+      // count — the implicit 2, or the `xN` it carries.
+      if (measure.volta !== undefined || pass < (measure.repeatCount ?? 2)) {
         pass = (measure.volta ?? pass) + 1
         index = repeatFrom
         jumped = true

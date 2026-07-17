@@ -437,7 +437,53 @@ describe('chartMatchesPitch', () => {
   })
 })
 
+describe('parseChart — repeat count (xN)', () => {
+  it('attaches a x3 cell to the preceding :| measure', () => {
+    const chart = parseChart('| C | G :| x3')
+    expect(chart.sections[0]?.measures[1]?.repeatCount).toBe(3)
+  })
+
+  it('the count cell adds no measure of its own', () => {
+    const chart = parseChart('| C | G :| x3')
+    expect(chart.sections[0]?.measures).toHaveLength(2)
+  })
+
+  it('reads the unicode × count token too', () => {
+    const chart = parseChart('| C | G :| ×3')
+    expect(chart.sections[0]?.measures[1]?.repeatCount).toBe(3)
+  })
+
+  it('an orphan count (no :| before it) stays a measure cell', () => {
+    const chart = parseChart('| C | x3 |')
+    expect(chart.sections[0]?.measures).toHaveLength(2)
+  })
+
+  it('a count after a volta bar stays a measure cell — counted voltas are not a thing', () => {
+    const chart = parseChart('|1. G :| x3')
+    expect(chart.sections[0]?.measures).toHaveLength(2)
+  })
+
+  it('a count cell on the next row does not reach back across the line', () => {
+    const chart = parseChart('| C | G :|\n| x3 |')
+    expect(chart.sections[0]?.measures[1]?.repeatCount).toBeUndefined()
+  })
+})
+
 describe('unrollChart', () => {
+  it('a |: … :| x3 plays three passes', () => {
+    expect(unrollChart(parseChart('|: C | G :| x3'))).toEqual([
+      0, 1, 0, 1, 0, 1
+    ])
+  })
+
+  it('a :| x4 plays four passes', () => {
+    expect(unrollChart(parseChart('| C :| x4'))).toEqual([0, 0, 0, 0])
+  })
+
+  it('an explicit x2 plays exactly like a bare :|', () => {
+    expect(unrollChart(parseChart('| C :| x2'))).toEqual([0, 0])
+  })
+
   it('unrolls a structureless chart to written order', () => {
     expect(unrollChart(parseChart('| C | G |'))).toEqual([0, 1])
   })
