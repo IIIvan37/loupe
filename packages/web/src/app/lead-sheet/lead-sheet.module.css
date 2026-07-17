@@ -178,6 +178,13 @@ button.measure {
   font-size: var(--font-size-xs);
 }
 
+/* The ×N pass count sits over the :| bar it counts, chart-hand small. */
+.passCount {
+  composes: annotation;
+  inset-inline-end: var(--space-3xs);
+  font-size: var(--font-size-xs);
+}
+
 /* D.C. / Fine sit over the bar closing their measure, chart-hand small. */
 .formMark {
   composes: annotation;
