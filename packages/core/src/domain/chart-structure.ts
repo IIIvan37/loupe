@@ -6,6 +6,7 @@ import {
   unrollChart
 } from './chord-chart.ts'
 import { formatChordSymbol } from './chord-symbol.ts'
+import { matchesTolerantly } from './section-matching.ts'
 import type { DetectedSection } from './song-structure.ts'
 
 /**
@@ -411,7 +412,7 @@ function tile(
     const block = labels.slice(start, start + length)
     const meterBlock = meters?.slice(start, start + length)
     const match = types.find(({ blocks: [representative] }) =>
-      matchesBlock(representative, block)
+      matchesTolerantly(representative, block)
     )
     if (match === undefined) {
       assignment.push(types.length)
@@ -477,39 +478,4 @@ function votedBlock<T>(
     }
     return winner
   })
-}
-
-/** Detection is noisy: two blocks are the same section when at least 3/4 of
-    their DETECTED bars agree — a tail block (shorter) never matches a full
-    one. Silence carries no evidence: blank-vs-blank positions count for
-    neither side, so mostly-silent blocks only merge on the chords they do
-    share, never on shared emptiness outvoting a real difference. */
-const MATCH_RATIO = 0.75
-
-function matchesBlock(a: MeasureLabels, b: MeasureLabels): boolean {
-  if (a.length !== b.length) return false
-  let agreeing = 0
-  let detected = 0
-  a.forEach((label, index) => {
-    const other = b[index]
-    if (label === undefined && other === undefined) return
-    detected += 1
-    // Detection jitter can split a bar in one occurrence only ('F G' vs
-    // 'F'): agreement on the downbeat chord is agreement — the vote in
-    // votedBlock cleans the minority split afterwards.
-    if (
-      label !== undefined &&
-      other !== undefined &&
-      headChord(label) === headChord(other)
-    ) {
-      agreeing += 1
-    }
-  })
-  return agreeing >= detected * MATCH_RATIO
-}
-
-/** A cell's head chord — the downbeat token of a possibly split cell. */
-function headChord(cell: string): string {
-  const space = cell.indexOf(' ')
-  return space === -1 ? cell : cell.slice(0, space)
 }
