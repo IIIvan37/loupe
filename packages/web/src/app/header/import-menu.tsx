@@ -1,7 +1,7 @@
 import { isSupportedSourceUrl } from '@app/core'
 import { Popover } from '@base-ui-components/react/popover'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { type FormEvent, useId, useRef, useState } from 'react'
+import { type SubmitEvent, useId, useRef, useState } from 'react'
 import { cx } from '../../lib/cx.ts'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
 import headerStyles from './header.module.css'
@@ -77,7 +77,7 @@ export function ImportMenu({
     setUrlOpen(true)
   }
 
-  function submitUrl(event: FormEvent<HTMLFormElement>): void {
+  function submitUrl(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault()
     if (!canSubmitUrl) {
       return
