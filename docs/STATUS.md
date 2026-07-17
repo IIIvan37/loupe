@@ -702,10 +702,25 @@ semaines ; rustube écarté). biome/knip ignorent les artefacts Rust. Gate
 **verte — 1729 tests**, Stryker skippé (core intouché).
 [rapport](sessions/2026-07-17-t21-spike-tauri-go.md).
 
-**Prochain : T2.1bis** (deep link auth) ou **T2.2** (stores filesystem à
-parité + `parseProject` au bord — AA.2) ; les 🟢 v5 au fil de l'eau ;
-garde-fou : poser l'alerte de facturation Modal avant d'ouvrir la séparation
-aux beta-testeurs.
+**T2.1bis — deep link auth (branche `feat/t21bis-deep-link-auth`, PR à
+ouvrir)** : le magic link revient en `loupe://auth-callback#…` et la session
+s'installe dans le webview par `setSession` explicite. Web TDD
+(`parseAuthCallback` pur + `installDeepLinkAuth`, `isTauriShell`,
+`redirectTo()` → deep link sous le shell, composition `appAuth()` en import
+dynamique), plugin Rust `deep-link` (schéma `loupe`, capability), Supabase
+`site_url` → 5173 + allowlist `{5173, loupe://auth-callback}` (API
+management). **Vérifié réellement** : bundle debug (le schéma ne s'enregistre
+QUE via le bundle sur macOS — jamais `tauri dev` nu), lien → 303 → deep link →
+e-mail + quota dans le menu compte. Suppression react-doctor scopée
+(`artifact-baas-authority-surface` sur `dist/**` — anon key publique par
+design, RLS vérifiée J2/U.3). Gate **verte — 1735 tests** (+6), Stryker
+skippé (core intouché).
+[rapport](sessions/2026-07-17-t21bis-deep-link-auth.md).
+
+**Prochain : T2.2** (stores filesystem à parité + `parseProject` au bord —
+AA.2), puis T2.3 (sidecar yt-dlp auto-actualisable) ; les 🟢 v5 au fil de
+l'eau ; garde-fous : alerte de facturation Modal + SMTP custom (rate limit
+e-mail ~2/h) avant d'ouvrir aux beta-testeurs.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans

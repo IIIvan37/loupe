@@ -11,6 +11,10 @@
           "src/app/workstation-shell/shell-test-kit.tsx"
         ],
         "rules": ["deslop/unused-file"]
+      },
+      {
+        "files": ["dist/**"],
+        "rules": ["react-doctor/artifact-baas-authority-surface"]
       }
     ]
   }

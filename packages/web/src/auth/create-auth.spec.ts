@@ -8,6 +8,10 @@ function fakeClient(
     session?: { access_token: string; user: { email: string } } | null
     rpc?: { data: unknown; error: unknown }
     otpError?: { message: string }
+    onOtp?: (args: {
+      email: string
+      options?: { emailRedirectTo?: string }
+    }) => void
   } = {}
 ): SupabaseClient {
   const session = overrides.session ?? null
@@ -17,7 +21,13 @@ function fakeClient(
       onAuthStateChange: () => ({
         data: { subscription: { unsubscribe: () => {} } }
       }),
-      signInWithOtp: async () => ({ error: overrides.otpError ?? null }),
+      signInWithOtp: async (args: {
+        email: string
+        options?: { emailRedirectTo?: string }
+      }) => {
+        overrides.onOtp?.(args)
+        return { error: overrides.otpError ?? null }
+      },
       signOut: async () => ({ error: null })
     },
     rpc: async () => overrides.rpc ?? { data: true, error: null }
@@ -45,6 +55,14 @@ describe('createAuth', () => {
 
     const out = createAuth(fakeClient({ session: null }), FUNCTIONS_URL, ANON)
     expect(await out.currentState()).toEqual({ status: 'signed-out' })
+  })
+
+  it('redirects the magic link to the deep link under the Tauri shell', async () => {
+    const seen: Array<{ options?: { emailRedirectTo?: string } }> = []
+    const client = fakeClient({ onOtp: (args) => seen.push(args) })
+    vi.stubGlobal('window', { __TAURI_INTERNALS__: {} })
+    await createAuth(client, FUNCTIONS_URL, ANON).sendMagicLink('a@b.co')
+    expect(seen[0]?.options?.emailRedirectTo).toBe('loupe://auth-callback')
   })
 
   it('surfaces a magic-link send error', async () => {
