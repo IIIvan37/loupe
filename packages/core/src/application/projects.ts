@@ -87,7 +87,9 @@ export async function saveProject(
       separation === undefined
         ? undefined
         : storeStems(separation.stems, deps.audio),
-      deps.store.load(input.stamp.id)
+      // Best-effort: this load only preserves createdAt. An unreadable
+      // existing manifest must not block the overwrite that repairs it.
+      deps.store.load(input.stamp.id).catch(() => undefined)
     ])
     const fresh = projectFromSession(
       {

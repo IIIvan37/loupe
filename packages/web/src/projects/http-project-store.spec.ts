@@ -73,6 +73,28 @@ describe('createHttpProjectStore', () => {
 
     await expect(createHttpProjectStore(BASE).list()).rejects.toThrow('500')
   })
+
+  it('skips invalid manifests in the list — the server persists verbatim', async () => {
+    stubFetch(Response.json([project, { id: 'hollow' }]))
+
+    expect(await createHttpProjectStore(BASE).list()).toEqual([project])
+  })
+
+  it('throws when the list endpoint answers JSON that is not a list', async () => {
+    stubFetch(Response.json({ projects: [] }))
+
+    await expect(createHttpProjectStore(BASE).list()).rejects.toThrow(
+      /non-list/
+    )
+  })
+
+  it('throws « unreadable » when a loaded manifest fails validation', async () => {
+    stubFetch(Response.json({ id: 'p1', name: 42 }))
+
+    await expect(createHttpProjectStore(BASE).load('p1')).rejects.toThrow(
+      /unreadable/i
+    )
+  })
 })
 
 describe('createHttpProjectAudioStore', () => {

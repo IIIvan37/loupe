@@ -19,6 +19,13 @@ describe('clampFineTuneCents', () => {
     expect(clampFineTuneCents(Number.NaN)).toBe(0)
   })
 
+  it('reads a non-number (hand-edited manifest) as no fine-tune', () => {
+    // `Number.isNaN` does not coerce: a string slips past it and Math.round
+    // would return NaN to the transport — the documented « corruption reads
+    // as 0 » contract must hold for non-numbers too.
+    expect(clampFineTuneCents('x' as unknown as number)).toBe(0)
+  })
+
   it('rounds to a whole cent', () => {
     expect(clampFineTuneCents(12.4)).toBe(12)
   })

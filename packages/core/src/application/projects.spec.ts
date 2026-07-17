@@ -214,6 +214,29 @@ describe('saveProject', () => {
     expect(result).toEqual({ ok: false, error: 'disk full' })
   })
 
+  it('still saves when loading the existing manifest fails (repair by overwrite)', async () => {
+    // The load only preserves createdAt. An unreadable existing manifest
+    // (AA.2 adapters throw on corruption) must not lock the id out of
+    // saving — overwriting is exactly what repairs it.
+    const store = fakeProjectStore()
+    const unreadable: ProjectStore = {
+      ...store,
+      async load() {
+        throw new Error('Unreadable project manifest "p1"')
+      }
+    }
+
+    const result = await saveProject(saveInput, {
+      store: unreadable,
+      audio: fakeAudioStore()
+    })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.project.createdAt).toBe(1000)
+    expect(store.saved.get('p1')?.name).toBe('My song')
+  })
+
   it('rejects a separation whose mixer channels do not match its stems, before storing any audio', async () => {
     const store = fakeProjectStore()
     const audio = fakeAudioStore()

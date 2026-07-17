@@ -221,6 +221,7 @@ export {
   UNITY_GAIN_DB
 } from './domain/mixer.ts'
 export { nudgeSeconds } from './domain/nudge-time.ts'
+export { parseProject } from './domain/parse-project.ts'
 export {
   clampPitchSemitones,
   MAX_PITCH_SEMITONES,
