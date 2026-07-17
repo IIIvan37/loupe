@@ -36,13 +36,49 @@ export function blockSimilarity(
   a: MeasureLabels,
   b: MeasureLabels
 ): BlockSimilarity {
+  const { evidence, agreeing, differing } = scoredAgreement(a, b, (index) =>
+    index >= a.length - TAIL_LENGTH ? TAIL_WEIGHT : 1
+  )
+  return {
+    ratio: evidence === 0 ? 1 : agreeing / evidence,
+    differing,
+    tailOnly: differing.every((index) => index >= a.length - TAIL_LENGTH)
+  }
+}
+
+/**
+ * Unweighted agreement between two aligned label sequences — the cycle
+ * detector's autocorrelation score. The ratio is 1 when nothing disproves
+ * the alignment, so a caller must also weigh the returned evidence before
+ * believing it (an all-silent overlap proves no cycle).
+ */
+export function sequenceAgreement(
+  a: MeasureLabels,
+  b: MeasureLabels
+): { readonly ratio: number; readonly evidence: number } {
+  const { evidence, agreeing } = scoredAgreement(a, b, () => 1)
+  return { ratio: evidence === 0 ? 1 : agreeing / evidence, evidence }
+}
+
+/** The one agreement walk every score reads through: blank-vs-blank carries
+    no evidence, a one-sided detection disagrees, and downbeat (head-chord)
+    agreement is agreement — jitter, not music. */
+function scoredAgreement(
+  a: MeasureLabels,
+  b: MeasureLabels,
+  weightAt: (index: number) => number
+): {
+  readonly evidence: number
+  readonly agreeing: number
+  readonly differing: readonly number[]
+} {
   const differing: number[] = []
   let evidence = 0
   let agreeing = 0
   a.forEach((label, index) => {
     const other = b[index]
     if (label === undefined && other === undefined) return
-    const weight = index >= a.length - TAIL_LENGTH ? TAIL_WEIGHT : 1
+    const weight = weightAt(index)
     evidence += weight
     if (
       label !== undefined &&
@@ -54,11 +90,7 @@ export function blockSimilarity(
       differing.push(index)
     }
   })
-  return {
-    ratio: evidence === 0 ? 1 : agreeing / evidence,
-    differing,
-    tailOnly: differing.every((index) => index >= a.length - TAIL_LENGTH)
-  }
+  return { evidence, agreeing, differing }
 }
 
 /** Whether two blocks read as the same section: equal length and weighted
