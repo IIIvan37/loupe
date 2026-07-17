@@ -1,6 +1,10 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { playedLabels } from './chart-structure.ts'
+import {
+  deduceStructure,
+  playedLabels,
+  renderStructuredSource
+} from './chart-structure.ts'
 import { encodeChartSource } from './form-encoder.ts'
 
 /** A 4-bar phrase and an 8-bar chorus shared by the calibration cases. */
@@ -174,6 +178,23 @@ describe('encodeChartSource — noise', () => {
         return playedLabels(full).length === noisy.length
       }),
       { numRuns: 200 }
+    )
+  })
+})
+
+describe('encodeChartSource — fallback', () => {
+  it('an unstructured song renders byte-identical to the flat render', () => {
+    const labels = Array.from({ length: 14 }, (_, index) => `X${index}`)
+    expect(encodeChartSource(labels, undefined, 4).source).toBe(
+      renderStructuredSource(deduceStructure(labels), 4)
+    )
+  })
+
+  it('the fallback keeps its meter marks byte-identical too', () => {
+    const labels = Array.from({ length: 10 }, (_, index) => `X${index}`)
+    const meters = [4, 4, 4, 2, 4, 4, 4, 4, 4, 4]
+    expect(encodeChartSource(labels, meters, 4, 4).source).toBe(
+      renderStructuredSource(deduceStructure(labels, meters), 4, 4)
     )
   })
 })
