@@ -1,3 +1,4 @@
+import { parseFormRollout } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import styles from './lead-sheet.module.css'
 
@@ -42,8 +43,16 @@ export function ChartHeader({ derived, directives }: ChartHeaderProps) {
     over(directives.tempo) ??
     (derived.bpm === undefined ? undefined : String(Math.round(derived.bpm)))
   const style = over(directives.style)
+  // The rollout line: a machine-readable {form: 3x} prints as prose ("jouer
+  // 3 fois"); any other annotation ("3 chorus, head in/out") prints verbatim
+  // — the déroulé stays one head note, never re-encoded into the grid.
+  const count = parseFormRollout(directives.form)
+  const form =
+    count === undefined
+      ? over(directives.form)
+      : t({ id: 'chart.form-rollout', message: `Jouer ${count} fois` })
 
-  const fields = [title, artist, key, tempo, style]
+  const fields = [title, artist, key, tempo, style, form]
   if (fields.every((field) => field === undefined)) return null
 
   return (
@@ -60,9 +69,14 @@ export function ChartHeader({ derived, directives }: ChartHeaderProps) {
       )}
       {title !== undefined && <h3 className={styles.chartTitle}>{title}</h3>}
       {artist !== undefined && <p className={styles.chartArtist}>{artist}</p>}
-      {style !== undefined && (
+      {(style !== undefined || form !== undefined) && (
         <p className={styles.chartMeta}>
-          <span className={styles.chartStyle}>{style}</span>
+          {style !== undefined && (
+            <span className={styles.chartStyle}>{style}</span>
+          )}
+          {form !== undefined && (
+            <span className={styles.chartForm}>{form}</span>
+          )}
         </p>
       )}
     </header>

@@ -46,6 +46,13 @@ const ROWS: ReadonlyArray<{
     meaning: msg({ id: 'chords.help-repeat', message: 'Reprise' })
   },
   {
+    example: '|: C | G :| x3',
+    meaning: msg({
+      id: 'chords.help-repeat-count',
+      message: 'Reprise jouée N fois'
+    })
+  },
+  {
     example: '|: C | 1. G :| 2. F |',
     meaning: msg({
       id: 'chords.help-voltas',
@@ -68,6 +75,13 @@ const ROWS: ReadonlyArray<{
     meaning: msg({
       id: 'chords.help-time',
       message: 'Signature rythmique (en tête ou en cours de grille)'
+    })
+  },
+  {
+    example: '{form: 3x}',
+    meaning: msg({
+      id: 'chords.help-rollout',
+      message: 'Jouer toute la grille N fois'
     })
   },
   {

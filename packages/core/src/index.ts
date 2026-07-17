@@ -136,6 +136,7 @@ export type {
 export {
   chartMatchesPitch,
   parseChart,
+  parseFormRollout,
   transposeChart,
   transposeChartSource,
   unrollChart
