@@ -717,10 +717,40 @@ design, RLS vérifiée J2/U.3). Gate **verte — 1735 tests** (+6), Stryker
 skippé (core intouché).
 [rapport](sessions/2026-07-17-t21bis-deep-link-auth.md).
 
-**Prochain : T2.2** (stores filesystem à parité + `parseProject` au bord —
-AA.2), puis T2.3 (sidecar yt-dlp auto-actualisable) ; les 🟢 v5 au fil de
-l'eau ; garde-fous : alerte de facturation Modal + SMTP custom (rate limit
-e-mail ~2/h) avant d'ouvrir aux beta-testeurs.
+**T2.1bis mergé (PR #193).**
+
+**T2.2 — stores filesystem + AA.2 parseProject (branche `feat/t22-fs-stores`,
+PR à ouvrir)** : les projets desktop vivent sur le disque local, à parité de
+contrat avec `projects.py`. **Core (AA.2)** : `parseProject` (décodeur
+runtime des manifests, verbatim ou `undefined`, léniences là où un
+normaliseur par-champ lit déjà la corruption comme défaut) branché dans les
+deux adapters — `load` throw « Unreadable » (≠ unknown), `list` saute + warn ;
+au passage `clampFineTuneCents` couvre les non-nombres (string → NaN au
+transport, trouvé en revue) et le `load` de `saveProject` devient best-effort
+(écraser un manifest corrompu le répare). **Web** : `fs-project-store.ts`
+(refs sha256 partagées `content-hash.ts`, écritures atomiques tmp+rename,
+regex id/ref du serveur, GC conservatif `collectFsGarbage`) sur un seam
+`ProjectFs` testé en mémoire ; binding humble `tauri-fs.ts`
+(`@tauri-apps/plugin-fs`, app-data, import dynamique) ; composition branchée
+sur `isTauriShell()` avec **sweep GC de démarrage derrière une barrière**
+(toute op attend sa fin — un blob posé pendant le snapshot serait pris pour
+orphelin) 1×/run, rapport loggé. **Desktop** : plugins `fs` +
+`single-instance` (une 2e instance ne balaie plus pendant un save de la 1re),
+capabilities appdata. Revue 8 angles → **9 fixés** (barrière, clamp, save
+best-effort, TOCTOU de list, garde non-array HTTP, mkdir memoïsé, reuse,
+README registre, single-instance), binding vérifié conforme à l'API plugin-fs
+réelle. **Vérifié réellement ×2** : self-test 9/9 dans le shell Tauri dev sur
+le vrai plugin (sha256/dédup/round-trips/GC), orphelin planté avant lancement
+balayé par le sweep câblé. Gate **verte — 1816 tests** (+81), **Stryker
+91,64 %** (3 équivalents documentés).
+[rapport](sessions/2026-07-17-t22-fs-stores.md).
+
+**Prochain : PR Sonar** (16 issues MINOR sur main — 15× S8980 `act()`
+redondant + 1× S9020 `findByText`, specs seules, antérieures à T2.2), puis
+**T2.3** (sidecar yt-dlp auto-actualisable), T2.4 migration `~/.loupe`,
+T2.5 retrait du serveur ; les 🟢 v5 au fil de l'eau ; garde-fous : alerte de
+facturation Modal + SMTP custom (rate limit e-mail ~2/h) avant d'ouvrir aux
+beta-testeurs.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
