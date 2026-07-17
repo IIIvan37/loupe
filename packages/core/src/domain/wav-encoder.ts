@@ -10,13 +10,13 @@ const BYTES_PER_SAMPLE = 2
 
 function writeAscii(view: DataView, offset: number, text: string): void {
   for (let i = 0; i < text.length; i++) {
-    view.setUint8(offset + i, text.charCodeAt(i))
+    view.setUint8(offset + i, text.codePointAt(i) ?? 0)
   }
 }
 
 /** Clamp to [-1, 1] then scale to a signed 16-bit integer (full-scale both ways). */
 function toInt16(sample: number): number {
-  const clamped = sample < -1 ? -1 : sample > 1 ? 1 : sample
+  const clamped = Math.max(-1, Math.min(1, sample))
   return Math.round(clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff)
 }
 

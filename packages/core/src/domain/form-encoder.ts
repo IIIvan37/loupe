@@ -77,12 +77,7 @@ function cycleRollout(
   initialMeter?: number
 ): EncodedChart | undefined {
   const cycle = detectCycle(labels)
-  if (
-    cycle === undefined ||
-    cycle.intro !== 0 ||
-    cycle.tail !== 0 ||
-    cycle.count < MIN_ROLLOUT
-  ) {
+  if (cycle?.intro !== 0 || cycle.tail !== 0 || cycle.count < MIN_ROLLOUT) {
     return undefined
   }
   const copies = chunk(labels, cycle.period)

@@ -89,7 +89,7 @@ function pitchClassWeights(spans: readonly DetectedChordSpan[]): number[] {
   for (const span of spans) {
     if (span.label === undefined) continue
     const duration = span.endSeconds - span.startSeconds
-    if (!(duration > 0)) continue
+    if (duration <= 0) continue
     const { root, quality } = parseChordSymbol(span.label)
     const rootPc = pitchClassOf(root)
     if (rootPc === undefined) continue

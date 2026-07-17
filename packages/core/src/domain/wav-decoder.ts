@@ -21,7 +21,7 @@ const BYTES_PER_SAMPLE = 2
 function readAscii(view: DataView, offset: number): string {
   let text = ''
   for (let i = 0; i < 4; i++) {
-    text += String.fromCharCode(view.getUint8(offset + i))
+    text += String.fromCodePoint(view.getUint8(offset + i))
   }
   return text
 }

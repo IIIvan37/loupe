@@ -140,7 +140,7 @@ function parseCell(tokens: readonly string[]): Measure {
   const inner = repeatStart ? tokens.slice(1) : [...tokens]
   const volta = VOLTA.exec(inner[0] ?? '')
   if (volta) inner.shift()
-  const repeatEnd = inner[inner.length - 1] === ':'
+  const repeatEnd = inner.at(-1) === ':'
   if (repeatEnd) inner.pop()
   const fermata = inner.some((token) => FERMATA.test(token))
   return {
@@ -334,9 +334,9 @@ const FORM_KEYS: Readonly<Record<string, keyof ChartForm>> = {
 
 /** A full-line form mark — `{d.c.}` / `{coda}` / `{fine}`, case-insensitive. */
 const FORM_MARK = new RegExp(
-  `^\\{\\s*(${Object.keys(FORM_KEYS)
+  String.raw`^\{\s*(${Object.keys(FORM_KEYS)
     .map((mark) => mark.replaceAll('.', String.raw`\.`))
-    .join('|')})\\s*\\}$`,
+    .join('|')})\s*\}$`,
   'i'
 )
 

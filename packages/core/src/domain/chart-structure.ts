@@ -417,8 +417,8 @@ function groupRuns(
 ): readonly { section: DeducedSection; count: number }[] {
   const runs: { section: DeducedSection; count: number }[] = []
   for (const section of sections) {
-    const last = runs[runs.length - 1]
-    if (last && last.section === section) {
+    const last = runs.at(-1)
+    if (last?.section === section) {
       last.count += 1
     } else {
       runs.push({ section, count: 1 })
@@ -501,7 +501,7 @@ function tile(
 
 /** Neutral type labels: 'A'…'Z', then 'AA', 'AB', … — bijective base 26. */
 function sectionLabel(index: number): string {
-  const letter = String.fromCharCode(65 + (index % 26))
+  const letter = String.fromCodePoint(65 + (index % 26))
   const rest = Math.floor(index / 26)
   return rest === 0 ? letter : `${sectionLabel(rest - 1)}${letter}`
 }
