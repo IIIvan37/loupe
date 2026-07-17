@@ -290,6 +290,10 @@ describe('transposeChartSource', () => {
     expect(transposeChartSource('| C/E@ |', 2)).toBe('| D/F#@ |')
   })
 
+  it('keeps a repeat pass count verbatim, chords moving', () => {
+    expect(transposeChartSource('| C | G :| x3', 2)).toBe('| D | A :| x3')
+  })
+
   it('keeps repeat bars and volta numbers verbatim, chords moving', () => {
     expect(transposeChartSource('|: C |1. G :|\n|2. F |', 2)).toBe(
       '|: D |1. A :|\n|2. G |'
@@ -641,6 +645,12 @@ describe('renderChartSource', () => {
 
   it('prints a two-chord cell verbatim — one measure, two chords', () => {
     expect(renderChartSource(['C G', 'Am'], 4)).toBe('| C G | Am |')
+  })
+
+  it('prints a count-like label as N.C. — never fabricated structure', () => {
+    // A detected 'x3' after a :| would read back as a pass count, silently
+    // dropping a measure.
+    expect(renderChartSource(['C', 'x3'], 4)).toBe('| C | N.C. |')
   })
 
   it('prints a multi-chord cell it cannot re-print exactly as N.C.', () => {

@@ -307,6 +307,7 @@ export function isPrintableToken(token: string): boolean {
     token.match(TOKEN)?.join('') === token &&
     token !== ':' &&
     !VOLTA.test(token) &&
+    !REPEAT_COUNT.test(token) &&
     !FERMATA.test(token)
   )
 }
