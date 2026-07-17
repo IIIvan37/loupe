@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   chartMatchesPitch,
   parseChart,
+  parseFormRollout,
   renderChartSource,
   respellChartSource,
   transposeChart,
@@ -622,6 +623,63 @@ describe('unrollChart', () => {
           (index) => Number.isInteger(index) && index >= 0 && index < written
         )
       })
+    )
+  })
+})
+
+describe('parseFormRollout', () => {
+  it('reads a 3x value as three passes', () => {
+    expect(parseFormRollout('3x')).toBe(3)
+  })
+
+  it('reads the unicode × with a space', () => {
+    expect(parseFormRollout('4 ×')).toBe(4)
+  })
+
+  it('prose is not a rollout', () => {
+    expect(parseFormRollout('head in/out')).toBeUndefined()
+  })
+
+  it('a single pass is not a rollout — the form already plays once', () => {
+    expect(parseFormRollout('1x')).toBeUndefined()
+  })
+
+  it('a missing directive is not a rollout', () => {
+    expect(parseFormRollout(undefined)).toBeUndefined()
+  })
+})
+
+describe('unrollChart — {form: Nx} rollout', () => {
+  it('a {form: 3x} head plays the whole form three times', () => {
+    expect(unrollChart(parseChart('{form: 3x}\n| C | G |'))).toEqual([
+      0, 1, 0, 1, 0, 1
+    ])
+  })
+
+  it('the rollout multiplies the form WITH its repeats', () => {
+    expect(unrollChart(parseChart('{form: 2x}\n|: C :|'))).toEqual([0, 0, 0, 0])
+  })
+
+  it('a prose {form: …} value never changes playback', () => {
+    expect(unrollChart(parseChart('{form: ad lib}\n| C |'))).toEqual([0])
+  })
+
+  it('property — {form: Nx} unrolls to exactly N concatenations', () => {
+    const label = fc.constantFrom('C', 'Am', 'F#m7b5', 'Bb/D', 'N.C.')
+    fc.assert(
+      fc.property(
+        fc.array(label, { minLength: 1, maxLength: 16 }),
+        fc.integer({ min: 2, max: 5 }),
+        (labels, count) => {
+          const base = renderChartSource(labels, 4)
+          const single = unrollChart(parseChart(base))
+          const rolled = unrollChart(parseChart(`{form: ${count}x}\n${base}`))
+          return (
+            JSON.stringify(rolled) ===
+            JSON.stringify(Array.from({ length: count }, () => single).flat())
+          )
+        }
+      )
     )
   })
 })

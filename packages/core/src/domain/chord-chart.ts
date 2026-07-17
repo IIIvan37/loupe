@@ -340,12 +340,40 @@ const FORM_MARK = new RegExp(
   'i'
 )
 
+/** A `{form: Nx}` head value: how many times the whole form plays (`3x`,
+    `3 ×`). The count grammar of the body's `xN` cells, value-side. */
+const FORM_ROLLOUT = /^(\d+)\s*[x×]$/i
+
+/**
+ * The pass count a `{form: …}` head directive carries, `undefined` when the
+ * value is prose (or a count below 2 — the form already plays once): a
+ * malformed value must never change playback, only ever multiply it.
+ */
+export function parseFormRollout(
+  value: string | undefined
+): number | undefined {
+  const match = FORM_ROLLOUT.exec(value ?? '')
+  if (match === null) return undefined
+  const count = Number(match[1])
+  return count >= 2 ? count : undefined
+}
+
 /**
  * Unroll a chart's form into the sequence of WRITTEN measure indices actually
  * played — the projection playback highlighting follows (the n-th downbeat
- * plays the n-th unrolled measure).
+ * plays the n-th unrolled measure). A `{form: Nx}` head directive is the
+ * song's ROLLOUT — the whole written form (repeats included) plays N times —
+ * so the playhead keeps tracking choruses 2..N of a one-cycle grid.
  */
 export function unrollChart(chart: ChordChart): readonly number[] {
+  const single = unrollWrittenForm(chart)
+  const rollout = parseFormRollout(chart.directives.form)
+  if (rollout === undefined) return single
+  return Array.from({ length: rollout }, () => single).flat()
+}
+
+/** One pass of the written form: repeats, voltas and D.C. as printed. */
+function unrollWrittenForm(chart: ChordChart): readonly number[] {
   const measures = chart.sections.flatMap((section) => section.measures)
   const dc = chart.form?.dc
   if (dc === undefined) {
