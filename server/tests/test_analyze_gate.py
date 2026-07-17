@@ -67,12 +67,14 @@ def _composed_client() -> TestClient:
 class TestSecretFloor:
     def test_installing_with_a_short_secret_fails_loudly(self) -> None:
         # A weak shared secret must abort at startup, not silently guard prod.
+        app = FastAPI()
         with pytest.raises(ValueError, match="32"):
-            install_analyze_gate(FastAPI(), secret="too-short")
+            install_analyze_gate(app, secret="too-short")
 
     def test_installing_with_an_empty_secret_fails_loudly(self) -> None:
+        app = FastAPI()
         with pytest.raises(ValueError, match="32"):
-            install_analyze_gate(FastAPI(), secret="")
+            install_analyze_gate(app, secret="")
 
 
 class TestAnalyzeGate:

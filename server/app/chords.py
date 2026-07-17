@@ -35,6 +35,7 @@ import librosa
 import numpy as np
 import torch
 
+from .api_docs import error_responses
 from .btc import BTC_model
 from .btc_windows import window_plan
 from .chord_spans import LARGE_VOCABULARY, MAJMIN_VOCABULARY, chord_spans
@@ -201,7 +202,7 @@ def _analyse(data: bytes) -> dict:
     return {"chords": chord_spans(frames, seconds_per_frame, song_length, _VOCABULARY)}
 
 
-@router.post("/chords")
+@router.post("/chords", responses=error_responses(400, 503, 504))
 async def chords(request: Request) -> dict:
     data = await read_capped_body(request, MAX_UPLOAD_BYTES)
     try:

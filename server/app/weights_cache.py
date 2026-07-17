@@ -58,7 +58,7 @@ _IDLE_TIMEOUT_SECONDS = 30.0
 def _fetch(url: str, destination: Path) -> None:
     """Stream `url` to `destination`, failing on an idle connection."""
     with (
-        urllib.request.urlopen(url, timeout=_IDLE_TIMEOUT_SECONDS) as source,  # noqa: S310 - pinned https URL
+        urllib.request.urlopen(url, timeout=_IDLE_TIMEOUT_SECONDS) as source,  # noqa: S310  # pinned https URL
         open(destination, "wb") as sink,
     ):
         while chunk := source.read(1 << 20):

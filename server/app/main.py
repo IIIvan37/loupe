@@ -49,6 +49,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from .api_docs import error_responses
 from .netguard import LoopbackOnlyMiddleware, OriginGuardMiddleware
 from .origins import allowed_origins, env_list
 from .projects import collect_garbage
@@ -104,7 +105,7 @@ app.include_router(projects_router)
 try:
     from .separation import MODEL_NAME, device
     from .separation import router as separation_router
-except Exception as exc:  # noqa: BLE001 - torch missing, weights unreachable…
+except Exception as exc:  # noqa: BLE001  # torch missing, weights unreachable…
     _unavailable = f"separation unavailable on this host: {exc}"
     MODEL_NAME = None
     device = None
@@ -120,10 +121,10 @@ else:
 try:
     from .tempo import router as tempo_router
     from .tempo import warm as tempo_warm
-except Exception as exc:  # noqa: BLE001 - torch/beat_this missing on this host
+except Exception as exc:  # noqa: BLE001  # torch/beat_this missing on this host
     _tempo_unavailable = f"tempo detection unavailable on this host: {exc}"
 
-    @app.post("/tempo")
+    @app.post("/tempo", responses=error_responses(503))
     async def tempo() -> None:
         """Honour the contract with a clean error when beat_this is absent."""
         raise HTTPException(status_code=503, detail=_tempo_unavailable)
@@ -134,10 +135,10 @@ else:
 try:
     from .chords import router as chords_router
     from .chords import warm as chords_warm
-except Exception as exc:  # noqa: BLE001 - torch missing on this host
+except Exception as exc:  # noqa: BLE001  # torch missing on this host
     _chords_unavailable = f"chord detection unavailable on this host: {exc}"
 
-    @app.post("/chords")
+    @app.post("/chords", responses=error_responses(503))
     async def chords() -> None:
         """Honour the contract with a clean error when torch is absent."""
         raise HTTPException(status_code=503, detail=_chords_unavailable)
@@ -148,10 +149,10 @@ else:
 try:
     from .structure import router as structure_router
     from .structure import warm as structure_warm
-except Exception as exc:  # noqa: BLE001 - torch/SongFormer stack missing on this host
+except Exception as exc:  # noqa: BLE001  # torch/SongFormer stack missing on this host
     _structure_unavailable = f"structure detection unavailable on this host: {exc}"
 
-    @app.post("/structure")
+    @app.post("/structure", responses=error_responses(503))
     async def structure() -> None:
         """Honour the contract with a clean error when the ML stack is absent."""
         raise HTTPException(status_code=503, detail=_structure_unavailable)
@@ -161,7 +162,7 @@ else:
 
 try:
     from .download import router as download_router
-except Exception as exc:  # noqa: BLE001 - yt-dlp missing on this host
+except Exception as exc:  # noqa: BLE001  # yt-dlp missing on this host
     _download_unavailable = f"track download unavailable on this host: {exc}"
 
     @app.post("/download")

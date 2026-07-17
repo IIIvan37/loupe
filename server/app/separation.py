@@ -40,6 +40,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import FileResponse, StreamingResponse
 
 from . import stems_store
+from .api_docs import error_responses
 from .limits import MAX_UPLOAD_BYTES, concurrency_slots, read_capped_body, seconds_env
 from .stem_manifest import build_manifest
 from .wav_decode import decode_wav
@@ -138,7 +139,7 @@ def _run_separation(mix: torch.Tensor, events: queue.Queue) -> None:
         with _sep_semaphore, torch.no_grad():
             stems = apply_model(model, mix[None], device=device, progress=True)[0]
         events.put(("done", stems))
-    except Exception:  # noqa: BLE001 - logged server-side, generic to the client
+    except Exception:  # noqa: BLE001  # logged server-side, generic to the client
         logger.exception("separation failed")
         events.put(("error", "separation failed"))
     finally:
@@ -217,7 +218,7 @@ async def separate(request: Request) -> StreamingResponse:
     )
 
 
-@router.get("/stems/{job}/{stem}.wav")
+@router.get("/stems/{job}/{stem}.wav", responses=error_responses(404))
 async def stem(job: str, stem: str) -> FileResponse:
     path = stems_store.resolve_stem_path(job, stem)
     if path is None:
