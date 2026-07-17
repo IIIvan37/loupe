@@ -174,6 +174,44 @@ l'import URL. Une machine faible fait tout le reste.
 - Timebox court ; le résultat (GO, GO-avec-réserves, NO-GO) conditionne le
   reste de la phase.
 
+**Verdict (2026-07-17) : GO.** Spike réalisé (`packages/desktop`, coquille
+Tauri 2 sur le shell web inchangé, macOS/WKWebView) et vérifié réellement :
+import fichier (drag & drop) et URL, lecture, time-stretch SoundTouch en
+AudioWorklet, session/localStorage, **et les trois cas durcis** (lecture
+fenêtre minimisée ~1 min, 6 stems + time-stretch prolongé, changement de
+périphérique de sortie en cours de lecture) — tous passés.
+
+**Inventaire licences : aucun bloquant.** Rubber Band n'est PAS dans le code
+(la crainte du plan était périmée) — le time-stretch livré est SoundTouchJS,
+**MPL-2.0** (réimplémentation JS, pas le C++ LGPL). Reste : MIT/ISC/BSD/
+Apache-2.0, fontes OFL-1.1, `caniuse-lite` CC-BY-4.0. Obligations en binaire :
+en-têtes MPL conservés (fichiers non modifiés), attributions. Pas de GPL/LGPL
+→ App Store non bloqué par les licences.
+
+Enseignements pour les slices suivantes :
+- `dragDropEnabled: false` requis dans la conf fenêtre, sinon Tauri
+  intercepte le drag & drop et le HTML5 DnD n'atteint jamais le webview.
+- Fenêtre nue : pas de menu macOS ni Cmd+R — la vraie app doit poser un menu
+  avec les raccourcis standard (reload, quit).
+- Magic link → navigateur par défaut, jamais le webview : voir T2.1bis ; le
+  deep link devra passer par `setSession()` explicite (le fragment d'URL ne
+  redéclenche pas de chargement si l'app est déjà sur la même page).
+- Rate limit e-mail Supabase (~2/h sans SMTP custom) : SMTP custom ou OTP à
+  poser avant la beta.
+- yt-dlp périme en quelques semaines (extracteurs YouTube) : le sidecar T2.3
+  doit embarquer la mise à jour du binaire à l'exécution (piste : crate
+  `yt-dlp` de boul2gom, gère téléchargement + update ; rustube et les
+  réimplémentations natives écartées — toujours en retard d'un cassage,
+  YouTube-only).
+
+### T2.1bis — Auth desktop : deep link *(trouvaille du spike, 2026-07-17)*
+- Le magic link Supabase s'ouvre dans le navigateur par défaut : la session
+  atterrit dans le localStorage du navigateur, jamais dans le webview Tauri.
+- Cible : schéma custom `loupe://auth-callback` (`tauri-plugin-deep-link`),
+  ajouté aux redirect URLs Supabase ; à la réception, `setSession` côté
+  webview. Contournement dev : naviguer le webview sur l'URL du lien via la
+  console devtools.
+
 ### T2.2 — Stores filesystem *(le cœur de « les projets restent locaux »)*
 - Adapters Tauri pour `ProjectStore` et `ProjectAudioStore` (FS via commandes
   Rust ou plugin fs) à **parité de contrat** avec `projects.py` : dédup sha256
@@ -263,7 +301,10 @@ on n'empile pas une migration d'infra sur des régressions connues.
       72 s, hors-ligne live, narration visible) ; **sortie de Phase 1
       atteinte** — voir
       [rapport](sessions/2026-07-16-m14-sante-horsligne-narration.md)
-- [ ] **T2.1** spike coquille Tauri + inventaire licences (GO/NO-GO)
+- [x] **T2.1** spike coquille Tauri + inventaire licences — **GO** (2026-07-17,
+      vérifié réellement, trois cas durcis passés ; licences : aucun bloquant,
+      pas de Rubber Band, SoundTouchJS MPL-2.0) ; voir § T2.1
+- [ ] **T2.1bis** auth desktop : deep link `loupe://` + `setSession`
 - [ ] **T2.2** stores filesystem à parité (dédup, atomicité, GC) + parseProject
 - [ ] **T2.3** sidecar yt-dlp (gardes réimplémentées)
 - [ ] **T2.4** migration `~/.loupe`

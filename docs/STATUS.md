@@ -684,9 +684,28 @@ tests** (+79), **Stryker 91,33 %** (survivants = gardes défensives de
 `cycleRollout`, notés au rapport).
 [rapport](sessions/2026-07-17-chord-grid-form-rollout.md).
 
-**Prochain : T2.1** (spike coquille Tauri + inventaire licences — GO/NO-GO de
-la Phase 2) ; les 🟢 v5 au fil de l'eau ; garde-fou : poser l'alerte de
-facturation Modal avant d'ouvrir la séparation aux beta-testeurs.
+**T2.1 — spike Tauri : GO (branche `spike/t21-tauri-shell`, PR à ouvrir).**
+Évaluation pré-spike actée : import URL = fonctionnalité principale → PWA+OPFS
+écartée, choix Tauri vs Electron, **Electron = fallback acté du NO-GO** ;
+multi-plateforme confirmé (Linux cible, WebKitGTK dérisqué par pixsaur).
+Coquille Tauri 2 dans `packages/desktop` (shell web inchangé, Vite 5173,
+macOS/WKWebView), **vérifiée réellement** : import fichier (drag & drop —
+`dragDropEnabled: false` obligatoire) et URL (yt-dlp), lecture, time-stretch
+AudioWorklet, session/localStorage, **et les trois cas durcis WebKit**
+(fenêtre minimisée, 6 stems + stretch prolongé, changement de sortie audio) —
+tous passés. **Licences : aucun bloquant** — Rubber Band absent du code
+(crainte périmée), SoundTouchJS **MPL-2.0**, pas de GPL/LGPL, App Store non
+bloqué. Trouvailles → plan : T2.1bis (deep link auth — le magic link s'ouvre
+dans le navigateur, jamais le webview), menu macOS à poser, SMTP custom avant
+beta (rate limit ~2/h), sidecar T2.3 auto-actualisable (yt-dlp périme en
+semaines ; rustube écarté). biome/knip ignorent les artefacts Rust. Gate
+**verte — 1729 tests**, Stryker skippé (core intouché).
+[rapport](sessions/2026-07-17-t21-spike-tauri-go.md).
+
+**Prochain : T2.1bis** (deep link auth) ou **T2.2** (stores filesystem à
+parité + `parseProject` au bord — AA.2) ; les 🟢 v5 au fil de l'eau ;
+garde-fou : poser l'alerte de facturation Modal avant d'ouvrir la séparation
+aux beta-testeurs.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
