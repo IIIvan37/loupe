@@ -54,5 +54,10 @@ export function replaceStructureMarkers(
   structural: MarkerList
 ): MarkerList {
   const cues = list.filter((marker) => marker.kind !== 'structure')
-  return structural.reduce(addMarker, cues)
+  // Explicit lambda: reduce would silently feed addMarker its (index, array)
+  // extras if addMarker ever grew an optional third parameter.
+  return structural.reduce(
+    (merged: MarkerList, marker) => addMarker(merged, marker),
+    cues
+  )
 }
