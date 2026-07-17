@@ -5,6 +5,7 @@ import { measureIndexAt } from './beat-grid.ts'
 import {
   chartMeters,
   chartSectionAnchors,
+  deduceInstances,
   deduceStructure,
   measureSeekTime,
   relabelChartBySections,
@@ -159,6 +160,53 @@ describe('deduceStructure', () => {
       verse,
       verse
     ])
+  })
+})
+
+describe('deduceInstances', () => {
+  const a = ['C', 'Am', 'F', 'G']
+  const b = ['F', 'G', 'Em', 'Am']
+
+  it('assigns each played block its type letter, in play order', () => {
+    const { instances } = deduceInstances([...a, ...a, ...b, ...a])
+    expect(instances.map((instance) => instance.label)).toEqual([
+      'A',
+      'A',
+      'B',
+      'A'
+    ])
+  })
+
+  it('instances of one type share the voted measures', () => {
+    const noisy = ['C', 'Am', 'F', 'G7']
+    const { instances } = deduceInstances([...a, ...noisy, ...a, ...b])
+    expect(instances[1]?.measures).toEqual(a)
+  })
+
+  it('each instance keeps its own raw bars — the vote never erases a pass', () => {
+    const variant = ['C', 'Am', 'F', 'C']
+    const { instances } = deduceInstances([...a, ...variant, ...b, ...b])
+    expect(instances[1]?.raw).toEqual(variant)
+  })
+
+  it('an unrepeated song is unstructured', () => {
+    expect(deduceInstances(['C', 'F', 'G', 'C']).structured).toBe(false)
+  })
+
+  it('a winning tiling is structured', () => {
+    expect(deduceInstances([...a, ...a]).structured).toBe(true)
+  })
+
+  it('a leftover tail is its own instance', () => {
+    const song = [...a, ...a, 'C', 'F']
+    const { instances } = deduceInstances(song)
+    expect(instances[2]?.raw).toEqual(['C', 'F'])
+  })
+
+  it('voted meters ride the instances of a type', () => {
+    const meters = [4, 4, 4, 2, 4, 4, 4, undefined]
+    const { instances } = deduceInstances([...a, ...a], meters)
+    expect(instances[1]?.meters).toEqual([4, 4, 4, 2])
   })
 })
 

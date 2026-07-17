@@ -106,6 +106,44 @@ export function deduceStructure(
 }
 
 /**
+ * One played pass of a deduced section type: the shared voted measures (what
+ * a written copy prints) AND the pass's own raw bars (what a volta's variant
+ * ending must recover — the vote never erases a pass).
+ */
+export interface SectionInstance {
+  readonly type: number
+  readonly label: string
+  /** The type's voted measures, shared by every instance of the type. */
+  readonly measures: MeasureLabels
+  /** This pass's own detected bars, unvoted. */
+  readonly raw: MeasureLabels
+  /** The type's voted per-measure meters, when the caller read them. */
+  readonly meters?: Meters
+}
+
+/**
+ * The song as the ordered sequence of section-type passes — the view the
+ * form encoder consumes. Same MDL competition as `deduceStructure`, but each
+ * played block keeps its identity instead of collapsing into its type.
+ * `structured` is false when the winning explanation is a single block —
+ * nothing to encode, the caller falls back to the flat render.
+ */
+export function deduceInstances(
+  labels: MeasureLabels,
+  meters?: Meters
+): {
+  readonly instances: readonly SectionInstance[]
+  readonly structured: boolean
+} {
+  let best = tile(labels, meters, labels.length)
+  for (const length of SECTION_LENGTHS) {
+    const candidate = tile(labels, meters, length)
+    if (candidate.cost < best.cost) best = candidate
+  }
+  return { instances: best.instances, structured: best.instances.length > 1 }
+}
+
+/**
  * Print deduced sections as grid source text `parseChart` reads back:
  * consecutive plays of the same section fold — a pair into `|: … :|` repeat
  * bars, a longer run into written copies — and each run gets its `[A]` header,
@@ -402,15 +440,21 @@ function tile(
   labels: MeasureLabels,
   meters: Meters | undefined,
   length: number
-): { cost: number; sections: readonly DeducedSection[] } {
+): {
+  cost: number
+  sections: readonly DeducedSection[]
+  instances: readonly SectionInstance[]
+} {
   const types: {
     blocks: [MeasureLabels, ...MeasureLabels[]]
     meterBlocks: Meters[]
   }[] = []
   const assignment: number[] = []
+  const rawBlocks: MeasureLabels[] = []
   for (let start = 0; start < labels.length; start += length) {
     const block = labels.slice(start, start + length)
     const meterBlock = meters?.slice(start, start + length)
+    rawBlocks.push(block)
     const match = types.find(({ blocks: [representative] }) =>
       matchesTolerantly(representative, block)
     )
@@ -441,7 +485,17 @@ function tile(
     cost:
       sections.reduce((total, type) => total + type.measures.length, 0) +
       assignment.length,
-    sections: assignment.map((index) => sections[index] as DeducedSection)
+    sections: assignment.map((index) => sections[index] as DeducedSection),
+    instances: assignment.map((index, played) => {
+      const section = sections[index] as DeducedSection
+      return {
+        type: index,
+        label: section.label,
+        measures: section.measures,
+        raw: rawBlocks[played] as MeasureLabels,
+        ...(section.meters !== undefined && { meters: section.meters })
+      }
+    })
   }
 }
 
