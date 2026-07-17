@@ -56,7 +56,7 @@ export function CommitNumberField({
       min={min}
       max={max}
       disabled={disabled}
-      value={draft ?? (value === undefined ? '' : value)}
+      value={draft ?? value ?? ''}
       onChange={(event) => {
         setDraft(event.target.value)
         setBadInput(event.target.validity?.badInput ?? false)

@@ -33,13 +33,13 @@ export function ShellDropLayer({
   return (
     <>
       {isDraggingFile && (
-        <div className={styles.dropOverlay} role="status">
+        <output className={styles.dropOverlay}>
           <span className={styles.dropOverlayInner}>
             <Trans id="drop.overlay">
               Déposez le fichier audio pour l'importer
             </Trans>
           </span>
-        </div>
+        </output>
       )}
       <input
         ref={fileInputRef}

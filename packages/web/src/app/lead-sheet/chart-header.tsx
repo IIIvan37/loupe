@@ -22,7 +22,7 @@ interface ChartHeaderProps {
 
 /** An empty directive (`{key:}`) overrides nothing — '' is no value. */
 function over(value: string | undefined): string | undefined {
-  return value ? value : undefined
+  return value || undefined
 }
 
 /**

@@ -19,11 +19,12 @@ interface LiveStatusProps {
  * change.
  */
 export function LiveStatus({ message }: LiveStatusProps) {
-  const region = useRef<HTMLSpanElement>(null)
+  const region = useRef<HTMLOutputElement>(null)
   useEffect(() => {
     if (region.current !== null) {
       region.current.textContent = message ?? ''
     }
   }, [message])
-  return <span ref={region} role="status" className={controls.srOnly} />
+  // <output> carries the status role natively (implicit aria-live polite).
+  return <output ref={region} className={controls.srOnly} />
 }

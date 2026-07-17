@@ -25,7 +25,13 @@ interface AccountMenuProps {
  */
 /** The monthly quota read-out — a separate node so `{used}`/`{quota}` extract as
  * NAMED placeholders (member expressions would extract as positional `{0}`). */
-function QuotaLine({ used, quota }: { used: number; quota: number }) {
+function QuotaLine({
+  used,
+  quota
+}: {
+  readonly used: number
+  readonly quota: number
+}) {
   return (
     <p className={styles.hint}>
       <Trans id="account.quota-this-month">

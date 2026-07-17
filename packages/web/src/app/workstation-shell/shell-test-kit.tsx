@@ -172,8 +172,9 @@ export function brokenProjectStores(): ProjectDeps {
   }
 }
 
-/** A health probe stub answering with the given device (or unreachable). */
-export function healthFetch(device: string | null | 'unreachable'): typeof fetch {
+/** A health probe stub answering with the given device — the sentinel
+    'unreachable' makes the probe throw like a dead server. */
+export function healthFetch(device: string | null): typeof fetch {
   return (async () => {
     if (device === 'unreachable') {
       throw new TypeError('fetch failed')

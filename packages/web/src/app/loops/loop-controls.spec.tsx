@@ -195,7 +195,7 @@ describe('LoopControls', () => {
       targetPercent: 100
     })
     expect(
-      screen.getByText(status, { ignore: 'script, style, [role="status"]' })
+      screen.getByText(status, { ignore: 'script, style, output, [role="status"]' })
     ).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent(status)
     // While running, the configuration entry point steps aside.
