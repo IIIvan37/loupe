@@ -54,6 +54,8 @@ interface KeyedMeasure {
   readonly chords: readonly KeyedChord[]
   readonly repeatStart: boolean
   readonly repeatEnd: boolean
+  /** The `:| xN` pass count printed over the closing repeat bar. */
+  readonly repeatCount?: number
   /** The volta number bracketing this measure; `voltaOpens` marks the
       measure that prints it (the bracket line spans the whole ending). */
   readonly volta?: number
@@ -160,6 +162,9 @@ function keyed(
         })),
         repeatStart: measure.repeatStart === true,
         repeatEnd: measure.repeatEnd === true,
+        ...(measure.repeatCount !== undefined && {
+          repeatCount: measure.repeatCount
+        }),
         ...(measure.volta !== undefined && { volta: measure.volta }),
         voltaOpens,
         fermata: measure.fermata === true,
@@ -303,6 +308,11 @@ export function LeadSheet({
                 {measure.chords.map((chord) => (
                   <ChordGlyph key={chord.key} text={chord.text} />
                 ))}
+                {measure.repeatCount !== undefined && (
+                  <span className={styles.passCount}>
+                    ×{measure.repeatCount}
+                  </span>
+                )}
                 {measure.markAfter !== undefined && (
                   <span className={styles.formMark}>{measure.markAfter}</span>
                 )}

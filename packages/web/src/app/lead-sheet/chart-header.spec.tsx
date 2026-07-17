@@ -70,6 +70,20 @@ describe('ChartHeader', () => {
     expect(screen.getByText('♩ = 120')).toBeInTheDocument()
   })
 
+  it('prints the rollout line when a {form: 3x} directive names one', () => {
+    render(<ChartHeader derived={{}} directives={{ form: '3x' }} />)
+    expect(
+      screen.getByText(i18n._('chart.form-rollout', { count: 3 }))
+    ).toBeInTheDocument()
+  })
+
+  it('a prose {form: …} annotation prints verbatim', () => {
+    render(
+      <ChartHeader derived={{}} directives={{ form: '3 chorus, head in/out' }} />
+    )
+    expect(screen.getByText('3 chorus, head in/out')).toBeInTheDocument()
+  })
+
   it('prints no time signature — it lives on the grid as stave notation', () => {
     render(
       <ChartHeader derived={{ beatsPerBar: 4 }} directives={{ time: '6/8' }} />

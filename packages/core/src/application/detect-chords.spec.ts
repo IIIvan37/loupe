@@ -166,6 +166,32 @@ describe('detectChords', () => {
     expect(grid(result.source)).toBe('|: C | Am | F | G :|')
   })
 
+  it('writes three identical choruses as ONE cycle under a {form: 3x} head', async () => {
+    const chorus = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'G7']
+    const song = [...chorus, ...chorus, ...chorus]
+    const beats = grid4(24)
+    const result = await detectChords(
+      { audio, grid: beats, barsPerRow: 4 },
+      { detector: fakeDetector(spansPerMeasure(song, beats)) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(grid(result.source)).toBe(
+      '{form: 3x}\n| C | Am | F | G |\n| Em | Am | Dm | G7 |'
+    )
+  })
+
+  it('a chorus run before an outro folds under a pass count', async () => {
+    const chorus = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'G7']
+    const song = [...chorus, ...chorus, ...chorus, 'F', 'C', 'F', 'C']
+    const beats = grid4(28)
+    const result = await detectChords(
+      { audio, grid: beats, barsPerRow: 4 },
+      { detector: fakeDetector(spansPerMeasure(song, beats)) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(result.source).toContain(':| x3')
+  })
+
   it('cuts and heads the draft by already-known sections instead of deducing', async () => {
     // The same progression twice would deduce into repeat bars under neutral
     // headers — but a structure detection already ran, so the draft must be

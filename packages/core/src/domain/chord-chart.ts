@@ -21,6 +21,9 @@ export interface Measure {
   readonly repeatEnd?: true
   /** The alternative ending this measure belongs to (`|1.` / `|2.` bars). */
   readonly volta?: number
+  /** Total passes of the repeat a `:| xN` closes — a bare `:|` is the
+      implicit 2. Only set on a `repeatEnd` measure. */
+  readonly repeatCount?: number
   /** A `@` suffix on any of the measure's chords — hold the last one. */
   readonly fermata?: true
 }
@@ -82,16 +85,49 @@ const TOKEN = /[^|\s]+/g
     to and including the bar its `:|` closes. */
 function parseRow(line: string): Measure[] {
   let carriedVolta: number | undefined
-  return line
+  const measures: Measure[] = []
+  const cells = line
     .split('|')
     .map((cell) => cell.match(TOKEN) ?? [])
     .filter((tokens) => tokens.length > 0)
-    .map((tokens) => {
-      const measure = parseCell(tokens)
-      const volta = measure.volta ?? carriedVolta
-      carriedVolta = measure.repeatEnd === true ? undefined : volta
-      return volta === undefined ? measure : { ...measure, volta }
-    })
+  for (const tokens of cells) {
+    const count = repeatCountCell(tokens, measures.at(-1))
+    if (count !== undefined) {
+      measures[measures.length - 1] = {
+        ...(measures.at(-1) as Measure),
+        repeatCount: count
+      }
+      continue
+    }
+    const measure = parseCell(tokens)
+    const volta = measure.volta ?? carriedVolta
+    carriedVolta = measure.repeatEnd === true ? undefined : volta
+    measures.push(volta === undefined ? measure : { ...measure, volta })
+  }
+  return measures
+}
+
+/** A repeat's pass count: the `x3` (or `×3`) after a closing `:|` bar. */
+const REPEAT_COUNT = /^[x×](\d+)$/i
+
+/** A lone `xN` cell right after a bare `:|` bar of the SAME row reads as the
+    repeat's pass count, not a measure. Anywhere else (no repeat to count, a
+    volta's `:|`) the token stays a chord cell — consuming it would silently
+    change the measure count and shift every later bar off its downbeat. */
+function repeatCountCell(
+  tokens: readonly string[],
+  previous: Measure | undefined
+): number | undefined {
+  if (tokens.length !== 1) return undefined
+  const count = REPEAT_COUNT.exec(tokens[0] as string)
+  if (
+    count === null ||
+    previous?.repeatEnd !== true ||
+    previous.volta !== undefined
+  ) {
+    return undefined
+  }
+  return Number(count[1])
 }
 
 /** One cell's tokens into a measure: edge `:` tokens are the repeat bars of
@@ -271,6 +307,7 @@ export function isPrintableToken(token: string): boolean {
     token.match(TOKEN)?.join('') === token &&
     token !== ':' &&
     !VOLTA.test(token) &&
+    !REPEAT_COUNT.test(token) &&
     !FERMATA.test(token)
   )
 }
@@ -303,12 +340,40 @@ const FORM_MARK = new RegExp(
   'i'
 )
 
+/** A `{form: Nx}` head value: how many times the whole form plays (`3x`,
+    `3 ×`). The count grammar of the body's `xN` cells, value-side. */
+const FORM_ROLLOUT = /^(\d+)\s*[x×]$/i
+
+/**
+ * The pass count a `{form: …}` head directive carries, `undefined` when the
+ * value is prose (or a count below 2 — the form already plays once): a
+ * malformed value must never change playback, only ever multiply it.
+ */
+export function parseFormRollout(
+  value: string | undefined
+): number | undefined {
+  const match = FORM_ROLLOUT.exec(value ?? '')
+  if (match === null) return undefined
+  const count = Number(match[1])
+  return count >= 2 ? count : undefined
+}
+
 /**
  * Unroll a chart's form into the sequence of WRITTEN measure indices actually
  * played — the projection playback highlighting follows (the n-th downbeat
- * plays the n-th unrolled measure).
+ * plays the n-th unrolled measure). A `{form: Nx}` head directive is the
+ * song's ROLLOUT — the whole written form (repeats included) plays N times —
+ * so the playhead keeps tracking choruses 2..N of a one-cycle grid.
  */
 export function unrollChart(chart: ChordChart): readonly number[] {
+  const single = unrollWrittenForm(chart)
+  const rollout = parseFormRollout(chart.directives.form)
+  if (rollout === undefined) return single
+  return Array.from({ length: rollout }, () => single).flat()
+}
+
+/** One pass of the written form: repeats, voltas and D.C. as printed. */
+function unrollWrittenForm(chart: ChordChart): readonly number[] {
   const measures = chart.sections.flatMap((section) => section.measures)
   const dc = chart.form?.dc
   if (dc === undefined) {
@@ -374,8 +439,9 @@ function walkForm(
     played.push(index)
     if (measure.repeatEnd) {
       // A volta's :| always sends the walk back for the NEXT ending (it is
-      // only ever reached on its own pass); a bare :| repeats once.
-      if (measure.volta !== undefined || pass === 1) {
+      // only ever reached on its own pass); a bare :| repeats until its pass
+      // count — the implicit 2, or the `xN` it carries.
+      if (measure.volta !== undefined || pass < (measure.repeatCount ?? 2)) {
         pass = (measure.volta ?? pass) + 1
         index = repeatFrom
         jumped = true

@@ -56,6 +56,12 @@
   font-weight: 600;
 }
 
+/* The rollout note ("jouer 3 fois") — same small sans, lighter weight. */
+.chartForm {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xs);
+}
+
 /* ——— Sections: a boxed label chip over the measures. ——— */
 
 .label {
@@ -175,6 +181,13 @@ button.measure {
 .voltaLabel {
   composes: annotation;
   inset-inline-start: var(--space-3xs);
+  font-size: var(--font-size-xs);
+}
+
+/* The ×N pass count sits over the :| bar it counts, chart-hand small. */
+.passCount {
+  composes: annotation;
+  inset-inline-end: var(--space-3xs);
   font-size: var(--font-size-xs);
 }
 

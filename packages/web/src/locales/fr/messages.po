@@ -197,12 +197,17 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chart-header.tsx:54
+#: src/app/lead-sheet/chart-header.tsx:53
+msgid "chart.form-rollout"
+msgstr "Jouer {count} fois"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chart-header.tsx:63
 msgid "chart.key-of"
 msgstr "key of {key}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/lead-sheet.tsx:113
+#: src/app/lead-sheet/lead-sheet.tsx:115
 msgid "chart.measure-seek"
 msgstr "Aller à la mesure {number}"
 
@@ -305,27 +310,27 @@ msgstr "Grille transposée"
 
 #. js-lingui-explicit-id
 #: src/app/lead-sheet/chord-chart-panel.tsx:169
-#: src/app/lead-sheet/format-help-dialog.tsx:89
+#: src/app/lead-sheet/format-help-dialog.tsx:103
 msgid "chords.format-help"
 msgstr "Aide du format"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:90
+#: src/app/lead-sheet/format-help-dialog.tsx:104
 msgid "chords.format-help-intro"
 msgstr "La grille se tape en texte : une ligne par rangée de mesures."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:75
+#: src/app/lead-sheet/format-help-dialog.tsx:89
 msgid "chords.help-directives"
 msgstr "Surcharger l'en-tête du chart"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:57
+#: src/app/lead-sheet/format-help-dialog.tsx:64
 msgid "chords.help-fermata"
 msgstr "Point d'orgue"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:61
+#: src/app/lead-sheet/format-help-dialog.tsx:68
 msgid "chords.help-form"
 msgstr "Marques de forme (da capo, coda, fin)"
 
@@ -338,6 +343,16 @@ msgstr "Une mesure entre deux barres"
 #: src/app/lead-sheet/format-help-dialog.tsx:46
 msgid "chords.help-repeat"
 msgstr "Reprise"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:50
+msgid "chords.help-repeat-count"
+msgstr "Reprise jouée N fois"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/format-help-dialog.tsx:82
+msgid "chords.help-rollout"
+msgstr "Jouer toute la grille N fois"
 
 #. js-lingui-explicit-id
 #: src/app/lead-sheet/format-help-dialog.tsx:24
@@ -355,12 +370,12 @@ msgid "chords.help-split"
 msgstr "Un accord par moitié de mesure"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:68
+#: src/app/lead-sheet/format-help-dialog.tsx:75
 msgid "chords.help-time"
 msgstr "Signature rythmique (en tête ou en cours de grille)"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:50
+#: src/app/lead-sheet/format-help-dialog.tsx:57
 msgid "chords.help-voltas"
 msgstr "Fins alternatives (voltas)"
 

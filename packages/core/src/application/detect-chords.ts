@@ -2,13 +2,13 @@ import type { BeatGrid } from '../domain/beat-grid.ts'
 import {
   chartMeters,
   cutBySections,
-  deduceStructure,
   renderStructuredSource,
   timeLine
 } from '../domain/chart-structure.ts'
 import { respellChartSource } from '../domain/chord-chart.ts'
 import { chordLabelPerMeasure } from '../domain/chord-detection.ts'
 import { detectKey, keyAccidental, keyName } from '../domain/chord-key.ts'
+import { encodeChartSource } from '../domain/form-encoder.ts'
 import type { DetectedSection } from '../domain/song-structure.ts'
 import { errorMessage } from './error-message.ts'
 import type { ChordDetector, DecodedAudio } from './ports.ts'
@@ -85,11 +85,11 @@ export type DetectChordsResult =
  * Orchestration use-case, pure: hand the loaded PCM to the chord detector port,
  * fold its timestamped spans into one chord CELL per measure on the beat grid
  * (`chordLabelPerMeasure` — two chords when each half-bar is dominated by its
- * own), deduce the song's structure from the repetition in
- * that sequence (`deduceStructure`) and render it as grid SOURCE text — the
- * draft the chord-chart editor pre-fills and the user corrects; imperfect
- * estimation is
- * absorbed by editing, never exposed raw. A grid without downbeats cannot
+ * own), then encode the song's form separately from its rollout
+ * (`encodeChartSource` — one cycle + `{form: Nx}` for N identical passes,
+ * repeats / pass counts / voltas / D.C. inside) and render it as grid SOURCE
+ * text — the draft the chord-chart editor pre-fills and the user corrects;
+ * imperfect estimation is absorbed by editing, never exposed raw. A grid without downbeats cannot
  * anchor measures, so it is rejected BEFORE the engine runs (application
  * policy, like `importFromUrl`'s URL guard); a detection yielding no measures
  * is an error too — an empty draft would silently wipe the user's chart.
@@ -130,24 +130,28 @@ export async function detectChords(
     // The Logical Song's 2/4 turnaround), voted per section like the chords.
     const { meters, dominant } = chartMeters(input.grid, input.beatsPerBar)
     const known = input.sections?.length ? input.sections : undefined
-    const sections = known
-      ? cutBySections(labels, meters, known, input.grid)
-      : deduceStructure(labels, meters)
-    const body = respellChartSource(
-      // A lone KNOWN section keeps its header (deduction suppresses it): the
-      // header is what the chart→marker sync reads back — suppressed, the
-      // draft would erase the timeline's last structure marker.
-      renderStructuredSource(
-        sections,
-        input.barsPerRow,
-        dominant,
-        known !== undefined
-      ),
-      keyAccidental(key)
-    )
+    // Known sections cut the draft at THEIR boundaries (a lone one keeps its
+    // header: the chart→marker sync reads headers back — suppressed, the
+    // draft would erase the timeline's last structure marker). Without them,
+    // the form encoder separates the FORM from the ROLLOUT: one cycle plus a
+    // {form: Nx} head when the song is N passes of it, repeats / pass counts
+    // / voltas / a D.C. inside.
+    const encoded = known
+      ? {
+          source: renderStructuredSource(
+            cutBySections(labels, meters, known, input.grid),
+            input.barsPerRow,
+            dominant,
+            true
+          )
+        }
+      : encodeChartSource(labels, meters, input.barsPerRow, dominant)
+    const body = respellChartSource(encoded.source, keyAccidental(key))
+    const form =
+      encoded.rollout === undefined ? '' : `{form: ${encoded.rollout}x}\n`
     return {
       ok: true,
-      source: `{key: ${keyName(key)}}\n${timeLine(dominant)}\n${body}`
+      source: `{key: ${keyName(key)}}\n${timeLine(dominant)}\n${form}${body}`
     }
   } catch (e) {
     const code = e instanceof ChordDetectionError ? e.code : 'unknown'

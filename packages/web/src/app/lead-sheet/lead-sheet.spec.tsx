@@ -172,6 +172,13 @@ describe('LeadSheet', () => {
     expect(screen.getByText('1.')).toBeInTheDocument()
   })
 
+  it('prints the pass count on the bar its :| x3 closes', () => {
+    render(<LeadSheet source={'|: C | G :| x3'} />, {
+      wrapper: I18nTestingProvider
+    })
+    expect(screen.getByText('×3')).toBeInTheDocument()
+  })
+
   it('prints the D.C. mark over the measure it follows', () => {
     render(<LeadSheet source={'| C | G |\n{d.c.}'} />, {
       wrapper: I18nTestingProvider

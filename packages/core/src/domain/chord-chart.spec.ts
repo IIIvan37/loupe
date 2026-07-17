@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   chartMatchesPitch,
   parseChart,
+  parseFormRollout,
   renderChartSource,
   respellChartSource,
   transposeChart,
@@ -290,6 +291,10 @@ describe('transposeChartSource', () => {
     expect(transposeChartSource('| C/E@ |', 2)).toBe('| D/F#@ |')
   })
 
+  it('keeps a repeat pass count verbatim, chords moving', () => {
+    expect(transposeChartSource('| C | G :| x3', 2)).toBe('| D | A :| x3')
+  })
+
   it('keeps repeat bars and volta numbers verbatim, chords moving', () => {
     expect(transposeChartSource('|: C |1. G :|\n|2. F |', 2)).toBe(
       '|: D |1. A :|\n|2. G |'
@@ -437,7 +442,53 @@ describe('chartMatchesPitch', () => {
   })
 })
 
+describe('parseChart — repeat count (xN)', () => {
+  it('attaches a x3 cell to the preceding :| measure', () => {
+    const chart = parseChart('| C | G :| x3')
+    expect(chart.sections[0]?.measures[1]?.repeatCount).toBe(3)
+  })
+
+  it('the count cell adds no measure of its own', () => {
+    const chart = parseChart('| C | G :| x3')
+    expect(chart.sections[0]?.measures).toHaveLength(2)
+  })
+
+  it('reads the unicode × count token too', () => {
+    const chart = parseChart('| C | G :| ×3')
+    expect(chart.sections[0]?.measures[1]?.repeatCount).toBe(3)
+  })
+
+  it('an orphan count (no :| before it) stays a measure cell', () => {
+    const chart = parseChart('| C | x3 |')
+    expect(chart.sections[0]?.measures).toHaveLength(2)
+  })
+
+  it('a count after a volta bar stays a measure cell — counted voltas are not a thing', () => {
+    const chart = parseChart('|1. G :| x3')
+    expect(chart.sections[0]?.measures).toHaveLength(2)
+  })
+
+  it('a count cell on the next row does not reach back across the line', () => {
+    const chart = parseChart('| C | G :|\n| x3 |')
+    expect(chart.sections[0]?.measures[1]?.repeatCount).toBeUndefined()
+  })
+})
+
 describe('unrollChart', () => {
+  it('a |: … :| x3 plays three passes', () => {
+    expect(unrollChart(parseChart('|: C | G :| x3'))).toEqual([
+      0, 1, 0, 1, 0, 1
+    ])
+  })
+
+  it('a :| x4 plays four passes', () => {
+    expect(unrollChart(parseChart('| C :| x4'))).toEqual([0, 0, 0, 0])
+  })
+
+  it('an explicit x2 plays exactly like a bare :|', () => {
+    expect(unrollChart(parseChart('| C :| x2'))).toEqual([0, 0])
+  })
+
   it('unrolls a structureless chart to written order', () => {
     expect(unrollChart(parseChart('| C | G |'))).toEqual([0, 1])
   })
@@ -576,6 +627,63 @@ describe('unrollChart', () => {
   })
 })
 
+describe('parseFormRollout', () => {
+  it('reads a 3x value as three passes', () => {
+    expect(parseFormRollout('3x')).toBe(3)
+  })
+
+  it('reads the unicode × with a space', () => {
+    expect(parseFormRollout('4 ×')).toBe(4)
+  })
+
+  it('prose is not a rollout', () => {
+    expect(parseFormRollout('head in/out')).toBeUndefined()
+  })
+
+  it('a single pass is not a rollout — the form already plays once', () => {
+    expect(parseFormRollout('1x')).toBeUndefined()
+  })
+
+  it('a missing directive is not a rollout', () => {
+    expect(parseFormRollout(undefined)).toBeUndefined()
+  })
+})
+
+describe('unrollChart — {form: Nx} rollout', () => {
+  it('a {form: 3x} head plays the whole form three times', () => {
+    expect(unrollChart(parseChart('{form: 3x}\n| C | G |'))).toEqual([
+      0, 1, 0, 1, 0, 1
+    ])
+  })
+
+  it('the rollout multiplies the form WITH its repeats', () => {
+    expect(unrollChart(parseChart('{form: 2x}\n|: C :|'))).toEqual([0, 0, 0, 0])
+  })
+
+  it('a prose {form: …} value never changes playback', () => {
+    expect(unrollChart(parseChart('{form: ad lib}\n| C |'))).toEqual([0])
+  })
+
+  it('property — {form: Nx} unrolls to exactly N concatenations', () => {
+    const label = fc.constantFrom('C', 'Am', 'F#m7b5', 'Bb/D', 'N.C.')
+    fc.assert(
+      fc.property(
+        fc.array(label, { minLength: 1, maxLength: 16 }),
+        fc.integer({ min: 2, max: 5 }),
+        (labels, count) => {
+          const base = renderChartSource(labels, 4)
+          const single = unrollChart(parseChart(base))
+          const rolled = unrollChart(parseChart(`{form: ${count}x}\n${base}`))
+          return (
+            JSON.stringify(rolled) ===
+            JSON.stringify(Array.from({ length: count }, () => single).flat())
+          )
+        }
+      )
+    )
+  })
+})
+
 describe('renderChartSource', () => {
   it('renders measures as bar-separated cells, wrapping rows', () => {
     expect(renderChartSource(['C', 'Am', 'F', 'G', 'C'], 4)).toBe(
@@ -595,6 +703,12 @@ describe('renderChartSource', () => {
 
   it('prints a two-chord cell verbatim — one measure, two chords', () => {
     expect(renderChartSource(['C G', 'Am'], 4)).toBe('| C G | Am |')
+  })
+
+  it('prints a count-like label as N.C. — never fabricated structure', () => {
+    // A detected 'x3' after a :| would read back as a pass count, silently
+    // dropping a measure.
+    expect(renderChartSource(['C', 'x3'], 4)).toBe('| C | N.C. |')
   })
 
   it('prints a multi-chord cell it cannot re-print exactly as N.C.', () => {
