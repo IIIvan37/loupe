@@ -85,11 +85,11 @@ export type DetectChordsResult =
  * Orchestration use-case, pure: hand the loaded PCM to the chord detector port,
  * fold its timestamped spans into one chord CELL per measure on the beat grid
  * (`chordLabelPerMeasure` — two chords when each half-bar is dominated by its
- * own), deduce the song's structure from the repetition in
- * that sequence (`deduceStructure`) and render it as grid SOURCE text — the
- * draft the chord-chart editor pre-fills and the user corrects; imperfect
- * estimation is
- * absorbed by editing, never exposed raw. A grid without downbeats cannot
+ * own), then encode the song's form separately from its rollout
+ * (`encodeChartSource` — one cycle + `{form: Nx}` for N identical passes,
+ * repeats / pass counts / voltas / D.C. inside) and render it as grid SOURCE
+ * text — the draft the chord-chart editor pre-fills and the user corrects;
+ * imperfect estimation is absorbed by editing, never exposed raw. A grid without downbeats cannot
  * anchor measures, so it is rejected BEFORE the engine runs (application
  * policy, like `importFromUrl`'s URL guard); a detection yielding no measures
  * is an error too — an empty draft would silently wipe the user's chart.

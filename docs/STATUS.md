@@ -660,6 +660,30 @@ narration visible, Offline DevTools bloque/débloque en live. Gate **verte —
 1650 tests** (+10), **Stryker 94,01 %** (core touché).
 [rapport](sessions/2026-07-16-m14-sante-horsligne-narration.md).
 
+**Grille d'accords : forme vs déroulé (branche
+`feat/chord-grid-form-rollout`, PR à ouvrir)** — interlude validé avant T2.1 :
+le brouillon de détection sépare la FORME (cycle harmonique minimal) du
+DÉROULÉ (« 3 chorus »). **Grammaire** : `:| xN` (compteur de passes) +
+`{form: Nx}` en tête (l'unroll multiplie — playhead/seek/anchors suivent les
+chorus 2..N). **Core** : `section-matching.ts` (similarité pondérée queue
+×0.5, `endingVariants` corps voté/fins par passe, `votedBlock` déménagé),
+`harmonic-cycle.ts` (`detectCycle` par autocorrélation à la mesure),
+`deduceInstances` (passes ordonnées, voté + brut), `form-encoder.ts`
+(`encodeChartSource` : rollout ≥3 passes, DP coût = mesures écrites +
+λ·navigation — reprises λ1, `xN` λ2, voltas λ3, D.C./Fine λ10/+1 validé par
+déroulement ; types à fins variantes écrits fidèlement ; fold interdit si le
+mètre ne revient pas ; fallback octet-identique). **Oracle fast-check** :
+`playedLabels(encode(song)) ≡ song` (a attrapé un vrai bug d'égalité de
+coût), stabilité au ré-encodage, comptage sous bruit. `detectChords` branche
+déduction → encodeur, `{form: Nx}` imprimé en tête ; sections connues
+inchangées. **Web** : badge `×N` sur `:|`, « Jouer N fois » au ChartHeader,
+aide du format enrichie. Browser-verify réel (tempo manuel 120) : rendu ×3 /
+voltas / « Jouer 3 fois », playhead surligne la 1re mesure écrite en chorus 2.
+Hors lot : segno/D.S./coda émis (décision de cadrage). Gate **verte — 1729
+tests** (+79), **Stryker 91,33 %** (survivants = gardes défensives de
+`cycleRollout`, notés au rapport).
+[rapport](sessions/2026-07-17-chord-grid-form-rollout.md).
+
 **Prochain : T2.1** (spike coquille Tauri + inventaire licences — GO/NO-GO de
 la Phase 2) ; les 🟢 v5 au fil de l'eau ; garde-fou : poser l'alerte de
 facturation Modal avant d'ouvrir la séparation aux beta-testeurs.
