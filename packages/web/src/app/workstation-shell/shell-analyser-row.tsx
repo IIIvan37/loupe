@@ -58,6 +58,12 @@ export function ShellAnalyserRow({
   // the chord engine only needs the server to ANSWER (it runs on CPU —
   // 'no-separation' just means no Demucs device).
   const hasDownbeat = grid?.some((beat) => beat.downbeat) ?? false
+  let chordsBlockedReason: 'server' | 'no-grid' | undefined
+  if (!offloaded && localServerDown) {
+    chordsBlockedReason = 'server'
+  } else if (!hasDownbeat) {
+    chordsBlockedReason = 'no-grid'
+  }
   return (
     <AnalyserRow
       disabled={disabled}
@@ -108,12 +114,7 @@ export function ShellAnalyserRow({
         onDetect: () => void chordDetection.detect(),
         onCancel: chordDetection.cancel,
         offloaded,
-        blockedReason:
-          !offloaded && localServerDown
-            ? 'server'
-            : hasDownbeat
-              ? undefined
-              : 'no-grid'
+        blockedReason: chordsBlockedReason
       }}
     />
   )

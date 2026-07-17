@@ -31,6 +31,7 @@ import torch
 from beat_this.inference import Audio2Beats
 from fastapi import APIRouter, HTTPException, Request
 
+from .api_docs import error_responses
 from .beat_positions import tempo_payload
 from .limits import (
     INFERENCE_TIMEOUT_SECONDS,
@@ -129,7 +130,7 @@ def _analyse(data: bytes) -> dict:
     return tempo_payload(beats.tolist(), downbeats.tolist())
 
 
-@router.post("/tempo")
+@router.post("/tempo", responses=error_responses(400, 503, 504))
 async def tempo(request: Request) -> dict:
     data = await read_capped_body(request, MAX_UPLOAD_BYTES)
     try:

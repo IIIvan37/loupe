@@ -77,12 +77,7 @@ function cycleRollout(
   initialMeter?: number
 ): EncodedChart | undefined {
   const cycle = detectCycle(labels)
-  if (
-    cycle === undefined ||
-    cycle.intro !== 0 ||
-    cycle.tail !== 0 ||
-    cycle.count < MIN_ROLLOUT
-  ) {
+  if (cycle?.intro !== 0 || cycle.tail !== 0 || cycle.count < MIN_ROLLOUT) {
     return undefined
   }
   const copies = chunk(labels, cycle.period)
@@ -157,26 +152,42 @@ function encodeInstances(
   let best = dp(0, instances.length, initialMeter)
   let daCapo: { readonly fine: number | undefined } | undefined
   for (let dcAt = 1; dcAt < instances.length; dcAt += 1) {
-    const replayed = instances.length - dcAt
-    if (replayed > dcAt) continue
-    if (!sameRun(instances, 0, dcAt, replayed)) continue
-    const prefix = dp(0, replayed, initialMeter)
-    const middle = dp(replayed, dcAt, prefix.exit)
-    const isWholeReplay = replayed === dcAt
-    const cost =
-      prefix.cost +
-      (isWholeReplay ? 0 : middle.cost) +
-      NAVIGATION_COST.daCapo +
-      (isWholeReplay ? 0 : NAVIGATION_COST.fine)
-    if (cost < best.cost) {
-      const blocks = isWholeReplay
-        ? prefix.blocks
-        : [...prefix.blocks, ...middle.blocks]
-      best = { ...prefix, cost, blocks }
-      daCapo = { fine: isWholeReplay ? undefined : prefix.blocks.length }
+    const candidate = daCapoCandidate(instances, dp, dcAt, initialMeter)
+    if (candidate !== undefined && candidate.plan.cost < best.cost) {
+      best = candidate.plan
+      daCapo = { fine: candidate.fine }
     }
   }
   return renderPlan(best.blocks, daCapo?.fine, daCapo !== undefined)
+}
+
+/** The D.C. plan ending the form at `dcAt`: legal when the trailing passes
+    replay a written prefix, costed with the jump (and the fine when the
+    replay must stop early). `undefined` when no replay exists there. */
+function daCapoCandidate(
+  instances: readonly SectionInstance[],
+  dp: (from: number, to: number, running: number | undefined) => Plan,
+  dcAt: number,
+  initialMeter: number | undefined
+): { readonly plan: Plan; readonly fine: number | undefined } | undefined {
+  const replayed = instances.length - dcAt
+  if (replayed > dcAt) return undefined
+  if (!sameRun(instances, 0, dcAt, replayed)) return undefined
+  const prefix = dp(0, replayed, initialMeter)
+  const middle = dp(replayed, dcAt, prefix.exit)
+  const isWholeReplay = replayed === dcAt
+  const cost =
+    prefix.cost +
+    (isWholeReplay ? 0 : middle.cost) +
+    NAVIGATION_COST.daCapo +
+    (isWholeReplay ? 0 : NAVIGATION_COST.fine)
+  const blocks = isWholeReplay
+    ? prefix.blocks
+    : [...prefix.blocks, ...middle.blocks]
+  return {
+    plan: { ...prefix, cost, blocks },
+    fine: isWholeReplay ? undefined : prefix.blocks.length
+  }
 }
 
 /** Whether the last `length` instances replay the first `length` ones —
@@ -232,20 +243,20 @@ function planner(
     ) {
       runLength += 1
     }
-    const raws = instances
-      .slice(from, from + runLength)
-      .map((instance) => instance.raw)
-    const variants = runLength > 1 ? endingVariants(raws) : undefined
     let best: Plan | undefined
-    const consider = (
-      consumed: number,
-      block: RenderedBlock | undefined,
-      navigation: number
-    ): void => {
-      if (block === undefined) return
-      const tail = dp(from + consumed, to, block.exit)
-      const cost = block.written + navigation + tail.cost
-      const nav = navigation + tail.navigation
+    const moves = movesAt(
+      instances,
+      from,
+      runLength,
+      faithfulTypes.has(head.type),
+      running,
+      barsPerRow
+    )
+    for (const move of moves) {
+      if (move.block === undefined) continue
+      const tail = dp(from + move.consumed, to, move.block.exit)
+      const cost = move.block.written + move.navigation + tail.cost
+      const nav = move.navigation + tail.navigation
       if (
         best === undefined ||
         cost < best.cost ||
@@ -254,59 +265,83 @@ function planner(
         best = {
           cost,
           navigation: nav,
-          blocks: [block, ...tail.blocks],
+          blocks: [move.block, ...tail.blocks],
           exit: tail.exit
         }
       }
     }
-    const faithful = faithfulTypes.has(head.type)
-    // Longest folds first: on equal cost the earlier candidate is kept, and
-    // a wider fold says more with the same ink. A faithful type's fold plays
-    // the run's own (run-voted) bars, never the type's cross-run vote.
-    for (let span = runLength; span >= 2; span -= 1) {
-      const spanVariants =
-        span === runLength ? variants : endingVariants(raws.slice(0, span))
-      if (spanVariants !== undefined) continue
-      const measures = faithful
-        ? votedBlock(raws.slice(0, span))
-        : head.measures
-      consider(
-        span,
-        foldBlock(head, measures, span, running, barsPerRow),
-        span === 2 ? NAVIGATION_COST.repeat : NAVIGATION_COST.count
-      )
-    }
-    if (variants !== undefined) {
-      consider(
-        runLength,
-        voltaBlock(head, variants, running, barsPerRow),
-        NAVIGATION_COST.volta
-      )
-    }
-    // Writing the whole run as plain copies is one block (today's layout);
-    // writing just the head pass lets a later fold start mid-run.
-    if (runLength > 1) {
-      consider(
-        runLength,
-        writeBlock(
-          instances.slice(from, from + runLength),
-          faithful,
-          running,
-          barsPerRow
-        ),
-        NAVIGATION_COST.write
-      )
-    }
-    consider(
-      1,
-      writeBlock([head], faithful, running, barsPerRow),
-      NAVIGATION_COST.write
-    )
     const chosen = best as Plan
     memo.set(key, chosen)
     return chosen
   }
   return dp
+}
+
+interface Move {
+  readonly consumed: number
+  readonly block: RenderedBlock | undefined
+  readonly navigation: number
+}
+
+/**
+ * The candidate moves at one position, in tie-break order (the first
+ * strictly-cheapest candidate wins): longest folds first — on equal cost the
+ * earlier candidate is kept, and a wider fold says more with the same ink —
+ * then the volta bracket, then plain copies (whole run as one block, today's
+ * layout, or just the head pass so a later fold can start mid-run). A
+ * faithful type's fold plays the run's own (run-voted) bars, never the
+ * type's cross-run vote.
+ */
+function movesAt(
+  instances: readonly SectionInstance[],
+  from: number,
+  runLength: number,
+  faithful: boolean,
+  running: number | undefined,
+  barsPerRow: number
+): readonly Move[] {
+  const head = instances[from] as SectionInstance
+  const raws = instances
+    .slice(from, from + runLength)
+    .map((instance) => instance.raw)
+  const variants = runLength > 1 ? endingVariants(raws) : undefined
+  const moves: Move[] = []
+  for (let span = runLength; span >= 2; span -= 1) {
+    const spanVariants =
+      span === runLength ? variants : endingVariants(raws.slice(0, span))
+    if (spanVariants !== undefined) continue
+    const measures = faithful ? votedBlock(raws.slice(0, span)) : head.measures
+    moves.push({
+      consumed: span,
+      block: foldBlock(head, measures, span, running, barsPerRow),
+      navigation: span === 2 ? NAVIGATION_COST.repeat : NAVIGATION_COST.count
+    })
+  }
+  if (variants !== undefined) {
+    moves.push({
+      consumed: runLength,
+      block: voltaBlock(head, variants, running, barsPerRow),
+      navigation: NAVIGATION_COST.volta
+    })
+  }
+  if (runLength > 1) {
+    moves.push({
+      consumed: runLength,
+      block: writeBlock(
+        instances.slice(from, from + runLength),
+        faithful,
+        running,
+        barsPerRow
+      ),
+      navigation: NAVIGATION_COST.write
+    })
+  }
+  moves.push({
+    consumed: 1,
+    block: writeBlock([head], faithful, running, barsPerRow),
+    navigation: NAVIGATION_COST.write
+  })
+  return moves
 }
 
 /** The meter a block must enter at, and the lead line that gets it there. */

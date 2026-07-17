@@ -96,17 +96,21 @@ export function ShellHeader({
 
   // A running URL download narrates itself in the busy line, phase by phase
   // — the percentage rides the progress bar, not the copy (R.4).
-  const downloadBusy =
-    urlImport.progress === undefined
-      ? undefined
-      : urlImport.progress.phase === 'downloading'
+  let downloadBusy: { label: string; progress?: number } | undefined
+  if (urlImport.progress !== undefined) {
+    downloadBusy =
+      urlImport.progress.phase === 'downloading'
         ? {
             label: t({ id: 'header.downloading', message: 'Téléchargement…' }),
             progress: urlImport.progress.fraction
           }
         : {
-            label: t({ id: 'header.transcoding', message: "Extraction de l'audio…" })
+            label: t({
+              id: 'header.transcoding',
+              message: "Extraction de l'audio…"
+            })
           }
+  }
 
   // The long operations get one visible status strip (the dialog may be
   // closed while an open is still rebuilding the session).
@@ -114,24 +118,21 @@ export function ShellHeader({
     (p) => p.id === session.openingId
   )
   const name = openingProject?.name
-  const busy =
-    downloadBusy ??
-    (projects.busy === 'save' || session.preparingSave
-      ? {
-          label: t({ id: 'header.saving', message: 'Enregistrement du projet…' })
-        }
-      : exportingStems
-        ? {
-            label: t({ id: 'header.exporting', message: 'Export des stems…' })
-          }
-        : name !== undefined
-          ? {
-              label: t({
-                id: 'header.opening',
-                message: `Ouverture de « ${name} »…`
-              })
-            }
-          : undefined)
+  let pendingBusy: { label: string; progress?: number } | undefined
+  if (projects.busy === 'save' || session.preparingSave) {
+    pendingBusy = {
+      label: t({ id: 'header.saving', message: 'Enregistrement du projet…' })
+    }
+  } else if (exportingStems) {
+    pendingBusy = {
+      label: t({ id: 'header.exporting', message: 'Export des stems…' })
+    }
+  } else if (name !== undefined) {
+    pendingBusy = {
+      label: t({ id: 'header.opening', message: `Ouverture de « ${name} »…` })
+    }
+  }
+  const busy = downloadBusy ?? pendingBusy
 
   return (
     <>

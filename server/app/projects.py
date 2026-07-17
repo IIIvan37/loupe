@@ -33,6 +33,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import FileResponse
 
+from .api_docs import error_responses
 from .limits import (
     MAX_AUDIO_STORE_BYTES,
     MAX_MANIFEST_BYTES,
@@ -104,13 +105,13 @@ def store_audio(data: bytes) -> str:
     return ref
 
 
-@router.post("/audio")
+@router.post("/audio", responses=error_responses(404, 413, 507))
 async def put_audio(request: Request) -> dict:
     data = await read_capped_body(request, MAX_UPLOAD_BYTES)
     return {"ref": store_audio(data)}
 
 
-@router.get("/audio/{ref}")
+@router.get("/audio/{ref}", responses=error_responses(404))
 async def get_audio(ref: str) -> FileResponse:
     path = _audio_path(ref)
     if not path.is_file():
@@ -120,7 +121,7 @@ async def get_audio(ref: str) -> FileResponse:
     return FileResponse(path, media_type="application/octet-stream")
 
 
-@router.head("/audio/{ref}")
+@router.head("/audio/{ref}", responses=error_responses(404))
 async def has_audio(ref: str) -> Response:
     """Existence probe: refs are content hashes, so a client that computed the
     hash locally can skip re-uploading a blob the server already has."""
@@ -143,7 +144,7 @@ async def list_projects() -> list:
     return manifests
 
 
-@router.get("/projects/{project_id}")
+@router.get("/projects/{project_id}", responses=error_responses(404))
 async def get_project(project_id: str) -> Response:
     path = _project_path(project_id)
     if not path.is_file():
@@ -151,7 +152,7 @@ async def get_project(project_id: str) -> Response:
     return Response(path.read_bytes(), media_type="application/json")
 
 
-@router.put("/projects/{project_id}", status_code=204)
+@router.put("/projects/{project_id}", status_code=204, responses=error_responses(400, 404, 413))
 async def save_project(project_id: str, request: Request) -> Response:
     path = _project_path(project_id)
     # The manifest is opaque (persisted verbatim) but must at least be JSON.
@@ -163,7 +164,7 @@ async def save_project(project_id: str, request: Request) -> Response:
     return Response(status_code=204)
 
 
-@router.delete("/projects/{project_id}", status_code=204)
+@router.delete("/projects/{project_id}", status_code=204, responses=error_responses(404))
 async def delete_project(project_id: str) -> Response:
     path = _project_path(project_id)
     path.unlink(missing_ok=True)
@@ -206,14 +207,7 @@ def collect_garbage() -> dict:
     would risk erasing live audio. Run when idle: a blob just uploaded but not
     yet named by a saved manifest would look orphaned.
     """
-    manifests: list[Any] = []
-    unreadable = 0
-    if PROJECTS_DIR.is_dir():
-        for path in sorted(PROJECTS_DIR.glob("*.json")):
-            try:
-                manifests.append(json.loads(path.read_text("utf-8")))
-            except (OSError, ValueError):
-                unreadable += 1
+    manifests, unreadable = _read_manifests()
     if unreadable:
         return {
             "deleted": 0,
@@ -225,17 +219,35 @@ def collect_garbage() -> dict:
     live = referenced_refs(manifests)
     deleted = 0
     reclaimed = 0
-    if AUDIO_DIR.is_dir():
-        for path in AUDIO_DIR.iterdir():
-            # Only touch our own content-addressed blobs; leave .tmp files and
-            # anything else the store did not name with a bare sha256.
-            if not (path.is_file() and _REF_PATTERN.match(path.name)):
-                continue
-            if path.name not in live:
-                reclaimed += path.stat().st_size
-                path.unlink(missing_ok=True)
-                deleted += 1
+    for path in _owned_blobs():
+        if path.name not in live:
+            reclaimed += path.stat().st_size
+            path.unlink(missing_ok=True)
+            deleted += 1
     return {"deleted": deleted, "reclaimedBytes": reclaimed, "kept": len(live)}
+
+
+def _read_manifests() -> tuple[list[Any], int]:
+    """Every parseable project manifest, plus the count that would not parse."""
+    manifests: list[Any] = []
+    unreadable = 0
+    if PROJECTS_DIR.is_dir():
+        for path in sorted(PROJECTS_DIR.glob("*.json")):
+            try:
+                manifests.append(json.loads(path.read_text("utf-8")))
+            except (OSError, ValueError):
+                unreadable += 1
+    return manifests, unreadable
+
+
+def _owned_blobs() -> list[Path]:
+    """The store's own content-addressed blobs — leaves .tmp files and anything
+    else not named with a bare sha256 untouched."""
+    if not AUDIO_DIR.is_dir():
+        return []
+    return [
+        path for path in AUDIO_DIR.iterdir() if path.is_file() and _REF_PATTERN.match(path.name)
+    ]
 
 
 @router.post("/gc")

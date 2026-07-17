@@ -83,7 +83,7 @@ export function appendTap(
   taps: readonly number[],
   nowSeconds: number
 ): readonly number[] {
-  const last = taps[taps.length - 1]
+  const last = taps.at(-1)
   if (last !== undefined && nowSeconds - last > TAP_RESET_SECONDS) {
     return [nowSeconds]
   }

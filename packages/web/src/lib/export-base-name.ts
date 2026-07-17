@@ -15,10 +15,21 @@
 const UNSAFE = /[/\\:*?"<>|\u0000-\u001f]/g
 
 function sanitize(name: string): string {
-  return name
-    .replace(UNSAFE, ' ')
-    .replace(/\s+/g, ' ')
-    .replace(/^[.\s]+|[.\s]+$/g, '')
+  // After the whitespace collapse only spaces and dots can edge the name;
+  // a manual trim avoids the `[.\s]+$` regex Sonar flags as super-linear.
+  return trimEdges(name.replace(UNSAFE, ' ').replace(/\s+/g, ' '))
+}
+
+function isTrimmable(char: string): boolean {
+  return char === '.' || char === ' '
+}
+
+function trimEdges(name: string): string {
+  let start = 0
+  let end = name.length
+  while (start < end && isTrimmable(name.charAt(start))) start += 1
+  while (end > start && isTrimmable(name.charAt(end - 1))) end -= 1
+  return name.slice(start, end)
 }
 
 export function exportBaseName(

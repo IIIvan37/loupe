@@ -77,7 +77,7 @@ export function createHttpTempoDetector(
         )
       }
       if (typeof body.bpm !== 'number' || !Array.isArray(body.beats)) {
-        throw new Error('tempo response was malformed')
+        throw new TypeError('tempo response was malformed')
       }
       return { bpm: body.bpm, beats: toDetectedBeats(body.beats) }
     }

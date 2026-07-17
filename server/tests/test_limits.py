@@ -70,16 +70,18 @@ def test_read_capped_json_returns_bytes_and_parsed_value():
 
 def test_read_capped_json_rejects_non_json_as_400():
     req = FakeRequest([b"not json"])
+    reading = limits.read_capped_json(req, 100, "manifest is not JSON")
     with pytest.raises(HTTPException) as excinfo:
-        asyncio.run(limits.read_capped_json(req, 100, "manifest is not JSON"))
+        asyncio.run(reading)
     assert excinfo.value.status_code == 400
     assert excinfo.value.detail == "manifest is not JSON"
 
 
 def test_read_capped_json_keeps_the_413_cap():
     req = FakeRequest([b"x" * 50])
+    reading = limits.read_capped_json(req, 10)
     with pytest.raises(HTTPException) as excinfo:
-        asyncio.run(limits.read_capped_json(req, 10))
+        asyncio.run(reading)
     assert excinfo.value.status_code == 413
 
 

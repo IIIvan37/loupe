@@ -47,6 +47,24 @@ const ANALYSIS_COLD_START = msg({
   message: "Démarrage du moteur d'analyse (jusqu'à ~1 min)…"
 })
 
+/** Offline only blocks what actually needs the network: the OFFLOADED flows
+    (M1.4). The local engines live on localhost and keep working. */
+function offlineBlocks(offloaded: boolean, online: boolean): boolean {
+  return offloaded && !online
+}
+
+/** The X.1 rule every flow shares (M1.1/M1.4): a `network` failure names what
+    actually failed to answer — the offloaded analysis service, or the local
+    server the table's own copy points at. */
+function errorCopyFor<Code extends string>(
+  error: Code | undefined,
+  offloaded: boolean,
+  table: Readonly<Record<Code, MessageDescriptor>>
+): MessageDescriptor | undefined {
+  if (error === undefined) return undefined
+  if (error === 'network' && offloaded) return ANALYSIS_OFFLOAD_UNREACHABLE
+  return table[error]
+}
 
 /** The separation surface, unchanged from the retired SeparationPanel. */
 export interface SeparationControl {
@@ -141,277 +159,320 @@ export function AnalyserRow({
   structure,
   chords
 }: AnalyserRowProps) {
+  const showTempo =
+    tempo.detecting ||
+    tempo.error !== undefined ||
+    tempo.bpm !== undefined ||
+    tempo.cancelled
+  return (
+    <Cluster gap="var(--space-l)" align="flex-start">
+      <SeparationItem separation={separation} online={online} />
+      {showTempo && <TempoItem tempo={tempo} online={online} />}
+      <StructureItem structure={structure} disabled={disabled} online={online} />
+      <ChordsItem chords={chords} disabled={disabled} online={online} />
+    </Cluster>
+  )
+}
+
+/** Separation: idle/error → action; running → progress + cancel; ready → a
+    quiet done face (the stems ARE the mixer, nothing left to offer). */
+function SeparationItem({
+  separation,
+  online
+}: {
+  readonly separation: SeparationControl
+  readonly online: boolean
+}) {
   const { t } = useLingui()
-
-  // Offline only blocks what actually needs the network: the OFFLOADED flows
-  // (M1.4). The local engines live on localhost and keep working.
-  const offlineBlocks = (offloaded: boolean) => offloaded && !online
-
-  // — Separation: idle/error → action; running → progress + cancel; ready →
-  //   a quiet done face (the stems ARE the mixer, nothing left to offer).
   const sep = separation.state
-  const sepRunning = sep.status === 'analysing' || sep.status === 'separating'
+  const running = sep.status === 'analysing' || sep.status === 'separating'
   // Offloaded, « démarrer le serveur local » would be the wrong remedy: the
   // local probe only gates the LOCAL engine (M1.3, extends X.1) — offline
   // gates the offload instead (M1.4).
-  const sepBlock = separation.offloaded
-    ? offlineBlocks(true)
-      ? ANALYSIS_OFFLINE
-      : undefined
-    : SEPARATION_SERVER_BLOCK[separation.serverHealth]
-  const sepStep = sepRunning ? i18n._(PROGRESS_LABELS[sep.status]) : undefined
-  // Same X.1 rule as the detections (M1.4): `network` names what actually
-  // failed to answer — the offloaded analysis service, or the local server.
-  const sepErrorCopy =
-    sep.error === undefined
-      ? undefined
-      : sep.error.code === 'network' && separation.offloaded
-        ? ANALYSIS_OFFLOAD_UNREACHABLE
-        : SEPARATION_ERROR_COPY[sep.error.code]
-  const sepFailure =
-    sepErrorCopy !== undefined
+  let block: MessageDescriptor | undefined
+  if (separation.offloaded) {
+    block = offlineBlocks(true, online) ? ANALYSIS_OFFLINE : undefined
+  } else {
+    block = SEPARATION_SERVER_BLOCK[separation.serverHealth]
+  }
+  const step = running ? i18n._(PROGRESS_LABELS[sep.status]) : undefined
+  const errorCopy = errorCopyFor(
+    sep.error?.code,
+    separation.offloaded,
+    SEPARATION_ERROR_COPY
+  )
+  const failure =
+    errorCopy !== undefined
       ? `${t({
           id: 'separation.detect-failed',
           message: 'Échec de la séparation'
-        })} — ${t(sepErrorCopy)}`
+        })} — ${t(errorCopy)}`
       : undefined
   // Steps while the run is in flight (never the moving percentage — spam),
   // completion once the stems are ready; failures interrupt via the
   // DetectionAction alert instead.
-  const sepAnnounced = sep.status === 'ready' ? i18n._(DONE_LABEL) : sepStep
+  const announced = sep.status === 'ready' ? i18n._(DONE_LABEL) : step
+  return (
+    <div className={styles.item}>
+      {sep.status === 'ready' ? (
+        <p className={styles.done}>
+          <Trans id="separation.done">Pistes séparées</Trans>
+        </p>
+      ) : (
+        <DetectionAction
+          label={
+            sep.status === 'error'
+              ? t({ id: 'separation.retry', message: 'Réessayer' })
+              : t({ id: 'separation.separate', message: 'Séparer les pistes' })
+          }
+          runningLabel={step}
+          running={running}
+          // The one flow with REAL progress (streamed NDJSON) — and the one
+          // whose cancel already ships (R.2 wires the detections'). The
+          // cold-start narration rides the real bar (M1.4, extends R.3).
+          progress={{
+            value: sep.progress,
+            onCancel: separation.onCancel,
+            detail: separation.offloaded ? t(ANALYSIS_COLD_START) : undefined,
+            detailAfterMs: 4000
+          }}
+          hint={block === undefined ? undefined : t(block)}
+          errorLine={failure}
+          disabled={!separation.canSeparate || block !== undefined}
+          onRun={separation.onSeparate}
+        />
+      )}
+      {/* The announcement channel outlives the visible faces. */}
+      <LiveStatus message={announced} />
+    </div>
+  )
+}
 
-  // — Structure: the confirm names exactly the work at stake — both, the grid
-  //   alone, or the markers alone (the S.3a wording, unchanged with no grid).
-  const structureConfirm =
-    structure.hasGrid && structure.hasMarkers
+/** Tempo: error → retry; running → progress; landed → done face; cancelled
+    before any tempo landed (X.2) → an idle face brings the auto-detection
+    back on offer — symmetric with the structure/chords buttons that never
+    vanish. Offline blocks the relaunch like its offloaded neighbours (M1.4). */
+function TempoItem({
+  tempo,
+  online
+}: {
+  readonly tempo: TempoDetectionControl
+  readonly online: boolean
+}) {
+  const { t } = useLingui()
+  const runningLabel = t({
+    id: 'analyser.tempo-detecting',
+    message: 'Analyse du tempo…'
+  })
+  if (tempo.error !== undefined) {
+    const errorCopy = errorCopyFor(
+      tempo.error,
+      tempo.offloaded,
+      TEMPO_ERROR_COPY
+    ) as MessageDescriptor
+    return (
+      <div className={styles.item}>
+        <DetectionAction
+          label={t({ id: 'tempo.retry', message: 'Réessayer' })}
+          runningLabel={runningLabel}
+          running={tempo.detecting}
+          progress={{ onCancel: tempo.onCancel }}
+          errorLine={t(errorCopy)}
+          onRun={tempo.onRetry}
+        />
+      </div>
+    )
+  }
+  if (tempo.detecting) {
+    return (
+      <div className={styles.item}>
+        <OperationStatus label={runningLabel} onCancel={tempo.onCancel} />
+      </div>
+    )
+  }
+  if (tempo.bpm !== undefined) {
+    return (
+      <div className={styles.item}>
+        <p className={styles.done}>
+          <Trans id="analyser.tempo-done">Tempo détecté</Trans>
+        </p>
+      </div>
+    )
+  }
+  return (
+    <div className={styles.item}>
+      <DetectionAction
+        label={t({ id: 'analyser.tempo-detect', message: 'Détecter le tempo' })}
+        runningLabel={runningLabel}
+        running={false}
+        disabled={offlineBlocks(tempo.offloaded, online)}
+        onRun={tempo.onRetry}
+      />
+    </div>
+  )
+}
+
+/** Structure: the confirm names exactly the work at stake — both, the grid
+    alone, or the markers alone (the S.3a wording, unchanged with no grid). */
+function StructureItem({
+  structure,
+  disabled,
+  online
+}: {
+  readonly structure: StructureDetectionControl
+  readonly disabled: boolean
+  readonly online: boolean
+}) {
+  const { t } = useLingui()
+  let confirm = t({
+    id: 'structure.detect-confirm',
+    message: 'Remplacer les repères de structure ?'
+  })
+  if (structure.hasGrid) {
+    confirm = structure.hasMarkers
       ? t({
           id: 'structure.detect-confirm-both',
           message: 'Remplacer les repères de structure et la grille ?'
         })
-      : structure.hasGrid
-        ? t({
-            id: 'structure.detect-confirm-grid',
-            message: 'Réétiqueter la grille d’accords ?'
-          })
-        : t({
-            id: 'structure.detect-confirm',
-            message: 'Remplacer les repères de structure ?'
-          })
-  // `network` names what actually failed to answer: the offloaded analysis
-  // service, or the local server (X.1).
-  const structureErrorCopy =
-    structure.error === 'network' && structure.offloaded
-      ? ANALYSIS_OFFLOAD_UNREACHABLE
-      : structure.error !== undefined
-        ? STRUCTURE_ERROR_COPY[structure.error]
-        : undefined
-  const structureFailure =
-    structureErrorCopy !== undefined
+      : t({
+          id: 'structure.detect-confirm-grid',
+          message: 'Réétiqueter la grille d’accords ?'
+        })
+  }
+  const errorCopy = errorCopyFor(
+    structure.error,
+    structure.offloaded,
+    STRUCTURE_ERROR_COPY
+  )
+  const failure =
+    errorCopy !== undefined
       ? `${t({
           id: 'structure.detect-failed',
           message: 'Échec de la détection de la structure'
-        })} — ${t(structureErrorCopy)}`
+        })} — ${t(errorCopy)}`
       : undefined
-  const structureAnnounced = structure.detecting
-    ? t({ id: 'structure.detecting', message: 'Détection de la structure…' })
-    : structure.succeeded
-      ? t({
-          id: 'structure.detect-done',
-          message: 'Repères de structure posés depuis la détection'
-        })
-      : undefined
+  let announced: string | undefined
+  if (structure.detecting) {
+    announced = t({
+      id: 'structure.detecting',
+      message: 'Détection de la structure…'
+    })
+  } else if (structure.succeeded) {
+    announced = t({
+      id: 'structure.detect-done',
+      message: 'Repères de structure posés depuis la détection'
+    })
+  }
+  let hint: string | undefined
+  if (offlineBlocks(structure.offloaded, online)) {
+    hint = t(ANALYSIS_OFFLINE)
+  } else if (structure.blockedReason === 'server') {
+    hint = t(STRUCTURE_NEEDS_SERVER)
+  }
+  return (
+    <div className={styles.item}>
+      <DetectionAction
+        label={t({ id: 'structure.detect', message: 'Détecter la structure' })}
+        runningLabel={t({
+          id: 'structure.detecting-short',
+          message: 'Détection…'
+        })}
+        running={structure.detecting}
+        progress={{
+          onCancel: structure.onCancel,
+          // The wait becomes explained instead of worrying: after ~4 s the
+          // line says the engine itself may be starting up.
+          detail: structure.offloaded ? t(ANALYSIS_COLD_START) : undefined,
+          detailAfterMs: 4000
+        }}
+        confirms={structure.hasMarkers || structure.hasGrid}
+        confirmLabel={confirm}
+        hint={hint}
+        errorLine={failure}
+        announcement={announced}
+        disabled={
+          disabled ||
+          structure.blockedReason !== undefined ||
+          offlineBlocks(structure.offloaded, online)
+        }
+        onRun={structure.onDetect}
+      />
+    </div>
+  )
+}
 
-  // — Chords: mirrors structure, in the chord flow's words. Offline speaks
-  //   first: no grid is beside the point when nothing can run anyway.
-  const chordsHint = offlineBlocks(chords.offloaded)
-    ? t(ANALYSIS_OFFLINE)
-    : chords.blockedReason === 'server'
-      ? t(CHORDS_NEEDS_SERVER)
-      : chords.blockedReason === 'no-grid'
-        ? t(CHORDS_NEEDS_GRID)
-        : undefined
-  // Same X.1 rule as structure: a `network` failure names what actually
-  // failed to answer — the offloaded analysis service, or the local server.
-  const chordsErrorCopy =
-    chords.error === 'network' && chords.offloaded
-      ? ANALYSIS_OFFLOAD_UNREACHABLE
-      : chords.error !== undefined
-        ? CHORDS_ERROR_COPY[chords.error]
-        : undefined
-  const chordsFailure =
-    chordsErrorCopy !== undefined
+/** Chords: mirrors structure, in the chord flow's words. Offline speaks
+    first: no grid is beside the point when nothing can run anyway. */
+function ChordsItem({
+  chords,
+  disabled,
+  online
+}: {
+  readonly chords: ChordDetectionControl
+  readonly disabled: boolean
+  readonly online: boolean
+}) {
+  const { t } = useLingui()
+  let hint: string | undefined
+  if (offlineBlocks(chords.offloaded, online)) {
+    hint = t(ANALYSIS_OFFLINE)
+  } else if (chords.blockedReason === 'server') {
+    hint = t(CHORDS_NEEDS_SERVER)
+  } else if (chords.blockedReason === 'no-grid') {
+    hint = t(CHORDS_NEEDS_GRID)
+  }
+  const errorCopy = errorCopyFor(
+    chords.error,
+    chords.offloaded,
+    CHORDS_ERROR_COPY
+  )
+  const failure =
+    errorCopy !== undefined
       ? `${t({
           id: 'chords.detect-failed',
           message: 'Échec de la détection des accords'
-        })} — ${t(chordsErrorCopy)}`
+        })} — ${t(errorCopy)}`
       : undefined
-  const chordsAnnounced = chords.detecting
-    ? t({ id: 'chords.detecting', message: 'Détection des accords…' })
-    : chords.succeeded
-      ? t({
-          id: 'chords.detect-done',
-          message: 'Grille pré-remplie depuis la détection'
-        })
-      : undefined
-
+  let announced: string | undefined
+  if (chords.detecting) {
+    announced = t({ id: 'chords.detecting', message: 'Détection des accords…' })
+  } else if (chords.succeeded) {
+    announced = t({
+      id: 'chords.detect-done',
+      message: 'Grille pré-remplie depuis la détection'
+    })
+  }
   return (
-    <Cluster gap="var(--space-l)" align="flex-start">
-      <div className={styles.item}>
-        {sep.status === 'ready' ? (
-          <p className={styles.done}>
-            <Trans id="separation.done">Pistes séparées</Trans>
-          </p>
-        ) : (
-          <DetectionAction
-            label={
-              sep.status === 'error'
-                ? t({ id: 'separation.retry', message: 'Réessayer' })
-                : t({ id: 'separation.separate', message: 'Séparer les pistes' })
-            }
-            runningLabel={sepStep}
-            running={sepRunning}
-            // The one flow with REAL progress (streamed NDJSON) — and the one
-            // whose cancel already ships (R.2 wires the detections'). The
-            // cold-start narration rides the real bar (M1.4, extends R.3).
-            progress={{
-              value: sep.progress,
-              onCancel: separation.onCancel,
-              detail: separation.offloaded ? t(ANALYSIS_COLD_START) : undefined,
-              detailAfterMs: 4000
-            }}
-            hint={sepBlock === undefined ? undefined : t(sepBlock)}
-            errorLine={sepFailure}
-            disabled={!separation.canSeparate || sepBlock !== undefined}
-            onRun={separation.onSeparate}
-          />
-        )}
-        {/* The announcement channel outlives the visible faces. */}
-        <LiveStatus message={sepAnnounced} />
-      </div>
-
-      {(tempo.detecting ||
-        tempo.error !== undefined ||
-        tempo.bpm !== undefined ||
-        tempo.cancelled) && (
-        <div className={styles.item}>
-          {tempo.error !== undefined ? (
-            <DetectionAction
-              label={t({ id: 'tempo.retry', message: 'Réessayer' })}
-              runningLabel={t({
-                id: 'analyser.tempo-detecting',
-                message: 'Analyse du tempo…'
-              })}
-              running={tempo.detecting}
-              progress={{ onCancel: tempo.onCancel }}
-              // Same X.1 rule as structure: `network` names what actually
-              // failed to answer — the offload, or the local server.
-              errorLine={t(
-                tempo.error === 'network' && tempo.offloaded
-                  ? ANALYSIS_OFFLOAD_UNREACHABLE
-                  : TEMPO_ERROR_COPY[tempo.error]
-              )}
-              onRun={tempo.onRetry}
-            />
-          ) : tempo.detecting ? (
-            <OperationStatus
-              label={t({
-                id: 'analyser.tempo-detecting',
-                message: 'Analyse du tempo…'
-              })}
-              onCancel={tempo.onCancel}
-            />
-          ) : tempo.bpm !== undefined ? (
-            <p className={styles.done}>
-              <Trans id="analyser.tempo-done">Tempo détecté</Trans>
-            </p>
-          ) : (
-            // Cancelled before any tempo landed (X.2): an idle face brings
-            // the auto-detection back on offer — symmetric with the
-            // structure/chords buttons that never vanish. Offline blocks the
-            // relaunch like its offloaded neighbours (M1.4).
-            <DetectionAction
-              label={t({
-                id: 'analyser.tempo-detect',
-                message: 'Détecter le tempo'
-              })}
-              runningLabel={t({
-                id: 'analyser.tempo-detecting',
-                message: 'Analyse du tempo…'
-              })}
-              running={false}
-              disabled={offlineBlocks(tempo.offloaded)}
-              onRun={tempo.onRetry}
-            />
-          )}
-        </div>
-      )}
-
-      <div className={styles.item}>
-        <DetectionAction
-          label={t({ id: 'structure.detect', message: 'Détecter la structure' })}
-          runningLabel={t({
-            id: 'structure.detecting-short',
-            message: 'Détection…'
-          })}
-          running={structure.detecting}
-          progress={{
-            onCancel: structure.onCancel,
-            // The wait becomes explained instead of worrying: after ~4 s the
-            // line says the engine itself may be starting up.
-            detail: structure.offloaded ? t(ANALYSIS_COLD_START) : undefined,
-            detailAfterMs: 4000
-          }}
-          confirms={structure.hasMarkers || structure.hasGrid}
-          confirmLabel={structureConfirm}
-          hint={
-            offlineBlocks(structure.offloaded)
-              ? t(ANALYSIS_OFFLINE)
-              : structure.blockedReason === 'server'
-                ? t(STRUCTURE_NEEDS_SERVER)
-                : undefined
-          }
-          errorLine={structureFailure}
-          announcement={structureAnnounced}
-          disabled={
-            disabled ||
-            structure.blockedReason !== undefined ||
-            offlineBlocks(structure.offloaded)
-          }
-          onRun={structure.onDetect}
-        />
-      </div>
-
-      <div className={styles.item}>
-        <DetectionAction
-          label={t({ id: 'chords.detect', message: 'Détecter les accords' })}
-          runningLabel={t({
-            id: 'chords.detecting',
-            message: 'Détection des accords…'
-          })}
-          running={chords.detecting}
-          progress={{
-            onCancel: chords.onCancel,
-            // Same R.3 narration as structure: a suspicious offloaded wait
-            // reads as the engine starting up, not as a hang.
-            detail: chords.offloaded ? t(ANALYSIS_COLD_START) : undefined,
-            detailAfterMs: 4000
-          }}
-          confirms={chords.hasGrid}
-          confirmLabel={t({
-            id: 'chords.detect-confirm',
-            message: 'Remplacer la grille ?'
-          })}
-          hint={chordsHint}
-          errorLine={chordsFailure}
-          announcement={chordsAnnounced}
-          disabled={
-            disabled ||
-            chords.blockedReason !== undefined ||
-            offlineBlocks(chords.offloaded)
-          }
-          onRun={chords.onDetect}
-        />
-      </div>
-    </Cluster>
+    <div className={styles.item}>
+      <DetectionAction
+        label={t({ id: 'chords.detect', message: 'Détecter les accords' })}
+        runningLabel={t({
+          id: 'chords.detecting',
+          message: 'Détection des accords…'
+        })}
+        running={chords.detecting}
+        progress={{
+          onCancel: chords.onCancel,
+          // Same R.3 narration as structure: a suspicious offloaded wait
+          // reads as the engine starting up, not as a hang.
+          detail: chords.offloaded ? t(ANALYSIS_COLD_START) : undefined,
+          detailAfterMs: 4000
+        }}
+        confirms={chords.hasGrid}
+        confirmLabel={t({
+          id: 'chords.detect-confirm',
+          message: 'Remplacer la grille ?'
+        })}
+        hint={hint}
+        errorLine={failure}
+        announcement={announced}
+        disabled={
+          disabled ||
+          chords.blockedReason !== undefined ||
+          offlineBlocks(chords.offloaded, online)
+        }
+        onRun={chords.onDetect}
+      />
+    </div>
   )
 }

@@ -28,29 +28,32 @@ class TestVerifyAnalyzeToken:
             verify_analyze_token(token, SECRET, now=NOW + 1)  # now == exp -> expired
 
     def test_rejects_a_wrong_secret(self) -> None:
+        token = mint(valid_claims())
         with pytest.raises(InvalidAnalyzeToken):
-            verify_analyze_token(mint(valid_claims()), "another-secret", now=NOW)
+            verify_analyze_token(token, "another-secret", now=NOW)
 
     def test_rejects_a_tampered_payload(self) -> None:
         header, _, sig = mint(valid_claims()).split(".")
         forged_payload = b64url(json.dumps(valid_claims() | {"sub": "attacker"}).encode())
+        forged = f"{header}.{forged_payload}.{sig}"
         with pytest.raises(InvalidAnalyzeToken):
-            verify_analyze_token(f"{header}.{forged_payload}.{sig}", SECRET, now=NOW)
+            verify_analyze_token(forged, SECRET, now=NOW)
 
     def test_rejects_the_alg_none_bypass(self) -> None:
         # A token that claims alg=none must never be trusted, signature or not.
+        token = mint(valid_claims(), alg="none")
         with pytest.raises(InvalidAnalyzeToken):
-            verify_analyze_token(mint(valid_claims(), alg="none"), SECRET, now=NOW)
+            verify_analyze_token(token, SECRET, now=NOW)
 
     def test_rejects_wrong_audience(self) -> None:
-        claims = valid_claims() | {"aud": "someone-else"}
+        token = mint(valid_claims() | {"aud": "someone-else"})
         with pytest.raises(InvalidAnalyzeToken):
-            verify_analyze_token(mint(claims), SECRET, now=NOW)
+            verify_analyze_token(token, SECRET, now=NOW)
 
     def test_rejects_wrong_issuer(self) -> None:
-        claims = valid_claims() | {"iss": "not-loupe"}
+        token = mint(valid_claims() | {"iss": "not-loupe"})
         with pytest.raises(InvalidAnalyzeToken):
-            verify_analyze_token(mint(claims), SECRET, now=NOW)
+            verify_analyze_token(token, SECRET, now=NOW)
 
     def test_rejects_a_missing_expiry(self) -> None:
         claims = valid_claims()
@@ -96,5 +99,6 @@ class TestVerifyAnalyzeToken:
             verify_analyze_token(token, SECRET, now=NOW)
 
     def test_rejects_an_empty_secret(self) -> None:
+        token = mint(valid_claims())
         with pytest.raises(InvalidAnalyzeToken):
-            verify_analyze_token(mint(valid_claims()), "", now=NOW)
+            verify_analyze_token(token, "", now=NOW)

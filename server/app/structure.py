@@ -33,6 +33,7 @@ from pathlib import Path
 import anyio.to_thread
 import librosa
 
+from .api_docs import error_responses
 from .limits import (
     INFERENCE_TIMEOUT_SECONDS,
     MAX_UPLOAD_BYTES,
@@ -176,7 +177,7 @@ def _analyse(data: bytes) -> dict:
     return {"segments": stitch_segments(chunks, duration)}
 
 
-@router.post("/structure")
+@router.post("/structure", responses=error_responses(400, 503, 504))
 async def structure(request: Request) -> dict:
     data = await read_capped_body(request, MAX_UPLOAD_BYTES)
     try:

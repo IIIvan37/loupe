@@ -130,7 +130,7 @@ function announcedText(): string {
 
 /* The step labels are mirrored into visually-hidden live regions for screen
  * readers; text queries assert the VISIBLE read-out, so skip that channel. */
-const visibleOnly = { ignore: 'script, style, [role="status"]' }
+const visibleOnly = { ignore: 'script, style, output, [role="status"]' }
 
 describe('AnalyserRow offline (M1.4)', () => {
   it('blocks the offloaded separation when the network is gone', () => {

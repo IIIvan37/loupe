@@ -73,5 +73,6 @@ def test_rejects_non_16_bit_wav():
         writer.setsampwidth(1)  # 8-bit PCM
         writer.setframerate(44100)
         writer.writeframes(bytes([128, 255, 0, 64]))
+    data = buffer.getvalue()
     with pytest.raises(ValueError, match="16-bit"):
-        decode_wav(buffer.getvalue())
+        decode_wav(data)

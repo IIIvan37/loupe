@@ -100,11 +100,12 @@ export function TempoPanel({
   // (a retry can run while the previous analysis is still seated), and the
   // representative bpm is announced rather than the playhead-following felt
   // one — a varying track would be spoken at every segment change.
-  const announced = detecting
-    ? i18n._(STATUS_DETECTING)
-    : bpm !== undefined
-      ? i18n._({ ...STATUS_BPM, values: { 0: Math.round(bpm) } })
-      : undefined
+  let announced: string | undefined
+  if (detecting) {
+    announced = i18n._(STATUS_DETECTING)
+  } else if (bpm !== undefined) {
+    announced = i18n._({ ...STATUS_BPM, values: { 0: Math.round(bpm) } })
+  }
   return (
     <section
       className={styles.panel}

@@ -151,7 +151,7 @@ def _download(url: str, out_dir: Path, events: queue.Queue) -> None:
                 "run `pip install -U yt-dlp` in the server venv and retry",
             )
         )
-    except Exception:  # noqa: BLE001 - logged server-side, generic to the client
+    except Exception:  # noqa: BLE001  # logged server-side, generic to the client
         logger.exception("download failed")
         events.put(("error", "download failed"))
 

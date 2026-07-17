@@ -41,8 +41,8 @@ export function chordLabelPerMeasure(
   if (horizon <= first) {
     return []
   }
-  const last = downbeats[downbeats.length - 1] as number
-  const secondToLast = downbeats[downbeats.length - 2]
+  const last = downbeats.at(-1) as number
+  const secondToLast = downbeats.at(-2)
   const lastBarEnd =
     secondToLast === undefined ? horizon : last + (last - secondToLast)
   return downbeats.map((barStart, index) =>

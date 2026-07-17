@@ -171,7 +171,7 @@ describe('WorkstationShell structure gating vs the local server', () => {
     // seat the grid before asserting the health probe no longer blocks.
     expect(
       await screen.findByText(i18n._('analyser.tempo-done'), {
-        ignore: 'script, style, [role="status"]'
+        ignore: 'script, style, output, [role="status"]'
       })
     ).toBeInTheDocument()
     expect(

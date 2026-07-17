@@ -59,7 +59,7 @@ export function snapSectionsToGrid(
     (sections[0] as DetectedSection).startSeconds,
     ...sections.map((s) => s.endSeconds)
   ]
-  const last = boundaries[boundaries.length - 1] as number
+  const last = boundaries.at(-1) as number
   // Snap left to right, keeping the boundary order so the timeline never
   // inverts: take a snap only when its downbeat stays strictly inside the raw
   // endpoints (never crossing a pickup start or an outro end), then clamp it to

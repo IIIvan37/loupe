@@ -72,7 +72,7 @@ describe('padChannels', () => {
           const padded = padChannels(channels, frames)
           expect(padded).toHaveLength(channels.length)
           for (const [i, channel] of padded.entries()) {
-            expect(channel.length).toBe(frames)
+            expect(channel).toHaveLength(frames)
             const source = channels[i] ?? []
             for (let s = 0; s < frames; s++) {
               expect(channel[s]).toBe(s < source.length ? source[s] : 0)

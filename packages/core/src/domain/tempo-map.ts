@@ -196,13 +196,13 @@ function dropTooClose(
 ): BeatGrid {
   const kept: Beat[] = []
   grid.forEach((beat, index) => {
-    const previous = kept[kept.length - 1]
+    const previous = kept.at(-1)
     if (previous === undefined) {
       kept.push(beat)
       return
     }
     const floor = floorAt(beat, index)
-    if (!(beat.timeSeconds - previous.timeSeconds < floor)) {
+    if (beat.timeSeconds - previous.timeSeconds >= floor) {
       kept.push(beat)
     } else if (downbeatWins && beat.downbeat && !previous.downbeat) {
       kept[kept.length - 1] = beat
