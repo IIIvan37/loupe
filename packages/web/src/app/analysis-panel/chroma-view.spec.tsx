@@ -62,6 +62,6 @@ describe('ChromaView', () => {
     act(() => {
       vi.advanceTimersByTime(500)
     })
-    expect(readSpectrum.mock.calls.length).toBe(polled)
+    expect(readSpectrum.mock.calls).toHaveLength(polled)
   })
 })

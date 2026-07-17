@@ -30,7 +30,7 @@ describe('synthesizeClickTrack', () => {
       durationSeconds: 2,
       sampleRate
     })
-    expect(samples.length).toBe(2 * sampleRate)
+    expect(samples).toHaveLength(2 * sampleRate)
   })
 
   it('is silent with no beats', () => {
