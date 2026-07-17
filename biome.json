@@ -49,6 +49,8 @@
       "!**/reports",
       "!**/.stryker-tmp",
       "!**/public",
+      "!packages/desktop/src-tauri/target",
+      "!packages/desktop/src-tauri/gen",
       "!server",
       "!supabase"
     ],
