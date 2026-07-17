@@ -208,7 +208,7 @@ export function renderStructuredSource(
  * line. An unknown meter inherits the running one; with no known running meter
  * the first one seen is adopted silently (the head names it, not a change).
  */
-function segmentRows(
+export function segmentRows(
   measures: MeasureLabels,
   meters: Meters | undefined,
   runningMeter: number | undefined,
@@ -351,7 +351,7 @@ export function chartSectionAnchors(
     repeat plays its bars twice, each bar keeping ALL its chords (`'C G'`).
     A token the printer could not re-print (a mid-cell `1.` or `:` the parser
     read as a chord) is dropped rather than wiping the bar to `N.C.`. */
-function playedLabels(source: string): MeasureLabels {
+export function playedLabels(source: string): MeasureLabels {
   const chart = parseChart(source)
   const measures = chart.sections.flatMap((section) => section.measures)
   return unrollChart(chart).map((index) => {
@@ -430,7 +430,7 @@ function groupRuns(
 /** Wrap rendered rows in `|: … :|` — the pair plays back as two passes. Every
     rendered block starts and ends with a bar line, so the repeat dots splice
     onto the string's own first and last characters, across all its rows. */
-function withRepeatBars(rows: string): string {
+export function withRepeatBars(rows: string): string {
   return `|:${rows.slice(1, -1)}:|`
 }
 
