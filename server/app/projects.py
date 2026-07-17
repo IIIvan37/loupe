@@ -206,14 +206,7 @@ def collect_garbage() -> dict:
     would risk erasing live audio. Run when idle: a blob just uploaded but not
     yet named by a saved manifest would look orphaned.
     """
-    manifests: list[Any] = []
-    unreadable = 0
-    if PROJECTS_DIR.is_dir():
-        for path in sorted(PROJECTS_DIR.glob("*.json")):
-            try:
-                manifests.append(json.loads(path.read_text("utf-8")))
-            except (OSError, ValueError):
-                unreadable += 1
+    manifests, unreadable = _read_manifests()
     if unreadable:
         return {
             "deleted": 0,
@@ -225,17 +218,35 @@ def collect_garbage() -> dict:
     live = referenced_refs(manifests)
     deleted = 0
     reclaimed = 0
-    if AUDIO_DIR.is_dir():
-        for path in AUDIO_DIR.iterdir():
-            # Only touch our own content-addressed blobs; leave .tmp files and
-            # anything else the store did not name with a bare sha256.
-            if not (path.is_file() and _REF_PATTERN.match(path.name)):
-                continue
-            if path.name not in live:
-                reclaimed += path.stat().st_size
-                path.unlink(missing_ok=True)
-                deleted += 1
+    for path in _owned_blobs():
+        if path.name not in live:
+            reclaimed += path.stat().st_size
+            path.unlink(missing_ok=True)
+            deleted += 1
     return {"deleted": deleted, "reclaimedBytes": reclaimed, "kept": len(live)}
+
+
+def _read_manifests() -> tuple[list[Any], int]:
+    """Every parseable project manifest, plus the count that would not parse."""
+    manifests: list[Any] = []
+    unreadable = 0
+    if PROJECTS_DIR.is_dir():
+        for path in sorted(PROJECTS_DIR.glob("*.json")):
+            try:
+                manifests.append(json.loads(path.read_text("utf-8")))
+            except (OSError, ValueError):
+                unreadable += 1
+    return manifests, unreadable
+
+
+def _owned_blobs() -> list[Path]:
+    """The store's own content-addressed blobs — leaves .tmp files and anything
+    else not named with a bare sha256 untouched."""
+    if not AUDIO_DIR.is_dir():
+        return []
+    return [
+        path for path in AUDIO_DIR.iterdir() if path.is_file() and _REF_PATTERN.match(path.name)
+    ]
 
 
 @router.post("/gc")

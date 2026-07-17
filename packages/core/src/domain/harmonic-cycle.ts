@@ -39,25 +39,47 @@ export interface HarmonicCycle {
  */
 export function detectCycle(labels: MeasureLabels): HarmonicCycle | undefined {
   for (let period = MIN_PERIOD; period * 2 <= labels.length; period += PHRASE) {
-    let best: HarmonicCycle | undefined
-    let bestRatio = 0
-    for (const intro of INTRO_OFFSETS) {
-      const count = Math.floor((labels.length - intro) / period)
-      if (count < 2) continue
-      const tail = labels.length - intro - count * period
-      if (tail * 2 > period) continue
-      const body = labels.slice(intro, intro + count * period)
-      const { ratio, evidence } = sequenceAgreement(
-        body.slice(0, body.length - period),
-        body.slice(period)
-      )
-      if (evidence * 2 < period) continue
-      if (ratio >= CYCLE_THRESHOLD && ratio > bestRatio) {
-        bestRatio = ratio
-        best = { period, count, tail, intro }
-      }
-    }
+    const best = bestPhaseAt(labels, period)
     if (best !== undefined) return best
   }
   return undefined
+}
+
+/** The best-scoring intro offset for one candidate period, if any offset
+    clears the threshold — ties keep the smallest offset. */
+function bestPhaseAt(
+  labels: MeasureLabels,
+  period: number
+): HarmonicCycle | undefined {
+  let best: HarmonicCycle | undefined
+  let bestRatio = 0
+  for (const intro of INTRO_OFFSETS) {
+    const candidate = scoredCycleAt(labels, period, intro)
+    if (candidate !== undefined && candidate.ratio > bestRatio) {
+      bestRatio = candidate.ratio
+      best = candidate.cycle
+    }
+  }
+  return best
+}
+
+/** Score one (period, intro) candidate; `undefined` when it cannot hold a
+    cycle (too few passes, oversized tail, threshold missed, or an overlap
+    too silent to prove anything). */
+function scoredCycleAt(
+  labels: MeasureLabels,
+  period: number,
+  intro: number
+): { readonly cycle: HarmonicCycle; readonly ratio: number } | undefined {
+  const count = Math.floor((labels.length - intro) / period)
+  if (count < 2) return undefined
+  const tail = labels.length - intro - count * period
+  if (tail * 2 > period) return undefined
+  const body = labels.slice(intro, intro + count * period)
+  const { ratio, evidence } = sequenceAgreement(
+    body.slice(0, body.length - period),
+    body.slice(period)
+  )
+  if (evidence * 2 < period || ratio < CYCLE_THRESHOLD) return undefined
+  return { cycle: { period, count, tail, intro }, ratio }
 }

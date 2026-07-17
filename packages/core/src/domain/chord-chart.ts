@@ -461,6 +461,34 @@ function walkForm(
     qualifies as a meter mark; any other value stays grid content. */
 const TIME_SIGNATURE = /^(\d+)\s*\/\s*(\d+)$/
 
+/** A `{…}` line split into its trimmed lowercased key and trimmed value. */
+function directiveOf(
+  line: string
+): { readonly key: string; readonly value: string } | undefined {
+  const directive = DIRECTIVE.exec(line)
+  if (!directive) return undefined
+  return {
+    key: (directive[1] as string).trim().toLowerCase(),
+    value: (directive[2] as string).trim()
+  }
+}
+
+/** The signature a mid-grid `{time: N/M}` line changes to, if the line is
+    one — any other braced line stays grid content. */
+function meterChangeOf(line: string): string | undefined {
+  const directive = directiveOf(line)
+  if (directive?.key !== 'time') return undefined
+  const time = TIME_SIGNATURE.exec(directive.value)
+  return time ? `${time[1]}/${time[2]}` : undefined
+}
+
+/** The `ChartForm` key a full-line form mark sets, if the line is one. */
+function formKeyOf(line: string): keyof ChartForm | undefined {
+  const mark = FORM_MARK.exec(line)
+  if (!mark) return undefined
+  return FORM_KEYS[(mark[1] as string).toLowerCase()]
+}
+
 export function parseChart(text: string): ChordChart {
   const sections: Section[] = []
   const directives: Record<string, string> = {}
@@ -473,39 +501,28 @@ export function parseChart(text: string): ChordChart {
     const line = rawLine.trim()
     if (line.length === 0) continue
 
-    const mark = FORM_MARK.exec(line)
-    if (mark) {
-      form[FORM_KEYS[(mark[1] as string).toLowerCase()] as keyof ChartForm] =
-        written
+    const mark = formKeyOf(line)
+    if (mark !== undefined) {
+      form[mark] = written
       continue
     }
 
     // Directives may only lead the source: once any grid content (a section
     // header or a row) has started, a `{…}` line is grid content too.
-    if (sections.length === 0) {
-      const directive = DIRECTIVE.exec(line)
-      if (directive) {
-        directives[(directive[1] as string).trim().toLowerCase()] = (
-          directive[2] as string
-        ).trim()
-        continue
-      }
+    const head = sections.length === 0 ? directiveOf(line) : undefined
+    if (head !== undefined) {
+      directives[head.key] = head.value
+      continue
     }
 
     // Mid-grid, a `{time: N/M}` line is a signature change (never reached at
     // the head — the directive branch above consumes it as the chart's meter).
     // It rides the SAME directive grammar as the head so the two can never
     // tokenize differently; only the payload check is its own.
-    const braced = DIRECTIVE.exec(line)
-    if (braced && (braced[1] as string).trim().toLowerCase() === 'time') {
-      const time = TIME_SIGNATURE.exec((braced[2] as string).trim())
-      if (time) {
-        meterChanges.push({
-          measure: written,
-          signature: `${time[1]}/${time[2]}`
-        })
-        continue
-      }
+    const signature = meterChangeOf(line)
+    if (signature !== undefined) {
+      meterChanges.push({ measure: written, signature })
+      continue
     }
 
     const header = HEADER.exec(line)
