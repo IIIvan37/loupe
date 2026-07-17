@@ -62,6 +62,7 @@ def _checkpoint_path() -> str:
         return override
     return str(pinned_weights(WEIGHTS_URL, WEIGHTS_SHA256, _CACHE_DIR / "beat_this-final0.ckpt"))
 
+
 # madmom's DBN post-processing decodes the most likely BAR SEQUENCE from the
 # model's activations (a state space over bar lengths, meter changes penalised)
 # instead of trusting the raw per-frame downbeat picks. Without it, whole
@@ -106,9 +107,7 @@ def _audio2beats() -> Audio2Beats:
     if _model is None:
         with _model_lock:
             if _model is None:
-                _model = Audio2Beats(
-                    checkpoint_path=_checkpoint_path(), device=_device, dbn=DBN
-                )
+                _model = Audio2Beats(checkpoint_path=_checkpoint_path(), device=_device, dbn=DBN)
     return _model
 
 
