@@ -3,5 +3,10 @@
   "identifier": "default",
   "description": "enables the default permissions",
   "windows": ["main"],
-  "permissions": ["core:default", "deep-link:default"]
+  "permissions": [
+    "core:default",
+    "deep-link:default",
+    "fs:allow-appdata-read-recursive",
+    "fs:allow-appdata-write-recursive"
+  ]
 }

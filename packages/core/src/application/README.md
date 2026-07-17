@@ -141,6 +141,12 @@ The single place to look before adding a feature, so ports and use-cases get
 > source and each stem hold only an `AudioRef`, an opaque pointer a
 > `ProjectAudioStore` adapter resolves to bytes. Slice J3.2 added the
 > `ProjectStore` / `ProjectAudioStore` ports and the project use-cases above.
+> T2.2/AA.2 added `parseProject`, the runtime decoder for persisted
+> manifests: every load-bearing field checked, the manifest returned verbatim
+> (same reference) or `undefined` for « unreadable » — adapters call it at
+> the edge instead of casting `as Project`. Deliberately lenient where a
+> per-field normalizer already reads corruption as a default
+> (`fineTuneCents`, `transposedBy`, marker `kind`).
 
 ## Ports
 
@@ -155,6 +161,6 @@ The single place to look before adding a feature, so ports and use-cases get
 | `StructureDetector` | driven | `web` (next slice): `createHttpStructureDetector` against the local server (mix → WAV POST `/structure` → JSON `{ segments: [{ start, end, label }] }`, raw seconds). Sections are NOT beat-synchronised — the core snaps them onto the grid. Engine: SongFormer (CC-BY-4.0), chunked inference, vendored server-side. |
 | `TrackSource` | driven | `web`: `createHttpTrackSource` against the local server (J4.1 — `{url}` POST `/download` → streamed NDJSON progress → `done` line with a content-addressed `ref` the adapter `GET`s from `/audio/{ref}`, yielding encoded m4a/AAC bytes + metadata). The server runs **yt-dlp**; a cloud API could be a later adapter on the same port. |
 | `StemSeparator` | driven | `web`: `createHttpSeparator` against a local **FastAPI + Demucs** backend (mix → WAV POST → streamed NDJSON progress → fetch + `decodeWav` stems — J2.2b). The earlier in-browser WASM engines (demucs.cpp GGML / onnxruntime-web) hit a quality+speed wall and were removed; a cloud API could be a later adapter on the same port. |
-| `ProjectStore` | driven | `web`: `createHttpProjectStore` against the local server (J3.3 — JSON manifests under `LOUPE_DATA_DIR`). Light manifests: `list` / `load` (undefined for unknown id) / `save` / `delete`. |
-| `ProjectAudioStore` | driven | `web`: `createHttpProjectAudioStore` (J3.3 — content-addressed sha256 blobs on the local server). Heavy bytes: `put` mints the `AudioRef` (its spelling is the adapter's business), `get` resolves it (undefined for unknown ref). |
+| `ProjectStore` | driven | `web`: `createHttpProjectStore` against the local server (J3.3 — JSON manifests under `LOUPE_DATA_DIR`), and `createFsProjectStore` on the desktop shell (T2.2 — `projects/{id}.json` under the Tauri app-data dir via `ProjectFs`, atomic temp-file+rename writes, ids gated by the server's own pattern). Light manifests: `list` / `load` (undefined for unknown id, throws « unreadable » on a corrupt existing manifest) / `save` / `delete`. Both adapters decode at the edge with `parseProject` (AA.2). |
+| `ProjectAudioStore` | driven | `web`: `createHttpProjectAudioStore` (J3.3 — content-addressed sha256 blobs on the local server), and `createFsProjectAudioStore` on the desktop shell (T2.2 — same sha256 refs as `audio/{ref}` files, dedup by existence, atomic writes; orphans reclaimed by `collectFsGarbage`, the conservative startup sweep mirroring the server's). Heavy bytes: `put` mints the `AudioRef` (its spelling is the adapter's business), `get` resolves it (undefined for unknown ref). |
 | `ArchiveWriter` | driven | `web`: `createZipArchiveWriter` (fflate, entries stored uncompressed — WAV PCM barely deflates). Bundles the export's named files into one downloadable archive; the download itself stays in the adapter. |

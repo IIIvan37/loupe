@@ -1,9 +1,12 @@
-import type {
-  AudioRef,
-  Project,
-  ProjectAudioStore,
-  ProjectStore
+import {
+  type AudioRef,
+  type Project,
+  type ProjectAudioStore,
+  type ProjectStore,
+  parseProject
 } from '@app/core'
+import { sha256Hex } from './content-hash.ts'
+import { readableProjects, unreadableManifestError } from './manifest-decode.ts'
 
 /**
  * HTTP adapters for the core's `ProjectStore` / `ProjectAudioStore` ports,
@@ -24,14 +27,24 @@ export function createHttpProjectStore(baseUrl: string): ProjectStore {
   return {
     async list(): Promise<readonly Project[]> {
       const response = await ensureOk(await fetch(`${baseUrl}/projects`))
-      return (await response.json()) as Project[]
+      const manifests: unknown = await response.json()
+      if (!Array.isArray(manifests)) {
+        throw new Error('project server answered with a non-list')
+      }
+      // The server persists manifests verbatim (AA.2): decode at the edge and
+      // hide the broken ones from the list rather than crash the dialog.
+      return readableProjects(manifests)
     },
     async load(id: string): Promise<Project | undefined> {
       const response = await fetch(`${baseUrl}/projects/${id}`)
       if (response.status === 404) {
         return undefined
       }
-      return (await (await ensureOk(response)).json()) as Project
+      const project = parseProject(await (await ensureOk(response)).json())
+      if (project === undefined) {
+        throw unreadableManifestError(id)
+      }
+      return project
     },
     async save(project: Project): Promise<void> {
       await ensureOk(
@@ -48,15 +61,6 @@ export function createHttpProjectStore(baseUrl: string): ProjectStore {
       )
     }
   }
-}
-
-/** The server refs blobs by their sha256 — computing it locally lets a save
- * skip re-uploading unchanged audio (stems especially: hundreds of MB). */
-async function sha256Hex(bytes: ArrayBuffer): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', bytes)
-  return Array.from(new Uint8Array(digest), (byte) =>
-    byte.toString(16).padStart(2, '0')
-  ).join('')
 }
 
 export function createHttpProjectAudioStore(

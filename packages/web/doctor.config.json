@@ -8,7 +8,8 @@
       {
         "files": [
           "src/i18n/i18n-testing-provider.tsx",
-          "src/app/workstation-shell/shell-test-kit.tsx"
+          "src/app/workstation-shell/shell-test-kit.tsx",
+          "src/projects/project-fs-test-kit.ts"
         ],
         "rules": ["deslop/unused-file"]
       },
