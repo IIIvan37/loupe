@@ -58,8 +58,9 @@ class TestVerifyAnalyzeToken:
     def test_rejects_a_missing_expiry(self) -> None:
         claims = valid_claims()
         del claims["exp"]
+        token = mint(claims)
         with pytest.raises(InvalidAnalyzeToken):
-            verify_analyze_token(mint(claims), SECRET, now=NOW)
+            verify_analyze_token(token, SECRET, now=NOW)
 
     @pytest.mark.parametrize("token", ["", "a.b", "not-a-jwt", "a.b.c.d", "x.y.z"])
     def test_rejects_malformed_tokens(self, token: str) -> None:
