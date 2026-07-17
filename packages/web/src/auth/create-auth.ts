@@ -7,8 +7,17 @@ import type {
   RedeemResult
 } from './auth-port.ts'
 
-/** Where the magic link returns the user — the running app origin. */
+import { isTauriShell } from './tauri-env.ts'
+
+/**
+ * Where the magic link returns the user — the running app origin, or the
+ * desktop deep link under the Tauri shell (a browser redirect can never reach
+ * the webview's storage; the shell installs the session via `setSession`).
+ */
 function redirectTo(): string | undefined {
+  if (isTauriShell()) {
+    return 'loupe://auth-callback'
+  }
   try {
     return window.location.origin
   } catch {

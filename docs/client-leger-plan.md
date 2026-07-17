@@ -212,6 +212,16 @@ Enseignements pour les slices suivantes :
   webview. Contournement dev : naviguer le webview sur l'URL du lien via la
   console devtools.
 
+**Livré (2026-07-17, vérifié réellement)** : `auth/deep-link.ts`
+(`parseAuthCallback` pur + `installDeepLinkAuth` → `setSession`, TDD),
+`redirectTo()` → `loupe://auth-callback` sous le shell (`isTauriShell`),
+composition dans `appAuth()` (import dynamique du plugin), plugin Rust +
+schéma `loupe` + capability, Supabase `site_url` → 5173 et allowlist
+`{5173, loupe://auth-callback}` (API management). Pièges consignés : sur
+macOS le schéma ne s'enregistre QUE via le bundle (`tauri build --debug`,
+jamais `tauri dev` nu) ; l'app bundlée a l'origine `tauri://localhost` →
+« Serveur hors ligne » attendu tant que T2.5 n'a pas ajouté les origins.
+
 ### T2.2 — Stores filesystem *(le cœur de « les projets restent locaux »)*
 - Adapters Tauri pour `ProjectStore` et `ProjectAudioStore` (FS via commandes
   Rust ou plugin fs) à **parité de contrat** avec `projects.py` : dédup sha256
@@ -304,7 +314,8 @@ on n'empile pas une migration d'infra sur des régressions connues.
 - [x] **T2.1** spike coquille Tauri + inventaire licences — **GO** (2026-07-17,
       vérifié réellement, trois cas durcis passés ; licences : aucun bloquant,
       pas de Rubber Band, SoundTouchJS MPL-2.0) ; voir § T2.1
-- [ ] **T2.1bis** auth desktop : deep link `loupe://` + `setSession`
+- [x] **T2.1bis** auth desktop : deep link `loupe://` + `setSession` — livré
+      2026-07-17, vérifié réellement (magic link → session dans le bundle)
 - [ ] **T2.2** stores filesystem à parité (dédup, atomicité, GC) + parseProject
 - [ ] **T2.3** sidecar yt-dlp (gardes réimplémentées)
 - [ ] **T2.4** migration `~/.loupe`

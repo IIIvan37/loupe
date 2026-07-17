@@ -7,6 +7,13 @@
     "frontendDist": "../../web/dist",
     "devUrl": "http://localhost:5173"
   },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["loupe"]
+      }
+    }
+  },
   "app": {
     "windows": [
       {
