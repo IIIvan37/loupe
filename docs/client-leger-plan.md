@@ -143,10 +143,29 @@ l'import URL. Une machine faible fait tout le reste.
 ## Phase 2 — Tauri : le shell desktop, les données locales
 
 ### T2.1 — Spike coquille Tauri *(GO/NO-GO avant toute slice)*
+
+> **Évaluation pré-spike (2026-07-17)** : l'import URL étant une
+> fonctionnalité principale, l'alternative PWA+OPFS (pas de shell du tout) est
+> écartée — il faut un sidecar local. Le choix se réduit à Tauri vs Electron :
+> Tauri reste le premier candidat (empreinte minimale, sidecar de première
+> classe, porte mobile), **Electron est le fallback acté en cas de NO-GO**
+> (même plan T2.2–T2.5, moteur Chromium déjà testé ; coût ~150-250 MB de RAM).
+> Le risque n°1 est le changement de moteur : loupe n'a été vérifié que sur
+> Chromium, et WKWebView (WebKit) a un historique de bugs Web Audio — d'où les
+> cas durcis ci-dessous. **Multi-plateforme confirmé (2026-07-17)** : Linux est
+> une cible ; l'expérience directe de l'utilisateur (pixsaur sous Tauri tourne
+> très bien sous Linux) dérisque le rendu et le packaging WebKitGTK — les cas
+> audio durcis restent à rejouer sur Linux (au moins avant la beta, macOS
+> première marche).
+
 - Monter le shell web inchangé dans une fenêtre Tauri (macOS d'abord) et
   vérifier sur une piste réelle : décodage, lecture, time-stretch WASM
   (SoundTouch), drag & drop de fichiers, `OfflineAudioContext` (resample V.1),
   localStorage/preferences.
+- **Cas durcis WebKit** (tirés des bugs connus) : lecture continue fenêtre
+  minimisée / en arrière-plan (bug WebKit 231105 — mortel pour un outil de
+  practice), lecture 6 stems + time-stretch prolongée (glitches sous charge),
+  changement de périphérique de sortie audio en cours de lecture.
 - **Inventaire licences au même spike** : SoundTouch (LGPL) / Rubber Band
   (GPL) — la distribution d'un binaire change les obligations vs un site web ;
   bloquant App Store le jour où mobile s'ouvre. Sortie : liste des
