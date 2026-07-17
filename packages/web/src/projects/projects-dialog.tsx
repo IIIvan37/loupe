@@ -140,15 +140,17 @@ export function ProjectsDialog({
         message: 'Reprendre un projet enregistré là où il a été laissé.'
       })}
     >
-      {errorMessage !== undefined ? (
+      {errorMessage !== undefined && (
         <p className={cx(styles.error)} role="alert">
           {errorMessage}
         </p>
-      ) : projects.length === 0 ? (
+      )}
+      {errorMessage === undefined && projects.length === 0 && (
         <p className={cx(styles.empty)}>
           <Trans id="projects.empty">Aucun projet enregistré</Trans>
         </p>
-      ) : (
+      )}
+      {errorMessage === undefined && projects.length > 0 && (
         <ul className={cx(styles.list)}>
           {projects.map((project) => {
             const armedAction =
