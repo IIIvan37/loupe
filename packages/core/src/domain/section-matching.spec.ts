@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { blockSimilarity, matchesTolerantly } from './section-matching.ts'
+import {
+  blockSimilarity,
+  endingVariants,
+  matchesTolerantly
+} from './section-matching.ts'
 
 describe('blockSimilarity', () => {
   it('identical blocks agree fully', () => {
@@ -81,5 +85,74 @@ describe('matchesTolerantly', () => {
     const a = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'G7']
     const b = ['C', 'Am', 'F', 'G', 'Em', 'A7', 'Dm', 'E7']
     expect(matchesTolerantly(a, b)).toBe(true)
+  })
+})
+
+describe('endingVariants', () => {
+  it('splits passes differing on the last bar into body + endings', () => {
+    const variants = endingVariants([
+      ['C', 'Am', 'F', 'G7'],
+      ['C', 'Am', 'F', 'C']
+    ])
+    expect(variants?.endings).toEqual([['G7'], ['C']])
+  })
+
+  it('the shared body stops before the endings', () => {
+    const variants = endingVariants([
+      ['C', 'Am', 'F', 'G7'],
+      ['C', 'Am', 'F', 'C']
+    ])
+    expect(variants?.body).toEqual(['C', 'Am', 'F'])
+  })
+
+  it('a two-bar divergence makes two-bar endings', () => {
+    const variants = endingVariants([
+      ['C', 'Am', 'F', 'G', 'Dm', 'G7'],
+      ['C', 'Am', 'F', 'G', 'C', 'C']
+    ])
+    expect(variants?.endings).toEqual([
+      ['Dm', 'G7'],
+      ['C', 'C']
+    ])
+  })
+
+  it('a body difference is not an ending variant', () => {
+    expect(
+      endingVariants([
+        ['C', 'Am', 'F', 'G7'],
+        ['C', 'E7', 'F', 'G7']
+      ])
+    ).toBeUndefined()
+  })
+
+  it('identical passes have no variant endings — a plain repeat suffices', () => {
+    expect(
+      endingVariants([
+        ['C', 'Am', 'F', 'G7'],
+        ['C', 'Am', 'F', 'G7']
+      ])
+    ).toBeUndefined()
+  })
+
+  it('a lone pass has nothing to vary against', () => {
+    expect(endingVariants([['C', 'Am', 'F', 'G7']])).toBeUndefined()
+  })
+
+  it('three passes keep three endings, in play order', () => {
+    const variants = endingVariants([
+      ['C', 'F', 'G7'],
+      ['C', 'F', 'C7'],
+      ['C', 'F', 'C']
+    ])
+    expect(variants?.endings).toEqual([['G7'], ['C7'], ['C']])
+  })
+
+  it('the body is voted across passes — jitter cleaned by majority', () => {
+    const variants = endingVariants([
+      ['C', 'A7', 'F', 'G7'],
+      ['C', 'Am', 'F', 'C7'],
+      ['C', 'Am', 'F', 'C']
+    ])
+    expect(variants?.body).toEqual(['C', 'Am', 'F'])
   })
 })

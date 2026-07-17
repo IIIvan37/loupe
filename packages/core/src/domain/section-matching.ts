@@ -72,3 +72,97 @@ function headChord(cell: string): string {
   const space = cell.indexOf(' ')
   return space === -1 ? cell : cell.slice(0, space)
 }
+
+/**
+ * Every occurrence of a section is a noisy observation of the same bars:
+ * per position, the most frequent value wins; a tie keeps the representative
+ * (first occurrence) — so grouping cleans the chart, not just the layout.
+ * Generic on the cell value: chord labels and bar meters ride the same vote.
+ */
+export function votedBlock<T>(
+  occurrences: readonly (readonly (T | undefined)[])[]
+): readonly (T | undefined)[] {
+  const representative = occurrences[0] as readonly (T | undefined)[]
+  return representative.map((value, position) => {
+    const counts = new Map<T | undefined, number>()
+    for (const block of occurrences) {
+      counts.set(block[position], (counts.get(block[position]) ?? 0) + 1)
+    }
+    let winner = value
+    // The representative's own value is always counted, so its tally exists.
+    let best = counts.get(value) ?? 0
+    for (const [candidate, count] of counts) {
+      if (count > best) {
+        winner = candidate
+        best = count
+      }
+    }
+    return winner
+  })
+}
+
+export interface EndingVariants {
+  /** The shared opening bars, voted across the passes. */
+  readonly body: MeasureLabels
+  /** Each pass's own closing bars, in play order — volta 1, volta 2, … */
+  readonly endings: readonly MeasureLabels[]
+}
+
+/**
+ * Split same-section passes into a shared body and per-pass endings — the
+ * split a volta bracket prints. A disputed bar in the BODY is detector noise
+ * exactly when a strict majority of passes agrees there (the vote cleans it);
+ * with no majority the passes genuinely diverge and there is no variant
+ * split. A disputed bar in the ending zone IS the variation — the endings
+ * start at the first disputed tail bar, each pass keeping its own bars there
+ * (averaging them away is the whole failure the volta exists to avoid).
+ */
+export function endingVariants(
+  occurrences: readonly MeasureLabels[]
+): EndingVariants | undefined {
+  const [first, ...rest] = occurrences
+  if (first === undefined || rest.length === 0) return undefined
+  if (rest.some((other) => other.length !== first.length)) return undefined
+  const tailStart = first.length - TAIL_LENGTH
+  let split = first.length
+  for (let position = 0; position < first.length; position += 1) {
+    if (!disputed(occurrences, position)) continue
+    if (position < tailStart) {
+      if (!hasStrictMajority(occurrences, position)) return undefined
+    } else {
+      split = Math.min(split, position)
+    }
+  }
+  if (split === first.length) return undefined
+  return {
+    body: votedBlock(occurrences.map((pass) => pass.slice(0, split))),
+    endings: occurrences.map((pass) => pass.slice(split))
+  }
+}
+
+/** A position's evidence key: the downbeat chord, or silence. */
+function evidenceKey(cell: string | undefined): string | undefined {
+  return cell === undefined ? undefined : headChord(cell)
+}
+
+/** Whether the passes disagree at a position (silence vs a chord counts). */
+function disputed(
+  occurrences: readonly MeasureLabels[],
+  position: number
+): boolean {
+  const keys = new Set(occurrences.map((pass) => evidenceKey(pass[position])))
+  return keys.size > 1
+}
+
+/** Whether one reading owns MORE than half the passes at a position. */
+function hasStrictMajority(
+  occurrences: readonly MeasureLabels[],
+  position: number
+): boolean {
+  const counts = new Map<string | undefined, number>()
+  for (const pass of occurrences) {
+    const key = evidenceKey(pass[position])
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+  return Math.max(...counts.values()) * 2 > occurrences.length
+}

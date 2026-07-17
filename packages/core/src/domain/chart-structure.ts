@@ -6,7 +6,7 @@ import {
   unrollChart
 } from './chord-chart.ts'
 import { formatChordSymbol } from './chord-symbol.ts'
-import { matchesTolerantly } from './section-matching.ts'
+import { matchesTolerantly, votedBlock } from './section-matching.ts'
 import type { DetectedSection } from './song-structure.ts'
 
 /**
@@ -450,32 +450,4 @@ function sectionLabel(index: number): string {
   const letter = String.fromCharCode(65 + (index % 26))
   const rest = Math.floor(index / 26)
   return rest === 0 ? letter : `${sectionLabel(rest - 1)}${letter}`
-}
-
-/**
- * Every occurrence of a section is a noisy observation of the same bars:
- * per position, the most frequent value wins; a tie keeps the representative
- * (first occurrence) — so grouping cleans the chart, not just the layout.
- * Generic on the cell value: chord labels and bar meters ride the same vote.
- */
-function votedBlock<T>(
-  occurrences: readonly (readonly (T | undefined)[])[]
-): readonly (T | undefined)[] {
-  const representative = occurrences[0] as readonly (T | undefined)[]
-  return representative.map((value, position) => {
-    const counts = new Map<T | undefined, number>()
-    for (const block of occurrences) {
-      counts.set(block[position], (counts.get(block[position]) ?? 0) + 1)
-    }
-    let winner = value
-    // The representative's own value is always counted, so its tally exists.
-    let best = counts.get(value) ?? 0
-    for (const [candidate, count] of counts) {
-      if (count > best) {
-        winner = candidate
-        best = count
-      }
-    }
-    return winner
-  })
 }
