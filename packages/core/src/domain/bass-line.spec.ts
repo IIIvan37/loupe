@@ -18,9 +18,11 @@ function bassOf(hzPerMeasure: readonly number[]): Float32Array {
   return samples
 }
 
-/** One downbeat per second over `measures` measures (+ the closing edge). */
+/** One downbeat per second, one MEASURE per downbeat — the same convention
+ * as `chordLabelPerMeasure` (the last bar extends by the previous bar's
+ * length), so `applyBassSlash` sees rows of equal length. */
 function gridOf(measures: number) {
-  return Array.from({ length: measures + 1 }, (_, i) => ({
+  return Array.from({ length: measures }, (_, i) => ({
     timeSeconds: i,
     downbeat: true
   }))
@@ -38,13 +40,31 @@ describe('bassNotePerMeasure', () => {
     expect(notes).toEqual([4, undefined])
   })
 
-  it('reads nothing when no downbeat closes a measure', () => {
+  it('reads nothing from an empty grid', () => {
     expect(bassNotePerMeasure(bassOf([41.2]), SR, [])).toEqual([])
+  })
+
+  it('hears the LAST measure too — one note per downbeat, like the labels', () => {
+    // Two downbeats, two measures: the closing bar has no closing downbeat
+    // (it extends by the previous bar's length, chordLabelPerMeasure's
+    // convention) — its bass must still be read, or the final measure of
+    // every song silently never prints a slash.
+    const grid = [
+      { timeSeconds: 0, downbeat: true },
+      { timeSeconds: 1, downbeat: true }
+    ]
+    expect(bassNotePerMeasure(bassOf([41.2, 55]), SR, grid)).toEqual([4, 9])
+  })
+
+  it('a lone downbeat opens one measure, read to the end of the signal', () => {
+    expect(
+      bassNotePerMeasure(bassOf([55]), SR, [{ timeSeconds: 0, downbeat: true }])
+    ).toEqual([9])
   })
 
   it('only downbeats bound measures — plain beats never cut', () => {
     // Four beats per 1 s measure: still ONE note per measure, not four.
-    const grid = Array.from({ length: 9 }, (_, i) => ({
+    const grid = Array.from({ length: 8 }, (_, i) => ({
       timeSeconds: i * 0.25,
       downbeat: i % 4 === 0
     }))
@@ -67,6 +87,24 @@ describe('bassNotePerMeasure', () => {
     // 47.4 Hz (F#1 +42c): the raw peak bin centre (48.45 Hz) reads G — only
     // the parabolic refinement lands the true class.
     expect(bassNotePerMeasure(bassOf([47.4]), SR, gridOf(1))).toEqual([6])
+  })
+
+  it('hears a note played late in a long measure — windows span the bar', () => {
+    // 3 s measure: soft A1 for 2 s, then loud E1. Only the windows spread
+    // across the bar reach the louder late note; a single window at the
+    // downbeat would misread the measure as A.
+    const samples = new Float32Array(3 * SR)
+    for (let i = 0; i < 2 * SR; i++) {
+      samples[i] = 0.2 * Math.sin((2 * Math.PI * 55 * i) / SR)
+    }
+    for (let i = 2 * SR; i < 3 * SR; i++) {
+      samples[i] = 0.8 * Math.sin((2 * Math.PI * 41.2 * i) / SR)
+    }
+    const grid = [
+      { timeSeconds: 0, downbeat: true },
+      { timeSeconds: 3, downbeat: true }
+    ]
+    expect(bassNotePerMeasure(samples, SR, grid).at(0)).toBe(4)
   })
 
   it('an ambiguous measure (two competing notes) stays blank', () => {

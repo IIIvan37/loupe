@@ -18,6 +18,7 @@ import {
 } from '../../audio/analysis-token.ts'
 import { createChordDetector } from '../../audio/create-chord-detector.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
+import { nextPaint } from '../../lib/next-paint.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 import { BASS_STEM_ID, DRUMS_STEM_ID } from '../stems/stem-ids.ts'
 import {
@@ -44,6 +45,13 @@ export interface ChordDetection {
   /** Whether the last run landed a draft (drives the a11y announcement). */
   readonly succeeded: boolean
   /**
+   * What the in-flight run is actually doing (AD.1): the implicit
+   * separation is its own phase, so the busy face can say « Séparation des
+   * pistes avant les accords… » instead of lying about a detection — and
+   * skip the cold-start narration that belongs to the detector's engine.
+   */
+  readonly phase: 'separating' | 'detecting' | undefined
+  /**
    * Detect the loaded track's chords and hand the drafted grid source to
    * `onDraft`, wrapped at the given bars-per-row (the panel's layout).
    */
@@ -68,6 +76,7 @@ export function useChordDetection({
   sections,
   stems,
   ensureStems,
+  cancelSeparation,
   onDraft,
   detector,
   gate = ensureAnalysisToken
@@ -89,6 +98,9 @@ export function useChordDetection({
   readonly ensureStems?:
     | (() => Promise<ReadonlyArray<SeparatedStem> | undefined>)
     | undefined
+  /** Cancel the separation `ensureStems` started (AD.1): the chord item's
+   * « Annuler » must stop the machine it set in motion, in one gesture. */
+  readonly cancelSeparation?: (() => void) | undefined
   readonly onDraft: (source: string) => void
   readonly detector?: ChordDetector | undefined
   /** Acquire the analyse token before running (offload gate, M1.1). Defaults
@@ -100,6 +112,7 @@ export function useChordDetection({
   const [error, setError] = useState<ChordDetectionErrorCode>()
   const [gateReason, setGateReason] = useState<MintFailureReason>()
   const [succeeded, setSucceeded] = useState(false)
+  const [phase, setPhase] = useState<'separating' | 'detecting'>()
   const runIdRef = useRef(0)
   // The in-flight run's abort controller: a superseded run must release the
   // server's analysis slot, not just have its late result dropped.
@@ -113,6 +126,7 @@ export function useChordDetection({
   if (prevAudio !== loadedAudio) {
     setPrevAudio(loadedAudio)
     setDetecting(false)
+    setPhase(undefined)
     // The outcome belongs to the replaced track: a stale error (or a stale
     // success announcement) must not survive onto the new one.
     setError(undefined)
@@ -129,8 +143,22 @@ export function useChordDetection({
     sections,
     stems,
     ensureStems,
+    cancelSeparation,
     onDraft
   })
+
+  // The analysis mix + bass line for one (track, stems, grid) — recomputing
+  // them per run both burns a synchronous DSP block AND hands the WAV-encode
+  // memo (V.1, WeakMap on the audio's identity) a fresh object it can never
+  // hit. Stem PCM is immutable for a loaded track, so the id list is an
+  // honest key alongside the track's and grid's identities.
+  const dspCacheRef = useRef<{
+    audio: DecodedAudio
+    grid: BeatGrid
+    stemsKey: string
+    analysisAudio: DecodedAudio
+    bassNotes: ReadonlyArray<number | undefined> | undefined
+  }>(undefined)
 
   // Abort in an EFFECT, not the render-time block above: the replaced track's
   // pending upload still holds the server's analysis slot, and an effect
@@ -163,56 +191,59 @@ export function useChordDetection({
     setDetecting(true)
     setError(undefined)
     setSucceeded(false)
+    // The run's identity, taken BEFORE the first await: a cancel (or a newer
+    // detect) bumps the counter, and every await below re-checks it — a
+    // superseded run must neither start the detector nor commit anything.
+    const runId = ++runIdRef.current
     if (isAnalysisOffloaded()) {
-      // A cancel (or a newer run) during the mint bumps the token — this
-      // superseded run must not start the detector when the gate resolves.
-      const ticket = runIdRef.current
       const gated = await gate()
-      if (runIdRef.current !== ticket) {
+      if (runIdRef.current !== runId) {
         return
       }
       if (!gated.ok) {
         setGateReason(gated.reason)
         setDetecting(false)
+        setPhase(undefined)
         return
       }
     }
     // Stems first (4a): an already-separated session reuses its stems; a
     // fresh one separates implicitly — best-effort, a failure or cancel
-    // falls back to the full mix. The ticket guard drops a run superseded
+    // falls back to the full mix. The run-id guard drops a run superseded
     // (cancel, newer detect, track swap) while the separation awaited.
     let stemsNow = inputRef.current.stems
     const separate = inputRef.current.ensureStems
     if (!stemsNow && separate) {
-      const ticket = runIdRef.current
+      setPhase('separating')
       stemsNow = await separate()
       if (
-        runIdRef.current !== ticket ||
+        runIdRef.current !== runId ||
         inputRef.current.loadedAudio !== audio
       ) {
         return
       }
     }
-    // The chord engine prefers the mix minus drums: still its training
-    // regime, minus the percussive noise. No stems → the full mix as before.
-    const analysisAudio = stemsNow
-      ? (monoMixWithout(stemsNow, DRUMS_STEM_ID) ?? audio)
-      : audio
-    // The isolated bass names each measure's true low note (4b) — the
-    // use-case prints it as the slash of any single-chord measure it
-    // contradicts. No bass stem → no slashes, exactly as before.
-    const bassStem = stemsNow?.find((stem) => stem.id === BASS_STEM_ID)
-    const bassNotes = bassStem
-      ? bassNotePerMeasure(
-          downmixToMono(bassStem.audio.channels),
-          bassStem.audio.sampleRate,
-          beatGrid
-        )
-      : undefined
+    setPhase('detecting')
+    // No stems → the full mix, synchronously: the abort plumbing below must
+    // hold the in-flight transfer the instant `detect` returns to its caller.
+    let analysisAudio = audio
+    let bassNotes: ReadonlyArray<number | undefined> | undefined
+    if (stemsNow) {
+      ;({ analysisAudio, bassNotes } = await analysisInputs(
+        audio,
+        beatGrid,
+        stemsNow
+      ))
+      if (
+        runIdRef.current !== runId ||
+        inputRef.current.loadedAudio !== audio
+      ) {
+        return
+      }
+    }
     controllerRef.current?.abort()
     const controller = new AbortController()
     controllerRef.current = controller
-    const runId = ++runIdRef.current
     const result = await detectChords(
       {
         audio: analysisAudio,
@@ -236,6 +267,7 @@ export function useChordDetection({
       return
     }
     setDetecting(false)
+    setPhase(undefined)
     if (result.ok) {
       setSucceeded(true)
       inputRef.current.onDraft(result.source)
@@ -247,13 +279,73 @@ export function useChordDetection({
     }
   }
 
+  /**
+   * The DSP inputs of one run — the drums-less analysis mix (4a) and the
+   * bass line (4b) — computed once per (track, stems, grid) and cached:
+   * the synchronous block runs behind a painted busy face (`nextPaint`,
+   * R.4) and is measured (`performance.measure('chords-dsp')`); a re-run
+   * over the same session returns the SAME mix instance, which is what
+   * lets the V.1 WAV-encode memo hit again.
+   */
+  async function analysisInputs(
+    audio: DecodedAudio,
+    beatGrid: BeatGrid,
+    stemsNow: ReadonlyArray<SeparatedStem>
+  ): Promise<{
+    analysisAudio: DecodedAudio
+    bassNotes: ReadonlyArray<number | undefined> | undefined
+  }> {
+    const stemsKey = stemsNow.map((stem) => stem.id).join('|')
+    const cached = dspCacheRef.current
+    if (
+      cached &&
+      cached.audio === audio &&
+      cached.grid === beatGrid &&
+      cached.stemsKey === stemsKey
+    ) {
+      return {
+        analysisAudio: cached.analysisAudio,
+        bassNotes: cached.bassNotes
+      }
+    }
+    // Let the busy face PAINT before the synchronous DSP block freezes the
+    // thread — nothing paints under a blocked main thread (R.4).
+    await nextPaint()
+    performance.mark('chords-dsp-start')
+    const analysisAudio = monoMixWithout(stemsNow, DRUMS_STEM_ID) ?? audio
+    const bassStem = stemsNow.find((stem) => stem.id === BASS_STEM_ID)
+    const bassNotes = bassStem
+      ? bassNotePerMeasure(
+          downmixToMono(bassStem.audio.channels),
+          bassStem.audio.sampleRate,
+          beatGrid
+        )
+      : undefined
+    performance.measure('chords-dsp', 'chords-dsp-start')
+    dspCacheRef.current = {
+      audio,
+      grid: beatGrid,
+      stemsKey,
+      analysisAudio,
+      bassNotes
+    }
+    return { analysisAudio, bassNotes }
+  }
+
   /** Abort the in-flight run (R.2): the server slot is released, no outcome
-   * is committed — cancelling is not a failure, so no error appears. */
+   * is committed — cancelling is not a failure, so no error appears. And in
+   * one gesture (AD.1): cancelling during the implicit separation also
+   * cancels the separation this run started.
+   */
   function cancel(): void {
+    if (phase === 'separating') {
+      inputRef.current.cancelSeparation?.()
+    }
     controllerRef.current?.abort()
     runIdRef.current += 1
     setDetecting(false)
+    setPhase(undefined)
   }
 
-  return { detecting, error, gateReason, succeeded, detect, cancel }
+  return { detecting, error, gateReason, succeeded, phase, detect, cancel }
 }

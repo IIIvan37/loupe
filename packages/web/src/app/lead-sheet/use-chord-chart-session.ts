@@ -25,6 +25,7 @@ export function useChordChartSession({
   sections,
   stems,
   ensureStems,
+  cancelSeparation,
   detector,
   onSourceEdited
 }: {
@@ -34,6 +35,8 @@ export function useChordChartSession({
   readonly ensureStems?:
     | (() => Promise<ReadonlyArray<SeparatedStem> | undefined>)
     | undefined
+  /** Cancel the implicit separation with the chord run that started it. */
+  readonly cancelSeparation?: (() => void) | undefined
   readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
   readonly beatsPerBar?: number | undefined
@@ -71,6 +74,7 @@ export function useChordChartSession({
     sections,
     stems,
     ensureStems,
+    cancelSeparation,
     // A landed draft is in the track's own key — it resets the key offset.
     onDraft: chart.seatDraft,
     detector

@@ -119,6 +119,10 @@ export interface StructureDetectionControl {
 export interface ChordDetectionControl {
   readonly blockedReason: 'server' | 'no-grid' | undefined
   readonly detecting: boolean
+  /** What the run is actually doing (AD.1): during the implicit separation
+   * the busy face names the separation — not a detection that has not
+   * started — and skips the engine's cold-start narration. */
+  readonly phase: 'separating' | 'detecting' | undefined
   readonly error: ChordDetectionErrorCode | undefined
   readonly succeeded: boolean
   /** Whether a grid already exists — the detected draft replaces it. */
@@ -433,9 +437,16 @@ function ChordsItem({
           message: 'Échec de la détection des accords'
         })} — ${t(errorCopy)}`
       : undefined
+  const separating = chords.phase === 'separating'
+  const runningLabel = separating
+    ? t({
+        id: 'chords.separating',
+        message: 'Séparation des pistes avant les accords…'
+      })
+    : t({ id: 'chords.detecting', message: 'Détection des accords…' })
   let announced: string | undefined
   if (chords.detecting) {
-    announced = t({ id: 'chords.detecting', message: 'Détection des accords…' })
+    announced = runningLabel
   } else if (chords.succeeded) {
     announced = t({
       id: 'chords.detect-done',
@@ -446,16 +457,18 @@ function ChordsItem({
     <div className={styles.item}>
       <DetectionAction
         label={t({ id: 'chords.detect', message: 'Détecter les accords' })}
-        runningLabel={t({
-          id: 'chords.detecting',
-          message: 'Détection des accords…'
-        })}
+        runningLabel={runningLabel}
         running={chords.detecting}
         progress={{
           onCancel: chords.onCancel,
           // Same R.3 narration as structure: a suspicious offloaded wait
-          // reads as the engine starting up, not as a hang.
-          detail: chords.offloaded ? t(ANALYSIS_COLD_START) : undefined,
+          // reads as the engine starting up, not as a hang. NOT during the
+          // implicit separation — the wait belongs to the separator, whose
+          // own item narrates real progress beside this one (AD.1).
+          detail:
+            chords.offloaded && !separating
+              ? t(ANALYSIS_COLD_START)
+              : undefined,
           detailAfterMs: 4000
         }}
         confirms={chords.hasGrid}
