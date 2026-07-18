@@ -30,8 +30,23 @@ const BINARY_FETCH_TIMEOUT: Duration = Duration::from_secs(300);
 /// Re-run `yt-dlp -U` at most once per this window.
 const SELF_UPDATE_WINDOW: Duration = Duration::from_secs(24 * 60 * 60);
 
-const YT_DLP_RELEASE_BASE: &str =
-  "https://github.com/yt-dlp/yt-dlp/releases/latest/download/";
+/// Pinned release: `latest/` is a moving target executed as native code, so
+/// the bootstrap fetch verifies a version + sha256 pinned here (AC.1, same
+/// policy as the server's sha256-pinned model weights). Freshness stays with
+/// the daily `-U` self-update, which verifies its own hashes. Bumping =
+/// updating these constants from the release's SHA2-256SUMS file.
+const YT_DLP_VERSION: &str = "2026.07.04";
+
+/// sha256 of this platform's asset in the pinned release (SHA2-256SUMS).
+fn release_asset_sha256() -> &'static str {
+  if cfg!(target_os = "windows") {
+    "52fe3c26dcf71fbdc85b528589020bb0b8e383155cfa81b64dd447bbe35e24b8"
+  } else if cfg!(target_os = "macos") {
+    "498bd0dae17855c599d371d68ec5bafc439a9d8640e838be25c765a9792f261b"
+  } else {
+    "6bbb3d314cde4febe36e5fa1d55462e29c974f63444e707871834f6d8cc210ae"
+  }
+}
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase", tag = "type")]
@@ -132,7 +147,10 @@ async fn ensure_binary(app: &tauri::AppHandle) -> Result<PathBuf, String> {
   }
   std::fs::create_dir_all(&bin_dir)
     .map_err(|e| format!("cannot create {}: {e}", bin_dir.display()))?;
-  let url = format!("{YT_DLP_RELEASE_BASE}{}", release_asset());
+  let url = format!(
+    "https://github.com/yt-dlp/yt-dlp/releases/download/{YT_DLP_VERSION}/{}",
+    release_asset()
+  );
   let bytes = tokio::time::timeout(
     BINARY_FETCH_TIMEOUT,
     tokio::task::spawn_blocking(move || fetch_bytes(&url)),
@@ -140,6 +158,7 @@ async fn ensure_binary(app: &tauri::AppHandle) -> Result<PathBuf, String> {
   .await
   .map_err(|_| "yt-dlp download timed out".to_string())?
   .map_err(|e| e.to_string())??;
+  verify_sha256(&bytes, release_asset_sha256())?;
   let tmp = binary.with_extension("tmp");
   std::fs::write(&tmp, bytes).map_err(|e| e.to_string())?;
   #[cfg(unix)]
@@ -150,6 +169,19 @@ async fn ensure_binary(app: &tauri::AppHandle) -> Result<PathBuf, String> {
   }
   std::fs::rename(&tmp, &binary).map_err(|e| e.to_string())?;
   Ok(binary)
+}
+
+/// Refuse to install (and later execute) bytes whose digest is not the one
+/// pinned for this release — TLS alone trusts whatever the release serves.
+fn verify_sha256(bytes: &[u8], expected: &str) -> Result<(), String> {
+  use sha2::{Digest, Sha256};
+  let digest = hex::encode(Sha256::digest(bytes));
+  if digest != expected {
+    return Err(format!(
+      "yt-dlp integrity check failed: sha256 {digest} != pinned {expected}"
+    ));
+  }
+  Ok(())
 }
 
 fn fetch_bytes(url: &str) -> Result<Vec<u8>, String> {
@@ -409,6 +441,19 @@ mod tests {
     assert!(!is_supported_url("ftp://youtube.com/x"));
     assert!(!is_supported_url("file:///etc/passwd"));
     assert!(!is_supported_url("not a url"));
+  }
+
+  #[test]
+  fn accepts_bytes_matching_the_pinned_sha256() {
+    // sha256("abc") — the NIST test vector.
+    let expected = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+    assert!(verify_sha256(b"abc", expected).is_ok());
+  }
+
+  #[test]
+  fn refuses_bytes_whose_sha256_differs_from_the_pin() {
+    let err = verify_sha256(b"tampered", release_asset_sha256()).unwrap_err();
+    assert!(err.contains("integrity check failed"));
   }
 
   #[test]

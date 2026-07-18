@@ -1,0 +1,48 @@
+name: Desktop
+
+# AI.1: the Rust side of the Tauri shell (download.rs is a trust boundary —
+# host allowlist, subprocess driving, executable bootstrap) must not live
+# outside every gate. Path-filtered so the web/server pipelines stay fast.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/desktop/src-tauri/**'
+      - '.github/workflows/desktop.yml'
+  pull_request:
+    paths:
+      - 'packages/desktop/src-tauri/**'
+      - '.github/workflows/desktop.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust:
+    name: Rust (fmt · clippy · tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: packages/desktop/src-tauri
+    steps:
+      - uses: actions/checkout@v7
+      # The tauri crate links the platform webview even for `cargo test`.
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev \
+            libayatana-appindicator3-dev librsvg2-dev
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packages/desktop/src-tauri
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
