@@ -39,14 +39,14 @@ msgid "account.gate-beta"
 msgstr "Entrer un code beta pour accéder aux analyses."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu-slot.tsx:24
+#: src/app/account/account-menu-slot.tsx:27
 msgid "account.gate-error"
 msgstr "Analyse indisponible — réessayer."
 
 #. js-lingui-explicit-id
 #: src/app/account/account-menu-slot.tsx:20
 msgid "account.gate-quota"
-msgstr "Quota d’analyses du mois atteint."
+msgstr "Quota d’analyses du mois atteint — il se réinitialise le 1ᵉʳ du mois. Lecture, boucles et grille restent utilisables."
 
 #. js-lingui-explicit-id
 #: src/app/account/account-menu-slot.tsx:12
@@ -250,13 +250,13 @@ msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:162
+#: src/app/lead-sheet/chord-chart-panel.tsx:173
 #: src/app/workstation-shell/shell-test-kit.tsx:256
 msgid "chords.edit"
 msgstr "Modifier"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:221
+#: src/app/lead-sheet/chord-chart-panel.tsx:232
 msgid "chords.empty-hint"
 msgstr "Aucune grille — saisir les accords via « Modifier » ou lancer la détection."
 
@@ -286,22 +286,22 @@ msgid "chords.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:192
+#: src/app/lead-sheet/chord-chart-panel.tsx:203
 msgid "chords.follow-pitch"
 msgstr "Transposer la grille pour suivre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:188
+#: src/app/lead-sheet/chord-chart-panel.tsx:199
 msgid "chords.follow-pitch-confirm"
 msgstr "Réécrire la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:105
+#: src/app/lead-sheet/chord-chart-panel.tsx:106
 msgid "chords.followed"
 msgstr "Grille transposée"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:169
+#: src/app/lead-sheet/chord-chart-panel.tsx:180
 #: src/app/lead-sheet/format-help-dialog.tsx:103
 msgid "chords.format-help"
 msgstr "Aide du format"
@@ -372,27 +372,32 @@ msgid "chords.help-voltas"
 msgstr "Fins alternatives (voltas)"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:237
+#: src/app/lead-sheet/chord-chart-panel.tsx:248
 #: src/app/workstation-shell/shell-test-kit.tsx:252
 #: src/app/workstation-shell/shell-test-kit.tsx:257
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:176
+#: src/app/lead-sheet/chord-chart-panel.tsx:187
 msgid "chords.pitch-mismatch"
 msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:241
+#: src/app/lead-sheet/chord-chart-panel.tsx:252
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:153
+#: src/app/lead-sheet/chord-chart-panel.tsx:164
 msgid "chords.print"
 msgstr "Imprimer"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:155
+msgid "chords.print-desktop-soon"
+msgstr "Impression bientôt disponible sur l'app de bureau"
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row.tsx:442
@@ -400,17 +405,17 @@ msgid "chords.separating"
 msgstr "Séparation des pistes avant les accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:117
+#: src/app/lead-sheet/chord-chart-panel.tsx:118
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:125
+#: src/app/lead-sheet/chord-chart-panel.tsx:126
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:136
+#: src/app/lead-sheet/chord-chart-panel.tsx:137
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
@@ -454,10 +459,10 @@ msgid "common.rename"
 msgstr "Renommer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:83
-#: src/app/header/header.tsx:95
-#: src/app/header/header.tsx:103
-#: src/app/header/header.tsx:115
+#: src/app/header/header.tsx:84
+#: src/app/header/header.tsx:96
+#: src/app/header/header.tsx:104
+#: src/app/header/header.tsx:116
 #: src/app/loops/loop-controls.tsx:79
 #: src/app/workstation-shell/shell-test-kit.tsx:265
 #: src/app/workstation-shell/shell-test-kit.tsx:354
@@ -511,17 +516,22 @@ msgid "header.downloading"
 msgstr "Téléchargement…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:257
+#: src/app/header/header.tsx:264
 msgid "header.export"
 msgstr "Exporter"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:250
+#: src/app/header/header.tsx:247
+msgid "header.export-desktop-soon"
+msgstr "Export bientôt disponible sur l'app de bureau"
+
+#. js-lingui-explicit-id
+#: src/app/header/header.tsx:257
 msgid "header.export-needs-stems"
 msgstr "Séparer les pistes pour exporter les stems"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:246
+#: src/app/header/header.tsx:253
 msgid "header.export-ready"
 msgstr "Télécharger les stems en ZIP"
 
@@ -593,36 +603,36 @@ msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:276
+#: src/app/header/header.tsx:283
 #: src/app/workstation-shell/shell-test-kit.tsx:285
 msgid "header.projects"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:123
+#: src/app/header/header.tsx:124
 #: src/app/workstation-shell/shell-test-kit.tsx:356
 msgid "header.rename-project"
 msgstr "Renommer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:118
+#: src/app/header/header.tsx:119
 msgid "header.save-as"
 msgstr "Enregistrer sous un autre nom"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:90
+#: src/app/header/header.tsx:91
 msgid "header.save-needs-track"
 msgstr "Importer un morceau pour pouvoir l'enregistrer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:137
-#: src/app/header/header.tsx:139
+#: src/app/header/header.tsx:138
+#: src/app/header/header.tsx:140
 #: src/app/workstation-shell/shell-test-kit.tsx:350
 msgid "header.save-project"
 msgstr "Enregistrer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:188
+#: src/app/header/header.tsx:189
 msgid "header.saved"
 msgstr "Enregistré"
 
@@ -647,12 +657,12 @@ msgid "header.server-ready"
 msgstr "Serveur prêt"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:228
+#: src/app/header/header.tsx:229
 msgid "header.shortcuts-tip"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:224
+#: src/app/header/header.tsx:225
 msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
@@ -667,7 +677,7 @@ msgid "header.unknown-artist"
 msgstr "Artiste inconnu"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:187
+#: src/app/header/header.tsx:188
 msgid "header.unsaved"
 msgstr "● Non enregistré"
 
@@ -823,42 +833,47 @@ msgid "markers.section-label"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:87
+#: src/app/mixer/stem-headers.tsx:88
 msgid "mixer.confidence"
 msgstr "Confiance de détection : {percent} %"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:97
+#: src/app/mixer/stem-headers.tsx:105
+msgid "mixer.download-desktop-soon"
+msgstr "Téléchargement bientôt disponible sur l'app de bureau"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:99
 msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:151
+#: src/app/mixer/stem-headers.tsx:162
 msgid "mixer.eq"
 msgstr "Égaliseur {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:171
+#: src/app/mixer/stem-headers.tsx:182
 msgid "mixer.eq-title"
 msgstr "EQ — {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:216
+#: src/app/mixer/stem-headers.tsx:227
 msgid "mixer.high-cut"
 msgstr "Coupe-haut {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:220
+#: src/app/mixer/stem-headers.tsx:231
 msgid "mixer.high-cut-hint"
 msgstr "Couper les aigus au-dessus de cette fréquence"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:186
+#: src/app/mixer/stem-headers.tsx:197
 msgid "mixer.low-cut"
 msgstr "Coupe-bas {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:190
+#: src/app/mixer/stem-headers.tsx:201
 msgid "mixer.low-cut-hint"
 msgstr "Couper les graves sous cette fréquence"
 
@@ -868,17 +883,17 @@ msgid "mixer.mix-label"
 msgstr "Mix"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:110
+#: src/app/mixer/stem-headers.tsx:121
 msgid "mixer.mute"
 msgstr "Couper {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:71
+#: src/app/mixer/stem-headers.tsx:72
 msgid "mixer.region-label"
 msgstr "Mixer"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:119
+#: src/app/mixer/stem-headers.tsx:130
 msgid "mixer.solo"
 msgstr "Isoler {name}"
 
@@ -888,7 +903,7 @@ msgid "mixer.undetected"
 msgstr "Non détectés"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:134
+#: src/app/mixer/stem-headers.tsx:145
 msgid "mixer.volume"
 msgstr "Volume {name}"
 

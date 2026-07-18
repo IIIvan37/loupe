@@ -167,8 +167,15 @@ describe('WorkstationShell structure gating vs the local server', () => {
     expect(
       await screen.findByText(i18n._('header.server-offline'))
     ).toBeInTheDocument()
-    // The no-grid guard still applies — wait for the auto-detected tempo to
-    // seat the grid before asserting the health probe no longer blocks.
+    // In offload mode the import no longer auto-mints (AG.1): the tempo item
+    // waits on offer, and the FIRST analysis gesture is the user's.
+    await user.click(
+      await screen.findByRole('button', {
+        name: i18n._('analyser.tempo-detect')
+      })
+    )
+    // The no-grid guard still applies — wait for the detected tempo to seat
+    // the grid before asserting the health probe no longer blocks.
     expect(
       await screen.findByText(i18n._('analyser.tempo-done'), {
         ignore: 'script, style, output, [role="status"]'

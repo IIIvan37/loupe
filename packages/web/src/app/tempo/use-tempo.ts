@@ -32,6 +32,8 @@ export interface Tempo {
   readonly detecting: boolean
   /** Abort the in-flight detection — offered as « Annuler » on the busy face. */
   readonly cancelDetection: () => void
+  /** Skip the auto-run without starting it (AG.1) — same on-offer face. */
+  readonly deferDetection: () => void
   /** Whether the last run was cancelled (X.2): not a failure — no error — but
       not a dead end either, the row keeps an idle « Détecter » face. Cleared
       by the next run, a seated analysis or a reset. */
@@ -348,6 +350,13 @@ export function useTempo(
     setCancelled(true)
   }
 
+  /** Skip a run without having started one (AG.1): the auto-detection on
+   * import defers instead of minting — same on-offer idle face as a cancel
+   * (X.2), no error, the first ANALYSIS gesture stays the user's. */
+  function deferDetection(): void {
+    setCancelled(true)
+  }
+
   return {
     analysis,
     detecting,
@@ -355,6 +364,7 @@ export function useTempo(
     error,
     gateReason,
     cancelDetection,
+    deferDetection,
     fold,
     octaveShift,
     manual,

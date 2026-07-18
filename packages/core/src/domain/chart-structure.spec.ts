@@ -348,6 +348,23 @@ describe('relabelChartBySections', () => {
     )
   })
 
+  it('keeps the head directives — the key survives a relabel (AF.1)', () => {
+    // « Détecter la structure » on an existing draft used to wipe {key: …}
+    // (and any user directive): the tonal spelling and the transposition
+    // offset died with it. The head zone is carried over verbatim; {time}
+    // stays re-derived from the grid, {form} is legitimately dropped (the
+    // rollout it multiplied is written out in full).
+    const source =
+      '{key: Ab}\n{style: pop}\n{form: 2x}\n| C | Am | F | G |\n| C | Am | F | G |'
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 8, label: 'Couplet' },
+      { startSeconds: 8, endSeconds: 16, label: 'Refrain' }
+    ]
+    const out = relabelChartBySections(source, sections, grid(8, 2), 4)
+    expect(out.startsWith('{key: Ab}\n{style: pop}\n')).toBe(true)
+    expect(out).not.toContain('{form:')
+  })
+
   it('omits the header when the detection is one whole-song section', () => {
     const source = '| C | F | G | C |'
     const sections: DetectedSection[] = [

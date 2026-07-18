@@ -44,6 +44,12 @@ describe('blockSimilarity', () => {
     expect(blockSimilarity(['F'], ['F G']).ratio).toBe(1)
   })
 
+  it('a slash is a bass observation, not a harmonic difference (AF.2)', () => {
+    // The bass jitters between passes (dominant one pass, contested the
+    // next): 'C/E' vs 'C' must not defeat the form the same lot shipped.
+    expect(blockSimilarity(['C/E', 'F'], ['C', 'F']).ratio).toBe(1)
+  })
+
   it('two all-silent blocks are the same block — nothing disproves it', () => {
     expect(
       blockSimilarity([undefined, undefined], [undefined, undefined]).ratio

@@ -99,10 +99,16 @@ export function matchesTolerantly(a: MeasureLabels, b: MeasureLabels): boolean {
   return a.length === b.length && blockSimilarity(a, b).ratio >= MATCH_RATIO
 }
 
-/** A cell's head chord — the downbeat token of a possibly split cell. */
+/** A cell's head chord — the downbeat token of a possibly split cell,
+ * stripped of any slash bass (AF.2): the slash is a bass OBSERVATION laid
+ * over the harmony, and the bass jitters between passes (dominant one pass,
+ * contested the next under the ×2 threshold) — counting 'C/E' vs 'C' as a
+ * disagreement would defeat the very form the encoder deduces. */
 function headChord(cell: string): string {
   const space = cell.indexOf(' ')
-  return space === -1 ? cell : cell.slice(0, space)
+  const head = space === -1 ? cell : cell.slice(0, space)
+  const slash = head.indexOf('/')
+  return slash === -1 ? head : head.slice(0, slash)
 }
 
 /**

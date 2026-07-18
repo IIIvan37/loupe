@@ -52,6 +52,22 @@ describe('StemHeaders', () => {
     expect(screen.getByText('Basse')).toBeInTheDocument()
   })
 
+  it('disables the WAV download under the desktop shell — no silent no-op (AH.1)', () => {
+    // WKWebView ignores an anchor's `download` without a native delegate:
+    // the honest face is a disabled control, not a toast over nothing.
+    ;(window as { __TAURI_INTERNALS__?: object }).__TAURI_INTERNALS__ = {}
+    try {
+      renderHeaders([channel('voix', 'Voix')])
+      expect(
+        screen.getByRole('button', {
+          name: i18n._('mixer.download-wav', { name: 'Voix' })
+        })
+      ).toBeDisabled()
+    } finally {
+      delete (window as { __TAURI_INTERNALS__?: object }).__TAURI_INTERNALS__
+    }
+  })
+
   it('carries the machine confidence as the label tooltip', () => {
     renderHeaders([channel('voix', 'Voix')])
     expect(screen.getByText('Voix')).toHaveAccessibleDescription(

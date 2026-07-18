@@ -1,5 +1,9 @@
 import type { BeatGrid, DecodedAudio, OctaveFactor } from '@app/core'
 import { useEffect, useRef } from 'react'
+import {
+  cachedAnalysisToken,
+  isAnalysisOffloaded
+} from '../../audio/analysis-token.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
 import type { useMetronome } from '../tempo/use-metronome.ts'
@@ -38,17 +42,28 @@ function durationOf(audio: DecodedAudio): number {
  * « Réessayer » re-runs the exact same flow after a failure, and an octave fold
  * re-renders the click for the folded grid.
  */
+/** Whether the auto-run costs the user nothing (AG.1): always true on the
+ * local engine; on the offload only a still-fresh cached token is free — a
+ * mint spends 1/20 monthly analyses and may summon the account popover, and
+ * the user asked for an import, not an analysis. */
+function defaultAutoDetectSpendsNothing(): boolean {
+  return !isAnalysisOffloaded() || cachedAnalysisToken() !== undefined
+}
+
 export function useTempoDetection({
   tempo,
   metronome,
   loadedAudio,
-  separationOwnsMix
+  separationOwnsMix,
+  autoDetectSpendsNothing = defaultAutoDetectSpendsNothing
 }: {
   readonly tempo: ReturnType<typeof useTempo>
   readonly metronome: ReturnType<typeof useMetronome>
   readonly loadedAudio: DecodedAudio | undefined
   /** A separation holds the mixer — `enable` would clobber its stems. */
   readonly separationOwnsMix: boolean
+  /** Injected in specs; see `defaultAutoDetectSpendsNothing`. */
+  readonly autoDetectSpendsNothing?: () => boolean
 }): TempoDetection {
   const suppressAutoDetectRef = useRef(false)
   // Read at RESOLVE time (a separation can finish while a detection is in
@@ -78,6 +93,14 @@ export function useTempoDetection({
     // An open owns tempo/metronome seating for its restored audio — skip it here.
     if (suppressAutoDetectRef.current) {
       suppressAutoDetectRef.current = false
+      return
+    }
+    // The import must not spend the quota (AG.1): when the auto-run would
+    // mint, defer — the tempo item stays on offer (« Détecter le tempo »,
+    // the X.2 face) and the first analysis gesture stays the user's.
+    // « Réessayer » and every button below remain explicit gestures.
+    if (!autoDetectSpendsNothing()) {
+      tempo.deferDetection()
       return
     }
     runDetect(audio)
