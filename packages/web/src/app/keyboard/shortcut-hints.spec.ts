@@ -11,11 +11,19 @@ describe('describeKeyBindings', () => {
       },
       {
         keys: '←',
-        description: i18n._('shortcuts.seek-back', { seconds: 5 })
+        description: i18n._('shortcuts.seek-back')
       },
       {
         keys: '→',
-        description: i18n._('shortcuts.seek-forward', { seconds: 5 })
+        description: i18n._('shortcuts.seek-forward')
+      },
+      {
+        keys: '⇧ + ←',
+        description: i18n._('shortcuts.seek-back-bar')
+      },
+      {
+        keys: '⇧ + →',
+        description: i18n._('shortcuts.seek-forward-bar')
       },
       { keys: '+', description: i18n._('shortcuts.zoom-in') },
       { keys: '-', description: i18n._('shortcuts.zoom-out') },
@@ -29,17 +37,21 @@ describe('describeKeyBindings', () => {
     ])
   })
 
-  it('reflects the real seek delta rather than a hard-coded number', () => {
+  it('describes each seek step by its musical unit', () => {
     const bindings: KeyBindings = [
       {
         chord: { code: 'ArrowRight' },
-        command: { type: 'seekBy', seconds: 12 }
+        command: { type: 'seekStep', direction: 1, coarse: false }
+      },
+      {
+        chord: { code: 'ArrowLeft', shift: true },
+        command: { type: 'seekStep', direction: -1, coarse: true }
       }
     ]
-    expect(describeKeyBindings(bindings)[0]).toEqual({
-      keys: '→',
-      description: i18n._('shortcuts.seek-forward', { seconds: 12 })
-    })
+    expect(describeKeyBindings(bindings)).toEqual([
+      { keys: '→', description: i18n._('shortcuts.seek-forward') },
+      { keys: '⇧ + ←', description: i18n._('shortcuts.seek-back-bar') }
+    ])
   })
 
   it('renders a letter key from its physical code', () => {

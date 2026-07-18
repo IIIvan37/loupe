@@ -23,12 +23,18 @@ export interface KeyChord {
 
 /**
  * An app intent resolved from a chord. Pure data — the web adapter maps each
- * one onto a smart-hook call (toggle, seek, zoom, add marker). `seekBy` carries
- * a signed delta in seconds; the adapter adds it to the current position.
+ * one onto a smart-hook call (toggle, seek, zoom, add marker). `seekStep`
+ * carries a direction and a coarseness; the adapter resolves the actual jump
+ * (a beat, a bar with `coarse`, the fixed hop without a grid) against the
+ * session's beat grid via `seekStepSeconds`.
  */
 export type Command =
   | { readonly type: 'togglePlayback' }
-  | { readonly type: 'seekBy'; readonly seconds: number }
+  | {
+      readonly type: 'seekStep'
+      readonly direction: -1 | 1
+      readonly coarse: boolean
+    }
   | { readonly type: 'zoomIn' }
   | { readonly type: 'zoomOut' }
   | { readonly type: 'addMarker' }
@@ -45,7 +51,7 @@ export interface KeyBinding {
 
 export type KeyBindings = ReadonlyArray<KeyBinding>
 
-/** Seconds skipped by a single arrow-key seek. */
+/** Seconds skipped by a single arrow-key seek when no beat grid exists. */
 export const SEEK_STEP_SECONDS = 5
 
 /**
@@ -56,13 +62,23 @@ export const SEEK_STEP_SECONDS = 5
  */
 export const defaultKeyBindings: KeyBindings = [
   { chord: { code: 'Space' }, command: { type: 'togglePlayback' } },
+  // Musical seek: a beat per arrow, a measure with Shift (a code binding
+  // matches Shift exactly, so the bare and shifted chords are distinct).
   {
     chord: { code: 'ArrowLeft' },
-    command: { type: 'seekBy', seconds: -SEEK_STEP_SECONDS }
+    command: { type: 'seekStep', direction: -1, coarse: false }
   },
   {
     chord: { code: 'ArrowRight' },
-    command: { type: 'seekBy', seconds: SEEK_STEP_SECONDS }
+    command: { type: 'seekStep', direction: 1, coarse: false }
+  },
+  {
+    chord: { code: 'ArrowLeft', shift: true },
+    command: { type: 'seekStep', direction: -1, coarse: true }
+  },
+  {
+    chord: { code: 'ArrowRight', shift: true },
+    command: { type: 'seekStep', direction: 1, coarse: true }
   },
   { chord: { key: '+' }, command: { type: 'zoomIn' } },
   { chord: { key: '-' }, command: { type: 'zoomOut' } },

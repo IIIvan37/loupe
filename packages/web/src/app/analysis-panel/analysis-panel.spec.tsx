@@ -40,6 +40,11 @@ function renderPanel(
 }
 
 describe('AnalysisPanel', () => {
+  it('offers exactly three panes — the Notes placeholder is gone', () => {
+    renderPanel()
+    expect(screen.getAllByRole('tab')).toHaveLength(3)
+  })
+
   it('shows the chroma read-out under the Spectre tab', async () => {
     const user = userEvent.setup()
     renderPanel()

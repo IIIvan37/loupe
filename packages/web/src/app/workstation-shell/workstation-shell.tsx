@@ -303,6 +303,7 @@ export function WorkstationShell({
     countIn,
     position,
     seekToSeconds,
+    grid: tempo.analysis?.grid ?? [],
     viewport,
     markers,
     toggleLoop,

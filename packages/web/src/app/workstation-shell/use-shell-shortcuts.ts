@@ -1,3 +1,4 @@
+import { type BeatGrid, seekStepSeconds } from '@app/core'
 import type { ExternalValue } from '../../lib/external-value.ts'
 import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
 import type { Markers } from '../markers/use-markers.ts'
@@ -25,6 +26,8 @@ interface ShellShortcutsDeps {
   readonly countIn: Pick<CountInTransport, 'togglePlayback'>
   readonly position: Pick<ExternalValue<number>, 'get'>
   readonly seekToSeconds: (seconds: number) => void
+  /** The session's beat grid — empty without one (fixed-hop seek). */
+  readonly grid: BeatGrid
   readonly viewport: Pick<ViewportControl, 'zoomIn' | 'zoomOut'>
   readonly markers: Pick<Markers, 'addAt' | 'addSectionAt'>
   readonly toggleLoop: () => void
@@ -43,6 +46,7 @@ export function useShellShortcuts({
   countIn,
   position,
   seekToSeconds,
+  grid,
   viewport,
   markers,
   toggleLoop,
@@ -65,7 +69,8 @@ export function useShellShortcuts({
   useKeyboardShortcuts(
     {
       togglePlayback: countIn.togglePlayback,
-      seekBy: (seconds) => seekToSeconds(position.get() + seconds),
+      seekStep: (direction, coarse) =>
+        seekToSeconds(seekStepSeconds(position.get(), direction, grid, coarse)),
       zoomIn: viewport.zoomIn,
       zoomOut: viewport.zoomOut,
       addMarker: () => markers.addAt(position.get()),

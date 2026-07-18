@@ -139,12 +139,12 @@ msgid "analysis.blocked-offline"
 msgstr "Hors ligne — les analyses nécessitent le réseau."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/chroma-view.tsx:66
+#: src/app/analysis-panel/chroma-view.tsx:71
 msgid "analysis.chroma-idle"
 msgstr "Importer une piste pour voir les notes dominantes."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/chroma-view.tsx:77
+#: src/app/analysis-panel/chroma-view.tsx:82
 msgid "analysis.chroma-label"
 msgstr "Notes dominantes à la position de lecture"
 
@@ -159,19 +159,14 @@ msgid "analysis.error.network-offload"
 msgstr "Service d'analyse injoignable — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:156
+#: src/app/analysis-panel/analysis-panel.tsx:153
 msgid "analysis.no-loops"
 msgstr "Aucune boucle. En enregistrer une depuis une sélection A/B sur la forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:99
+#: src/app/analysis-panel/analysis-panel.tsx:96
 msgid "analysis.no-markers"
 msgstr "Aucun repère. En ajouter depuis la barre de repères."
-
-#. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:204
-msgid "analysis.notes-placeholder"
-msgstr "Les annotations textuelles arriveront plus tard."
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:81
@@ -183,11 +178,6 @@ msgstr "Boucles"
 #: src/app/analysis-panel/analysis-panel.tsx:78
 msgid "analysis.tab-markers"
 msgstr "Repères"
-
-#. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:84
-msgid "analysis.tab-notes"
-msgstr "Notes"
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:75
@@ -429,7 +419,7 @@ msgid "common.close"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:304
+#: src/app/analysis-panel/analysis-panel.tsx:296
 #: src/app/header/import-menu.tsx:117
 #: src/projects/projects-dialog.tsx:81
 msgid "common.confirm"
@@ -449,7 +439,7 @@ msgid "common.name"
 msgstr "Nom"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:289
+#: src/app/analysis-panel/analysis-panel.tsx:281
 #: src/projects/projects-dialog.tsx:185
 msgid "common.rename"
 msgstr "Renommer"
@@ -487,7 +477,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:373
+#: src/app/workstation-shell/workstation-shell.tsx:374
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -683,7 +673,7 @@ msgid "loops.clear-region"
 msgstr "Effacer"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:188
+#: src/app/analysis-panel/analysis-panel.tsx:185
 msgid "loops.confirm-remove"
 msgstr "Confirmer la suppression de {name}"
 
@@ -693,17 +683,17 @@ msgid "loops.inactive"
 msgstr "Boucle inactive"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:184
+#: src/app/analysis-panel/analysis-panel.tsx:181
 msgid "loops.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:177
+#: src/app/analysis-panel/analysis-panel.tsx:174
 msgid "loops.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:173
+#: src/app/analysis-panel/analysis-panel.tsx:170
 msgid "loops.rename-title"
 msgstr "Renommer la boucle"
 
@@ -774,7 +764,7 @@ msgid "markers.add-section"
 msgstr "+ Section"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:138
+#: src/app/analysis-panel/analysis-panel.tsx:135
 msgid "markers.confirm-remove"
 msgstr "Confirmer la suppression de {name}"
 
@@ -799,22 +789,22 @@ msgid "markers.go-to"
 msgstr "Aller à {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:118
+#: src/app/analysis-panel/analysis-panel.tsx:115
 msgid "markers.loop-named"
 msgstr "Boucler {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:134
+#: src/app/analysis-panel/analysis-panel.tsx:131
 msgid "markers.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:129
+#: src/app/analysis-panel/analysis-panel.tsx:126
 msgid "markers.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:125
+#: src/app/analysis-panel/analysis-panel.tsx:122
 msgid "markers.rename-title"
 msgstr "Renommer le repère"
 
@@ -1068,12 +1058,12 @@ msgid "shell.zone.timeline"
 msgstr "Timeline"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:90
+#: src/app/keyboard/shortcut-hints.ts:98
 msgid "shortcuts.add-marker"
 msgstr "Ajouter un repère"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:94
+#: src/app/keyboard/shortcut-hints.ts:102
 msgid "shortcuts.add-section"
 msgstr "Ajouter une section"
 
@@ -1144,19 +1134,29 @@ msgid "shortcuts.play-pause"
 msgstr "Lecture / Pause"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:108
+#: src/app/keyboard/shortcut-hints.ts:116
 msgid "shortcuts.save-project"
 msgstr "Enregistrer le projet"
 
 #. js-lingui-explicit-id
 #: src/app/keyboard/shortcut-hints.ts:80
 msgid "shortcuts.seek-back"
-msgstr "Reculer de {seconds} s"
+msgstr "Reculer d’un temps (5 s sans grille)"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:88
+msgid "shortcuts.seek-back-bar"
+msgstr "Reculer d’une mesure"
 
 #. js-lingui-explicit-id
 #: src/app/keyboard/shortcut-hints.ts:84
 msgid "shortcuts.seek-forward"
-msgstr "Avancer de {seconds} s"
+msgstr "Avancer d’un temps (5 s sans grille)"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:92
+msgid "shortcuts.seek-forward-bar"
+msgstr "Avancer d’une mesure"
 
 #. js-lingui-explicit-id
 #: src/app/keyboard/shortcuts-dialog.tsx:72
@@ -1164,22 +1164,22 @@ msgid "shortcuts.title"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:98
+#: src/app/keyboard/shortcut-hints.ts:106
 msgid "shortcuts.toggle-loop"
 msgstr "Activer / désactiver la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:102
+#: src/app/keyboard/shortcut-hints.ts:110
 msgid "shortcuts.toggle-metronome"
 msgstr "Activer / désactiver le métronome"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:88
+#: src/app/keyboard/shortcut-hints.ts:96
 msgid "shortcuts.zoom-in"
 msgstr "Zoom avant"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:89
+#: src/app/keyboard/shortcut-hints.ts:97
 msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
@@ -1391,7 +1391,7 @@ msgid "tempo.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:107
+#: src/app/keyboard/shortcut-hints.ts:115
 #: src/app/tempo/tempo-panel.tsx:205
 msgid "tempo.tap"
 msgstr "Taper le tempo"

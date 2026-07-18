@@ -80,9 +80,6 @@ export function AnalysisPanel({
           <Tabs.Tab value="boucles" className={cx(styles.tab)}>
             <Trans id="analysis.tab-loops">Boucles</Trans>
           </Tabs.Tab>
-          <Tabs.Tab value="notes" className={cx(styles.tab)}>
-            <Trans id="analysis.tab-notes">Notes</Trans>
-          </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="spectre" className={cx(styles.tabPanel)}>
@@ -200,11 +197,6 @@ export function AnalysisPanel({
           )}
         </Tabs.Panel>
 
-        <Tabs.Panel value="notes" className={cx(styles.tabPanel)}>
-          <Trans id="analysis.notes-placeholder">
-            Les annotations textuelles arriveront plus tard.
-          </Trans>
-        </Tabs.Panel>
       </Tabs.Root>
     </aside>
   )
