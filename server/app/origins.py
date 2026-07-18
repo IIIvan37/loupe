@@ -23,8 +23,7 @@ import os
 # `LOUPE_ALLOWED_ORIGINS` overrides this wholesale, so Modal/Supabase must
 # list the Tauri origins in their env too (see docs/j2-supabase-runbook.md).
 DEFAULT_ALLOWED_ORIGINS = (
-    "http://localhost:5173,http://127.0.0.1:5173,"
-    "tauri://localhost,http://tauri.localhost"
+    "http://localhost:5173,http://127.0.0.1:5173,tauri://localhost,http://tauri.localhost"
 )
 
 
