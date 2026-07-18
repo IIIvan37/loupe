@@ -824,9 +824,18 @@ sources. Cadrage validé : « les deux » (mix sans batterie + basse slash
 chords), séparation implicite. Gate **verte — 1877 tests**, **Stryker
 91,73 %** (`analysis-mix.ts` 95,8 %, 1 équivalent documenté).
 [rapport](sessions/2026-07-18-chords-on-stems-4a.md).
-Restent : **4b/6** slash chords depuis le stem de basse (core pur,
-checkpoint d'approche à faire) + browser-verify du flux implicite sur
-Modal réel.
+**4b/6 — slash chords depuis le stem de basse (branche
+`feat/bass-slash-chords`, PR à ouvrir) — LOT PRÉ-BETA UI COMPLET (après
+merge)** : core `bassNotePerMeasure` (FFT 16384 pts — un demi-ton de bin
+dans le grave —, registre 38–262 Hz, pic interpolé paraboliquement,
+contestation → pas de slash) + `applyBassSlash` (mono-accord seulement,
+dièses — le respell aval possède les bémols) ; `detectChords.bassNotes?`
+appliqué après le fold ; le hook calcule depuis le stem `bass` (4a). Gate
+**verte — 1912 tests** (+35), **Stryker 91,47 %** (`detect-chords` 100 %,
+`bass-line` 83,2 % — 21 survivants documentés en famille DSP).
+[rapport](sessions/2026-07-18-bass-slash-chords-4b.md).
+Reste avant beta : browser-verify du flux complet stems→accords sur Modal
+réel (noté aux rapports 4a/4b).
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets

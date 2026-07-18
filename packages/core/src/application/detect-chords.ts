@@ -1,3 +1,4 @@
+import { applyBassSlash } from '../domain/bass-line.ts'
 import type { BeatGrid } from '../domain/beat-grid.ts'
 import {
   chartMeters,
@@ -27,6 +28,12 @@ export interface DetectChordsInput {
    * dominant stands in.
    */
   readonly beatsPerBar?: number | undefined
+  /**
+   * The measured bass pitch class per measure (`bassNotePerMeasure` over the
+   * separated bass stem, 4b) — a stable bass under a single-chord measure
+   * prints as its slash (`C/E`). Absent (no stems), no slashes appear.
+   */
+  readonly bassNotes?: ReadonlyArray<number | undefined> | undefined
   /**
    * The song's already-known sections (a prior structure detection). When
    * present, the draft is cut at THEIR boundaries and headed with THEIR
@@ -116,10 +123,15 @@ export async function detectChords(
     if (!finite) {
       return { ok: false, code: 'unknown', detail: 'invalid chord detection' }
     }
-    const labels = chordLabelPerMeasure(spans, input.grid)
-    if (labels.length === 0) {
+    const folded = chordLabelPerMeasure(spans, input.grid)
+    if (folded.length === 0) {
       return { ok: false, code: 'no-chords', detail: 'no chords detected' }
     }
+    // The measured bass slashes each single-chord measure it contradicts
+    // (4b) — sharp-spelled here, the key respell below owns the flats.
+    const labels = input.bassNotes
+      ? applyBassSlash(folded, input.bassNotes)
+      : folded
     // The engine spells every chord with sharps; re-spell the draft under the
     // detected key so a flat key reads `Bb`, not `A#`, and head it with the
     // detected `{key: …}` — the header names the key the app found (editable),

@@ -1,10 +1,12 @@
 import {
   type BeatGrid,
+  bassNotePerMeasure,
   type ChordDetectionErrorCode,
   type ChordDetector,
   type DecodedAudio,
   type DetectedSection,
   detectChords,
+  downmixToMono,
   monoMixWithout,
   type SeparatedStem
 } from '@app/core'
@@ -195,6 +197,17 @@ export function useChordDetection({
     const analysisAudio = stemsNow
       ? (monoMixWithout(stemsNow, 'drums') ?? audio)
       : audio
+    // The isolated bass names each measure's true low note (4b) — the
+    // use-case prints it as the slash of any single-chord measure it
+    // contradicts. No bass stem → no slashes, exactly as before.
+    const bassStem = stemsNow?.find((stem) => stem.id === 'bass')
+    const bassNotes = bassStem
+      ? bassNotePerMeasure(
+          downmixToMono(bassStem.audio.channels),
+          bassStem.audio.sampleRate,
+          beatGrid
+        )
+      : undefined
     controllerRef.current?.abort()
     const controller = new AbortController()
     controllerRef.current = controller
@@ -205,6 +218,7 @@ export function useChordDetection({
         grid: beatGrid,
         barsPerRow: rows,
         beatsPerBar: bar,
+        bassNotes,
         sections: known,
         signal: controller.signal
       },

@@ -68,6 +68,27 @@ describe('detectChords', () => {
     expect(grid(result.source)).toBe('| C | Am | F | G |')
   })
 
+  it('prints the measured bass as the slash of a measure it contradicts', async () => {
+    const spans: readonly DetectedChordSpan[] = [
+      { startSeconds: 0, endSeconds: 2, label: 'C' },
+      { startSeconds: 2, endSeconds: 4, label: 'Am' },
+      { startSeconds: 4, endSeconds: 6, label: 'F' },
+      { startSeconds: 6, endSeconds: 8, label: 'G' }
+    ]
+    const result = await detectChords(
+      {
+        audio,
+        grid: grid4(4),
+        barsPerRow: 4,
+        // E under C (slash), A under Am (the root — no slash), none, B under G.
+        bassNotes: [4, 9, undefined, 11]
+      },
+      { detector: fakeDetector(spans) }
+    )
+    if (!result.ok) throw new Error('expected ok')
+    expect(grid(result.source)).toBe('| C/E | Am | F | G/B |')
+  })
+
   it('drafts a two-chord bar when the change lands mid-measure', async () => {
     // Bar 2 splits at its middle beat: F over the first half, G the second.
     const spans: readonly DetectedChordSpan[] = [
