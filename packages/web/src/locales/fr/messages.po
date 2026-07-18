@@ -1442,17 +1442,17 @@ msgid "transport.end"
 msgstr "Fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:177
+#: src/app/transport-bar/transport-bar.tsx:180
 msgid "transport.fine-tune-field"
 msgstr "Saisir l'ajustement fin (cents)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:169
+#: src/app/transport-bar/transport-bar.tsx:172
 msgid "transport.fine-tune-label"
 msgstr "Ajustement fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:189
+#: src/app/transport-bar/transport-bar.tsx:192
 msgid "transport.fine-tune-unit"
 msgstr "cents"
 
@@ -1462,17 +1462,17 @@ msgid "transport.pause"
 msgstr "Pause"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:138
+#: src/app/transport-bar/transport-bar.tsx:141
 msgid "transport.pitch-label"
 msgstr "Hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:151
+#: src/app/transport-bar/transport-bar.tsx:154
 msgid "transport.pitch-reset"
 msgstr "Double-clic pour revenir à 0"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:146
+#: src/app/transport-bar/transport-bar.tsx:149
 msgid "transport.pitch-slider"
 msgstr "Hauteur en demi-tons"
 
@@ -1487,17 +1487,17 @@ msgid "transport.start"
 msgstr "Début"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:114
+#: src/app/transport-bar/transport-bar.tsx:116
 msgid "transport.tempo-label"
-msgstr "Vitesse (sans toucher au pitch)"
+msgstr "Vitesse"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:127
+#: src/app/transport-bar/transport-bar.tsx:129
 msgid "transport.tempo-reset"
-msgstr "Double-clic pour revenir à 100 %"
+msgstr "Vitesse sans toucher au pitch — double-clic pour revenir à 100 %"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:122
+#: src/app/transport-bar/transport-bar.tsx:124
 msgid "transport.tempo-slider"
 msgstr "Vitesse en pourcentage"
 

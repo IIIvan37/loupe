@@ -1,14 +1,10 @@
 .bar {
-  display: flex;
-  /* Below ~700px the two control groups can't share a row — let them stack
-     (transport + time on top, tempo/pitch below) instead of overflowing. */
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-s) var(--space-l);
-  padding: var(--space-s) var(--space-l);
-  background: var(--panel);
+  composes: chromeBar from '../ui/controls.module.css';
   border-block-start: 1px solid var(--line);
+  /* Tighter block padding than the header (AE.2): the three-storey
+     tempo/pitch fields already give the bar its height — the workshop's
+     surfaces hold a 46-48px contract, the footer should not tower over it. */
+  padding: var(--space-2xs) var(--space-l);
   /* Pinned to the viewport while the page scrolls: play/pause and the
      timecode must survive any content height (mixer + grid on a long track
      used to push them under the fold). Sticky, not fixed — the bar keeps its
@@ -94,10 +90,20 @@
   color: var(--amber);
 }
 
-/* The cents field, dressed as the read-outs around it (numberField skin). */
+/* The cents field, dressed as the read-outs around it (numberField skin).
+   Sized `s` like the read-outs — at the inherited 1rem its box towered the
+   footer (AE.2). */
 .fineTuneField {
   composes: numberField from '../ui/controls.module.css';
   color: inherit;
+  font-size: var(--font-size-s);
+}
+
+/* Input + « cents » unit share one storey under the caption. */
+.fineTuneRow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
 }
 
 .fineTuneField[aria-invalid='true'],

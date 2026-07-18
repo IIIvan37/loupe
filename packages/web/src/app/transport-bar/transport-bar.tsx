@@ -110,8 +110,10 @@ export function TransportBar({
           <span className={styles.fieldLabel}>
             {/* « Vitesse », not « Tempo » (Q.5): « Tempo » is reserved for
                 the panel's musical BPM — two same-named read-outs used to
-                measure two different quantities. */}
-            <Trans id="transport.tempo-label">Vitesse (sans toucher au pitch)</Trans>
+                measure two different quantities. The « sans toucher au
+                pitch » precision lives in the tooltip (AE.3) — a caption
+                must not carry its own documentation. */}
+            <Trans id="transport.tempo-label">Vitesse</Trans>
           </span>
           <input
             type="range"
@@ -126,7 +128,8 @@ export function TransportBar({
             disabled={!canPlay}
             title={t({
               id: 'transport.tempo-reset',
-              message: 'Double-clic pour revenir à 100 %'
+              message:
+                'Vitesse sans toucher au pitch — double-clic pour revenir à 100 %'
             })}
             onChange={(event) => onTempoChange(event.target.valueAsNumber)}
             onDoubleClick={() => onTempoChange(100)}
@@ -168,25 +171,29 @@ export function TransportBar({
           <span className={styles.fieldLabel} aria-hidden="true">
             <Trans id="transport.fine-tune-label">Ajustement fin</Trans>
           </span>
-          <CommitNumberField
-            value={fineTuneCents}
-            min={MIN_FINE_TUNE_CENTS}
-            max={MAX_FINE_TUNE_CENTS}
-            className={styles.fineTuneField}
-            disabled={!canPlay}
-            label={t({
-              id: 'transport.fine-tune-field',
-              message: "Saisir l'ajustement fin (cents)"
-            })}
-            isValid={(cents) =>
-              Number.isInteger(cents) &&
-              cents >= MIN_FINE_TUNE_CENTS &&
-              cents <= MAX_FINE_TUNE_CENTS
-            }
-            onCommit={onFineTuneChange}
-          />
-          <span className={styles.fieldValue}>
-            <Trans id="transport.fine-tune-unit">cents</Trans>
+          {/* Input and unit on one line (AE.2): a third storey under the
+              label made this field ~70px tall — the whole footer's height. */}
+          <span className={styles.fineTuneRow}>
+            <CommitNumberField
+              value={fineTuneCents}
+              min={MIN_FINE_TUNE_CENTS}
+              max={MAX_FINE_TUNE_CENTS}
+              className={styles.fineTuneField}
+              disabled={!canPlay}
+              label={t({
+                id: 'transport.fine-tune-field',
+                message: "Saisir l'ajustement fin (cents)"
+              })}
+              isValid={(cents) =>
+                Number.isInteger(cents) &&
+                cents >= MIN_FINE_TUNE_CENTS &&
+                cents <= MAX_FINE_TUNE_CENTS
+              }
+              onCommit={onFineTuneChange}
+            />
+            <span className={styles.fieldValue}>
+              <Trans id="transport.fine-tune-unit">cents</Trans>
+            </span>
           </span>
         </div>
       </Cluster>

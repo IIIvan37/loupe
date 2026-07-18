@@ -1,13 +1,8 @@
 .header {
-  display: flex;
-  /* Let the action group drop below the track identity when they can't share
-     a row, rather than overflowing the viewport on narrow screens. */
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-s) var(--space-l);
-  padding: var(--space-s) var(--space-l);
-  background: var(--panel);
+  composes: chromeBar from '../ui/controls.module.css';
+  /* Block padding one step tighter than the gutters (AE.2): the two-line
+     track identity already gives the bar its height. */
+  padding: var(--space-xs) var(--space-l);
   border-block-end: 1px solid var(--line);
 }
 
