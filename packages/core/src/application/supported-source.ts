@@ -4,6 +4,12 @@
  * audio-domain invariant, so it lives with the use-cases rather than in the
  * domain. Spotify/Deezer are deliberately excluded: their streams are DRM'd and
  * only resolvable via a metadata → YouTube-search detour we chose not to take.
+ *
+ * Two adapters re-check this list at their own trust boundary — the server
+ * (`server/app/download.py` `_SUPPORTED_HOSTS`) and the desktop shell's Rust
+ * download command (`packages/desktop/src-tauri/src/download.rs`
+ * `SUPPORTED_HOSTS`). Add a host in all three, or the desktop/server build
+ * will reject a URL the browser accepts.
  */
 const SUPPORTED_HOSTS: readonly string[] = [
   'youtube.com',

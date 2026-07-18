@@ -64,6 +64,8 @@ DOWNLOAD_TIMEOUT_SECONDS = seconds_env("LOUPE_DOWNLOAD_TIMEOUT_SECONDS", 900)
 
 # Mirror of the core's supported-source policy: only these hosts (and their
 # subdomains) are fetchable. Keeps yt-dlp from being used as an open proxy.
+# Kept in sync with packages/core/src/application/supported-source.ts and the
+# desktop shell's Rust copy (packages/desktop/src-tauri/src/download.rs).
 _SUPPORTED_HOSTS = ("youtube.com", "youtu.be", "soundcloud.com")
 
 

@@ -1,6 +1,13 @@
+mod download;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
+    .manage(download::DownloadState::default())
+    .invoke_handler(tauri::generate_handler![
+      download::download_track,
+      download::cancel_download
+    ])
     // Registered first (Tauri requirement). One instance also protects the
     // filesystem project stores: a second instance's startup audio GC could
     // race a save in the first and sweep a just-written blob as an orphan.

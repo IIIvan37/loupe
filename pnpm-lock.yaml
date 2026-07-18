@@ -109,6 +109,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.110.3
         version: 2.110.3
+      '@tauri-apps/api':
+        specifier: ^2.9.0
+        version: 2.11.1
       '@tauri-apps/plugin-deep-link':
         specifier: ^2.4.9
         version: 2.4.9

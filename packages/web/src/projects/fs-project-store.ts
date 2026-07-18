@@ -5,6 +5,7 @@ import {
   type ProjectStore,
   parseProject
 } from '@app/core'
+import { toArrayBuffer } from '../lib/to-array-buffer.ts'
 import { sha256Hex } from './content-hash.ts'
 import { readableProjects, unreadableManifestError } from './manifest-decode.ts'
 
@@ -136,15 +137,6 @@ export function createFsProjectStore(fs: ProjectFs): ProjectStore {
       }
     }
   }
-}
-
-/** Reframe a read `Uint8Array` as the `ArrayBuffer` the port promises. */
-function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
-  const whole =
-    bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength
-  return whole
-    ? (bytes.buffer as ArrayBuffer)
-    : (bytes.slice().buffer as ArrayBuffer)
 }
 
 export function createFsProjectAudioStore(fs: ProjectFs): ProjectAudioStore {
