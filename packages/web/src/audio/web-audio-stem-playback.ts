@@ -7,7 +7,8 @@ import type {
 import {
   audioBufferFrom,
   createStretchTransport,
-  decodedAudioFrom
+  decodedAudioFrom,
+  pausedSpectrumFrame
 } from './web-audio-shared.ts'
 
 /** One loaded stem: its decoded buffer and the gain → high-cut-low chain
@@ -46,8 +47,20 @@ export function createWebAudioStemPlayback(): StemPlaybackEngine {
   // Bumped by every load: an async tail (worklet registration) that resumes
   // after a newer load must not wire its now-discarded nodes into the graph.
   let loadToken = 0
-  const transport = createStretchTransport(() =>
-    stems.length === 0 ? undefined : durationSeconds
+  const transport = createStretchTransport(
+    () => (stems.length === 0 ? undefined : durationSeconds),
+    // Paused Spectre: the stems mixed at their fader gains — what the tap
+    // would hear at the playhead (a muted stem stays out of the picture).
+    (seconds) =>
+      stems.length === 0
+        ? undefined
+        : pausedSpectrumFrame(
+            stems.map((stem) => ({
+              buffer: stem.buffer,
+              gain: desiredGains.get(stem.id) ?? 1
+            })),
+            seconds
+          )
   )
 
   function stopSources(): void {

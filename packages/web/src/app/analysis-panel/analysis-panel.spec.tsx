@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
+import { createExternalValue } from '../../lib/external-value.ts'
 import { AnalysisPanel } from './analysis-panel.tsx'
 
 const markers: MarkerList = [{ id: 'a', timeSeconds: 5, label: 'Repère 1' }]
@@ -21,6 +22,7 @@ function renderPanel(
     <AnalysisPanel
       readSpectrum={() => undefined}
       playing={false}
+      position={createExternalValue(0)}
       markers={markers}
       onSeekMarker={noop}
       onRenameMarker={noop}

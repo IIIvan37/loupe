@@ -269,6 +269,7 @@ export type { DetectedSection } from './domain/song-structure.ts'
 // snapSectionsToGrid stays internal to the detectStructure use-case — like the
 // chord slice's chordLabelPerMeasure / deduceStructure folds, an adapter only
 // ever consumes the use-case, never the domain fold.
+export { spectrumFromSamples } from './domain/spectrum.ts'
 export type {
   SpeedTrainerPolicy,
   SpeedTrainerState

@@ -343,6 +343,7 @@ export function ShellMain({
         <AnalysisPanel
           readSpectrum={readSpectrum}
           playing={isPlaying}
+          position={position}
           markers={markers.markers}
           onSeekMarker={onSeekSeconds}
           onRenameMarker={markers.rename}

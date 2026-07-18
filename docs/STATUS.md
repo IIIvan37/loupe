@@ -787,10 +787,22 @@ que l'hôte déclare (`data-sheet-scrollport` sur `.sheetViewport` ; sans
 marqueur = no-op, print-first conservé). Gate **verte — 1833 tests** (+9),
 Stryker skippé (core intouché).
 [rapport](sessions/2026-07-18-fix-lead-sheet-follow-scroll.md).
-Restent : 2/4 Spectre actif en pause+navigation (décision : « pas à pas » =
-seek en pause, FFT au playhead à concevoir), 3/4 fondamentales vs harmoniques
-au Spectre, 4/4 grilles d'accords sur stem de basse (Demucs déjà en prod,
-détecteurs à router).
+**1/6 mergé (PR #203).**
+**2/6 — Spectre en pause + navigation (branche `feat/spectrum-paused`, PR à
+ouvrir)** : core pur `spectrumFromSamples` (Hann + FFT radix-2, convention
+analyser — `chromaFromSpectrum` inchangé), `mixWindow` pur + callback
+`pausedSpectrum` optionnel sur le transport (les deux moteurs le fournissent,
+stems aux gains de faders), `ChromaView` lit au tick de pause puis par seek
+(abonnement position, pas de poll). Dès l'import, le Spectre montre t=0 sans
+lecture (validé). Browser-verify réel : A440→C523 au seek en pause. Gate
+**verte — 1855 tests** (+22), **Stryker 91,62 %** (8 équivalents documentés).
+[rapport](sessions/2026-07-18-spectrum-paused.md).
+Restent (ordre acté) : **5/6** seek clavier par temps/mesure (temps/mesure
+suffisent avec grille — décision —, repli 5 s sans grille, `nudgeSeconds` T.2
+à réutiliser) + **6/6** suppression de l'onglet Notes (même PR), **3/6**
+marquage visuel des harmoniques au Spectre (distinguer, PAS filtrer —
+cadrage précisé), **4/6** grilles d'accords sur stem de basse (Demucs en
+prod, détecteurs à router).
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets

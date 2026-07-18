@@ -1,6 +1,7 @@
 import { chromaFromSpectrum, type SpectrumFrame } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useEffect, useState } from 'react'
+import type { ExternalValue } from '../../lib/external-value.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 import styles from './chroma-view.module.css'
 
@@ -24,39 +25,52 @@ const PITCH_CLASSES = [
 const POLL_MS = 100
 
 interface ChromaViewProps {
-  /** One read of the audible output's spectrum (undefined = no tap yet). */
+  /** One read of the signal's spectrum: the analyser tap while playing, the
+   * decoded buffer at the playhead at rest (undefined = no track at all). */
   readonly readSpectrum: () => SpectrumFrame | undefined
   readonly playing: boolean
+  /** The playhead stream — drives paused refreshes (seek, measure click). */
+  readonly position: ExternalValue<number>
 }
 
 /**
- * The Spectre tab's « peaks = candidate notes » read-out: the playing signal's
- * energy folded onto the 12 pitch classes, one bar per class. Polls the
- * engine's analyser tap while playing — the samples stay inside this leaf, so
- * the 10 Hz refresh never re-renders the shell above it.
+ * The Spectre tab's « peaks = candidate notes » read-out: the signal's energy
+ * folded onto the 12 pitch classes, one bar per class. Polls the engine's
+ * analyser tap while playing; at rest it reads once and then only on position
+ * changes — paused navigation keeps the notes in view. The samples stay
+ * inside this leaf, so no refresh re-renders the shell above it.
  */
-export function ChromaView({ readSpectrum, playing }: ChromaViewProps) {
+export function ChromaView({ readSpectrum, playing, position }: ChromaViewProps) {
   const { t } = useLingui()
   const [chroma, setChroma] = useState<readonly number[]>()
   const latestRead = useLatest(readSpectrum)
   useEffect(() => {
-    if (!playing) {
-      return
-    }
-    const timer = setInterval(() => {
+    const read = () => {
       const frame = latestRead.current()
       if (frame) {
         setChroma(chromaFromSpectrum(frame.magnitudes, frame.sampleRate))
       }
-    }, POLL_MS)
-    return () => clearInterval(timer)
-  }, [playing, latestRead])
+    }
+    if (playing) {
+      const timer = setInterval(read, POLL_MS)
+      return () => clearInterval(timer)
+    }
+    // At rest: one read on the next tick (the tap went silent, the buffer
+    // serves the playhead window — deferred so the effect never sets state
+    // synchronously), then one per seek.
+    const initial = setTimeout(read, 0)
+    const unsubscribe = position.subscribe(read)
+    return () => {
+      clearTimeout(initial)
+      unsubscribe()
+    }
+  }, [playing, position, latestRead])
   if (!playing && chroma === undefined) {
     return (
       <p className={styles.idle}>
         {t({
           id: 'analysis.chroma-idle',
-          message: 'Lancer la lecture pour voir les notes dominantes.'
+          message: 'Importer une piste pour voir les notes dominantes.'
         })}
       </p>
     )
@@ -67,7 +81,7 @@ export function ChromaView({ readSpectrum, playing }: ChromaViewProps) {
       role="img"
       aria-label={t({
         id: 'analysis.chroma-label',
-        message: 'Notes dominantes du signal en cours de lecture'
+        message: 'Notes dominantes à la position de lecture'
       })}
     >
       {PITCH_CLASSES.map((name, pitchClass) => (

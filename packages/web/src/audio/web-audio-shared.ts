@@ -1,9 +1,18 @@
-import type { DecodedAudio, SpectrumFrame } from '@app/core'
+import {
+  type DecodedAudio,
+  type SpectrumFrame,
+  spectrumFromSamples
+} from '@app/core'
 import type { SoundTouchNode } from '@soundtouchjs/audio-worklet'
 import { recallAudioBuffer } from './audio-buffer-memo.ts'
+import { mixWindow } from './mix-window.ts'
 
 /** SoundTouch worklet processor (pure JS), copied to `public/`. */
 const SOUNDTOUCH_PROCESSOR_URL = '/soundtouch-processor.js'
+
+/** One FFT size for both spectrum sources: the live analyser tap and the
+ * paused window — ~10.8 Hz bins at 44.1 kHz, a semitone wide from ~C2 up. */
+const FFT_SIZE = 4096
 
 /** The tempo/pitch shift a SoundTouch master node applies to its input. */
 interface StretchParams {
@@ -48,6 +57,36 @@ export function audioBufferFrom(
     buffer.copyToChannel(samples, index)
   })
   return buffer
+}
+
+/**
+ * The paused twin of the analyser tap's `spectrum()`: one FFT frame of the
+ * given buffers mixed as the tap would hear them (channels averaged, layers
+ * gain-weighted and summed) at `seconds`. The engines feed this to the
+ * transport so the Spectre tab follows paused navigation (seek, measure
+ * click) instead of going dark. Reads only — the buffers may be the shared
+ * decode buffer (V.5 contract).
+ */
+export function pausedSpectrumFrame(
+  layers: ReadonlyArray<{
+    readonly buffer: AudioBuffer
+    readonly gain: number
+  }>,
+  seconds: number
+): SpectrumFrame | undefined {
+  const sampleRate = layers[0]?.buffer.sampleRate
+  if (sampleRate === undefined) {
+    return undefined
+  }
+  const window = mixWindow(
+    layers.map(({ buffer, gain }) => ({
+      channels: decodedAudioFrom(buffer).channels,
+      gain
+    })),
+    Math.floor(seconds * sampleRate),
+    FFT_SIZE
+  )
+  return spectrumFromSamples(window, sampleRate)
 }
 
 /**
@@ -129,7 +168,14 @@ interface StretchTransport {
  * object verified in a real browser, like the engines composing it.
  */
 export function createStretchTransport(
-  durationOf: () => number | undefined
+  durationOf: () => number | undefined,
+  /**
+   * The paused twin of the analyser tap: the engine computes one spectrum
+   * frame from its OWN buffers at `seconds` (the tap is silent at rest).
+   * Absent — no buffer access (test fakes) — the paused spectrum reads
+   * undefined, exactly the pre-pause behaviour.
+   */
+  pausedSpectrum?: (seconds: number) => SpectrumFrame | undefined
 ): StretchTransport {
   const listeners = new Set<PositionListener>()
   let context: AudioContext | undefined
@@ -156,8 +202,7 @@ export function createStretchTransport(
     if (!tap) {
       const ctx = audioContext()
       tap = ctx.createAnalyser()
-      // ~10.8 Hz bins at 44.1 kHz — a semitone wide from ~C2 up.
-      tap.fftSize = 4096
+      tap.fftSize = FFT_SIZE
       tap.connect(ctx.destination)
     }
     return tap
@@ -216,7 +261,13 @@ export function createStretchTransport(
     },
 
     spectrum(): SpectrumFrame | undefined {
-      if (!tap || !isPlaying) {
+      // At rest the tap reads silence — the engine's paused twin computes the
+      // frame from the decoded buffers at the playhead instead (point 2 of
+      // the pre-beta UI lot: the Spectre must follow paused navigation).
+      if (!isPlaying) {
+        return pausedSpectrum?.(position())
+      }
+      if (!tap) {
         return undefined
       }
       const dbs = new Float32Array(tap.frequencyBinCount)
