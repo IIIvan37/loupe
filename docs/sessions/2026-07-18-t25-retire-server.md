@@ -25,17 +25,25 @@
     commandes de déploiement fournies.
   - Plan + STATUS : T2.1bis→T2.5 cochés ; **sortie de Phase 2** actée.
 
-## Not done / remaining (étape opérateur)
+## Déploiement — FAIT (2026-07-18, curl-vérifié en prod)
 
-- **Déploiement des secrets Tauri** (le vrai déblocage de l'app **bundlée** face
-  à Modal) : ajouter `tauri://localhost,http://tauri.localhost` à
-  `LOUPE_ALLOWED_ORIGINS` côté **secret Modal** (`loupe-analyze-jwt` + `modal
-  deploy`) et **secret Supabase** (`supabase secrets set`). Non fait ici : le
-  `modal` CLI est **absent** de l'environnement. En `tauri dev` l'origin est
-  déjà `5173` (dans le défaut) donc l'analyse marche déjà ; seul le **bundle**
-  (origin `tauri://localhost`) exige ce déploiement — attendu avant la beta.
-- **Vérif bundle→Modal** différée à ce déploiement (impossible sans le secret
-  Modal à jour). Le volet code est vérifié par les tests (voir Gate).
+- Le `modal` CLI était finalement dispo (`server/.venv/bin/modal`). **Sonde
+  avant** : ni Modal ni l'Edge Function n'autorisaient les origins Tauri, et
+  **aucune n'avait `LOUPE_ALLOWED_ORIGINS` positionné** (seuls 5173/127 passaient
+  → défaut). Donc **aucun secret à toucher** : un simple redéploiement du code
+  de chaque surface a suffi.
+- `modal deploy modal_app.py` (154 s) + `supabase functions deploy
+  mint-analyze-token --use-api`. **Sonde après** : OPTIONS depuis
+  `tauri://localhost` et `http://tauri.localhost` → `Access-Control-Allow-Origin`
+  échoé sur **les deux** surfaces ; `https://random.example` → aucun (fail-closed
+  intact). Le blocage CORS de l'app bundlée est levé.
+
+## Not done / remaining
+
+- **Vérif bout-en-bout dans le bundle** (build `tauri build --debug` + analyse
+  réelle avec un compte beta) non faite — mais le seul bloquant était la CORS,
+  désormais prouvée ouverte aux origins Tauri sur les deux surfaces (le logique
+  app est inchangée). Gold-standard optionnel avant la beta.
 - Les 3 S8980 FP de `use-separation.spec.tsx` restent à marquer FP dans l'UI
   SonarCloud.
 

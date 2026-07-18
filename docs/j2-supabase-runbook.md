@@ -60,10 +60,18 @@ mirror.
 | Modal endpoint (CORS) | `server/app/origins.py` (used by `modal_app.py`) | the `loupe-analyze-jwt` Modal secret (add the key, redeploy) |
 | Edge Function (CORS) | `supabase/functions/mint-analyze-token/index.ts` (mirrors the Python parsing) | `supabase secrets set LOUPE_ALLOWED_ORIGINS=…` |
 
-**A surface that SETS `LOUPE_ALLOWED_ORIGINS` overrides the default wholesale** —
-so the Modal secret and the Supabase secret must list the Tauri origins
-explicitly for the packaged desktop app to reach analysis (the default only
-covers `tauri dev`, where the origin is 5173). The T2.5 deploy is therefore:
+**Status (2026-07-18, T2.5 deploy DONE, curl-verified in prod):** neither the
+Modal secret nor the Supabase env had `LOUPE_ALLOWED_ORIGINS` set, so both were
+running on the default. A code redeploy of each (`modal deploy` + `supabase
+functions deploy`) picked up the new default — **no secret was touched** — and
+an OPTIONS preflight from `tauri://localhost` / `http://tauri.localhost` now
+gets its `Access-Control-Allow-Origin` echoed on both surfaces, while
+`https://random.example` still gets none (fail-closed intact). The packaged
+desktop app's CORS blocker is cleared.
+
+**Only when you SET `LOUPE_ALLOWED_ORIGINS`** (e.g. to add a real deployed web
+origin) it **overrides the default wholesale** — you must then also list the
+Tauri origins in that value, or the packaged app loses analysis. In that case:
 
 ```sh
 # Modal — append the Tauri origins to the existing allowlist, then redeploy

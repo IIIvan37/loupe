@@ -770,10 +770,11 @@ Modal déploie**, les pytest verrouillent la logique partagée). Les 3 allowlist
 gagnent les origins Tauri (`tauri://localhost` mac/linux, `http://tauri.localhost`
 windows) **par défaut** dans `origins.py` + miroir Deno (origin du client
 nominal, pas un secret par-déploiement) + tests (232 pytest, preflight Deno).
-**En prod l'env `LOUPE_ALLOWED_ORIGINS` écrase le défaut** → secret Modal +
-secret Supabase doivent lister les origins Tauri : **étape opérateur** au runbook
-§0bis (modal CLI absent ici ; en `tauri dev` l'origin est déjà 5173 donc
-l'analyse marche — la vérif bundle→Modal attend ce déploiement). Docs (README,
+**Déploiement FAIT (2026-07-18, curl-vérifié)** : ni Modal ni l'Edge Function
+n'avaient `LOUPE_ALLOWED_ORIGINS` positionné → un simple `modal deploy` +
+`supabase functions deploy` a suffi (défaut mis à jour, **aucun secret touché**) ;
+tauri://localhost + http://tauri.localhost échoés des deux côtés, random.example
+refusé (fail-closed intact). Blocage CORS du bundle levé. Docs (README,
 runbook, plan, STATUS) à jour.
 
 **Prochain** : garde-fous beta (plafond de dépense Modal + SMTP custom pour le
