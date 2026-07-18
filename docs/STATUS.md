@@ -745,12 +745,33 @@ balayé par le sweep câblé. Gate **verte — 1816 tests** (+81), **Stryker
 91,64 %** (3 équivalents documentés).
 [rapport](sessions/2026-07-17-t22-fs-stores.md).
 
-**Prochain : PR Sonar** (16 issues MINOR sur main — 15× S8980 `act()`
-redondant + 1× S9020 `findByText`, specs seules, antérieures à T2.2), puis
-**T2.3** (sidecar yt-dlp auto-actualisable), T2.4 migration `~/.loupe`,
-T2.5 retrait du serveur ; les 🟢 v5 au fil de l'eau ; garde-fous : alerte de
-facturation Modal + SMTP custom (rate limit e-mail ~2/h) avant d'ouvrir aux
-beta-testeurs.
+**T2.2 mergé (PR #194).** **PR Sonar mergée (PR #195)** : 12× S8980 + 1× S9020
+corrigées (3 S8980 de `use-separation.spec.tsx` = faux positifs, à marquer FP
+dans l'UI SonarCloud). CI GitHub **rétablie** (fin de la panne de facturation).
+
+**T2.3 — import URL desktop (yt-dlp sous-process, branche
+`feat/t23-ytdlp-sidecar`, PR à ouvrir)** : le crate Rust `yt-dlp` est
+**GPL-3.0 → NO-GO** ; on pilote le **binaire yt-dlp** (Unlicense) en
+sous-process depuis une commande Rust `download_track`, à parité de gardes
+avec `download.py` (allowlist, budget 900 s, `--max-filesize 500m`,
+`--socket-timeout 30`, un download à la fois). Binaire non bundlé : fetché
+dans l'app-data au 1er usage, `-U` self-update 1×/jour fire-and-forget.
+Progrès via `Channel` Tauri ; adapter web `createTauriTrackSource` sur un seam
+`TauriDownloadBridge`, factory branchée sur `isTauriShell()`. Revue → fixes :
+annulation par kill du `Child` propre (signal `Notify`, fin de `unsafe
+libc`/pid brut), progrès émis avant le bootstrap du binaire, dédup
+`toArrayBuffer`/metadata en helpers partagés, sweep des dossiers temp
+orphelins au démarrage du download, README + cross-refs allowlist.
+**Vérifié réellement** (macOS) : « Me at the zoo » importé (metadata OK, 12
+events de progrès), vimeo refusé, annulation → rejet propre + slot libéré,
+sweep déterministe (orphelin planté balayé, `downloads/` vide). Gate **verte —
+1824 web** (+~20), `cargo test` 3/3 + clippy propre, Stryker skippé (core
+intouché). [rapport](sessions/2026-07-18-t23-ytdlp-sidecar.md).
+
+**Prochain : T2.4** (migration `~/.loupe` → app-data Tauri), puis T2.5
+(retrait du serveur + origins Tauri) ; les 🟢 v5 au fil de l'eau ; garde-fous :
+alerte de facturation Modal + SMTP custom (rate limit e-mail ~2/h) avant
+d'ouvrir aux beta-testeurs.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
