@@ -797,12 +797,19 @@ stems aux gains de faders), `ChromaView` lit au tick de pause puis par seek
 lecture (validé). Browser-verify réel : A440→C523 au seek en pause. Gate
 **verte — 1855 tests** (+22), **Stryker 91,62 %** (8 équivalents documentés).
 [rapport](sessions/2026-07-18-spectrum-paused.md).
-Restent (ordre acté) : **5/6** seek clavier par temps/mesure (temps/mesure
-suffisent avec grille — décision —, repli 5 s sans grille, `nudgeSeconds` T.2
-à réutiliser) + **6/6** suppression de l'onglet Notes (même PR), **3/6**
-marquage visuel des harmoniques au Spectre (distinguer, PAS filtrer —
-cadrage précisé), **4/6** grilles d'accords sur stem de basse (Demucs en
-prod, détecteurs à router).
+**5/6 + 6/6 — seek musical + retrait onglet Notes (branche
+`feat/musical-seek-notes-tab`, stackée sur #204, PR à ouvrir)** : core
+`seekStepSeconds` (temps adjacent, downbeat avec Shift, repli 5 s sans
+grille — `adjacentGridTime` partagé avec `nudgeSeconds`), commande
+`seekStep {direction, coarse}` (4 bindings flèches ± Shift), hints dérivés
+(« d'un temps » / « d'une mesure »), `useShellShortcuts` prend la grille ;
+onglet Notes (placeholder) supprimé — 3 onglets. Décisions : temps/mesure
+suffisent, pas de 5 s résiduel avec grille. Gate **verte — 1866 tests**
+(+11), Stryker au close.
+[rapport](sessions/2026-07-18-musical-seek-notes-tab.md).
+Restent : **3/6** marquage visuel des harmoniques au Spectre (distinguer,
+PAS filtrer — cadrage précisé), **4/6** grilles d'accords sur stem de basse
+(Demucs en prod, détecteurs à router).
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets

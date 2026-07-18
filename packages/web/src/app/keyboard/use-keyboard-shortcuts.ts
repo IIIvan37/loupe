@@ -38,8 +38,9 @@ function isInsideDialog(target: EventTarget | null): boolean {
 /** The app actions a resolved command is dispatched onto. */
 export interface ShortcutActions {
   readonly togglePlayback: () => void
-  /** Seek by a signed delta in seconds, relative to the current position. */
-  readonly seekBy: (seconds: number) => void
+  /** One musical seek step: a beat, a measure when coarse (Shift) — the
+   * shell resolves the actual jump against the session's beat grid. */
+  readonly seekStep: (direction: -1 | 1, coarse: boolean) => void
   readonly zoomIn: () => void
   readonly zoomOut: () => void
   readonly addMarker: () => void
@@ -67,8 +68,8 @@ function dispatch(command: Command, actions: ShortcutActions): void {
     case 'togglePlayback':
       actions.togglePlayback()
       return
-    case 'seekBy':
-      actions.seekBy(command.seconds)
+    case 'seekStep':
+      actions.seekStep(command.direction, command.coarse)
       return
     case 'zoomIn':
       actions.zoomIn()

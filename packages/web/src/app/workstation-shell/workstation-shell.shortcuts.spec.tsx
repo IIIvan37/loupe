@@ -6,6 +6,7 @@ import {
   beatsAt,
   expectBpmReadout,
   fakeProjectStores,
+  fakeStemEngine,
   importTrack,
   installShellHooks,
   pointerGesture,
@@ -90,6 +91,35 @@ describe('WorkstationShell keyboard shortcuts', () => {
     act(() => engine.emit(5))
     fireEvent.keyDown(document.body, { code: 'ArrowLeft' })
     expect(engine.seekTo).toHaveBeenLastCalledWith(0)
+  })
+
+  it('seeks by beat — and by measure with Shift — once a grid exists', async () => {
+    const detector = {
+      detect: async () => ({
+        bpm: 120,
+        beats: beatsAt([0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5])
+      })
+    }
+    // A resolved detection seats the metronome stem: seeks then flow through
+    // the STEM engine (T.3 note), so that is the fake to interrogate.
+    const stemEngine = fakeStemEngine()
+    const { engine, user } = renderShell({
+      tempoDetector: detector,
+      stemEngine
+    })
+    await importTrack(user)
+    await screen.findByRole('button', {
+      name: i18n._('mixer.mute', { name: 'Métronome' })
+    })
+
+    act(() => engine.emit(1.1))
+    fireEvent.keyDown(document.body, { code: 'ArrowRight' })
+    expect(stemEngine.seekTo).toHaveBeenLastCalledWith(1.5)
+
+    // Shift widens the step to the bar: the downbeats sit at 0 and 2 s.
+    act(() => engine.emit(2.2))
+    fireEvent.keyDown(document.body, { code: 'ArrowLeft', shiftKey: true })
+    expect(stemEngine.seekTo).toHaveBeenLastCalledWith(2)
   })
 
   it('adds a marker at the playhead with the M key', async () => {

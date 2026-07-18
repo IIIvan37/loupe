@@ -254,6 +254,7 @@ export {
   projectFromSession,
   tuningOrDefault
 } from './domain/project.ts'
+export { seekStepSeconds } from './domain/seek-step.ts'
 export type {
   SeparationAction,
   SeparationErrorCode,

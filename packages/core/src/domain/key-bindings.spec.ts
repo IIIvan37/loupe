@@ -3,8 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   defaultKeyBindings,
   type KeyBindings,
-  resolveCommand,
-  SEEK_STEP_SECONDS
+  resolveCommand
 } from './key-bindings.ts'
 
 describe('resolveCommand', () => {
@@ -14,15 +13,26 @@ describe('resolveCommand', () => {
     })
   })
 
-  it('maps the arrows to a signed seek by SEEK_STEP_SECONDS', () => {
+  it('maps the arrows to a one-beat seek step', () => {
     expect(resolveCommand(defaultKeyBindings, { code: 'ArrowLeft' })).toEqual({
-      type: 'seekBy',
-      seconds: -SEEK_STEP_SECONDS
+      type: 'seekStep',
+      direction: -1,
+      coarse: false
     })
     expect(resolveCommand(defaultKeyBindings, { code: 'ArrowRight' })).toEqual({
-      type: 'seekBy',
-      seconds: SEEK_STEP_SECONDS
+      type: 'seekStep',
+      direction: 1,
+      coarse: false
     })
+  })
+
+  it('maps Shift+arrows to a one-measure seek step', () => {
+    expect(
+      resolveCommand(defaultKeyBindings, { code: 'ArrowLeft', shift: true })
+    ).toEqual({ type: 'seekStep', direction: -1, coarse: true })
+    expect(
+      resolveCommand(defaultKeyBindings, { code: 'ArrowRight', shift: true })
+    ).toEqual({ type: 'seekStep', direction: 1, coarse: true })
   })
 
   it('maps the + / - characters to zoom in / out, whatever the layout', () => {
