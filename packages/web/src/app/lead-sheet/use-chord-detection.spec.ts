@@ -3,7 +3,8 @@ import {
   type BeatGrid,
   ChordDetectionError,
   type ChordDetector,
-  type DecodedAudio
+  type DecodedAudio,
+  type SeparatedStem
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -520,6 +521,86 @@ describe('useChordDetection', () => {
     await act(() => result.current.detect(4))
     expect(onDraft).toHaveBeenCalledOnce()
     expect(onDraft.mock.calls[0]?.[0]).toContain('C/E')
+  })
+
+  it('narrates the implicit separation as its own phase, then detection', async () => {
+    let release: (stems: ReadonlyArray<SeparatedStem> | undefined) => void =
+      () => {}
+    const ensureStems = () =>
+      new Promise<ReadonlyArray<SeparatedStem> | undefined>((resolve) => {
+        release = resolve
+      })
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        ensureStems,
+        onDraft: () => {},
+        detector: detectorOf(['C'])
+      })
+    )
+    let run: Promise<void> = Promise.resolve()
+    act(() => {
+      run = result.current.detect(4)
+    })
+    await vi.waitFor(() => expect(result.current.phase).toBe('separating'))
+    act(() => release(undefined))
+    await act(() => run)
+    expect(result.current.phase).toBeUndefined()
+  })
+
+  it('cancelling during the implicit separation cancels the separation too', async () => {
+    const cancelSeparation = vi.fn()
+    const ensureStems = () =>
+      new Promise<ReadonlyArray<SeparatedStem> | undefined>(() => {})
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        ensureStems,
+        cancelSeparation,
+        onDraft: () => {},
+        detector: detectorOf(['C'])
+      })
+    )
+    act(() => {
+      void result.current.detect(4)
+    })
+    await vi.waitFor(() => expect(result.current.phase).toBe('separating'))
+    act(() => result.current.cancel())
+    expect(cancelSeparation).toHaveBeenCalledTimes(1)
+    expect(result.current.detecting).toBe(false)
+  })
+
+  it('reuses the analysis mix across runs over the same stems and grid', async () => {
+    const heard: DecodedAudio[] = []
+    const spy: ChordDetector = {
+      detect: async (audio) => {
+        heard.push(audio)
+        return [{ startSeconds: 0, endSeconds: 2, label: 'C' }]
+      }
+    }
+    const stems = [
+      {
+        id: 'basse',
+        label: 'Basse',
+        audio: { sampleRate: 4, channels: [[0.2, 0.2, 0.2, 0.2]] }
+      }
+    ]
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        stems,
+        onDraft: () => {},
+        detector: spy
+      })
+    )
+    await act(() => result.current.detect(4))
+    await act(() => result.current.detect(4))
+    // Same object identity: the V.1 WAV-encode memo (WeakMap on the audio)
+    // only ever hits when re-runs hand it the same mix instance.
+    expect(heard[1]).toBe(heard[0])
   })
 
   it('falls back to the full mix when the implicit separation yields nothing', async () => {

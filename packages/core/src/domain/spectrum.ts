@@ -11,6 +11,28 @@ interface SampleSpectrum {
   readonly sampleRate: number
 }
 
+/** Per-length scratch (Hann coefficients + FFT work buffers), reused across
+ * calls: the bass line runs ~3 windows per measure in one synchronous block —
+ * re-deriving the window and reallocating 2×64 KB each time is pure churn.
+ * The returned magnitudes stay freshly allocated (callers may hold them). */
+const scratchByLength = new Map<
+  number,
+  { hann: Float32Array; re: Float32Array; im: Float32Array }
+>()
+
+function scratchFor(n: number) {
+  let entry = scratchByLength.get(n)
+  if (!entry) {
+    const hann = new Float32Array(n)
+    for (let i = 0; i < n; i++) {
+      hann[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (n - 1)))
+    }
+    entry = { hann, re: new Float32Array(n), im: new Float32Array(n) }
+    scratchByLength.set(n, entry)
+  }
+  return entry
+}
+
 export function spectrumFromSamples(
   samples: ArrayLike<number>,
   sampleRate: number
@@ -20,11 +42,10 @@ export function spectrumFromSamples(
     throw new Error('the sample window length must be a power of two')
   }
   // Hann window: tames the leakage of a tone that doesn't land on a bin.
-  const re = new Float32Array(n)
-  const im = new Float32Array(n)
+  const { hann, re, im } = scratchFor(n)
+  im.fill(0)
   for (let i = 0; i < n; i++) {
-    const hann = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (n - 1)))
-    re[i] = (samples[i] ?? 0) * hann
+    re[i] = (samples[i] ?? 0) * (hann[i] ?? 0)
   }
   fftInPlace(re, im)
   // Linear magnitudes, scaled so a unit sine reads O(1) — the absolute scale

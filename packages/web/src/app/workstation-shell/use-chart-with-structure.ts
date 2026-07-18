@@ -34,8 +34,12 @@ export function useChartWithStructure({
   readonly analysis: TempoAnalysis | undefined
   readonly markers: Markers
   /** The session's separation surface (4a) — its live stems feed the chord
-   * detector a mix minus drums. */
-  readonly separation: { readonly sources: readonly SeparatedStem[] }
+   * detector a mix minus drums; its cancel rides the chord run's « Annuler »
+   * during an implicit separation (AD.1). */
+  readonly separation: {
+    readonly sources: readonly SeparatedStem[]
+    readonly cancel: () => void
+  }
   /** The shell's separate-and-wire flow — the chord run's implicit
    * separation when no stems exist yet (resolves the isolated sources). */
   readonly separateAndLoad: (
@@ -65,6 +69,7 @@ export function useChartWithStructure({
       sections,
       stems: separation.sources.length > 0 ? separation.sources : undefined,
       ensureStems: () => separateAndLoad(loadedAudio),
+      cancelSeparation: separation.cancel,
       detector: chordDetector,
       onSourceEdited: (source) =>
         syncStructureMarkersFromChart(source, grid, markers)

@@ -119,17 +119,17 @@ msgid "analyser.summary-sections"
 msgstr "{0, plural, one {# section} other {# sections}}"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:305
+#: src/app/analyser/analyser-row.tsx:309
 msgid "analyser.tempo-detect"
 msgstr "Détecter le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:263
+#: src/app/analyser/analyser-row.tsx:267
 msgid "analyser.tempo-detecting"
 msgstr "Analyse du tempo…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:297
+#: src/app/analyser/analyser-row.tsx:301
 msgid "analyser.tempo-done"
 msgstr "Tempo détecté"
 
@@ -215,22 +215,22 @@ msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:448
+#: src/app/analyser/analyser-row.tsx:459
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:462
+#: src/app/analyser/analyser-row.tsx:475
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:440
+#: src/app/analyser/analyser-row.tsx:451
 msgid "chords.detect-done"
 msgstr "Grille pré-remplie depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:431
+#: src/app/analyser/analyser-row.tsx:435
 msgid "chords.detect-failed"
 msgstr "Échec de la détection des accords"
 
@@ -245,8 +245,7 @@ msgid "chords.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter les accords."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:438
-#: src/app/analyser/analyser-row.tsx:449
+#: src/app/analyser/analyser-row.tsx:446
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
@@ -394,6 +393,11 @@ msgstr "[Couplet]\n"
 #: src/app/lead-sheet/chord-chart-panel.tsx:153
 msgid "chords.print"
 msgstr "Imprimer"
+
+#. js-lingui-explicit-id
+#: src/app/analyser/analyser-row.tsx:442
+msgid "chords.separating"
+msgstr "Séparation des pistes avant les accords…"
 
 #. js-lingui-explicit-id
 #: src/app/lead-sheet/chord-chart-panel.tsx:117
@@ -975,7 +979,7 @@ msgid "separation.analysing"
 msgstr "Analyse du mix…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:206
+#: src/app/analyser/analyser-row.tsx:210
 msgid "separation.detect-failed"
 msgstr "Échec de la séparation"
 
@@ -986,7 +990,7 @@ msgstr "Lancer le serveur local pour séparer les pistes."
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row.tsx:42
-#: src/app/analyser/analyser-row.tsx:219
+#: src/app/analyser/analyser-row.tsx:223
 #: src/app/analyser/analysis-summary.ts:8
 msgid "separation.done"
 msgstr "Pistes séparées"
@@ -1017,12 +1021,12 @@ msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:225
+#: src/app/analyser/analyser-row.tsx:229
 msgid "separation.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:226
+#: src/app/analyser/analyser-row.tsx:230
 msgid "separation.separate"
 msgstr "Séparer les pistes"
 
@@ -1189,32 +1193,32 @@ msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:375
+#: src/app/analyser/analyser-row.tsx:379
 msgid "structure.detect"
 msgstr "Détecter la structure"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:327
+#: src/app/analyser/analyser-row.tsx:331
 msgid "structure.detect-confirm"
 msgstr "Remplacer les repères de structure ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:333
+#: src/app/analyser/analyser-row.tsx:337
 msgid "structure.detect-confirm-both"
 msgstr "Remplacer les repères de structure et la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:337
+#: src/app/analyser/analyser-row.tsx:341
 msgid "structure.detect-confirm-grid"
 msgstr "Réétiqueter la grille d’accords ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:361
+#: src/app/analyser/analyser-row.tsx:365
 msgid "structure.detect-done"
 msgstr "Repères de structure posés depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:349
+#: src/app/analyser/analyser-row.tsx:353
 msgid "structure.detect-failed"
 msgstr "Échec de la détection de la structure"
 
@@ -1224,12 +1228,12 @@ msgid "structure.detect-needs-server"
 msgstr "Lancer le serveur local pour détecter la structure."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:356
+#: src/app/analyser/analyser-row.tsx:360
 msgid "structure.detecting"
 msgstr "Détection de la structure…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:376
+#: src/app/analyser/analyser-row.tsx:380
 msgid "structure.detecting-short"
 msgstr "Détection…"
 
@@ -1391,7 +1395,7 @@ msgid "tempo.region-label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:276
+#: src/app/analyser/analyser-row.tsx:280
 msgid "tempo.retry"
 msgstr "Réessayer"
 
@@ -1442,7 +1446,7 @@ msgid "transport.end"
 msgstr "Fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:180
+#: src/app/transport-bar/transport-bar.tsx:183
 msgid "transport.fine-tune-field"
 msgstr "Saisir l'ajustement fin (cents)"
 
@@ -1452,7 +1456,7 @@ msgid "transport.fine-tune-label"
 msgstr "Ajustement fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:192
+#: src/app/transport-bar/transport-bar.tsx:195
 msgid "transport.fine-tune-unit"
 msgstr "cents"
 

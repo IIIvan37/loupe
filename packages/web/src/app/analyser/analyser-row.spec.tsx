@@ -75,6 +75,7 @@ function chordsOf(
   return {
     blockedReason: undefined,
     detecting: false,
+    phase: undefined,
     error: undefined,
     succeeded: false,
     hasGrid: false,
@@ -603,6 +604,15 @@ describe('AnalyserRow chords', () => {
     expect(
       screen.getByText(i18n._('chords.detect-needs-server'))
     ).toBeInTheDocument()
+  })
+
+  it('names the implicit separation while it runs — not a detection (AD.1)', () => {
+    renderRow({ chords: { detecting: true, phase: 'separating' } })
+    // Visible face + the polite announcement both carry the honest label.
+    expect(
+      screen.getAllByText(i18n._('chords.separating')).length
+    ).toBeGreaterThan(0)
+    expect(screen.queryByText(i18n._('chords.detecting'))).toBeNull()
   })
 
   it('announces the busy state, then interrupts with the failure', () => {

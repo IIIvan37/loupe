@@ -46,6 +46,17 @@ describe('monoMixWithout', () => {
     expect(Array.from(mix?.channels[0] ?? [])).toEqual([0.75, 0.25])
   })
 
+  it('skips a channel-less stem instead of crashing the mix', () => {
+    const mix = monoMixWithout(
+      [
+        { id: 'other', audio: { sampleRate: 8, channels: [] } },
+        stem('bass', [0.5, 0.5])
+      ],
+      'drums'
+    )
+    expect(Array.from(mix?.channels[0] ?? [])).toEqual([0.5, 0.5])
+  })
+
   it('yields nothing when only the excluded stem exists', () => {
     expect(monoMixWithout([stem('drums', [1, 1])], 'drums')).toBeUndefined()
   })

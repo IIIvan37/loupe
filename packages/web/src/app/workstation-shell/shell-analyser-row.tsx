@@ -107,6 +107,7 @@ export function ShellAnalyserRow({
       }}
       chords={{
         detecting: chordDetection.detecting,
+        phase: chordDetection.phase,
         error: chordDetection.error,
         succeeded: chordDetection.succeeded,
         hasGrid: hasChartSource,

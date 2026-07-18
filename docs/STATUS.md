@@ -879,9 +879,23 @@ garantie), densité (footer 2xs, header xs, champ cents sur un étage en `s`),
 checkpointer. Gate **verte — 1914 tests**, Stryker skippé.
 [rapport](sessions/2026-07-18-ae-header-footer-density.md).
 
-**En cours : Lot AD — parcours accords** (narration/annulation séparation
-implicite, DSP mesuré puis hors main thread, memo V.1 restauré), puis AF–AI,
-puis garde-fous beta.
+**Lot AE mergé (PR #211).**
+**Lot AD — parcours accords (branche `feat/ad-chords-path`, PR à ouvrir)** :
+`phase` exposée par le hook (« Séparation des pistes avant les accords… »,
+cold-start supprimé pendant la séparation), Annuler des accords annule AUSSI
+la séparation lancée par le run (un geste) ; bloc DSP **mesuré 774 ms** (6
+stems réels) derrière un `nextPaint`, core dégraissé (accumulation fusionnée,
+scratch FFT, Hann caché) ; **cache DSP par (piste, stems, grille)** → second
+run 0 recalcul (~5 s réseau), memo V.1 re-hit — Worker = follow-up si les
+774 ms uniques mordent. Core TDD : une note de basse PAR downbeat (la
+dernière mesure peut slasher), fixture bi-fenêtre, fix de course runId (un
+cancel dans le yield pré-DSP ne supplantait pas le run). Gate **verte — 1922
+tests** (+8), **Stryker 91,27 %** (familles DSP documentées au rapport).
+[rapport](sessions/2026-07-18-ad-chords-path.md).
+
+**En cours : Lot AF — forme/slash** (relabel préserve {key}, headChord coupe
+au /), puis AG (quota import), AH (exports desktop), AI.2 (mutants
+form-encoder), puis garde-fous beta.
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
