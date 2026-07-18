@@ -807,9 +807,18 @@ onglet Notes (placeholder) supprimé — 3 onglets. Décisions : temps/mesure
 suffisent, pas de 5 s résiduel avec grille. Gate **verte — 1866 tests**
 (+11), Stryker au close.
 [rapport](sessions/2026-07-18-musical-seek-notes-tab.md).
-Restent : **3/6** marquage visuel des harmoniques au Spectre (distinguer,
-PAS filtrer — cadrage précisé), **4/6** grilles d'accords sur stem de basse
-(Demucs en prod, détecteurs à router).
+**3/6 — harmoniques distinguées au Spectre (branche
+`feat/spectrum-harmonics`, stackée sur #205, PR à ouvrir)** : core
+`chromaWithHarmonics` (pics stricts en bande + plancher 5 %, harmonique si
+multiple entier 2…8 d'un pic plus grave, ±30 cents ou un bin plein dans le
+grave ; chroma inchangé, `harmonicShare` par classe), barres en deux
+segments (plein = joué, estompé 0,35 = harmonique probable) + légende.
+Browser-verify : quinte fantôme du 3ᵉ partiel entièrement estompée. Gate
+**verte — 1887 tests** (+21), **Stryker 91,91 %** (`chroma.ts` 94,4 %,
+7 équivalents documentés).
+[rapport](sessions/2026-07-18-spectrum-harmonics.md).
+Reste : **4/6** grilles d'accords sur stem de basse (Demucs en prod,
+détecteurs à router — checkpoint d'approche à faire).
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets

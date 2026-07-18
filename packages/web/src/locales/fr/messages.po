@@ -139,14 +139,19 @@ msgid "analysis.blocked-offline"
 msgstr "Hors ligne — les analyses nécessitent le réseau."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/chroma-view.tsx:71
+#: src/app/analysis-panel/chroma-view.tsx:74
 msgid "analysis.chroma-idle"
 msgstr "Importer une piste pour voir les notes dominantes."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/chroma-view.tsx:82
+#: src/app/analysis-panel/chroma-view.tsx:86
 msgid "analysis.chroma-label"
 msgstr "Notes dominantes à la position de lecture"
+
+#. js-lingui-explicit-id
+#: src/app/analysis-panel/chroma-view.tsx:116
+msgid "analysis.chroma-legend"
+msgstr "Estompé : harmoniques probables d’une note plus grave."
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row.tsx:45

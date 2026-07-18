@@ -109,6 +109,32 @@ describe('ChromaView', () => {
     expect(screen.getByTestId('chroma-bar-A').style.blockSize).toBe('0%')
   })
 
+  it('dims a class that is only the harmonic of a lower note', () => {
+    // A played A (440) whose 3rd harmonic paints a phantom E (1320): the E
+    // bar renders entirely as the faded harmonic segment, the A stays solid.
+    const frame = frameAt440()
+    ;(frame.magnitudes as Float32Array)[
+      Math.round((1320 * 2 * 2048) / 44100)
+    ] = 0.4
+    render(
+      <ChromaView
+        readSpectrum={() => frame}
+        playing={false}
+        position={createExternalValue(0)}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+    act(() => {
+      vi.advanceTimersByTime(0)
+    })
+    expect(screen.getByTestId('chroma-bar-E').style.blockSize).toBe('0%')
+    expect(
+      parseFloat(screen.getByTestId('chroma-harmonic-E').style.blockSize)
+    ).toBeCloseTo(40, 1)
+    expect(screen.getByTestId('chroma-bar-A').style.blockSize).toBe('100%')
+    expect(screen.getByTestId('chroma-harmonic-A').style.blockSize).toBe('0%')
+  })
+
   it('stops polling once playback pauses — only seeks refresh at rest', () => {
     const readSpectrum = vi.fn(frameAt440)
     const position = createExternalValue(0)
