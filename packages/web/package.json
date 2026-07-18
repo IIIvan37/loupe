@@ -18,7 +18,7 @@
     "@lingui/core": "^6.4.0",
     "@lingui/react": "^6.4.0",
     "@soundtouchjs/audio-worklet": "^2.1.0",
-    "@supabase/supabase-js": "^2.110.3",
+    "@supabase/supabase-js": "^2.110.7",
     "@tauri-apps/api": "^2.9.0",
     "@tauri-apps/plugin-deep-link": "^2.4.9",
     "@tauri-apps/plugin-fs": "^2.4.2",
