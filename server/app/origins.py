@@ -15,7 +15,16 @@ from __future__ import annotations
 
 import os
 
-DEFAULT_ALLOWED_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+# The dev browser origins plus the desktop shell's own origins (T2.5). The
+# Tauri bundle serves the web app from a custom scheme — `tauri://localhost`
+# on macOS/Linux (WebKit), `http://tauri.localhost` on Windows (WebView2) —
+# so those ARE the nominal client's origins, not a per-deployment secret, and
+# belong in the default like `localhost:5173` does. A deployment that SETS
+# `LOUPE_ALLOWED_ORIGINS` overrides this wholesale, so Modal/Supabase must
+# list the Tauri origins in their env too (see docs/j2-supabase-runbook.md).
+DEFAULT_ALLOWED_ORIGINS = (
+    "http://localhost:5173,http://127.0.0.1:5173,tauri://localhost,http://tauri.localhost"
+)
 
 
 def env_list(name: str, default: str) -> list[str]:

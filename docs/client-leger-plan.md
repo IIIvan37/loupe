@@ -238,17 +238,26 @@ jamais `tauri dev` nu) ; l'app bundlée a l'origine `tauri://localhost` →
   d'hôtes, budget wall-clock total, taille max) réimplémentées côté commande.
   Desktop-only assumé (mobile : sans import URL, ou via Modal le jour venu).
 
-### T2.4 — Migration des données existantes
-- Import `~/.loupe` → répertoire de données Tauri à la première ouverture
-  (copie + vérification sha256, l'original intact) ; l'app web contre serveur
-  local reste lisible pendant la transition.
+### T2.4 — Migration des données existantes — **SANS OBJET (acté 2026-07-18)**
+- Décision utilisateur : l'app n'a tourné qu'en local sur une seule machine, il
+  n'y a aucune base d'utilisateurs avec des projets `~/.loupe` à préserver.
+  **Aucun code de migration** : le desktop lit son app-data Tauri (T2.2) et
+  ignore `~/.loupe` (qui n'était que le `LOUPE_DATA_DIR` du serveur). Les
+  anciens projets locaux sont abandonnés ; leur suppression est une action
+  opérateur triviale (`rm -rf ~/.loupe`), pas une fonctionnalité.
 
-### T2.5 — Retrait du serveur local du chemin nominal
-- Le serveur sort de la doc d'installation ; il reste dans le repo comme
-  chemin de dev/CI (les tests pytest continuent de verrouiller la logique
-  partagée avec Modal — `app/` est la lib commune des deux déploiements).
-- Docs, runbook, STATUS mis à jour ; les trois allowlists d'origines gagnent
-  l'origin Tauri (`tauri://localhost` ou équivalent par plateforme).
+### T2.5 — Retrait du serveur local du chemin nominal — **LIVRÉ (2026-07-18)**
+- Le serveur sort de la doc d'installation (README : le desktop est le client
+  nominal) ; il reste dans le repo comme chemin de dev/CI et surtout comme
+  **lib commune que Modal déploie** — les pytest verrouillent la logique
+  d'inférence/gardes partagée (`app/` est la lib des deux déploiements).
+- Les trois allowlists gagnent les origins Tauri (`tauri://localhost` mac/linux,
+  `http://tauri.localhost` windows) : **par défaut** dans `origins.py` + miroir
+  Deno (c'est l'origin du client nominal, pas un secret par-déploiement) ;
+  **en prod** l'env `LOUPE_ALLOWED_ORIGINS` (secret Modal + secret Supabase)
+  doit les lister explicitement car il écrase le défaut — étape de déploiement
+  opérateur documentée au runbook §0bis.
+- Docs (README, runbook, STATUS) et plan mis à jour.
 
 **Sortie de Phase 2** : loupe = une app de bureau + Modal. Aucun Python local.
 
@@ -316,7 +325,12 @@ on n'empile pas une migration d'infra sur des régressions connues.
       pas de Rubber Band, SoundTouchJS MPL-2.0) ; voir § T2.1
 - [x] **T2.1bis** auth desktop : deep link `loupe://` + `setSession` — livré
       2026-07-17, vérifié réellement (magic link → session dans le bundle)
-- [ ] **T2.2** stores filesystem à parité (dédup, atomicité, GC) + parseProject
-- [ ] **T2.3** sidecar yt-dlp (gardes réimplémentées)
-- [ ] **T2.4** migration `~/.loupe`
-- [ ] **T2.5** retrait du serveur local du chemin nominal + origins Tauri
+- [x] **T2.2** stores filesystem à parité (dédup, atomicité, GC) + parseProject —
+      livré 2026-07-17 (PR #194), vérifié réellement
+- [x] **T2.3** sidecar yt-dlp (gardes réimplémentées) — livré 2026-07-18
+      (PR #196), vérifié réellement ; crate GPL écarté → binaire piloté
+- [x] **T2.4** migration `~/.loupe` — **sans objet** (app local-only, abandon
+      de `~/.loupe`, pas de code — acté 2026-07-18)
+- [x] **T2.5** retrait du serveur local du chemin nominal + origins Tauri —
+      livré 2026-07-18 ; déploiement des secrets (Modal + Supabase) = étape
+      opérateur au runbook §0bis

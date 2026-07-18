@@ -145,6 +145,24 @@ Deno.test('a disallowed origin gets no allow-origin echoed back', async () => {
   await res.body?.cancel()
 })
 
+Deno.test('the desktop shell origin is allowed by default (T2.5)', async () => {
+  // Parity with server/app/origins.py: the Tauri bundle origin is in the
+  // default allowlist, so the packaged desktop app reaches the mint function
+  // without a per-deployment env entry.
+  const res = await handler(
+    new Request(`${API}/functions/v1/mint-analyze-token`, {
+      method: 'OPTIONS',
+      headers: { origin: 'tauri://localhost' },
+    }),
+  )
+  assertEquals(res.status, 204)
+  assertEquals(
+    res.headers.get('Access-Control-Allow-Origin'),
+    'tauri://localhost',
+  )
+  await res.body?.cancel()
+})
+
 Deno.test('parseAllowedOrigins trims entries and drops empties (no stack needed)', () => {
   // Mirrors server/app/origins.py: a trailing comma or padded entries must
   // not admit '' as an origin.

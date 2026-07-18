@@ -15,6 +15,8 @@ class TestAllowedOrigins:
         assert allowed_origins() == [
             "http://localhost:5173",
             "http://127.0.0.1:5173",
+            "tauri://localhost",
+            "http://tauri.localhost",
         ]
 
     def test_reads_a_comma_separated_allowlist_from_the_env(

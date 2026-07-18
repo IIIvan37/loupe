@@ -48,8 +48,11 @@ the swaps to keep it to seconds plus the ≤5 min tail of already-minted tokens
 ## 0bis. One origin allowlist, three places (U.5)
 
 The browser-origin allowlist exists on three surfaces, each reading the SAME
-`LOUPE_ALLOWED_ORIGINS` env var (comma-separated) from its own environment,
-all defaulting to the 5173 dev app when unset:
+`LOUPE_ALLOWED_ORIGINS` env var (comma-separated) from its own environment. The
+default (when the var is UNSET) is the 5173 dev app **plus the desktop shell's
+Tauri origins** (`tauri://localhost` on macOS/Linux, `http://tauri.localhost`
+on Windows) — T2.5, kept identical in `server/app/origins.py` and the Deno
+mirror.
 
 | Surface | Reader | Where to set it |
 | --- | --- | --- |
@@ -57,7 +60,22 @@ all defaulting to the 5173 dev app when unset:
 | Modal endpoint (CORS) | `server/app/origins.py` (used by `modal_app.py`) | the `loupe-analyze-jwt` Modal secret (add the key, redeploy) |
 | Edge Function (CORS) | `supabase/functions/mint-analyze-token/index.ts` (mirrors the Python parsing) | `supabase secrets set LOUPE_ALLOWED_ORIGINS=…` |
 
-Shipping a deployed/Tauri origin is an env change on each surface — never a
+**A surface that SETS `LOUPE_ALLOWED_ORIGINS` overrides the default wholesale** —
+so the Modal secret and the Supabase secret must list the Tauri origins
+explicitly for the packaged desktop app to reach analysis (the default only
+covers `tauri dev`, where the origin is 5173). The T2.5 deploy is therefore:
+
+```sh
+# Modal — append the Tauri origins to the existing allowlist, then redeploy
+modal secret create loupe-analyze-jwt \
+  LOUPE_ALLOWED_ORIGINS='https://…prod-origins…,tauri://localhost,http://tauri.localhost' …
+cd server && .venv/bin/modal deploy modal_app.py
+
+# Supabase — same value
+supabase secrets set LOUPE_ALLOWED_ORIGINS='https://…prod-origins…,tauri://localhost,http://tauri.localhost'
+```
+
+Shipping a per-deployment origin is an env change on each surface — never a
 code edit. Keep the three values identical.
 
 ## 1. Supabase project
