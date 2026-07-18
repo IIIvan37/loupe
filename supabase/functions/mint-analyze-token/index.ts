@@ -28,10 +28,12 @@ const ISSUER = 'loupe-supabase'
 // Origins allowed to call this function from a browser. The SAME allowlist
 // gates the local server and the Modal endpoint (server/app/origins.py, whose
 // parsing this mirrors): every surface reads LOUPE_ALLOWED_ORIGINS from its
-// own environment (`supabase secrets set` here) and falls back to the 5173
-// dev app. Adding an origin is an env change everywhere, never a code edit
-// (see docs/j2-supabase-runbook.md).
-const DEFAULT_ALLOWED_ORIGINS = 'http://localhost:5173,http://127.0.0.1:5173'
+// own environment (`supabase secrets set` here) and falls back to the dev app
+// plus the desktop shell's Tauri origins (T2.5 — the nominal client's own
+// origins, kept in sync with the Python default). Adding a per-deployment
+// origin is still an env change everywhere (see docs/j2-supabase-runbook.md).
+const DEFAULT_ALLOWED_ORIGINS =
+  'http://localhost:5173,http://127.0.0.1:5173,tauri://localhost,http://tauri.localhost'
 
 export function parseAllowedOrigins(raw: string): Set<string> {
   // A literal '*' is dropped like the Python side does (it is inert here —

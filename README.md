@@ -13,12 +13,17 @@ core**, **strict TDD**, and a **blocking quality gate**.
   `src/index.ts` is the only public surface adapters import.
 - **`packages/web`** — the React adapter: Web Audio / localStorage / file ports
   behind the core's interfaces, smart hooks + dumb components, the workstation UI.
+- **`packages/desktop`** — the **nominal client**: a **Tauri 2** shell around the
+  web app. Projects live on the local filesystem (T2.2), URL import runs a managed
+  yt-dlp binary in-process (T2.3), and the heavy analysis is offloaded to **Modal**.
+  Nothing local is required to run it.
 - **`server/`** — a standalone **FastAPI** backend (PyTorch, GPU-capable),
-  deliberately outside the monorepo/hexagon. It hosts project storage plus the
-  heavy jobs — Demucs separation, librosa tempo detection, yt-dlp URL download —
-  behind HTTP/NDJSON contracts, implementing the core's driven ports (e.g.
-  `StemSeparator`); the web app's default `'http'` adapters talk to it. See
-  [server/README.md](server/README.md).
+  deliberately outside the monorepo/hexagon. **No longer on the nominal path**
+  (T2.5): it stays as the dev/CI target and, above all, as the **shared library
+  the Modal deployment imports** — `server/app/` holds the pure inference/guard
+  logic the pytest suite locks and Modal runs in production. In a browser (not the
+  desktop shell) the web app's `'http'` adapters still talk to a local instance.
+  See [server/README.md](server/README.md).
 
 Layering is enforced three ways: the package graph (`@app/core` pure ← `web`
 adapter), **Sheriff** (`sheriff.config.ts`) on the module graph, and **Biome**
@@ -30,9 +35,13 @@ purity invariant Sheriff can't see.
 ```sh
 corepack enable
 pnpm install
-pnpm --filter @app/web dev   # run the workstation
-pnpm gate                    # the blocking quality gate (run before any commit)
+pnpm --filter @app/web dev       # run the workstation in a browser (dev)
+pnpm --filter @app/desktop dev   # run the desktop shell (needs web on :5173)
+pnpm gate                        # the blocking quality gate (run before any commit)
 ```
+
+The desktop shell is the nominal way to run loupe; the local FastAPI server is
+optional (dev/CI + the library Modal deploys — see Architecture).
 
 - **`pnpm gate`** — TypeScript strict, Biome lint+format, Sheriff, vitest with
   coverage thresholds (core), knip (dead code), jscpd (duplication), plus
@@ -62,7 +71,8 @@ packages/core/src/domain        pure model
 packages/core/src/application   use-cases + ports (the registry README lives here)
 packages/core/src/index.ts      the only public surface adapters import
 packages/web/src                the React adapter + workstation UI
-server                          standalone FastAPI backend (storage + separation/tempo/download over HTTP)
+packages/desktop                the Tauri 2 desktop shell (nominal client)
+server                          FastAPI backend — dev/CI + the library Modal deploys (off the nominal path)
 .claude/skills                  the method, as Claude Code skills
 docs/STATUS.md, docs/sessions   resumable project state
 ```
