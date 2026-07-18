@@ -144,7 +144,7 @@ export {
 export type { DetectedChordSpan } from './domain/chord-detection.ts'
 export type { ChordSymbol } from './domain/chord-symbol.ts'
 export { formatChordSymbol, parseChordSymbol } from './domain/chord-symbol.ts'
-export { chromaFromSpectrum } from './domain/chroma.ts'
+export { chromaFromSpectrum, chromaWithHarmonics } from './domain/chroma.ts'
 export { downmixToMono } from './domain/downmix.ts'
 export {
   clampFineTuneCents,

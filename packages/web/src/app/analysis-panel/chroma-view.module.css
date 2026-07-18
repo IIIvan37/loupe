@@ -14,11 +14,14 @@
   min-inline-size: 0;
 }
 
-/* The track the bar grows in — bottom-anchored like a level meter. */
+/* The track the bar grows in — bottom-anchored like a level meter. The two
+ * segments stack: solid played energy under its faded probable-harmonic
+ * share (same hue, dimmed — distinguish, never hide). */
 .well {
   display: flex;
   flex: 1 1 auto;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
   background: var(--panel-2);
   border-radius: var(--radius-s);
   overflow: hidden;
@@ -28,6 +31,19 @@
   inline-size: 100%;
   background: var(--teal);
   transition: block-size var(--motion-fast) var(--motion-ease);
+}
+
+.harmonic {
+  inline-size: 100%;
+  background: var(--teal);
+  opacity: 0.35;
+  transition: block-size var(--motion-fast) var(--motion-ease);
+}
+
+.legend {
+  margin: var(--space-2xs) 0 0;
+  color: var(--dim);
+  font-size: var(--font-size-2xs);
 }
 
 .note {
