@@ -60,9 +60,12 @@ describe('detectKey', () => {
     ['A minor', ['Am', 'Dm', 'Em', 'Am', 'F', 'G', 'Am', 'Am'], 9, 'minor'],
     ['D minor', ['Dm', 'Gm', 'Am', 'Dm', 'A#', 'C', 'Dm', 'Dm'], 2, 'minor'],
     ['E minor', ['Em', 'Am', 'Bm', 'Em', 'C', 'D', 'Em', 'Em'], 4, 'minor']
-  ] as const)('reads %s as its exact tonic and mode', (_name, labels, tonicPc, mode) => {
-    expect(detectKey(progression(labels))).toEqual({ tonicPc, mode })
-  })
+  ] as const)(
+    'reads %s as its exact tonic and mode',
+    (_name, labels, tonicPc, mode) => {
+      expect(detectKey(progression(labels))).toEqual({ tonicPc, mode })
+    }
+  )
 
   it('reads the mode from the chords thirds — same roots, flipped quality', () => {
     // The roots C, F, G alone don't fix the mode; the chords' thirds do.

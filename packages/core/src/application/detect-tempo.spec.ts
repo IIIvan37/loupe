@@ -119,18 +119,16 @@ describe('detectTempo', () => {
     })
   })
 
-  it.each([
-    'engine-unavailable',
-    'network',
-    'timeout',
-    'too-large'
-  ] as const)('carries a typed %s TempoDetectionError code through', async (code) => {
-    const boom: TempoDetector = {
-      detect: async () => {
-        throw new TempoDetectionError(code, `HTTP says ${code}`)
+  it.each(['engine-unavailable', 'network', 'timeout', 'too-large'] as const)(
+    'carries a typed %s TempoDetectionError code through',
+    async (code) => {
+      const boom: TempoDetector = {
+        detect: async () => {
+          throw new TempoDetectionError(code, `HTTP says ${code}`)
+        }
       }
+      const result = await detectTempo({ audio }, { detector: boom })
+      expect(result).toEqual({ ok: false, code, detail: `HTTP says ${code}` })
     }
-    const result = await detectTempo({ audio }, { detector: boom })
-    expect(result).toEqual({ ok: false, code, detail: `HTTP says ${code}` })
-  })
+  )
 })
