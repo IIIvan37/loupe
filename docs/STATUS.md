@@ -807,8 +807,7 @@ onglet Notes (placeholder) supprimé — 3 onglets. Décisions : temps/mesure
 suffisent, pas de 5 s résiduel avec grille. Gate **verte — 1866 tests**
 (+11), Stryker au close.
 [rapport](sessions/2026-07-18-musical-seek-notes-tab.md).
-**3/6 — harmoniques distinguées au Spectre (branche
-`feat/spectrum-harmonics`, stackée sur #205, PR à ouvrir)** : core
+**3/6 — harmoniques distinguées au Spectre mergé (PR #206)** : core
 `chromaWithHarmonics` (pics stricts en bande + plancher 5 %, harmonique si
 multiple entier 2…8 d'un pic plus grave, ±30 cents ou un bin plein dans le
 grave ; chroma inchangé, `harmonicShare` par classe), barres en deux
@@ -817,8 +816,17 @@ Browser-verify : quinte fantôme du 3ᵉ partiel entièrement estompée. Gate
 **verte — 1887 tests** (+21), **Stryker 91,91 %** (`chroma.ts` 94,4 %,
 7 équivalents documentés).
 [rapport](sessions/2026-07-18-spectrum-harmonics.md).
-Reste : **4/6** grilles d'accords sur stem de basse (Demucs en prod,
-détecteurs à router — checkpoint d'approche à faire).
+**4a/6 — accords sur mix sans batterie (branche `feat/chords-on-stems`,
+PR #207)** : `monoMixWithout` pur (client-side — zéro changement
+serveur), `useChordDetection` prend `stems` + `ensureStems` (séparation
+implicite best-effort, repli mix complet), `useSeparateAndLoad` résout les
+sources. Cadrage validé : « les deux » (mix sans batterie + basse slash
+chords), séparation implicite. Gate **verte — 1877 tests**, **Stryker
+91,73 %** (`analysis-mix.ts` 95,8 %, 1 équivalent documenté).
+[rapport](sessions/2026-07-18-chords-on-stems-4a.md).
+Restent : **4b/6** slash chords depuis le stem de basse (core pur,
+checkpoint d'approche à faire) + browser-verify du flux implicite sur
+Modal réel.
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets

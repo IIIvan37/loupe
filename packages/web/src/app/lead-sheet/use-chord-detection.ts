@@ -4,7 +4,9 @@ import {
   type ChordDetector,
   type DecodedAudio,
   type DetectedSection,
-  detectChords
+  detectChords,
+  monoMixWithout,
+  type SeparatedStem
 } from '@app/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -61,6 +63,8 @@ export function useChordDetection({
   grid,
   beatsPerBar,
   sections,
+  stems,
+  ensureStems,
   onDraft,
   detector,
   gate = ensureAnalysisToken
@@ -73,6 +77,15 @@ export function useChordDetection({
   /** The song's already-known sections (the timeline's structure markers) —
    * the draft is cut by them so a prior structure detection is not erased. */
   readonly sections?: readonly DetectedSection[] | undefined
+  /** The session's separated stems, when a separation already ran — the
+   * detector then hears the mix minus drums (pre-beta point 4a). */
+  readonly stems?: ReadonlyArray<SeparatedStem> | undefined
+  /** Separate first when no stems exist yet (implicit, narrated by the
+   * separation's own progress). Resolves undefined on failure/cancel — the
+   * detection then falls back to the full mix, never blocks on it. */
+  readonly ensureStems?:
+    | (() => Promise<ReadonlyArray<SeparatedStem> | undefined>)
+    | undefined
   readonly onDraft: (source: string) => void
   readonly detector?: ChordDetector | undefined
   /** Acquire the analyse token before running (offload gate, M1.1). Defaults
@@ -111,6 +124,8 @@ export function useChordDetection({
     grid,
     beatsPerBar,
     sections,
+    stems,
+    ensureStems,
     onDraft
   })
 
@@ -159,13 +174,34 @@ export function useChordDetection({
         return
       }
     }
+    // Stems first (4a): an already-separated session reuses its stems; a
+    // fresh one separates implicitly — best-effort, a failure or cancel
+    // falls back to the full mix. The ticket guard drops a run superseded
+    // (cancel, newer detect, track swap) while the separation awaited.
+    let stemsNow = inputRef.current.stems
+    const separate = inputRef.current.ensureStems
+    if (!stemsNow && separate) {
+      const ticket = runIdRef.current
+      stemsNow = await separate()
+      if (
+        runIdRef.current !== ticket ||
+        inputRef.current.loadedAudio !== audio
+      ) {
+        return
+      }
+    }
+    // The chord engine prefers the mix minus drums: still its training
+    // regime, minus the percussive noise. No stems → the full mix as before.
+    const analysisAudio = stemsNow
+      ? (monoMixWithout(stemsNow, 'drums') ?? audio)
+      : audio
     controllerRef.current?.abort()
     const controller = new AbortController()
     controllerRef.current = controller
     const runId = ++runIdRef.current
     const result = await detectChords(
       {
-        audio,
+        audio: analysisAudio,
         grid: beatGrid,
         barsPerRow: rows,
         beatsPerBar: bar,

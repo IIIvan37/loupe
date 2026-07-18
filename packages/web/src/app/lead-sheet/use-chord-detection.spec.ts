@@ -414,4 +414,95 @@ describe('useChordDetection', () => {
     expect(gate).not.toHaveBeenCalled()
     expect(onDraft).toHaveBeenCalledOnce()
   })
+
+  it('feeds the detector the mix minus drums when stems exist', async () => {
+    const heard: DecodedAudio[] = []
+    const spy: ChordDetector = {
+      detect: async (audio) => {
+        heard.push(audio)
+        return [{ startSeconds: 0, endSeconds: 2, label: 'C' }]
+      }
+    }
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        stems: [
+          {
+            id: 'bass',
+            label: 'Basse',
+            audio: { sampleRate: 4, channels: [[0.2, 0.2, 0.2, 0.2]] }
+          },
+          {
+            id: 'drums',
+            label: 'Batterie',
+            audio: { sampleRate: 4, channels: [[0.9, 0.9, 0.9, 0.9]] }
+          }
+        ],
+        onDraft: () => {},
+        detector: spy
+      })
+    )
+    await act(() => result.current.detect(4))
+    expect(Array.from(heard[0]?.channels[0] ?? [])).toEqual(
+      Array.from(new Float32Array([0.2, 0.2, 0.2, 0.2]))
+    )
+  })
+
+  it('separates implicitly when no stems exist, then hears their mix', async () => {
+    const heard: DecodedAudio[] = []
+    const spy: ChordDetector = {
+      detect: async (audio) => {
+        heard.push(audio)
+        return [{ startSeconds: 0, endSeconds: 2, label: 'C' }]
+      }
+    }
+    const ensureStems = vi.fn(async () => [
+      {
+        id: 'vocals',
+        label: 'Voix',
+        audio: { sampleRate: 4, channels: [[0.3, 0.3, 0.3, 0.3]] }
+      },
+      {
+        id: 'drums',
+        label: 'Batterie',
+        audio: { sampleRate: 4, channels: [[0.9, 0.9, 0.9, 0.9]] }
+      }
+    ])
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        ensureStems,
+        onDraft: () => {},
+        detector: spy
+      })
+    )
+    await act(() => result.current.detect(4))
+    expect(ensureStems).toHaveBeenCalledTimes(1)
+    expect(Array.from(heard[0]?.channels[0] ?? [])).toEqual(
+      Array.from(new Float32Array([0.3, 0.3, 0.3, 0.3]))
+    )
+  })
+
+  it('falls back to the full mix when the implicit separation yields nothing', async () => {
+    const heard: DecodedAudio[] = []
+    const spy: ChordDetector = {
+      detect: async (audio) => {
+        heard.push(audio)
+        return [{ startSeconds: 0, endSeconds: 2, label: 'C' }]
+      }
+    }
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid: GRID,
+        ensureStems: async () => undefined,
+        onDraft: () => {},
+        detector: spy
+      })
+    )
+    await act(() => result.current.detect(4))
+    expect(heard[0]).toBe(AUDIO)
+  })
 })

@@ -2,7 +2,8 @@ import type {
   BeatGrid,
   ChordDetector,
   DecodedAudio,
-  DetectedSection
+  DetectedSection,
+  SeparatedStem
 } from '@app/core'
 import { useChordChart } from './use-chord-chart.ts'
 import {
@@ -22,9 +23,17 @@ export function useChordChartSession({
   grid,
   beatsPerBar,
   sections,
+  stems,
+  ensureStems,
   detector,
   onSourceEdited
 }: {
+  /** The session's separated stems (4a) — chords then hear mix minus drums. */
+  readonly stems?: ReadonlyArray<SeparatedStem> | undefined
+  /** Implicit separation before a chord run when no stems exist yet. */
+  readonly ensureStems?:
+    | (() => Promise<ReadonlyArray<SeparatedStem> | undefined>)
+    | undefined
   readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
   readonly beatsPerBar?: number | undefined
@@ -60,6 +69,8 @@ export function useChordChartSession({
     grid,
     beatsPerBar,
     sections,
+    stems,
+    ensureStems,
     // A landed draft is in the track's own key — it resets the key offset.
     onDraft: chart.seatDraft,
     detector

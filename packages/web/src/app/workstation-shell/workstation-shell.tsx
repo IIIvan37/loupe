@@ -192,6 +192,9 @@ export function WorkstationShell({
   } = player
   const markers = useMarkers()
   const tempo = useTempo(tempoDetector)
+  const metronome = useMetronome({ mixer })
+  // Separate the loaded track and wire the stems (+ metronome) into the mixer.
+  const separateAndLoad = useSeparateAndLoad({ separation, tempo, mixer, metronome })
   useModalWarmup(loadedAudio) // warm the Modal container on import (no-op locally)
   // Chart session + « Détecter les accords » / « Détecter la structure » —
   // the chart↔structure pairing (S.3b) lives in its own hook.
@@ -200,10 +203,11 @@ export function WorkstationShell({
       loadedAudio,
       analysis: tempo.analysis,
       markers,
+      separation,
+      separateAndLoad,
       chordDetector,
       structureDetector
     })
-  const metronome = useMetronome({ mixer })
   const loops = useLoops()
   const loopEditing = useLoopEditing(loops, {
     durationSeconds: transport.durationSeconds,
@@ -290,9 +294,6 @@ export function WorkstationShell({
     unsavedWork: session.unsavedWork,
     importStatus: importState.status
   })
-
-  // Separate the loaded track and wire the stems (+ metronome) into the mixer.
-  const separateAndLoad = useSeparateAndLoad({ separation, tempo, mixer, metronome })
 
   // Reload/close would silently drop unsaved work — let the browser confirm.
   useUnloadGuard(session.unsavedWork)

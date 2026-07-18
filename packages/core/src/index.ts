@@ -100,6 +100,7 @@ export type {
 } from './application/separate-track.ts'
 export { SeparationError, separateTrack } from './application/separate-track.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
+export { monoMixWithout } from './domain/analysis-mix.ts'
 export type {
   Beat,
   BeatGrid,

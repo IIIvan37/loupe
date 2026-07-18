@@ -10,6 +10,7 @@ import { i18n } from '../../i18n/i18n.ts'
 import {
   beatsAt,
   chartEditor,
+  failingSeparator,
   healthFetch,
   importTrack,
   installShellHooks,
@@ -280,7 +281,12 @@ describe('WorkstationShell chart → marker sync', () => {
         { startSeconds: 0, endSeconds: 4, label: 'verse' },
         { startSeconds: 4, endSeconds: 8, label: 'chorus' }
       ]),
-      chordDetector
+      chordDetector,
+      // The 4a implicit separation would succeed with the kit's fake stems
+      // and the detected KEY would then read THEIR signal, not this track's.
+      // A failing separator falls back to the full mix — this spec is about
+      // structure surviving chords, not about the stems path.
+      separator: failingSeparator
     })
     await importTrack(user)
 
