@@ -867,8 +867,21 @@ rejetés — plus de tokens lus depuis une URL), CI Rust path-filtrée
 5/5, Stryker skippé (core intouché). Vérif PKCE en bundle à rejouer avant la
 beta desktop. [rapport](sessions/2026-07-18-ac-desktop-security.md).
 
-**En cours : Lot AE — headers/footers** (l'irritant utilisateur), puis AD,
-AF–AI, puis garde-fous beta.
+**Lot AC + AI.1 mergés (PR #210).**
+**Lot AE — headers/footers (branche `feat/ae-header-footer-density`, PR à
+ouvrir)** : l'irritant utilisateur soldé — peaux interactives avec
+`font-size: s` par défaut (l'omission ne fuit plus vers le 1rem body — ferme
+le trou du verrou par construction), peau `.chromeBar` partagée (clone jscpd
+résorbé, padding resté chez le consommateur — cascade inter-fichiers non
+garantie), densité (footer 2xs, header xs, champ cents sur un étage en `s`),
+« Vitesse » seul (précision → tooltip). Mesuré : header 63→55 px, footer
+94→58 px, boutons 32→28 px. Reste optionnel : champs 2 étages (~48 px), à
+checkpointer. Gate **verte — 1914 tests**, Stryker skippé.
+[rapport](sessions/2026-07-18-ae-header-footer-density.md).
+
+**En cours : Lot AD — parcours accords** (narration/annulation séparation
+implicite, DSP mesuré puis hors main thread, memo V.1 restauré), puis AF–AI,
+puis garde-fous beta.
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
