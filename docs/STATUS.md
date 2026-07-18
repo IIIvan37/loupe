@@ -834,8 +834,24 @@ appliqué après le fold ; le hook calcule depuis le stem `bass` (4a). Gate
 **verte — 1912 tests** (+35), **Stryker 91,47 %** (`detect-chords` 100 %,
 `bass-line` 83,2 % — 21 survivants documentés en famille DSP).
 [rapport](sessions/2026-07-18-bass-slash-chords-4b.md).
-Reste avant beta : browser-verify du flux complet stems→accords sur Modal
-réel (noté aux rapports 4a/4b).
+**4a/4b mergés (PRs #207, #208).**
+
+**Browser-verify stems→accords sur Modal réel + fix ids stems (PR #209,
+mergée) — LOT PRÉ-BETA SOLDÉ** : le verify du flux implicite complet (import →
+tempo → accords → séparation implicite ~70 s → grille) a trouvé **zéro slash
+sur deux vrais morceaux** → bug : le hook cherchait `'bass'`/`'drums'` alors
+que le manifest serveur émet des ids **français** (`basse`/`batterie`) — 4a ET
+4b no-opaient silencieusement (specs vertes contre des fakes anglais). Fix
+TDD : specs aux ids réels, cas hook bout-en-bout `basse`+C → `C/E`,
+`app/stems/stem-ids.ts` épinglé sur stem_manifest.py. Re-verify : `Fm/Ab`
+imprimé sur Somebody To Love. Leçon durable : les fakes portent les
+ids/valeurs du contrat réel, pas des plausibles. Gate **verte — 1913 tests**
+(+3), Stryker skippé (core intouché).
+[rapport](sessions/2026-07-18-stem-ids-french-fix.md).
+
+**En cours : revue excellence multi-agents (évaluation notée v6)** — inclut
+l'irritant utilisateur « headers et footers trop gros par rapport au reste du
+design » ; puis fixes de revue, puis garde-fous beta.
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
