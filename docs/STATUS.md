@@ -749,8 +749,39 @@ balayé par le sweep câblé. Gate **verte — 1816 tests** (+81), **Stryker
 corrigées (3 S8980 de `use-separation.spec.tsx` = faux positifs, à marquer FP
 dans l'UI SonarCloud). CI GitHub **rétablie** (fin de la panne de facturation).
 
-**T2.3 — import URL desktop (yt-dlp sous-process, branche
-`feat/t23-ytdlp-sidecar`, PR à ouvrir)** : le crate Rust `yt-dlp` est
+**T2.3 mergé (PR #196).** **Ménage dependabot (2026-07-18)** : 8 PR triées par
+risque. Cause racine des gates rouges = le `^2.5.3` de biome faisait tirer
+biome **2.5.4** à chaque re-résolution du lockfile, qui reformate 3 specs →
+mergé **avec** le reformatage (PR #179). Mergées : #179 (tooling), #198
+(music-metadata), #199 (supabase-js), #200 (python fastapi+4). Fermées (ML
+serveur non validable par la CI torch-free, décision A.1) : #177 transformers
+4→5, #178 huggingface-hub 0→1, #197/#201 (groupes régénérés torch/demucs/
+x-transformers). Laissées ouvertes (session outillage dédiée) : **#180**
+TypeScript 6→7, **#53** vitejs 5→6.
+
+**T2.4 — SANS OBJET (acté 2026-07-18)** : app local-only sur une machine, aucune
+base `~/.loupe` à migrer → pas de code (le desktop lit son app-data, ignore
+`~/.loupe`). Suppression des anciens projets = `rm -rf ~/.loupe` opérateur.
+
+**T2.5 — retrait du serveur du chemin nominal (branche `feat/t25-retire-server`,
+PR à ouvrir) — SORTIE DE PHASE 2** : le serveur quitte la doc d'install (README :
+le desktop Tauri est le client nominal ; le serveur reste dev/CI + **lib que
+Modal déploie**, les pytest verrouillent la logique partagée). Les 3 allowlists
+gagnent les origins Tauri (`tauri://localhost` mac/linux, `http://tauri.localhost`
+windows) **par défaut** dans `origins.py` + miroir Deno (origin du client
+nominal, pas un secret par-déploiement) + tests (232 pytest, preflight Deno).
+**En prod l'env `LOUPE_ALLOWED_ORIGINS` écrase le défaut** → secret Modal +
+secret Supabase doivent lister les origins Tauri : **étape opérateur** au runbook
+§0bis (modal CLI absent ici ; en `tauri dev` l'origin est déjà 5173 donc
+l'analyse marche — la vérif bundle→Modal attend ce déploiement). Docs (README,
+runbook, plan, STATUS) à jour.
+
+**Prochain** : garde-fous beta (plafond de dépense Modal + SMTP custom pour le
+rate limit e-mail ~2/h), déploiement des secrets Tauri (Modal+Supabase), puis
+les 🟢 v5 au fil de l'eau. **Cap Phase 2 atteint** : loupe = app de bureau +
+Modal, aucun Python local nominal.
+
+**T2.3 — import URL desktop (yt-dlp sous-process, mergé PR #196)** : le crate Rust `yt-dlp` est
 **GPL-3.0 → NO-GO** ; on pilote le **binaire yt-dlp** (Unlicense) en
 sous-process depuis une commande Rust `download_track`, à parité de gardes
 avec `download.py` (allowlist, budget 900 s, `--max-filesize 500m`,
@@ -767,11 +798,6 @@ events de progrès), vimeo refusé, annulation → rejet propre + slot libéré,
 sweep déterministe (orphelin planté balayé, `downloads/` vide). Gate **verte —
 1824 web** (+~20), `cargo test` 3/3 + clippy propre, Stryker skippé (core
 intouché). [rapport](sessions/2026-07-18-t23-ytdlp-sidecar.md).
-
-**Prochain : T2.4** (migration `~/.loupe` → app-data Tauri), puis T2.5
-(retrait du serveur + origins Tauri) ; les 🟢 v5 au fil de l'eau ; garde-fous :
-alerte de facturation Modal + SMTP custom (rate limit e-mail ~2/h) avant
-d'ouvrir aux beta-testeurs.
 
 **Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
 avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
