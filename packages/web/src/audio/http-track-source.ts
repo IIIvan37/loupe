@@ -1,5 +1,6 @@
 import type { DownloadProgress, FetchedTrack, TrackSource } from '@app/core'
 import { streamNdjson } from './read-ndjson.ts'
+import { toTrackMetadata } from './track-metadata.ts'
 
 /** One NDJSON line the server streams while downloading a track. */
 type DownloadEvent =
@@ -62,13 +63,7 @@ export function createHttpTrackSource(baseUrl: string): TrackSource {
 
       return {
         bytes: await audioResponse.arrayBuffer(),
-        metadata: {
-          title: done.title,
-          ...(done.duration !== undefined
-            ? { durationSeconds: done.duration }
-            : {}),
-          ...(done.uploader !== undefined ? { artist: done.uploader } : {})
-        }
+        metadata: toTrackMetadata(done.title, done.duration, done.uploader)
       }
     }
   }
