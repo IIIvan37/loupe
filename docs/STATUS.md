@@ -910,8 +910,20 @@ l'incrémental Stryker peut garder des Survived périmés — CI post-merge fait
 foi, `--force` localement. Gate **verte — 1930 tests** (+8), Stryker global
 91,27 %. [rapport](sessions/2026-07-18-af-ai-review-fixes.md).
 
-**Prochain** : garde-fous beta utilisateur (plafond Modal, SMTP —
-checklist), passe mutants form-encoder dédiée, chemin natif export desktop.
+**AI.2 (solde) — passe mutants form-encoder (branche
+`feat/ai2-form-encoder-mutants`, PR à ouvrir)** : `form-encoder.ts`
+**71,2 % → 89,34 %** (48 mutants tués, 0 NoCoverage), global core **92,75 %**.
+Tests only (aucune ligne de l'encodeur touchée) : chaque scénario sondé
+d'abord (sortie réelle vérifiée) puis promu en pin exact ou oracle
+`playedLabels` — spec 16 → 31 tests (rollout×mètres, volta×mètres dont le
+vote par sous-run, D.C. exacts — rejeu entier sans `{fine}`, alignement
+ABCABC —, ties de coût, leads `{time:}`). Les 34 survivants restants
+documentés par famille d'équivalence au rapport. Gate **verte — 1944 tests**
+(+14). [rapport](sessions/2026-07-18-ai2-form-encoder-mutants.md).
+
+**Prochain** : garde-fous beta utilisateur (plafond Modal dashboard ; SMTP —
+piste Resend sur `iiivan.org` actée, câblage dès que la clé API est posée
+localement), chemin natif export desktop (plugin-dialog).
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
