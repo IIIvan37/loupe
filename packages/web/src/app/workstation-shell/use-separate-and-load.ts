@@ -1,4 +1,9 @@
-import { type DecodedAudio, type MixerState, UNITY_GAIN_DB } from '@app/core'
+import {
+  type DecodedAudio,
+  type MixerState,
+  type SeparatedStem,
+  UNITY_GAIN_DB
+} from '@app/core'
 import type { useMixer } from '../mixer/use-mixer.ts'
 import type { useSeparation } from '../separation/use-separation.ts'
 import {
@@ -26,14 +31,19 @@ export function useSeparateAndLoad({
   tempo,
   mixer,
   metronome
-}: SeparateAndLoadDeps): (audio: DecodedAudio | undefined) => void {
-  return (audio) => {
+}: SeparateAndLoadDeps): (
+  audio: DecodedAudio | undefined
+) => Promise<readonly SeparatedStem[] | undefined> {
+  // Resolves with the isolated sources once the mixer is wired — the chord
+  // flow's implicit separation (4a) awaits them; undefined on failure/cancel
+  // (the caller falls back, separation's own UI already told the story).
+  return async (audio) => {
     if (!audio) {
-      return
+      return undefined
     }
-    void separation.separate(audio).then((result) => {
+    return separation.separate(audio).then((result) => {
       if (!result) {
-        return
+        return undefined
       }
       if (tempo.analysis) {
         // Fresh stems start at unity; carry the metronome's current settings
@@ -66,6 +76,7 @@ export function useSeparateAndLoad({
       } else {
         mixer.load(result.stems, result.sources)
       }
+      return result.sources
     })
   }
 }
