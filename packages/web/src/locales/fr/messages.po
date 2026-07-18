@@ -482,7 +482,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:374
+#: src/app/workstation-shell/workstation-shell.tsx:375
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -1422,7 +1422,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:262
+#: src/app/workstation-shell/workstation-shell.tsx:266
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
