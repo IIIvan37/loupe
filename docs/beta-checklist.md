@@ -18,7 +18,12 @@
   465, user `resend`, pass = clé API restreinte à l'envoi, stockée hors
   dépôt dans `~/.loupe-secrets/resend.key`) + rate limit e-mail monté à
   ~30/h. Vérifié réellement : envoi API Resend direct OK, puis magic link
-  `POST /auth/v1/otp` → 200 (un échec SMTP répondrait 500), e-mail reçu.
+  `POST /auth/v1/otp` → 200 (un échec SMTP répondrait 500), e-mails reçus —
+  **en spam Gmail**. Cause : pas de DMARC sur `iiivan.org` (DKIM et
+  Return-Path `send.` sont OK). Reste : poser `TXT _dmarc.iiivan.org` =
+  `v=DMARC1; p=none; rua=mailto:ivan.duchauffour@gmail.com` (Netlify DNS),
+  durcir en `p=quarantine` plus tard ; marquer « Non spam » entraîne le
+  filtre en attendant.
 - [ ] **Re-seed des codes beta legacy < 32 chars** en prod (runbook U.3 :
   `gen_random_uuid()`, le CHECK d'entropie ne couvre que les nouveaux).
 
