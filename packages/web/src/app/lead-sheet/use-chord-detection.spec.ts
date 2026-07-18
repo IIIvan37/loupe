@@ -427,14 +427,18 @@ describe('useChordDetection', () => {
       useChordDetection({
         loadedAudio: AUDIO,
         grid: GRID,
+        // Real session stems carry the server manifest's FRENCH ids
+        // (stem_manifest.py: bass→basse, drums→batterie) — the fakes must
+        // too, or the exclusion under test would pass against ids the app
+        // never sees (the 4a/4b silent no-op found in browser-verify).
         stems: [
           {
-            id: 'bass',
+            id: 'basse',
             label: 'Basse',
             audio: { sampleRate: 4, channels: [[0.2, 0.2, 0.2, 0.2]] }
           },
           {
-            id: 'drums',
+            id: 'batterie',
             label: 'Batterie',
             audio: { sampleRate: 4, channels: [[0.9, 0.9, 0.9, 0.9]] }
           }
@@ -459,12 +463,12 @@ describe('useChordDetection', () => {
     }
     const ensureStems = vi.fn(async () => [
       {
-        id: 'vocals',
+        id: 'voix',
         label: 'Voix',
         audio: { sampleRate: 4, channels: [[0.3, 0.3, 0.3, 0.3]] }
       },
       {
-        id: 'drums',
+        id: 'batterie',
         label: 'Batterie',
         audio: { sampleRate: 4, channels: [[0.9, 0.9, 0.9, 0.9]] }
       }
@@ -483,6 +487,39 @@ describe('useChordDetection', () => {
     expect(Array.from(heard[0]?.channels[0] ?? [])).toEqual(
       Array.from(new Float32Array([0.3, 0.3, 0.3, 0.3]))
     )
+  })
+
+  it('prints the bass stem under a contradicting chord (C over E → C/E)', async () => {
+    // One real measure of low E (82.4 Hz) — long enough for the bass FFT
+    // window — under a detected C: the draft must read the slash.
+    const sampleRate = 44100
+    const samples = new Float32Array(sampleRate)
+    for (let i = 0; i < samples.length; i++) {
+      samples[i] = Math.sin((2 * Math.PI * 82.4 * i) / sampleRate)
+    }
+    const grid: BeatGrid = [
+      { timeSeconds: 0, downbeat: true },
+      { timeSeconds: 1, downbeat: true }
+    ]
+    const onDraft = vi.fn()
+    const { result } = renderHook(() =>
+      useChordDetection({
+        loadedAudio: AUDIO,
+        grid,
+        stems: [
+          {
+            id: 'basse',
+            label: 'Basse',
+            audio: { sampleRate, channels: [samples] }
+          }
+        ],
+        onDraft,
+        detector: detectorOf(['C'])
+      })
+    )
+    await act(() => result.current.detect(4))
+    expect(onDraft).toHaveBeenCalledOnce()
+    expect(onDraft.mock.calls[0]?.[0]).toContain('C/E')
   })
 
   it('falls back to the full mix when the implicit separation yields nothing', async () => {
