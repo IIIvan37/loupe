@@ -12,11 +12,13 @@
   le dashboard Modal** (Settings → Billing). Référence : dépense du mois en
   cours mesurée ce jour ≈ **3,67 $** (tout le développement inclus) — un
   plafond à ~25 $/mois laisse un ordre de grandeur de marge à la beta.
-- [ ] **SMTP custom Supabase** — sans lui, ~2 e-mails/h sur tout le projet :
-  deux magic links et la beta est sourde (noté depuis T2.1bis). Choisir un
-  fournisseur (Resend/Brevo/SES…), créer la clé, puis Dashboard Supabase →
-  Auth → SMTP (ou `config.toml` + management API). Penser au domaine
-  d'envoi (SPF/DKIM).
+- [x] **SMTP custom Supabase** — **FAIT (2026-07-19)** : Resend sur le
+  domaine `iiivan.org` (déjà vérifié SPF/DKIM), expéditeur
+  `loupe@iiivan.org`, posé au Dashboard (Auth → SMTP : `smtp.resend.com`,
+  465, user `resend`, pass = clé API restreinte à l'envoi, stockée hors
+  dépôt dans `~/.loupe-secrets/resend.key`) + rate limit e-mail monté à
+  ~30/h. Vérifié réellement : envoi API Resend direct OK, puis magic link
+  `POST /auth/v1/otp` → 200 (un échec SMTP répondrait 500), e-mail reçu.
 - [ ] **Re-seed des codes beta legacy < 32 chars** en prod (runbook U.3 :
   `gen_random_uuid()`, le CHECK d'entropie ne couvre que les nouveaux).
 
