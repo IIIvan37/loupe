@@ -807,11 +807,17 @@ onglet Notes (placeholder) supprimé — 3 onglets. Décisions : temps/mesure
 suffisent, pas de 5 s résiduel avec grille. Gate **verte — 1866 tests**
 (+11), Stryker au close.
 [rapport](sessions/2026-07-18-musical-seek-notes-tab.md).
-**3/6 — harmoniques distinguées au Spectre : PR #206 ouverte** (branche
-`feat/spectrum-harmonics` — détail dans son
-[rapport](sessions/2026-07-18-spectrum-harmonics.md)).
+**3/6 — harmoniques distinguées au Spectre mergé (PR #206)** : core
+`chromaWithHarmonics` (pics stricts en bande + plancher 5 %, harmonique si
+multiple entier 2…8 d'un pic plus grave, ±30 cents ou un bin plein dans le
+grave ; chroma inchangé, `harmonicShare` par classe), barres en deux
+segments (plein = joué, estompé 0,35 = harmonique probable) + légende.
+Browser-verify : quinte fantôme du 3ᵉ partiel entièrement estompée. Gate
+**verte — 1887 tests** (+21), **Stryker 91,91 %** (`chroma.ts` 94,4 %,
+7 équivalents documentés).
+[rapport](sessions/2026-07-18-spectrum-harmonics.md).
 **4a/6 — accords sur mix sans batterie (branche `feat/chords-on-stems`,
-PR à ouvrir)** : `monoMixWithout` pur (client-side — zéro changement
+PR #207)** : `monoMixWithout` pur (client-side — zéro changement
 serveur), `useChordDetection` prend `stems` + `ensureStems` (séparation
 implicite best-effort, repli mix complet), `useSeparateAndLoad` résout les
 sources. Cadrage validé : « les deux » (mix sans batterie + basse slash

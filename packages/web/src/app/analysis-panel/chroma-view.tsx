@@ -1,4 +1,4 @@
-import { chromaFromSpectrum, type SpectrumFrame } from '@app/core'
+import { chromaWithHarmonics, type SpectrumFrame } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useEffect, useState } from 'react'
 import type { ExternalValue } from '../../lib/external-value.ts'
@@ -42,13 +42,16 @@ interface ChromaViewProps {
  */
 export function ChromaView({ readSpectrum, playing, position }: ChromaViewProps) {
   const { t } = useLingui()
-  const [chroma, setChroma] = useState<readonly number[]>()
+  const [reading, setReading] = useState<{
+    readonly chroma: readonly number[]
+    readonly harmonicShare: readonly number[]
+  }>()
   const latestRead = useLatest(readSpectrum)
   useEffect(() => {
     const read = () => {
       const frame = latestRead.current()
       if (frame) {
-        setChroma(chromaFromSpectrum(frame.magnitudes, frame.sampleRate))
+        setReading(chromaWithHarmonics(frame.magnitudes, frame.sampleRate))
       }
     }
     if (playing) {
@@ -65,7 +68,7 @@ export function ChromaView({ readSpectrum, playing, position }: ChromaViewProps)
       unsubscribe()
     }
   }, [playing, position, latestRead])
-  if (!playing && chroma === undefined) {
+  if (!playing && reading === undefined) {
     return (
       <p className={styles.idle}>
         {t({
@@ -76,26 +79,45 @@ export function ChromaView({ readSpectrum, playing, position }: ChromaViewProps)
     )
   }
   return (
-    <div
-      className={styles.chart}
-      role="img"
-      aria-label={t({
-        id: 'analysis.chroma-label',
-        message: 'Notes dominantes à la position de lecture'
-      })}
-    >
-      {PITCH_CLASSES.map((name, pitchClass) => (
-        <div key={name} className={styles.column}>
-          <div className={styles.well}>
-            <div
-              className={styles.bar}
-              data-testid={`chroma-bar-${name}`}
-              style={{ blockSize: `${(chroma?.[pitchClass] ?? 0) * 100}%` }}
-            />
-          </div>
-          <span className={styles.note}>{name}</span>
-        </div>
-      ))}
-    </div>
+    <>
+      <div
+        className={styles.chart}
+        role="img"
+        aria-label={t({
+          id: 'analysis.chroma-label',
+          message: 'Notes dominantes à la position de lecture'
+        })}
+      >
+        {PITCH_CLASSES.map((name, pitchClass) => {
+          const value = reading?.chroma[pitchClass] ?? 0
+          const share = reading?.harmonicShare[pitchClass] ?? 0
+          return (
+            <div key={name} className={styles.column}>
+              <div className={styles.well}>
+                {/* Total height unchanged — the harmonic share only dims
+                    the top of the bar (distinguish, never hide). */}
+                <div
+                  className={styles.harmonic}
+                  data-testid={`chroma-harmonic-${name}`}
+                  style={{ blockSize: `${value * share * 100}%` }}
+                />
+                <div
+                  className={styles.bar}
+                  data-testid={`chroma-bar-${name}`}
+                  style={{ blockSize: `${value * (1 - share) * 100}%` }}
+                />
+              </div>
+              <span className={styles.note}>{name}</span>
+            </div>
+          )
+        })}
+      </div>
+      <p className={styles.legend}>
+        {t({
+          id: 'analysis.chroma-legend',
+          message: 'Estompé : harmoniques probables d’une note plus grave.'
+        })}
+      </p>
+    </>
   )
 }
