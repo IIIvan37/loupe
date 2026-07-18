@@ -267,11 +267,20 @@ export function relabelChartBySections(
   // the relabelled chart, exactly as the detection draft does (the session's
   // beatsPerBar keeps a folded grid's density from reading as the meter).
   const { meters, dominant } = chartMeters(grid, beatsPerBar)
-  return renderStructuredSource(
+  const body = renderStructuredSource(
     cutBySections(labels, meters, sections, grid),
     barsPerRow,
     dominant
   )
+  // The head zone survives the relabel (AF.1): {key} carries the tonal
+  // spelling and the transposition offset, and any user directive ({title},
+  // {style}…) is theirs to keep. {time} stays re-derived from the grid
+  // above; {form} is legitimately dropped — its rollout is written out in
+  // full here (re-folding = the instance deduction, a v2).
+  const head = Object.entries(parseChart(source).directives)
+    .filter(([key]) => key !== 'time' && key !== 'form')
+    .map(([key, value]) => `{${key}: ${value}}`)
+  return head.length === 0 ? body : `${head.join('\n')}\n${body}`
 }
 
 /** A section's start on the timeline: the instant of the downbeat where its

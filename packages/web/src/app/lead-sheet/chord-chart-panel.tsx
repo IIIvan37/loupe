@@ -1,6 +1,7 @@
 import { chartMatchesPitch, parseChart } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { exportsUnavailableOnDesktop } from '../desktop/desktop-export.ts'
 import { LiveStatus } from '../ui/live-status.tsx'
 import { signedSemitones } from '../ui/signed-semitones.ts'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
@@ -146,8 +147,18 @@ export function ChordChartPanel({
           className={styles.printButton}
           // A source that renders no chart would print a blank page — the
           // action waits for content, the same test the sheet uses to emit
-          // its print region.
-          disabled={!printable}
+          // its print region. window.print() has no delegate in the desktop
+          // webview (AH.1): disabled with a hint, never a silent no-op.
+          disabled={!printable || exportsUnavailableOnDesktop()}
+          title={
+            exportsUnavailableOnDesktop()
+              ? t({
+                  id: 'chords.print-desktop-soon',
+                  message:
+                    "Impression bientôt disponible sur l'app de bureau"
+                })
+              : undefined
+          }
           onClick={() => window.print()}
         >
           {t({ id: 'chords.print', message: 'Imprimer' })}

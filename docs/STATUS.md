@@ -893,9 +893,25 @@ cancel dans le yield pré-DSP ne supplantait pas le run). Gate **verte — 1922
 tests** (+8), **Stryker 91,27 %** (familles DSP documentées au rapport).
 [rapport](sessions/2026-07-18-ad-chords-path.md).
 
-**En cours : Lot AF — forme/slash** (relabel préserve {key}, headChord coupe
-au /), puis AG (quota import), AH (exports desktop), AI.2 (mutants
-form-encoder), puis garde-fous beta.
+**Lot AD mergé (PR #212).**
+**Lots AF + AG + AH.1 + AI.2 (branche `feat/af-form-slash-coherence`, PR à
+ouvrir) — ROADMAP v6 : tous les 🟠 traités** : AF.1 le relabel préserve la
+zone de tête ({key}/directives ; {form} droppé, refold=v2) ; AF.2 headChord
+slash-blind (le jitter de basse ne défait plus la forme) ; AG.1 l'import ne
+minte plus (auto-détection différée sans jeton frais — face on-offer X.2, le
+premier geste d'analyse reste à l'utilisateur) ; AH.1 v1 exports/impression
+**désactivés avec hint sous Tauri** (fini le toast sur un export fantôme —
+chemin natif plugin-dialog en follow-up) ; AI.2 partiel : le vrai mutant de
+collision du memo DP tué, form-encoder reste à 71,2 % (passe dédiée
+reportée). **Checklist beta écrite** (`docs/beta-checklist.md`) : plafond
+Modal = dashboard (dépense mesurée 3,67 $/mois), SMTP custom = choix
+utilisateur, PKCE-en-bundle + re-seed legacy à rejouer. Piège outillage :
+l'incrémental Stryker peut garder des Survived périmés — CI post-merge fait
+foi, `--force` localement. Gate **verte — 1930 tests** (+8), Stryker global
+91,27 %. [rapport](sessions/2026-07-18-af-ai-review-fixes.md).
+
+**Prochain** : garde-fous beta utilisateur (plafond Modal, SMTP —
+checklist), passe mutants form-encoder dédiée, chemin natif export desktop.
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets

@@ -80,6 +80,29 @@ describe('encodeChartSource — da capo', () => {
     expect(encodeChartSource(song, undefined, 4).source).toContain('{fine}')
   })
 
+  it('a one-bar pair stays plain — a repeat sign that saves nothing loses the tie (AI.2)', () => {
+    // Cost tie (write 2 vs fold 1+repeat): the navigation tie-break keeps
+    // the plain writing. Pins BOTH the cost sum's sign (written PLUS
+    // navigation — a minus would make every fold free) and the tie-break.
+    expect(encodeChartSource(['C', 'C'], undefined, 4).source).toBe('| C | C |')
+  })
+
+  it('plans each range on its own — distinct sections never share a memo entry (AI.2)', () => {
+    // Five instances over three section types: the DP solves several
+    // distinct (from, to) subproblems. A degenerate memo key (every range
+    // colliding on one entry) would replay the wrong range's plan and break
+    // the playback — the survivor Stryker flagged on the key template.
+    const song = [
+      ...bars('C'),
+      ...bars('C'),
+      ...bars('F'),
+      ...bars('F'),
+      ...bars('G')
+    ]
+    const { source } = encodeChartSource(song, undefined, 4)
+    expect(playedLabels(source)).toEqual(song)
+  })
+
   it('a D.C. that would only save a few bars never wins', () => {
     const shortA = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'G7']
     const shortB = ['F', 'G', 'Em', 'Am', 'Dm', 'G7', 'C', 'C']
