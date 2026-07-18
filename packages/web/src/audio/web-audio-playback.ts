@@ -1,5 +1,9 @@
 import type { DecodedAudio, PlaybackEngine } from '@app/core'
-import { audioBufferFrom, createStretchTransport } from './web-audio-shared.ts'
+import {
+  audioBufferFrom,
+  createStretchTransport,
+  pausedSpectrumFrame
+} from './web-audio-shared.ts'
 
 /**
  * Driven adapter for the `PlaybackEngine` port. Plays decoded audio through an
@@ -22,7 +26,12 @@ export function createWebAudioPlayback(): PlaybackEngine {
   // Last load wins: a lazy hand-back reload racing a fresh import must never
   // let the slower (stale) load land its buffer on top of the newer one.
   let loadId = 0
-  const transport = createStretchTransport(() => buffer?.duration)
+  const transport = createStretchTransport(
+    () => buffer?.duration,
+    // Paused Spectre: one frame of the loaded track at the playhead.
+    (seconds) =>
+      buffer ? pausedSpectrumFrame([{ buffer, gain: 1 }], seconds) : undefined
+  )
 
   function stopSource(): void {
     if (source) {

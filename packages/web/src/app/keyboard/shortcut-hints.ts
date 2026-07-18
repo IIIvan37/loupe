@@ -79,11 +79,19 @@ const PLAY_PAUSE = msg({
 })
 const SEEK_BACK = msg({
   id: 'shortcuts.seek-back',
-  message: 'Reculer de {seconds} s'
+  message: 'Reculer d’un temps (5 s sans grille)'
 })
 const SEEK_FORWARD = msg({
   id: 'shortcuts.seek-forward',
-  message: 'Avancer de {seconds} s'
+  message: 'Avancer d’un temps (5 s sans grille)'
+})
+const SEEK_BACK_BAR = msg({
+  id: 'shortcuts.seek-back-bar',
+  message: 'Reculer d’une mesure'
+})
+const SEEK_FORWARD_BAR = msg({
+  id: 'shortcuts.seek-forward-bar',
+  message: 'Avancer d’une mesure'
 })
 const ZOOM_IN = msg({ id: 'shortcuts.zoom-in', message: 'Zoom avant' })
 const ZOOM_OUT = msg({ id: 'shortcuts.zoom-out', message: 'Zoom arrière' })
@@ -115,12 +123,11 @@ function describeCommand(command: Command): string {
   switch (command.type) {
     case 'togglePlayback':
       return i18n._(PLAY_PAUSE)
-    case 'seekBy': {
-      const descriptor = command.seconds < 0 ? SEEK_BACK : SEEK_FORWARD
-      const seconds = Math.abs(command.seconds)
-      // The macro always emits a message; the fallback only satisfies the types.
-      const message = descriptor.message ?? descriptor.id
-      return i18n._(descriptor.id, { seconds }, { message })
+    case 'seekStep': {
+      const [back, forward] = command.coarse
+        ? [SEEK_BACK_BAR, SEEK_FORWARD_BAR]
+        : [SEEK_BACK, SEEK_FORWARD]
+      return i18n._(command.direction < 0 ? back : forward)
     }
     case 'zoomIn':
       return i18n._(ZOOM_IN)

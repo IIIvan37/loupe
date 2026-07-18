@@ -9,6 +9,7 @@ import {
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Tabs } from '@base-ui-components/react/tabs'
 import { cx } from '../../lib/cx.ts'
+import type { ExternalValue } from '../../lib/external-value.ts'
 import { Icon } from '../ui/icon.tsx'
 import { NameEditor } from '../ui/name-editor.tsx'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
@@ -16,10 +17,13 @@ import { ChromaView } from './chroma-view.tsx'
 import styles from './analysis-panel.module.css'
 
 interface AnalysisPanelProps {
-  /** One read of the audible spectrum — the Spectre tab's live source. */
+  /** One read of the signal's spectrum — the Spectre tab's source (live tap
+   * while playing, buffer at the playhead at rest). */
   readonly readSpectrum: () => SpectrumFrame | undefined
   /** Whether the transport is running (the chroma only polls while it is). */
   readonly playing: boolean
+  /** The playhead stream — paused seeks refresh the Spectre tab. */
+  readonly position: ExternalValue<number>
   readonly markers: MarkerList
   /** Jump to a marker's time. */
   readonly onSeekMarker: (timeSeconds: number) => void
@@ -47,6 +51,7 @@ interface AnalysisPanelProps {
 export function AnalysisPanel({
   readSpectrum,
   playing,
+  position,
   markers,
   onSeekMarker,
   onRenameMarker,
@@ -75,13 +80,14 @@ export function AnalysisPanel({
           <Tabs.Tab value="boucles" className={cx(styles.tab)}>
             <Trans id="analysis.tab-loops">Boucles</Trans>
           </Tabs.Tab>
-          <Tabs.Tab value="notes" className={cx(styles.tab)}>
-            <Trans id="analysis.tab-notes">Notes</Trans>
-          </Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="spectre" className={cx(styles.tabPanel)}>
-          <ChromaView readSpectrum={readSpectrum} playing={playing} />
+          <ChromaView
+            readSpectrum={readSpectrum}
+            playing={playing}
+            position={position}
+          />
         </Tabs.Panel>
 
         <Tabs.Panel value="reperes" className={cx(styles.tabPanel)}>
@@ -191,11 +197,6 @@ export function AnalysisPanel({
           )}
         </Tabs.Panel>
 
-        <Tabs.Panel value="notes" className={cx(styles.tabPanel)}>
-          <Trans id="analysis.notes-placeholder">
-            Les annotations textuelles arriveront plus tard.
-          </Trans>
-        </Tabs.Panel>
       </Tabs.Root>
     </aside>
   )

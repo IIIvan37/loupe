@@ -787,10 +787,29 @@ que l'hôte déclare (`data-sheet-scrollport` sur `.sheetViewport` ; sans
 marqueur = no-op, print-first conservé). Gate **verte — 1833 tests** (+9),
 Stryker skippé (core intouché).
 [rapport](sessions/2026-07-18-fix-lead-sheet-follow-scroll.md).
-Restent : 2/4 Spectre actif en pause+navigation (décision : « pas à pas » =
-seek en pause, FFT au playhead à concevoir), 3/4 fondamentales vs harmoniques
-au Spectre, 4/4 grilles d'accords sur stem de basse (Demucs déjà en prod,
-détecteurs à router).
+**1/6 mergé (PR #203).**
+**2/6 — Spectre en pause + navigation (branche `feat/spectrum-paused`, PR à
+ouvrir)** : core pur `spectrumFromSamples` (Hann + FFT radix-2, convention
+analyser — `chromaFromSpectrum` inchangé), `mixWindow` pur + callback
+`pausedSpectrum` optionnel sur le transport (les deux moteurs le fournissent,
+stems aux gains de faders), `ChromaView` lit au tick de pause puis par seek
+(abonnement position, pas de poll). Dès l'import, le Spectre montre t=0 sans
+lecture (validé). Browser-verify réel : A440→C523 au seek en pause. Gate
+**verte — 1855 tests** (+22), **Stryker 91,62 %** (8 équivalents documentés).
+[rapport](sessions/2026-07-18-spectrum-paused.md).
+**5/6 + 6/6 — seek musical + retrait onglet Notes (branche
+`feat/musical-seek-notes-tab`, stackée sur #204, PR à ouvrir)** : core
+`seekStepSeconds` (temps adjacent, downbeat avec Shift, repli 5 s sans
+grille — `adjacentGridTime` partagé avec `nudgeSeconds`), commande
+`seekStep {direction, coarse}` (4 bindings flèches ± Shift), hints dérivés
+(« d'un temps » / « d'une mesure »), `useShellShortcuts` prend la grille ;
+onglet Notes (placeholder) supprimé — 3 onglets. Décisions : temps/mesure
+suffisent, pas de 5 s résiduel avec grille. Gate **verte — 1866 tests**
+(+11), Stryker au close.
+[rapport](sessions/2026-07-18-musical-seek-notes-tab.md).
+Restent : **3/6** marquage visuel des harmoniques au Spectre (distinguer,
+PAS filtrer — cadrage précisé), **4/6** grilles d'accords sur stem de basse
+(Demucs en prod, détecteurs à router).
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
