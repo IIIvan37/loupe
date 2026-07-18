@@ -3,11 +3,17 @@
    same skin everywhere. Consumers `composes:` these and add their own dimensions
    (padding, font-weight, margins). */
 
+/* Every interactive skin carries the workshop's control size (`s`) by
+   default: an omission must never fall through to the browser's 1rem — that
+   is exactly how the header actions drifted 25 % above the scale (v6 AE.1).
+   Consumers may still override deliberately. */
+
 .amberButton {
   border-radius: var(--radius);
   border: 1px solid var(--amber);
   background: var(--amber);
   color: var(--bg);
+  font-size: var(--font-size-s);
 }
 
 .amberButton:hover:not(:disabled) {
@@ -37,6 +43,7 @@
   border: 1px solid var(--line);
   background: transparent;
   color: var(--text);
+  font-size: var(--font-size-s);
 }
 
 .secondaryAction:hover:not(:disabled) {
@@ -54,6 +61,7 @@
   border: 1px solid var(--line);
   background: transparent;
   color: var(--dim);
+  font-size: var(--font-size-s);
 }
 
 .ghostButton:hover:not(:disabled) {
@@ -137,6 +145,7 @@
   background: transparent;
   color: var(--danger);
   font-weight: 600;
+  font-size: var(--font-size-s);
 }
 
 /* Touch hit-target expanders — composed by small controls so that on coarse
@@ -236,4 +245,18 @@
   padding-inline: var(--space-xs);
   background: var(--panel-3);
   font-size: var(--font-size-s);
+}
+
+/* The app's chrome bars (header + transport footer) share one skin: wrap
+   rather than overflow on narrow screens, panel fill. Consumers add their
+   own border edge and padding (their density knob — cross-file cascade
+   order makes overriding a skin's shorthand unreliable), and, for the
+   footer, its stickiness. */
+.chromeBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s) var(--space-l);
+  background: var(--panel);
 }
