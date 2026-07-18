@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom/vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { LeadSheet } from './lead-sheet.tsx'
@@ -286,5 +286,55 @@ describe('LeadSheet', () => {
       { wrapper: I18nTestingProvider }
     )
     expect(container.querySelector('[aria-current]')).toHaveTextContent('C')
+  })
+
+  describe('playhead follow', () => {
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    // jsdom has no layout: fake a 100px scrollport over a 400px sheet and give
+    // every measure the same rect — only the CURRENT one takes the follow ref.
+    // The port stays DETACHED (assertions read it directly, never via screen)
+    // so its content can't leak into the other tests' whole-document queries.
+    function scrollport(measureRect: { top: number; height: number }) {
+      const port = document.createElement('div')
+      port.setAttribute('data-sheet-scrollport', '')
+      Object.defineProperty(port, 'clientHeight', { value: 100 })
+      Object.defineProperty(port, 'scrollHeight', { value: 400 })
+      let scrollTop = 0
+      Object.defineProperty(port, 'scrollTop', {
+        get: () => scrollTop,
+        set: (top: number) => {
+          scrollTop = top
+        }
+      })
+      port.getBoundingClientRect = () => ({ top: 0 }) as DOMRect
+      vi.spyOn(
+        HTMLElement.prototype,
+        'getBoundingClientRect'
+      ).mockReturnValue(measureRect as DOMRect)
+      return port
+    }
+
+    it('scrolls ONLY the sheet scrollport to reveal the playing measure', () => {
+      const port = scrollport({ top: 240, height: 40 })
+      render(<LeadSheet source={'| C | Am |'} currentMeasureIndex={1} />, {
+        wrapper: I18nTestingProvider,
+        container: port
+      })
+      // The measure (240–280) aligns to the viewport bottom; the page's own
+      // scroll is untouched — the regression was scrollIntoView dragging it.
+      expect(port.scrollTop).toBe(180)
+    })
+
+    it('leaves the scroll alone when the playing measure is visible', () => {
+      const port = scrollport({ top: 20, height: 40 })
+      render(<LeadSheet source={'| C | Am |'} currentMeasureIndex={0} />, {
+        wrapper: I18nTestingProvider,
+        container: port
+      })
+      expect(port.scrollTop).toBe(0)
+    })
   })
 })

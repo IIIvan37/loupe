@@ -10,6 +10,7 @@ import { cx } from '../../lib/cx.ts'
 import { chartHasContent } from './chart-content.ts'
 import { ChartHeader, type ChartHeaderData } from './chart-header.tsx'
 import { ChordGlyph } from './chord-glyph.tsx'
+import { followScrollTop } from './follow-scroll-top.ts'
 import styles from './lead-sheet.module.css'
 import { TimeSignature } from './time-signature.tsx'
 
@@ -181,6 +182,16 @@ function keyed(
 }
 
 /**
+ * The host's declared scrollport — the panel's sheetViewport carries the
+ * marker when the sheet is mounted in the workstation, nothing when it
+ * renders unbounded (print). An explicit attribute, not CSS sniffing: the
+ * host OWNS the decision of which box absorbs the follow scroll.
+ */
+function scrollportOf(node: HTMLElement): HTMLElement | null {
+  return node.closest<HTMLElement>('[data-sheet-scrollport]')
+}
+
+/**
  * A read-only lead-sheet: the grid `source` parsed into sections of measures and
  * laid out as bars in a row. Pure presentation — all parsing lives in the core;
  * the layout is plain CSS grid, no library.
@@ -229,11 +240,31 @@ export function LeadSheet({
       : ({ '--bars-per-row': barsPerRow } as CSSProperties)
   // Follow the playhead: React invokes this ref exactly when a measure BECOMES
   // current (the ref prop flips undefined → callback), so it fires once per
-  // measure change, never per playhead frame. `nearest` only scrolls the first
-  // scrollable ancestor (the panel's scrollport) and is a no-op when the sheet
-  // fits without one — the component stays print-first.
+  // measure change, never per playhead frame. The scroll is scoped to the
+  // nearest scrollport (the panel's sheetViewport) — scrollIntoView would walk
+  // every scrollable ancestor and drag the PAGE along when the panel itself
+  // sits off-screen. No scrollport (print, sheet fits) — no-op: print-first.
   const followPlayhead = useCallback((node: HTMLElement | null) => {
-    node?.scrollIntoView({ block: 'nearest' })
+    if (!node) {
+      return
+    }
+    const port = scrollportOf(node)
+    if (!port) {
+      return
+    }
+    const portRect = port.getBoundingClientRect()
+    const nodeRect = node.getBoundingClientRect()
+    const measureTop = nodeRect.top - portRect.top + port.scrollTop
+    const top = followScrollTop({
+      measureTop,
+      measureBottom: measureTop + nodeRect.height,
+      scrollTop: port.scrollTop,
+      clientHeight: port.clientHeight,
+      scrollHeight: port.scrollHeight
+    })
+    if (top !== null) {
+      port.scrollTop = top
+    }
   }, [])
   // A chart head over no chart is noise (and would double the app header's
   // title): the head only prints once the source holds a grid or directives.

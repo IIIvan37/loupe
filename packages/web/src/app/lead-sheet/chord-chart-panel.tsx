@@ -202,8 +202,9 @@ export function ChordChartPanel({
       <LiveStatus message={followedAnnounce} />
       {/* A detected chart spans the whole track (~120 measures in one click):
           the scrollport bounds the sheet so it never stretches the page and
-          pushes the transport out of the viewport (K.1). */}
-      <div className={styles.sheetViewport}>
+          pushes the transport out of the viewport (K.1). The marker declares
+          it as THE box the sheet's playhead follow may scroll — and no other. */}
+      <div className={styles.sheetViewport} data-sheet-scrollport>
         <LeadSheet
           source={source}
           header={header}
