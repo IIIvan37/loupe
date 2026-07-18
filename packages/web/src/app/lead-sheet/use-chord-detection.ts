@@ -19,6 +19,7 @@ import {
 import { createChordDetector } from '../../audio/create-chord-detector.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
 import { useLatest } from '../../lib/use-latest.ts'
+import { BASS_STEM_ID, DRUMS_STEM_ID } from '../stems/stem-ids.ts'
 import {
   DEFAULT_BARS_PER_ROW,
   readStoredBarsPerRow
@@ -195,12 +196,12 @@ export function useChordDetection({
     // The chord engine prefers the mix minus drums: still its training
     // regime, minus the percussive noise. No stems → the full mix as before.
     const analysisAudio = stemsNow
-      ? (monoMixWithout(stemsNow, 'drums') ?? audio)
+      ? (monoMixWithout(stemsNow, DRUMS_STEM_ID) ?? audio)
       : audio
     // The isolated bass names each measure's true low note (4b) — the
     // use-case prints it as the slash of any single-chord measure it
     // contradicts. No bass stem → no slashes, exactly as before.
-    const bassStem = stemsNow?.find((stem) => stem.id === 'bass')
+    const bassStem = stemsNow?.find((stem) => stem.id === BASS_STEM_ID)
     const bassNotes = bassStem
       ? bassNotePerMeasure(
           downmixToMono(bassStem.audio.channels),
