@@ -104,17 +104,15 @@ describe('resolveCommand', () => {
     expect(resolveCommand(defaultKeyBindings, { code: 'KeyZ' })).toBeUndefined()
   })
 
-  it.each([
-    'shift',
-    'ctrl',
-    'alt',
-    'meta'
-  ] as const)('does not fire a bare-key binding when %s is held', (modifier) => {
-    // Any single modifier on a bare chord must reach the browser/OS instead.
-    expect(
-      resolveCommand(defaultKeyBindings, { code: 'Space', [modifier]: true })
-    ).toBeUndefined()
-  })
+  it.each(['shift', 'ctrl', 'alt', 'meta'] as const)(
+    'does not fire a bare-key binding when %s is held',
+    (modifier) => {
+      // Any single modifier on a bare chord must reach the browser/OS instead.
+      expect(
+        resolveCommand(defaultKeyBindings, { code: 'Space', [modifier]: true })
+      ).toBeUndefined()
+    }
+  )
 
   it('treats absent and false modifiers as equivalent', () => {
     expect(
