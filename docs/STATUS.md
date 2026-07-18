@@ -777,10 +777,25 @@ tauri://localhost + http://tauri.localhost échoés des deux côtés, random.exa
 refusé (fail-closed intact). Blocage CORS du bundle levé. Docs (README,
 runbook, plan, STATUS) à jour.
 
-**Prochain** : garde-fous beta (plafond de dépense Modal + SMTP custom pour le
-rate limit e-mail ~2/h), déploiement des secrets Tauri (Modal+Supabase), puis
-les 🟢 v5 au fil de l'eau. **Cap Phase 2 atteint** : loupe = app de bureau +
-Modal, aucun Python local nominal.
+**En cours : lot pré-beta « problèmes d'UI »** (4 points relevés à l'usage) —
+**1/4 : fix scroll parasite du suivi de grille (branche
+`fix/lead-sheet-follow-scroll`, PR à ouvrir)** : le follow du playhead de la
+LeadSheet remplace `scrollIntoView` (qui ajuste TOUS les ancêtres scrollables
+→ la page défilait à chaque mesure) par `followScrollTop` pur (patron
+`followScrollLeft` waveform, sémantique nearest + clamp) scopé au scrollport
+que l'hôte déclare (`data-sheet-scrollport` sur `.sheetViewport` ; sans
+marqueur = no-op, print-first conservé). Gate **verte — 1833 tests** (+9),
+Stryker skippé (core intouché).
+[rapport](sessions/2026-07-18-fix-lead-sheet-follow-scroll.md).
+Restent : 2/4 Spectre actif en pause+navigation (décision : « pas à pas » =
+seek en pause, FFT au playhead à concevoir), 3/4 fondamentales vs harmoniques
+au Spectre, 4/4 grilles d'accords sur stem de basse (Demucs déjà en prod,
+détecteurs à router).
+
+**Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
+Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
+Tauri (Modal+Supabase), puis les 🟢 v5 au fil de l'eau. **Cap Phase 2
+atteint** : loupe = app de bureau + Modal, aucun Python local nominal.
 
 **T2.3 — import URL desktop (yt-dlp sous-process, mergé PR #196)** : le crate Rust `yt-dlp` est
 **GPL-3.0 → NO-GO** ; on pilote le **binaire yt-dlp** (Unlicense) en

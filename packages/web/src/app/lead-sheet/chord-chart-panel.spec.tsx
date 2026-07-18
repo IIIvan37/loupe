@@ -314,10 +314,8 @@ describe('ChordChartPanel long grids', () => {
     expect(viewport?.querySelectorAll('[class*="measure"]')).toHaveLength(120)
   })
 
-  it('scrolls the playing measure into view when playback reaches it', () => {
-    const scrolls = vi.fn()
-    Element.prototype.scrollIntoView = scrolls
-    const { rerender } = render(
+  it('scrolls its own scrollport — never the page — to follow playback', () => {
+    const { container, rerender } = render(
       <ChordChartPanel
         source={longSource}
         onSourceChange={() => {}}
@@ -328,7 +326,28 @@ describe('ChordChartPanel long grids', () => {
       />,
       { wrapper: I18nTestingProvider }
     )
-    scrolls.mockClear()
+    // jsdom has no layout: fake a 100px scrollport over the sheet, and put
+    // the next playing measure below its bottom edge (240–280).
+    const port = container.querySelector<HTMLElement>(
+      '[data-sheet-scrollport]'
+    )
+    if (!port) {
+      throw new Error('the panel must declare its sheet scrollport')
+    }
+    Object.defineProperty(port, 'clientHeight', { value: 100 })
+    Object.defineProperty(port, 'scrollHeight', { value: 400 })
+    let portScrollTop = 0
+    Object.defineProperty(port, 'scrollTop', {
+      get: () => portScrollTop,
+      set: (top: number) => {
+        portScrollTop = top
+      }
+    })
+    port.getBoundingClientRect = () => ({ top: 0 }) as DOMRect
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      top: 240,
+      height: 40
+    } as DOMRect)
     rerender(
       <ChordChartPanel
         source={longSource}
@@ -339,7 +358,10 @@ describe('ChordChartPanel long grids', () => {
         currentMeasureIndex={42}
       />
     )
-    expect(scrolls).toHaveBeenCalledWith({ block: 'nearest' })
+    vi.restoreAllMocks()
+    // The measure aligns to the scrollport's bottom edge; the regression was
+    // scrollIntoView walking every ancestor and dragging the page along.
+    expect(portScrollTop).toBe(180)
   })
 
   it('keeps the playing measure marked for assistive tech on long grids', () => {
