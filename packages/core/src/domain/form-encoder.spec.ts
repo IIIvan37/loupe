@@ -63,27 +63,255 @@ describe('encodeChartSource — calibration', () => {
   })
 })
 
+describe('encodeChartSource — rollout and meters', () => {
+  const cycleWithShortBar = [
+    '| C | Am | F | G |',
+    '{time: 2/4}',
+    '| Em |',
+    '{time: 4/4}',
+    '| Am | Dm | G7 |'
+  ].join('\n')
+
+  it('a returning mid-cycle meter change rides the rollout', () => {
+    // The voted cycle meters print inside the rolled body: losing them would
+    // silently re-time every pass of the form.
+    const meters = [4, 4, 4, 4, 2, 4, 4, 4]
+    const song = [...CHORUS, ...CHORUS, ...CHORUS]
+    expect(
+      encodeChartSource(song, [...meters, ...meters, ...meters], 4, 4)
+    ).toEqual({ source: cycleWithShortBar, rollout: 3 })
+  })
+
+  it('an unknown opening meter enters the cycle at the running one', () => {
+    // meters[0] undefined: the walk enters at initialMeter — a broken entry
+    // would refuse a perfectly returning cycle.
+    const meters = [undefined, 4, 4, 4, 2, 4, 4, 4]
+    const song = [...CHORUS, ...CHORUS, ...CHORUS]
+    expect(
+      encodeChartSource(song, [...meters, ...meters, ...meters], 4, 4)
+    ).toEqual({ source: cycleWithShortBar, rollout: 3 })
+  })
+
+  it('a cycle whose meter does not return refuses the rollout', () => {
+    // Each pass ends in 3/4 while the next re-opens in 4/4: rolling that out
+    // would re-time pass 2..N — the song must print flat instead.
+    const meters = [4, 4, 4, 4, 4, 4, 3, 3]
+    const song = [...CHORUS, ...CHORUS, ...CHORUS]
+    const encoded = encodeChartSource(
+      song,
+      [...meters, ...meters, ...meters],
+      4,
+      4
+    )
+    expect(encoded.rollout).toBeUndefined()
+    expect(encoded.source.includes('|:')).toBe(false)
+  })
+})
+
+describe('encodeChartSource — voltas and meters', () => {
+  const VARIANT = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'E7']
+  /** One 8-bar pass with a returning 3/4 bar — steady is false, so the
+      volta bracket is off the table and folds must carry the form. */
+  const CHANGING = [4, 4, 3, 4, 4, 4, 4, 4]
+  const foldedChorus = (ending: string, close: string) =>
+    [
+      '|: C | Am |',
+      '{time: 3/4}',
+      '| F |',
+      '{time: 4/4}',
+      '| G | Em | Am | Dm |',
+      `| ${ending} ${close}`
+    ].join('\n')
+
+  it('steady meters keep the volta bracket', () => {
+    const out = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'C', 'C']
+    const song = [...CHORUS, ...out]
+    expect(encodeChartSource(song, Array(16).fill(4), 4, 4).source).toBe(
+      '|: C | Am | F | G |\n| Em | Am |\n|1. Dm | G7 :|\n|2. C | C |'
+    )
+  })
+
+  it('an in-block meter change refuses the volta and folds the clean pair', () => {
+    // P P P': no volta (meters not steady), so the clean pair folds and the
+    // variant pass prints faithfully — its own bars, not the type vote.
+    const song = [...CHORUS, ...CHORUS, ...VARIANT]
+    const meters = [...CHANGING, ...CHANGING, ...CHANGING]
+    expect(encodeChartSource(song, meters, 4, 4).source).toBe(
+      `[A]\n${foldedChorus('G7', ':|')}\n\n[A]\n${foldedChorus('E7', '|').replace('|:', '|')}`
+    )
+  })
+
+  it('an unknown bar meter is steady — the volta bracket stays', () => {
+    // A hole in the section meters (one bar the grid could not time) is not
+    // a meter CHANGE: it inherits the running meter, so the volta is legal.
+    const out = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'C', 'C']
+    const song = [...CHORUS, ...out]
+    const meters = Array(16).fill(4)
+    meters[3] = undefined
+    meters[11] = undefined
+    expect(encodeChartSource(song, meters, 4, 4).source).toBe(
+      '|: C | Am | F | G |\n| Em | Am |\n|1. Dm | G7 :|\n|2. C | C |'
+    )
+  })
+
+  it('a fold votes only over the passes it folds', () => {
+    // P P P' P' P': the head pair folds with ITS ending (G7) even though the
+    // variant ending (E7) wins the type-wide vote 3 to 2 — a fold that voted
+    // across the whole type would rewrite history.
+    const song = [...CHORUS, ...CHORUS, ...VARIANT, ...VARIANT, ...VARIANT]
+    const meters = Array.from({ length: 5 }, () => CHANGING).flat()
+    expect(encodeChartSource(song, meters, 4, 4).source).toBe(
+      `[A]\n${foldedChorus('G7', ':|')}\n\n[A]\n${foldedChorus('E7', ':| x3')}`
+    )
+  })
+})
+
+describe('encodeChartSource — plan rendering', () => {
+  it('a cost tie keeps plain writing over the volta bracket', () => {
+    // Two 4-bar passes differing at the last bar: volta (3 body + 2 endings,
+    // nav 3) and plain writing (8 bars, nav 0) cost the same — the
+    // navigation tie-break keeps the plain rows, and the faithful print
+    // keeps each pass's own ending.
+    const song = ['C', 'Am', 'F', 'G', 'C', 'Am', 'F', 'E7']
+    expect(encodeChartSource(song, undefined, 4).source).toBe(
+      '| C | Am | F | G |\n| C | Am | F | E7 |'
+    )
+  })
+
+  it('a section in a new meter gets its lead line before the header', () => {
+    // A A B with B in 3/4: the {time:} lead prints ABOVE [B] — a signature
+    // change at a section boundary, not inside the block.
+    const a = bars('C').slice(0, 8)
+    const b = bars('F').slice(0, 8)
+    const song = [...a, ...a, ...b]
+    const meters = [...Array(16).fill(4), ...Array(8).fill(3)]
+    expect(encodeChartSource(song, meters, 4, 4).source).toBe(
+      [
+        '[A]',
+        '|: C0m0 | C1m1 | C2m2 | C3m3 |',
+        '| C4m4 | C5m5 | C6m6 | C7m7 :|',
+        '',
+        '{time: 3/4}',
+        '[B]',
+        '| F0m0 | F1m1 | F2m2 | F3m3 |',
+        '| F4m4 | F5m5 | F6m6 | F7m7 |'
+      ].join('\n')
+    )
+  })
+
+  it('with no running meter the head block prints no lead line', () => {
+    // Same song as above but WITHOUT an initial meter: the head block's 4/4
+    // is adopted silently (the head names the meter, it is not a change) —
+    // only the genuine 3/4 boundary prints a lead.
+    const a = bars('C').slice(0, 8)
+    const b = bars('F').slice(0, 8)
+    const song = [...a, ...a, ...b]
+    const meters = [...Array(16).fill(4), ...Array(8).fill(3)]
+    const { source } = encodeChartSource(song, meters, 4)
+    expect(source.startsWith('[A]\n|: C0m0')).toBe(true)
+    expect(source).toContain('{time: 3/4}\n[B]')
+  })
+
+  it('a non-returning section restates its meter across written copies', () => {
+    // X P P where P ends in 3/4: the pair cannot fold (the second copy needs
+    // a {time: 4/4} restatement), so ONE run block writes both copies — and
+    // only the measures inside the range (never the whole song).
+    const x = bars('X').slice(0, 8)
+    const p = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'G7']
+    const mp = [4, 4, 4, 4, 4, 4, 3, 3]
+    const song = [...x, ...p, ...p]
+    const meters = [...Array(8).fill(4), ...mp, ...mp]
+    const pRows = [
+      '| C | Am | F | G |',
+      '| Em | Am |',
+      '{time: 3/4}',
+      '| Dm | G7 |'
+    ]
+    expect(encodeChartSource(song, meters, 4, 4).source).toBe(
+      [
+        '[A]',
+        '| X0m0 | X1m1 | X2m2 | X3m3 |',
+        '| X4m4 | X5m5 | X6m6 | X7m7 |',
+        '',
+        '[B]',
+        ...pRows,
+        '{time: 4/4}',
+        ...pRows
+      ].join('\n')
+    )
+  })
+})
+
+/** 16-bar sections that no shorter tiling explains. */
+const bars = (seed: string) =>
+  Array.from({ length: 16 }, (_, index) => `${seed}${index % 8}m${index}`)
+
+/** The 4-per-row rows a 16-bar `bars(seed)` section prints. */
+const barsRows = (seed: string) =>
+  [
+    `| ${seed}0m0 | ${seed}1m1 | ${seed}2m2 | ${seed}3m3 |`,
+    `| ${seed}4m4 | ${seed}5m5 | ${seed}6m6 | ${seed}7m7 |`,
+    `| ${seed}0m8 | ${seed}1m9 | ${seed}2m10 | ${seed}3m11 |`,
+    `| ${seed}4m12 | ${seed}5m13 | ${seed}6m14 | ${seed}7m15 |`
+  ].join('\n')
+
 describe('encodeChartSource — da capo', () => {
-  /** 16-bar sections that no shorter tiling explains. */
-  const bars = (seed: string) =>
-    Array.from({ length: 16 }, (_, index) => `${seed}${index % 8}m${index}`)
   const a = bars('C')
   const b = bars('F')
 
-  it('a head-out form replays through a D.C. with a fine', () => {
+  it('a head-out form replays through a D.C. — exact print order', () => {
+    // Pins the whole render: the fine closes the REPLAYED prefix (block 1),
+    // headers appear on every block, and the D.C. is the closing line.
     const song = [...a, ...b, ...a]
-    expect(encodeChartSource(song, undefined, 4).source).toContain('{d.c.}')
+    expect(encodeChartSource(song, undefined, 4).source).toBe(
+      `[A]\n${barsRows('C')}\n{fine}\n\n[B]\n${barsRows('F')}\n{d.c.}`
+    )
   })
 
-  it('the replayed pass ends at the fine', () => {
-    const song = [...a, ...b, ...a]
-    expect(encodeChartSource(song, undefined, 4).source).toContain('{fine}')
+  it('a strophe pair replays whole — D.C. without a fine', () => {
+    // replayed === dcAt: the whole written form replays, so no fine is
+    // printed (a fine after the last block would be the plain end).
+    const song = [...a, ...b, ...a, ...b]
+    const { source } = encodeChartSource(song, undefined, 4)
+    expect(source).toBe(
+      `[A]\n${barsRows('C')}\n\n[B]\n${barsRows('F')}\n{d.c.}`
+    )
+    expect(playedLabels(source)).toEqual(song)
   })
 
-  it('a one-bar pair stays plain — a repeat sign that saves nothing loses the tie (AI.2)', () => {
-    // Cost tie (write 2 vs fold 1+repeat): the navigation tie-break keeps
-    // the plain writing. Pins BOTH the cost sum's sign (written PLUS
-    // navigation — a minus would make every fold free) and the tie-break.
+  it('a three-section replay aligns every pair, not just the ends', () => {
+    // ABCABC: the replay check must compare position i with i (a reversed
+    // walk would match [1] against [1] and accept the wrong alignment).
+    const song = [...a, ...b, ...bars('G'), ...a, ...b, ...bars('G')]
+    const { source } = encodeChartSource(song, undefined, 4)
+    expect(source).toContain('{d.c.}')
+    expect(playedLabels(source)).toEqual(song)
+  })
+
+  it('trailing copies fold into a pass count instead of a D.C.', () => {
+    // a b a a a a: folding the four As (|: :| x4) beats replaying via D.C. —
+    // and the run scan must stop at the range edge either way.
+    const song = [...a, ...b, ...a, ...a, ...a, ...a]
+    const { source } = encodeChartSource(song, undefined, 4)
+    expect(source).toContain(':| x4')
+    expect(playedLabels(source)).toEqual(song)
+  })
+
+  it('a written middle pass prints the type vote, not its own noise', () => {
+    // A B A' B A with one mis-detected bar in the MIDDLE A: that pass is
+    // written (not replayed), and must print the type's voted bars — the
+    // faithful-print path is reserved for genuine ending variants.
+    const noisy = [...a]
+    noisy[5] = 'Zz'
+    const song = [...a, ...b, ...noisy, ...b, ...a]
+    const { source } = encodeChartSource(song, undefined, 4)
+    expect(playedLabels(source)).toEqual([...a, ...b, ...a, ...b, ...a])
+  })
+
+  it('a one-bar pair stays plain (AI.2)', () => {
+    // Too short for any tiling: the song is unstructured and must take the
+    // flat fallback verbatim. (The DP cost/tie-break pins live in the
+    // 'plan rendering' describe — this song never reaches the planner.)
     expect(encodeChartSource(['C', 'C'], undefined, 4).source).toBe('| C | C |')
   })
 
