@@ -12,7 +12,15 @@ export function getSupabaseClient(): SupabaseClient | null {
   if (client === undefined) {
     const url = import.meta.env.VITE_SUPABASE_URL
     const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-    client = url && anonKey ? createClient(url, anonKey) : null
+    // PKCE (AC.3): the magic-link callback carries a one-time `code` that is
+    // useless without the locally-stored verifier — a hijacked `loupe://`
+    // scheme or a foreign callback installs nothing. Trade-off: the link must
+    // be opened by the same client profile that requested it (the normal
+    // magic-link gesture).
+    client =
+      url && anonKey
+        ? createClient(url, anonKey, { auth: { flowType: 'pkce' } })
+        : null
   }
   return client
 }

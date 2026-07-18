@@ -849,9 +849,26 @@ ids/valeurs du contrat réel, pas des plausibles. Gate **verte — 1913 tests**
 (+3), Stryker skippé (core intouché).
 [rapport](sessions/2026-07-18-stem-ids-french-fix.md).
 
-**En cours : revue excellence multi-agents (évaluation notée v6)** — inclut
-l'irritant utilisateur « headers et footers trop gros par rapport au reste du
-design » ; puis fixes de revue, puis garde-fous beta.
+**Évaluation notée v6 (2026-07-18) — [feuille de route v6](roadmap-excellence-6.md).**
+Revue multi-agents 6 axes + enquêteur dédié à l'irritant utilisateur
+« headers/footers trop gros » ; 33 constats, 31 confirmés adversarialement,
+2 réfutés. Note globale **16,75/20** (↓ de 17,2 — première baisse, honnête) :
+fonctionnalités 18 ↑ et ergonomie 17,5 ↑, mais sécurité 15,5 ↓↓ (3 🟠 sur le
+shell Tauri) et performance 15,5 ↓ (DSP 4a/4b synchrone non mesuré, memo V.1
+neutralisé). Lots AC (sécurité desktop) → AE (headers/footers) → AD (parcours
+accords) → AF/AG/AH → AI.
+
+**Lot AC + AI.1 — sécurité desktop (branche `feat/ac-desktop-security`, PR à
+ouvrir)** : yt-dlp épinglé version+sha256 (fini `latest/` exécuté sur TLS
+seul), deny scope fs sur `$APPDATA/bin` + CSP réelle (fini `csp: null`),
+auth desktop en **PKCE** (URL de callback épinglée, fragments implicites
+rejetés — plus de tokens lus depuis une URL), CI Rust path-filtrée
+(fmt+clippy+test, rustfmt.toml indent 2). Gate **verte — 1914 tests**, cargo
+5/5, Stryker skippé (core intouché). Vérif PKCE en bundle à rejouer avant la
+beta desktop. [rapport](sessions/2026-07-18-ac-desktop-security.md).
+
+**En cours : Lot AE — headers/footers** (l'irritant utilisateur), puis AD,
+AF–AI, puis garde-fous beta.
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
