@@ -5,11 +5,11 @@ import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTempo } from './use-tempo.ts'
 
-// The analysis gate only engages on the offload path (VITE_STRUCTURE_URL set).
+// The analysis gate only engages on the offload path (VITE_ANALYSIS_URL set).
 // A developer's .env.local may set it, so pin it OFF for the default cases —
 // their synchronous detector semantics assume the token-less local path. The
 // gate cases opt back in.
-beforeEach(() => vi.stubEnv('VITE_STRUCTURE_URL', ''))
+beforeEach(() => vi.stubEnv('VITE_ANALYSIS_URL', ''))
 afterEach(() => vi.unstubAllEnvs())
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
@@ -525,7 +525,7 @@ describe('useTempo — meter correction', () => {
 
   it('blocks the detection and surfaces the reason when the gate fails (M1.1)', async () => {
     // The gate only runs on the offload path; stub it on for the gate cases.
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const detect = vi.fn()
     const { result } = renderHook(() =>
       useTempo({ detect }, async () => ({
@@ -545,7 +545,7 @@ describe('useTempo — meter correction', () => {
   })
 
   it('runs and clears any prior gate reason once the gate passes', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const gate = vi
       .fn<
         () => Promise<{ ok: true } | { ok: false; reason: 'quota-exceeded' }>
@@ -568,7 +568,7 @@ describe('useTempo — meter correction', () => {
   })
 
   it('raises the busy face before the gate mint resolves (R.3)', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     let open: (result: { ok: false; reason: 'error' }) => void = () => {}
     const gatePromise = new Promise<{ ok: false; reason: 'error' }>(
       (resolve) => {
@@ -590,7 +590,7 @@ describe('useTempo — meter correction', () => {
   })
 
   it('a cancel during the mint stops the superseded run', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     let open: (result: { ok: true }) => void = () => {}
     const gatePromise = new Promise<{ ok: true }>((resolve) => {
       open = resolve
@@ -611,7 +611,7 @@ describe('useTempo — meter correction', () => {
   })
 
   it('a reset clears a lingering gate reason', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const { result } = renderHook(() =>
       useTempo({ detect: vi.fn() }, async () => ({
         ok: false,

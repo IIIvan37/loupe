@@ -6,11 +6,6 @@ import {
   createFsProjectStore,
   type ProjectFs
 } from './fs-project-store.ts'
-import {
-  createHttpProjectAudioStore,
-  createHttpProjectStore
-} from './http-project-store.ts'
-import { SERVER_URL } from './server-url.ts'
 import { createTauriProjectFs } from './tauri-fs.ts'
 
 // One sweep per app run, like the server's lifespan GC — not one per shell
@@ -58,9 +53,11 @@ function afterSweep(fs: ProjectFs, ready: Promise<void>): ProjectFs {
 /**
  * Build the project persistence adapters (`ProjectStore` + `ProjectAudioStore`).
  * Inside the Tauri shell projects live on the local filesystem (T2.2 — « les
- * projets restent locaux ») under the app-data directory; in the browser they
- * go through the local server — the same FastAPI backend the separator runs
- * on, pointed at with `VITE_SEPARATOR_URL` (defaults to `http://localhost:8000`).
+ * projets restent locaux ») under the app-data directory. Offload-only
+ * (Lot AJ): there is no local server, so **saved projects are desktop-only** —
+ * the browser is an analysis-only playground whose project UI is hidden, and
+ * these stores are an empty null-object so the hooks stay inert (list is empty,
+ * nothing persists).
  */
 export function createProjectStores(): ProjectDeps {
   if (isTauriShell()) {
@@ -72,8 +69,24 @@ export function createProjectStores(): ProjectDeps {
       audio: createFsProjectAudioStore(gated)
     }
   }
+  return emptyProjectStores()
+}
+
+/** The browser's no-op persistence: no project UI is shown there, so nothing
+ * ever calls these — they only keep the project hooks constructible. */
+function emptyProjectStores(): ProjectDeps {
   return {
-    store: createHttpProjectStore(SERVER_URL),
-    audio: createHttpProjectAudioStore(SERVER_URL)
+    store: {
+      list: async () => [],
+      load: async () => undefined,
+      save: async () => {},
+      delete: async () => {}
+    },
+    audio: {
+      put: async () => {
+        throw new Error('Saving projects is desktop-only.')
+      },
+      get: async () => undefined
+    }
   }
 }

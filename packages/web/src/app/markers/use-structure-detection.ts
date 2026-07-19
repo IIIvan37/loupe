@@ -42,7 +42,7 @@ export interface StructureDetection {
 
 /**
  * Smart hook (= driving adapter logic): runs the `detectStructure` use-case
- * against the structure detector port (default: the local server; injected in
+ * against the structure detector port (default: the Modal analysis service; injected in
  * tests) and hands the snapped sections to `onSections` — the owner turns them
  * into labelled markers. Mirrors `useChordDetection`: a monotonic run token
  * drops a superseded detection, and the commit guard re-checks the loaded

@@ -134,7 +134,7 @@ export const failingSeparator: StemSeparator = {
   }
 }
 
-/** In-memory project stores so tests never reach the local server. */
+/** In-memory project stores for tests — never touch real persistence. */
 export function fakeProjectStores(): ProjectDeps {
   const manifests = new Map<string, Project>()
   const blobs = new Map<string, ArrayBuffer>()
@@ -206,9 +206,18 @@ export function renderShell(
       engine={engine}
       stemEngine={fakeStemEngine()}
       metadataReader={silentReader}
-      // A detector that never resolves keeps the auto-detect-on-import inert
-      // by default; tempo tests inject one that answers.
+      // The nominal client is the desktop shell, so specs render in desktop
+      // mode by default — saved projects + URL import are available. A browser
+      // gating spec overrides `desktop: false`.
+      desktop
+      // Inert analysis ports by default (offload-only: the real factories now
+      // require VITE_ANALYSIS_URL and would throw). A never-resolving fake
+      // keeps each flow idle; a flow's own tests inject one that answers.
       tempoDetector={{ detect: () => new Promise(() => {}) }}
+      chordDetector={{ detect: () => new Promise(() => {}) }}
+      structureDetector={{ detect: () => new Promise(() => {}) }}
+      separator={{ separate: () => new Promise(() => {}) }}
+      trackSource={{ fetch: () => new Promise(() => {}) }}
       {...overrides}
     />,
     { wrapper: I18nTestingProvider }

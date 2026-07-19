@@ -140,7 +140,7 @@ describe('AccountMenu', () => {
 
     // A completed analysis mints a token and reports fresh usage; the gate's
     // pub-sub pushes it to the chip without a reload.
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     clearAnalysisToken()
     const minting = {
       ...auth,

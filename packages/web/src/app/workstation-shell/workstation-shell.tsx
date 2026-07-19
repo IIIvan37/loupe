@@ -16,6 +16,7 @@ import {
 import { useLingui } from '@lingui/react/macro'
 import { useMemo, useState } from 'react'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
+import { isTauriShell } from '../../auth/tauri-env.ts'
 import { gateReasonsOf } from '../account/gate-reasons.ts'
 import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
@@ -117,6 +118,9 @@ interface WorkstationShellProps {
   readonly projectStores?: ProjectDeps
   /** Injected in tests; defaults to the real Web Audio one-shot player. */
   readonly countInPlayer?: CountInPlayer
+  /** Whether the desktop shell hosts the app; defaults to `isTauriShell()`.
+   * Injected in tests to exercise the browser-vs-desktop entry-point gating. */
+  readonly desktop?: boolean
 }
 
 /**
@@ -137,7 +141,8 @@ export function WorkstationShell({
   structureDetector,
   trackSource,
   projectStores,
-  countInPlayer
+  countInPlayer,
+  desktop = isTauriShell()
 }: WorkstationShellProps) {
   // One stem engine shared by the mixer (gains + loading) and the transport.
   const stemPlayback = useMemo(
@@ -335,6 +340,7 @@ export function WorkstationShell({
       <ShellHeader
         metadata={metadata}
         session={session}
+        desktop={desktop}
         urlImport={urlImport}
         isLoaded={isLoaded}
         stemsReady={stemsReady}

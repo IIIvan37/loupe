@@ -17,7 +17,7 @@ describe('useSeparation × createHttpSeparator — abort end-to-end (O.5)', () =
   })
 
   it('cancel during a slow gate mint never starts the transfer', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const fetchMock = vi.fn<typeof fetch>()
     vi.stubGlobal('fetch', fetchMock)
     let mint: (r: { ok: true }) => void = () => {}
@@ -36,7 +36,7 @@ describe('useSeparation × createHttpSeparator — abort end-to-end (O.5)', () =
   })
 
   it('cancel mid-transfer aborts the fetch signal', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     let seen: AbortSignal | undefined
     const fetchMock = vi.fn<typeof fetch>((_url, init) => {
       seen = (init?.signal ?? undefined) as AbortSignal | undefined

@@ -73,7 +73,7 @@ describe('WorkstationShell analyse gating', () => {
   afterEach(() => vi.unstubAllEnvs())
 
   it('blocks the offloaded analyses when the browser goes offline (M1.4)', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const { user } = renderShell()
     await importTrack(user)
 
@@ -103,7 +103,7 @@ describe('WorkstationShell analyse gating', () => {
   it('enables chords once a detected tempo seats the grid (M1.1)', async () => {
     // The no-grid guard is the only thing gating chords: a resolving tempo
     // fake seats a downbeat grid, which lifts it.
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const { user } = renderShell({
       tempoDetector: {
         detect: async () => ({ bpm: 240, beats: beatsAt([0, 0.25, 0.5, 0.75]) })

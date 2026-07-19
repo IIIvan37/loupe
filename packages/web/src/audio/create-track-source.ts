@@ -1,21 +1,29 @@
-import type { TrackSource } from '@app/core'
+import type { DownloadProgress, FetchedTrack, TrackSource } from '@app/core'
 import { isTauriShell } from '../auth/tauri-env.ts'
-import { SERVER_URL } from '../projects/server-url.ts'
-import { createHttpTrackSource } from './http-track-source.ts'
 import { createTauriDownloadBridge } from './tauri-download-bridge.ts'
 import { createTauriTrackSource } from './tauri-track-source.ts'
 
 /**
  * Build the `TrackSource` adapter. Downloading a track from a media URL
  * (YouTube / SoundCloud) needs **yt-dlp**, which the browser cannot run:
- * inside the Tauri shell the Rust side drives a managed yt-dlp binary
- * (T2.3); in the browser the local server does it, reached over HTTP —
- * point it at the server with `VITE_SEPARATOR_URL` (defaults to
- * `http://localhost:8000`).
+ * inside the Tauri shell the Rust side drives a managed yt-dlp binary (T2.3).
+ * Offload-only (Lot AJ): there is no local server to fall back to, so URL
+ * import is **desktop-only** — the browser's UI never exposes it, and this
+ * guard makes the impossibility explicit if something ever calls it.
  */
 export function createTrackSource(): TrackSource {
   if (isTauriShell()) {
     return createTauriTrackSource(createTauriDownloadBridge())
   }
-  return createHttpTrackSource(SERVER_URL)
+  return {
+    fetch(
+      _url: string,
+      _onProgress: (progress: DownloadProgress) => void,
+      _signal?: AbortSignal
+    ): Promise<FetchedTrack> {
+      return Promise.reject(
+        new Error('URL import is desktop-only — the browser cannot run yt-dlp.')
+      )
+    }
+  }
 }

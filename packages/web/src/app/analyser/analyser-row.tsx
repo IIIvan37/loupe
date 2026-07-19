@@ -81,7 +81,7 @@ export interface TempoDetectionControl {
   /** Abort the in-flight detection (the busy face's « Annuler »). */
   readonly onCancel: () => void
   /** Whether the engine runs on the offload — a `network` failure then names
-   * the analysis service instead of the local server (M1.1, extends X.1). */
+   * the analysis service (M1.1). */
   readonly offloaded: boolean
 }
 
