@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "loupe",
+  "productName": "Loupe",
   "version": "0.1.0",
   "identifier": "dev.iiivan.loupe",
   "build": {
@@ -17,7 +17,7 @@
   "app": {
     "windows": [
       {
-        "title": "loupe",
+        "title": "Loupe",
         "width": 1440,
         "height": 900,
         "resizable": true,
