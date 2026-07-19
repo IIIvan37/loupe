@@ -17,7 +17,6 @@ import { useLingui } from '@lingui/react/macro'
 import { useMemo, useState } from 'react'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import { gateReasonsOf } from '../account/gate-reasons.ts'
-import { useServerHealth } from '../../projects/use-server-health.ts'
 import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
@@ -116,8 +115,6 @@ interface WorkstationShellProps {
   readonly structureDetector?: StructureDetector
   readonly trackSource?: TrackSource
   readonly projectStores?: ProjectDeps
-  /** Injected in tests; the health poll defaults to the real global fetch. */
-  readonly healthFetch?: typeof fetch
   /** Injected in tests; defaults to the real Web Audio one-shot player. */
   readonly countInPlayer?: CountInPlayer
 }
@@ -140,7 +137,6 @@ export function WorkstationShell({
   structureDetector,
   trackSource,
   projectStores,
-  healthFetch,
   countInPlayer
 }: WorkstationShellProps) {
   // One stem engine shared by the mixer (gains + loading) and the transport.
@@ -217,7 +213,6 @@ export function WorkstationShell({
     beatGrid: tempo.analysis?.grid ?? []
   })
   const viewport = useViewport()
-  const serverHealth = useServerHealth({ fetchImpl: healthFetch })
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [projectsOpen, setProjectsOpen] = useState(false)
   // Whether the Analyse zone is unfolded (Q.3) — practice mode folds it.
@@ -339,7 +334,6 @@ export function WorkstationShell({
       />
       <ShellHeader
         metadata={metadata}
-        serverHealth={serverHealth}
         session={session}
         urlImport={urlImport}
         isLoaded={isLoaded}
@@ -411,7 +405,6 @@ export function WorkstationShell({
         onAlignTempoPhase={tempoDetection.alignPhase}
         onReimport={openFilePicker}
         canSeparate={isLoaded && loadedAudio !== undefined}
-        serverHealth={serverHealth}
         onSeparate={() => separateAndLoad(loadedAudio)}
         chordChart={chordChart}
         pitchSemitones={pitchSemitones}

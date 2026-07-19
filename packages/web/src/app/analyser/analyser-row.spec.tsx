@@ -29,7 +29,6 @@ function separationOf(
   return {
     state: separationState({}),
     canSeparate: true,
-    serverHealth: 'ready',
     onSeparate: vi.fn(),
     onCancel: vi.fn(),
     offloaded: false,
@@ -56,7 +55,6 @@ function structureOf(
   overrides: Partial<StructureDetectionControl> = {}
 ): StructureDetectionControl {
   return {
-    blockedReason: undefined,
     detecting: false,
     error: undefined,
     succeeded: false,
@@ -200,23 +198,14 @@ describe('AnalyserRow separation', () => {
     ).toBeDisabled()
   })
 
-  it('disables the action and explains when the server is offline', () => {
-    renderRow({ separation: { serverHealth: 'offline' } })
+  it('disables the offloaded action and explains when offline', () => {
+    renderRow({ separation: { offloaded: true }, online: false })
     expect(
       screen.getByRole('button', { name: i18n._('separation.separate') })
     ).toBeDisabled()
     expect(
-      screen.getByText(i18n._('separation.server-offline'))
+      screen.getByText(i18n._('analysis.blocked-offline'))
     ).toBeInTheDocument()
-  })
-
-  it('keeps the action available while the server is still being probed', () => {
-    // 'checking' is transient on boot — disabling here would flash the button
-    // off then on. Only the definitive offline/no-separation states block.
-    renderRow({ separation: { serverHealth: 'checking' } })
-    expect(
-      screen.getByRole('button', { name: i18n._('separation.separate') })
-    ).toBeEnabled()
   })
 
   it('shows the running phase and progress, swapping the action for a cancel', () => {
@@ -293,7 +282,7 @@ describe('AnalyserRow separation', () => {
     // The copy speaks for the code; the raw detail never reaches the UI.
     expect(
       screen.getByText(
-        `${i18n._('separation.detect-failed')} — ${i18n._('separation.detect-needs-server')}`,
+        `${i18n._('separation.detect-failed')} — ${i18n._('analysis.error.network-offload')}`,
         visibleOnly
       )
     ).toBeInTheDocument()
@@ -384,23 +373,11 @@ describe('AnalyserRow tempo', () => {
     ).toBeInTheDocument()
   })
 
-  it('prescribes the local server on a network failure of the local engine', () => {
-    renderRow({ tempo: { error: 'network', offloaded: false } })
-    expect(
-      screen.getByText(i18n._('tempo.error.network'), visibleOnly)
-    ).toBeInTheDocument()
-  })
-
-  it('names the analysis service on a network failure of the offloaded engine', () => {
-    // M1.1 (extends X.1): « lancer le serveur local » is the WRONG remedy
-    // when tempo runs on the offload — name the real dependency.
-    renderRow({ tempo: { error: 'network', offloaded: true } })
+  it('names the analysis service on a network failure', () => {
+    renderRow({ tempo: { error: 'network' } })
     expect(
       screen.getByText(i18n._('analysis.error.network-offload'), visibleOnly)
     ).toBeInTheDocument()
-    expect(
-      screen.queryByText(i18n._('tempo.error.network'), visibleOnly)
-    ).not.toBeInTheDocument()
   })
 
   it('offers to relaunch after a cancelled detection instead of vanishing', async () => {
@@ -480,16 +457,6 @@ describe('AnalyserRow structure', () => {
     ).toBeInTheDocument()
   })
 
-  it('blocks detection while the server is unreachable, explaining why', () => {
-    renderRow({ structure: { blockedReason: 'server' } })
-    expect(
-      screen.getByRole('button', { name: i18n._('structure.detect') })
-    ).toBeDisabled()
-    expect(
-      screen.getByText(i18n._('structure.detect-needs-server'))
-    ).toBeInTheDocument()
-  })
-
   it('explains a suspicious offloaded wait after a beat (cold start)', () => {
     vi.useFakeTimers()
     try {
@@ -540,29 +507,13 @@ describe('AnalyserRow structure', () => {
     ).toBeGreaterThan(0)
   })
 
-  it('prescribes the local server on a network failure of the local engine', () => {
-    renderRow({ structure: { error: 'network', offloaded: false } })
-    expect(
-      screen.getAllByText(
-        `${i18n._('structure.detect-failed')} — ${i18n._('structure.detect-needs-server')}`
-      ).length
-    ).toBeGreaterThan(0)
-  })
-
-  it('names the analysis service on a network failure of the offloaded engine', () => {
-    // X.1: « lancer le serveur local » is the WRONG remedy when the engine
-    // runs on the offload — the failure line must name the real dependency.
-    renderRow({ structure: { error: 'network', offloaded: true } })
+  it('names the analysis service on a network failure', () => {
+    renderRow({ structure: { error: 'network' } })
     expect(
       screen.getAllByText(
         `${i18n._('structure.detect-failed')} — ${i18n._('analysis.error.network-offload')}`
       ).length
     ).toBeGreaterThan(0)
-    expect(
-      screen.queryByText(i18n._('structure.detect-needs-server'), {
-        exact: false
-      })
-    ).not.toBeInTheDocument()
   })
 })
 
@@ -596,13 +547,6 @@ describe('AnalyserRow chords', () => {
     ).toBeDisabled()
     expect(
       screen.getByText(i18n._('chords.detect-needs-grid'))
-    ).toBeInTheDocument()
-  })
-
-  it('blocks detection while the server is unreachable, explaining why', () => {
-    renderRow({ chords: { blockedReason: 'server' } })
-    expect(
-      screen.getByText(i18n._('chords.detect-needs-server'))
     ).toBeInTheDocument()
   })
 
@@ -641,20 +585,13 @@ describe('AnalyserRow chords', () => {
     ).toBeGreaterThan(0)
   })
 
-  it('names the analysis service on a network failure of the offloaded engine', () => {
-    // M1.1 (extends X.1): « lancer le serveur local » is the WRONG remedy
-    // when chords run on the offload — name the real dependency.
-    renderRow({ chords: { error: 'network', offloaded: true } })
+  it('names the analysis service on a network failure', () => {
+    renderRow({ chords: { error: 'network' } })
     expect(
       screen.getAllByText(
         `${i18n._('chords.detect-failed')} — ${i18n._('analysis.error.network-offload')}`
       ).length
     ).toBeGreaterThan(0)
-    expect(
-      screen.queryByText(i18n._('chords.detect-needs-server'), {
-        exact: false
-      })
-    ).not.toBeInTheDocument()
   })
 
   it('explains a suspicious offloaded wait after a beat (cold start)', () => {

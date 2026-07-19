@@ -6,30 +6,25 @@ import type {
 } from '@app/core'
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
-import type { ServerHealth } from '../../projects/use-server-health.ts'
 
 /**
  * The analysis flows' actionable copy (Lot G standard), gathered where the
  * analyser row consumes it: one translated line per blocked state or failure
- * code — the raw engine/transport detail never reaches the UI (the hooks log
- * it to the console). Message ids are unchanged from the panels that used to
- * own these maps (tempo, markers, chord chart, separation).
+ * code — the raw transport detail never reaches the UI (the hooks log it to
+ * the console). Offload-only (Lot AJ): every analysis runs on the remote
+ * service, so the copy names « le service d'analyse » — never a local server,
+ * an install step, or the browser console.
  */
 
-export const STRUCTURE_NEEDS_SERVER = msg({
-  id: 'structure.detect-needs-server',
-  message: 'Lancer le serveur local pour détecter la structure.'
-})
-
-/** The offload's `network` face (X.1, shared by the three detections since
- * M1.1): « lancer le serveur local » would be the wrong remedy when the
- * engine runs on Modal — name the real dependency. */
+/** The `network` face, shared by the four analyses (X.1/M1.1 → AJ): the remote
+ * service is unreachable, so the remedy is simply to retry. */
 export const ANALYSIS_OFFLOAD_UNREACHABLE = msg({
   id: 'analysis.error.network-offload',
   message: "Service d'analyse injoignable — réessayer."
 })
 
-/** `network` reuses the blocked-state hint: same situation, same words. */
+/** `network` reuses the unreachable copy; `engine-unavailable` = the service
+ * cannot answer right now (503, weights not loaded). */
 export const STRUCTURE_ERROR_COPY: Readonly<
   Record<StructureDetectionErrorCode, MessageDescriptor>
 > = {
@@ -40,34 +35,29 @@ export const STRUCTURE_ERROR_COPY: Readonly<
   'engine-unavailable': msg({
     id: 'structure.error.engine-unavailable',
     message:
-      "Le moteur de structure n'est pas installé sur le serveur — voir server/README."
+      "Service d'analyse indisponible pour le moment — réessayer plus tard."
   }),
-  network: STRUCTURE_NEEDS_SERVER,
+  network: ANALYSIS_OFFLOAD_UNREACHABLE,
   timeout: msg({
     id: 'structure.error.timeout',
-    message: "L'analyse de la structure a expiré sur le serveur — réessayer."
+    message: "L'analyse de la structure a expiré — réessayer."
   }),
   'too-large': msg({
     id: 'structure.error.too-large',
-    message: "Piste trop volumineuse pour l'analyse sur le serveur."
+    message: "Piste trop volumineuse pour l'analyse."
   }),
   unknown: msg({
     id: 'structure.error.unknown',
-    message: 'Erreur inattendue — détails dans la console du navigateur.'
+    message: 'Erreur inattendue — réessayer.'
   })
 }
-
-export const CHORDS_NEEDS_SERVER = msg({
-  id: 'chords.detect-needs-server',
-  message: 'Lancer le serveur local pour détecter les accords.'
-})
 
 export const CHORDS_NEEDS_GRID = msg({
   id: 'chords.detect-needs-grid',
   message: "Détecter d'abord le tempo — la grille de mesures ancre les accords."
 })
 
-/** `network` and `no-downbeat` reuse the blocked-state hints. */
+/** `network` reuses the unreachable copy; `no-downbeat` reuses the grid hint. */
 export const CHORDS_ERROR_COPY: Readonly<
   Record<ChordDetectionErrorCode, MessageDescriptor>
 > = {
@@ -79,20 +69,20 @@ export const CHORDS_ERROR_COPY: Readonly<
   'engine-unavailable': msg({
     id: 'chords.error.engine-unavailable',
     message:
-      "Le moteur d'accords n'est pas installé sur le serveur — voir server/README."
+      "Service d'analyse indisponible pour le moment — réessayer plus tard."
   }),
-  network: CHORDS_NEEDS_SERVER,
+  network: ANALYSIS_OFFLOAD_UNREACHABLE,
   timeout: msg({
     id: 'chords.error.timeout',
-    message: "L'analyse des accords a expiré sur le serveur — réessayer."
+    message: "L'analyse des accords a expiré — réessayer."
   }),
   'too-large': msg({
     id: 'chords.error.too-large',
-    message: "Piste trop volumineuse pour l'analyse sur le serveur."
+    message: "Piste trop volumineuse pour l'analyse."
   }),
   unknown: msg({
     id: 'chords.error.unknown',
-    message: 'Erreur inattendue — détails dans la console du navigateur.'
+    message: 'Erreur inattendue — réessayer.'
   })
 }
 
@@ -102,75 +92,52 @@ export const TEMPO_ERROR_COPY: Readonly<
   'engine-unavailable': msg({
     id: 'tempo.error.engine-unavailable',
     message:
-      "Le moteur de tempo n'est pas installé sur le serveur — voir server/README."
+      "Service d'analyse indisponible pour le moment — réessayer plus tard."
   }),
-  network: msg({
-    id: 'tempo.error.network',
-    message: 'Lancer le serveur local pour détecter le tempo.'
-  }),
+  network: ANALYSIS_OFFLOAD_UNREACHABLE,
   timeout: msg({
     id: 'tempo.error.timeout',
-    message: "L'analyse du tempo a expiré sur le serveur — réessayer."
+    message: "L'analyse du tempo a expiré — réessayer."
   }),
   'too-large': msg({
     id: 'tempo.error.too-large',
-    message: "Piste trop volumineuse pour l'analyse sur le serveur."
+    message: "Piste trop volumineuse pour l'analyse."
   }),
   unknown: msg({
     id: 'tempo.error.unknown',
-    message: 'Erreur inattendue — détails dans la console du navigateur.'
+    message: 'Erreur inattendue — réessayer.'
   })
 }
 
 /** The offline block, shared by the four offloaded analysis flows (M1.4):
- * everything local keeps working without the network — only the analyses
+ * everything else keeps working without the network — only the analyses
  * need it, and each blocked item says so in the same words. */
 export const ANALYSIS_OFFLINE = msg({
   id: 'analysis.blocked-offline',
   message: 'Hors ligne — les analyses nécessitent le réseau.'
 })
 
-export const SEPARATION_NEEDS_SERVER = msg({
-  id: 'separation.detect-needs-server',
-  message: 'Lancer le serveur local pour séparer les pistes.'
-})
-
-/** `network` reuses the blocked-state hint — same situation, same words
- * (M1.4, the N.1 contract extended to separation). */
+/** `network` reuses the unreachable copy (M1.4, the N.1 contract extended to
+ * separation). */
 export const SEPARATION_ERROR_COPY: Readonly<
   Record<SeparationErrorCode, MessageDescriptor>
 > = {
   'engine-unavailable': msg({
     id: 'separation.error.engine-unavailable',
     message:
-      "Le moteur de séparation n'est pas installé sur le serveur — voir server/README."
+      "Service d'analyse indisponible pour le moment — réessayer plus tard."
   }),
-  network: SEPARATION_NEEDS_SERVER,
+  network: ANALYSIS_OFFLOAD_UNREACHABLE,
   timeout: msg({
     id: 'separation.error.timeout',
-    message: 'La séparation a expiré sur le serveur — réessayer.'
+    message: 'La séparation a expiré — réessayer.'
   }),
   'too-large': msg({
     id: 'separation.error.too-large',
-    message: 'Piste trop volumineuse pour la séparation sur le serveur.'
+    message: 'Piste trop volumineuse pour la séparation.'
   }),
   unknown: msg({
     id: 'separation.error.unknown',
-    message: 'Erreur inattendue — détails dans la console du navigateur.'
-  })
-}
-
-/** Server states that make separation impossible, with an actionable reason. */
-export const SEPARATION_SERVER_BLOCK: Partial<
-  Record<ServerHealth, MessageDescriptor>
-> = {
-  offline: msg({
-    id: 'separation.server-offline',
-    message:
-      'Serveur hors ligne — démarrer le serveur local pour séparer les pistes.'
-  }),
-  'no-separation': msg({
-    id: 'separation.server-no-separation',
-    message: 'Ce serveur ne fournit pas de moteur de séparation.'
+    message: 'Erreur inattendue — réessayer.'
   })
 }

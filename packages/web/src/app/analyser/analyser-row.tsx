@@ -9,20 +9,15 @@ import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { i18n } from '../../i18n/i18n.ts'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
-import type { ServerHealth } from '../../projects/use-server-health.ts'
 import { DetectionAction } from '../ui/detection-action.tsx'
 import { OperationStatus } from '../ui/operation-status.tsx'
 import { LiveStatus } from '../ui/live-status.tsx'
 import {
   ANALYSIS_OFFLINE,
-  ANALYSIS_OFFLOAD_UNREACHABLE,
   CHORDS_ERROR_COPY,
   CHORDS_NEEDS_GRID,
-  CHORDS_NEEDS_SERVER,
   SEPARATION_ERROR_COPY,
-  SEPARATION_SERVER_BLOCK,
   STRUCTURE_ERROR_COPY,
-  STRUCTURE_NEEDS_SERVER,
   TEMPO_ERROR_COPY
 } from './detection-copy.ts'
 import styles from './analyser-row.module.css'
@@ -44,37 +39,32 @@ const DONE_LABEL = msg({ id: 'separation.done', message: 'Pistes séparées' })
 /** The R.3 cold-start narration, shared by the offloaded busy faces (M1.1). */
 const ANALYSIS_COLD_START = msg({
   id: 'analysis.cold-start',
-  message: "Démarrage du moteur d'analyse (jusqu'à ~1 min)…"
+  message: "Démarrage du service d'analyse (jusqu'à ~1 min)…"
 })
 
-/** Offline only blocks what actually needs the network: the OFFLOADED flows
-    (M1.4). The local engines live on localhost and keep working. */
+/** Offline only blocks what actually needs the network: the analyses run on
+    the remote service (M1.4). */
 function offlineBlocks(offloaded: boolean, online: boolean): boolean {
   return offloaded && !online
 }
 
-/** The X.1 rule every flow shares (M1.1/M1.4): a `network` failure names what
-    actually failed to answer — the offloaded analysis service, or the local
-    server the table's own copy points at. */
+/** One translated line per failure code — the tables already carry the
+    offload-only `network` copy (« service d'analyse injoignable »). */
 function errorCopyFor<Code extends string>(
   error: Code | undefined,
-  offloaded: boolean,
   table: Readonly<Record<Code, MessageDescriptor>>
 ): MessageDescriptor | undefined {
-  if (error === undefined) return undefined
-  if (error === 'network' && offloaded) return ANALYSIS_OFFLOAD_UNREACHABLE
-  return table[error]
+  return error === undefined ? undefined : table[error]
 }
 
 /** The separation surface, unchanged from the retired SeparationPanel. */
 export interface SeparationControl {
   readonly state: SeparationState
   readonly canSeparate: boolean
-  readonly serverHealth: ServerHealth
   readonly onSeparate: () => void
   readonly onCancel: () => void
-  /** Whether the engine runs on the offload — the local health probe then
-   * stops gating the action (M1.3, same rule as the three detections). */
+  /** Whether the analysis runs on the remote service — offline then gates the
+   * action (M1.4) and the busy face narrates a cold start (M1.3). */
   readonly offloaded: boolean
 }
 
@@ -97,7 +87,6 @@ export interface TempoDetectionControl {
 
 /** The structure-detection surface the shell wires in. */
 export interface StructureDetectionControl {
-  readonly blockedReason: 'server' | undefined
   readonly detecting: boolean
   readonly error: StructureDetectionErrorCode | undefined
   readonly succeeded: boolean
@@ -109,15 +98,14 @@ export interface StructureDetectionControl {
   readonly onDetect: () => void
   /** Abort the in-flight detection (the busy face's « Annuler »). */
   readonly onCancel: () => void
-  /** Whether the engine runs on the offload — the busy face then explains a
-   * suspicious wait as a cold start (R.3), and a `network` failure names the
-   * analysis service instead of the local server (X.1). */
+  /** Whether the analysis runs on the remote service — the busy face then
+   * explains a suspicious wait as a cold start (R.3), and offline gates it. */
   readonly offloaded: boolean
 }
 
 /** The chord-detection surface the shell wires in. */
 export interface ChordDetectionControl {
-  readonly blockedReason: 'server' | 'no-grid' | undefined
+  readonly blockedReason: 'no-grid' | undefined
   readonly detecting: boolean
   /** What the run is actually doing (AD.1): during the implicit separation
    * the busy face names the separation — not a detection that has not
@@ -130,17 +118,16 @@ export interface ChordDetectionControl {
   readonly onDetect: () => void
   /** Abort the in-flight detection (the busy face's « Annuler »). */
   readonly onCancel: () => void
-  /** Whether the engine runs on the offload — the busy face then explains a
-   * suspicious wait as a cold start (R.3), and a `network` failure names the
-   * analysis service instead of the local server (M1.1, extends X.1). */
+  /** Whether the analysis runs on the remote service — the busy face then
+   * explains a suspicious wait as a cold start (R.3), and offline gates it. */
   readonly offloaded: boolean
 }
 
 interface AnalyserRowProps {
   /** Disables the manual actions until a track is loaded. */
   readonly disabled: boolean
-  /** Whether the browser sees a network. Offline only gates the OFFLOADED
-   * flows (M1.4) — the local server lives on localhost and keeps working. */
+  /** Whether the browser sees a network. Offline only gates the analyses,
+   * which run on the remote service (M1.4). */
   readonly online: boolean
   readonly separation: SeparationControl
   readonly tempo: TempoDetectionControl
@@ -190,21 +177,15 @@ function SeparationItem({
   const { t } = useLingui()
   const sep = separation.state
   const running = sep.status === 'analysing' || sep.status === 'separating'
-  // Offloaded, « démarrer le serveur local » would be the wrong remedy: the
-  // local probe only gates the LOCAL engine (M1.3, extends X.1) — offline
-  // gates the offload instead (M1.4).
-  let block: MessageDescriptor | undefined
-  if (separation.offloaded) {
-    block = offlineBlocks(true, online) ? ANALYSIS_OFFLINE : undefined
-  } else {
-    block = SEPARATION_SERVER_BLOCK[separation.serverHealth]
-  }
-  const step = running ? i18n._(PROGRESS_LABELS[sep.status]) : undefined
-  const errorCopy = errorCopyFor(
-    sep.error?.code,
+  // The analysis runs on the remote service: only being offline blocks it.
+  const block: MessageDescriptor | undefined = offlineBlocks(
     separation.offloaded,
-    SEPARATION_ERROR_COPY
+    online
   )
+    ? ANALYSIS_OFFLINE
+    : undefined
+  const step = running ? i18n._(PROGRESS_LABELS[sep.status]) : undefined
+  const errorCopy = errorCopyFor(sep.error?.code, SEPARATION_ERROR_COPY)
   const failure =
     errorCopy !== undefined
       ? `${t({
@@ -271,7 +252,6 @@ function TempoItem({
   if (tempo.error !== undefined) {
     const errorCopy = errorCopyFor(
       tempo.error,
-      tempo.offloaded,
       TEMPO_ERROR_COPY
     ) as MessageDescriptor
     return (
@@ -343,11 +323,7 @@ function StructureItem({
           message: 'Réétiqueter la grille d’accords ?'
         })
   }
-  const errorCopy = errorCopyFor(
-    structure.error,
-    structure.offloaded,
-    STRUCTURE_ERROR_COPY
-  )
+  const errorCopy = errorCopyFor(structure.error, STRUCTURE_ERROR_COPY)
   const failure =
     errorCopy !== undefined
       ? `${t({
@@ -367,12 +343,9 @@ function StructureItem({
       message: 'Repères de structure posés depuis la détection'
     })
   }
-  let hint: string | undefined
-  if (offlineBlocks(structure.offloaded, online)) {
-    hint = t(ANALYSIS_OFFLINE)
-  } else if (structure.blockedReason === 'server') {
-    hint = t(STRUCTURE_NEEDS_SERVER)
-  }
+  const hint = offlineBlocks(structure.offloaded, online)
+    ? t(ANALYSIS_OFFLINE)
+    : undefined
   return (
     <div className={styles.item}>
       <DetectionAction
@@ -394,11 +367,7 @@ function StructureItem({
         hint={hint}
         errorLine={failure}
         announcement={announced}
-        disabled={
-          disabled ||
-          structure.blockedReason !== undefined ||
-          offlineBlocks(structure.offloaded, online)
-        }
+        disabled={disabled || offlineBlocks(structure.offloaded, online)}
         onRun={structure.onDetect}
       />
     </div>
@@ -420,16 +389,10 @@ function ChordsItem({
   let hint: string | undefined
   if (offlineBlocks(chords.offloaded, online)) {
     hint = t(ANALYSIS_OFFLINE)
-  } else if (chords.blockedReason === 'server') {
-    hint = t(CHORDS_NEEDS_SERVER)
   } else if (chords.blockedReason === 'no-grid') {
     hint = t(CHORDS_NEEDS_GRID)
   }
-  const errorCopy = errorCopyFor(
-    chords.error,
-    chords.offloaded,
-    CHORDS_ERROR_COPY
-  )
+  const errorCopy = errorCopyFor(chords.error, CHORDS_ERROR_COPY)
   const failure =
     errorCopy !== undefined
       ? `${t({

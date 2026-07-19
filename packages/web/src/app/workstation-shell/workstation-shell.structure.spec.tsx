@@ -11,7 +11,6 @@ import {
   beatsAt,
   chartEditor,
   failingSeparator,
-  healthFetch,
   importTrack,
   installShellHooks,
   renderShell
@@ -45,7 +44,6 @@ describe('WorkstationShell structure detection', () => {
       // Device answer → the server is up, so the button is not blocked. The
       // tempo detector never resolves (kit default), so the grid stays empty —
       // structure detection must still place markers.
-      healthFetch: healthFetch(null),
       structureDetector: detectorOf(SECTIONS)
     })
     await importTrack(user)
@@ -65,7 +63,6 @@ describe('WorkstationShell structure detection', () => {
 
   it('confirms before replacing markers a previous run placed', async () => {
     const { user } = renderShell({
-      healthFetch: healthFetch(null),
       structureDetector: detectorOf(SECTIONS)
     })
     await importTrack(user)
@@ -91,7 +88,6 @@ describe('WorkstationShell structure detection', () => {
 
   it('arms the loupe on a section and seeks its start from its Repères row', async () => {
     const { engine, user } = renderShell({
-      healthFetch: healthFetch(null),
       structureDetector: detectorOf(SECTIONS)
     })
     await importTrack(user)
@@ -111,7 +107,6 @@ describe('WorkstationShell structure detection', () => {
 
   it("loops the last section to the track's end, not to infinity", async () => {
     const { user } = renderShell({
-      healthFetch: healthFetch(null),
       structureDetector: detectorOf(SECTIONS)
     })
     await importTrack(user)
@@ -134,7 +129,6 @@ describe('WorkstationShell structure detection', () => {
 
   it('relabels an existing grid with the detected section names', async () => {
     const { user } = renderShell({
-      healthFetch: healthFetch(null),
       // Bar = 1 s (240 BPM, four beats a bar, a downbeat every second) so the
       // section start times land on measure boundaries: verse at 0 → measure 0,
       // chorus at 4 s → measure 4. The fake grid is the beats verbatim, so they
@@ -175,7 +169,6 @@ describe('WorkstationShell structure detection', () => {
 
   it('announces when no structure is found, placing no markers', async () => {
     const { user } = renderShell({
-      healthFetch: healthFetch(null),
       structureDetector: detectorOf([])
     })
     await importTrack(user)
@@ -204,7 +197,6 @@ describe('WorkstationShell chart → marker sync', () => {
 
   it('« + Section » drops a STRUCTURE marker a detection then replaces', async () => {
     const { user } = renderShell({
-      healthFetch: healthFetch(null),
       structureDetector: detectorOf(SECTIONS)
     })
     await importTrack(user)
@@ -275,7 +267,6 @@ describe('WorkstationShell chart → marker sync', () => {
         }))
     }
     const { user } = renderShell({
-      healthFetch: healthFetch(null),
       tempoDetector: denseTempo,
       structureDetector: detectorOf([
         { startSeconds: 0, endSeconds: 4, label: 'verse' },
@@ -316,7 +307,6 @@ describe('WorkstationShell chart → marker sync', () => {
 
   it('a hand-dropped cue survives structure detection and chart edits', async () => {
     const { user } = renderShell({
-      healthFetch: healthFetch(null),
       tempoDetector: denseTempo,
       structureDetector: detectorOf(SECTIONS)
     })

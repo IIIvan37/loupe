@@ -30,7 +30,6 @@ import { markerSections } from '../markers/section-markers.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import type { useMarkers } from '../markers/use-markers.ts'
 import type { useMixer } from '../mixer/use-mixer.ts'
-import type { ServerHealth } from '../../projects/use-server-health.ts'
 import type { useSeparation } from '../separation/use-separation.ts'
 import { TempoPanel } from '../tempo/tempo-panel.tsx'
 import type { useTempo } from '../tempo/use-tempo.ts'
@@ -84,7 +83,6 @@ interface ShellMainProps {
   /** Reopen the file picker — the way out of a failed import. */
   readonly onReimport: () => void
   readonly canSeparate: boolean
-  readonly serverHealth: ServerHealth
   readonly onSeparate: () => void
   /** The chord chart's session state (text + key offset), lifted to the shell. */
   readonly chordChart: Pick<
@@ -135,7 +133,6 @@ export function ShellMain({
   onReimport,
   onSeekRatio,
   canSeparate,
-  serverHealth,
   onSeparate,
   chordChart,
   pitchSemitones,
@@ -291,7 +288,6 @@ export function ShellMain({
             disabled={!isLoaded}
             separation={separation}
             canSeparate={canSeparate}
-            serverHealth={serverHealth}
             onSeparate={onSeparate}
             tempo={tempo}
             onRetryTempo={onRetryTempo}

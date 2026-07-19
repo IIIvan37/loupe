@@ -35,39 +35,6 @@
   white-space: nowrap;
 }
 
-/* Server health: a small coloured dot + label, dim like other metadata,
-   set apart from the action buttons by a soft divider (infra, not an action). */
-.serverStatus {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2xs);
-  margin-inline-start: var(--space-2xs);
-  padding-inline-start: var(--space-s);
-  border-inline-start: 1px solid var(--line);
-  color: var(--dim);
-  font-size: var(--font-size-xs);
-  white-space: nowrap;
-}
-
-.statusDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex: none;
-}
-
-.serverStatus[data-tone='offline'] .statusDot {
-  background: var(--danger);
-}
-
-.serverStatus[data-tone='degraded'] .statusDot {
-  background: var(--amber);
-}
-
-.serverStatus[data-tone='ready'] .statusDot {
-  background: var(--ok);
-}
-
 /* The header actions wear the shared control skins (single source of truth in
    controls.module.css) plus a comfortable tap strip on coarse pointers; each
    adds only its own dimensions. The neutral outlined face and the destructive
