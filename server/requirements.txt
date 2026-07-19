@@ -2,7 +2,7 @@
 # (cf. roadmap A.1: a failed download tells you to `pip install -U yt-dlp`, it
 # doesn't do it for you). Bump deliberately: edit a pin, reinstall, re-run the
 # gate. yt-dlp especially: update it by hand when extraction breaks.
-fastapi==0.139.1
+fastapi==0.139.2
 uvicorn[standard]==0.51.0
 demucs==4.1.0
 torch==2.13.0
@@ -28,7 +28,7 @@ librosa==0.11.0
 # use its older module layout) and pins huggingface-hub<1.0.
 transformers==4.51.1
 huggingface-hub==0.30.1
-x-transformers==2.23.3
+x-transformers==2.23.5
 ema-pytorch==0.7.9
 omegaconf==2.3.1
 safetensors==0.8.0
