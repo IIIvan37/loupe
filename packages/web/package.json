@@ -13,7 +13,7 @@
     "@app/core": "workspace:*",
     "@base-ui-components/react": "1.0.0-rc.0",
     "@fontsource/ibm-plex-mono": "^5.2.7",
-    "@fontsource/inter": "^5.2.8",
+    "@fontsource/inter": "^5.3.0",
     "@fontsource/space-grotesk": "^5.2.10",
     "@lingui/core": "^6.4.0",
     "@lingui/react": "^6.4.0",
