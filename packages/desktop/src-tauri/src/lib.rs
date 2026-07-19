@@ -1,5 +1,6 @@
 mod download;
 mod export;
+mod menu;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -26,6 +27,8 @@ pub fn run() {
     // dialog permission is granted in the capabilities.
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())
+    .menu(menu::build)
+    .on_menu_event(|app, event| menu::forward(app, event.id().as_ref()))
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(

@@ -298,9 +298,11 @@ export function WorkstationShell({
   // Reload/close would silently drop unsaved work — let the browser confirm.
   useUnloadGuard(session.unsavedWork)
 
-  // Global keyboard layout — only live once a track is loaded.
+  // Global command surfaces (keyboard + native menu) — only live once loaded.
   useShellShortcuts({
     enabled: isLoaded,
+    openImport: openFilePicker,
+    openShortcuts: () => setShortcutsOpen(true),
     countIn,
     position,
     seekToSeconds,
@@ -315,18 +317,14 @@ export function WorkstationShell({
 
   // The two stem-export entry points (+ their success toasts), off the shell.
   const stemExport = useStemExport({
-      separation,
-      tempo,
-      metadata,
-      trackName: session.trackName,
-      loadedAudio,
-      durationSeconds: transport.durationSeconds,
-      notifySuccess
-    })
-
-  // The main view shows the summed mix envelope once separated (see the stage's
-  // `mixWaveform`); an un-separated track shows its one waveform.
-  const mainViewState = importState
+    separation,
+    tempo,
+    metadata,
+    trackName: session.trackName,
+    loadedAudio,
+    durationSeconds: transport.durationSeconds,
+    notifySuccess
+  })
 
   return (
     <div className={styles.shell} {...drop.dropHandlers}>
@@ -398,7 +396,7 @@ export function WorkstationShell({
         separation={separation}
         tempo={tempo}
         onDownloadStem={stemExport.downloadStem}
-        mainViewState={mainViewState}
+        mainViewState={importState}
         loopRegion={loopRegion}
         loopEnabled={loopEnabled}
         onToggleLoop={toggleLoop}

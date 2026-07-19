@@ -942,11 +942,27 @@ dialogue immédiat, save → toast + fichier, cancel → silence, save projet OK
 Gate **verte — 1950 tests** (+6), cargo 8/8 + clippy, Stryker skippé (core
 intouché). [rapport](sessions/2026-07-19-desktop-native-export.md).
 
-**Prochain** : chip « Serveur hors ligne » mensonger en mode offload (le
-header sonde le serveur local retiré T2.5 — masquer en offload ou rebrancher
-sur `useOnline`, checkpoint produit d'abord) ; garde-fous beta restants
-(plafond Modal dashboard, re-seed codes legacy, PKCE en bundle) ; impression
-desktop (chantier dédié).
+**Menus natifs macOS (branche `feat/desktop-native-menus`, stackée sur
+#215, PR à ouvrir) — AP.1** : barre de menus française (`menu.rs` : Loupe /
+Fichier ⌘O·⌘S / Édition presse-papiers **sans undo** / Fenêtre / Aide) →
+événement `menu` → `useNativeMenu` sur les mêmes handlers que boutons et
+raccourcis (`guardedProjectSave` extrait) ; `productName` → `Loupe`. Cargo
+8/8, hook testé, gate verte. Vérif bundle utilisateur en attente.
+
+**Cap acté (2026-07-19) : UI/UX exceptionnelle** — voir
+[feuille de route v7](roadmap-excellence-7.md). Éval multi-agents 8 axes UX +
+enquêteur offload, réfutation adversariale (53 constats, 42 confirmés). Note
+UX globale **~13,5/20** — propre mais pas exceptionnel. Séquencement Lots
+**AJ→AQ** : AJ offload-only (l'app arrête de mentir : chip « Serveur hors
+ligne » fantôme, copies « serveur local », gating mort 4 couches) → AK premier
+contact (cul-de-sac « lien envoyé », reprise auto post-connexion, import URL
+dans l'empty state, « Tout analyser ») → AL boucle de pratique → AM mixer
+vivant → AN partition → AO âme visuelle → AP nativité desktop (AP.1 fait) →
+AQ vocabulaire (« Piste » ambigu, anglais brut). Impression déprioritisée.
+Garde-fous beta restants hors roadmap : re-seed codes legacy, PKCE en bundle.
+
+**Prochain** : vérif menus (bundle) → PR ; puis **Lot AJ (offload-only)**,
+checkpoint UI d'abord.
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
