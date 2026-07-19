@@ -1,7 +1,7 @@
 import { type DecodedAudio, encodeWav, synthesizeClickTrack } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
-import { downloadBlob } from '../../audio/download-blob.ts'
+import { deliverFile } from '../../audio/deliver-file.ts'
 import { encodeWavMemo } from '../../audio/encode-wav-memo.ts'
 import { exportBaseName } from '../../lib/export-base-name.ts'
 import { nextPaint } from '../../lib/next-paint.ts'
@@ -29,9 +29,10 @@ export interface StemExport {
   /**
    * Download one mixer lane as a WAV. The synthetic lanes (the click, and the
    * whole track when un-separated) are rendered on the fly; a separated stem
-   * defers to the separation's own numbered download.
+   * defers to the separation's own numbered download. Confirms only once a
+   * file was actually delivered (a cancelled desktop save dialog stays mute).
    */
-  readonly downloadStem: (id: string) => void
+  readonly downloadStem: (id: string) => Promise<void>
 }
 
 /**
@@ -78,7 +79,7 @@ export function useStemExport({
     }
   }
 
-  function downloadStem(id: string): void {
+  async function downloadStem(id: string): Promise<void> {
     const base = exportBaseName(metadata.title, trackName)
     if (id === METRONOME_ID && tempo.analysis && loadedAudio) {
       const samples = synthesizeClickTrack({
@@ -87,20 +88,27 @@ export function useStemExport({
         sampleRate: loadedAudio.sampleRate
       })
       const wav = encodeWav([samples], loadedAudio.sampleRate)
-      downloadBlob(
+      const delivered = await deliverFile(
         `${base}_metronome.wav`,
         new Blob([wav], { type: 'audio/wav' })
       )
-      notifySuccess(fileExportedMessage)
+      if (delivered) {
+        notifySuccess(fileExportedMessage)
+      }
       return
     }
     if (id === TRACK_STEM_ID && loadedAudio) {
       const wav = encodeWavMemo(loadedAudio)
-      downloadBlob(`${base}_piste.wav`, new Blob([wav], { type: 'audio/wav' }))
-      notifySuccess(fileExportedMessage)
+      const delivered = await deliverFile(
+        `${base}_piste.wav`,
+        new Blob([wav], { type: 'audio/wav' })
+      )
+      if (delivered) {
+        notifySuccess(fileExportedMessage)
+      }
       return
     }
-    if (separation.downloadStem(id)) {
+    if (await separation.downloadStem(id)) {
       notifySuccess(fileExportedMessage)
     }
   }

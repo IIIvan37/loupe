@@ -37,10 +37,12 @@
   app` → magic link réel → session visible au menu compte. NB : le lien
   admin `generate_link` (dev) reste en fragment implicite et ne logge plus —
   c'est voulu, tester avec un vrai magic link.
-- [ ] **Exports desktop** : AH.1 v1 = boutons désactivés avec hint sous
-  Tauri (jamais un toast sur un export fantôme). Le chemin natif
-  (plugin-dialog save + fs) est le follow-up — à vérifier en bundle quand il
-  sera fait.
+- [x] **Exports desktop** — **FAIT ET VÉRIFIÉ EN BUNDLE RELEASE
+  (2026-07-19)** : flux natif deux temps (dialogue immédiat via
+  `pick_export_path`, écriture Rust via `write_export` sous jeton), toast
+  seulement à la livraison réelle, Annuler = silence. L'impression reste
+  désactivée avec hint (chantier dédié). NB : l'IPC du webview bundlé
+  plafonne à ~8 MB/s — zip stems ~230 MB ≈ ~29 s narrés par la busy line.
 
 ## Fait (traçé)
 

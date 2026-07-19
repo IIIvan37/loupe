@@ -1,12 +1,16 @@
 mod download;
+mod export;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
     .manage(download::DownloadState::default())
+    .manage(export::ExportState::default())
     .invoke_handler(tauri::generate_handler![
       download::download_track,
-      download::cancel_download
+      download::cancel_download,
+      export::pick_export_path,
+      export::write_export
     ])
     // Registered first (Tauri requirement). One instance also protects the
     // filesystem project stores: a second instance's startup audio GC could
@@ -18,6 +22,9 @@ pub fn run() {
       }
     }))
     .plugin(tauri_plugin_deep_link::init())
+    // Rust-side only (the save dialog of export_file): no webview-facing
+    // dialog permission is granted in the capabilities.
+    .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())
     .setup(|app| {
       if cfg!(debug_assertions) {

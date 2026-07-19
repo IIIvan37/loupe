@@ -20,7 +20,7 @@ import {
   isAnalysisOffloaded
 } from '../../audio/analysis-token.ts'
 import { createSeparator } from '../../audio/create-separator.ts'
-import { downloadBlob } from '../../audio/download-blob.ts'
+import { deliverFile } from '../../audio/deliver-file.ts'
 import { createZipArchiveWriter } from '../../audio/zip-archive-writer.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
 
@@ -61,10 +61,11 @@ export interface Separation {
   ) => Promise<SeparationResult | undefined>
   /**
    * Download one separated stem as a 16-bit WAV. Numbered by its position among
-   * the PRESENT stems — the same number the zip export gives it. Returns whether
-   * a file was actually downloaded (false if the stem's PCM is gone).
+   * the PRESENT stems — the same number the zip export gives it. Resolves with
+   * whether a file was actually delivered (false if the stem's PCM is gone, or
+   * if the desktop save dialog was cancelled).
    */
-  readonly downloadStem: (id: string) => boolean
+  readonly downloadStem: (id: string) => Promise<boolean>
   /**
    * Download ALL present stems as one zip of aligned WAVs (`01_Voix.wav`…,
    * t=0, same duration) named `<baseName>_stems.zip` — export tier A. Resolves
@@ -225,19 +226,18 @@ export function useSeparation(
     return deriveSources().filter((stem) => present.has(stem.id))
   }
 
-  function downloadStem(id: string): boolean {
+  function downloadStem(id: string): Promise<boolean> {
     const shown = presentSources()
     const index = shown.findIndex((stem) => stem.id === id)
     const stem = shown[index]
     if (!stem) {
-      return false
+      return Promise.resolve(false)
     }
     const wav = encodeWav(stem.audio.channels, stem.audio.sampleRate)
-    downloadBlob(
+    return deliverFile(
       stemExportFilename(index, stem.label),
       new Blob([wav], { type: 'audio/wav' })
     )
-    return true
   }
 
   async function exportAllStems(baseName: string): Promise<boolean> {
@@ -253,11 +253,13 @@ export function useSeparation(
       return false
     }
     if (result.ok) {
-      downloadBlob(
+      const delivered = await deliverFile(
         `${baseName}_stems.zip`,
         new Blob([result.archive], { type: 'application/zip' })
       )
-      return true
+      // The desktop save dialog can outlive a reset/new import: a superseded
+      // session never confirms (the file, if saved, was still user-chosen).
+      return delivered && runIdRef.current === runId
     }
     // The raw port error stays untranslated; only the frame is copy.
     const error = result.error

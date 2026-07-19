@@ -52,17 +52,20 @@ describe('StemHeaders', () => {
     expect(screen.getByText('Basse')).toBeInTheDocument()
   })
 
-  it('disables the WAV download under the desktop shell — no silent no-op (AH.1)', () => {
-    // WKWebView ignores an anchor's `download` without a native delegate:
-    // the honest face is a disabled control, not a toast over nothing.
+  it('keeps the WAV download live under the desktop shell (native save path)', async () => {
+    // The AH.1 disable is lifted: delivery now routes through the Rust
+    // export_file command, so the desktop button works like the browser one.
     ;(window as { __TAURI_INTERNALS__?: object }).__TAURI_INTERNALS__ = {}
     try {
-      renderHeaders([channel('voix', 'Voix')])
-      expect(
-        screen.getByRole('button', {
-          name: i18n._('mixer.download-wav', { name: 'Voix' })
-        })
-      ).toBeDisabled()
+      const user = userEvent.setup()
+      const onDownloadStem = vi.fn()
+      renderHeaders([channel('voix', 'Voix')], { onDownloadStem })
+      const button = screen.getByRole('button', {
+        name: i18n._('mixer.download-wav', { name: 'Voix' })
+      })
+      expect(button).toBeEnabled()
+      await user.click(button)
+      expect(onDownloadStem).toHaveBeenCalledWith('voix')
     } finally {
       delete (window as { __TAURI_INTERNALS__?: object }).__TAURI_INTERNALS__
     }

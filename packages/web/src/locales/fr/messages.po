@@ -459,10 +459,10 @@ msgid "common.rename"
 msgstr "Renommer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:84
-#: src/app/header/header.tsx:96
-#: src/app/header/header.tsx:104
-#: src/app/header/header.tsx:116
+#: src/app/header/header.tsx:83
+#: src/app/header/header.tsx:95
+#: src/app/header/header.tsx:103
+#: src/app/header/header.tsx:115
 #: src/app/loops/loop-controls.tsx:79
 #: src/app/workstation-shell/shell-test-kit.tsx:265
 #: src/app/workstation-shell/shell-test-kit.tsx:354
@@ -516,22 +516,17 @@ msgid "header.downloading"
 msgstr "Téléchargement…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:264
+#: src/app/header/header.tsx:257
 msgid "header.export"
 msgstr "Exporter"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:247
-msgid "header.export-desktop-soon"
-msgstr "Export bientôt disponible sur l'app de bureau"
-
-#. js-lingui-explicit-id
-#: src/app/header/header.tsx:257
+#: src/app/header/header.tsx:250
 msgid "header.export-needs-stems"
 msgstr "Séparer les pistes pour exporter les stems"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:253
+#: src/app/header/header.tsx:246
 msgid "header.export-ready"
 msgstr "Télécharger les stems en ZIP"
 
@@ -603,36 +598,36 @@ msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:283
+#: src/app/header/header.tsx:276
 #: src/app/workstation-shell/shell-test-kit.tsx:285
 msgid "header.projects"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:124
+#: src/app/header/header.tsx:123
 #: src/app/workstation-shell/shell-test-kit.tsx:356
 msgid "header.rename-project"
 msgstr "Renommer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:119
+#: src/app/header/header.tsx:118
 msgid "header.save-as"
 msgstr "Enregistrer sous un autre nom"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:91
+#: src/app/header/header.tsx:90
 msgid "header.save-needs-track"
 msgstr "Importer un morceau pour pouvoir l'enregistrer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:138
-#: src/app/header/header.tsx:140
+#: src/app/header/header.tsx:137
+#: src/app/header/header.tsx:139
 #: src/app/workstation-shell/shell-test-kit.tsx:350
 msgid "header.save-project"
 msgstr "Enregistrer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:189
+#: src/app/header/header.tsx:188
 msgid "header.saved"
 msgstr "Enregistré"
 
@@ -657,12 +652,12 @@ msgid "header.server-ready"
 msgstr "Serveur prêt"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:229
+#: src/app/header/header.tsx:228
 msgid "header.shortcuts-tip"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:225
+#: src/app/header/header.tsx:224
 msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
@@ -677,7 +672,7 @@ msgid "header.unknown-artist"
 msgstr "Artiste inconnu"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:188
+#: src/app/header/header.tsx:187
 msgid "header.unsaved"
 msgstr "● Non enregistré"
 
@@ -833,47 +828,42 @@ msgid "markers.section-label"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:88
+#: src/app/mixer/stem-headers.tsx:87
 msgid "mixer.confidence"
 msgstr "Confiance de détection : {percent} %"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:105
-msgid "mixer.download-desktop-soon"
-msgstr "Téléchargement bientôt disponible sur l'app de bureau"
-
-#. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:99
+#: src/app/mixer/stem-headers.tsx:97
 msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:162
+#: src/app/mixer/stem-headers.tsx:151
 msgid "mixer.eq"
 msgstr "Égaliseur {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:182
+#: src/app/mixer/stem-headers.tsx:171
 msgid "mixer.eq-title"
 msgstr "EQ — {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:227
+#: src/app/mixer/stem-headers.tsx:216
 msgid "mixer.high-cut"
 msgstr "Coupe-haut {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:231
+#: src/app/mixer/stem-headers.tsx:220
 msgid "mixer.high-cut-hint"
 msgstr "Couper les aigus au-dessus de cette fréquence"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:197
+#: src/app/mixer/stem-headers.tsx:186
 msgid "mixer.low-cut"
 msgstr "Coupe-bas {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:201
+#: src/app/mixer/stem-headers.tsx:190
 msgid "mixer.low-cut-hint"
 msgstr "Couper les graves sous cette fréquence"
 
@@ -883,17 +873,17 @@ msgid "mixer.mix-label"
 msgstr "Mix"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:121
+#: src/app/mixer/stem-headers.tsx:110
 msgid "mixer.mute"
 msgstr "Couper {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:72
+#: src/app/mixer/stem-headers.tsx:71
 msgid "mixer.region-label"
 msgstr "Mixer"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:130
+#: src/app/mixer/stem-headers.tsx:119
 msgid "mixer.solo"
 msgstr "Isoler {name}"
 
@@ -903,7 +893,7 @@ msgid "mixer.undetected"
 msgstr "Non détectés"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:145
+#: src/app/mixer/stem-headers.tsx:134
 msgid "mixer.volume"
 msgstr "Volume {name}"
 
@@ -1031,7 +1021,7 @@ msgid "separation.error.unknown"
 msgstr "Erreur inattendue — détails dans la console du navigateur."
 
 #. js-lingui-explicit-id
-#: src/app/separation/use-separation.ts:265
+#: src/app/separation/use-separation.ts:267
 msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
@@ -1436,7 +1426,7 @@ msgid "toast.dismiss"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/use-stem-export.ts:58
+#: src/app/workstation-shell/use-stem-export.ts:59
 msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
@@ -1451,7 +1441,7 @@ msgid "toast.region"
 msgstr "Notifications"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/use-stem-export.ts:54
+#: src/app/workstation-shell/use-stem-export.ts:55
 msgid "toast.stems-exported"
 msgstr "Stems exportés"
 
