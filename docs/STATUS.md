@@ -921,9 +921,32 @@ ABCABC —, ties de coût, leads `{time:}`). Les 34 survivants restants
 documentés par famille d'équivalence au rapport. Gate **verte — 1944 tests**
 (+14). [rapport](sessions/2026-07-18-ai2-form-encoder-mutants.md).
 
-**Prochain** : garde-fous beta utilisateur (plafond Modal dashboard ; SMTP —
-piste Resend sur `iiivan.org` actée, câblage dès que la clé API est posée
-localement), chemin natif export desktop (plugin-dialog).
+**SMTP beta câblé et vérifié (2026-07-19)** : Resend sur `iiivan.org`
+(dashboard Supabase, expéditeur `loupe@iiivan.org`, rate limit ~30/h), magic
+link réel reçu ; d'abord en spam Gmail → **DMARC posé** via l'API Netlify DNS
+(`p=none` + rua). Détail + pièges dans
+[beta-checklist.md](beta-checklist.md).
+
+**Export natif desktop (branche `feat/desktop-native-export`, PR à ouvrir) —
+solde AH.1** : exports zip/WAV actifs sur l'app de bureau via un flux DEUX
+temps — `pick_export_path` (NSSavePanel immédiat, parenté à la fenêtre,
+chemin gardé côté Rust sous jeton opaque) puis `write_export` (octets
+Raw|Json, écriture Rust) ; le webview ne nomme jamais un chemin, scope fs
+AC.2 intouché ; seam web `deliverFile` (navigateur = ancre inchangée),
+toasts conditionnés à la livraison réelle ; l'impression reste gatée
+(`printUnavailableOnDesktop`). **Mesuré en bundle** (self-test) : l'IPC
+webview bundlé plafonne à **~8 MB/s en release** (42 MB = 5,1 s ; dev = 46 ms
+— dev ment), corps raw parfois reçu JSON, panel orphelin = « rien ne se
+passe » — d'où dialogue-d'abord. Vérifié release par l'utilisateur :
+dialogue immédiat, save → toast + fichier, cancel → silence, save projet OK.
+Gate **verte — 1950 tests** (+6), cargo 8/8 + clippy, Stryker skippé (core
+intouché). [rapport](sessions/2026-07-19-desktop-native-export.md).
+
+**Prochain** : chip « Serveur hors ligne » mensonger en mode offload (le
+header sonde le serveur local retiré T2.5 — masquer en offload ou rebrancher
+sur `useOnline`, checkpoint produit d'abord) ; garde-fous beta restants
+(plafond Modal dashboard, re-seed codes legacy, PKCE en bundle) ; impression
+desktop (chantier dédié).
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets

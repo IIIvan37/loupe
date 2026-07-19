@@ -1,7 +1,7 @@
 import { chartMatchesPitch, parseChart } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { exportsUnavailableOnDesktop } from '../desktop/desktop-export.ts'
+import { printUnavailableOnDesktop } from '../desktop/desktop-export.ts'
 import { LiveStatus } from '../ui/live-status.tsx'
 import { signedSemitones } from '../ui/signed-semitones.ts'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
@@ -149,9 +149,9 @@ export function ChordChartPanel({
           // action waits for content, the same test the sheet uses to emit
           // its print region. window.print() has no delegate in the desktop
           // webview (AH.1): disabled with a hint, never a silent no-op.
-          disabled={!printable || exportsUnavailableOnDesktop()}
+          disabled={!printable || printUnavailableOnDesktop()}
           title={
-            exportsUnavailableOnDesktop()
+            printUnavailableOnDesktop()
               ? t({
                   id: 'chords.print-desktop-soon',
                   message:

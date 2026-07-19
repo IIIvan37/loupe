@@ -373,8 +373,8 @@ describe('useSeparation — exportStems (the aligned stem folder)', () => {
   it('numbers a single-stem download exactly like the zip would, reporting success', async () => {
     const result = await readyHook(fakeArchive([]), withMasked)
     let ok: boolean | undefined
-    act(() => {
-      ok = result.current.downloadStem('voix')
+    await act(async () => {
+      ok = await result.current.downloadStem('voix')
     })
     // Position among the PRESENT stems (01), not among all sources (02).
     expect(downloaded).toEqual(['01_Voix.wav'])
@@ -384,8 +384,8 @@ describe('useSeparation — exportStems (the aligned stem folder)', () => {
   it('reports no success when the stem to download is gone', async () => {
     const result = await readyHook(fakeArchive([]), withMasked)
     let ok: boolean | undefined
-    act(() => {
-      ok = result.current.downloadStem('does-not-exist')
+    await act(async () => {
+      ok = await result.current.downloadStem('does-not-exist')
     })
     expect(downloaded).toEqual([])
     expect(ok).toBe(false)

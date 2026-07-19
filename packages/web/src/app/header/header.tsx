@@ -2,7 +2,6 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import type { ReactNode } from 'react'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
-import { exportsUnavailableOnDesktop } from '../desktop/desktop-export.ts'
 import { Icon } from '../ui/icon.tsx'
 import { NameEditor } from '../ui/name-editor.tsx'
 import { OperationStatus } from '../ui/operation-status.tsx'
@@ -241,23 +240,17 @@ export function Header({
           <button
             type="button"
             className={styles.secondaryAction}
-            disabled={!canExport || exportsUnavailableOnDesktop()}
+            disabled={!canExport}
             title={
-              exportsUnavailableOnDesktop()
+              canExport
                 ? t({
-                    id: 'header.export-desktop-soon',
-                    message:
-                      "Export bientôt disponible sur l'app de bureau"
+                    id: 'header.export-ready',
+                    message: 'Télécharger les stems en ZIP'
                   })
-                : canExport
-                  ? t({
-                      id: 'header.export-ready',
-                      message: 'Télécharger les stems en ZIP'
-                    })
-                  : t({
-                      id: 'header.export-needs-stems',
-                      message: 'Séparer les pistes pour exporter les stems'
-                    })
+                : t({
+                    id: 'header.export-needs-stems',
+                    message: 'Séparer les pistes pour exporter les stems'
+                  })
             }
             onClick={onExportStems}
           >

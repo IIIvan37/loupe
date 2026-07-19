@@ -2,7 +2,6 @@ import { MAX_GAIN_DB, MIN_GAIN_DB, type StemFilter } from '@app/core'
 import { Popover } from '@base-ui-components/react/popover'
 import { useLingui } from '@lingui/react/macro'
 import { cx } from '../../lib/cx.ts'
-import { exportsUnavailableOnDesktop } from '../desktop/desktop-export.ts'
 import { stemColor } from '../stems/stem-color.ts'
 import type { MixerChannelView } from './use-mixer.ts'
 import styles from './stem-headers.module.css'
@@ -95,20 +94,10 @@ export function StemHeaders({
               <button
                 type="button"
                 className={styles.download}
-                disabled={exportsUnavailableOnDesktop()}
                 aria-label={t({
                   id: 'mixer.download-wav',
                   message: `Télécharger ${name} en WAV`
                 })}
-                title={
-                  exportsUnavailableOnDesktop()
-                    ? t({
-                        id: 'mixer.download-desktop-soon',
-                        message:
-                          "Téléchargement bientôt disponible sur l'app de bureau"
-                      })
-                    : undefined
-                }
                 onClick={() => onDownloadStem(stem.id)}
               >
                 WAV ↓

@@ -1,13 +1,12 @@
 import { isTauriShell } from '../../auth/tauri-env.ts'
 
 /**
- * AH.1 (v1): the desktop webview has no native save/print delegate yet —
- * an anchor's `download` attribute and `window.print()` silently no-op in
- * WKWebView, while the success toast still fired (« Stems exportés » with
- * no file anywhere). Until the plugin-dialog save path lands and is
- * verified in a real bundle, the honest face is a DISABLED control that
- * says so — never a confirmation of an export that did not happen.
+ * `window.print()` has no delegate in the desktop webview (WKWebView): it
+ * silently no-ops. Until a native print path lands, the honest face is a
+ * DISABLED control that says so — never a silent nothing. File exports are
+ * NOT gated any more: they go through the native save dialog
+ * (`deliverFile` → the Rust `export_file` command).
  */
-export function exportsUnavailableOnDesktop(): boolean {
+export function printUnavailableOnDesktop(): boolean {
   return isTauriShell()
 }
