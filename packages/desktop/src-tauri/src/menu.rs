@@ -42,20 +42,12 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
       &MenuItem::with_id(app, SAVE, "Enregistrer", true, Some("CmdOrCtrl+S"))?,
     ],
   )?;
-  // Clipboard roles only — loupe has no undo system (product decision D.1),
-  // so Undo/Redo items would be dead. macOS still needs these standard
-  // selectors present for Cmd+C/V/X to reach the chord-grid text field.
-  let edit = Submenu::with_items(
-    app,
-    "Édition",
-    true,
-    &[
-      &PredefinedMenuItem::cut(app, Some("Couper"))?,
-      &PredefinedMenuItem::copy(app, Some("Copier"))?,
-      &PredefinedMenuItem::paste(app, Some("Coller"))?,
-      &PredefinedMenuItem::select_all(app, Some("Tout sélectionner"))?,
-    ],
-  )?;
+  // No Edit submenu on purpose: loupe has no undo (product decision D.1), and
+  // any standard Edit menu makes macOS auto-inject AutoFill / Writing Tools /
+  // Emoji & Symbols / Start Dictation — noise for a practice tool. WKWebView
+  // handles Cmd+C/V/X/A in its own text fields (the chord grid) via the web
+  // responder chain, independently of the app menu, so the clipboard still
+  // works without it.
   let window = Submenu::with_items(
     app,
     "Fenêtre",
@@ -80,7 +72,7 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
       None::<&str>,
     )?],
   )?;
-  Menu::with_items(app, &[&app_menu, &file, &edit, &window, &help])
+  Menu::with_items(app, &[&app_menu, &file, &window, &help])
 }
 
 /// Forward a custom item's activation to the webview. Predefined items act
