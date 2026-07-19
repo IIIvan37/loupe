@@ -19,14 +19,22 @@
 - Tests : hook `use-native-menu.spec.ts` (inerte hors shell, routage des 3
   ids, id inconnu ignoré, désabonnement à l'unmount) ; cargo **8/8**, clippy
   propre. Gate web verte.
+- **Menu Édition — va-et-vient tranché** : retiré d'abord (macOS injecte
+  AutoFill/Writing Tools/Emoji/Dictée dans tout menu Édition), MAIS sans lui
+  ⌘C/⌘V ne fonctionnent plus (seul Ctrl passe — vérifié en bundle). **Restauré**
+  (rôles presse-papiers, sans undo). Décision : macOS n'expose aucune API
+  publique pour retirer AutoFill/Writing Tools ; le presse-papiers Cmd
+  l'emporte sur un menu propre. Vérifié : ⌘C/⌘V OK dans le textarea.
 - **ÉVALUATION UX v7** ([roadmap-excellence-7.md](../roadmap-excellence-7.md))
   : revue multi-agents 8 axes UX + enquêteur reliquats offload, réfutation
-  adversariale (53 constats, 42 confirmés). Note UX globale **~13,5/20** —
+  adversariale. **Deux runs** : Fable (synthèse ratée limite, reconstruite) puis
+  **re-run Opus 4.8** (57 agents, 0 erreur, 47 constats, 42 confirmés, 5
+  déjà-tranchés) qui a remplacé la roadmap — les deux axes restés « plausibles »
+  (boucle de pratique, reliquats offload) confirmés par le code, sévérités
+  affinées, lots détaillés au niveau fichier. Note UX globale **~13,5/20** —
   « propre mais pas exceptionnel ». Séquencement Lots **AJ→AQ** : offload-only
-  (arrêter de mentir) → premier contact (funnel beta) → boucle de pratique →
-  mixer vivant → partition → âme visuelle → nativité desktop (AP.1 fait ici) →
-  copy. La synthèse du workflow a échoué sur la limite Fable 5 ; reconstruite
-  depuis le journal des agents.
+  → premier contact → boucle → mixer → partition → âme visuelle → nativité
+  (AP.1 fait ici) → copy.
 
 ## Not done / remaining
 
