@@ -72,13 +72,15 @@ describe('ProjectsDialog', () => {
     expect(screen.getByText(i18n._('projects.empty'))).toBeInTheDocument()
   })
 
-  it('shows the unreachable-server message instead of the empty state', () => {
+  it('shows the list-error message instead of the empty state', () => {
     renderDialog({
       projects: [],
       errorMessage: i18n._('projects.unreachable')
     })
 
-    expect(screen.getByRole('alert')).toHaveTextContent('Serveur injoignable')
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      i18n._('projects.unreachable')
+    )
     expect(
       screen.queryByText(i18n._('projects.empty'))
     ).not.toBeInTheDocument()

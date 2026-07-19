@@ -10,11 +10,11 @@ import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useStructureDetection } from './use-structure-detection.ts'
 
-// The analysis gate only engages on the offload path (VITE_STRUCTURE_URL set).
+// The analysis gate only engages on the offload path (VITE_ANALYSIS_URL set).
 // A developer's .env.local may set it, so pin it OFF for the default cases —
 // their synchronous detector semantics assume the token-less local path. The
 // two gate cases opt back in.
-beforeEach(() => vi.stubEnv('VITE_STRUCTURE_URL', ''))
+beforeEach(() => vi.stubEnv('VITE_ANALYSIS_URL', ''))
 afterEach(() => vi.unstubAllEnvs())
 
 const AUDIO: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
@@ -256,7 +256,7 @@ describe('useStructureDetection', () => {
   })
 
   it('raises the busy face before the gate mint resolves (R.3)', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     let open: (result: { ok: false; reason: 'sign-in-required' }) => void =
       () => {}
     const gatePromise = new Promise<{ ok: false; reason: 'sign-in-required' }>(
@@ -285,7 +285,7 @@ describe('useStructureDetection', () => {
   })
 
   it('a cancel during the mint stops the superseded run', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     let open: (result: { ok: true }) => void = () => {}
     const gatePromise = new Promise<{ ok: true }>((resolve) => {
       open = resolve
@@ -315,7 +315,7 @@ describe('useStructureDetection', () => {
 
   it('blocks the analysis and surfaces the reason when the gate fails', async () => {
     // The gate only runs on the offload path; stub it on for these two tests.
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const detect = vi.fn(async () => [])
     const { result } = renderHook(() =>
       useStructureDetection({
@@ -335,7 +335,7 @@ describe('useStructureDetection', () => {
   })
 
   it('runs and clears any prior gate reason once the gate passes', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const onSections = vi.fn()
     const gate = vi
       .fn<

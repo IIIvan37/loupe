@@ -13,8 +13,9 @@ interface HeaderProps {
   readonly artist: string
   /** Open the file picker. The smart shell owns the actual import. */
   readonly onImport: () => void
-  /** Start importing a track from a media URL. The shell owns the download. */
-  readonly onImportUrl: (url: string) => void
+  /** Start importing a track from a media URL. The shell owns the download.
+   * Absent in the browser — URL import is desktop-only. */
+  readonly onImportUrl?: ((url: string) => void) | undefined
   /** Whether a URL download is in flight — the URL submit locks. */
   readonly urlImportBusy?: boolean | undefined
   /** Ask before importing: the session holds work a new track would discard. */
@@ -26,7 +27,7 @@ interface HeaderProps {
   /** Reveal the keyboard-shortcuts help. The shell owns the dialog state. */
   readonly onShowShortcuts: () => void
   /** Save the session as a named project. The shell owns the actual save. */
-  readonly onSaveProject?: (name: string) => void
+  readonly onSaveProject?: ((name: string) => void) | undefined
   /** The current project's name, seeding the save popover. */
   readonly saveName?: string
   /** Whether there is anything to save (a track is loaded). */
@@ -45,7 +46,7 @@ interface HeaderProps {
   /** Abort the narrated operation, when it is cancellable (the URL download). */
   readonly onCancelBusy?: (() => void) | undefined
   /** Reveal the saved-projects dialog. The shell owns its state. */
-  readonly onShowProjects?: () => void
+  readonly onShowProjects?: (() => void) | undefined
   /** The account control (sign-in / quota), when analysis is offloaded (J2).
    * A slot so the dumb header stays free of auth wiring. */
   readonly accountSlot?: ReactNode

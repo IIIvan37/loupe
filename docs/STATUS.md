@@ -979,9 +979,22 @@ AJ.3 : `projects.unreachable` (couplée au store projets HTTP). Gate **verte —
 1935 tests**, coverage 97,4 %, jscpd 0,08 %, Stryker skippé (core intouché).
 [rapport](sessions/2026-07-19-aj1-aj2-offload-only.md).
 
-**Prochain** : **AJ.3** (renommage `VITE_STRUCTURE_URL → VITE_ANALYSIS_URL`,
-endpoint obligatoire, suppression des adaptateurs HTTP projets/track-source +
-`server-url.ts`, gate desktop-only des projets/import-URL), stackée sur #225.
+**AJ.3 — Hard Tauri-only cut (branche `feat/aj3-tauri-only-cut`, stackée sur
+#225) — LOT AJ COMPLET** : renommage `VITE_STRUCTURE_URL → VITE_ANALYSIS_URL`,
+endpoint **obligatoire** (`analysisUrl()` jette au lieu du fallback silencieux
+`localhost:8000`, `server-url.ts` supprimé) ; adaptateurs HTTP supprimés
+(`http-project-store`, `http-track-source`) → navigateur = terrain de jeu
+d'analyse (store projets null-object en mémoire, track-source qui rejette) ;
+**projets / Enregistrer / import-URL cachés hors desktop** via une capacité
+`desktop` (défaut `isTauriShell()`) tissée jusqu'à `ShellHeader`, spec de
+gating dédiée ; `projects.unreachable` neutralisée + commentaires « local
+server » corrigés. Kit de test : ports d'analyse inertes par défaut (les
+factories exigent l'endpoint). Gate **verte — 1918 tests**, build de prod OK,
+Stryker skippé (core intouché).
+[rapport](sessions/2026-07-19-aj3-tauri-only-cut.md).
+
+**Prochain** : **Lot AK** (premier contact — funnel magic-link «  lien
+envoyé », empty-state qui vend, import-URL dans le hero, divulgation beta).
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets

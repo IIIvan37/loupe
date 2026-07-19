@@ -45,7 +45,7 @@ describe('analysis token gate', () => {
   })
 
   it('is a no-op pass when analysis is not offloaded — never mints', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', '')
+    vi.stubEnv('VITE_ANALYSIS_URL', '')
     const auth = fakeAuth(OK)
     expect(isAnalysisOffloaded()).toBe(false)
     expect(await ensureAnalysisToken(auth)).toEqual({ ok: true })
@@ -54,7 +54,7 @@ describe('analysis token gate', () => {
   })
 
   it('mints and caches a token when offloaded, surfacing the quota', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const auth = fakeAuth(OK)
 
     expect(await ensureAnalysisToken(auth)).toEqual({
@@ -66,7 +66,7 @@ describe('analysis token gate', () => {
   })
 
   it('reuses a fresh cached token instead of minting again', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const auth = fakeAuth(OK)
 
     await ensureAnalysisToken(auth)
@@ -75,7 +75,7 @@ describe('analysis token gate', () => {
   })
 
   it('forwards a typed mint failure without caching', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const auth = fakeAuth({ ok: false, reason: 'not-a-beta-member' })
 
     expect(await ensureAnalysisToken(auth)).toEqual({
@@ -86,7 +86,7 @@ describe('analysis token gate', () => {
   })
 
   it('treats a token within the expiry skew as absent (re-mints)', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const auth = fakeAuth(OK)
     await ensureAnalysisToken(auth)
 
@@ -98,7 +98,7 @@ describe('analysis token gate', () => {
   })
 
   it('notifies usage listeners on a fresh mint (drives the live header chip)', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const seen: Array<{ used: number; quota: number }> = []
     const unsubscribe = onAnalysisUsage((u) => seen.push(u))
 
@@ -112,7 +112,7 @@ describe('analysis token gate', () => {
   })
 
   it('does not notify usage when not offloaded (no mint happened)', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', '')
+    vi.stubEnv('VITE_ANALYSIS_URL', '')
     const seen: Array<{ used: number; quota: number }> = []
     const unsubscribe = onAnalysisUsage((u) => seen.push(u))
     await ensureAnalysisToken(fakeAuth(OK))
@@ -121,7 +121,7 @@ describe('analysis token gate', () => {
   })
 
   it('clearAnalysisToken drops the cache (sign-out)', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     await ensureAnalysisToken(fakeAuth(OK))
     expect(cachedAnalysisToken()).toBe('minted-tok')
 

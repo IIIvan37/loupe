@@ -45,8 +45,7 @@ export function ShellDialogs({
           projects.listError
             ? t({
                 id: 'projects.unreachable',
-                message:
-                  'Serveur injoignable — vérifier que le serveur local est lancé'
+                message: 'Impossible de lister les projets — réessayer.'
               })
             : undefined
         }
