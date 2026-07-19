@@ -212,6 +212,44 @@ describe('encodeChartSource — plan rendering', () => {
     expect(source).toContain('{time: 3/4}\n[B]')
   })
 
+  it('never folds tolerant-but-unequal passes into repeat bars', () => {
+    // A clean 3× cycle of a 7-bar section (+ a 4-bar intro): 7 is no tiling
+    // length, so the MDL tiles by 4 and the 4-bar blocks match only
+    // TOLERANTLY. Folding them into `|: :|` would replay one copy and drop
+    // the bars where they differ — the unroll oracle's shrunk counterexample.
+    const labels = [
+      'Db',
+      'Db',
+      'Db',
+      'Db',
+      'Em',
+      'Em',
+      'Em',
+      'Em',
+      'G',
+      'G',
+      'Em',
+      'Em',
+      'Em',
+      'Em',
+      'Em',
+      'G',
+      'G',
+      'Em',
+      'Em',
+      'Em',
+      'Em',
+      'Em',
+      'G',
+      'G',
+      'Em'
+    ]
+    const { source, rollout } = encodeChartSource(labels, undefined, 2)
+    const full =
+      rollout === undefined ? source : `{form: ${rollout}x}\n${source}`
+    expect(playedLabels(full)).toEqual(labels)
+  })
+
   it('a non-returning section restates its meter across written copies', () => {
     // X P P where P ends in 3/4: the pair cannot fold (the second copy needs
     // a {time: 4/4} restatement), so ONE run block writes both copies — and
@@ -297,15 +335,17 @@ describe('encodeChartSource — da capo', () => {
     expect(playedLabels(source)).toEqual(song)
   })
 
-  it('a written middle pass prints the type vote, not its own noise', () => {
-    // A B A' B A with one mis-detected bar in the MIDDLE A: that pass is
-    // written (not replayed), and must print the type's voted bars — the
-    // faithful-print path is reserved for genuine ending variants.
+  it('a passe that differs anywhere prints faithfully — playback stays exact', () => {
+    // A B A' B A with one mis-detected bar in the MIDDLE A: the A passes are
+    // no longer byte-identical, so the type prints FAITHFULLY (each pass its
+    // own bars) rather than collapsing to a vote. Playback must equal the
+    // detection exactly — voting one pass's bar away would break the unroll
+    // oracle (repeat bars replay a single copy verbatim).
     const noisy = [...a]
     noisy[5] = 'Zz'
     const song = [...a, ...b, ...noisy, ...b, ...a]
     const { source } = encodeChartSource(song, undefined, 4)
-    expect(playedLabels(source)).toEqual([...a, ...b, ...a, ...b, ...a])
+    expect(playedLabels(source)).toEqual(song)
   })
 
   it('a one-bar pair stays plain (AI.2)', () => {

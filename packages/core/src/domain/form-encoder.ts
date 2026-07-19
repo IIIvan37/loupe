@@ -225,8 +225,13 @@ function planner(
     raws.push(instance.raw)
     rawsByType.set(instance.type, raws)
   }
+  // A type prints FAITHFULLY (each pass its own bars) whenever its passes are
+  // not all byte-identical — whether they diverge only at the end (a volta) or
+  // anywhere else. A 4-bar tiling of a 7-bar section produces passes that merely
+  // match TOLERANTLY (≥75%); voting them into one copy would silently drop the
+  // bars where they differ, and playback would no longer equal the detection.
   for (const [type, raws] of rawsByType) {
-    if (endingVariants(raws) !== undefined) faithfulTypes.add(type)
+    if (!allIdentical(raws)) faithfulTypes.add(type)
   }
   const dp = (from: number, to: number, running: number | undefined): Plan => {
     if (from >= to) {
@@ -307,10 +312,15 @@ function movesAt(
   const variants = runLength > 1 ? endingVariants(raws) : undefined
   const moves: Move[] = []
   for (let span = runLength; span >= 2; span -= 1) {
+    const spanRaws = raws.slice(0, span)
     const spanVariants =
-      span === runLength ? variants : endingVariants(raws.slice(0, span))
+      span === runLength ? variants : endingVariants(spanRaws)
     if (spanVariants !== undefined) continue
-    const measures = faithful ? votedBlock(raws.slice(0, span)) : head.measures
+    // Repeat bars (`|: :|`, `xN`) replay ONE copy verbatim, so a fold is only
+    // playback-correct when every folded pass is byte-identical — never on
+    // tolerant near-matches (their differing bars would vanish).
+    if (!allIdentical(spanRaws)) continue
+    const measures = spanRaws[0] as MeasureLabels
     moves.push({
       consumed: span,
       block: foldBlock(head, measures, span, running, barsPerRow),
@@ -468,6 +478,18 @@ function renderPlan(
     return `${lead}${header}${block.text}${fine ? '\n{fine}' : ''}`
   })
   return `${parts.join('\n\n')}${daCapo ? '\n{d.c.}' : ''}`
+}
+
+/** Whether every block is byte-identical to the first — the only condition
+    under which voting or a repeat fold preserves exact playback. */
+function allIdentical(blocks: readonly MeasureLabels[]): boolean {
+  const first = blocks[0]
+  if (first === undefined) return true
+  return blocks.every(
+    (block) =>
+      block.length === first.length &&
+      block.every((label, index) => label === first[index])
+  )
 }
 
 /** Cut a sequence into `size`-long pieces (the caller guarantees an exact
