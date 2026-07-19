@@ -6,12 +6,11 @@
 
 ## À faire par l'utilisateur (non automatisable)
 
-- [ ] **Plafond de dépense Modal** — le garde-fou beta acté en M1.2/M1.3
-  (`max_containers=1` limite le débit, pas la facture). Le CLI ne sait que
-  lire (`modal billing report`) : le **spend cap / billing alert se pose dans
-  le dashboard Modal** (Settings → Billing). Référence : dépense du mois en
-  cours mesurée ce jour ≈ **3,67 $** (tout le développement inclus) — un
-  plafond à ~25 $/mois laisse un ordre de grandeur de marge à la beta.
+- [x] **Plafond de dépense Modal** — **RÉGLÉ PAR LE PLAN (2026-07-19)** : le
+  compte est en free plan, plafonné nativement à **30 $/mois** — aucun spend
+  cap à poser tant qu'on n'upgrade pas. Référence : dépense mesurée
+  ≈ 3,67 $/mois tout développement inclus (10× de marge). À re-vérifier
+  seulement si le compte passe payant.
 - [x] **SMTP custom Supabase** — **FAIT (2026-07-19)** : Resend sur le
   domaine `iiivan.org` (déjà vérifié SPF/DKIM), expéditeur
   `loupe@iiivan.org`, posé au Dashboard (Auth → SMTP : `smtp.resend.com`,
