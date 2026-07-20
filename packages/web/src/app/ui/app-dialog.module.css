@@ -20,6 +20,8 @@
   z-index: var(--z-dialog);
   transform: translate(-50%, -50%);
   width: min(28rem, calc(100vw - var(--space-l)));
+  max-height: calc(100vh - var(--space-l));
+  overflow-y: auto;
   padding: var(--space-l);
   background: var(--panel);
   border: 1px solid var(--line);
@@ -28,6 +30,12 @@
   transition:
     opacity var(--motion-med) var(--motion-ease),
     transform var(--motion-med) var(--motion-ease);
+}
+
+/* A roomier panel: two-column reference lists (shortcuts) and long project
+   names that must not truncate. */
+.wide {
+  width: min(46rem, calc(100vw - var(--space-l)));
 }
 
 /* Fade + a slight scale, keeping the centring translate in every state. */
