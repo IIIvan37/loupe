@@ -1,0 +1,40 @@
+/* The shared media-URL entry: a hint, one URL field with an unsupported-host
+   warning, and an action row. Consumers place it inside their own surface (the
+   import popover, the empty-state hero) and layer on width/spacing. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+}
+
+.hint {
+  margin: 0;
+  color: var(--dim);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
+.input {
+  composes: input from './popover-form.module.css';
+  width: 100%;
+}
+
+.input:disabled {
+  opacity: var(--disabled-opacity);
+}
+
+.warning {
+  margin: calc(-1 * var(--space-2xs)) 0 0;
+  color: var(--danger);
+  font-size: var(--font-size-xs);
+}
+
+.actions {
+  composes: actions from './popover-form.module.css';
+}
+
+.submit {
+  composes: submit from './popover-form.module.css';
+}

@@ -1013,8 +1013,17 @@ raccourcis conservés dans le dialogue « ? ». `EmptyState.shortcuts` +
 module-scope (react-doctor). Gate **verte — 1925 tests**, Stryker skippé.
 [rapport](sessions/2026-07-20-ak2-empty-state.md).
 
-**Prochain** : **AK.3** (import-URL dans le hero — à concilier avec le gating
-desktop-only d'AJ.3), **AK.4** (divulgation beta amont + waitlist).
+**AK.3 — import URL au niveau du fichier (branche `feat/ak3-url-import-hero`, PR
+à ouvrir)** : champ « Coller un lien » **inline** dans le hero de l'empty-state
+(desktop-only, gating AJ.3) + paste-anywhere qui pré-remplit le champ.
+Composant partagé **`UrlImportField`** extrait (champ+validation
+`isSupportedSourceUrl`+warning a11y+submit) réutilisé par `ImportMenu` et
+`EmptyState` — l'invariant de validation ne peut plus diverger. Ids
+`header.import-url-*` → `import.url-*` (+ `empty.or`). Gate **verte — 1931
+tests**, Stryker skippé.
+[rapport](sessions/2026-07-20-ak3-url-import-hero.md).
+
+**Prochain** : **AK.4** (divulgation beta amont + waitlist), puis Lot AK clos.
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets

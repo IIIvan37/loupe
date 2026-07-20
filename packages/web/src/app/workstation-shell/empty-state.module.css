@@ -50,6 +50,25 @@
   cursor: pointer;
 }
 
+/* The desktop-only URL entry, sitting under the file button so a link imports
+   at the same level as a file (AK.3). Sized to the hero so the field doesn't
+   collapse to its intrinsic width. */
+.urlImport {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-s);
+  width: min(24rem, 100%);
+  margin-top: var(--space-m);
+}
+
+.separator {
+  margin: 0;
+  color: var(--dim);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+}
+
 /* The three value hooks: a row of icon-topped cards on wide viewports, that
    wrap intrinsically to a column when the space runs out (no media query). */
 .hooks {

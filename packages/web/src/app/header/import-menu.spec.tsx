@@ -35,11 +35,11 @@ async function openUrlWith(
 ) {
   await user.click(screen.getByRole('button', { name: i18n._('header.import') }))
   await user.click(screen.getByText(i18n._('header.import-from-url')))
-  const field = screen.getByLabelText(i18n._('header.import-url-field'))
+  const field = screen.getByLabelText(i18n._('import.url-field'))
   await user.click(field)
   await user.paste(url)
   const submit = screen.getByRole('button', {
-    name: i18n._('header.import-url-submit')
+    name: i18n._('import.url-submit')
   })
   return { field, submit }
 }
@@ -51,7 +51,7 @@ describe('ImportMenu — unsupported URL guard', () => {
     const { submit } = await openUrlWith(user, 'https://open.spotify.com/track/xyz')
 
     expect(
-      screen.getByText(i18n._('header.import-url-unsupported'))
+      screen.getByText(i18n._('import.url-unsupported'))
     ).toBeInTheDocument()
     expect(submit).toBeDisabled()
 
@@ -65,7 +65,7 @@ describe('ImportMenu — unsupported URL guard', () => {
     const { submit } = await openUrlWith(user, 'https://youtu.be/dQw4w9WgXcQ')
 
     expect(
-      screen.queryByText(i18n._('header.import-url-unsupported'))
+      screen.queryByText(i18n._('import.url-unsupported'))
     ).not.toBeInTheDocument()
     expect(submit).toBeEnabled()
 
