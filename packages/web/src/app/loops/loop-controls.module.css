@@ -2,6 +2,13 @@
   composes: sectionLabel from '../ui/controls.module.css';
 }
 
+/* Live start → end · length read-out; tabular so the figures don't jitter. */
+.readout {
+  color: var(--dim);
+  font-size: var(--font-size-s);
+  font-variant-numeric: tabular-nums;
+}
+
 .action {
   composes: amberButton from '../ui/controls.module.css';
   padding: var(--space-2xs) var(--space-s);

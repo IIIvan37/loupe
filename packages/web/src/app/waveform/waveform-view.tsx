@@ -1,10 +1,19 @@
 import { Trans, useLingui } from '@lingui/react/macro'
-import { type BeatGrid, type LoopRegion, nudgeSeconds, type Waveform } from '@app/core'
-import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react'
+import {
+  type BeatGrid,
+  formatTimecode,
+  type LoopRegion,
+  type Waveform
+} from '@app/core'
 import { clamp01 } from '../../lib/clamp01.ts'
-import { pointerRatio } from '../../lib/pointer-ratio.ts'
 import { OperationStatus } from '../ui/operation-status.tsx'
 import type { ImportState } from './use-player.ts'
+import {
+  draggingPair,
+  floatingEdgeRatio,
+  selectionPair,
+  useWaveformGestures
+} from './use-waveform-gestures.ts'
 import { WaveformCanvas } from './waveform-canvas.tsx'
 import styles from './waveform-view.module.css'
 
@@ -46,24 +55,14 @@ interface WaveformViewProps {
   readonly onReimport: () => void
 }
 
-// Below this drag distance (fraction of the width) a press counts as a click.
-const DRAG_THRESHOLD = 0.005
-
-/** Which loop edge a handle drives. */
-type Edge = 'start' | 'end'
-
-/** The in-progress pointer gesture, or null when idle. */
-type Drag =
-  | { readonly kind: 'select'; readonly anchor: number; readonly current: number }
-  | { readonly kind: 'edge'; readonly start: number; readonly end: number }
-
 /**
  * Dumb presentational view of the import state: a prompt while idle, progress
  * while decoding, an alert on failure, and — once loaded — the amber waveform
  * with click-to-seek, drag-to-select (the « loupe »), a live selection preview,
  * draggable A/B edge handles, and a dim overlay outside the active loop. It fills
  * its `ZoomStage` layer, so its 0–1 coordinates are whole-timeline ratios at any
- * zoom; the playhead and scrolling are the stage's.
+ * zoom; the playhead and scrolling are the stage's. The pointer/keyboard gesture
+ * bookkeeping lives in `useWaveformGestures`.
  */
 export function WaveformView({
   state,
@@ -78,134 +77,13 @@ export function WaveformView({
   onReimport
 }: WaveformViewProps) {
   const { t } = useLingui()
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [drag, setDrag] = useState<Drag | null>(null)
-
-  /** The pointer's position along the surface as a 0–1 ratio, or null. */
-  function ratioFrom(clientX: number): number | null {
-    return pointerRatio(containerRef.current?.getBoundingClientRect(), clientX)
-  }
-
-  function beginSelect(event: PointerEvent<HTMLDivElement>): void {
-    if (event.button !== 0) {
-      return
-    }
-    const ratio = ratioFrom(event.clientX)
-    if (ratio === null) {
-      return
-    }
-    event.currentTarget.setPointerCapture(event.pointerId)
-    setDrag({ kind: 'select', anchor: ratio, current: ratio })
-  }
-
-  function beginEdge(
-    event: PointerEvent<HTMLButtonElement>,
-    edge: Edge,
-    region: { readonly start: number; readonly end: number }
-  ): void {
-    if (event.button !== 0) {
-      return
-    }
-    event.stopPropagation()
-    event.currentTarget.setPointerCapture(event.pointerId)
-    setDrag({ kind: 'edge', start: region.start, end: region.end })
-    moveEdge(edge, event.clientX)
-  }
-
-  function moveEdge(edge: Edge, clientX: number): void {
-    const ratio = ratioFrom(clientX)
-    if (ratio === null) {
-      return
-    }
-    setDrag((current) => {
-      if (current?.kind !== 'edge') {
-        return current
-      }
-      return edge === 'start'
-        ? { ...current, start: ratio }
-        : { ...current, end: ratio }
-    })
-  }
-
-  function onPointerMove(event: PointerEvent): void {
-    const ratio = ratioFrom(event.clientX)
-    if (ratio === null) {
-      return
-    }
-    setDrag((current) => {
-      if (current?.kind === 'select') {
-        return { ...current, current: ratio }
-      }
-      return current
-    })
-  }
-
-  function onPointerUp(event: PointerEvent): void {
-    const finished = drag
-    setDrag(null)
-    if (!finished) {
-      return
-    }
-    const ratio = ratioFrom(event.clientX)
-    const snap = !event.altKey
-    if (finished.kind === 'select') {
-      const end = ratio ?? finished.current
-      if (Math.abs(end - finished.anchor) < DRAG_THRESHOLD) {
-        onSeek(end)
-      } else {
-        onSelectRegion(
-          Math.min(finished.anchor, end),
-          Math.max(finished.anchor, end),
-          snap
-        )
-      }
-      return
-    }
-    onAdjustRegion(
-      Math.min(finished.start, finished.end),
-      Math.max(finished.start, finished.end),
-      snap
-    )
-  }
-
-  function nudgeEdge(
-    edge: Edge,
-    direction: -1 | 1,
-    coarse: boolean,
-    region: { readonly start: number; readonly end: number }
-  ): void {
-    // Musical units: the adjacent beat (bar with Shift) when a grid exists,
-    // 0.1 s (×10 with Shift) otherwise — see `nudgeSeconds`.
-    const nudge = (ratio: number) =>
-      clamp01(
-        nudgeSeconds(ratio * durationSeconds, direction, beatGrid, coarse) /
-          durationSeconds
-      )
-    const moved =
-      edge === 'start'
-        ? { start: nudge(region.start), end: region.end }
-        : { start: region.start, end: nudge(region.end) }
-    // An arrow nudge lands on the unit itself — never re-snapped.
-    onAdjustRegion(
-      Math.min(moved.start, moved.end),
-      Math.max(moved.start, moved.end),
-      false
-    )
-  }
-
-  function onHandleKeyDown(
-    event: KeyboardEvent<HTMLButtonElement>,
-    edge: Edge,
-    region: { readonly start: number; readonly end: number }
-  ): void {
-    if (event.key === 'ArrowLeft') {
-      event.preventDefault()
-      nudgeEdge(edge, -1, event.shiftKey, region)
-    } else if (event.key === 'ArrowRight') {
-      event.preventDefault()
-      nudgeEdge(edge, 1, event.shiftKey, region)
-    }
-  }
+  const gestures = useWaveformGestures({
+    durationSeconds,
+    beatGrid,
+    onSeek,
+    onSelectRegion,
+    onAdjustRegion
+  })
 
   switch (state.status) {
     case 'idle':
@@ -230,24 +108,22 @@ export function WaveformView({
     case 'error':
       return <ImportErrorStage message={state.message} onReimport={onReimport} />
     case 'loaded': {
+      const { drag, focusedEdge, hoverRatio } = gestures
       const committed = loopRatios(loopRegion, durationSeconds)
       // The edge drag previews live; otherwise the region/handles follow state.
-      const region =
-        drag?.kind === 'edge'
-          ? { start: Math.min(drag.start, drag.end), end: Math.max(drag.start, drag.end) }
-          : committed
-      const selection =
-        drag?.kind === 'select' &&
-        Math.abs(drag.current - drag.anchor) >= DRAG_THRESHOLD
-          ? { start: Math.min(drag.anchor, drag.current), end: Math.max(drag.anchor, drag.current) }
-          : undefined
+      const region = draggingPair(drag) ?? committed
+      const selection = selectionPair(drag)
+      // The edge whose timecode floats: the one being dragged (its live raw
+      // value) or the focused one (its committed value), else nothing.
+      const edgeRatio = floatingEdgeRatio(drag, focusedEdge, committed)
 
       return (
         <div
-          ref={containerRef}
+          ref={gestures.containerRef}
           className={styles.container}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
+          onPointerMove={gestures.onPointerMove}
+          onPointerUp={gestures.onPointerUp}
+          onPointerLeave={gestures.clearHover}
         >
           {/* Pointer-only gesture surface (click = seek, drag = loop, Alt
               escapes the snap) — documented in the « ? » help's Gestures
@@ -256,7 +132,7 @@ export function WaveformView({
           <div
             className={styles.surface}
             data-testid="waveform-surface"
-            onPointerDown={beginSelect}
+            onPointerDown={gestures.beginSelect}
           >
             {mixWaveform ? (
               <WaveformCanvas
@@ -314,9 +190,11 @@ export function WaveformView({
                   id: 'waveform.move-loop-start',
                   message: 'Déplacer le début de la boucle'
                 })}
-                onPointerDown={(event) => beginEdge(event, 'start', region)}
-                onPointerMove={(event) => moveEdge('start', event.clientX)}
-                onKeyDown={(event) => onHandleKeyDown(event, 'start', region)}
+                onPointerDown={(event) => gestures.beginEdge(event, 'start', region)}
+                onPointerMove={(event) => gestures.moveEdge('start', event.clientX)}
+                onKeyDown={(event) => gestures.onHandleKeyDown(event, 'start', region)}
+                onFocus={() => gestures.focusEdge('start')}
+                onBlur={gestures.blurEdge}
               />
               <button
                 type="button"
@@ -326,9 +204,11 @@ export function WaveformView({
                   id: 'waveform.move-loop-end',
                   message: 'Déplacer la fin de la boucle'
                 })}
-                onPointerDown={(event) => beginEdge(event, 'end', region)}
-                onPointerMove={(event) => moveEdge('end', event.clientX)}
-                onKeyDown={(event) => onHandleKeyDown(event, 'end', region)}
+                onPointerDown={(event) => gestures.beginEdge(event, 'end', region)}
+                onPointerMove={(event) => gestures.moveEdge('end', event.clientX)}
+                onKeyDown={(event) => gestures.onHandleKeyDown(event, 'end', region)}
+                onFocus={() => gestures.focusEdge('end')}
+                onBlur={gestures.blurEdge}
               />
             </>
           )}
@@ -343,6 +223,12 @@ export function WaveformView({
               aria-hidden="true"
             />
           )}
+
+          <FloatingTimecodes
+            edgeRatio={edgeRatio}
+            hoverRatio={hoverRatio}
+            durationSeconds={durationSeconds}
+          />
         </div>
       )
     }
@@ -373,6 +259,49 @@ function ImportErrorStage({
         <Trans id="waveform.reimport">Importer un autre fichier</Trans>
       </button>
     </div>
+  )
+}
+
+/**
+ * The two floating timecodes over the surface: the active loop edge (during a
+ * drag or while its handle holds focus) pinned to its boundary, and the idle
+ * hover cursor line with the timecode under the pointer. Both are decorative —
+ * the numbers are echoed as accessible text in the loop controls and transport.
+ */
+function FloatingTimecodes({
+  edgeRatio,
+  hoverRatio,
+  durationSeconds
+}: {
+  readonly edgeRatio: number | undefined
+  readonly hoverRatio: number | null
+  readonly durationSeconds: number
+}) {
+  return (
+    <>
+      {edgeRatio !== undefined && (
+        <span
+          className={styles.edgeLabel}
+          data-testid="loop-edge-label"
+          style={{ left: `${clamp01(edgeRatio) * 100}%` }}
+          aria-hidden="true"
+        >
+          {formatTimecode(clamp01(edgeRatio) * durationSeconds)}
+        </span>
+      )}
+
+      {hoverRatio !== null && (
+        <span
+          className={styles.hover}
+          style={{ left: `${clamp01(hoverRatio) * 100}%` }}
+          aria-hidden="true"
+        >
+          <span className={styles.hoverLabel} data-testid="waveform-hover-label">
+            {formatTimecode(clamp01(hoverRatio) * durationSeconds)}
+          </span>
+        </span>
+      )}
+    </>
   )
 }
 

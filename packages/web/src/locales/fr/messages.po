@@ -493,7 +493,7 @@ msgstr "Renommer"
 #: src/app/header/header.tsx:88
 #: src/app/header/header.tsx:96
 #: src/app/header/header.tsx:108
-#: src/app/loops/loop-controls.tsx:79
+#: src/app/loops/loop-controls.tsx:89
 #: src/app/workstation-shell/shell-test-kit.tsx:261
 #: src/app/workstation-shell/shell-test-kit.tsx:350
 msgid "common.save"
@@ -727,12 +727,12 @@ msgid "import.url-unsupported"
 msgstr "Hôte non supporté — YouTube ou SoundCloud uniquement"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:64
+#: src/app/loops/loop-controls.tsx:74
 msgid "loops.active"
 msgstr "Boucle active"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:86
+#: src/app/loops/loop-controls.tsx:96
 msgid "loops.clear-region"
 msgstr "Effacer"
 
@@ -742,9 +742,14 @@ msgid "loops.confirm-remove"
 msgstr "Confirmer la suppression de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:66
+#: src/app/loops/loop-controls.tsx:76
 msgid "loops.inactive"
 msgstr "Boucle inactive"
+
+#. js-lingui-explicit-id
+#: src/app/loops/loop-controls.tsx:54
+msgid "loops.readout"
+msgstr "{start} → {end} · {length}"
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:181
@@ -768,7 +773,7 @@ msgid "loops.save-region"
 msgstr "Enregistrer la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:54
+#: src/app/loops/loop-controls.tsx:62
 msgid "loops.section-label"
 msgstr "Boucles"
 
@@ -1536,37 +1541,37 @@ msgid "transport.tempo-slider"
 msgstr "Vitesse en pourcentage"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:226
+#: src/app/waveform/waveform-view.tsx:247
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:367
+#: src/app/waveform/waveform-view.tsx:423
 msgid "waveform.import-error"
 msgstr "L'import a échoué : ce fichier n'a pas pu être lu."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:214
+#: src/app/waveform/waveform-view.tsx:235
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:264
+#: src/app/waveform/waveform-view.tsx:289
 msgid "waveform.mix-image"
 msgstr "Forme d'onde du mix"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:325
+#: src/app/waveform/waveform-view.tsx:352
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:313
+#: src/app/waveform/waveform-view.tsx:338
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:373
+#: src/app/waveform/waveform-view.tsx:429
 msgid "waveform.reimport"
 msgstr "Importer un autre fichier"
 
@@ -1576,7 +1581,7 @@ msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:272
+#: src/app/waveform/waveform-view.tsx:297
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 

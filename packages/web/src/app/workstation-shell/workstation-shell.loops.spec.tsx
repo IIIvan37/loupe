@@ -37,6 +37,19 @@ describe('WorkstationShell loops & speed trainer', () => {
     expect(engine.seekTo).toHaveBeenCalledWith(2)
   })
 
+  it('reads out the armed loop start, end and length in the controls', async () => {
+    const { user } = renderShell()
+    await importTrack(user)
+
+    // A 20 %→60 % drag arms the loupe [2 s, 6 s] — a 4 s span.
+    pointerGesture(20, 60)
+    expect(
+      screen.getByText(
+        i18n._('loops.readout', { start: '0:02', end: '0:06', length: '0:04' })
+      )
+    ).toBeInTheDocument()
+  })
+
   it('snaps a drag-selected loop to the detected beat grid', async () => {
     const { user } = renderShell({ tempoDetector: steadyDetector() })
     await importTrack(user)
