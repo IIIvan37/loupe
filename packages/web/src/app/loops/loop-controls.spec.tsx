@@ -41,6 +41,17 @@ describe('LoopControls', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
+  it('reads out the active loop start, end and length', () => {
+    // A live read-out so the practitioner sees the calibration in numbers, not
+    // just handles on the waveform. Length is derived, tabular figures.
+    renderControls({ region: { startSeconds: 2, endSeconds: 6 } })
+    expect(
+      screen.getByText(
+        i18n._('loops.readout', { start: '0:02', end: '0:06', length: '0:04' })
+      )
+    ).toBeInTheDocument()
+  })
+
   it('offers save and clear for a fresh (unsaved) region', () => {
     renderControls({ isSaved: false })
     expect(

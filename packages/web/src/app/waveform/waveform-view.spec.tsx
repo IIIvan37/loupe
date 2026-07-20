@@ -259,6 +259,48 @@ describe('WaveformView', () => {
     expect(onAdjustRegion).toHaveBeenCalledWith(0.4, 0.8, false)
   })
 
+  it('floats the edge timecode while dragging a handle, then clears it', () => {
+    const { container } = renderLoaded({
+      loopRegion: { startSeconds: 2, endSeconds: 8 }
+    })
+    const endHandle = screen.getByRole('button', {
+      name: i18n._('waveform.move-loop-end')
+    })
+    fireEvent.pointerDown(endHandle, { button: 0, clientX: 80 })
+    fireEvent.pointerMove(endHandle, { clientX: 50 })
+    // clientX 50 on the 100 px surface → ratio 0.5 → 5 s on the 10 s timeline.
+    expect(screen.getByTestId('loop-edge-label')).toHaveTextContent('0:05')
+    fireEvent.pointerUp(container, { button: 0, clientX: 50 })
+    expect(screen.queryByTestId('loop-edge-label')).not.toBeInTheDocument()
+  })
+
+  it('floats the focused edge timecode for keyboard nudging, cleared on blur', () => {
+    renderLoaded({ loopRegion: { startSeconds: 2, endSeconds: 8 } })
+    const startHandle = screen.getByRole('button', {
+      name: i18n._('waveform.move-loop-start')
+    })
+    fireEvent.focus(startHandle)
+    // start 2 s → 0:02; the label rides the handle while it holds focus.
+    expect(screen.getByTestId('loop-edge-label')).toHaveTextContent('0:02')
+    fireEvent.blur(startHandle)
+    expect(screen.queryByTestId('loop-edge-label')).not.toBeInTheDocument()
+  })
+
+  it('marks the hovered timecode under the pointer', () => {
+    const { container } = renderLoaded()
+    fireEvent.pointerMove(container, { clientX: 50 })
+    expect(screen.getByTestId('waveform-hover-label')).toHaveTextContent('0:05')
+    fireEvent.pointerLeave(container)
+    expect(screen.queryByTestId('waveform-hover-label')).not.toBeInTheDocument()
+  })
+
+  it('drops the hover marker during a selection drag', () => {
+    const { surface, container } = renderLoaded()
+    fireEvent.pointerDown(surface, { button: 0, clientX: 20 })
+    fireEvent.pointerMove(container, { clientX: 60 })
+    expect(screen.queryByTestId('waveform-hover-label')).not.toBeInTheDocument()
+  })
+
   it('renders the waveform image once loaded', () => {
     renderLoaded()
     expect(

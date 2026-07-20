@@ -1,4 +1,4 @@
-import type { LoopRegion } from '@app/core'
+import { formatTimecode, type LoopRegion, loopLength } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
 import { cx } from '../../lib/cx.ts'
@@ -48,11 +48,21 @@ export function LoopControls({
     return null
   }
 
+  const start = formatTimecode(region.startSeconds)
+  const end = formatTimecode(region.endSeconds)
+  const length = formatTimecode(loopLength(region))
+  const readout = t({
+    id: 'loops.readout',
+    message: `${start} → ${end} · ${length}`
+  })
+
   return (
     <Cluster gap="var(--space-xs)" align="center">
       <span className={styles.label}>
         <Trans id="loops.section-label">Boucles</Trans>
       </span>
+      {/* Live calibration in numbers: start → end · length, tabular figures. */}
+      <span className={styles.readout}>{readout}</span>
       <button
         type="button"
         className={cx(styles.toggle, loopEnabled && styles.toggleOn)}
