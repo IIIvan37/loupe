@@ -435,7 +435,7 @@ msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:184
+#: src/app/header/import-menu.tsx:153
 #: src/app/ui/operation-status.tsx:72
 #: src/app/ui/popover-form.tsx:59
 #: src/app/workstation-shell/confirm-import-dialog.tsx:55
@@ -443,19 +443,19 @@ msgid "common.cancel"
 msgstr "Annuler"
 
 #. js-lingui-explicit-id
-#: src/app/ui/app-dialog.tsx:37
+#: src/app/ui/app-dialog.tsx:41
 msgid "common.close"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:296
-#: src/app/header/import-menu.tsx:118
+#: src/app/header/import-menu.tsx:107
 #: src/projects/projects-dialog.tsx:81
 msgid "common.confirm"
 msgstr "Confirmer ?"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:211
+#: src/projects/projects-dialog.tsx:212
 msgid "common.delete"
 msgstr "Supprimer"
 
@@ -469,7 +469,7 @@ msgstr "Nom"
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:281
-#: src/projects/projects-dialog.tsx:185
+#: src/projects/projects-dialog.tsx:186
 msgid "common.rename"
 msgstr "Renommer"
 
@@ -511,27 +511,27 @@ msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:72
+#: src/app/workstation-shell/empty-state.tsx:105
 msgid "empty.headline"
 msgstr "Glissez un fichier audio ici"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:48
+#: src/app/workstation-shell/empty-state.tsx:46
 msgid "empty.hook-detect-desc"
 msgstr "Grille d'accords et BPM automatiques"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:45
+#: src/app/workstation-shell/empty-state.tsx:43
 msgid "empty.hook-detect-title"
 msgstr "Détecter accords & tempo"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:58
+#: src/app/workstation-shell/empty-state.tsx:56
 msgid "empty.hook-loop-desc"
 msgstr "Répéter un passage, ralentir sans changer la hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:56
+#: src/app/workstation-shell/empty-state.tsx:54
 msgid "empty.hook-loop-title"
 msgstr "Boucler & ralentir"
 
@@ -546,12 +546,17 @@ msgid "empty.hook-separate-title"
 msgstr "Séparer les pistes"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:78
+#: src/app/workstation-shell/empty-state.tsx:111
 msgid "empty.import"
 msgstr "Importer un fichier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:75
+#: src/app/workstation-shell/empty-state.tsx:117
+msgid "empty.or"
+msgstr "ou collez un lien"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/empty-state.tsx:108
 msgid "empty.sub"
 msgstr "WAV, MP3, FLAC, M4A…"
 
@@ -581,12 +586,12 @@ msgid "header.exporting"
 msgstr "Export des stems…"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:119
+#: src/app/header/import-menu.tsx:108
 msgid "header.import"
 msgstr "Importer"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:101
+#: src/app/header/import-menu.tsx:90
 msgid "header.import-confirm"
 msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
@@ -598,39 +603,19 @@ msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:129
+#: src/app/header/import-menu.tsx:118
 msgid "header.import-from-file"
 msgstr "Fichier…"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:137
+#: src/app/header/import-menu.tsx:126
 msgid "header.import-from-url"
 msgstr "Depuis une URL…"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:166
-msgid "header.import-url-field"
-msgstr "Lien du morceau"
-
-#. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:158
-msgid "header.import-url-hint"
-msgstr "YouTube · SoundCloud"
-
-#. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:191
-msgid "header.import-url-submit"
-msgstr "Importer le lien"
-
-#. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:155
+#: src/app/header/import-menu.tsx:144
 msgid "header.import-url-title"
 msgstr "Importer depuis une URL"
-
-#. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:177
-msgid "header.import-url-unsupported"
-msgstr "Hôte non supporté — YouTube ou SoundCloud uniquement"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:120
@@ -705,6 +690,26 @@ msgstr "Artiste inconnu"
 #: src/app/header/header.tsx:179
 msgid "header.unsaved"
 msgstr "● Non enregistré"
+
+#. js-lingui-explicit-id
+#: src/app/ui/url-import-field.tsx:62
+msgid "import.url-field"
+msgstr "Lien du morceau"
+
+#. js-lingui-explicit-id
+#: src/app/ui/url-import-field.tsx:54
+msgid "import.url-hint"
+msgstr "YouTube · SoundCloud"
+
+#. js-lingui-explicit-id
+#: src/app/ui/url-import-field.tsx:83
+msgid "import.url-submit"
+msgstr "Importer le lien"
+
+#. js-lingui-explicit-id
+#: src/app/ui/url-import-field.tsx:71
+msgid "import.url-unsupported"
+msgstr "Hôte non supporté — YouTube ou SoundCloud uniquement"
 
 #. js-lingui-explicit-id
 #: src/app/loops/loop-controls.tsx:64
@@ -928,12 +933,12 @@ msgid "mixer.volume"
 msgstr "Volume {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:219
+#: src/projects/projects-dialog.tsx:220
 msgid "projects.confirm-delete"
 msgstr "Confirmer la suppression de {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:200
+#: src/projects/projects-dialog.tsx:201
 msgid "projects.confirm-open"
 msgstr "Confirmer l'ouverture de {name}"
 
@@ -943,17 +948,17 @@ msgid "projects.delete-failed"
 msgstr "Impossible de supprimer le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:212
+#: src/projects/projects-dialog.tsx:213
 msgid "projects.delete-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:138
+#: src/projects/projects-dialog.tsx:139
 msgid "projects.description"
 msgstr "Reprendre un projet enregistré là où il a été laissé."
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:150
+#: src/projects/projects-dialog.tsx:151
 msgid "projects.empty"
 msgstr "Aucun projet enregistré"
 
@@ -973,7 +978,7 @@ msgid "projects.opening-row"
 msgstr "Ouverture…"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:183
+#: src/projects/projects-dialog.tsx:184
 msgid "projects.rename"
 msgstr "Renommer"
 
@@ -983,12 +988,12 @@ msgid "projects.rename-failed"
 msgstr "Impossible de renommer le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:178
+#: src/projects/projects-dialog.tsx:179
 msgid "projects.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:173
+#: src/projects/projects-dialog.tsx:174
 msgid "projects.rename-title"
 msgstr "Renommer le projet"
 
@@ -999,7 +1004,7 @@ msgstr "Impossible d'enregistrer le projet : {error}"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-test-kit.tsx:286
-#: src/projects/projects-dialog.tsx:137
+#: src/projects/projects-dialog.tsx:138
 msgid "projects.title"
 msgstr "Projets"
 
@@ -1066,8 +1071,8 @@ msgid "separation.separating"
 msgstr "Séparation des pistes…"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:109
-#: src/projects/projects-dialog.tsx:167
+#: src/app/header/import-menu.tsx:98
+#: src/projects/projects-dialog.tsx:168
 msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
 
@@ -1097,7 +1102,7 @@ msgid "shortcuts.add-section"
 msgstr "Ajouter une section"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:73
+#: src/app/keyboard/shortcuts-dialog.tsx:74
 msgid "shortcuts.availability"
 msgstr "Disponibles une fois un morceau chargé."
 
@@ -1138,7 +1143,7 @@ msgid "shortcuts.gesture-seek"
 msgstr "Se positionner sur la forme d'onde"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:89
+#: src/app/keyboard/shortcuts-dialog.tsx:90
 msgid "shortcuts.gestures"
 msgstr "Gestes"
 
@@ -1188,7 +1193,7 @@ msgid "shortcuts.seek-forward-bar"
 msgstr "Avancer d’une mesure"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:72
+#: src/app/keyboard/shortcuts-dialog.tsx:73
 msgid "shortcuts.title"
 msgstr "Raccourcis clavier"
 

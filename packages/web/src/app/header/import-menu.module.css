@@ -45,34 +45,6 @@
   composes: title from '../ui/popover-form.module.css';
 }
 
-.hint {
-  margin-top: calc(-1 * var(--space-2xs));
-  color: var(--dim);
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-}
-
-.warning {
-  margin-top: calc(-1 * var(--space-2xs));
-  color: var(--danger);
-  font-size: var(--font-size-xs);
-}
-
-.input {
-  composes: input from '../ui/popover-form.module.css';
-  width: 100%;
-}
-
-.actions {
-  composes: actions from '../ui/popover-form.module.css';
-  margin-top: var(--space-s);
-}
-
 .ghost {
   composes: ghost from '../ui/popover-form.module.css';
-}
-
-.submit {
-  composes: submit from '../ui/popover-form.module.css';
 }

@@ -1,11 +1,18 @@
+import { isSupportedSourceUrl } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
-import type { ReactNode } from 'react'
+import { type ClipboardEvent, type ReactNode, useRef, useState } from 'react'
 import { cx } from '../../lib/cx.ts'
+import { UrlImportField } from '../ui/url-import-field.tsx'
 import styles from './empty-state.module.css'
 
 interface EmptyStateProps {
   /** Open the file picker — the shell owns the hidden input. */
   readonly onImport: () => void
+  /** Start a URL download (YouTube / SoundCloud). Absent in the browser —
+   * URL import is desktop-only (needs yt-dlp), so the field hides. */
+  readonly onImportUrl?: ((url: string) => void) | undefined
+  /** A download is already running — the field locks. */
+  readonly urlBusy?: boolean
 }
 
 /** A value hook that sells what loupe does — an icon, a title, and a one-line
@@ -60,12 +67,37 @@ const HOOKS: readonly ValueHook[] = [
  * whole shell is the drop target (see the shell's file-drop handlers); this is
  * the visible cue.
  */
-export function EmptyState({ onImport }: EmptyStateProps) {
+export function EmptyState({
+  onImport,
+  onImportUrl,
+  urlBusy = false
+}: EmptyStateProps) {
   const { t } = useLingui()
+  const [url, setUrl] = useState('')
+  const urlFieldRef = useRef<HTMLInputElement>(null)
+
+  // Paste-anywhere convenience (AK.3): dropping a supported media link on the
+  // hero seeds the field and focuses it, so the user can import straight from
+  // the clipboard without aiming at the input first. An unsupported paste is
+  // left alone (it may be meant for something else).
+  function onHeroPaste(event: ClipboardEvent<HTMLDivElement>): void {
+    if (onImportUrl === undefined || urlBusy) {
+      return
+    }
+    const pasted = event.clipboardData.getData('text').trim()
+    if (isSupportedSourceUrl(pasted)) {
+      event.preventDefault()
+      setUrl(pasted)
+      urlFieldRef.current?.focus()
+    }
+  }
 
   return (
     <main className={cx(styles.empty)} aria-labelledby="empty-headline">
-      <div className={cx(styles.hero)}>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: paste is a
+          keyboard-driven convenience layered over the always-available field
+          below — not the primary, accessible import path. */}
+      <div className={cx(styles.hero)} onPaste={onHeroPaste}>
         <p className={cx(styles.badge)} aria-hidden="true">
           ⬓
         </p>
@@ -78,6 +110,21 @@ export function EmptyState({ onImport }: EmptyStateProps) {
         <button type="button" className={cx(styles.action)} onClick={onImport}>
           {t({ id: 'empty.import', message: 'Importer un fichier' })}
         </button>
+
+        {onImportUrl && (
+          <div className={cx(styles.urlImport)}>
+            <p className={cx(styles.separator)}>
+              <Trans id="empty.or">ou collez un lien</Trans>
+            </p>
+            <UrlImportField
+              value={url}
+              onValueChange={setUrl}
+              onSubmit={onImportUrl}
+              busy={urlBusy}
+              inputRef={urlFieldRef}
+            />
+          </div>
+        )}
       </div>
 
       <ul className={cx(styles.hooks)}>

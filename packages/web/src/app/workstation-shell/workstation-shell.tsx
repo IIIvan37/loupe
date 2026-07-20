@@ -371,7 +371,11 @@ export function WorkstationShell({
       )}
 
       {importState.status === 'idle' ? (
-        <EmptyState onImport={openFilePicker} />
+        <EmptyState
+          onImport={openFilePicker}
+          onImportUrl={desktop ? urlImport.submit : undefined}
+          urlBusy={urlImport.running}
+        />
       ) : (
         <ShellMain
           isLoaded={isLoaded}

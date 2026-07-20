@@ -165,25 +165,35 @@ describe('WorkstationShell imports', () => {
     ).toBeInTheDocument()
   })
 
-  /** Open the import menu and its « Depuis une URL… » popover, then fill the link. */
-  async function fillImportUrl(user: UserEvent, url: string): Promise<void> {
+  /**
+   * Open the import menu and its « Depuis une URL… » popover, fill the link, and
+   * return the popover so the caller scopes to it — the idle empty-state also
+   * shows a URL field (AK.3), so a document-wide query would be ambiguous.
+   */
+  async function fillImportUrl(
+    user: UserEvent,
+    url: string
+  ): Promise<HTMLElement> {
     await user.click(screen.getByRole('button', { name: i18n._('header.import') }))
     await user.click(
       screen.getByRole('button', { name: i18n._('header.import-from-url') })
     )
+    const popover = screen.getByText(i18n._('header.import-url-title'))
+      .parentElement as HTMLElement
     // Paste (atomic) rather than type char-by-char: no intermediate host flickers
     // the unsupported warning, and no slow-typing timeout under parallel load.
-    await user.click(screen.getByLabelText(i18n._('header.import-url-field')))
+    await user.click(within(popover).getByLabelText(i18n._('import.url-field')))
     await user.paste(url)
+    return popover
   }
 
   it('imports a track from a URL through the menu', async () => {
     const { user } = renderShell({
       trackSource: fakeTrackSource({ artist: 'Une chaîne' })
     })
-    await fillImportUrl(user, 'https://youtu.be/abc')
+    const popover = await fillImportUrl(user, 'https://youtu.be/abc')
     await user.click(
-      screen.getByRole('button', { name: i18n._('header.import-url-submit') })
+      within(popover).getByRole('button', { name: i18n._('import.url-submit') })
     )
 
     // The track loads through the same decode path; its title and artist come
@@ -204,9 +214,9 @@ describe('WorkstationShell imports', () => {
       }
     }
     const { user } = renderShell({ trackSource })
-    await fillImportUrl(user, 'https://youtu.be/abc')
+    const popover = await fillImportUrl(user, 'https://youtu.be/abc')
     await user.click(
-      screen.getByRole('button', { name: i18n._('header.import-url-submit') })
+      within(popover).getByRole('button', { name: i18n._('import.url-submit') })
     )
 
     expect(await screen.findByText('vidéo introuvable')).toBeInTheDocument()
@@ -215,19 +225,18 @@ describe('WorkstationShell imports', () => {
   it('blocks an unsupported URL at the field, before any download', async () => {
     const fetchSpy = vi.fn()
     const { user } = renderShell({ trackSource: { fetch: fetchSpy } })
-    await fillImportUrl(user, 'https://example.com/song')
+    const popover = await fillImportUrl(user, 'https://example.com/song')
 
     // The field validates against the same policy the use-case rejects on:
     // an inline warning, a disabled submit, and no request ever leaves.
     expect(
-      screen.getByText(i18n._('header.import-url-unsupported'))
+      within(popover).getByText(i18n._('import.url-unsupported'))
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: i18n._('header.import-url-submit') })
-    ).toBeDisabled()
-    await user.click(
-      screen.getByRole('button', { name: i18n._('header.import-url-submit') })
-    )
+    const submit = within(popover).getByRole('button', {
+      name: i18n._('import.url-submit')
+    })
+    expect(submit).toBeDisabled()
+    await user.click(submit)
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 

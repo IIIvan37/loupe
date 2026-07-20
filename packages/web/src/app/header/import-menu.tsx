@@ -1,8 +1,8 @@
-import { isSupportedSourceUrl } from '@app/core'
 import { Popover } from '@base-ui-components/react/popover'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { type SubmitEvent, useId, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { cx } from '../../lib/cx.ts'
+import { UrlImportField } from '../ui/url-import-field.tsx'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
 import headerStyles from './header.module.css'
 import styles from './import-menu.module.css'
@@ -40,13 +40,6 @@ export function ImportMenu({
   const [url, setUrl] = useState('')
   const confirm = useTwoStepConfirm<true>()
   const armed = confirm.pending !== null
-  const warningId = useId()
-
-  // Validate against the SAME application policy the use-case rejects on
-  // (`isSupportedSourceUrl`), so the field never lets a doomed request leave.
-  const trimmedUrl = url.trim()
-  const unsupportedUrl = trimmedUrl !== '' && !isSupportedSourceUrl(trimmedUrl)
-  const canSubmitUrl = trimmedUrl !== '' && !urlBusy && !unsupportedUrl
 
   // The session settled while armed (e.g. a save landed) — drop the warning
   // during render, no effect round-trip.
@@ -78,12 +71,8 @@ export function ImportMenu({
     setUrlOpen(true)
   }
 
-  function submitUrl(event: SubmitEvent<HTMLFormElement>): void {
-    event.preventDefault()
-    if (!canSubmitUrl) {
-      return
-    }
-    onImportUrl?.(trimmedUrl)
+  function submitUrl(link: string): void {
+    onImportUrl?.(link)
     setUrlOpen(false)
   }
 
@@ -154,44 +143,17 @@ export function ImportMenu({
               <Popover.Title className={cx(styles.title)}>
                 <Trans id="header.import-url-title">Importer depuis une URL</Trans>
               </Popover.Title>
-              <p className={cx(styles.hint)}>
-                <Trans id="header.import-url-hint">YouTube · SoundCloud</Trans>
-              </p>
-              <form onSubmit={submitUrl}>
-                <input
-                  className={cx(styles.input)}
-                  type="url"
-                  inputMode="url"
-                  placeholder="https://…"
-                  aria-label={t({
-                    id: 'header.import-url-field',
-                    message: 'Lien du morceau'
-                  })}
-                  aria-invalid={unsupportedUrl || undefined}
-                  aria-describedby={unsupportedUrl ? warningId : undefined}
-                  value={url}
-                  onChange={(event) => setUrl(event.target.value)}
-                />
-                {unsupportedUrl && (
-                  <p id={warningId} className={cx(styles.warning)} role="alert">
-                    <Trans id="header.import-url-unsupported">
-                      Hôte non supporté — YouTube ou SoundCloud uniquement
-                    </Trans>
-                  </p>
-                )}
-                <div className={cx(styles.actions)}>
+              <UrlImportField
+                value={url}
+                onValueChange={setUrl}
+                onSubmit={submitUrl}
+                busy={urlBusy}
+                secondaryAction={
                   <Popover.Close className={cx(styles.ghost)}>
                     <Trans id="common.cancel">Annuler</Trans>
                   </Popover.Close>
-                  <button
-                    type="submit"
-                    className={cx(styles.submit)}
-                    disabled={!canSubmitUrl}
-                  >
-                    <Trans id="header.import-url-submit">Importer le lien</Trans>
-                  </button>
-                </div>
-              </form>
+                }
+              />
             </Popover.Popup>
           </Popover.Positioner>
         </Popover.Portal>
