@@ -108,12 +108,13 @@
   pointer-events: none;
 }
 
-/* Draggable A/B edge handle, centred on its loop boundary. */
+/* Draggable A/B edge handle, centred on its loop boundary. The hit zone is a
+ * comfortable 18 px (invisible); only the 2 px trait shows. */
 .handle {
   position: absolute;
   inset-block: 0;
-  width: 12px;
-  margin-inline-start: -6px;
+  width: 18px;
+  margin-inline-start: -9px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -127,8 +128,53 @@
   inset-block: 0;
   inset-inline-start: 50%;
   width: 2px;
+  /* scaleX (not width) thickens the trait on hover/active without layout cost. */
   transform: translateX(-50%);
   background: var(--amber);
+  transition: transform var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+/* Pointing at, grabbing, or keyboard-focusing a handle thickens its trait and
+ * lights it — the affordance the bare 2 px line never advertised. */
+.handle:hover::before,
+.handle:focus-visible::before {
+  transform: translateX(-50%) scaleX(2);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--amber) 45%, transparent);
+}
+
+.handle:active::before {
+  transform: translateX(-50%) scaleX(2);
+  box-shadow: 0 0 6px 1px color-mix(in srgb, var(--amber) 55%, transparent);
+}
+
+.handle:focus-visible {
+  outline: none;
+}
+
+/* A beat line pulsing to acknowledge a snap: a bright amber flash centred on the
+ * boundary the edge just landed on, fading back out. Neutralised under
+ * prefers-reduced-motion by the global rule. */
+.snapFlash {
+  position: absolute;
+  inset-block: 0;
+  width: 2px;
+  transform: translateX(-50%);
+  background: var(--amber);
+  pointer-events: none;
+  /* 450 ms — kept in sync with SNAP_FLASH_MS in use-waveform-gestures.ts. */
+  animation: snap-flash 450ms ease-out forwards;
+}
+
+@keyframes snap-flash {
+  from {
+    opacity: 1;
+    box-shadow: 0 0 8px 2px color-mix(in srgb, var(--amber) 70%, transparent);
+  }
+
+  to {
+    opacity: 0;
+    box-shadow: 0 0 0 0 transparent;
+  }
 }
 
 /* Floating timecode pinned above a loop edge during drag/nudge. Centred on the

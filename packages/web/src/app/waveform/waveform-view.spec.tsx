@@ -137,6 +137,39 @@ describe('WaveformView', () => {
     expect(onSelectRegion).toHaveBeenCalledWith(0.2, 0.6, false)
   })
 
+  it('flashes the beat lines the edges snap to at a snapping drag end', () => {
+    const { surface, container } = renderLoaded({
+      // A beat per second across the 10 s timeline.
+      beatGrid: [0, 1, 2, 3, 4, 5, 6, 7, 8].map((timeSeconds) => ({
+        timeSeconds,
+        downbeat: timeSeconds % 4 === 0
+      }))
+    })
+    // 2.3 s → 2 s and 5.7 s → 6 s: two edges land on beats.
+    fireEvent.pointerDown(surface, { button: 0, clientX: 23 })
+    fireEvent.pointerUp(container, { button: 0, clientX: 57 })
+    expect(screen.getAllByTestId('snap-flash')).toHaveLength(2)
+  })
+
+  it('does not flash when Alt escapes the snap', () => {
+    const { surface, container } = renderLoaded({
+      beatGrid: [0, 1, 2, 3, 4, 5, 6, 7, 8].map((timeSeconds) => ({
+        timeSeconds,
+        downbeat: timeSeconds % 4 === 0
+      }))
+    })
+    fireEvent.pointerDown(surface, { button: 0, clientX: 23 })
+    fireEvent.pointerUp(container, { button: 0, clientX: 57, altKey: true })
+    expect(screen.queryByTestId('snap-flash')).not.toBeInTheDocument()
+  })
+
+  it('does not flash a snapping drag when there is no grid', () => {
+    const { surface, container } = renderLoaded({ beatGrid: [] })
+    fireEvent.pointerDown(surface, { button: 0, clientX: 23 })
+    fireEvent.pointerUp(container, { button: 0, clientX: 57 })
+    expect(screen.queryByTestId('snap-flash')).not.toBeInTheDocument()
+  })
+
   it('normalises a backwards drag', () => {
     const onSelectRegion = vi.fn()
     const { surface, container } = renderLoaded({ onSelectRegion })

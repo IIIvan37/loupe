@@ -1,16 +1,36 @@
-import { type BeatGrid, nudgeSeconds } from '@app/core'
-import { type KeyboardEvent, type PointerEvent, useRef, useState } from 'react'
+import {
+  type BeatGrid,
+  makeLoopRegion,
+  nudgeSeconds,
+  snapLoopRegionToGrid
+} from '@app/core'
+import {
+  type KeyboardEvent,
+  type PointerEvent,
+  useEffect,
+  useRef,
+  useState
+} from 'react'
 import { clamp01 } from '../../lib/clamp01.ts'
 import { pointerRatio } from '../../lib/pointer-ratio.ts'
 
 // Below this drag distance (fraction of the width) a press counts as a click.
 const DRAG_THRESHOLD = 0.005
 
+// How long a snapped edge's beat line pulses before it settles back.
+const SNAP_FLASH_MS = 450
+
 /** Which loop edge a handle drives. */
 export type Edge = 'start' | 'end'
 
 /** A start/end pair as 0–1 ratios of the whole timeline. */
 type EdgePair = { readonly start: number; readonly end: number }
+
+/** The beat lines to pulse after a snap, with a token to retrigger the animation. */
+export type SnapFlash = {
+  readonly token: number
+  readonly ratios: readonly number[]
+}
 
 /** The in-progress pointer gesture, or null when idle. */
 export type Drag =
@@ -58,6 +78,30 @@ export function useWaveformGestures({
   // The pointer's position over the surface while idle — a hover cursor line
   // with a timecode. Suppressed during any drag; cleared when the pointer leaves.
   const [hoverRatio, setHoverRatio] = useState<number | null>(null)
+  // The beat lines to pulse right after a snapping drag end — the edges that
+  // actually landed on the grid. `token` retriggers the one-shot animation on a
+  // repeat snap to the same spot. Cleared by a timer, and on unmount.
+  const [snapFlash, setSnapFlash] = useState<SnapFlash | null>(null)
+  const flashTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const flashToken = useRef(0)
+  useEffect(() => () => clearTimeout(flashTimer.current), [])
+
+  /** Pulse the beat lines a snapping drag end just landed the edges on. */
+  function flashSnappedEdges(startRatio: number, endRatio: number): void {
+    const ratios = snappedEdgeRatios(
+      startRatio,
+      endRatio,
+      beatGrid,
+      durationSeconds
+    )
+    if (ratios.length === 0) {
+      return
+    }
+    clearTimeout(flashTimer.current)
+    flashToken.current += 1
+    setSnapFlash({ token: flashToken.current, ratios })
+    flashTimer.current = setTimeout(() => setSnapFlash(null), SNAP_FLASH_MS)
+  }
 
   /** The pointer's position along the surface as a 0–1 ratio, or null. */
   function ratioFrom(clientX: number): number | null {
@@ -135,19 +179,21 @@ export function useWaveformGestures({
       if (Math.abs(end - finished.anchor) < DRAG_THRESHOLD) {
         onSeek(end)
       } else {
-        onSelectRegion(
-          Math.min(finished.anchor, end),
-          Math.max(finished.anchor, end),
-          snap
-        )
+        const lo = Math.min(finished.anchor, end)
+        const hi = Math.max(finished.anchor, end)
+        onSelectRegion(lo, hi, snap)
+        if (snap) {
+          flashSnappedEdges(lo, hi)
+        }
       }
       return
     }
-    onAdjustRegion(
-      Math.min(finished.start, finished.end),
-      Math.max(finished.start, finished.end),
-      snap
-    )
+    const lo = Math.min(finished.start, finished.end)
+    const hi = Math.max(finished.start, finished.end)
+    onAdjustRegion(lo, hi, snap)
+    if (snap) {
+      flashSnappedEdges(lo, hi)
+    }
   }
 
   function nudgeEdge(
@@ -194,6 +240,7 @@ export function useWaveformGestures({
     drag,
     focusedEdge,
     hoverRatio,
+    snapFlash,
     beginSelect,
     beginEdge,
     moveEdge,
@@ -204,6 +251,40 @@ export function useWaveformGestures({
     focusEdge: (edge: Edge) => setFocusedEdge(edge),
     blurEdge: () => setFocusedEdge(null)
   }
+}
+
+/**
+ * The 0–1 ratios of the loop edges a snapping drag end landed on the grid — the
+ * beat lines to pulse. Calls the same core `snapLoopRegionToGrid` the region is
+ * committed through (so the result never diverges), then keeps only the edges
+ * that coincide with a beat: an out-of-span edge kept raw (an outro) does not
+ * snap, so it does not flash. Empty when there is no grid.
+ */
+export function snappedEdgeRatios(
+  startRatio: number,
+  endRatio: number,
+  beatGrid: BeatGrid,
+  durationSeconds: number
+): number[] {
+  if (beatGrid.length === 0 || durationSeconds <= 0) {
+    return []
+  }
+  const snapped = snapLoopRegionToGrid(
+    makeLoopRegion(startRatio * durationSeconds, endRatio * durationSeconds),
+    beatGrid,
+    'beat'
+  )
+  const EPSILON = 1e-6
+  const onBeat = (seconds: number) =>
+    beatGrid.some((beat) => Math.abs(beat.timeSeconds - seconds) < EPSILON)
+  const ratios: number[] = []
+  if (onBeat(snapped.startSeconds)) {
+    ratios.push(clamp01(snapped.startSeconds / durationSeconds))
+  }
+  if (onBeat(snapped.endSeconds)) {
+    ratios.push(clamp01(snapped.endSeconds / durationSeconds))
+  }
+  return ratios
 }
 
 /** The 0–1 ratio a select drag would commit to, or null below the click threshold. */
