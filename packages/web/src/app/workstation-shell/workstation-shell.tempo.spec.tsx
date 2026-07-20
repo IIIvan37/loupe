@@ -23,8 +23,10 @@ describe('WorkstationShell tempo & metronome', () => {
   it('shows no key chip and no tempo until a track is analysed', () => {
     renderShell()
     // Key detection is not built; tempo is a user action, not shown up front.
+    // (Match a detected read-out « 120 BPM », not the empty-state hook copy
+    // « … et BPM automatiques ».)
     expect(screen.queryByText('Tonalité')).not.toBeInTheDocument()
-    expect(screen.queryByText(/BPM/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/\d+\s*BPM/)).not.toBeInTheDocument()
   })
 
   it('auto-detects the BPM on import and draws the beat grid', async () => {

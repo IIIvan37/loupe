@@ -1004,9 +1004,17 @@ séparation). Budget react-doctor tenu par extraction `useStemStack`
 (WorkstationShell 294 l.). Gate **verte — 1925 tests** (+15), Stryker skippé.
 [rapport](sessions/2026-07-20-ak1-magic-link-funnel.md).
 
-**Prochain** : **AK.2** (empty-state qui vend), **AK.3** (import-URL dans le
-hero — à concilier avec le gating desktop-only d'AJ.3), **AK.4** (divulgation
-beta amont + waitlist).
+**AK.2 — empty-state qui vend (branche `feat/ak2-empty-state`, PR à ouvrir)** :
+la table de raccourcis prématurée du hero remplacée par **trois accroches de
+valeur** (Séparer les pistes · Détecter accords & tempo · Boucler & ralentir),
+icône SVG inline + bénéfice d'une ligne, layout `flex-wrap` intrinsèque ;
+raccourcis conservés dans le dialogue « ? ». `EmptyState.shortcuts` +
+`SHORTCUT_HINTS`/`describeKeyBindings` du shell retirés. Contenu hissé
+module-scope (react-doctor). Gate **verte — 1925 tests**, Stryker skippé.
+[rapport](sessions/2026-07-20-ak2-empty-state.md).
+
+**Prochain** : **AK.3** (import-URL dans le hero — à concilier avec le gating
+desktop-only d'AJ.3), **AK.4** (divulgation beta amont + waitlist).
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
