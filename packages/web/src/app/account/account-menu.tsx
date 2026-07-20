@@ -1,10 +1,15 @@
 import { Popover } from '@base-ui-components/react/popover'
 import { Trans, useLingui } from '@lingui/react/macro'
-import { type ReactNode, useId, useState } from 'react'
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import type { AuthPort } from '../../auth/auth-port.ts'
 import { useAuth } from '../../auth/use-auth.ts'
 import { cx } from '../../lib/cx.ts'
+import { useCountdown } from '../ui/use-countdown.ts'
 import styles from './account-menu.module.css'
+
+/** How long « Renvoyer » stays on cooldown (Supabase itself rate-limits the
+ * magic-link email, so a client cooldown keeps the user from burning it). */
+const RESEND_COOLDOWN_SECONDS = 30
 
 interface AccountMenuProps {
   readonly auth: AuthPort
@@ -13,6 +18,9 @@ interface AccountMenuProps {
   readonly onOpenChange: (open: boolean) => void
   /** A reason the menu was opened (sign-in needed, quota spent…), shown atop. */
   readonly notice?: ReactNode
+  /** Fired once when the identity transitions to signed-in — the slot resumes
+   * the gated analysis the user was trying to run (AK.1). */
+  readonly onSignedIn?: (() => void) | undefined
 }
 
 /**
@@ -45,17 +53,49 @@ export function AccountMenu({
   auth,
   open,
   onOpenChange,
-  notice
+  notice,
+  onSignedIn
 }: AccountMenuProps) {
   const { t } = useLingui()
-  const { state, status, linkPhase, redeemPhase, sendMagicLink, signOut, redeemCode } =
-    useAuth(auth)
+  const {
+    state,
+    status,
+    linkPhase,
+    redeemPhase,
+    sendMagicLink,
+    resetLink,
+    signOut,
+    redeemCode
+  } = useAuth(auth)
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const emailId = useId()
   const codeId = useId()
+  const cooldown = useCountdown()
 
   const signedIn = state.status === 'signed-in'
+
+  // Resume the gated analysis once, on the signed-out → signed-in transition
+  // (not on mount if already signed in). The ref write lives in the effect.
+  const wasSignedIn = useRef(signedIn)
+  useEffect(() => {
+    if (signedIn && !wasSignedIn.current) {
+      onSignedIn?.()
+    }
+    wasSignedIn.current = signedIn
+  }, [signedIn, onSignedIn])
+
+  // Send the link AND arm the resend cooldown — one path for the first send and
+  // for « Renvoyer », so the rate-limit guard always applies.
+  function send(address: string): void {
+    sendMagicLink(address)
+    cooldown.start(RESEND_COOLDOWN_SECONDS)
+  }
+
+  // Plain identifiers so Lingui extracts NAMED placeholders (a member/call
+  // expression would extract as positional `{0}`) — see QuotaLine.
+  const sentTo = email.trim()
+  const secondsLeft = cooldown.secondsLeft
   const trigger = signedIn ? (
     <>
       <span className={styles.email}>{state.session.email}</span>
@@ -88,7 +128,7 @@ export function AccountMenu({
                 onSubmit={(e) => {
                   e.preventDefault()
                   if (email.trim() !== '') {
-                    sendMagicLink(email.trim())
+                    send(email.trim())
                   }
                 }}
               >
@@ -98,11 +138,47 @@ export function AccountMenu({
                   </Trans>
                 </Popover.Title>
                 {linkPhase === 'sent' ? (
-                  <p className={styles.hint}>
-                    <Trans id="account.link-sent">
-                      Lien de connexion envoyé — ouvrir l'email pour continuer.
-                    </Trans>
-                  </p>
+                  <div className={styles.sent}>
+                    <p className={styles.hint}>
+                      <Trans id="account.link-sent-to">
+                        Lien de connexion envoyé à {sentTo}.
+                      </Trans>
+                    </p>
+                    <p className={styles.hint}>
+                      <Trans id="account.link-sent-spam">
+                        Ouvrir l'email pour continuer — penser aux spams.
+                      </Trans>
+                    </p>
+                    <div className={styles.sentActions}>
+                      <button
+                        type="button"
+                        className={styles.submit}
+                        disabled={secondsLeft > 0}
+                        onClick={() => {
+                          if (sentTo !== '') {
+                            send(sentTo)
+                          }
+                        }}
+                      >
+                        {secondsLeft > 0 ? (
+                          <Trans id="account.resend-in">
+                            Renvoyer dans {secondsLeft} s
+                          </Trans>
+                        ) : (
+                          <Trans id="account.resend">Renvoyer</Trans>
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.ghost}
+                        onClick={resetLink}
+                      >
+                        <Trans id="account.change-email">
+                          Changer d'adresse
+                        </Trans>
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <label className={styles.label} htmlFor={emailId}>

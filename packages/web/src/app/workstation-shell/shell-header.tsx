@@ -39,6 +39,8 @@ interface ShellHeaderProps {
   /** A blocked analysis pops the account menu open with a prompt — one slot
    * per flow (structure, tempo, chords), compared per flow (M1.1). */
   readonly gateReasons?: readonly (MintFailureReason | undefined)[]
+  /** Replay the gate-blocked analysis once the user signs in (AK.1). */
+  readonly onResumeAfterSignIn?: (() => void) | undefined
 }
 
 /**
@@ -60,7 +62,8 @@ export function ShellHeader({
   exportError,
   onDismissExportError,
   auth,
-  gateReasons = NO_GATE_REASONS
+  gateReasons = NO_GATE_REASONS,
+  onResumeAfterSignIn
 }: ShellHeaderProps) {
   const { t } = useLingui()
   const { projects, trackName, currentProject } = session
@@ -148,7 +151,11 @@ export function ShellHeader({
         onShowProjects={desktop ? onShowProjects : undefined}
         accountSlot={
           resolvedAuth && (
-            <AccountMenuSlot auth={resolvedAuth} gateReasons={gateReasons} />
+            <AccountMenuSlot
+              auth={resolvedAuth}
+              gateReasons={gateReasons}
+              onResumeAfterSignIn={onResumeAfterSignIn}
+            />
           )
         }
       />

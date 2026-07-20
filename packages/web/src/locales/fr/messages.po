@@ -14,22 +14,27 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:156
+#: src/app/account/account-menu.tsx:232
 msgid "account.beta-code"
 msgstr "Code beta"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:174
+#: src/app/account/account-menu.tsx:176
+msgid "account.change-email"
+msgstr "Changer d'adresse"
+
+#. js-lingui-explicit-id
+#: src/app/account/account-menu.tsx:250
 msgid "account.code-error"
 msgstr "Vérification impossible — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:166
+#: src/app/account/account-menu.tsx:242
 msgid "account.code-invalid"
 msgstr "Code invalide, déjà utilisé, ou trop d'essais — réessayer plus tard."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:109
+#: src/app/account/account-menu.tsx:185
 msgid "account.email"
 msgstr "Email"
 
@@ -54,47 +59,62 @@ msgid "account.gate-sign-in"
 msgstr "Se connecter pour lancer une analyse."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:121
+#: src/app/account/account-menu.tsx:197
 msgid "account.link-error"
 msgstr "Envoi impossible — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:102
-msgid "account.link-sent"
-msgstr "Lien de connexion envoyé — ouvrir l'email pour continuer."
+#: src/app/account/account-menu.tsx:148
+msgid "account.link-sent-spam"
+msgstr "Ouvrir l'email pour continuer — penser aux spams."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:76
+#: src/app/account/account-menu.tsx:143
+msgid "account.link-sent-to"
+msgstr "Lien de connexion envoyé à {sentTo}."
+
+#. js-lingui-explicit-id
+#: src/app/account/account-menu.tsx:116
 msgid "account.menu"
 msgstr "Compte"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:37
+#: src/app/account/account-menu.tsx:45
 msgid "account.quota-this-month"
 msgstr "Analyses ce mois : {used}/{quota}"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:184
+#: src/app/account/account-menu.tsx:260
 msgid "account.redeem"
 msgstr "Valider le code"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:131
+#: src/app/account/account-menu.tsx:168
+msgid "account.resend"
+msgstr "Renvoyer"
+
+#. js-lingui-explicit-id
+#: src/app/account/account-menu.tsx:164
+msgid "account.resend-in"
+msgstr "Renvoyer dans {secondsLeft} s"
+
+#. js-lingui-explicit-id
+#: src/app/account/account-menu.tsx:207
 msgid "account.send-link"
 msgstr "Recevoir un lien"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:69
+#: src/app/account/account-menu.tsx:109
 msgid "account.sign-in"
 msgstr "Se connecter"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:96
+#: src/app/account/account-menu.tsx:136
 msgid "account.sign-in-title"
 msgstr "Se connecter pour analyser"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:194
+#: src/app/account/account-menu.tsx:270
 msgid "account.sign-out"
 msgstr "Se déconnecter"
 
@@ -486,7 +506,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:373
+#: src/app/workstation-shell/workstation-shell.tsx:400
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -506,7 +526,7 @@ msgid "empty.sub"
 msgstr "WAV, MP3, FLAC, M4A…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:78
+#: src/app/workstation-shell/shell-header.tsx:81
 msgid "header.downloading"
 msgstr "Téléchargement…"
 
@@ -526,7 +546,7 @@ msgid "header.export-ready"
 msgstr "Télécharger les stems en ZIP"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:102
+#: src/app/workstation-shell/shell-header.tsx:105
 msgid "header.exporting"
 msgstr "Export des stems…"
 
@@ -541,7 +561,7 @@ msgid "header.import-confirm"
 msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:123
+#: src/app/workstation-shell/shell-header.tsx:126
 #: src/app/workstation-shell/shell-test-kit.tsx:230
 #: src/app/workstation-shell/use-file-picker.ts:24
 msgid "header.import-file"
@@ -583,12 +603,12 @@ msgid "header.import-url-unsupported"
 msgstr "Hôte non supporté — YouTube ou SoundCloud uniquement"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:117
+#: src/app/workstation-shell/shell-header.tsx:120
 msgid "header.no-track"
 msgstr "Aucun morceau"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:106
+#: src/app/workstation-shell/shell-header.tsx:109
 msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
@@ -627,7 +647,7 @@ msgid "header.saved"
 msgstr "Enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:98
+#: src/app/workstation-shell/shell-header.tsx:101
 msgid "header.saving"
 msgstr "Enregistrement du projet…"
 
@@ -642,12 +662,12 @@ msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:82
+#: src/app/workstation-shell/shell-header.tsx:85
 msgid "header.transcoding"
 msgstr "Extraction de l'audio…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:122
+#: src/app/workstation-shell/shell-header.tsx:125
 msgid "header.unknown-artist"
 msgstr "Artiste inconnu"
 

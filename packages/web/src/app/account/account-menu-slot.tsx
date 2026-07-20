@@ -41,10 +41,14 @@ const GATE_NOTICES: Readonly<Record<MintFailureReason, MessageDescriptor>> = {
  */
 export function AccountMenuSlot({
   auth,
-  gateReasons
+  gateReasons,
+  onResumeAfterSignIn
 }: {
   readonly auth: AuthPort
   readonly gateReasons: readonly (MintFailureReason | undefined)[]
+  /** Replay the gate-blocked analysis once the user signs in (AK.1). A no-op
+   * when nothing was blocked (the shell only re-runs flows still gated). */
+  readonly onResumeAfterSignIn?: (() => void) | undefined
 }) {
   const { t } = useLingui()
   const [open, setOpen] = useState(false)
@@ -77,6 +81,7 @@ export function AccountMenuSlot({
       open={open}
       onOpenChange={setOpen}
       notice={notice}
+      onSignedIn={onResumeAfterSignIn}
     />
   )
 }
