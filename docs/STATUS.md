@@ -961,8 +961,27 @@ vivant → AN partition → AO âme visuelle → AP nativité desktop (AP.1 fait
 AQ vocabulaire (« Piste » ambigu, anglais brut). Impression déprioritisée.
 Garde-fous beta restants hors roadmap : re-seed codes legacy, PKCE en bundle.
 
-**Prochain** : vérif menus (bundle) → PR ; puis **Lot AJ (offload-only)**,
-checkpoint UI d'abord.
+**En cours : Lot AJ (offload-only) — Hard Tauri-only cut** (checkpoint validé :
+supprimer les adaptateurs HTTP ; le navigateur devient un terrain de jeu
+d'analyse parlant à Modal, projets/import-URL desktop-only). Découpé en 2 PRs
+sur `feat/aj-offload-only`.
+**AJ.1 + AJ.2 — l'app arrête de mentir (PR #225, branche `feat/aj-offload-only`)** :
+AJ.1 retire la sonde `localhost:8000/health` (`use-server-health.ts` + spec
+supprimés) et le chip fantôme « Serveur hors ligne » ; la prop `serverHealth`
+dé-câblée de bout en bout (shell → header/analyser-row), le gate
+`blockedReason='server'` effondré — seul **hors-ligne** (`useOnline`, M1.4) + le
+gate d'auth subsistent (les accords gardent `no-grid`). AJ.2 neutralise toute la
+copy d'erreur d'analyse en « service d'analyse » (`network` → `analysis.error.
+network-offload` ; bannis « serveur local / server/README / console du navigateur
+/ moteur / Serveur hors ligne ») ; `*_NEEDS_SERVER`, `SEPARATION_SERVER_BLOCK`,
+`header.server-*` supprimés ; catalogue `fr` régénéré (295 msgs). Reste pour
+AJ.3 : `projects.unreachable` (couplée au store projets HTTP). Gate **verte —
+1935 tests**, coverage 97,4 %, jscpd 0,08 %, Stryker skippé (core intouché).
+[rapport](sessions/2026-07-19-aj1-aj2-offload-only.md).
+
+**Prochain** : **AJ.3** (renommage `VITE_STRUCTURE_URL → VITE_ANALYSIS_URL`,
+endpoint obligatoire, suppression des adaptateurs HTTP projets/track-source +
+`server-url.ts`, gate desktop-only des projets/import-URL), stackée sur #225.
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets

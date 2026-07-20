@@ -1,6 +1,5 @@
 import type { BeatGrid } from '@app/core'
 import { isAnalysisOffloaded } from '../../audio/analysis-token.ts'
-import type { ServerHealth } from '../../projects/use-server-health.ts'
 import { AnalyserRow } from '../analyser/analyser-row.tsx'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
@@ -13,7 +12,6 @@ interface ShellAnalyserRowProps {
   readonly disabled: boolean
   readonly separation: ReturnType<typeof useSeparation>
   readonly canSeparate: boolean
-  readonly serverHealth: ServerHealth
   readonly onSeparate: () => void
   readonly tempo: ReturnType<typeof useTempo>
   /** Relaunch a failed/cancelled tempo detection (the idle/error faces). */
@@ -29,16 +27,15 @@ interface ShellAnalyserRowProps {
 
 /**
  * The shell's mapping of the four analysis flows onto the AnalyserRow
- * controls — where each item's gating policy lives: the local health probe
- * only gates the LOCAL engines (X.1, extended to tempo/chords in M1.1 — no
- * Modal probe: a page-load probe would cold-start the billed container, so
- * errors speak at click time instead).
+ * controls — where each item's gating policy lives. Offload-only (Lot AJ):
+ * the analyses run on the remote service, so being offline is the only gate
+ * (M1.4); no page-load probe — a probe would cold-start the billed container,
+ * so errors speak at click time instead.
  */
 export function ShellAnalyserRow({
   disabled,
   separation,
   canSeparate,
-  serverHealth,
   onSeparate,
   tempo,
   onRetryTempo,
@@ -50,20 +47,11 @@ export function ShellAnalyserRow({
 }: ShellAnalyserRowProps) {
   const offloaded = isAnalysisOffloaded()
   const online = useOnline()
-  // 'checking' blocks the local path too — a transient flash beats an upload
-  // the server can't take.
-  const localServerDown =
-    serverHealth === 'offline' || serverHealth === 'checking'
-  // The measures always need a downbeat-flagged grid to anchor on; locally
-  // the chord engine only needs the server to ANSWER (it runs on CPU —
-  // 'no-separation' just means no Demucs device).
+  // The measures always need a downbeat-flagged grid to anchor the chords on.
   const hasDownbeat = grid?.some((beat) => beat.downbeat) ?? false
-  let chordsBlockedReason: 'server' | 'no-grid' | undefined
-  if (!offloaded && localServerDown) {
-    chordsBlockedReason = 'server'
-  } else if (!hasDownbeat) {
-    chordsBlockedReason = 'no-grid'
-  }
+  const chordsBlockedReason: 'no-grid' | undefined = hasDownbeat
+    ? undefined
+    : 'no-grid'
   return (
     <AnalyserRow
       disabled={disabled}
@@ -71,7 +59,6 @@ export function ShellAnalyserRow({
       separation={{
         state: separation.state,
         canSeparate,
-        serverHealth,
         onSeparate,
         onCancel: separation.cancel,
         offloaded
@@ -102,8 +89,7 @@ export function ShellAnalyserRow({
         hasGrid: hasChartSource && hasDownbeat,
         onDetect: () => void structureDetection.detect(),
         onCancel: structureDetection.cancel,
-        offloaded,
-        blockedReason: !offloaded && localServerDown ? 'server' : undefined
+        offloaded
       }}
       chords={{
         detecting: chordDetection.detecting,

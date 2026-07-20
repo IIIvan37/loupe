@@ -130,7 +130,7 @@ export const failingSeparator: StemSeparator = {
   separate: async () => {
     // Typed like the real adapter (M1.4): the code drives the copy the
     // shell shows; the detail only ever reaches the console.
-    throw new SeparationError('network', 'moteur injoignable')
+    throw new SeparationError('network', 'service injoignable')
   }
 }
 
@@ -172,17 +172,6 @@ export function brokenProjectStores(): ProjectDeps {
   }
 }
 
-/** A health probe stub answering with the given device — the sentinel
-    'unreachable' makes the probe throw like a dead server. */
-export function healthFetch(device: string | null): typeof fetch {
-  return (async () => {
-    if (device === 'unreachable') {
-      throw new TypeError('fetch failed')
-    }
-    return { ok: true, json: async () => ({ device }) } as Response
-  }) as typeof fetch
-}
-
 /** The waveform gesture surface (click to seek, drag to loop). */
 export function waveformSurface(): HTMLElement {
   return screen.getByTestId('waveform-surface')
@@ -217,8 +206,6 @@ export function renderShell(
       engine={engine}
       stemEngine={fakeStemEngine()}
       metadataReader={silentReader}
-      // A probe that never answers keeps the header status silent by default.
-      healthFetch={(() => new Promise(() => {})) as typeof fetch}
       // A detector that never resolves keeps the auto-detect-on-import inert
       // by default; tempo tests inject one that answers.
       tempoDetector={{ detect: () => new Promise(() => {}) }}

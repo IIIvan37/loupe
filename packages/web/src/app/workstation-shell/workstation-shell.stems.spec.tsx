@@ -7,7 +7,6 @@ import {
   beatsAt,
   failingSeparator,
   fakeSeparator,
-  healthFetch,
   importTrack,
   installShellHooks,
   renderShell
@@ -100,26 +99,11 @@ describe('WorkstationShell stems & separation', () => {
     await user.click(screen.getByRole('button', { name: i18n._('separation.separate') }))
 
     // Typed copy (M1.4): the network code speaks in the user's words — the
-    // raw adapter detail (« moteur injoignable ») stays in the console.
+    // raw adapter detail (« service injoignable ») stays in the console.
     const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent(i18n._('separation.detect-needs-server'))
+    expect(alert).toHaveTextContent(i18n._('analysis.error.network-offload'))
     expect(
       screen.getByRole('button', { name: i18n._('separation.retry') })
-    ).toBeInTheDocument()
-  })
-
-  it('reports the server health in the header once probed', async () => {
-    renderShell({ healthFetch: healthFetch('cuda') })
-    expect(await screen.findByText(i18n._('header.server-ready'))).toBeInTheDocument()
-  })
-
-  it('tells apart an unreachable server from one without separation', async () => {
-    renderShell({ healthFetch: healthFetch('unreachable') })
-    expect(await screen.findByText(i18n._('header.server-offline'))).toBeInTheDocument()
-
-    renderShell({ healthFetch: healthFetch(null) })
-    expect(
-      await screen.findByText(i18n._('header.server-no-separation'))
     ).toBeInTheDocument()
   })
 

@@ -8,17 +8,9 @@ import { OperationStatus } from '../ui/operation-status.tsx'
 import styles from './header.module.css'
 import { ImportMenu } from './import-menu.tsx'
 
-/** The header's server read-out: a coloured dot plus a short label. */
-export interface ServerStatus {
-  readonly tone: 'offline' | 'degraded' | 'ready'
-  readonly label: string
-}
-
 interface HeaderProps {
   readonly title: string
   readonly artist: string
-  /** The local server's health, or undefined while still probing. */
-  readonly serverStatus?: ServerStatus | undefined
   /** Open the file picker. The smart shell owns the actual import. */
   readonly onImport: () => void
   /** Start importing a track from a media URL. The shell owns the download. */
@@ -159,7 +151,6 @@ function SaveControls({
 export function Header({
   title,
   artist,
-  serverStatus,
   onImport,
   onImportUrl,
   urlImportBusy,
@@ -277,15 +268,7 @@ export function Header({
             </button>
           )}
         </Cluster>
-        <Cluster gap="var(--space-s)" align="center">
-          {accountSlot}
-          {serverStatus && (
-            <span className={styles.serverStatus} data-tone={serverStatus.tone}>
-              <span className={styles.statusDot} aria-hidden="true" />
-              {serverStatus.label}
-            </span>
-          )}
-        </Cluster>
+        {accountSlot}
       </Cluster>
     </header>
   )

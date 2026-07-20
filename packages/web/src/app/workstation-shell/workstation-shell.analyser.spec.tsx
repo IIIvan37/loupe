@@ -4,7 +4,6 @@ import { fireEvent, screen, within } from '@testing-library/react'
 import { i18n } from '../../i18n/i18n.ts'
 import {
   beatsAt,
-  healthFetch,
   importTrack,
   installShellHooks,
   renderShell
@@ -65,63 +64,13 @@ describe('WorkstationShell analyser row', () => {
 })
 
 /**
- * X.1 — the structure engine runs wherever ANALYSIS_URL points. The local
- * health probe only gates it when the analysis IS local; on the offload the
- * button stays actionable (no probe of the Modal endpoint — a page-load probe
- * would cold-start the billed container) and a failure speaks at click time
- * with the offload's own words.
+ * Offload-only (Lot AJ): every analysis runs on the remote service, so the
+ * only gate is the network — no local health probe, no « démarrer le serveur »
+ * remedy. Being offline blocks the analyses (M1.4); the chords action still
+ * needs a beat grid (unit-covered at the row level).
  */
-describe('WorkstationShell structure gating vs the local server', () => {
+describe('WorkstationShell analyse gating', () => {
   afterEach(() => vi.unstubAllEnvs())
-
-  it('blocks structure on local health when the analysis is local', async () => {
-    const { user } = renderShell({ healthFetch: healthFetch('unreachable') })
-    await importTrack(user)
-
-    expect(
-      await screen.findByText(i18n._('structure.detect-needs-server'))
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: i18n._('structure.detect') })
-    ).toBeDisabled()
-  })
-
-  it('keeps structure actionable despite local health in offload mode', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
-    const { user } = renderShell({ healthFetch: healthFetch('unreachable') })
-    await importTrack(user)
-
-    // The header chip still reflects the LOCAL server (storage stays local):
-    // it is the signal that the health probe has settled to offline.
-    expect(
-      await screen.findByText(i18n._('header.server-offline'))
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: i18n._('structure.detect') })
-    ).toBeEnabled()
-    expect(
-      screen.queryByText(i18n._('structure.detect-needs-server'))
-    ).not.toBeInTheDocument()
-  })
-
-  it('keeps separation actionable despite local health in offload mode (M1.3)', async () => {
-    // Separation runs on the offload with the three detections now — the
-    // local health probe must not gate it, and « démarrer le serveur local »
-    // would be the wrong remedy.
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
-    const { user } = renderShell({ healthFetch: healthFetch('unreachable') })
-    await importTrack(user)
-
-    expect(
-      await screen.findByText(i18n._('header.server-offline'))
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: i18n._('separation.separate') })
-    ).toBeEnabled()
-    expect(
-      screen.queryByText(i18n._('separation.server-offline'))
-    ).not.toBeInTheDocument()
-  })
 
   it('blocks the offloaded analyses when the browser goes offline (M1.4)', async () => {
     vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
@@ -151,22 +100,17 @@ describe('WorkstationShell structure gating vs the local server', () => {
     gauge.mockRestore()
   })
 
-  it('keeps chords actionable despite local health in offload mode (M1.1)', async () => {
-    // Chords run on the offload with structure and tempo now — the local
-    // health probe must not gate them either (the no-grid guard still does,
-    // hence a resolving tempo fake: the grid must exist to isolate 'server').
+  it('enables chords once a detected tempo seats the grid (M1.1)', async () => {
+    // The no-grid guard is the only thing gating chords: a resolving tempo
+    // fake seats a downbeat grid, which lifts it.
     vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
     const { user } = renderShell({
-      healthFetch: healthFetch('unreachable'),
       tempoDetector: {
         detect: async () => ({ bpm: 240, beats: beatsAt([0, 0.25, 0.5, 0.75]) })
       }
     })
     await importTrack(user)
 
-    expect(
-      await screen.findByText(i18n._('header.server-offline'))
-    ).toBeInTheDocument()
     // In offload mode the import no longer auto-mints (AG.1): the tempo item
     // waits on offer, and the FIRST analysis gesture is the user's.
     await user.click(
@@ -174,8 +118,7 @@ describe('WorkstationShell structure gating vs the local server', () => {
         name: i18n._('analyser.tempo-detect')
       })
     )
-    // The no-grid guard still applies — wait for the detected tempo to seat
-    // the grid before asserting the health probe no longer blocks.
+    // Wait for the detected tempo to seat the grid before asserting chords lift.
     expect(
       await screen.findByText(i18n._('analyser.tempo-done'), {
         ignore: 'script, style, output, [role="status"]'
@@ -184,8 +127,5 @@ describe('WorkstationShell structure gating vs the local server', () => {
     expect(
       screen.getByRole('button', { name: i18n._('chords.detect') })
     ).toBeEnabled()
-    expect(
-      screen.queryByText(i18n._('chords.detect-needs-server'))
-    ).not.toBeInTheDocument()
   })
 })

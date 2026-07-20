@@ -1,9 +1,6 @@
-import type { MessageDescriptor } from '@lingui/core'
-import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { appAuth } from '../../auth/app-auth.ts'
 import type { AuthPort, MintFailureReason } from '../../auth/auth-port.ts'
-import type { ServerHealth } from '../../projects/use-server-health.ts'
 import { AccountMenuSlot } from '../account/account-menu-slot.tsx'
 import { Header } from '../header/header.tsx'
 import type { UrlImport } from '../header/use-import-from-url.ts'
@@ -13,37 +10,11 @@ import type { ProjectSession } from './use-project-session.ts'
 /** Stable empty default — a `[]` default would defeat prop comparison. */
 const NO_GATE_REASONS: readonly (MintFailureReason | undefined)[] = []
 
-/** How each probed health state reads in the header. */
-const SERVER_STATUS: Record<
-  Exclude<ServerHealth, 'checking'>,
-  {
-    readonly tone: 'offline' | 'degraded' | 'ready'
-    readonly label: MessageDescriptor
-  }
-> = {
-  offline: {
-    tone: 'offline',
-    label: msg({ id: 'header.server-offline', message: 'Serveur hors ligne' })
-  },
-  'no-separation': {
-    tone: 'degraded',
-    label: msg({
-      id: 'header.server-no-separation',
-      message: 'Séparation indisponible'
-    })
-  },
-  ready: {
-    tone: 'ready',
-    label: msg({ id: 'header.server-ready', message: 'Serveur prêt' })
-  }
-}
-
 interface ShellHeaderProps {
   readonly metadata: {
     readonly title: string | undefined
     readonly artist: string | undefined
   }
-  readonly serverHealth: ServerHealth
   readonly session: ProjectSession
   /** The URL-import lifecycle: progress narrated in the state chip, errors below. */
   readonly urlImport: UrlImport
@@ -73,7 +44,6 @@ interface ShellHeaderProps {
  */
 export function ShellHeader({
   metadata,
-  serverHealth,
   session,
   urlImport,
   isLoaded,
@@ -150,14 +120,6 @@ export function ShellHeader({
                 id: 'header.import-file',
                 message: 'Importer un fichier audio'
               }))
-        }
-        serverStatus={
-          serverHealth === 'checking'
-            ? undefined
-            : {
-                tone: SERVER_STATUS[serverHealth].tone,
-                label: t(SERVER_STATUS[serverHealth].label)
-              }
         }
         onImport={onImport}
         onImportUrl={urlImport.submit}
