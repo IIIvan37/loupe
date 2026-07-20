@@ -19,6 +19,9 @@ export interface UseAuth {
   readonly linkPhase: LinkPhase
   readonly redeemPhase: RedeemPhase
   readonly sendMagicLink: (email: string) => void
+  /** Return the magic-link step to idle — « Changer d'adresse » from the sent
+   * state, showing the email field again (AK.1). */
+  readonly resetLink: () => void
   readonly signOut: () => void
   readonly redeemCode: (code: string) => void
 }
@@ -94,6 +97,8 @@ export function useAuth(auth: AuthPort): UseAuth {
     [auth]
   )
 
+  const resetLink = useCallback(() => setLinkPhase('idle'), [])
+
   const signOut = useCallback(() => {
     void auth.signOut().then(() => clearAnalysisToken())
   }, [auth])
@@ -117,6 +122,7 @@ export function useAuth(auth: AuthPort): UseAuth {
     linkPhase,
     redeemPhase,
     sendMagicLink,
+    resetLink,
     signOut,
     redeemCode
   }

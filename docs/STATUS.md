@@ -993,8 +993,20 @@ factories exigent l'endpoint). Gate **verte — 1918 tests**, build de prod OK,
 Stryker skippé (core intouché).
 [rapport](sessions/2026-07-19-aj3-tauri-only-cut.md).
 
-**Prochain** : **Lot AK** (premier contact — funnel magic-link «  lien
-envoyé », empty-state qui vend, import-URL dans le hero, divulgation beta).
+**AK.1 — funnel magic-link (branche `feat/ak1-magic-link-funnel`, PR à ouvrir)** :
+état « lien envoyé » enrichi (adresse affichée `account.link-sent-to`, mention
+spam, **« Renvoyer » + cooldown 30 s** via un hook `useCountdown` neuf,
+**« Changer d'adresse »** via `resetLink()` sur `useAuth`) ; **reprise auto de
+l'analyse gatée après connexion** — `AccountMenu.onSignedIn` (transition
+signed-out→signed-in, une fois) relayé `slot → ShellHeader → shell`, hook
+`useResumeGatedAnalysis` rejoue les flux encore gatés (structure/accords/tempo/
+séparation). Budget react-doctor tenu par extraction `useStemStack`
+(WorkstationShell 294 l.). Gate **verte — 1925 tests** (+15), Stryker skippé.
+[rapport](sessions/2026-07-20-ak1-magic-link-funnel.md).
+
+**Prochain** : **AK.2** (empty-state qui vend), **AK.3** (import-URL dans le
+hero — à concilier avec le gating desktop-only d'AJ.3), **AK.4** (divulgation
+beta amont + waitlist).
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets

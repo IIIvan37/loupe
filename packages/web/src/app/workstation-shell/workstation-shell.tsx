@@ -14,8 +14,7 @@ import {
   type TrackSource
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
-import { useMemo, useState } from 'react'
-import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
+import { useState } from 'react'
 import { isTauriShell } from '../../auth/tauri-env.ts'
 import { gateReasonsOf } from '../account/gate-reasons.ts'
 import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
@@ -25,8 +24,6 @@ import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
 import { useMarkers } from '../markers/use-markers.ts'
-import { useMixer } from '../mixer/use-mixer.ts'
-import { useSeparation } from '../separation/use-separation.ts'
 import { type CountInPlayer, useCountIn } from '../tempo/use-count-in.ts'
 import { useMetronome } from '../tempo/use-metronome.ts'
 import { useTempo } from '../tempo/use-tempo.ts'
@@ -44,6 +41,8 @@ import { ShellMain } from './shell-main.tsx'
 import { useFilePicker } from './use-file-picker.ts'
 import { useModalWarmup } from './use-modal-warmup.ts'
 import { useProjectSession } from './use-project-session.ts'
+import { useResumeGatedAnalysis } from './use-resume-gated-analysis.ts'
+import { useStemStack } from './use-stem-stack.ts'
 import { useSeparateAndLoad } from './use-separate-and-load.ts'
 import { useShellDrop } from './use-shell-drop.ts'
 import { useShellShortcuts } from './use-shell-shortcuts.ts'
@@ -144,24 +143,10 @@ export function WorkstationShell({
   countInPlayer,
   desktop = isTauriShell()
 }: WorkstationShellProps) {
-  // One stem engine shared by the mixer (gains + loading) and the transport.
-  const stemPlayback = useMemo(
-    () => stemEngine ?? createWebAudioStemPlayback(),
-    [stemEngine]
-  )
   const { t } = useLingui()
   const { toaster, notifySuccess } = useToaster()
-  // The engine's buffers are the stems' only retained PCM — export and save
-  // read it back from there (zero-copy) instead of keeping a second copy.
-  const separation = useSeparation(stemPlayback.stemAudio, separator)
-  const mixer = useMixer(stemPlayback)
-  // Separation has produced stems (drives the header export + what a save
-  // persists). The metronome can join the mix without a separation, so this is
-  // NOT the same as "the mix is active".
-  const stemsReady = separation.state.status === 'ready'
-  // The multitrack engine drives the transport whenever the mixer holds any
-  // stem — separation stems, or the track + metronome when un-separated.
-  const stemsActive = mixer.channels.length > 0
+  const { stemPlayback, separation, mixer, stemsReady, stemsActive } =
+    useStemStack(stemEngine, separator)
   const player = usePlayer(
     decoder,
     engine,
@@ -326,6 +311,17 @@ export function WorkstationShell({
     notifySuccess
   })
 
+  // Replay a gate-blocked analysis once the user signs in from the menu (AK.1).
+  const resumeGatedAnalysis = useResumeGatedAnalysis({
+    structureDetection,
+    chordDetection,
+    tempo,
+    tempoDetection,
+    separation,
+    separateAndLoad,
+    loadedAudio
+  })
+
   return (
     <div className={styles.shell} {...drop.dropHandlers}>
       <ShellDropLayer
@@ -360,6 +356,7 @@ export function WorkstationShell({
           chordDetection,
           separation
         )}
+        onResumeAfterSignIn={resumeGatedAnalysis}
       />
       <ShellDialogs
         shortcutsOpen={shortcutsOpen}
