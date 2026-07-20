@@ -1023,19 +1023,21 @@ Composant partagé **`UrlImportField`** extrait (champ+validation
 tests**, Stryker skippé.
 [rapport](sessions/2026-07-20-ak3-url-import-hero.md).
 
-**AK.4 — divulgation beta amont + escape sans code (branche
-`feat/ak4-beta-disclosure`, PR à ouvrir)** : `AnalysisGateNotice` — une ligne
-unique en tête de zone Analyse (« connectez-vous / entrez un code beta pour
-débloquer »), lue depuis le même `AuthPort` que le gate au clic ; boutons
-Détecter toujours cliquables (gate → menu, AK.1 reprend). Lien `mailto` « pas de
-code ? » dans le formulaire beta. Silencieux si membre/quota/`auth` null. Gate
-**verte — 1936 tests**, Stryker skippé.
-[rapport](sessions/2026-07-20-ak4-beta-disclosure.md).
+**Lot AK CLOS** (AK.1 #228 · AK.2 #229 · AK.3 #232 · AK.4 #233).
 
-**Lot AK CLOS** (AK.1 #228 · AK.2 #229 · AK.3 #232 · AK.4). **Prochain : Lot AL**
-(la boucle de pratique au niveau d'un vrai outil — AL.1 feedback de calage,
-AL.2 poignées A/B, AL.3 vitesse/hauteur éditables, AL.4 speed-trainer
-découvrable).
+**AL.1 — feedback de calage de boucle (branche
+`feat/al1-loop-calibration-feedback`, PR #234)** : read-out
+`{début} → {fin} · {durée}` (`tabular-nums`, `formatTimecode` + `loopLength`)
+dans `LoopControls` ; étiquette timecode flottante sur la poignée A/B active
+pendant le drag **et** au focus clavier (nudge), effacée au blur ; curseur de
+survol (ligne + timecode) sur la waveform en idle, supprimé pendant tout geste.
+Logique de geste extraite dans le hook `use-waveform-gestures.ts` (react-doctor
+flaggait `WaveformView` en « Large component »). Slice 100 % web, core
+intouché. Gate **verte — 1942 tests**, Stryker skippé, react-doctor 0 issue.
+Vérif navigateur OK. [rapport](sessions/2026-07-20-al1-loop-calibration-feedback.md).
+
+**Prochain : Lot AL** (suite) — AL.2 poignées A/B dignes, AL.3 vitesse/hauteur
+éditables, AL.4 speed-trainer découvrable.
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
