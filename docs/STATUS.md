@@ -1036,8 +1036,20 @@ flaggait `WaveformView` en « Large component »). Slice 100 % web, core
 intouché. Gate **verte — 1942 tests**, Stryker skippé, react-doctor 0 issue.
 Vérif navigateur OK. [rapport](sessions/2026-07-20-al1-loop-calibration-feedback.md).
 
-**Prochain : Lot AL** (suite) — AL.2 poignées A/B dignes, AL.3 vitesse/hauteur
-éditables, AL.4 speed-trainer découvrable.
+**AL.2 — poignées A/B dignes (branche `feat/al2-handles-dignes`, PR #235)** :
+hotzone invisible élargie 12 → 18 px (trait visible 2 px inchangé),
+`:hover`/`:active`/`:focus-visible` (trait épaissi via `scaleX(2)` compositor-only
++ halo `box-shadow`, jamais `width` — impeccable bloque l'anim de layout), et
+**flash de la beat-line au snap** (`.snapFlash` one-shot 450 ms, Alt échappe,
+rien hors-empan). Calcul du flash par le **même** `snapLoopRegionToGrid('beat')`
+que le commit (helper pur `snappedEdgeRatios`, 4 tests) → aucune divergence.
+Focus clavier = halo du trait (outline retiré, tranché). Vérif navigateur (probe
+runtime : règles servies, keyframes câblées). Gate **verte — 1949 tests** (+7),
+Stryker skippé (core intouché), react-doctor 0 issue.
+[rapport](sessions/2026-07-20-al2-handles-dignes.md).
+
+**Prochain : Lot AL** (suite) — AL.3 vitesse/hauteur éditables, AL.4
+speed-trainer découvrable.
 
 **Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
 Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
