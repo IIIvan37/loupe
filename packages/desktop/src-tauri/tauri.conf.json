@@ -5,7 +5,9 @@
   "identifier": "dev.iiivan.loupe",
   "build": {
     "frontendDist": "../../web/dist",
-    "devUrl": "http://localhost:5173"
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "pnpm --filter @app/web dev",
+    "beforeBuildCommand": "pnpm --filter @app/web build"
   },
   "plugins": {
     "deep-link": {
