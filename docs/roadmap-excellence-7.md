@@ -169,7 +169,7 @@ efface une classe entière de code mort.*
 
 - [x] AP.1
 - [ ] AJ.1 · [ ] AJ.2 · [ ] AJ.3
-- [x] AK.1 · [x] AK.2 · [x] AK.3 · [ ] AK.4
+- [x] AK.1 · [x] AK.2 · [x] AK.3 · [x] AK.4
 - [ ] AL.1 · [ ] AL.2 · [ ] AL.3 · [ ] AL.4
 - [ ] AM.1 · [ ] AM.2 · [ ] AM.3 · [ ] AM.4
 - [ ] AN.1 · [ ] AN.2 · [ ] AN.3 · [ ] AN.4
