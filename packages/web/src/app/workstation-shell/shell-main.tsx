@@ -14,6 +14,7 @@ import {
   useExternalValue
 } from '../../lib/external-value.ts'
 import { Stack } from '../../layout/stack/stack.tsx'
+import { AnalysisGateNotice } from '../account/analysis-gate-notice.tsx'
 import { analysisSummary } from '../analyser/analysis-summary.ts'
 import type { AnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
@@ -284,6 +285,9 @@ export function ShellMain({
               state. The row is the import → analyses bridge; the panels below
               carry only the results and their corrections. The gating policy
               (offload vs local health, X.1/M1.1) lives in ShellAnalyserRow. */}
+          {/* AK.4 — disclose the beta gate upstream, before a Detect click
+              hits it. Self-resolves the app auth (null → renders nothing). */}
+          <AnalysisGateNotice />
           <ShellAnalyserRow
             disabled={!isLoaded}
             separation={separation}

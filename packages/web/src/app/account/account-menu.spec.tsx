@@ -212,6 +212,19 @@ describe('AccountMenu', () => {
     expect(auth.redeemBetaCode).toHaveBeenCalledWith('GOLDEN')
   })
 
+  it('signed-in non-member: offers a mailto escape when the code is missing', async () => {
+    const auth = fakeAuth({
+      state: SIGNED_IN,
+      status: { member: false, used: 0, quota: 20 }
+    })
+    renderMenu(auth)
+
+    const link = await screen.findByRole('link', {
+      name: i18n._('account.no-code-request')
+    })
+    expect(link).toHaveAttribute('href', expect.stringMatching(/^mailto:/))
+  })
+
   it('signed-in non-member: an invalid code is announced', async () => {
     const user = userEvent.setup()
     const auth = fakeAuth({

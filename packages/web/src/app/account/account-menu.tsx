@@ -11,6 +11,11 @@ import styles from './account-menu.module.css'
  * magic-link email, so a client cooldown keeps the user from burning it). */
 const RESEND_COOLDOWN_SECONDS = 30
 
+/** Where a code-less user asks for beta access (AK.4): a pre-filled mail rather
+ * than a dead end when the redeem form can't be used. */
+const BETA_ACCESS_MAILTO =
+  'mailto:ivan.duchauffour@gmail.com?subject=Demande%20d%27acc%C3%A8s%20beta%20loupe'
+
 interface AccountMenuProps {
   readonly auth: AuthPort
   /** Controlled open — the analysis gate opens the menu with a notice. */
@@ -259,6 +264,11 @@ export function AccountMenu({
                     >
                       <Trans id="account.redeem">Valider le code</Trans>
                     </button>
+                    <a className={styles.requestAccess} href={BETA_ACCESS_MAILTO}>
+                      <Trans id="account.no-code-request">
+                        Pas de code ? Demander un accès
+                      </Trans>
+                    </a>
                   </form>
                 )}
 

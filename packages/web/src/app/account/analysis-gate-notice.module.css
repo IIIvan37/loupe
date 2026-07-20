@@ -1,0 +1,16 @@
+/* The upstream beta disclosure (AK.4): one quiet line at the head of the
+   Analyse zone telling a locked-out user what unlocks the analyses, before they
+   click a Detect button and hit the gate. */
+.notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  margin: 0;
+  color: var(--dim);
+  font-size: var(--font-size-s);
+}
+
+.lock {
+  flex: none;
+  color: var(--amber);
+}
