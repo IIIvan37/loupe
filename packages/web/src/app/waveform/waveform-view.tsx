@@ -108,7 +108,7 @@ export function WaveformView({
     case 'error':
       return <ImportErrorStage message={state.message} onReimport={onReimport} />
     case 'loaded': {
-      const { drag, focusedEdge, hoverRatio } = gestures
+      const { drag, focusedEdge, hoverRatio, snapFlash } = gestures
       const committed = loopRatios(loopRegion, durationSeconds)
       // The edge drag previews live; otherwise the region/handles follow state.
       const region = draggingPair(drag) ?? committed
@@ -156,6 +156,18 @@ export function WaveformView({
           {durationSeconds > 0 && (
             <BeatLines beatGrid={beatGrid} durationSeconds={durationSeconds} />
           )}
+
+          {snapFlash?.ratios.map((ratio, index) => (
+            <span
+              // The token remounts the span so the one-shot pulse replays on a
+              // repeat snap to the same beat.
+              key={`${snapFlash.token}-${index}`}
+              className={styles.snapFlash}
+              data-testid="snap-flash"
+              style={{ left: `${clamp01(ratio) * 100}%` }}
+              aria-hidden="true"
+            />
+          ))}
 
           {region && (
             <>
