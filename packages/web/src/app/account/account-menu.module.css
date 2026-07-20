@@ -65,6 +65,19 @@
   font-size: var(--font-size-s);
 }
 
+/* The « pas de code ? » escape (AK.4): a quiet text link under the redeem
+   button so a code-less user isn't stuck at a form they can't complete. */
+.requestAccess {
+  align-self: flex-start;
+  color: var(--dim);
+  font-size: var(--font-size-xs);
+  text-decoration: underline;
+}
+
+.requestAccess:hover {
+  color: var(--text);
+}
+
 /* The « link sent » confirmation: the two hint lines + the resend / change-email
    actions stacked, then laid side by side. */
 .sent {

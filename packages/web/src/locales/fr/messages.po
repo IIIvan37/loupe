@@ -14,27 +14,27 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:232
+#: src/app/account/account-menu.tsx:237
 msgid "account.beta-code"
 msgstr "Code beta"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:176
+#: src/app/account/account-menu.tsx:181
 msgid "account.change-email"
 msgstr "Changer d'adresse"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:250
+#: src/app/account/account-menu.tsx:255
 msgid "account.code-error"
 msgstr "Vérification impossible — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:242
+#: src/app/account/account-menu.tsx:247
 msgid "account.code-invalid"
 msgstr "Code invalide, déjà utilisé, ou trop d'essais — réessayer plus tard."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:185
+#: src/app/account/account-menu.tsx:190
 msgid "account.email"
 msgstr "Email"
 
@@ -59,62 +59,67 @@ msgid "account.gate-sign-in"
 msgstr "Se connecter pour lancer une analyse."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:197
+#: src/app/account/account-menu.tsx:202
 msgid "account.link-error"
 msgstr "Envoi impossible — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:148
+#: src/app/account/account-menu.tsx:153
 msgid "account.link-sent-spam"
 msgstr "Ouvrir l'email pour continuer — penser aux spams."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:143
+#: src/app/account/account-menu.tsx:148
 msgid "account.link-sent-to"
 msgstr "Lien de connexion envoyé à {sentTo}."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:116
+#: src/app/account/account-menu.tsx:121
 msgid "account.menu"
 msgstr "Compte"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:45
+#: src/app/account/account-menu.tsx:268
+msgid "account.no-code-request"
+msgstr "Pas de code ? Demander un accès"
+
+#. js-lingui-explicit-id
+#: src/app/account/account-menu.tsx:50
 msgid "account.quota-this-month"
 msgstr "Analyses ce mois : {used}/{quota}"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:260
+#: src/app/account/account-menu.tsx:265
 msgid "account.redeem"
 msgstr "Valider le code"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:168
+#: src/app/account/account-menu.tsx:173
 msgid "account.resend"
 msgstr "Renvoyer"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:164
+#: src/app/account/account-menu.tsx:169
 msgid "account.resend-in"
 msgstr "Renvoyer dans {secondsLeft} s"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:207
+#: src/app/account/account-menu.tsx:212
 msgid "account.send-link"
 msgstr "Recevoir un lien"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:109
+#: src/app/account/account-menu.tsx:114
 msgid "account.sign-in"
 msgstr "Se connecter"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:136
+#: src/app/account/account-menu.tsx:141
 msgid "account.sign-in-title"
 msgstr "Se connecter pour analyser"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:270
+#: src/app/account/account-menu.tsx:280
 msgid "account.sign-out"
 msgstr "Se déconnecter"
 
@@ -182,6 +187,16 @@ msgstr "Démarrage du service d'analyse (jusqu'à ~1 min)…"
 #: src/app/analyser/detection-copy.ts:21
 msgid "analysis.error.network-offload"
 msgstr "Service d'analyse injoignable — réessayer."
+
+#. js-lingui-explicit-id
+#: src/app/account/analysis-gate-notice.tsx:47
+msgid "analysis.locked-beta"
+msgstr "Entrez un code beta pour débloquer les analyses."
+
+#. js-lingui-explicit-id
+#: src/app/account/analysis-gate-notice.tsx:41
+msgid "analysis.locked-sign-in"
+msgstr "Connectez-vous pour débloquer les analyses."
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:153
@@ -1077,17 +1092,17 @@ msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:276
+#: src/app/workstation-shell/shell-main.tsx:277
 msgid "shell.zone.analysis"
 msgstr "Analyse"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:321
+#: src/app/workstation-shell/shell-main.tsx:325
 msgid "shell.zone.chart"
 msgstr "Partition"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:240
+#: src/app/workstation-shell/shell-main.tsx:241
 msgid "shell.zone.timeline"
 msgstr "Timeline"
 
