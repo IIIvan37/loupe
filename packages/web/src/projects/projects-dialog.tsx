@@ -134,6 +134,7 @@ export function ProjectsDialog({
     <AppDialog
       open={open}
       onOpenChange={onOpenChange}
+      wide
       title={t({ id: 'projects.title', message: 'Projets' })}
       description={t({
         id: 'projects.description',

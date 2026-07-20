@@ -69,6 +69,7 @@ export function ShortcutsDialog({
     <AppDialog
       open={open}
       onOpenChange={onOpenChange}
+      wide
       title={t({ id: 'shortcuts.title', message: 'Raccourcis clavier' })}
       description={t({
         id: 'shortcuts.availability',

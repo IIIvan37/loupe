@@ -10,6 +10,9 @@ interface AppDialogProps {
   readonly title: string
   readonly description: string
   readonly children: ReactNode
+  /** A wider panel for content that reads better in two columns (shortcuts) or
+   * needs room (project names). Defaults to the compact width. */
+  readonly wide?: boolean
 }
 
 /**
@@ -21,13 +24,14 @@ export function AppDialog({
   onOpenChange,
   title,
   description,
-  children
+  children,
+  wide = false
 }: AppDialogProps) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop className={cx(styles.backdrop)} />
-        <Dialog.Popup className={cx(styles.popup)}>
+        <Dialog.Popup className={cx(styles.popup, wide && styles.wide)}>
           <Dialog.Title className={cx(styles.title)}>{title}</Dialog.Title>
           <Dialog.Description className={cx(styles.description)}>
             {description}

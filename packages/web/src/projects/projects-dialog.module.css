@@ -22,9 +22,10 @@
 
 .row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-s);
-  padding-block: var(--space-2xs);
+  gap: var(--space-2xs) var(--space-s);
+  padding-block: var(--space-xs);
   border-block-end: 1px solid var(--line-soft);
 }
 
@@ -32,18 +33,20 @@
   border-block-end: none;
 }
 
+/* The name owns a full line and wraps rather than truncating — a saved project
+   must always be readable, however long its title. The date + actions flow on
+   the line below. */
 .name {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 100%;
   font-size: var(--font-size-m);
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
-/* The last-touch date: mono + dim, a machine-stamped detail. */
+/* The last-touch date: mono + dim, a machine-stamped detail. `auto` end-margin
+   pushes the actions to the right of the second line. */
 .updated {
+  margin-inline-end: auto;
   color: var(--dim);
   font-family: var(--font-mono);
   font-size: var(--font-size-s);
