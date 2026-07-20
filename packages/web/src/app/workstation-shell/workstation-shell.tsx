@@ -1,7 +1,6 @@
 import {
   type AudioFileDecoder,
   type ChordDetector,
-  defaultKeyBindings,
   formatTimecode,
   type PlaybackEngine,
   type ProjectTuning,
@@ -19,7 +18,6 @@ import { isTauriShell } from '../../auth/tauri-env.ts'
 import { gateReasonsOf } from '../account/gate-reasons.ts'
 import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
-import { describeKeyBindings } from '../keyboard/shortcut-hints.ts'
 import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
@@ -51,9 +49,6 @@ import { useChartWithStructure } from './use-chart-with-structure.ts'
 import { useTempoDetection } from './use-tempo-detection.ts'
 import { useUnloadGuard } from './use-unload-guard.ts'
 import styles from './workstation-shell.module.css'
-
-/** The visible keyboard layout, derived once — the empty-state hero shows it. */
-const SHORTCUT_HINTS = describeKeyBindings(defaultKeyBindings)
 
 /** The live tuning as a manifest persists it — an untouched fine-tune stays
  * absent (⇔ 0) so old manifests remain byte-identical. */
@@ -376,7 +371,7 @@ export function WorkstationShell({
       )}
 
       {importState.status === 'idle' ? (
-        <EmptyState onImport={openFilePicker} shortcuts={SHORTCUT_HINTS} />
+        <EmptyState onImport={openFilePicker} />
       ) : (
         <ShellMain
           isLoaded={isLoaded}

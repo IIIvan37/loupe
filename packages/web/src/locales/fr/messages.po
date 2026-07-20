@@ -506,22 +506,52 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:400
+#: src/app/workstation-shell/workstation-shell.tsx:365
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:28
+#: src/app/workstation-shell/empty-state.tsx:72
 msgid "empty.headline"
 msgstr "Glissez un fichier audio ici"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:38
+#: src/app/workstation-shell/empty-state.tsx:48
+msgid "empty.hook-detect-desc"
+msgstr "Grille d'accords et BPM automatiques"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/empty-state.tsx:45
+msgid "empty.hook-detect-title"
+msgstr "Détecter accords & tempo"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/empty-state.tsx:58
+msgid "empty.hook-loop-desc"
+msgstr "Répéter un passage, ralentir sans changer la hauteur"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/empty-state.tsx:56
+msgid "empty.hook-loop-title"
+msgstr "Boucler & ralentir"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/empty-state.tsx:36
+msgid "empty.hook-separate-desc"
+msgstr "Isoler voix, basse, batterie…"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/empty-state.tsx:34
+msgid "empty.hook-separate-title"
+msgstr "Séparer les pistes"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/empty-state.tsx:78
 msgid "empty.import"
 msgstr "Importer un fichier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:31
+#: src/app/workstation-shell/empty-state.tsx:75
 msgid "empty.sub"
 msgstr "WAV, MP3, FLAC, M4A…"
 
@@ -1406,7 +1436,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:266
+#: src/app/workstation-shell/workstation-shell.tsx:246
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 

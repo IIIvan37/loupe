@@ -7,14 +7,9 @@ import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { EmptyState } from './empty-state.tsx'
 
-const SHORTCUTS = [
-  { keys: 'Espace', description: 'Lecture / pause' },
-  { keys: 'M', description: 'Poser un repère' }
-]
-
 function renderEmptyState(onImport = vi.fn()) {
   const user = userEvent.setup()
-  render(<EmptyState onImport={onImport} shortcuts={SHORTCUTS} />, {
+  render(<EmptyState onImport={onImport} />, {
     wrapper: I18nTestingProvider
   })
   return { user, onImport }
@@ -32,11 +27,19 @@ describe('EmptyState', () => {
     expect(onImport).toHaveBeenCalledTimes(1)
   })
 
-  it('lists the visible keyboard shortcuts', () => {
+  it('sells the three value hooks (not a shortcut table)', () => {
     renderEmptyState()
-    expect(screen.getByText('Espace')).toBeInTheDocument()
-    expect(screen.getByText('Lecture / pause')).toBeInTheDocument()
-    expect(screen.getByText('M')).toBeInTheDocument()
-    expect(screen.getByText('Poser un repère')).toBeInTheDocument()
+    expect(
+      screen.getByText(i18n._('empty.hook-separate-title'))
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(i18n._('empty.hook-detect-title'))
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(i18n._('empty.hook-loop-title'))
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(i18n._('empty.hook-loop-desc'))
+    ).toBeInTheDocument()
   })
 })

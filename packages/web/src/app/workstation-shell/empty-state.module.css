@@ -50,24 +50,42 @@
   cursor: pointer;
 }
 
-.shortcuts {
+/* The three value hooks: a row of icon-topped cards on wide viewports, that
+   wrap intrinsically to a column when the space runs out (no media query). */
+.hooks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-l);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hook {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--space-2xs) var(--space-m);
+  grid-template-rows: auto auto;
+  justify-items: center;
+  gap: var(--space-3xs);
+  flex: 1 1 12rem;
+  max-width: 15rem;
+}
+
+.hookIcon {
+  display: inline-flex;
+  margin-bottom: var(--space-2xs);
+  color: var(--amber);
+}
+
+.hookTitle {
   margin: 0;
-  color: var(--dim);
   font-size: var(--font-size-s);
+  font-weight: 600;
+  color: var(--text);
 }
 
-.row {
-  display: contents;
-}
-
-.kbd {
-  composes: kbd from '../ui/controls.module.css';
-}
-
-.desc {
+.hookDesc {
   margin: 0;
-  text-align: start;
+  font-size: var(--font-size-s);
+  color: var(--dim);
 }
