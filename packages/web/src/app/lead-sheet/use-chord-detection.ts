@@ -62,7 +62,7 @@ export interface ChordDetection {
 
 /**
  * Smart hook (= driving adapter logic): runs the `detectChords` use-case
- * against the chord detector port (default: the local server; injected in
+ * against the chord detector port (default: the Modal analysis service; injected in
  * tests) and lands the drafted grid SOURCE through `onDraft` — the same lifted
  * session state the panel edits, so the draft persists like any manual edit.
  * A monotonic run token drops a superseded detection, and the commit guard

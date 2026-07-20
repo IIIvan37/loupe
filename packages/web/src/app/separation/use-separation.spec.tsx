@@ -139,7 +139,7 @@ describe('useSeparation', () => {
 
   it('blocks the run and surfaces the reason when the gate fails (M1.3)', async () => {
     // The gate only runs on the offload path; stub it on for the gate cases.
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const separate = vi.fn()
     const { result } = renderHook(
       () =>
@@ -161,7 +161,7 @@ describe('useSeparation', () => {
   })
 
   it('runs and clears any prior gate reason once the gate passes', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const gate = vi
       .fn<
         () => Promise<{ ok: true } | { ok: false; reason: 'quota-exceeded' }>
@@ -192,7 +192,7 @@ describe('useSeparation', () => {
   })
 
   it('raises the busy face before the gate mint resolves (R.3)', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     let open: (result: { ok: false; reason: 'error' }) => void = () => {}
     const gatePromise = new Promise<{ ok: false; reason: 'error' }>(
       (resolve) => {
@@ -222,7 +222,7 @@ describe('useSeparation', () => {
   })
 
   it('a cancel during the mint stops the superseded run', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     let open: (result: { ok: true }) => void = () => {}
     const gatePromise = new Promise<{ ok: true }>((resolve) => {
       open = resolve
@@ -248,7 +248,7 @@ describe('useSeparation', () => {
   })
 
   it('a reset clears a lingering gate reason', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const { result } = renderHook(
       () =>
         useSeparation(pcmOf(stems), { separate: vi.fn() }, undefined, async () => ({
@@ -267,7 +267,7 @@ describe('useSeparation', () => {
   })
 
   it('restore never gates: persisted stems replay without a mint', async () => {
-    vi.stubEnv('VITE_STRUCTURE_URL', 'https://modal.example')
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const gate = vi.fn()
     const { separator } = deferredSeparator()
     const { result } = renderHook(

@@ -8,9 +8,9 @@ import type { AuthPort, MintFailureReason } from '../auth/auth-port.ts'
  * both the UI gate (`ensureAnalysisToken`, before an analysis) and the detector
  * adapter (`cachedAnalysisToken`, when it uploads) read.
  *
- * Auth is a WEB concern: none of this touches the pure core. When no offload is
- * configured (`VITE_STRUCTURE_URL` unset) every call is a no-op pass — the
- * detector talks to the token-less local server.
+ * Auth is a WEB concern: none of this touches the pure core. When no endpoint
+ * is configured (`VITE_ANALYSIS_URL` unset — dev/tests only) every call is a
+ * no-op pass; a shipped build always has the endpoint set.
  */
 
 const SKEW_SECONDS = 30
@@ -23,13 +23,13 @@ function nowSeconds(): number {
 
 /** Whether analysis is offloaded to Modal (and therefore gated). */
 export function isAnalysisOffloaded(): boolean {
-  return Boolean(import.meta.env.VITE_STRUCTURE_URL)
+  return Boolean(import.meta.env.VITE_ANALYSIS_URL)
 }
 
 /**
- * The current minted token, or undefined when none is cached (local server, or
- * not yet minted this session). The detector sends it as `Authorization`; undefined
- * means no header — the token-less local path. Quota-free: it never mints.
+ * The current minted token, or undefined when none is cached (not yet minted
+ * this session). The detector sends it as `Authorization`. Quota-free: it never
+ * mints.
  */
 export function cachedAnalysisToken(): string | undefined {
   if (cached && cached.expiresAt - nowSeconds() > SKEW_SECONDS) {

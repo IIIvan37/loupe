@@ -122,7 +122,7 @@ export interface Tempo {
 
 /**
  * Smart hook (= driving adapter logic): runs the `detectTempo` use-case against
- * the tempo detector port (default: the local server; injected in tests) and
+ * the tempo detector port (default: the Modal analysis service; injected in tests) and
  * holds the render-ready analysis. A monotonic run token drops a slow detection
  * whose track was replaced by a reset before it resolved.
  */

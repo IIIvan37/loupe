@@ -10,8 +10,9 @@ import styles from './import-menu.module.css'
 interface ImportMenuProps {
   /** Open the file picker (the shell owns the hidden input). */
   readonly onImportFile: () => void
-  /** Start a URL download (YouTube / SoundCloud). */
-  readonly onImportUrl: (url: string) => void
+  /** Start a URL download (YouTube / SoundCloud). Absent in the browser —
+   * URL import is desktop-only (needs yt-dlp), so the entry hides. */
+  readonly onImportUrl?: ((url: string) => void) | undefined
   /** A download is already running — the URL submit locks. */
   readonly urlBusy: boolean
   /** Ask before importing: the session holds work a new track would discard. */
@@ -82,7 +83,7 @@ export function ImportMenu({
     if (!canSubmitUrl) {
       return
     }
-    onImportUrl(trimmedUrl)
+    onImportUrl?.(trimmedUrl)
     setUrlOpen(false)
   }
 
@@ -127,19 +128,22 @@ export function ImportMenu({
               >
                 <Trans id="header.import-from-file">Fichier…</Trans>
               </button>
-              <button
-                type="button"
-                className={cx(styles.item)}
-                onClick={chooseUrl}
-              >
-                <Trans id="header.import-from-url">Depuis une URL…</Trans>
-              </button>
+              {onImportUrl && (
+                <button
+                  type="button"
+                  className={cx(styles.item)}
+                  onClick={chooseUrl}
+                >
+                  <Trans id="header.import-from-url">Depuis une URL…</Trans>
+                </button>
+              )}
             </Popover.Popup>
           </Popover.Positioner>
         </Popover.Portal>
       </Popover.Root>
 
-      <Popover.Root open={urlOpen} onOpenChange={setUrlOpen}>
+      {onImportUrl && (
+        <Popover.Root open={urlOpen} onOpenChange={setUrlOpen}>
         <Popover.Portal>
           <Popover.Positioner
             className={cx(styles.positioner)}
@@ -191,7 +195,8 @@ export function ImportMenu({
             </Popover.Popup>
           </Popover.Positioner>
         </Popover.Portal>
-      </Popover.Root>
+        </Popover.Root>
+      )}
     </>
   )
 }

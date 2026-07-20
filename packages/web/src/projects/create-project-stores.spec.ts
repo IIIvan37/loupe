@@ -33,13 +33,21 @@ function recordingFs(): ProjectFs {
 const microtasks = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 describe('createProjectStores', () => {
-  it('talks to the local server outside the Tauri shell', async () => {
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(Response.json([]))
+  it('is an inert empty store outside the Tauri shell (projects are desktop-only)', async () => {
+    // Offload-only (Lot AJ): no local server, and the browser hides the
+    // project UI — so the store lists nothing, persists nothing, and never
+    // touches the filesystem or the network.
+    const fetchMock = vi.fn<typeof fetch>()
     vi.stubGlobal('fetch', fetchMock)
 
-    await createProjectStores().store.list()
+    const stores = createProjectStores()
+    expect(await stores.store.list()).toEqual([])
+    await stores.store.save({} as never)
+    await expect(stores.audio.put(new ArrayBuffer(0))).rejects.toThrow(
+      /desktop-only/
+    )
 
-    expect(String(fetchMock.mock.calls[0]?.[0])).toMatch(/\/projects$/)
+    expect(fetchMock).not.toHaveBeenCalled()
     expect(createTauriProjectFs).not.toHaveBeenCalled()
   })
 
