@@ -52,11 +52,9 @@ function clampTempoPercent(percent: number): number {
  * lifted to the start (the ramp only climbs), increment and cadence floored
  * to their minimums so every pass counts toward a real step.
  */
-export function startSpeedTrainer(
-  policy: SpeedTrainerPolicy
-): SpeedTrainerState {
+function normalisePolicy(policy: SpeedTrainerPolicy): SpeedTrainerPolicy {
   const startPercent = clampTempoPercent(policy.startPercent)
-  const normalised: SpeedTrainerPolicy = {
+  return {
     startPercent,
     incrementPercent: Math.max(
       Number.isNaN(policy.incrementPercent) ? 0 : policy.incrementPercent,
@@ -71,7 +69,52 @@ export function startSpeedTrainer(
       startPercent
     )
   }
-  return { policy: normalised, passesInStep: 0, currentPercent: startPercent }
+}
+
+export function startSpeedTrainer(
+  policy: SpeedTrainerPolicy
+): SpeedTrainerState {
+  const normalised = normalisePolicy(policy)
+  return {
+    policy: normalised,
+    passesInStep: 0,
+    currentPercent: normalised.startPercent
+  }
+}
+
+/** A read-only summary of the ramp a policy would run, for the « Démarrer »
+ * preview line — every field normalised exactly as `startSpeedTrainer` does,
+ * so the preview can never promise a ramp different from the one that runs. */
+export interface SpeedTrainerPreview {
+  readonly startPercent: number
+  readonly targetPercent: number
+  readonly incrementPercent: number
+  readonly passesPerStep: number
+  /** Distinct tempo levels the ramp visits, start..target inclusive (≥ 1). */
+  readonly stepCount: number
+}
+
+/**
+ * Derive the preview of a policy: the normalised bounds plus how many tempo
+ * levels the ramp climbs through — start, one per whole increment, and the
+ * capped final level when the span is not a whole multiple (matching how
+ * `recordLoopPass` tops out at the target).
+ */
+export function previewSpeedTrainer(
+  policy: SpeedTrainerPolicy
+): SpeedTrainerPreview {
+  const { startPercent, targetPercent, incrementPercent, passesPerStep } =
+    normalisePolicy(policy)
+  const span = targetPercent - startPercent
+  const wholeSteps = Math.floor(span / incrementPercent)
+  const hasCappedFinal = span % incrementPercent > 0
+  return {
+    startPercent,
+    targetPercent,
+    incrementPercent,
+    passesPerStep,
+    stepCount: wholeSteps + 1 + (hasCappedFinal ? 1 : 0)
+  }
 }
 
 /**

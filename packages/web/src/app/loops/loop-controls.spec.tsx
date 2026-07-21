@@ -130,11 +130,34 @@ describe('LoopControls', () => {
     expect(onClearRegion).toHaveBeenCalledOnce()
   })
 
-  it('hides the ramp entry while looping is off (a ramp needs wraps)', () => {
+  it('shows the ramp entry disabled with a tooltip while looping is off (AL.4)', () => {
     renderControls({ loopEnabled: false })
+    // Discoverable, not hidden: the entry point stays, inert, and its tooltip
+    // names the prerequisite (a ramp needs wraps to earn its steps).
+    const trigger = screen.getByRole('button', {
+      name: i18n._('loops.trainer-open')
+    })
+    expect(trigger).toBeDisabled()
+    expect(trigger).toHaveAttribute('title', i18n._('loops.trainer-needs-loop'))
+  })
+
+  it('shows a live preview of the ramp the form will run (AL.4)', async () => {
+    const user = userEvent.setup()
+    renderControls({})
+    await user.click(
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    )
+    // Defaults 70 → 100 by +5 climb through seven levels.
     expect(
-      screen.queryByRole('button', { name: i18n._('loops.trainer-open') })
-    ).not.toBeInTheDocument()
+      screen.getByText(
+        i18n._('loops.trainer-preview', {
+          0: 70,
+          1: 100,
+          stepsLabel: i18n._('loops.trainer-steps', { 0: 7 }),
+          2: 5
+        })
+      )
+    ).toBeInTheDocument()
   })
 
   it('passes an emptied form field to the domain as NaN (full-speed fallback)', async () => {

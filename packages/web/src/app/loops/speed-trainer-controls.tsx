@@ -1,4 +1,8 @@
-import { MAX_TEMPO_PERCENT, MIN_TEMPO_PERCENT } from '@app/core'
+import {
+  MAX_TEMPO_PERCENT,
+  MIN_TEMPO_PERCENT,
+  previewSpeedTrainer
+} from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { type KeyboardEvent, memo, useState } from 'react'
 import { cx } from '../../lib/cx.ts'
@@ -25,6 +29,10 @@ function fieldNumber(value: string): number {
 
 interface SpeedTrainerControlsProps {
   readonly trainer: SpeedTrainer
+  /** Whether the loop is active — the ramp needs wraps to earn its steps. When
+   * false the entry point shows disabled with a tooltip rather than hiding, so
+   * the practice feature stays discoverable (AL.4). */
+  readonly enabled: boolean
 }
 
 /**
@@ -37,7 +45,8 @@ interface SpeedTrainerControlsProps {
  * nothing here changes until the trainer (stable-identity hook) or copy does.
  */
 export const SpeedTrainerControls = memo(function SpeedTrainerControls({
-  trainer
+  trainer,
+  enabled
 }: SpeedTrainerControlsProps) {
   const { t } = useLingui()
   const [open, setOpen] = useState(false)
@@ -89,6 +98,24 @@ export const SpeedTrainerControls = memo(function SpeedTrainerControls({
     </label>
   )
 
+  // Off-loop: keep the entry point visible but inert, with a tooltip that
+  // explains the prerequisite — a hidden control teaches nobody (AL.4).
+  if (!enabled) {
+    return (
+      <button
+        type="button"
+        className={cx(styles.ghost)}
+        disabled
+        title={t({
+          id: 'loops.trainer-needs-loop',
+          message: 'Activez la boucle pour lancer la rampe de tempo'
+        })}
+      >
+        <Trans id="loops.trainer-open">Rampe de tempo</Trans>
+      </button>
+    )
+  }
+
   if (trainer.state) {
     const currentPercent = trainer.state.currentPercent
     const targetPercent = trainer.state.policy.targetPercent
@@ -111,6 +138,34 @@ export const SpeedTrainerControls = memo(function SpeedTrainerControls({
       </>
     )
   }
+
+  // Live summary of the ramp the current form would run — derived from the
+  // SAME normalisation as the armed ramp, so it never promises a different
+  // practice (an emptied target reads as full speed, a target below the start
+  // collapses to one level, etc.).
+  const preview = previewSpeedTrainer({
+    startPercent: fieldNumber(form.startPercent),
+    incrementPercent: fieldNumber(form.incrementPercent),
+    passesPerStep: fieldNumber(form.passesPerStep),
+    targetPercent: fieldNumber(form.targetPercent)
+  })
+  const stepsLabel =
+    preview.stepCount === 1
+      ? t({ id: 'loops.trainer-steps-one', message: '1 palier' })
+      : t({
+          id: 'loops.trainer-steps',
+          message: `${preview.stepCount} paliers`
+        })
+  const previewLine =
+    preview.passesPerStep === 1
+      ? t({
+          id: 'loops.trainer-preview',
+          message: `${preview.startPercent} → ${preview.targetPercent} % · ${stepsLabel} de +${preview.incrementPercent} %`
+        })
+      : t({
+          id: 'loops.trainer-preview-passes',
+          message: `${preview.startPercent} → ${preview.targetPercent} % · ${stepsLabel} de +${preview.incrementPercent} % · ${preview.passesPerStep} répétitions/palier`
+        })
 
   return (
     <PopoverForm
@@ -150,6 +205,8 @@ export const SpeedTrainerControls = memo(function SpeedTrainerControls({
         MIN_TEMPO_PERCENT,
         MAX_TEMPO_PERCENT
       )}
+      {/* The ramp this form will run, in one line, before « Démarrer ». */}
+      <p className={cx(styles.preview)}>{previewLine}</p>
     </PopoverForm>
   )
 })
