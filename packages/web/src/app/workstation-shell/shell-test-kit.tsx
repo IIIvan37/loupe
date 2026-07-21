@@ -200,11 +200,12 @@ export function renderShell(
 ) {
   const user = userEvent.setup()
   const engine = fakeEngine()
+  const stemEngine = fakeStemEngine()
   const utils = render(
     <WorkstationShell
       decoder={okDecoder}
       engine={engine}
-      stemEngine={fakeStemEngine()}
+      stemEngine={stemEngine}
       metadataReader={silentReader}
       // The nominal client is the desktop shell, so specs render in desktop
       // mode by default — saved projects + URL import are available. A browser
@@ -222,7 +223,7 @@ export function renderShell(
     />,
     { wrapper: I18nTestingProvider }
   )
-  return { engine, user, ...utils }
+  return { engine, stemEngine, user, ...utils }
 }
 
 export async function importTrack(user: UserEvent, fileName?: string): Promise<void> {

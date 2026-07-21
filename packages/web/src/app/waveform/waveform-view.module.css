@@ -193,14 +193,10 @@
   pointer-events: none;
 }
 
-/* Hover cursor line following the pointer over the surface while idle. */
+/* Hover cursor line following the pointer over the surface while idle — the
+   shared timeline cursor, matched by the stem lanes. */
 .hover {
-  position: absolute;
-  inset-block: 0;
-  width: 1px;
-  transform: translateX(-50%);
-  background: color-mix(in srgb, var(--dim) 40%, transparent);
-  pointer-events: none;
+  composes: line from './hover-cursor.module.css';
 }
 
 /* Its timecode, sitting at the top of the cursor line. */

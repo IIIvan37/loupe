@@ -128,7 +128,11 @@ export function ShellStage({
           onAdjustRegion={loopEditing.adjustRegion}
           onReimport={onReimport}
         />
-        <StemLanes channels={mixer.channels} />
+        <StemLanes
+          channels={mixer.channels}
+          onSeekRatio={onSeekRatio}
+          durationSeconds={durationSeconds}
+        />
       </ZoomStage>
     </div>
   )

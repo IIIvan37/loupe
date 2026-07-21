@@ -9,21 +9,21 @@
 
 **Lot AL — la boucle de pratique au niveau d'un vrai outil — CLOS** ([roadmap
 v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ, AK, AL clos). AL.1→AL.4 livrés
-(AL.3 = #236) — détail en Historique.
+(AL.4 = #237) — détail en Historique.
 
-**En cours : AL.4 — speed-trainer découvrable (branche
-`feat/al4-trainer-discoverable`, PR à ouvrir).** (1) Le déclencheur « Rampe de
-tempo » **hors boucle** ne se cache plus : il reste visible, **désactivé avec un
-tooltip** (« Activez la boucle pour lancer la rampe ») → la fonctionnalité devient
-découvrable. (2) **Ligne d'aperçu** au-dessus de « Démarrer », dérivée en direct
-des 4 champs par un core pur `previewSpeedTrainer` (réutilise la **même**
-`normalisePolicy` que `startSpeedTrainer` → l'aperçu ne ment jamais sur la rampe
-réelle) : « 70 → 100 % · 7 paliers de +5 % » (+ « N répétitions/palier » si > 1).
-`stepCount` = niveaux distincts start..target (dernier palier plafonné compté),
-oracle fast-check contre `recordLoopPass`. Gate **verte — 1971 tests**, **Stryker
-speed-trainer.ts 100 %**.
-**Prochain : Lot AM** — le mixer devient vivant (lanes cliquables, fader console,
-confiance visible, EQ lisible).
+**En cours : AM.1 — lanes cliquables (branche `feat/am1-clickable-lanes`, PR à
+ouvrir).** `StemLanes` gagne une **surface pointeur unique** couvrant toutes les
+lanes : un clic n'importe où sur les stems cale la lecture via le **même**
+`onSeekRatio` (`seekToRatio`, `pointerRatio` zoom-agnostique) que la waveform
+principale → toute couche de la vue est un endroit où se caler. Un **seul** trait
+de survol traverse toutes les lanes (mirror du `.hover` waveform), effacé au
+`pointerLeave`. Surface délibérément **non-bouton** (pointeur-seul, comme la
+surface waveform). Clic-lane = seek simple, ne touche pas la région A/B. Tests :
+2 specs composant + 1 acceptation shell (clic 30 % → 3 s via le stem engine ;
+`renderShell` expose `stemEngine`). Gate **verte** + react-doctor 0 issue. Aucun
+changement core (slice adaptateur).
+**Prochain : AM.2** — fader console (double-clic 0 dB, Shift/molette 0,5 dB,
+lecture dB éditable), puis AM.3 (confiance visible) et AM.4 (EQ + mini-mètres).
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
@@ -37,8 +37,13 @@ re-seed des codes legacy, PKCE en bundle à rejouer.
 
 ### Roadmap excellence 7 (2026-07-19 → …) — UX exceptionnelle
 
-- 2026-07-21 · **AL.4 — speed-trainer découvrable** (branche
-  `feat/al4-trainer-discoverable`, PR à ouvrir, **Lot AL clos**) : déclencheur
+- 2026-07-21 · **AM.1 — lanes cliquables** (branche `feat/am1-clickable-lanes`,
+  PR à ouvrir) : surface pointeur unique sur `StemLanes` → clic n'importe où cale
+  la lecture (même `onSeekRatio`/`pointerRatio` que la waveform) + trait de
+  survol unique traversant toutes les lanes →
+  [rapport](sessions/2026-07-21-am1-clickable-lanes.md)
+- 2026-07-21 · **AL.4 — speed-trainer découvrable** (PR #237, **Lot AL clos**) :
+  déclencheur
   désactivé-avec-tooltip hors boucle (fini le contrôle caché) + ligne d'aperçu
   dérivée des 4 champs par le core pur `previewSpeedTrainer` (même
   `normalisePolicy` que `startSpeedTrainer`, oracle `recordLoopPass`) →
