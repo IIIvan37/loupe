@@ -521,7 +521,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:365
+#: src/app/workstation-shell/workstation-shell.tsx:373
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -883,42 +883,42 @@ msgid "markers.section-label"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:87
+#: src/app/mixer/stem-headers.tsx:92
 msgid "mixer.confidence"
 msgstr "Confiance de détection : {percent} %"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:97
+#: src/app/mixer/stem-headers.tsx:102
 msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:151
+#: src/app/mixer/stem-headers.tsx:163
 msgid "mixer.eq"
 msgstr "Égaliseur {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:171
+#: src/app/mixer/stem-headers.tsx:183
 msgid "mixer.eq-title"
 msgstr "EQ — {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:216
+#: src/app/mixer/stem-headers.tsx:228
 msgid "mixer.high-cut"
 msgstr "Coupe-haut {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:220
+#: src/app/mixer/stem-headers.tsx:232
 msgid "mixer.high-cut-hint"
 msgstr "Couper les aigus au-dessus de cette fréquence"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:186
+#: src/app/mixer/stem-headers.tsx:198
 msgid "mixer.low-cut"
 msgstr "Coupe-bas {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:190
+#: src/app/mixer/stem-headers.tsx:202
 msgid "mixer.low-cut-hint"
 msgstr "Couper les graves sous cette fréquence"
 
@@ -928,17 +928,17 @@ msgid "mixer.mix-label"
 msgstr "Mix"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:110
+#: src/app/mixer/stem-headers.tsx:115
 msgid "mixer.mute"
 msgstr "Couper {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:71
+#: src/app/mixer/stem-headers.tsx:76
 msgid "mixer.region-label"
 msgstr "Mixer"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:119
+#: src/app/mixer/stem-headers.tsx:124
 msgid "mixer.solo"
 msgstr "Isoler {name}"
 
@@ -948,9 +948,14 @@ msgid "mixer.undetected"
 msgstr "Non détectés"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:134
+#: src/app/mixer/stem-headers.tsx:139
 msgid "mixer.volume"
 msgstr "Volume {name}"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/stem-headers.tsx:145
+msgid "mixer.volume-reset"
+msgstr "Double-clic pour revenir à 0 dB"
 
 #. js-lingui-explicit-id
 #: src/projects/projects-dialog.tsx:220
@@ -1112,12 +1117,12 @@ msgid "shell.zone.timeline"
 msgstr "Timeline"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:98
+#: src/app/keyboard/shortcut-hints.ts:114
 msgid "shortcuts.add-marker"
 msgstr "Ajouter un repère"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:102
+#: src/app/keyboard/shortcut-hints.ts:118
 msgid "shortcuts.add-section"
 msgstr "Ajouter une section"
 
@@ -1183,12 +1188,22 @@ msgid "shortcuts.key-space"
 msgstr "Espace"
 
 #. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:106
+msgid "shortcuts.pitch-down"
+msgstr "Baisser la hauteur d’un demi-ton"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:110
+msgid "shortcuts.pitch-up"
+msgstr "Monter la hauteur d’un demi-ton"
+
+#. js-lingui-explicit-id
 #: src/app/keyboard/shortcut-hints.ts:76
 msgid "shortcuts.play-pause"
 msgstr "Lecture / Pause"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:116
+#: src/app/keyboard/shortcut-hints.ts:132
 msgid "shortcuts.save-project"
 msgstr "Enregistrer le projet"
 
@@ -1213,17 +1228,27 @@ msgid "shortcuts.seek-forward-bar"
 msgstr "Avancer d’une mesure"
 
 #. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:98
+msgid "shortcuts.tempo-down"
+msgstr "Ralentir la lecture"
+
+#. js-lingui-explicit-id
+#: src/app/keyboard/shortcut-hints.ts:102
+msgid "shortcuts.tempo-up"
+msgstr "Accélérer la lecture"
+
+#. js-lingui-explicit-id
 #: src/app/keyboard/shortcuts-dialog.tsx:73
 msgid "shortcuts.title"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:106
+#: src/app/keyboard/shortcut-hints.ts:122
 msgid "shortcuts.toggle-loop"
 msgstr "Activer / désactiver la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:110
+#: src/app/keyboard/shortcut-hints.ts:126
 msgid "shortcuts.toggle-metronome"
 msgstr "Activer / désactiver le métronome"
 
@@ -1435,7 +1460,7 @@ msgid "tempo.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:115
+#: src/app/keyboard/shortcut-hints.ts:131
 #: src/app/tempo/tempo-panel.tsx:205
 msgid "tempo.tap"
 msgstr "Taper le tempo"
@@ -1476,102 +1501,132 @@ msgid "toast.stems-exported"
 msgstr "Stems exportés"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:95
+#: src/app/transport-bar/transport-bar.tsx:100
 msgid "transport.end"
 msgstr "Fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:183
+#: src/app/transport-bar/transport-bar.tsx:211
 msgid "transport.fine-tune-field"
 msgstr "Saisir l'ajustement fin (cents)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:172
+#: src/app/transport-bar/transport-bar.tsx:200
 msgid "transport.fine-tune-label"
 msgstr "Ajustement fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:195
+#: src/app/transport-bar/transport-bar.tsx:223
 msgid "transport.fine-tune-unit"
 msgstr "cents"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:83
+#: src/app/transport-bar/transport-bar.tsx:88
 msgid "transport.pause"
 msgstr "Pause"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:141
+#: src/app/transport-bar/transport-bar.tsx:174
+msgid "transport.pitch-down"
+msgstr "Baisser la hauteur d’un demi-ton"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:170
+msgid "transport.pitch-field"
+msgstr "Saisir la hauteur (demi-tons)"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:157
 msgid "transport.pitch-label"
 msgstr "Hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:154
+#: src/app/transport-bar/transport-bar.tsx:166
 msgid "transport.pitch-reset"
 msgstr "Double-clic pour revenir à 0"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:149
+#: src/app/transport-bar/transport-bar.tsx:162
 msgid "transport.pitch-slider"
 msgstr "Hauteur en demi-tons"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:84
+#: src/app/transport-bar/transport-bar.tsx:178
+msgid "transport.pitch-up"
+msgstr "Monter la hauteur d’un demi-ton"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:89
 msgid "transport.play"
 msgstr "Lecture"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:71
+#: src/app/transport-bar/transport-bar.tsx:76
 msgid "transport.start"
 msgstr "Début"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:116
+#: src/app/transport-bar/transport-bar.tsx:136
+msgid "transport.tempo-down"
+msgstr "Ralentir la lecture"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:132
+msgid "transport.tempo-field"
+msgstr "Saisir la vitesse (pourcentage)"
+
+#. js-lingui-explicit-id
+#: src/app/transport-bar/transport-bar.tsx:118
 msgid "transport.tempo-label"
 msgstr "Vitesse"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:129
+#: src/app/transport-bar/transport-bar.tsx:127
 msgid "transport.tempo-reset"
 msgstr "Vitesse sans toucher au pitch — double-clic pour revenir à 100 %"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:124
+#: src/app/transport-bar/transport-bar.tsx:123
 msgid "transport.tempo-slider"
 msgstr "Vitesse en pourcentage"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:247
+#: src/app/transport-bar/transport-bar.tsx:140
+msgid "transport.tempo-up"
+msgstr "Accélérer la lecture"
+
+#. js-lingui-explicit-id
+#: src/app/waveform/waveform-view.tsx:104
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:423
+#: src/app/waveform/waveform-view.tsx:265
 msgid "waveform.import-error"
 msgstr "L'import a échoué : ce fichier n'a pas pu être lu."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:235
+#: src/app/waveform/waveform-view.tsx:92
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:289
+#: src/app/waveform/waveform-view.tsx:140
 msgid "waveform.mix-image"
 msgstr "Forme d'onde du mix"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:352
+#: src/app/waveform/waveform-view.tsx:215
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:338
+#: src/app/waveform/waveform-view.tsx:201
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:429
+#: src/app/waveform/waveform-view.tsx:271
 msgid "waveform.reimport"
 msgstr "Importer un autre fichier"
 
@@ -1581,7 +1636,7 @@ msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:297
+#: src/app/waveform/waveform-view.tsx:148
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 

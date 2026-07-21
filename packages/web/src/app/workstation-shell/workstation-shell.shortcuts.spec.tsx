@@ -122,6 +122,31 @@ describe('WorkstationShell keyboard shortcuts', () => {
     expect(stemEngine.seekTo).toHaveBeenLastCalledWith(2)
   })
 
+  it('steps the playback speed with the [ and ] keys', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    // ] speeds up one 5 % grain: 100 % → 105 % → ratio 1.05.
+    fireEvent.keyDown(document.body, { key: ']' })
+    expect(engine.setTimeRatio).toHaveBeenLastCalledWith(1.05)
+
+    // [ slows down: back to 100 %.
+    fireEvent.keyDown(document.body, { key: '[' })
+    expect(engine.setTimeRatio).toHaveBeenLastCalledWith(1)
+  })
+
+  it('steps the pitch a semitone with the { and } keys', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    // } transposes up one semitone, { back down — the shifted brackets.
+    fireEvent.keyDown(document.body, { key: '}' })
+    expect(engine.setPitchSemitones).toHaveBeenLastCalledWith(1)
+
+    fireEvent.keyDown(document.body, { key: '{' })
+    expect(engine.setPitchSemitones).toHaveBeenLastCalledWith(0)
+  })
+
   it('adds a marker at the playhead with the M key', async () => {
     const { engine, user } = renderShell()
     await importTrack(user)

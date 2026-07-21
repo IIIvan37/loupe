@@ -1,4 +1,9 @@
-import { MAX_GAIN_DB, MIN_GAIN_DB, type StemFilter } from '@app/core'
+import {
+  MAX_GAIN_DB,
+  MIN_GAIN_DB,
+  type StemFilter,
+  UNITY_GAIN_DB
+} from '@app/core'
 import { Popover } from '@base-ui-components/react/popover'
 import { useLingui } from '@lingui/react/macro'
 import { cx } from '../../lib/cx.ts'
@@ -135,9 +140,16 @@ export function StemHeaders({
                   id: 'mixer.volume',
                   message: `Volume ${name}`
                 })}
+                // Double-click returns to unity (0 dB) — the shared « retour
+                // neutre » gesture (AL.3/AM.2), matching the transport sliders.
+                title={t({
+                  id: 'mixer.volume-reset',
+                  message: 'Double-clic pour revenir à 0 dB'
+                })}
                 onChange={(event) =>
                   onSetGain(stem.id, event.target.valueAsNumber)
                 }
+                onDoubleClick={() => onSetGain(stem.id, UNITY_GAIN_DB)}
               />
               <span className={styles.db}>{formatDb(gainDb)}</span>
               {/* Tone shaping lives behind a popover (Y.1): the header keeps

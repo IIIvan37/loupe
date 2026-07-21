@@ -181,6 +181,39 @@
   }
 }
 
+/* A small square ± step button flanking a slider (zoom pill, tempo/pitch
+   steppers): the shared « nudge one grain » face. Composed so the zoom pill
+   and the transport steppers wear the same skin and dip alike. Defined AFTER
+   touchTargetTall so the same-file `composes` resolves (order matters). */
+.stepButton {
+  composes: touchTargetTall;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-s);
+  background: var(--panel-2);
+  color: var(--dim);
+  font-size: var(--font-size-s);
+  line-height: 1;
+}
+
+.stepButton:hover:not(:disabled) {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
+.stepButton:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.stepButton:disabled {
+  opacity: var(--disabled-opacity);
+}
+
 /* Visually-hidden text kept in the accessibility tree — the standard clip
    pattern. Used for persistent live regions (`role="status"`): display:none
    or visibility:hidden would silence the announcements. */

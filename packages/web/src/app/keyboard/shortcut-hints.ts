@@ -95,6 +95,22 @@ const SEEK_FORWARD_BAR = msg({
 })
 const ZOOM_IN = msg({ id: 'shortcuts.zoom-in', message: 'Zoom avant' })
 const ZOOM_OUT = msg({ id: 'shortcuts.zoom-out', message: 'Zoom arrière' })
+const TEMPO_DOWN = msg({
+  id: 'shortcuts.tempo-down',
+  message: 'Ralentir la lecture'
+})
+const TEMPO_UP = msg({
+  id: 'shortcuts.tempo-up',
+  message: 'Accélérer la lecture'
+})
+const PITCH_DOWN = msg({
+  id: 'shortcuts.pitch-down',
+  message: 'Baisser la hauteur d’un demi-ton'
+})
+const PITCH_UP = msg({
+  id: 'shortcuts.pitch-up',
+  message: 'Monter la hauteur d’un demi-ton'
+})
 const ADD_MARKER = msg({
   id: 'shortcuts.add-marker',
   message: 'Ajouter un repère'
@@ -133,6 +149,10 @@ function describeCommand(command: Command): string {
       return i18n._(ZOOM_IN)
     case 'zoomOut':
       return i18n._(ZOOM_OUT)
+    case 'tempoStep':
+      return i18n._(command.direction < 0 ? TEMPO_DOWN : TEMPO_UP)
+    case 'pitchStep':
+      return i18n._(command.direction < 0 ? PITCH_DOWN : PITCH_UP)
     case 'addMarker':
       return i18n._(ADD_MARKER)
     case 'addSectionMarker':

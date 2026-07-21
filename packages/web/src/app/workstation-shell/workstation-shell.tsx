@@ -98,6 +98,27 @@ function ShellFooter({
   )
 }
 
+/**
+ * The speed/pitch slices the `[`/`]` and `{`/`}` shortcuts read and drive:
+ * the whole-percent tempo and the semitone pitch, each with its setter. Kept
+ * off the component so the shell body stays under the react-doctor budget.
+ */
+function playbackSteppers(player: ReturnType<typeof usePlayer>): {
+  readonly speed: { readonly percent: number; readonly setPercent: (percent: number) => void }
+  readonly pitch: { readonly semitones: number; readonly setSemitones: (semitones: number) => void }
+} {
+  return {
+    speed: {
+      percent: Math.round(player.timeRatio * 100),
+      setPercent: (percent) => player.setTimeRatio(percent / 100)
+    },
+    pitch: {
+      semitones: player.pitchSemitones,
+      setSemitones: player.setPitchSemitones
+    }
+  }
+}
+
 interface WorkstationShellProps {
   /** Ports injected in tests; default to the real Web Audio adapters. */
   readonly decoder?: AudioFileDecoder
@@ -288,6 +309,7 @@ export function WorkstationShell({
     seekToSeconds,
     grid: tempo.analysis?.grid ?? [],
     viewport,
+    ...playbackSteppers(player),
     markers,
     toggleLoop,
     metronome,

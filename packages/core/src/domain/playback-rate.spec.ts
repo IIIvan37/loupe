@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest'
 import {
   clampPlaybackRate,
   MAX_PLAYBACK_RATE,
-  MIN_PLAYBACK_RATE
+  MAX_TEMPO_PERCENT,
+  MIN_PLAYBACK_RATE,
+  MIN_TEMPO_PERCENT,
+  stepTempoPercent,
+  TEMPO_PERCENT_STEP
 } from './playback-rate.ts'
 
 describe('clampPlaybackRate', () => {
@@ -33,6 +37,40 @@ describe('clampPlaybackRate', () => {
         expect(clamped).toBeGreaterThanOrEqual(MIN_PLAYBACK_RATE)
         expect(clamped).toBeLessThanOrEqual(MAX_PLAYBACK_RATE)
       })
+    )
+  })
+})
+
+describe('stepTempoPercent', () => {
+  it('nudges the tempo one step in the given direction', () => {
+    expect(stepTempoPercent(100, 1)).toBe(100 + TEMPO_PERCENT_STEP)
+    expect(stepTempoPercent(100, -1)).toBe(100 - TEMPO_PERCENT_STEP)
+  })
+
+  it('rounds an off-integer read-out before stepping', () => {
+    // The slider can leave a fractional percent; a keyboard step lands on a
+    // whole number so the pill never shows `102.5 %`.
+    expect(stepTempoPercent(99.6, 1)).toBe(100 + TEMPO_PERCENT_STEP)
+  })
+
+  it('clamps at the supported bounds — a step never leaves the range', () => {
+    expect(stepTempoPercent(MAX_TEMPO_PERCENT, 1)).toBe(MAX_TEMPO_PERCENT)
+    expect(stepTempoPercent(MIN_TEMPO_PERCENT, -1)).toBe(MIN_TEMPO_PERCENT)
+    // A step that would overshoot lands exactly on the bound.
+    expect(stepTempoPercent(MAX_TEMPO_PERCENT - 2, 1)).toBe(MAX_TEMPO_PERCENT)
+  })
+
+  it('always returns a percent within the range', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ noNaN: true, min: -1000, max: 1000 }),
+        fc.constantFrom(-1 as const, 1 as const),
+        (percent, direction) => {
+          const stepped = stepTempoPercent(percent, direction)
+          expect(stepped).toBeGreaterThanOrEqual(MIN_TEMPO_PERCENT)
+          expect(stepped).toBeLessThanOrEqual(MAX_TEMPO_PERCENT)
+        }
+      )
     )
   })
 })

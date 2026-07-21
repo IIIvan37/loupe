@@ -43,6 +43,10 @@ export interface ShortcutActions {
   readonly seekStep: (direction: -1 | 1, coarse: boolean) => void
   readonly zoomIn: () => void
   readonly zoomOut: () => void
+  /** Step the playback speed one grain slower (−1) or faster (+1). */
+  readonly stepTempo: (direction: -1 | 1) => void
+  /** Step the pitch one semitone down (−1) or up (+1). */
+  readonly stepPitch: (direction: -1 | 1) => void
   readonly addMarker: () => void
   /** Drop a hand-laid STRUCTURE marker at the playhead (Shift+M). */
   readonly addSectionMarker: () => void
@@ -76,6 +80,12 @@ function dispatch(command: Command, actions: ShortcutActions): void {
       return
     case 'zoomOut':
       actions.zoomOut()
+      return
+    case 'tempoStep':
+      actions.stepTempo(command.direction)
+      return
+    case 'pitchStep':
+      actions.stepPitch(command.direction)
       return
     case 'addMarker':
       actions.addMarker()

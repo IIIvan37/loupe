@@ -22,3 +22,17 @@ export function clampPitchSemitones(semitones: number): number {
   }
   return whole
 }
+
+/** One keyboard/button pitch step is a single semitone (AL.3). */
+export const PITCH_SEMITONE_STEP = 1
+
+/**
+ * Nudge a pitch one semitone in `direction` (−1 down, +1 up), clamped to the
+ * ±12 range. Shared by the pill's ± buttons and the `{`/`}` shortcuts.
+ */
+export function stepPitchSemitones(
+  semitones: number,
+  direction: -1 | 1
+): number {
+  return clampPitchSemitones(semitones + direction * PITCH_SEMITONE_STEP)
+}

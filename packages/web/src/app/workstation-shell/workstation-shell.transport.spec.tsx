@@ -82,6 +82,56 @@ describe('WorkstationShell transport & markers', () => {
     expect(engine.setPitchSemitones).toHaveBeenCalledWith(5)
   })
 
+  it('steps the speed with the pill ± buttons', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('transport.tempo-up') })
+    )
+    // 100 % + one 5 % grain → 105 % → ratio 1.05.
+    expect(engine.setTimeRatio).toHaveBeenLastCalledWith(1.05)
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('transport.tempo-down') })
+    )
+    expect(engine.setTimeRatio).toHaveBeenLastCalledWith(1)
+  })
+
+  it('steps the pitch with the pill ± buttons', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('transport.pitch-up') })
+    )
+    expect(engine.setPitchSemitones).toHaveBeenLastCalledWith(1)
+  })
+
+  it('edits the speed by typing into the read-out field', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    const field = screen.getByLabelText(i18n._('transport.tempo-field'))
+    await user.clear(field)
+    await user.type(field, '80')
+    await user.tab()
+    expect(engine.setTimeRatio).toHaveBeenLastCalledWith(0.8)
+  })
+
+  it('returns the speed to 100 % on a double-click of the slider', async () => {
+    const { engine, user } = renderShell()
+    await importTrack(user)
+
+    fireEvent.change(screen.getByLabelText(i18n._('transport.tempo-slider')), {
+      target: { value: '60' }
+    })
+    fireEvent.doubleClick(
+      screen.getByLabelText(i18n._('transport.tempo-slider'))
+    )
+    expect(engine.setTimeRatio).toHaveBeenLastCalledWith(1)
+  })
+
   it('drives the engine a fractional pitch from the fine-tune field', async () => {
     const { engine, user } = renderShell()
     await importTrack(user)
