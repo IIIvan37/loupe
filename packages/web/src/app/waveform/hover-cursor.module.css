@@ -1,0 +1,11 @@
+/* The 1px vertical cursor line that follows the pointer across a
+   timeline-aligned surface — shared by the main waveform and the stem lanes so
+   the hover feedback reads as one system at any layer of the view. */
+.line {
+  position: absolute;
+  inset-block: 0;
+  width: 1px;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--dim) 40%, transparent);
+  pointer-events: none;
+}

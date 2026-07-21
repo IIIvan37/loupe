@@ -50,6 +50,26 @@ describe('WorkstationShell stems & separation', () => {
     ).not.toHaveLength(0)
   })
 
+  it('seeks the transport when a stem lane is clicked (AM.1)', async () => {
+    const detector = {
+      detect: async () => ({ bpm: 120, beats: beatsAt([0, 0.5, 1]) })
+    }
+    // A tempo seats the synthetic « Piste » lane, so the mixer is active and
+    // the stem engine drives the transport.
+    const { stemEngine, user } = renderShell({ tempoDetector: detector })
+    await importTrack(user)
+
+    // Every layer of the view is a place to seek: click 30 % along the stem
+    // lanes of a 10 s timeline → the transport cales to 3 s.
+    const surface = (await screen.findByTestId(
+      'stem-lanes-surface'
+    )) as HTMLElement
+    surface.getBoundingClientRect = () => ({ left: 0, width: 100 }) as DOMRect
+    fireEvent.pointerUp(surface, { button: 0, clientX: 30 })
+
+    expect(stemEngine.seekTo).toHaveBeenLastCalledWith(3)
+  })
+
   it('confirms a separated-stem WAV download with a toast', async () => {
     stubDownload()
     const { user } = renderShell({ separator: fakeSeparator() })

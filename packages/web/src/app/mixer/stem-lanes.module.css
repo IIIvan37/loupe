@@ -1,3 +1,9 @@
+/* Positioning context for the shared seek surface and hover cursor that span
+   every lane. */
+.group {
+  position: relative;
+}
+
 /* Lanes mirror the gutter's track headers row for row: same list gap and
    per-row height tokens as `stem-headers.module.css`. */
 .lanes {
@@ -20,4 +26,18 @@
 .wave {
   height: 100%;
   transition: opacity var(--motion-fast) var(--motion-ease);
+}
+
+/* Pointer-only seek surface covering every lane — click anywhere cales the
+   transport, same idiom as the main waveform. */
+.surface {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+/* One hover cursor line following the pointer across all lanes — the shared
+   timeline cursor, so it matches the main waveform's exactly. */
+.hover {
+  composes: line from '../waveform/hover-cursor.module.css';
 }
