@@ -7,1133 +7,330 @@
 
 ## Where we are
 
-**Lot C chord-charts — COMPLET (2026-07-11)** : les trois slices livrées le
-même jour. **Core** (PR #86 mergée) : port `ChordDetector` + agrégation pure
-`chordLabelPerMeasure` (1 accord/mesure sur les intervalles
-downbeat→downbeat) + `renderChartSource` + use-case `detectChords` →
-brouillon de texte source. **Serveur** (PR #87 mergée) : spike BTC levé
-(2,4 s CPU / 257 s d'audio), `POST /chords` (BTC vendoré MIT, poids
-sha256-pinnés, 503 sans torch/poids), helper pur `chord_spans`. **Web**
-(branche `feat/detect-chords-ui`) : adapter `createHttpChordDetector`
-(traduction mir→tokens, `N`/`X`→silence), hook `useChordDetection` (jeton de
-run, brouillon = édition manuelle persistée), bouton « Détecter les accords »
-(confirmation deux temps avant écrasement, hints actionnables serveur/grille,
-LiveStatus a11y). Gate **vert — 925 tests** (+19), serveur 127 pytest.
+**Lot AL — la boucle de pratique au niveau d'un vrai outil** ([roadmap
+v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ et AK clos, AL en cours).
+Derniers livrés : AL.1, AL.2 (mergés) — détail en Historique.
 
-**En cours : [feuille de route v3](roadmap-excellence-3.md)** (évaluation
-notée du 2026-07-11, 16,0/20). **Lots K et L clos** (PRs #89–#94 mergées —
-voir l'historique ci-dessous).
-**M.1 mergé (PR #95)** : `OriginGuardMiddleware` — 403 pour tout `Origin` hors
-allowlist (CSRF « simple request »), same-origin de confiance, chaque valeur
-dupliquée vérifiée.
-**M.2 mergé (PR #96)** : `/download` borné (sémaphore, `max_filesize`, budget
-wall-clock **total** 900 s — un trickle ne le réarme pas, `socket_timeout` 30 s)
-et `/separate` reçoit le même budget (1800 s — son `events.get()` n'avait
-aucun timeout).
-**Lot M complet** (M.1 PR #95, M.2 PR #96, M.3 PR #97 mergées).
-**N.1 mergé (PR #98)** : codes d'échec discriminés bout-en-bout pour la
-détection d'accords + copy Lingui actionnable, `classifyTransportError`
-partagé (conflit avec `main` résolu au merge — STATUS + catalogue régénéré).
-**N.2 mergé (PR #99)** : raccourcis `L`/`K`/`T` (boucle/métronome/tap),
-carte auto-dérivée, listener global durci (repeat + dialogues).
-**N.3 mergé (PR #100)** : `transposedBy` persisté (absent ⇔ 0), transposition
-appariée texte+offset en core, flag divergence **modulo 12**, « Transposer la
-grille pour suivre » confirmé deux temps, `signedSemitones` partagé.
-**N.4 mergé (PR #105)** : champ « mes. / ligne » flaggé (`aria-invalid` +
-badInput), préférence localStorage posée au blur, ligne « Détecter » sous le
-header — **Lot N clos**.
-**O.1 mergé (PR #106)**, **interlude react-doctor 0.7.6 mergé (PR #107)**,
-**O.2 mergé (PR #109)** — voir l'historique.
-**O.3 mergé (PR #110)** :
-`workstation-shell.spec.tsx` (2 438 lignes, 115 tests, un seul `describe`)
-découpé par parcours en 9 specs colocalisées (`.import`, `.tempo`,
-`.transport`, `.shortcuts`, `.loops`, `.stems`, `.chords`, `.projects` + le
-socle landmarks) — aucun test réécrit, uniquement déplacés. Fixtures
-communes dans `shell-test-kit.tsx` (fakes des ports, `renderShell`,
-`importTrack`, `saveProjectAs`, `installShellHooks()` appelé en tête de
-chaque spec) ; helpers mono-parcours restés locaux. Le kit, non-`.spec`
-donc scanné par react-doctor : `tapThrice` déroulé (faux positif « await in
-loop »), `deslop/unused-file` ignoré pour le kit (même cas que le wrapper
-i18n). Gate vert **1047 tests** (total inchangé avant/après — aucun test
-perdu), Stryker skipped (core intouché).
-**O.4 mergé (PR #111)** : le
-padding/fenêtrage TIMESTEP de `chords.py` (exclu de coverage + pyright)
-extrait en `btc_windows.py` pur testé (`window_plan` → `{pad, slices}`,
-6 pytest, modèle `chord_spans.py`), `_analyse` rebranché, équivalence
-ancien/nouveau vérifiée par script. Serveur **163 pytest** (+6), pyright 0,
-coverage 97,6 %.
-**O.5 mergé (PR #112) — Lot O clos.** `AbortSignal`
-bout-en-bout `/tempo`+`/chords` (ports core → use-cases → `postWavForJson` →
-hooks ; abort au reset/override/nouveau run/changement de piste/démontage —
-le sémaphore serveur est libéré), `create-chord-detector.ts` exclu de la
-couverture avec ses jumeaux, boilerplate Popover factorisé en `PopoverForm`
-(NameEditor + SpeedTrainerControls, clones jscpd résorbés). Gate vert
-**1057 tests** (+10), **Stryker 95,2 %** (core touché). Revue 8 angles :
-abort à l'unmount de useTempo ajouté ; import-menu volontairement non migré
-(il lui faut anchor + form + hint — API à élargir seulement si un 4e
-formulaire apparaît).
-**Plan du Lot P écrit et validé**
-([lead-sheet-chart-plan.md](lead-sheet-chart-plan.md)) sur la maquette
-fournie (`your-song-elton-john-chart.pdf`, non versionnée — rendu cible +
-fonctionnalités) ; trois arbitrages pris : rendu d'abord, sync lecture via
-unroll dès P.2, en-tête dérivé de la session + directives `{…}` de surcharge.
-**P.1 — rendu chart mergé (PR #113)** : directives `{k: v}`, `ChordGlyph`,
-barres dessinées, `ChartHeader` dérivé + Petaluma Script OFL — voir
-l'historique.
-**P.2 — grammaire de forme + déroulement mergé (PR #114)** — voir
-l'historique.
-**P.3 mergé (PR #115)** — édition repliée, chart-first — voir l'historique.
-**P.4 phase 1 mergé (PR #116)** — déduction de structure MDL — voir
-l'historique.
-**P.4 impression, sur `feat/p4-print` (PR à ouvrir)** : bouton
-« Imprimer » (désactivé sans contenu — prédicat `chartHasContent` partagé
-avec la feuille), `data-print-region` émis par la LeadSheet **seulement
-avec du contenu** (sans chart, Cmd+P imprime l'app), stylesheet
-`@media print` globale à deux règles enfant (`:has` — branches hors-chemin
-hors du flux, chaîne d'ancêtres aplatie html/body compris, peinture
-strippée, tokens encre-sur-papier ; contrat : UNE région par page).
-`BarsPerRowField` extrait (react-doctor no-giant-component),
-`.chipButton:disabled` sur la peau partagée. Revue 8 angles vérifiée :
-2 fixés en TDD (dont Cmd+P page blanche, reproduit navigateur), 4
-appliqués, 3 arbitrés. Browser-verify du rendu contre la maquette. Gate
-vert **1181 tests** (+8), Stryker skippé (core intouché).
-**P.4 impression mergé (PR #117) — Lot P complet.**
-**Phase 2 structure — segmentation audio (la déduction MDL de P.4 déçoit).**
-[Plan](structure-detection-plan.md) · [rapport S.0+S.1](sessions/2026-07-13-structure-detection-s0-s1.md).
-**S.0 spike : GO pour SongFormer + chunking** (MPS/torch 2.12, qualité > MDL
-sur 2 vrais morceaux ; pleine fenêtre OOM 16 Go → chunking 180 s obligatoire,
-RAM 0,2 Go ; snap aux downbeats mesuré, Δ médian 0,14 s).
-**S.1 serveur `POST /structure` sur `feat/structure-server-s1` (PR à ouvrir)** :
-cœur pur TDD (`chunk_plan` + `stitch_segments`, 16 tests) + shell torch
-`structure.py` (moule chords.py, poids épinglés, inférence chunkée, 503/504)
-+ SongFormer/MuQ/MusicFM vendorés. Vérifié bout-en-bout (l'endpoint HTTP
-reproduit le spike). Revue 8 angles → 5 fixes. Gate serveur vert **180 tests**.
-**S.1 mergé (PR #118).**
-**S.2 core sur `feat/p-structure-core-s2` (PR à ouvrir)** : `StructureDetector`
-port + `detectStructure` use-case + `snapSectionsToGrid` (recalage aux downbeats,
-règles mesurées + garde monotone anti-inversion). Pas de grille requise (bouton
-autonome). Revue 2 angles → 3 fixes. Gate vert **1207 tests**, Stryker ciblé
-detect-structure 100 % / song-structure ~91 %.
-[rapport S.2](sessions/2026-07-13-structure-core-s2.md).
-**S.2 mergé (PR #119).**
-**S.3a web — marqueurs de structure (PR #120 mergée)** : bouton « Détecter la
-structure » dans la barre de repères → marqueurs de section (vérif navigateur OK
-sur *The Logical Song*). Détail dans l'historique + [rapport
-S.3a](sessions/2026-07-13-structure-web-s3.md).
+**En cours : AL.3 — vitesse/hauteur précises (branche
+`feat/al3-precise-speed-pitch`, PR à ouvrir).** Vitesse et Hauteur passent en
+pilule éditable (idiome zoom) : boutons ± + slider + **valeur cliquable-éditable**
+(`CommitNumberField`, N.4 flagging), core pur `stepTempoPercent`/`stepPitchSemitones`
+(TDD + property tests) partagé par les ± et les nouveaux raccourcis **`[`/`]`
+(vitesse ±5 %)** et **`{`/`}` (hauteur ±1 demi-ton)** ; double-clic slider = retour
+neutre (déjà là), et **le fader dB gagne le double-clic 0 dB** (`UNITY_GAIN_DB`,
+l'overlap AM.2). Peau `.stepButton` promue dans controls.module.css (zoom pill +
+steppers), `StepperField` extrait (vitesse+pitch, zéro clone jscpd). Vérif
+navigateur (footer : pilules `−  slider  +  100 %` / `−  slider  +  0`, hauteur
+48 px, zéro overflow ; bug de compile attrapé — `composes: touchTargetTall` avant
+sa définition, ordre corrigé). Gate **verte**, Stryker ciblé core en cours.
+**Prochain : AL.4** — speed-trainer découvrable.
 
-**Offload Modal — J1 (token statique) mergé (PRs #123–#125)** : endpoint Modal
-`/structure` déployé (bearer statique), routage adapter + warm-on-import.
-[plan](modal-offload-impl-plan.md).
-
-**J2 — auth Supabase (PR #126, branche `feat/supabase-j2`) — DÉPLOYÉ ET VÉRIFIÉ
-EN PROD (2026-07-13)** : remplace le token statique par de l'auth par-utilisateur.
-Décisions produit : gating `beta_codes`, quota ~20/mois, gate paresseuse inline
-(contrôle compte dans le header). **2.1** schéma
-(`supabase/migrations/…j2_auth_quota.sql`) : `beta_codes`/`beta_members`/`usage`
-+ RLS + `redeem_beta_code`/`consume_analysis`/`account_status` (SECURITY
-DEFINER) — 10 asserts SQL sur le stack local. **2.2** Edge Function
-`mint-analyze-token` (Deno, HS256 5 min, 403/429/401) — 7 tests Deno sur le
-stack live. **2.3** `server/app/analyze_auth.py` (vérif HS256 stdlib pure, 17
-pytest 100 %) branché dans `modal_app.py`, token statique supprimé ; interop
-djwt↔python prouvée ; serveur 197 pytest. **2.4** web : `AuthPort` (supabase-js),
-gate token async (`analysis-token.ts`), `AccountMenu` header (magic link + code
-+ quota), gate câblée dans la détection structure (`gateReason` hors du cœur
-pur), i18n `account.*`. Gate **verte — 1283 tests**, WorkstationShell < 300.
-**Déployé** sur le projet Supabase **Loupe** (`kqvpftctrkrtdwuvpnva`) : migration
-`db push`, Edge Function (`--use-api`), `modal_app.py` redéployé, secret hex
-partagé aligné Edge↔Modal. Parcours complet vérifié (magic link → code →
-détection → marqueurs → quota). Deux bugs corrigés au déploiement (commit
-`a353071`) : CORS `apikey` manquant sur l'Edge (preflight du mint), et chip quota
-non rafraîchi après analyse (`onAnalysisUsage`). Pièges consignés : secret
-**hex** obligatoire (base64 casse le split `=`), `functions deploy --use-api`
-(Colima), `VITE_SUPABASE_URL` = le **ref**. [runbook](j2-supabase-runbook.md) ·
-[rapport J2](sessions/2026-07-13-j2-supabase-auth.md).
-
-**En cours : S.3b — réétiquetage de la grille d'accords (branche
-`feat/p-structure-web-s3b`)** — décision produit reprise : *le bouton
-« Détecter la structure » réétiquette la grille existante en gardant ses
-accords*. **Core** : fold pur `relabelChartBySections(source, sections, grid,
-barsPerRow)` — grille lue en mesures **jouées** (`unrollChart`, aligné sur les
-temps de section en secondes de lecture), 1er accord par mesure (modèle token
-plat), chaque frontière de section mappée en index de mesure (compte des
-downbeats avant son `startSeconds`), coupe → un bloc par section sous son
-en-tête, **pas de vote inter-sections** (accords gardés verbatim → l'offset de
-clé reste valide). Export public (famille `transposeChart`/`renderChartSource`).
-**Web** : `sectionDisplayLabel` (raw→Lingui, partagé marqueurs/grille),
-`relabel-chart.ts` (traduit puis appelle le core), `useStructureMarkers`
-réétiquette via `chart.setSource` quand la grille a du contenu **et** un beat
-grid ; `MarkerControls` arme la confirmation sur `hasMarkers || hasGrid` et
-nomme l'enjeu (« Remplacer les repères et la grille ? » / « Réétiqueter la
-grille d'accords ? » / S.3a « Remplacer les repères ? »). Session chart
-construite **avant** le flux structure (même source). **Limites v1** : mesure
-multi-accords → 1er accord seulement ; pas de repli `|: :|` (chaque section sous
-son en-tête). Gate **vert — 1249 tests** (+13), react-doctor clean
-(WorkstationShell < 300 lignes).
-[rapport S.3b](sessions/2026-07-13-structure-web-s3b.md).
-
-**Grille d'accords — orthographe tonale + vocabulaire étendu mergé (PR #127)**
-— pré-démo #1 : `detectKey` Krumhansl → `{key}` + ré-épellage #/b, grand
-checkpoint BTC 170 classes (7es/sus/dim…), nommage validé utilisateur →
-[rapport](sessions/2026-07-13-chord-grid-vocab-key.md).
-
-**Marqueurs ↔ structure mergé (PR #128)** — pré-démo #2 : `Marker.kind`
-(structure vs indicatif), `chartSectionAnchors` + sync chart→timeline sur
-éditions utilisateur, rail teal/ambre →
-[rapport](sessions/2026-07-13-marker-kinds-structure-sync.md).
-**Signatures rythmiques mergées (PR #129)** — pré-démo #3 : `{time: N/M}`
-tête + changements mid-grid, `detectMeter` dominant, « N temps » éditable
-(`remeterGrid`), fold méter-aware, DBN madmom sur `/tempo` →
-[rapport](sessions/2026-07-13-time-signatures.md).
-Reste pré-démo : vérif navigateur sur The Logical Song ·
-retrofit `/tempo` sur `classifyTransportError` toujours noté.
-
-**« + Section » mergé (PR #134)** — marqueur de structure à la main : bouton
-« + Section » (`addSectionAt`, « Section N », kind structure, écrasable) +
-raccourci `Maj+M`, guide la détection d'accords (#130) →
-[rapport](sessions/2026-07-14-add-section-marker.md). **Fix taille d'icônes
-mergé (PR #135).**
-
-**En cours : multi-accords par mesure + erreurs `/tempo` discriminées
-(branche `feat/multi-chords-per-measure`, PR à ouvrir).** Les deux reliquats
-en une PR. **(1) Multi-accords** (le différé du lot pré-démo, zéro serveur) :
-`chordLabelPerMeasure` vote aussi les deux moitiés de mesure (coupure au beat
-médian) → cellule `'C G'` quand chaque moitié est dominée par son accord ; une
-moitié silencieuse ou un label moteur multi-mots véto le split. `cellToken`
-imprime les cellules multi-tokens (`isPrintableToken` partagé), `playedLabels`
-garde tous les accords au relabel (limitation v1 levée, token structurel
-filtré au lieu d'un wipe `N.C.`), `matchesBlock` compte l'accord de tête
-(le jitter du split ne casse plus le regroupement des sections). **(2) Tempo**
-(reliquat N.1) : `TempoDetectionError`/codes dans `detectTempo`, adapter sur
-`classifyTransportError`, `useTempo.error` = code (détail en console),
-`ERROR_COPY` Lingui `tempo.error.*` dans le panneau ; les trois blocs catch
-des adapters repliés en `rethrowTransportError`. Revue 8 angles → 4 fixés
-(3 correctness TDD + 1 reuse), 3 écartés documentés. Gate **vert — 1444
-tests** (+23), **Stryker 93,4 %**.
-[rapport](sessions/2026-07-14-multi-chords-tempo-errors.md).
-
-**Évaluation notée v4 (2026-07-14) : 16,1/20** (16,0 le 2026-07-11) →
-**[feuille de route v4](roadmap-excellence-4.md)** (Lots Q–W). Revue
-multi-agents : 6 reviewers d'axe + 2 enquêtes ciblées sur les irritants
-rapportés à l'usage (« interface brouillonne », « opérations longues sans
-loader ») ; 55 constats, 45 confirmés après vérification adversariale.
-Séquencement : Q (clarté de l'atelier) → R (feedback unifié) → W.1/W.2 →
-U.1/U.3 → T.1–T.3 → V.1 → le reste.
-**Q.1 — zonage de la colonne (branche `feat/q1-shell-zoning`, PR à ouvrir)** :
-`ShellSection` (région nommée + h2) × 3 zones — Timeline (Repères + Stage +
-Boucles), Analyse (Séparation + Tempo), Partition (Grille) — gaps `--space-l`
-entre zones / `--space-xs` dedans (approche « labels + gaps seuls » validée) ;
-classe partagée `.sectionLabel` (6 têtes unifiées, fin du gras isolé du titre
-accords, h2→h3 sous la zone), label visible « Séparation » qui nomme sa
-région. Spec zones + browser-verify (a11y tree vérifié). Revue 8 angles →
-3 fixés, 1 reporté W.5. Gate **verte — 1448 tests**, Stryker skippé (core
-intouché). [rapport](sessions/2026-07-14-q1-shell-zoning.md).
-**Q.2 — rangée « Analyser » (branche `feat/q2-analyser-row`, stackée sur Q.1,
-PR à ouvrir)** : primitive `DetectionAction` (bouton + confirm deux-temps +
-hint + échec `role="alert"` + LiveStatus) et `AnalyserRow` en tête de zone
-Analyse — Séparer · Tempo · Structure · Accords, chaque item avec son état,
-empreinte stable (✓ au lieu de disparaître). SeparationPanel supprimé, les
-3 panneaux allégés (résultats/corrections seuls), copy regroupée
-(`analyser/detection-copy.ts`, ids inchangés), `detect()` accords replie sur
-la préférence stockée. Révise N.4 + placement séparation (validé au
-checkpoint). Specs migrés (analyser-row.spec 31 tests). Browser-verify
-bout-en-bout. Revue 8 angles → 3 fixés, 2 différés (Q.3/R.1). Gate **verte —
-1441 tests**, Stryker skippé.
-[rapport](sessions/2026-07-15-q2-analyser-row.md).
-**Q.3 — zone Analyse repliable (branche `feat/q3-analysis-fold`, stackée sur
-Q.2, PR à ouvrir)** : `ShellSection` pliable (accordéon `h2 > button`,
-contenu caché — jamais démonté — l'aria-controls résout et l'état en vol
-survit), en-tête replié = résumé de l'acquis en teal (« Pistes séparées ·
-120 BPM · 4 temps · N sections · grille N mes. »), `useAnalysisFold` (import
-frais → ouvert, projet rouvert analysé → replié, seul le toggle manuel
-persiste). Read-out « détecté » du header supprimé (décision checkpoint).
-Bug de course corrigé au passage : un « Ouvrir » supplanté ne signe plus le
-vieux projet (re-check epoch post-restore — trou préexistant de
-setSavedSignature). Revue 8 angles → 6 fixés, 2 différés. Gate **verte —
-1449 tests** (dernier commit --no-verify documenté : timeouts de coverage
-sous contention machine, diff hors de cause — le commit précédent échoue à
-l'identique). [rapport](sessions/2026-07-15-q3-analysis-fold.md).
-**Q.4 + Q.5 (branche `feat/q4-q5-header-speed`, stackée sur Q.3, PR à
-ouvrir) — LOT Q CLOS** : header groupé en familles par le gap (aide · E/S ·
-document · compte/serveur), slider du footer renommé « Vitesse (sans toucher
-au pitch) » (« Tempo » réservé au BPM musical). Au passage : timeout vitest
-5 s → 15 s (flakes de contention mesurés sur les specs shell de réouverture,
-diff hors de cause). Gate **verte — 1449 tests**.
-[rapport](sessions/2026-07-15-q4-q5-header-speed.md).
-**Lot Q mergé sur `main`** (#137, #138, #140 — #139 fermée par une course
-GitHub, ses commits livrés via #140).
-**R.1 — OperationStatus (branche `feat/r1-operation-status`, PR à ouvrir)** :
-primitive `app/ui/operation-status` (barre réelle/indéterminée + libellé +
-detail différé + Annuler conditionnel) ; la face running de `DetectionAction`
-la porte (fini le label de bouton swappé), la séparation y replie son bloc
-maison (progrès streamé + Annuler, abstraction 4/4), tempo/structure/accords
-en indéterminé, décodage waveform aussi. Browser-verify sous Slow 3G. Revue
-8 angles → 3 fixés. Gate **verte — 1454 tests**.
-[rapport](sessions/2026-07-15-r1-operation-status.md).
-**R.2 — annulation des détections (branche `feat/r2-detection-cancel`,
-stackée sur R.1, PR à ouvrir)** : `cancel()`/`cancelDetection()` sur les
-trois hooks (abort + bump run-token + busy down — annuler n'est pas un
-échec), câblés sur le `onCancel` des faces busy ; « Annuler » apparaît sur
-les 4 flux. Gate **verte — 1456 tests**.
-[rapport](sessions/2026-07-15-r2-detection-cancel.md).
-**R.3 — cold start narré (branche `feat/r3-cold-start`, stackée sur R.2, PR
-à ouvrir)** : busy monté avant `await gate()` (mint couvert, garde de ticket
-anti-cancel-pendant-mint), et la face busy structure explique après ~4 s
-« Démarrage du moteur d'analyse (jusqu'à ~1 min)… » quand l'analyse est
-offloadée. Gate **verte — 1459 tests**.
-[rapport](sessions/2026-07-15-r3-cold-start.md).
-**R.4 — busy peint avant le gel (branche `feat/r4-export-busy`, stackée sur
-R.3, PR à ouvrir) — LOT R CLOS** : `nextPaint()` (double rAF) avant le zip
-d'export (header narre « Export des stems… ») et avant le ré-encodage WAV du
-save (`preparingSave`) ; le chip busy du header migre sur `OperationStatus`
-(barre réelle pour le téléchargement URL — le % quitte la copy — Annuler
-conditionnel, peau cancel dédupliquée). Gate **verte — 1460 tests**.
-[rapport](sessions/2026-07-15-r4-export-busy.md).
-**Pile R mergée sur `main`** (#141 → #142 → #143 → #144, retarget avant
-merge — pas de course #139 ; branches distantes r1…r4 à nettoyer).
-**W.1 — rangées denses wrappées (branche `feat/w1-dense-rows-wrap`, PR à
-ouvrir)** : `flex-wrap: wrap` sur `.panel` tempo et `.header` accords (les
-deux seules rangées sans wrap), invariant gardé par `dense-rows-wrap.spec.ts`
-au niveau du texte CSS (jsdom ne calcule pas de layout). Gate **verte —
-1462 tests**, Stryker skippé (core intouché).
-[rapport](sessions/2026-07-15-w1-dense-rows-wrap.md).
-**W.2 — peau « Confirmer ? » unique (branche `feat/w2-confirm-face`, stackée
-sur W.1, PR à ouvrir)** : `.confirmFace` partagée dans controls.module.css
-(danger-rouge acté — l'ambre du drop-dialog était la divergence) ; header,
-projects et drop-dialog la composent, l'analysis-panel garde sa variante
-outline-inset, les quietButton lourds inchangés. Gate **verte — 1462 tests**,
-Stryker skippé (core intouché).
-[rapport](sessions/2026-07-15-w2-confirm-face.md).
-**Pile W.1 → W.2 mergée** (#145, #146 — W.3–W.5 restent au lot W).
-**U.1 — analyze gate (branche `feat/u1-analyze-gate`, PR à ouvrir)** : le
-middleware d'auth Modal extrait en `app/analyze_gate.py` (humble object —
-ruff/pyright/pytest/coverage 100 %), `modal_app.py` composition pure + ajouté
-aux cibles ruff CI, 11 tests TestClient dont la composition gate→CORS exacte
-de modal_app. Revue 8 angles → 3 fixés : 500s sur tokens adverses
-(header non-objet, payload non-ASCII) → 401 en TDD ; **ordre des middlewares
-inversé** (gate avant CORSMiddleware → la vraie couche CORS décore les 401,
-ACAO + `Vary: Origin`, écho manuel supprimé) ; kit de mint JWT partagé
-(`tests/analyze_token_kit.py`, contract pin unique avec l'Edge Function).
-**Redéployer Modal au merge** (`modal deploy modal_app.py`). Serveur
-**212 pytest** (+13), pyright 0, gate web verte — 1462 tests, Stryker skippé
-(core intouché). [rapport](sessions/2026-07-15-u1-analyze-gate.md).
-**U.1 mergé (PR #147)** — redéploiement Modal **encore dû** (sera couvert par
-le deploy U.3).
-**U.3 — brute-force codes beta + plancher secret (branche
-`feat/u3-beta-brute-force`, PR à ouvrir)** : `redeem_beta_code` throttlé
-(ledger `redeem_attempts`, 5 échecs → verrou 15 min répondant le même `false`,
-reset paresseux, nettoyé au succès) + CHECK entropie ≥ 32 chars avec cutoff
-`created_at` pour les legacy (un `NOT VALID` nu casserait leur décrément —
-trouvé en revue) ; plancher secret ≥ 32 des deux côtés (`assert_strong_secret`
-dans `@modal.enter` AVANT le chargement GPU, Edge → 500) ; harnais Deno
-versionné (`scripts/seed-supabase-deno-harness.sh`) ; runbook (seed uuid,
-rotation Modal-d'abord, check pré-deploy) ; copy `account.code-invalid`
-élargie. Vérifié stack local : suites SQL J2+U.3, rafale PostgREST réelle
-(6 RPC → failures=5 locked), Deno 8/8, serveur 214 pytest, gate web 1462.
-Revue 3 finders → 5 fixés, 4 écartés documentés.
-[rapport](sessions/2026-07-15-u3-beta-brute-force.md).
-**U.3 mergé (PR #148) et DÉPLOYÉ (2026-07-15)** : `supabase db push`
-(migration u3 seule, dry-run vérifié), Edge Function redéployée
-(`--use-api`), Modal redéployé (solde U.1). Curl-vérifié en prod : 401 Modal
-avec `ACAO` + `Vary: Origin` (la composition gate→CORS de U.1 en vrai).
-Au passage : le build d'image Modal cassait (madmom épinglé `git+https`,
-`debian_slim` sans git) → `apt_install("ffmpeg", "git")`, déployé,
-**PR #149 ouverte (à merger — fix d'une ligne)**.
-**#149 mergée.**
-**U.2 — job CI deno mergé (PR #150)** : job `edge-functions`
-(`setup-deno@v2`, check + lint + fmt sur `mint-analyze-token/`, sans stack) →
-[rapport](sessions/2026-07-15-u2-deno-ci.md).
-**U.4 — cliquets resserrés mergé (PR #151)** : jscpd 1,0 %, Stryker break 90 →
-[rapport](sessions/2026-07-15-u4-ratchets.md).
-**U.5 — basses groupées mergé (PR #152) et DÉPLOYÉ (2026-07-15) — LOT U
-CLOS** : (1) allowlist d'origines **env-drivée sur les trois surfaces** —
-`app/origins.py` pur (extrait de main.py) consommé par main.py + modal_app.py,
-l'Edge Function lit le même `LOUPE_ALLOWED_ORIGINS` via Deno.env
-(`parseAllowedOrigins` miroir testé), runbook § 0bis = le tableau des trois
-emplacements ; (2) `boundaries_to_segments` sorti de structure.py (exclu
-coverage/pyright) vers `structure_segments.py` pur + 3 pytest ; (3) `tempo.ts`
-(524 lignes, 4 concepts) splitté verbatim en `beat-grid` / `tempo-map` /
-`manual-tempo` / `median`, API publique inchangée, spec splitté pareil (compte
-identique). Revue 8 angles → **9 fixés** (dont : `*` dans l'env aurait
-CORS-ouvert Modal → filtré fail-closed des deux côtés + testé ; conftest/env
-scrub pour l'hermétisme des tests CORS ; `typicalBar` et le clamp beats/bar
-convergés sur les nouveaux helpers), 4 écartés documentés. Gate
-**verte — 1462 web + 221 pytest**, **Stryker 93,55 %**.
-Redéployé au merge : `modal deploy` + Edge Function (`--use-api`),
-curl-vérifié en prod des deux côtés (Modal 401 + `ACAO`/`Vary: Origin` ;
-handler Edge : ACAO échoé sur l'origine autorisée, rien sur une interdite —
-NB le gateway Supabase exige `apikey` **et** `Authorization` avant d'invoquer
-la fonction, tester avec les deux).
-[rapport](sessions/2026-07-15-u5-grouped-lows.md).
-**T.1 — boucles musicales (branche `feat/t1-musical-loops`, PR à ouvrir)** :
-(1) core pur `snapLoopRegionToGrid(region, grid, 'beat'|'bar')` (TDD +
-property tests ; effondrement = une unité minimum, bord hors de l'empan de la
-grille laissé brut — un outro n'est pas rapatrié ; `nearestTime` factorisé,
-partagé avec `snapSectionsToGrid`) ; (2) le drag-to-loop s'aimante à la
-grille en fin de geste, **Alt échappe** (pattern DAW), nudge ←/→ libre — le
-snap vit dans `useLoopEditing` (grille dans ses deps) derrière un flag
-`snap` dérivé du pointerup ; (3) **« Boucler la section »** sur les rangées
-structure du panneau Repères : loupe armée du repère au repère structure
-suivant (clampé à la durée), seam `selectSpan`/`armSpan` partagé avec le
-rappel de boucle nommée. `WaveformView` allégé (extraction
-`ImportErrorStage`/`BeatLines`, budget react-doctor). Gate **verte — 1484
-tests** (+22), **Stryker 93,41 %** (12 survivants du premier run tués,
-`snap-loop-region.ts` 100 %).
-[rapport](sessions/2026-07-15-t1-musical-loops.md).
-**T.1 mergé (PR #153)** (+ fix format ruff des deux fichiers de tests U.5 qui
-rougissaient la CI de `main`).
-**T.2 — nudge musical mergé (PR #154)** :
-core pur `nudgeSeconds(seconds, direction, grid, coarse)` — beat adjacent
-avec grille (**downbeat avec Shift**), sinon 0,1 s (×10 Shift), repli 0,1 s
-au-delà des bords de la grille ; `waveform-view` (poignées A/B) et
-`marker-rail` (tags, nouvelle prop `beatGrid`) branchés, les deux
-`NUDGE_RATIO = 0.01` supprimés. Gate **verte — 1496 tests** (+12),
-**Stryker 93,51 %** (`nudge-time.ts` 100 %).
-[rapport](sessions/2026-07-15-t2-musical-nudge.md).
-**T.3 — chart navigable (mergé, PR #155)** :
-core pur `measureSeekTime(source, grid, writtenIndex, playhead)` — inverse de
-la projection du highlight via `unrollChart`, occurrence **encore devant le
-playhead** (la passe en cours se relance), repli première occurrence,
-property test round-trip écrit↔joué ; les mesures de la `LeadSheet` passent
-en `<button>` (`MeasureBox`, aria-label « Aller à la mesure {number} »)
-**seulement quand une grille existe** (sinon `<div>` inertes — pas
-d'affordance mensongère), même peau ; `onSelectMeasure` câblé
-`ChordChartPanel` → `ShellMain` → seek au downbeat. Gate **verte — 1507
-tests** (+11), **Stryker 93,95 %** (`measureSeekTime` : survivant frontière
-tué, 1 équivalent documenté). NB shell : détection résolue ⇒ seek via le
-**moteur de stems**.
-[rapport](sessions/2026-07-15-t3-navigable-chart.md).
-**T.1–T.3 clos.**
-
-**V.1 — upload d'analyse mono + 24 kHz mergé (PR #156)** : uploads de
-détection 3,67× plus légers, résultats identiques octet pour octet →
-[rapport](sessions/2026-07-16-v1-analysis-upload.md).
-
-**V.2 — unload du moteur mono-piste au hand-off stems mergé (PR #157)** :
-`unload()` sur le port `PlaybackEngine`, hand-back en reload paresseux
-(seek vivant + reprise du play, gardes anti-course), last-load-wins couvrant
-`load` ET `unload` ; heap A/B 7 → 6 AudioBuffers →
-[rapport](sessions/2026-07-16-v2-engine-unload.md).
-
-**En cours : V.5 — buffer de décodage partagé avec les moteurs (branche
-`feat/v5-audio-buffer-memo`, PR à ouvrir).** Exploration GO puis livraison le
-même jour : `audio-buffer-memo.ts` (WeakMap décodeur → AudioBuffer, modèle
-encode-wav-memo), `audioBufferFrom` sert le buffer partagé sur un hit — les
-deux copies ~88 MB (moteur piste au load + stem « Piste » au seat métronome)
-mesurées évitées (**2 hits** au compteur temporaire ; la copie `createBuffer`
-vit côté audio renderer, invisible du heap JS — leçon de mesure). Lecture +
-détection d'accords vérifiées **après** lecture du buffer partagé (key of Cm
-juste — vues intactes). **Fail-safe** : probe one-shot « acquire the
-contents » (un UA qui détache les vues ne partage jamais → chemin copie
-pré-V.5) ; buffer partagé = **lecture seule** par contrat. Réactualisation
-V.2 : avec le partage, `unload()` ne libère qu'une référence (reclamation
-réelle sur le chemin fallback uniquement). Revue 3 finders → 3 fixés,
-4 écartés documentés (dont la race `addStem` à froid, préexistante,
-consignée en veille). Gate **verte — 1536 tests** (+4), Stryker skippé
-(core intouché). [rapport](sessions/2026-07-16-v5-audio-buffer-memo.md).
-**V.5 mergé (PR #158).**
-**V.3 — warm des modèles au démarrage local mergé (PR #159)** : `app/warm.py`
-TDD (opt-out `LOUPE_WARM_MODELS=0`, loaders best-effort — un échec n'en bloque
-pas un autre, thread démon `model-warmup`), `warm()` public sur
-tempo/chords/structure (une ligne sur les getters double-check-lockés),
-`main.py` collecte les hooks des modules importés et lance le warm-up au
-lifespan après le GC de boot. Smoke réel : 3 modèles chauds en ~23 s, opt-out
-⇒ pas de thread. Serveur **231 pytest** (+10) coverage 98 %.
-[rapport](sessions/2026-07-16-v3-warm-models.md).
-
-**V.4 — playhead en `transform` mergé (PR #160) — LOT V COMPLET.**
-`left: %` par frame → `translateX(px)` compositor-only + `will-change`
-(`left: 0` physique apparié) ; ResizeObserver gardé sur le scrollport (un
-resize en pause recalcule les px — le `%` suivait gratuitement, le zoom
-re-exécute déjà l'effet). Browser-verify : extrémités alignées à 1× et 4×
-(Δ < 1 px), page-follow intact, resize 1200→700 recalcule à ratio constant.
-Gate **verte — 1537 tests** (+1), Stryker skippé (core intouché).
-[rapport](sessions/2026-07-16-v4-playhead-transform.md).
-**W.3 — faux-gras synthétisés (branche `feat/w3-faux-bold`, PR à ouvrir)** :
-les trois `font-weight: 600` sur des graisses absentes corrigés — titres
-dialog/popover (Space Grotesk, seul 500 chargé) abaissés à 500 (choix : pas de
-600.css en plus, cohérent avec le logo), `.timeSignature` (Petaluma, 400 seul)
-dégraissé. Browser-verify avant/après (600 forcé = trait synthétisé empâté).
-Règle actée : `--font-logo` ⇒ 500 tant que 600.css n'est pas importé ; jamais
-de `font-weight` sur Petaluma. Gate **verte — 1537 tests**, Stryker skippé
-(core intouché). [rapport](sessions/2026-07-16-w3-faux-bold.md).
-**W.3 mergé (PR #161).**
-**W.4 — typo chart sur tokens + verrou font-size (branche
-`feat/w4-chart-type-scale`, PR à ouvrir)** : rabattement sur `--font-size-xl`
-tenté d'abord et rejeté sur sonde navigateur (Petaluma rend ~20 % plus petit
-qu'Inter à em égal — hiérarchie titre/artiste inversée, glyphes moins
-lisibles) → tokens chart dédiés commentés (`--font-size-chart-title`/`-glyph`,
-rendu inchangé) ; `check-css-tokens.sh` bloque désormais les `font-size`
-absolus (`rem`/`px`) hors tokens.css — les ratios `em` restent légaux
-(relatifs au contexte, pas à l'échelle), verrou testé en négatif. Gate
-**verte — 1537 tests**, Stryker skippé (core intouché).
-[rapport](sessions/2026-07-16-w4-chart-type-scale.md).
-**W.4 mergé (PR #162).**
-**W.5 — basses design groupées (branche `feat/w5-grouped-lows`, PR à ouvrir) —
-LOT W CLOS** : `.kbd` et la face `.secondaryAction` promus dans
-controls.module.css (le trigger AccountMenu gagne le dip `:active` ; rangées
-projects-dialog volontairement locales), `styles.section` fantôme retiré +
-check `styles.X ↔ classes` dans check-css-tokens.sh (testé en négatif), les
-8 focus rings identiques à la baseline supprimés (le `-2px` d'import-menu
-commenté), reliquats O.2 soldés (`--tracking-label` sur `.sub`,
-`--space-3xs` sur `.tag`, lead-sheet en propriétés logiques). Vérifs
-navigateur (chips kbd, dip partagé). Gate **verte — 1537 tests**, Stryker
-skippé (core intouché). [rapport](sessions/2026-07-16-w5-grouped-lows.md).
-**W.5 mergé (PR #163) — reste de la v4 : T.4–T.8.**
-**T.4 — Cmd/Ctrl+S = Enregistrer (branche `feat/t4-cmd-s`, PR à ouvrir)** :
-`Command.saveProject` bindé meta+S/ctrl+S (TDD, key-bindings 112/112
-mutants), carte auto-dérivée (2 lignes ⌘+S/⌃+S), un chord Cmd/Ctrl (sans
-Alt) traverse la garde champ-texte (Cmd+S enregistre depuis le textarea de
-la grille), câblage dans `use-shell-shortcuts` (premier save = nom de piste,
-re-save dirty, no-op propre/en-vol). Gate **verte — 1544 tests** (+7),
-**Stryker 93,74 %**. [rapport](sessions/2026-07-16-t4-cmd-s.md).
-**T.4 mergé (PR #164).**
-**T.5 — BPM/mètre au standard N.4 (branche `feat/t5-bpm-meter-invalid`, PR à
-ouvrir)** : `CommitNumberField` gagne `isValid` (« pris verbatim ? ») +
-`aria-invalid`/`badInput` + bordure danger (recette N.4) — BPM hors bornes
-(clamp silencieux), mètre hors bornes (rejet) ou fractionnaire (floor 4,5→4)
-flaggés pendant la frappe ; contrats `useTempo` inchangés. Gate **verte —
-1549 tests** (+5), Stryker skippé (core intouché).
-[rapport](sessions/2026-07-16-t5-bpm-meter-invalid.md).
-**T.5 mergé (PR #165).**
-**T.6 — découvrabilité (branche `feat/t6-discoverability`, PR à ouvrir)** :
-dialog « Aide du format » (10 lignes exemple→sens vérifiées contre le
-parseur, grammaire de liste promue dans app-dialog et partagée avec le
-dialog « ? »), section « Gestes » dans l'aide (les `title` survol-seulement
-enfin enseignés), AT honnête — seek clavier des tags (clic detail 0, pas de
-double-seek) et surface waveform `<div>` pointer-only hors tab order
-(testid, kit + 4 specs migrés). Browser-verify du dialog. Gate **verte —
-1556 tests** (+7), Stryker skippé.
-[rapport](sessions/2026-07-16-t6-discoverability.md).
-**T.6 mergé (PR #166).**
-**T.7 — fine-tune ±50 cents (branche `feat/t7-fine-tune`, PR à ouvrir)** :
-`fineTuneCents` séparé de la transposition (N.3/modulo 12 restent en
-demi-tons) — core `clampFineTuneCents` + `fineTuneOrDefault` (absent ⇔ 0),
-moteurs en `demi-tons + cents/100` (paire portée par ref — deux setters
-enchaînés n'appliquent jamais l'autre moitié périmée), persisté/signé/
-round-trippé shell, champ « Ajustement fin » sur `CommitNumberField`
-extrait en `app/ui/` (flag T.5 inclus), `ShellFooter` extrait (budget 300).
-Gate **verte — 1570 tests** (+14), **Stryker 93,63 %** (2 équivalents
-fine-tune documentés). [rapport](sessions/2026-07-16-t7-fine-tune.md).
-**T.7 mergé (PR #167).**
-**T.8 — décisions actées** (checkpoint utilisateur) : spectre = v1 chroma
-honnête ; EQ = slice BiquadFilter par stem, non persistée.
-**T.8a — Spectre chroma (branche `feat/t8a-spectrum-chroma`, PR à ouvrir)** :
-`chromaFromSpectrum` pur (bande 32–2100 Hz, mutation 34/36 + 1 équivalent),
-`spectrum?()` optionnel sur les ports moteurs, tap `AnalyserNode`
-pass-through unique avant destination dans le transport partagé,
-`ChromaView` (poll 10 Hz dans la feuille, 12 barres C…B). Browser-verify
-lecture réelle : chaîne intacte, barres plausibles. Gate **verte — 1585
-tests** (+15). [rapport](sessions/2026-07-16-t8a-spectrum-chroma.md).
-**T.8a mergé (PR #168).**
-**T.8b — EQ par stem (branche `feat/t8b-stem-eq`, PR à ouvrir) — LOT T
-CLOS** : `StemFilter` + `setStemFilter?()` sur le port, deux biquads
-toujours présents parqués plats par stem (Q Butterworth, poser un filtre =
-déplacer une fréquence, jamais recâbler), `mixer.setFilter` session-only
-(reset au mix frais, jamais dans MixerState), rangée LC/HC compacte sous
-chaque fader (bord de slider = côté coupé). Browser-verify : filtrage en
-lecture réelle. Gate **verte — 1591 tests** (+6), Stryker skippé.
-[rapport](sessions/2026-07-16-t8b-stem-eq.md).
-**Évaluation notée v5 (2026-07-16) — [feuille de route v5](roadmap-excellence-5.md).**
-Roadmap v4 entièrement livrée (Lots Q, R, T, U, V, W — PRs #137→#169). Revue
-multi-agents 6 axes, chaque constat vérifié adversarialement (35 constats,
-20 confirmés, 15 réfutés/déjà-tranchés). Note globale **17,2/20** (16,1 le
-2026-07-14) — tous les axes montent : qualité 18, fonctionnalités 17,5,
-esthétique 17, sécurité 17, ergonomie 17, performance 16,5. Les quatre
-déductions structurelles de la passe 4 sont vérifiées réellement soldées.
-Reste : cinq 🟠 moyens (gating/copy offload menteurs X.1, cul-de-sac
-d'annulation tempo X.2, régression hauteur header stems T.8b → Y.1,
-clic métronome dans la bande chroma Z.1, veille CVE Python AA.1) + une
-quinzaine de finitions basses, séquencés en Lots X, Y, Z, AA.
-
-**Cap produit acté (2026-07-16)** : client léger — migrer tout le calcul
-possible vers Modal (le serveur local devient optionnel) et porter le shell en
-app de bureau **Tauri**, pour tourner sur des machines peu puissantes. Premier
-pas : **AB.1** = plan de migration dédié (roadmap v5 § Cap) ; ne déplace pas
-les cinq 🟠. **Plan écrit : [client-leger-plan.md](client-leger-plan.md)**
-(projets locaux, Modal d'abord — M1.1 tempo+accords → M1.2/M1.3 séparation →
-M1.4 santé/hors-ligne —, puis Tauri T2.1–T2.5 ; yt-dlp en sidecar ; mobile =
-option gardée ouverte). **Séquencement validé (2026-07-16)** : les cinq 🟠 v5
-d'abord — X.1 en tête (prérequis de M1.1) —, AA.2 déplacé en T2.2, les 🟢 au
-fil de l'eau, puis Phase 1 Modal.
-
-**X.1 — structure dé-gatée du serveur local en mode offload (branche
-`feat/x1-offload-gating`, PR à ouvrir)** : `blockedReason` structure dérivé de
-`serverHealth` seulement quand l'analyse est locale (pas de sonde Modal — le
-conteneur facturé ne se réveille pas au chargement, l'erreur typée parle au
-clic), `mayColdStart` → `offloaded` (cold-start R.3 + choix de copy),
-nouvelle copy `structure.error.network-offload` (« Service d'analyse
-injoignable — réessayer. »). Browser-verify via le port 5174 (origin rejetée
-→ « Serveur hors ligne ») : structure active sans hint, voisins gatés
-inchangés. Gate **verte — 1595 tests** (+4), Stryker skippé (core intouché).
-[rapport](sessions/2026-07-16-x1-offload-gating.md).
-
-**X.1 mergé (PR #170).** ⚠️ **CI GitHub en panne de facturation** (jobs tués
-en 3 s, « recent account payments have failed ») — gate locale = seule
-vérification effective, backstop Stryker post-merge inopérant.
-**X.2 — relance après annulation du tempo mergé (PR #171)** : état `cancelled`
-sur `useTempo` (posé au cancel, effacé par detect/set/reset), l'item tempo
-garde une face idle « Détecter le tempo » (DetectionAction sur `onRetry`) au
-lieu de disparaître ; un cancel par-dessus un tempo posé garde « Tempo
-détecté ». Nouvel id `analyser.tempo-detect`. Gate **verte — 1602 tests**
-(+7), Stryker skippé (core intouché). NB : ShellMain à 300 lignes pile
-(budget react-doctor sans marge).
-[rapport](sessions/2026-07-16-x2-tempo-cancel-idle.md).
-**Y.1 — EQ par stem replié en popover (branche `feat/y1-stem-eq-popover`,
-PR #172)** : la rangée LC/HC qui débordait du header 48 px (régression T.8b)
-déménage dans un popover « EQ » par stem (trigger dans la ligne M/S, peau
-popover-form composée, z-index sur le Positioner) ; marque `data-filtered`
-ambre quand un filtre est actif. Checkpoint : repli choisi contre montée à
-64 px ; popover contre dépli en place (headers et lanes ne s'alignent que par
-hauteurs fixes). Browser-verify réel (click-track 120 BPM, métronome seaté) :
-48 px exacts, zéro overflow, LC 400 Hz → indicateur ambre. Gate **verte —
-1597 tests** (+2), Stryker skippé (core intouché).
-[rapport](sessions/2026-07-16-y1-stem-eq-popover.md).
-
-**Z.1 — clics métronome hors bande chroma (PR #173)** : BEAT/DOWNBEAT 1000/2000
-→ 2400/3200 Hz (les deux se repliaient sur B et peignaient une fausse note
-pulsante au Spectre) ; bornes `CHROMA_MIN_HZ`/`CHROMA_MAX_HZ` exportées et
-invariant TDD mesuré sur les échantillons (passages à zéro vs CHROMA_MAX_HZ).
-Browser-verify en lecture réelle (kick+nappe 120 BPM, métronome audible) :
-A=100 stable, B=1-2. Gate **verte — 1596 tests** (+1), **Stryker 93,90 %**.
-[rapport](sessions/2026-07-16-z1-click-out-of-chroma-band.md).
-
-**AA.1 — veille CVE pip (PR #174) —
-LES CINQ 🟠 v5 LIVRÉS** : bloc `pip` sur `/server` dans dependabot.yml
-(advisories signalées malgré le pinning strict ; bumps = PRs à arbitrer,
-fidèle à A.1 ; pin git madmom non couvert, documenté ; step pip-audit CI
-écarté — le pin git le casse au parsing).
-[rapport](sessions/2026-07-16-aa1-pip-advisories.md).
-
-**M1.1 — tempo + accords sur Modal (branche `feat/m11-tempo-chords-modal`,
-PR à ouvrir)** : Phase 1 du [plan client léger](client-leger-plan.md).
-`modal_app.py` monte `/tempo` et `/chords` à côté de `/structure` (même gate JWT,
-un conteneur, trois modèles bakés + chauffés dans `@modal.enter`) ; checkpoint
-beat_this `final0` **pinné sha256** (503 `WeightsUnavailable`). Côté web, les
-détecteurs tempo/accords pointent sur `ANALYSIS_URL` avec le bearer court, `useTempo`
-et `useChordDetection` passent le gate `ensureAnalysisToken` (la détection auto du
-tempo à l'import minte), et `AccountMenuSlot` compare les raisons de gate **par
-flux**. X.1 étendu : copy réseau partagée `analysis.error.network-offload`, accords
-dé-gatés de la santé locale en offload, cold-start narré. Refacto `ShellAnalyserRow`
-(budget react-doctor) + fix d'hygiène des 2 raccourcis Cmd+S (fake store).
-**Vérif réelle** (Modal v5, serveur local éteint, compte beta) : `/tempo` + `/chords`
-200 sur Modal, **un seul mint** (quota 10→11), accords « key of Am ». Gate
-**verte — 1629 tests** (+22), pytest 231, **Stryker skippé (core intouché)**.
-[rapport](sessions/2026-07-16-m11-tempo-chords-modal.md).
-
-**M1.2 — modèle quota/coût de la séparation (mesure + décision, PR à ouvrir)** :
-spike `server/modal_separation_spike.py` (même moule que le spike structure,
-mix synthétique généré dans le conteneur). Mesuré : htdemucs_6s sur L4, piste
-210 s → **4,7 s à chaud** (~47× temps réel), 16,2 s à froid, **0,57 GB de
-VRAM** (pas d'A10G, même conteneur que M1.1 possible) ; soit **~$0.001 par
-séparation à chaud** au tarif L4 — la prémisse « plusieurs ordres de grandeur
-au-dessus d'une analyse » est réfutée (~10×, sub-cent). **Décision (validée
-2026-07-16) : quota unique inchangé** — la séparation consommera le même gate
-JWT/mint que les détections, aucun schéma Supabase touché ; garde-fou beta =
-plafond de dépense Modal. Gate **verte**, Stryker skippé (core intouché).
-[rapport](sessions/2026-07-16-m12-separation-quota-cost.md).
-
-**M1.3 — séparation sur Modal (PR à ouvrir)** : router `separation` monté dans
-`modal_app.py` (poids htdemucs_6s bakés, warm `@modal.enter`, timeout 1800 s,
-CORS GET, **`max_containers=1` + concurrence 8** — affinité disque des stems +
-garde-fou de dépense M1.2), déployé v6. Côté web : bearer sur `/separate` ET
-les GET `/stems` (`tokenProvider` de `createHttpSeparator`), `create-separator`
-→ `ANALYSIS_URL`, gate `ensureAnalysisToken` dans `useSeparation` (gateReason →
-menu compte), séparation dé-gatée de la santé locale en offload (X.1 étendu).
-`gateReasonsOf` extrait vers `app/account/gate-reasons.ts` (budget
-react-doctor). **Vérif réelle** (serveur local éteint) : séparation complète
-sur Modal, six stems même job en HTTPS, **~65 s** clic→mixer (piste synthétique
-zstd-compressible — mesurer le transport sur de la vraie musique), **abort
-bout-en-bout confirmé** sous réseau ralenti (`net::ERR_ABORTED`). Gate
-**verte — 1640 tests** (+11), pytest 233, Stryker skippé (core intouché).
-[rapport](sessions/2026-07-16-m13-separation-modal.md).
-
-**M1.4 — santé/hors-ligne/narration (PR à ouvrir) — PHASE 1 MODAL TERMINÉE** :
-erreurs séparation typées bout-en-bout (contrat N.1 : `SeparationError` +
-`separateTrack` en `{code, detail}`, `typedFetch` sur POST + GET stems, copy
-`SEPARATION_ERROR_COPY` + override offload) ; **UX hors-ligne** (`useOnline`,
-le hors-ligne ne bloque QUE les flux offloadés — copy partagée
-`analysis.blocked-offline`, le local marche sans réseau) ; narration
-cold-start sur la barre réelle de séparation ; `hf_xet` dans l'image Modal.
-**Vérif réelle** : « The Logical Song » (4:09) séparée en **72 s** clic→6
-stems tous présents (transport plein débit OK, compression au tiroir),
-narration visible, Offline DevTools bloque/débloque en live. Gate **verte —
-1650 tests** (+10), **Stryker 94,01 %** (core touché).
-[rapport](sessions/2026-07-16-m14-sante-horsligne-narration.md).
-
-**Grille d'accords : forme vs déroulé (branche
-`feat/chord-grid-form-rollout`, PR à ouvrir)** — interlude validé avant T2.1 :
-le brouillon de détection sépare la FORME (cycle harmonique minimal) du
-DÉROULÉ (« 3 chorus »). **Grammaire** : `:| xN` (compteur de passes) +
-`{form: Nx}` en tête (l'unroll multiplie — playhead/seek/anchors suivent les
-chorus 2..N). **Core** : `section-matching.ts` (similarité pondérée queue
-×0.5, `endingVariants` corps voté/fins par passe, `votedBlock` déménagé),
-`harmonic-cycle.ts` (`detectCycle` par autocorrélation à la mesure),
-`deduceInstances` (passes ordonnées, voté + brut), `form-encoder.ts`
-(`encodeChartSource` : rollout ≥3 passes, DP coût = mesures écrites +
-λ·navigation — reprises λ1, `xN` λ2, voltas λ3, D.C./Fine λ10/+1 validé par
-déroulement ; types à fins variantes écrits fidèlement ; fold interdit si le
-mètre ne revient pas ; fallback octet-identique). **Oracle fast-check** :
-`playedLabels(encode(song)) ≡ song` (a attrapé un vrai bug d'égalité de
-coût), stabilité au ré-encodage, comptage sous bruit. `detectChords` branche
-déduction → encodeur, `{form: Nx}` imprimé en tête ; sections connues
-inchangées. **Web** : badge `×N` sur `:|`, « Jouer N fois » au ChartHeader,
-aide du format enrichie. Browser-verify réel (tempo manuel 120) : rendu ×3 /
-voltas / « Jouer 3 fois », playhead surligne la 1re mesure écrite en chorus 2.
-Hors lot : segno/D.S./coda émis (décision de cadrage). Gate **verte — 1729
-tests** (+79), **Stryker 91,33 %** (survivants = gardes défensives de
-`cycleRollout`, notés au rapport).
-[rapport](sessions/2026-07-17-chord-grid-form-rollout.md).
-
-**T2.1 — spike Tauri : GO (branche `spike/t21-tauri-shell`, PR à ouvrir).**
-Évaluation pré-spike actée : import URL = fonctionnalité principale → PWA+OPFS
-écartée, choix Tauri vs Electron, **Electron = fallback acté du NO-GO** ;
-multi-plateforme confirmé (Linux cible, WebKitGTK dérisqué par pixsaur).
-Coquille Tauri 2 dans `packages/desktop` (shell web inchangé, Vite 5173,
-macOS/WKWebView), **vérifiée réellement** : import fichier (drag & drop —
-`dragDropEnabled: false` obligatoire) et URL (yt-dlp), lecture, time-stretch
-AudioWorklet, session/localStorage, **et les trois cas durcis WebKit**
-(fenêtre minimisée, 6 stems + stretch prolongé, changement de sortie audio) —
-tous passés. **Licences : aucun bloquant** — Rubber Band absent du code
-(crainte périmée), SoundTouchJS **MPL-2.0**, pas de GPL/LGPL, App Store non
-bloqué. Trouvailles → plan : T2.1bis (deep link auth — le magic link s'ouvre
-dans le navigateur, jamais le webview), menu macOS à poser, SMTP custom avant
-beta (rate limit ~2/h), sidecar T2.3 auto-actualisable (yt-dlp périme en
-semaines ; rustube écarté). biome/knip ignorent les artefacts Rust. Gate
-**verte — 1729 tests**, Stryker skippé (core intouché).
-[rapport](sessions/2026-07-17-t21-spike-tauri-go.md).
-
-**T2.1bis — deep link auth (branche `feat/t21bis-deep-link-auth`, PR à
-ouvrir)** : le magic link revient en `loupe://auth-callback#…` et la session
-s'installe dans le webview par `setSession` explicite. Web TDD
-(`parseAuthCallback` pur + `installDeepLinkAuth`, `isTauriShell`,
-`redirectTo()` → deep link sous le shell, composition `appAuth()` en import
-dynamique), plugin Rust `deep-link` (schéma `loupe`, capability), Supabase
-`site_url` → 5173 + allowlist `{5173, loupe://auth-callback}` (API
-management). **Vérifié réellement** : bundle debug (le schéma ne s'enregistre
-QUE via le bundle sur macOS — jamais `tauri dev` nu), lien → 303 → deep link →
-e-mail + quota dans le menu compte. Suppression react-doctor scopée
-(`artifact-baas-authority-surface` sur `dist/**` — anon key publique par
-design, RLS vérifiée J2/U.3). Gate **verte — 1735 tests** (+6), Stryker
-skippé (core intouché).
-[rapport](sessions/2026-07-17-t21bis-deep-link-auth.md).
-
-**T2.1bis mergé (PR #193).**
-
-**T2.2 — stores filesystem + AA.2 parseProject (branche `feat/t22-fs-stores`,
-PR à ouvrir)** : les projets desktop vivent sur le disque local, à parité de
-contrat avec `projects.py`. **Core (AA.2)** : `parseProject` (décodeur
-runtime des manifests, verbatim ou `undefined`, léniences là où un
-normaliseur par-champ lit déjà la corruption comme défaut) branché dans les
-deux adapters — `load` throw « Unreadable » (≠ unknown), `list` saute + warn ;
-au passage `clampFineTuneCents` couvre les non-nombres (string → NaN au
-transport, trouvé en revue) et le `load` de `saveProject` devient best-effort
-(écraser un manifest corrompu le répare). **Web** : `fs-project-store.ts`
-(refs sha256 partagées `content-hash.ts`, écritures atomiques tmp+rename,
-regex id/ref du serveur, GC conservatif `collectFsGarbage`) sur un seam
-`ProjectFs` testé en mémoire ; binding humble `tauri-fs.ts`
-(`@tauri-apps/plugin-fs`, app-data, import dynamique) ; composition branchée
-sur `isTauriShell()` avec **sweep GC de démarrage derrière une barrière**
-(toute op attend sa fin — un blob posé pendant le snapshot serait pris pour
-orphelin) 1×/run, rapport loggé. **Desktop** : plugins `fs` +
-`single-instance` (une 2e instance ne balaie plus pendant un save de la 1re),
-capabilities appdata. Revue 8 angles → **9 fixés** (barrière, clamp, save
-best-effort, TOCTOU de list, garde non-array HTTP, mkdir memoïsé, reuse,
-README registre, single-instance), binding vérifié conforme à l'API plugin-fs
-réelle. **Vérifié réellement ×2** : self-test 9/9 dans le shell Tauri dev sur
-le vrai plugin (sha256/dédup/round-trips/GC), orphelin planté avant lancement
-balayé par le sweep câblé. Gate **verte — 1816 tests** (+81), **Stryker
-91,64 %** (3 équivalents documentés).
-[rapport](sessions/2026-07-17-t22-fs-stores.md).
-
-**T2.2 mergé (PR #194).** **PR Sonar mergée (PR #195)** : 12× S8980 + 1× S9020
-corrigées (3 S8980 de `use-separation.spec.tsx` = faux positifs, à marquer FP
-dans l'UI SonarCloud). CI GitHub **rétablie** (fin de la panne de facturation).
-
-**T2.3 mergé (PR #196).** **Ménage dependabot (2026-07-18)** : 8 PR triées par
-risque. Cause racine des gates rouges = le `^2.5.3` de biome faisait tirer
-biome **2.5.4** à chaque re-résolution du lockfile, qui reformate 3 specs →
-mergé **avec** le reformatage (PR #179). Mergées : #179 (tooling), #198
-(music-metadata), #199 (supabase-js), #200 (python fastapi+4). Fermées (ML
-serveur non validable par la CI torch-free, décision A.1) : #177 transformers
-4→5, #178 huggingface-hub 0→1, #197/#201 (groupes régénérés torch/demucs/
-x-transformers). Laissées ouvertes (session outillage dédiée) : **#180**
-TypeScript 6→7, **#53** vitejs 5→6.
-
-**T2.4 — SANS OBJET (acté 2026-07-18)** : app local-only sur une machine, aucune
-base `~/.loupe` à migrer → pas de code (le desktop lit son app-data, ignore
-`~/.loupe`). Suppression des anciens projets = `rm -rf ~/.loupe` opérateur.
-
-**T2.5 — retrait du serveur du chemin nominal (branche `feat/t25-retire-server`,
-PR à ouvrir) — SORTIE DE PHASE 2** : le serveur quitte la doc d'install (README :
-le desktop Tauri est le client nominal ; le serveur reste dev/CI + **lib que
-Modal déploie**, les pytest verrouillent la logique partagée). Les 3 allowlists
-gagnent les origins Tauri (`tauri://localhost` mac/linux, `http://tauri.localhost`
-windows) **par défaut** dans `origins.py` + miroir Deno (origin du client
-nominal, pas un secret par-déploiement) + tests (232 pytest, preflight Deno).
-**Déploiement FAIT (2026-07-18, curl-vérifié)** : ni Modal ni l'Edge Function
-n'avaient `LOUPE_ALLOWED_ORIGINS` positionné → un simple `modal deploy` +
-`supabase functions deploy` a suffi (défaut mis à jour, **aucun secret touché**) ;
-tauri://localhost + http://tauri.localhost échoés des deux côtés, random.example
-refusé (fail-closed intact). Blocage CORS du bundle levé. Docs (README,
-runbook, plan, STATUS) à jour.
-
-**En cours : lot pré-beta « problèmes d'UI »** (4 points relevés à l'usage) —
-**1/4 : fix scroll parasite du suivi de grille (branche
-`fix/lead-sheet-follow-scroll`, PR à ouvrir)** : le follow du playhead de la
-LeadSheet remplace `scrollIntoView` (qui ajuste TOUS les ancêtres scrollables
-→ la page défilait à chaque mesure) par `followScrollTop` pur (patron
-`followScrollLeft` waveform, sémantique nearest + clamp) scopé au scrollport
-que l'hôte déclare (`data-sheet-scrollport` sur `.sheetViewport` ; sans
-marqueur = no-op, print-first conservé). Gate **verte — 1833 tests** (+9),
-Stryker skippé (core intouché).
-[rapport](sessions/2026-07-18-fix-lead-sheet-follow-scroll.md).
-**1/6 mergé (PR #203).**
-**2/6 — Spectre en pause + navigation (branche `feat/spectrum-paused`, PR à
-ouvrir)** : core pur `spectrumFromSamples` (Hann + FFT radix-2, convention
-analyser — `chromaFromSpectrum` inchangé), `mixWindow` pur + callback
-`pausedSpectrum` optionnel sur le transport (les deux moteurs le fournissent,
-stems aux gains de faders), `ChromaView` lit au tick de pause puis par seek
-(abonnement position, pas de poll). Dès l'import, le Spectre montre t=0 sans
-lecture (validé). Browser-verify réel : A440→C523 au seek en pause. Gate
-**verte — 1855 tests** (+22), **Stryker 91,62 %** (8 équivalents documentés).
-[rapport](sessions/2026-07-18-spectrum-paused.md).
-**5/6 + 6/6 — seek musical + retrait onglet Notes (branche
-`feat/musical-seek-notes-tab`, stackée sur #204, PR à ouvrir)** : core
-`seekStepSeconds` (temps adjacent, downbeat avec Shift, repli 5 s sans
-grille — `adjacentGridTime` partagé avec `nudgeSeconds`), commande
-`seekStep {direction, coarse}` (4 bindings flèches ± Shift), hints dérivés
-(« d'un temps » / « d'une mesure »), `useShellShortcuts` prend la grille ;
-onglet Notes (placeholder) supprimé — 3 onglets. Décisions : temps/mesure
-suffisent, pas de 5 s résiduel avec grille. Gate **verte — 1866 tests**
-(+11), Stryker au close.
-[rapport](sessions/2026-07-18-musical-seek-notes-tab.md).
-**3/6 — harmoniques distinguées au Spectre mergé (PR #206)** : core
-`chromaWithHarmonics` (pics stricts en bande + plancher 5 %, harmonique si
-multiple entier 2…8 d'un pic plus grave, ±30 cents ou un bin plein dans le
-grave ; chroma inchangé, `harmonicShare` par classe), barres en deux
-segments (plein = joué, estompé 0,35 = harmonique probable) + légende.
-Browser-verify : quinte fantôme du 3ᵉ partiel entièrement estompée. Gate
-**verte — 1887 tests** (+21), **Stryker 91,91 %** (`chroma.ts` 94,4 %,
-7 équivalents documentés).
-[rapport](sessions/2026-07-18-spectrum-harmonics.md).
-**4a/6 — accords sur mix sans batterie (branche `feat/chords-on-stems`,
-PR #207)** : `monoMixWithout` pur (client-side — zéro changement
-serveur), `useChordDetection` prend `stems` + `ensureStems` (séparation
-implicite best-effort, repli mix complet), `useSeparateAndLoad` résout les
-sources. Cadrage validé : « les deux » (mix sans batterie + basse slash
-chords), séparation implicite. Gate **verte — 1877 tests**, **Stryker
-91,73 %** (`analysis-mix.ts` 95,8 %, 1 équivalent documenté).
-[rapport](sessions/2026-07-18-chords-on-stems-4a.md).
-**4b/6 — slash chords depuis le stem de basse (branche
-`feat/bass-slash-chords`, PR à ouvrir) — LOT PRÉ-BETA UI COMPLET (après
-merge)** : core `bassNotePerMeasure` (FFT 16384 pts — un demi-ton de bin
-dans le grave —, registre 38–262 Hz, pic interpolé paraboliquement,
-contestation → pas de slash) + `applyBassSlash` (mono-accord seulement,
-dièses — le respell aval possède les bémols) ; `detectChords.bassNotes?`
-appliqué après le fold ; le hook calcule depuis le stem `bass` (4a). Gate
-**verte — 1912 tests** (+35), **Stryker 91,47 %** (`detect-chords` 100 %,
-`bass-line` 83,2 % — 21 survivants documentés en famille DSP).
-[rapport](sessions/2026-07-18-bass-slash-chords-4b.md).
-**4a/4b mergés (PRs #207, #208).**
-
-**Browser-verify stems→accords sur Modal réel + fix ids stems (PR #209,
-mergée) — LOT PRÉ-BETA SOLDÉ** : le verify du flux implicite complet (import →
-tempo → accords → séparation implicite ~70 s → grille) a trouvé **zéro slash
-sur deux vrais morceaux** → bug : le hook cherchait `'bass'`/`'drums'` alors
-que le manifest serveur émet des ids **français** (`basse`/`batterie`) — 4a ET
-4b no-opaient silencieusement (specs vertes contre des fakes anglais). Fix
-TDD : specs aux ids réels, cas hook bout-en-bout `basse`+C → `C/E`,
-`app/stems/stem-ids.ts` épinglé sur stem_manifest.py. Re-verify : `Fm/Ab`
-imprimé sur Somebody To Love. Leçon durable : les fakes portent les
-ids/valeurs du contrat réel, pas des plausibles. Gate **verte — 1913 tests**
-(+3), Stryker skippé (core intouché).
-[rapport](sessions/2026-07-18-stem-ids-french-fix.md).
-
-**Évaluation notée v6 (2026-07-18) — [feuille de route v6](roadmap-excellence-6.md).**
-Revue multi-agents 6 axes + enquêteur dédié à l'irritant utilisateur
-« headers/footers trop gros » ; 33 constats, 31 confirmés adversarialement,
-2 réfutés. Note globale **16,75/20** (↓ de 17,2 — première baisse, honnête) :
-fonctionnalités 18 ↑ et ergonomie 17,5 ↑, mais sécurité 15,5 ↓↓ (3 🟠 sur le
-shell Tauri) et performance 15,5 ↓ (DSP 4a/4b synchrone non mesuré, memo V.1
-neutralisé). Lots AC (sécurité desktop) → AE (headers/footers) → AD (parcours
-accords) → AF/AG/AH → AI.
-
-**Lot AC + AI.1 — sécurité desktop (branche `feat/ac-desktop-security`, PR à
-ouvrir)** : yt-dlp épinglé version+sha256 (fini `latest/` exécuté sur TLS
-seul), deny scope fs sur `$APPDATA/bin` + CSP réelle (fini `csp: null`),
-auth desktop en **PKCE** (URL de callback épinglée, fragments implicites
-rejetés — plus de tokens lus depuis une URL), CI Rust path-filtrée
-(fmt+clippy+test, rustfmt.toml indent 2). Gate **verte — 1914 tests**, cargo
-5/5, Stryker skippé (core intouché). Vérif PKCE en bundle à rejouer avant la
-beta desktop. [rapport](sessions/2026-07-18-ac-desktop-security.md).
-
-**Lot AC + AI.1 mergés (PR #210).**
-**Lot AE — headers/footers (branche `feat/ae-header-footer-density`, PR à
-ouvrir)** : l'irritant utilisateur soldé — peaux interactives avec
-`font-size: s` par défaut (l'omission ne fuit plus vers le 1rem body — ferme
-le trou du verrou par construction), peau `.chromeBar` partagée (clone jscpd
-résorbé, padding resté chez le consommateur — cascade inter-fichiers non
-garantie), densité (footer 2xs, header xs, champ cents sur un étage en `s`),
-« Vitesse » seul (précision → tooltip). Mesuré : header 63→55 px, footer
-94→58 px, boutons 32→28 px. Reste optionnel : champs 2 étages (~48 px), à
-checkpointer. Gate **verte — 1914 tests**, Stryker skippé.
-[rapport](sessions/2026-07-18-ae-header-footer-density.md).
-
-**Lot AE mergé (PR #211).**
-**Lot AD — parcours accords (branche `feat/ad-chords-path`, PR à ouvrir)** :
-`phase` exposée par le hook (« Séparation des pistes avant les accords… »,
-cold-start supprimé pendant la séparation), Annuler des accords annule AUSSI
-la séparation lancée par le run (un geste) ; bloc DSP **mesuré 774 ms** (6
-stems réels) derrière un `nextPaint`, core dégraissé (accumulation fusionnée,
-scratch FFT, Hann caché) ; **cache DSP par (piste, stems, grille)** → second
-run 0 recalcul (~5 s réseau), memo V.1 re-hit — Worker = follow-up si les
-774 ms uniques mordent. Core TDD : une note de basse PAR downbeat (la
-dernière mesure peut slasher), fixture bi-fenêtre, fix de course runId (un
-cancel dans le yield pré-DSP ne supplantait pas le run). Gate **verte — 1922
-tests** (+8), **Stryker 91,27 %** (familles DSP documentées au rapport).
-[rapport](sessions/2026-07-18-ad-chords-path.md).
-
-**Lot AD mergé (PR #212).**
-**Lots AF + AG + AH.1 + AI.2 (branche `feat/af-form-slash-coherence`, PR à
-ouvrir) — ROADMAP v6 : tous les 🟠 traités** : AF.1 le relabel préserve la
-zone de tête ({key}/directives ; {form} droppé, refold=v2) ; AF.2 headChord
-slash-blind (le jitter de basse ne défait plus la forme) ; AG.1 l'import ne
-minte plus (auto-détection différée sans jeton frais — face on-offer X.2, le
-premier geste d'analyse reste à l'utilisateur) ; AH.1 v1 exports/impression
-**désactivés avec hint sous Tauri** (fini le toast sur un export fantôme —
-chemin natif plugin-dialog en follow-up) ; AI.2 partiel : le vrai mutant de
-collision du memo DP tué, form-encoder reste à 71,2 % (passe dédiée
-reportée). **Checklist beta écrite** (`docs/beta-checklist.md`) : plafond
-Modal = dashboard (dépense mesurée 3,67 $/mois), SMTP custom = choix
-utilisateur, PKCE-en-bundle + re-seed legacy à rejouer. Piège outillage :
-l'incrémental Stryker peut garder des Survived périmés — CI post-merge fait
-foi, `--force` localement. Gate **verte — 1930 tests** (+8), Stryker global
-91,27 %. [rapport](sessions/2026-07-18-af-ai-review-fixes.md).
-
-**AI.2 (solde) — passe mutants form-encoder (branche
-`feat/ai2-form-encoder-mutants`, PR à ouvrir)** : `form-encoder.ts`
-**71,2 % → 89,34 %** (48 mutants tués, 0 NoCoverage), global core **92,75 %**.
-Tests only (aucune ligne de l'encodeur touchée) : chaque scénario sondé
-d'abord (sortie réelle vérifiée) puis promu en pin exact ou oracle
-`playedLabels` — spec 16 → 31 tests (rollout×mètres, volta×mètres dont le
-vote par sous-run, D.C. exacts — rejeu entier sans `{fine}`, alignement
-ABCABC —, ties de coût, leads `{time:}`). Les 34 survivants restants
-documentés par famille d'équivalence au rapport. Gate **verte — 1944 tests**
-(+14). [rapport](sessions/2026-07-18-ai2-form-encoder-mutants.md).
-
-**SMTP beta câblé et vérifié (2026-07-19)** : Resend sur `iiivan.org`
-(dashboard Supabase, expéditeur `loupe@iiivan.org`, rate limit ~30/h), magic
-link réel reçu ; d'abord en spam Gmail → **DMARC posé** via l'API Netlify DNS
-(`p=none` + rua). Détail + pièges dans
-[beta-checklist.md](beta-checklist.md).
-
-**Export natif desktop (branche `feat/desktop-native-export`, PR à ouvrir) —
-solde AH.1** : exports zip/WAV actifs sur l'app de bureau via un flux DEUX
-temps — `pick_export_path` (NSSavePanel immédiat, parenté à la fenêtre,
-chemin gardé côté Rust sous jeton opaque) puis `write_export` (octets
-Raw|Json, écriture Rust) ; le webview ne nomme jamais un chemin, scope fs
-AC.2 intouché ; seam web `deliverFile` (navigateur = ancre inchangée),
-toasts conditionnés à la livraison réelle ; l'impression reste gatée
-(`printUnavailableOnDesktop`). **Mesuré en bundle** (self-test) : l'IPC
-webview bundlé plafonne à **~8 MB/s en release** (42 MB = 5,1 s ; dev = 46 ms
-— dev ment), corps raw parfois reçu JSON, panel orphelin = « rien ne se
-passe » — d'où dialogue-d'abord. Vérifié release par l'utilisateur :
-dialogue immédiat, save → toast + fichier, cancel → silence, save projet OK.
-Gate **verte — 1950 tests** (+6), cargo 8/8 + clippy, Stryker skippé (core
-intouché). [rapport](sessions/2026-07-19-desktop-native-export.md).
-
-**Menus natifs macOS (branche `feat/desktop-native-menus`, stackée sur
-#215, PR à ouvrir) — AP.1** : barre de menus française (`menu.rs` : Loupe /
-Fichier ⌘O·⌘S / Édition presse-papiers **sans undo** / Fenêtre / Aide) →
-événement `menu` → `useNativeMenu` sur les mêmes handlers que boutons et
-raccourcis (`guardedProjectSave` extrait) ; `productName` → `Loupe`. Cargo
-8/8, hook testé, gate verte. Vérif bundle utilisateur en attente.
-
-**Cap acté (2026-07-19) : UI/UX exceptionnelle** — voir
-[feuille de route v7](roadmap-excellence-7.md). Éval multi-agents 8 axes UX +
-enquêteur offload, réfutation adversariale (53 constats, 42 confirmés). Note
-UX globale **~13,5/20** — propre mais pas exceptionnel. Séquencement Lots
-**AJ→AQ** : AJ offload-only (l'app arrête de mentir : chip « Serveur hors
-ligne » fantôme, copies « serveur local », gating mort 4 couches) → AK premier
-contact (cul-de-sac « lien envoyé », reprise auto post-connexion, import URL
-dans l'empty state, « Tout analyser ») → AL boucle de pratique → AM mixer
-vivant → AN partition → AO âme visuelle → AP nativité desktop (AP.1 fait) →
-AQ vocabulaire (« Piste » ambigu, anglais brut). Impression déprioritisée.
-Garde-fous beta restants hors roadmap : re-seed codes legacy, PKCE en bundle.
-
-**En cours : Lot AJ (offload-only) — Hard Tauri-only cut** (checkpoint validé :
-supprimer les adaptateurs HTTP ; le navigateur devient un terrain de jeu
-d'analyse parlant à Modal, projets/import-URL desktop-only). Découpé en 2 PRs
-sur `feat/aj-offload-only`.
-**AJ.1 + AJ.2 — l'app arrête de mentir (PR #225, branche `feat/aj-offload-only`)** :
-AJ.1 retire la sonde `localhost:8000/health` (`use-server-health.ts` + spec
-supprimés) et le chip fantôme « Serveur hors ligne » ; la prop `serverHealth`
-dé-câblée de bout en bout (shell → header/analyser-row), le gate
-`blockedReason='server'` effondré — seul **hors-ligne** (`useOnline`, M1.4) + le
-gate d'auth subsistent (les accords gardent `no-grid`). AJ.2 neutralise toute la
-copy d'erreur d'analyse en « service d'analyse » (`network` → `analysis.error.
-network-offload` ; bannis « serveur local / server/README / console du navigateur
-/ moteur / Serveur hors ligne ») ; `*_NEEDS_SERVER`, `SEPARATION_SERVER_BLOCK`,
-`header.server-*` supprimés ; catalogue `fr` régénéré (295 msgs). Reste pour
-AJ.3 : `projects.unreachable` (couplée au store projets HTTP). Gate **verte —
-1935 tests**, coverage 97,4 %, jscpd 0,08 %, Stryker skippé (core intouché).
-[rapport](sessions/2026-07-19-aj1-aj2-offload-only.md).
-
-**AJ.3 — Hard Tauri-only cut (branche `feat/aj3-tauri-only-cut`, stackée sur
-#225) — LOT AJ COMPLET** : renommage `VITE_STRUCTURE_URL → VITE_ANALYSIS_URL`,
-endpoint **obligatoire** (`analysisUrl()` jette au lieu du fallback silencieux
-`localhost:8000`, `server-url.ts` supprimé) ; adaptateurs HTTP supprimés
-(`http-project-store`, `http-track-source`) → navigateur = terrain de jeu
-d'analyse (store projets null-object en mémoire, track-source qui rejette) ;
-**projets / Enregistrer / import-URL cachés hors desktop** via une capacité
-`desktop` (défaut `isTauriShell()`) tissée jusqu'à `ShellHeader`, spec de
-gating dédiée ; `projects.unreachable` neutralisée + commentaires « local
-server » corrigés. Kit de test : ports d'analyse inertes par défaut (les
-factories exigent l'endpoint). Gate **verte — 1918 tests**, build de prod OK,
-Stryker skippé (core intouché).
-[rapport](sessions/2026-07-19-aj3-tauri-only-cut.md).
-
-**AK.1 — funnel magic-link (branche `feat/ak1-magic-link-funnel`, PR à ouvrir)** :
-état « lien envoyé » enrichi (adresse affichée `account.link-sent-to`, mention
-spam, **« Renvoyer » + cooldown 30 s** via un hook `useCountdown` neuf,
-**« Changer d'adresse »** via `resetLink()` sur `useAuth`) ; **reprise auto de
-l'analyse gatée après connexion** — `AccountMenu.onSignedIn` (transition
-signed-out→signed-in, une fois) relayé `slot → ShellHeader → shell`, hook
-`useResumeGatedAnalysis` rejoue les flux encore gatés (structure/accords/tempo/
-séparation). Budget react-doctor tenu par extraction `useStemStack`
-(WorkstationShell 294 l.). Gate **verte — 1925 tests** (+15), Stryker skippé.
-[rapport](sessions/2026-07-20-ak1-magic-link-funnel.md).
-
-**AK.2 — empty-state qui vend (branche `feat/ak2-empty-state`, PR à ouvrir)** :
-la table de raccourcis prématurée du hero remplacée par **trois accroches de
-valeur** (Séparer les pistes · Détecter accords & tempo · Boucler & ralentir),
-icône SVG inline + bénéfice d'une ligne, layout `flex-wrap` intrinsèque ;
-raccourcis conservés dans le dialogue « ? ». `EmptyState.shortcuts` +
-`SHORTCUT_HINTS`/`describeKeyBindings` du shell retirés. Contenu hissé
-module-scope (react-doctor). Gate **verte — 1925 tests**, Stryker skippé.
-[rapport](sessions/2026-07-20-ak2-empty-state.md).
-
-**AK.3 — import URL au niveau du fichier (branche `feat/ak3-url-import-hero`, PR
-à ouvrir)** : champ « Coller un lien » **inline** dans le hero de l'empty-state
-(desktop-only, gating AJ.3) + paste-anywhere qui pré-remplit le champ.
-Composant partagé **`UrlImportField`** extrait (champ+validation
-`isSupportedSourceUrl`+warning a11y+submit) réutilisé par `ImportMenu` et
-`EmptyState` — l'invariant de validation ne peut plus diverger. Ids
-`header.import-url-*` → `import.url-*` (+ `empty.or`). Gate **verte — 1931
-tests**, Stryker skippé.
-[rapport](sessions/2026-07-20-ak3-url-import-hero.md).
-
-**Lot AK CLOS** (AK.1 #228 · AK.2 #229 · AK.3 #232 · AK.4 #233).
-
-**AL.1 — feedback de calage de boucle (branche
-`feat/al1-loop-calibration-feedback`, PR #234)** : read-out
-`{début} → {fin} · {durée}` (`tabular-nums`, `formatTimecode` + `loopLength`)
-dans `LoopControls` ; étiquette timecode flottante sur la poignée A/B active
-pendant le drag **et** au focus clavier (nudge), effacée au blur ; curseur de
-survol (ligne + timecode) sur la waveform en idle, supprimé pendant tout geste.
-Logique de geste extraite dans le hook `use-waveform-gestures.ts` (react-doctor
-flaggait `WaveformView` en « Large component »). Slice 100 % web, core
-intouché. Gate **verte — 1942 tests**, Stryker skippé, react-doctor 0 issue.
-Vérif navigateur OK. [rapport](sessions/2026-07-20-al1-loop-calibration-feedback.md).
-
-**AL.2 — poignées A/B dignes (branche `feat/al2-handles-dignes`, PR #235)** :
-hotzone invisible élargie 12 → 18 px (trait visible 2 px inchangé),
-`:hover`/`:active`/`:focus-visible` (trait épaissi via `scaleX(2)` compositor-only
-+ halo `box-shadow`, jamais `width` — impeccable bloque l'anim de layout), et
-**flash de la beat-line au snap** (`.snapFlash` one-shot 450 ms, Alt échappe,
-rien hors-empan). Calcul du flash par le **même** `snapLoopRegionToGrid('beat')`
-que le commit (helper pur `snappedEdgeRatios`, 4 tests) → aucune divergence.
-Focus clavier = halo du trait (outline retiré, tranché). Vérif navigateur (probe
-runtime : règles servies, keyframes câblées). Gate **verte — 1949 tests** (+7),
-Stryker skippé (core intouché), react-doctor 0 issue.
-[rapport](sessions/2026-07-20-al2-handles-dignes.md).
-
-**Prochain : Lot AL** (suite) — AL.3 vitesse/hauteur éditables, AL.4
-speed-trainer découvrable.
-
-**Prochain (après le lot pré-beta UI)** : garde-fous beta (plafond de dépense
-Modal + SMTP custom pour le rate limit e-mail ~2/h), déploiement des secrets
-Tauri (Modal+Supabase), puis les 🟢 v5 au fil de l'eau. **Cap Phase 2
-atteint** : loupe = app de bureau + Modal, aucun Python local nominal.
-
-**T2.3 — import URL desktop (yt-dlp sous-process, mergé PR #196)** : le crate Rust `yt-dlp` est
-**GPL-3.0 → NO-GO** ; on pilote le **binaire yt-dlp** (Unlicense) en
-sous-process depuis une commande Rust `download_track`, à parité de gardes
-avec `download.py` (allowlist, budget 900 s, `--max-filesize 500m`,
-`--socket-timeout 30`, un download à la fois). Binaire non bundlé : fetché
-dans l'app-data au 1er usage, `-U` self-update 1×/jour fire-and-forget.
-Progrès via `Channel` Tauri ; adapter web `createTauriTrackSource` sur un seam
-`TauriDownloadBridge`, factory branchée sur `isTauriShell()`. Revue → fixes :
-annulation par kill du `Child` propre (signal `Notify`, fin de `unsafe
-libc`/pid brut), progrès émis avant le bootstrap du binaire, dédup
-`toArrayBuffer`/metadata en helpers partagés, sweep des dossiers temp
-orphelins au démarrage du download, README + cross-refs allowlist.
-**Vérifié réellement** (macOS) : « Me at the zoo » importé (metadata OK, 12
-events de progrès), vimeo refusé, annulation → rejet propre + slot libéré,
-sweep déterministe (orphelin planté balayé, `downloads/` vide). Gate **verte —
-1824 web** (+~20), `cargo test` 3/3 + clippy propre, Stryker skippé (core
-intouché). [rapport](sessions/2026-07-18-t23-ytdlp-sidecar.md).
-
-**Fix « labels dupliqués » mergé (PR #132).** Un projet sauvegardé
-avant les marker kinds (PR #128) restaure ses marqueurs de structure sans
-`kind` → chaque détection les préserve comme repères et ajoute son jeu à
-côté. Fix : `adoptStructureKinds` à la restauration (vocabulaire des sections,
-tag brut + copy d'affichage) — auto-réparant à la ré-ouverture. Gate **vert —
-1408 tests**, Stryker skippé (core intouché).
-[rapport](sessions/2026-07-14-restore-structure-marker-kinds.md).
-
-**Fix « la détection d'accords efface la structure » mergé (PR #130)** :
-structure détectée PUIS accords : le brouillon déduisait ses blocs neutres
-`[A]`/`[B]` et la sync chart→timeline remplaçait/effaçait les marqueurs
-détectés. Fix : `detectChords` accepte `sections` (les marqueurs
-`kind:'structure'` relus via `markerSections`, mémoïsé au shell) et découpe
-le brouillon par `cutBySections` (exporté) sous leurs libellés — le
-round-trip marqueurs → en-têtes du brouillon → marqueurs est l'invariant.
-Revue 3 finders : section unique titrée (`headLoneRun`), libellés non
-imprimables filtrés, limites v1 documentées. Gate **vert — 1411 tests**
-(+10), Stryker 93,5 %.
-[rapport](sessions/2026-07-14-chord-draft-preserves-structure.md).
-
-**Notation empilée des signatures mergée (PR #131)** — approche validée
-utilisateur (fidèle au chart Elton John) : composant `TimeSignature` (glyphe
-N-sur-M, `role="img"` + `aria-label`), signature de tête ({time:} >
-beatsPerBar de session) dans la gouttière avant la barre d'ouverture du
-premier système, changements de mètre en glyphe empilé dans leur mesure,
-« 4/4 » texte retiré du header meta. Vérif navigateur conforme au PDF (The
-Logical Song, {time:} tête + changement 2/4). Gate **vert — 1405 tests**,
-Stryker skippé (core intouché).
-[rapport](sessions/2026-07-14-stacked-time-signature.md).
-See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
-[P.4 print](sessions/2026-07-13-p4-print.md) ·
-[P.4](sessions/2026-07-13-p4-structure-deduction.md) ·
-[P.3](sessions/2026-07-12-p3-collapsed-edit.md) ·
-[P.2](sessions/2026-07-12-p2-form-unroll.md) ·
-[P.1](sessions/2026-07-12-p1-chart-rendering.md) ·
-[O.5](sessions/2026-07-12-grouped-lows-o5.md) ·
-[O.4](sessions/2026-07-12-btc-windows.md) ·
-[O.3](sessions/2026-07-12-split-shell-spec.md) ·
-[O.2](sessions/2026-07-12-design-micro-drifts.md) ·
-[interlude](sessions/2026-07-12-react-doctor-ref-mutations.md) ·
-[O.1](sessions/2026-07-12-dead-accent-token.md).
+**Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
+cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
+terminée** — loupe = app de bureau Tauri + Modal, aucun Python local nominal).
+**Garde-fous beta restants** (hors roadmap, cf.
+[beta-checklist.md](beta-checklist.md)) : plafond de dépense Modal (mesuré
+~3,67 $/mois), SMTP custom **déjà câblé** (Resend/`iiivan.org`, DMARC posé),
+re-seed des codes legacy, PKCE en bundle à rejouer.
 
 ## Historique (une ligne par étape, du plus récent au plus ancien)
 
-### Roadmap excellence 4 (2026-07-14 → …)
+### Roadmap excellence 7 (2026-07-19 → …) — UX exceptionnelle
 
-- 2026-07-14 · **Évaluation notée v4** (16,1/20, six axes + 2 enquêtes
-  ciblées sur les irritants d'usage) : revue multi-agents vérifiée
-  adversarialement, 45 constats confirmés →
+- 2026-07-21 · **AL.3 — vitesse/hauteur précises** (branche
+  `feat/al3-precise-speed-pitch`, PR à ouvrir) : pilule éditable (± + slider +
+  `CommitNumberField`), core `stepTempoPercent`/`stepPitchSemitones` partagé par
+  les ± et les raccourcis `[`/`]` (vitesse) et `{`/`}` (hauteur), fader dB
+  double-clic 0 dB (overlap AM.2), `.stepButton` promue + `StepperField` extrait
+  → [rapport](sessions/2026-07-21-al3-precise-speed-pitch.md)
+- 2026-07-20 · **AL.2 — poignées A/B dignes** (PR #235) : hotzone 12→18 px,
+  `:hover`/`:active`/`:focus-visible` (`scaleX(2)` compositor-only + halo), flash
+  de la beat-line au snap via `snappedEdgeRatios` (même snap que le commit) →
+  [rapport](sessions/2026-07-20-al2-handles-dignes.md)
+- 2026-07-20 · **AL.1 — feedback de calage de boucle** (PR #234) : read-out
+  début→fin·durée (tabular-nums), étiquette timecode flottante (drag + nudge),
+  curseur de survol waveform, hook `use-waveform-gestures` →
+  [rapport](sessions/2026-07-20-al1-loop-calibration-feedback.md)
+- 2026-07-20 · **AK.4 — divulgation beta amont + escape mailto** (PR #233) :
+  état « connectez-vous pour débloquer » + lien waitlist/mailto quand le code
+  manque — **Lot AK clos** (AK.1 #228 · AK.2 #229 · AK.3 #232 · AK.4 #233)
+- 2026-07-20 · **AK.3 — import URL dans le hero** (PR #232) : champ « Coller un
+  lien » inline (desktop-only) + paste-anywhere, `UrlImportField` partagé
+  ImportMenu/EmptyState → [rapport](sessions/2026-07-20-ak3-url-import-hero.md)
+- 2026-07-20 · **AK.2 — empty-state qui vend** (PR #229) : trois accroches de
+  valeur (icône + bénéfice) à la place de la table de raccourcis prématurée →
+  [rapport](sessions/2026-07-20-ak2-empty-state.md)
+- 2026-07-20 · **AK.1 — funnel magic-link** (PR #228) : « lien envoyé » enrichi
+  (adresse, Renvoyer + cooldown 30 s, Changer d'adresse) + reprise auto de
+  l'analyse gatée après connexion (`useResumeGatedAnalysis`) →
+  [rapport](sessions/2026-07-20-ak1-magic-link-funnel.md)
+- 2026-07-19 · **AJ.3 — Hard Tauri-only cut** (Lot AJ complet) :
+  `VITE_ANALYSIS_URL` obligatoire, adaptateurs HTTP supprimés, projets/save/
+  import-URL cachés hors desktop (capacité `desktop`) →
+  [rapport](sessions/2026-07-19-aj3-tauri-only-cut.md)
+- 2026-07-19 · **AJ.1 + AJ.2 — l'app arrête de mentir** (PR #225) : sonde
+  `/health` + chip « Serveur hors ligne » retirés, `blockedReason='server'`
+  effondré, copy d'erreur → « service d'analyse » →
+  [rapport](sessions/2026-07-19-aj1-aj2-offload-only.md)
+- 2026-07-19 · **Cap UI/UX exceptionnelle acté** : éval multi-agents 8 axes UX
+  (~13,5/20), séquencement Lots AJ→AQ →
+  [roadmap-excellence-7](roadmap-excellence-7.md)
+
+### Phase 2 desktop + solde v6 (2026-07-18 → 07-19)
+
+- 2026-07-19 · **Menus natifs macOS — AP.1** (branche
+  `feat/desktop-native-menus`) : barre FR (Loupe/Fichier/Édition/Fenêtre/Aide)
+  → `useNativeMenu` sur les mêmes handlers, `guardedProjectSave` extrait
+- 2026-07-19 · **Export natif desktop** (solde AH.1) : flux deux temps
+  `pick_export_path` (NSSavePanel) + `write_export` (octets côté Rust), seam
+  `deliverFile`, IPC webview ~8 MB/s mesuré →
+  [rapport](sessions/2026-07-19-desktop-native-export.md)
+- 2026-07-19 · **SMTP beta câblé** : Resend sur `iiivan.org`, magic link réel
+  reçu, DMARC posé (API Netlify) → [beta-checklist.md](beta-checklist.md)
+- 2026-07-18 · **AI.2 (solde) — passe mutants form-encoder** : 71,2 → 89,34 %
+  (tests only, 48 mutants tués), global core 92,75 % →
+  [rapport](sessions/2026-07-18-ai2-form-encoder-mutants.md)
+- 2026-07-18 · **AF + AG + AH.1 + AI.2 — tous les 🟠 v6** (PR à ouvrir) :
+  relabel préserve la tête, headChord slash-blind, l'import ne minte plus,
+  export/impression désactivés-avec-hint sous Tauri, checklist beta écrite →
+  [rapport](sessions/2026-07-18-af-ai-review-fixes.md)
+- 2026-07-18 · **Lot AD — parcours accords** (PR #212) : `phase` exposée, cancel
+  accords annule la séparation, DSP 774 ms mesuré derrière `nextPaint`, cache
+  DSP par (piste, stems, grille) → [rapport](sessions/2026-07-18-ad-chords-path.md)
+- 2026-07-18 · **Lot AE — headers/footers** (PR #211) : `font-size:s` par défaut
+  sur les peaux interactives, `.chromeBar` partagée, header 63→55 px / footer
+  94→58 px → [rapport](sessions/2026-07-18-ae-header-footer-density.md)
+- 2026-07-18 · **Lot AC + AI.1 — sécurité desktop** (PR #210) : yt-dlp épinglé
+  version+sha256, deny scope fs, CSP réelle, auth desktop en **PKCE**, CI Rust →
+  [rapport](sessions/2026-07-18-ac-desktop-security.md)
+- 2026-07-18 · **Évaluation notée v6** (16,75/20 — première baisse, honnête ;
+  sécurité/perf desktop ↓) → [roadmap-excellence-6](roadmap-excellence-6.md)
+- 2026-07-18 · **Fix ids stems français** (PR #209, lot pré-beta soldé) : 4a/4b
+  no-opaient (`bass`/`drums` vs `basse`/`batterie`), fakes réalignés sur
+  stem_manifest.py → [rapport](sessions/2026-07-18-stem-ids-french-fix.md)
+- 2026-07-18 · **4b — slash chords depuis la basse** (PR #208) :
+  `bassNotePerMeasure` (FFT 16384) + `applyBassSlash` mono-accord →
+  [rapport](sessions/2026-07-18-bass-slash-chords-4b.md)
+- 2026-07-18 · **4a — accords sur mix sans batterie** (PR #207) : `monoMixWithout`
+  client-side, séparation implicite best-effort →
+  [rapport](sessions/2026-07-18-chords-on-stems-4a.md)
+- 2026-07-18 · **3/6 — harmoniques distinguées au Spectre** (PR #206) :
+  `chromaWithHarmonics`, barres deux segments (joué/harmonique) →
+  [rapport](sessions/2026-07-18-spectrum-harmonics.md)
+- 2026-07-18 · **5/6 + 6/6 — seek musical + retrait onglet Notes** :
+  `seekStepSeconds` (temps/mesure, `adjacentGridTime` partagé), 4 bindings
+  flèches → [rapport](sessions/2026-07-18-musical-seek-notes-tab.md)
+- 2026-07-18 · **2/6 — Spectre en pause + navigation** (PR #204) :
+  `spectrumFromSamples` pur, callback `pausedSpectrum`, lecture au seek en pause
+  → [rapport](sessions/2026-07-18-spectrum-paused.md)
+- 2026-07-18 · **1/6 — fix scroll parasite du suivi de grille** (PR #203) :
+  `followScrollTop` pur scopé à `data-sheet-scrollport` (fini `scrollIntoView`)
+  → [rapport](sessions/2026-07-18-fix-lead-sheet-follow-scroll.md)
+
+### Phase 2 — client léger Tauri/Modal (2026-07-16 → 07-18)
+
+- 2026-07-18 · **T2.5 — retrait du serveur du chemin nominal** (sortie Phase 2) :
+  desktop = client nominal, origins Tauri par défaut dans `origins.py` + miroir
+  Deno, déployé/curl-vérifié (aucun secret touché)
+- 2026-07-18 · **T2.3 — import URL desktop yt-dlp** (PR #196) : binaire yt-dlp
+  (Unlicense) en sous-process Rust `download_track`, parité de gardes avec
+  `download.py`, self-update 1×/jour → [rapport](sessions/2026-07-18-t23-ytdlp-sidecar.md)
+- 2026-07-17 · **T2.2 + AA.2 — stores filesystem** (PR #194, + Sonar #195) :
+  `parseProject` runtime, `fs-project-store` (sha256, atomique, GC) sur seam
+  `ProjectFs`, binding `tauri-fs`, sweep GC barrière au démarrage →
+  [rapport](sessions/2026-07-17-t22-fs-stores.md)
+- 2026-07-17 · **T2.1bis — deep link auth** (PR #193) : magic link →
+  `loupe://auth-callback`, `setSession` explicite, plugin Rust `deep-link`,
+  Supabase site_url/allowlist → [rapport](sessions/2026-07-17-t21bis-deep-link-auth.md)
+- 2026-07-17 · **T2.1 — spike Tauri : GO** : coquille Tauri 2 dans
+  `packages/desktop`, 3 cas WebKit durcis passés, aucun bloquant de licence →
+  [rapport](sessions/2026-07-17-t21-spike-tauri-go.md)
+- 2026-07-17 · **Grille d'accords : forme vs déroulé** (PR à ouvrir) : `:| xN` +
+  `{form: Nx}`, `detectCycle`/`deduceInstances`/`encodeChartSource` (DP coût),
+  oracle fast-check `playedLabels(encode)≡song` →
+  [rapport](sessions/2026-07-17-chord-grid-form-rollout.md)
+- 2026-07-16 · **M1.4 — santé/hors-ligne/narration** (Phase 1 Modal terminée) :
+  `SeparationError` typée, `useOnline` (bloque QUE l'offload), narration
+  cold-start → [rapport](sessions/2026-07-16-m14-sante-horsligne-narration.md)
+- 2026-07-16 · **M1.3 — séparation sur Modal** : router `separation`
+  (`max_containers=1`, concurrence 8), bearer sur `/separate` + GET `/stems`,
+  gate `ensureAnalysisToken` → [rapport](sessions/2026-07-16-m13-separation-modal.md)
+- 2026-07-16 · **M1.2 — quota/coût séparation** : spike L4 (~4,7 s à chaud,
+  0,57 GB VRAM, ~$0.001) → **décision : quota unique inchangé** →
+  [rapport](sessions/2026-07-16-m12-separation-quota-cost.md)
+- 2026-07-16 · **M1.1 — tempo + accords sur Modal** : `/tempo`+`/chords` à côté de
+  `/structure` (un conteneur, même gate JWT), web sur `ANALYSIS_URL`, un seul
+  mint → [rapport](sessions/2026-07-16-m11-tempo-chords-modal.md)
+
+### Roadmap excellence 5 (2026-07-16) — les cinq 🟠
+
+- 2026-07-16 · **AA.1 — veille CVE pip** (PR #174, les cinq 🟠 livrés) : bloc
+  `pip` sur `/server` dans dependabot.yml →
+  [rapport](sessions/2026-07-16-aa1-pip-advisories.md)
+- 2026-07-16 · **Z.1 — clics métronome hors bande chroma** (PR #173) :
+  BEAT/DOWNBEAT 1000/2000→2400/3200 Hz, bornes CHROMA exportées + invariant TDD
+  → [rapport](sessions/2026-07-16-z1-click-out-of-chroma-band.md)
+- 2026-07-16 · **Y.1 — EQ par stem replié en popover** (PR #172) : la rangée
+  LC/HC (régression T.8b) déménage dans un popover « EQ », marque `data-filtered`
+  → [rapport](sessions/2026-07-16-y1-stem-eq-popover.md)
+- 2026-07-16 · **X.2 — relance après annulation du tempo** (PR #171) : état
+  `cancelled` sur `useTempo`, face idle « Détecter le tempo » au lieu de
+  disparaître → [rapport](sessions/2026-07-16-x2-tempo-cancel-idle.md)
+- 2026-07-16 · **X.1 — structure dé-gatée en offload** (PR #170) : `blockedReason`
+  structure dérivé de `serverHealth` seulement en local, copy
+  `structure.error.network-offload` → [rapport](sessions/2026-07-16-x1-offload-gating.md)
+- 2026-07-16 · **Évaluation notée v5** (17,2/20, tous les axes montent) →
+  [roadmap-excellence-5](roadmap-excellence-5.md) (Lots X–AA + cap client léger)
+
+### Roadmap excellence 4 (Lots Q–W, 2026-07-14 → 07-16)
+
+- 2026-07-16 · **T.8b — EQ par stem** (Lot T clos) : `StemFilter`/`setStemFilter`,
+  deux biquads parqués plats, `mixer.setFilter` session-only →
+  [rapport](sessions/2026-07-16-t8b-stem-eq.md)
+- 2026-07-16 · **T.8a — Spectre chroma** (PR #168) : `chromaFromSpectrum` pur,
+  tap `AnalyserNode` pass-through, `ChromaView` 12 barres →
+  [rapport](sessions/2026-07-16-t8a-spectrum-chroma.md)
+- 2026-07-16 · **T.7 — fine-tune ±50 cents** (PR #167) : `fineTuneCents` séparé
+  de la transposition, moteurs en demi-tons+cents, `ShellFooter` extrait →
+  [rapport](sessions/2026-07-16-t7-fine-tune.md)
+- 2026-07-16 · **T.6 — découvrabilité** (PR #166) : dialog « Aide du format »,
+  section « Gestes », AT honnête (seek clavier des tags) →
+  [rapport](sessions/2026-07-16-t6-discoverability.md)
+- 2026-07-16 · **T.5 — BPM/mètre au standard N.4** (PR #165) : `CommitNumberField`
+  gagne `isValid` + `aria-invalid`/badInput → [rapport](sessions/2026-07-16-t5-bpm-meter-invalid.md)
+- 2026-07-16 · **T.4 — Cmd/Ctrl+S = Enregistrer** (PR #164) : bindé meta+S/ctrl+S,
+  traverse la garde champ-texte → [rapport](sessions/2026-07-16-t4-cmd-s.md)
+- 2026-07-16 · **W.5 — basses design groupées** (PR #163, Lot W clos) : `.kbd` +
+  `.secondaryAction` promus, check `styles.X↔classes`, reliquats O.2 soldés →
+  [rapport](sessions/2026-07-16-w5-grouped-lows.md)
+- 2026-07-16 · **W.4 — typo chart sur tokens** (PR #162) : tokens chart dédiés
+  (Petaluma rend ~20 % plus petit), verrou `font-size` absolu →
+  [rapport](sessions/2026-07-16-w4-chart-type-scale.md)
+- 2026-07-16 · **W.3 — faux-gras synthétisés** (PR #161) : les trois `font-weight:
+  600` sur graisses absentes corrigés → [rapport](sessions/2026-07-16-w3-faux-bold.md)
+- 2026-07-16 · **V.4 — playhead en `transform`** (PR #160, Lot V complet) :
+  `left:%`→`translateX(px)` compositor-only + `will-change` →
+  [rapport](sessions/2026-07-16-v4-playhead-transform.md)
+- 2026-07-16 · **V.3 — warm des modèles au démarrage local** (PR #159) :
+  `app/warm.py` (opt-out, best-effort, thread démon) →
+  [rapport](sessions/2026-07-16-v3-warm-models.md)
+- 2026-07-16 · **V.5 — buffer de décodage partagé** (PR #158) : `audio-buffer-memo`
+  (WeakMap), deux copies ~88 MB évitées, fail-safe probe →
+  [rapport](sessions/2026-07-16-v5-audio-buffer-memo.md)
+- 2026-07-16 · **V.2 — unload du moteur mono-piste** (PR #157) : `unload()` sur
+  `PlaybackEngine`, hand-back en reload paresseux →
+  [rapport](sessions/2026-07-16-v2-engine-unload.md)
+- 2026-07-16 · **V.1 — upload d'analyse mono + 24 kHz** (PR #156) : uploads 3,67×
+  plus légers, résultats identiques → [rapport](sessions/2026-07-16-v1-analysis-upload.md)
+- 2026-07-15 · **T.3 — chart navigable** (PR #155) : `measureSeekTime` pur
+  (inverse de la projection), mesures en `<button>` avec grille →
+  [rapport](sessions/2026-07-15-t3-navigable-chart.md)
+- 2026-07-15 · **T.2 — nudge musical** (PR #154) : `nudgeSeconds` (beat adjacent,
+  downbeat avec Shift), waveform + marker-rail branchés →
+  [rapport](sessions/2026-07-15-t2-musical-nudge.md)
+- 2026-07-15 · **T.1 — boucles musicales** (PR #153) : `snapLoopRegionToGrid`,
+  drag-to-loop aimanté (Alt échappe), « Boucler la section » →
+  [rapport](sessions/2026-07-15-t1-musical-loops.md)
+- 2026-07-15 · **U.5 — basses groupées** (PR #152, Lot U clos) : allowlist
+  env-drivée sur 3 surfaces (`origins.py`), `structure_segments.py`, split
+  `tempo.ts` → [rapport](sessions/2026-07-15-u5-grouped-lows.md)
+- 2026-07-15 · **U.4 — cliquets resserrés** (PR #151) : jscpd 1,0 %, Stryker
+  break 90 → [rapport](sessions/2026-07-15-u4-ratchets.md)
+- 2026-07-15 · **U.3 — brute-force codes beta + plancher secret** (PR #148) :
+  `redeem_beta_code` throttlé (verrou 15 min), CHECK entropie ≥32, plancher
+  secret ≥32 des deux côtés → [rapport](sessions/2026-07-15-u3-beta-brute-force.md)
+- 2026-07-15 · **U.2 — job CI deno** (PR #150) : job `edge-functions`
+  (check+lint+fmt) → [rapport](sessions/2026-07-15-u2-deno-ci.md)
+- 2026-07-15 · **U.1 — analyze gate** (PR #147) : middleware auth Modal extrait
+  en `app/analyze_gate.py`, ordre gate→CORS, kit mint JWT partagé →
+  [rapport](sessions/2026-07-15-u1-analyze-gate.md)
+- 2026-07-15 · **W.1 + W.2 — dense rows wrap + peau « Confirmer ? »** (PRs #145,
+  #146) : `flex-wrap` sur les 2 rangées denses ; `.confirmFace` partagée
+  (danger-rouge) → [W.1](sessions/2026-07-15-w1-dense-rows-wrap.md) ·
+  [W.2](sessions/2026-07-15-w2-confirm-face.md)
+- 2026-07-15 · **R.4 — busy peint avant le gel** (PR #144, Lot R clos) :
+  `nextPaint()` avant zip/ré-encode, chip busy header sur `OperationStatus` →
+  [rapport](sessions/2026-07-15-r4-export-busy.md)
+- 2026-07-15 · **R.3 — cold start narré** (PR #143) : busy monté avant
+  `await gate()`, face structure explique après ~4 s →
+  [rapport](sessions/2026-07-15-r3-cold-start.md)
+- 2026-07-15 · **R.2 — annulation des détections** (PR #142) : `cancel()` sur les
+  3 hooks, « Annuler » sur les 4 flux → [rapport](sessions/2026-07-15-r2-detection-cancel.md)
+- 2026-07-15 · **R.1 — OperationStatus** (PR #141) : primitive barre+libellé+
+  Annuler, portée par `DetectionAction`/séparation/décodage →
+  [rapport](sessions/2026-07-15-r1-operation-status.md)
+- 2026-07-15 · **Q.4 + Q.5 — header groupé + speed renommé** (PR #140, Lot Q
+  clos) : familles par le gap, slider « Vitesse (sans toucher au pitch) » →
+  [rapport](sessions/2026-07-15-q4-q5-header-speed.md)
+- 2026-07-15 · **Q.3 — zone Analyse repliable** (PR #138/#140) : `ShellSection`
+  pliable, résumé teal replié, `useAnalysisFold` →
+  [rapport](sessions/2026-07-15-q3-analysis-fold.md)
+- 2026-07-15 · **Q.2 — rangée « Analyser »** : primitive `DetectionAction` +
+  `AnalyserRow`, SeparationPanel supprimé, empreinte stable →
+  [rapport](sessions/2026-07-15-q2-analyser-row.md)
+- 2026-07-14 · **Q.1 — zonage de la colonne** (PR #137) : `ShellSection` × 3
+  zones (Timeline/Analyse/Partition), `.sectionLabel` unifié →
+  [rapport](sessions/2026-07-14-q1-shell-zoning.md)
+- 2026-07-14 · **Évaluation notée v4** (16,1/20, six axes + 2 enquêtes ciblées
+  sur les irritants d'usage) : 45 constats confirmés →
   [roadmap-excellence-4](roadmap-excellence-4.md) (Lots Q–W)
+
+### Structure + pré-démo accords (2026-07-13 → 07-14)
+
+- 2026-07-14 · **Multi-accords par mesure + erreurs `/tempo` discriminées** (PR à
+  ouvrir) : `chordLabelPerMeasure` vote les deux moitiés (`'C G'`),
+  `TempoDetectionError` typée sur `classifyTransportError` →
+  [rapport](sessions/2026-07-14-multi-chords-tempo-errors.md)
+- 2026-07-14 · **Fix icônes + « + Section »** (PRs #134, #135) : marqueur de
+  structure à la main (`addSectionAt`, `Maj+M`) guide la détection →
+  [rapport](sessions/2026-07-14-add-section-marker.md)
+- 2026-07-14 · **Fix labels dupliqués** (PR #132) : `adoptStructureKinds` à la
+  restauration (projets pré-marker-kinds) →
+  [rapport](sessions/2026-07-14-restore-structure-marker-kinds.md)
+- 2026-07-14 · **Notation empilée des signatures** (PR #131) : composant
+  `TimeSignature` (glyphe N/M), signature de tête dans la gouttière →
+  [rapport](sessions/2026-07-14-stacked-time-signature.md)
+- 2026-07-14 · **Fix la détection d'accords efface la structure** (PR #130) :
+  `detectChords` accepte `sections`, découpe par `cutBySections` →
+  [rapport](sessions/2026-07-14-chord-draft-preserves-structure.md)
+- 2026-07-13 · **Pré-démo #3 — signatures rythmiques** (PR #129) : `{time: N/M}`
+  tête + mid-grid, dominant meter, beats/bar éditable →
+  [rapport](sessions/2026-07-13-time-signatures.md)
+- 2026-07-13 · **Pré-démo #2 — marqueurs ↔ structure** (PR #128) : marker kinds
+  + sync chart→timeline → [rapport](sessions/2026-07-13-marker-kinds-structure-sync.md)
+- 2026-07-13 · **Pré-démo #1 — orthographe tonale + vocabulaire étendu** (PR
+  #127) : `detectKey` Krumhansl → `{key}` + ré-épellage #/b, BTC 170 classes →
+  [rapport](sessions/2026-07-13-chord-grid-vocab-key.md)
+- 2026-07-13 · **S.3b — réétiquetage de la grille d'accords** : fold pur
+  `relabelChartBySections` (grille en mesures jouées, 1 bloc/section, accords
+  verbatim) → [rapport](sessions/2026-07-13-structure-web-s3b.md)
+- 2026-07-13 · **S.3a — marqueurs de structure web** (PR #120) : bouton
+  « Détecter la structure » → marqueurs de section →
+  [rapport](sessions/2026-07-13-structure-web-s3.md)
+- 2026-07-13 · **S.2 — core structure** (PR #119) : `StructureDetector` port +
+  `detectStructure` + `snapSectionsToGrid` →
+  [rapport](sessions/2026-07-13-structure-core-s2.md)
+- 2026-07-13 · **S.1 — serveur `POST /structure`** (PR #118) : `chunk_plan` +
+  `stitch_segments` purs + shell torch `structure.py`, SongFormer/MuQ/MusicFM
+  vendorés → [rapport](sessions/2026-07-13-structure-detection-s0-s1.md)
+- 2026-07-13 · **S.0 — spike structure : GO** (SongFormer + chunking, MPS/torch
+  2.12, chunking 180 s obligatoire) →
+  [plan](structure-detection-plan.md) · [rapport](sessions/2026-07-13-structure-detection-s0-s1.md)
+
+### Offload Modal — auth (2026-07-13)
+
+- 2026-07-13 · **J2 — auth Supabase** (PR #126, déployé/vérifié en prod) : token
+  statique → auth par-utilisateur (gating `beta_codes`, quota ~20/mois, gate
+  paresseuse), 2.1 schéma+RLS, 2.2 Edge `mint-analyze-token`, 2.3 vérif HS256
+  Python, 2.4 web (`AuthPort`, `AccountMenu`) →
+  [runbook](j2-supabase-runbook.md) · [rapport](sessions/2026-07-13-j2-supabase-auth.md)
+- 2026-07-13 · **J1 — offload Modal token statique** (PRs #123–#125) : endpoint
+  Modal `/structure` (bearer statique), routage adapter + warm-on-import →
+  [plan](modal-offload-impl-plan.md)
 
 ### Lot P — lead-sheet chart (2026-07-12 → …)
 
-- 2026-07-13 · **Pré-démo #3 — signatures rythmiques** (PR #129 mergée) :
-  `{time: N/M}` tête + mid-grid, dominant meter, beats/bar éditable →
-  [rapport](sessions/2026-07-13-time-signatures.md)
-- 2026-07-13 · **Pré-démo #2 — marqueurs ↔ structure** (PR #128 mergée) :
-  marker kinds + sync chart→timeline →
-  [rapport](sessions/2026-07-13-marker-kinds-structure-sync.md)
-- 2026-07-13 · **P.4 impression** (PR à ouvrir) : « Imprimer » +
+- 2026-07-13 · **P.4 impression** (PR #117) : « Imprimer » +
   `data-print-region` conditionnel + stylesheet print `:has` (chart seule,
   html/body aplatis), BarsPerRowField extrait →
   [rapport](sessions/2026-07-13-p4-print.md)
@@ -1396,7 +593,8 @@ See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
   `createSeparator` returns the HTTP adapter. **The in-browser WASM engines were
   removed** — server-side Demucs is the single supported engine. htdemucs weights
   are research-only — fine for this non-commercial tool, not for a commercial
-  product.
+  product. **Phase 2 (2026-07-18)** : le calcul est offloadé sur **Modal**, le
+  serveur local devient dev/CI + lib déployée par Modal.
 - **Web stack**: React + Jotai · Base UI (headless) · Every Layout · CSS Modules +
   CSS-variable tokens · smart/dumb components.
 - **Extra gates** (blocking, `packages/web` only): impeccable + react-doctor.
@@ -1405,10 +603,18 @@ See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 
 ## Plans
 
-- [roadmap-excellence-4.md](roadmap-excellence-4.md) — **en cours** (Lots Q–W,
-  évaluation notée du 2026-07-14).
+- [roadmap-excellence-7.md](roadmap-excellence-7.md) — **en cours** (Lots AJ–AQ,
+  UX exceptionnelle, éval du 2026-07-19).
+- [client-leger-plan.md](client-leger-plan.md) — **complet** (Phase 1 Modal +
+  Phase 2 Tauri livrées ; loupe = app de bureau + Modal).
+- [roadmap-excellence-6.md](roadmap-excellence-6.md) — **complet** (Lots AC–AI,
+  éval du 2026-07-18).
+- [roadmap-excellence-5.md](roadmap-excellence-5.md) — **complet** (Lots X–AA +
+  cap client léger, éval du 2026-07-16).
+- [roadmap-excellence-4.md](roadmap-excellence-4.md) — **complet** (Lots Q–W,
+  éval du 2026-07-14).
 - [roadmap-excellence-3.md](roadmap-excellence-3.md) — **complet** (Lots K–P,
-  évaluation notée du 2026-07-11).
+  éval du 2026-07-11).
 - [roadmap-excellence-2.md](roadmap-excellence-2.md) — **complet** (Lots F–J ;
   J en PRs #81–#85, suivi coché en fin de fichier).
 - [chord-charts-plan.md](chord-charts-plan.md) — **complet** (Lots A/B/C
@@ -1428,7 +634,8 @@ See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
 - Off-thread zip/encode — l'export gèle l'UI quelques secondes (~229 MB
   mesurés) sur une piste de 4 min.
 - Jalon 4 — export MIDI par stem (basic-pitch), différenciateur audio→notation.
-- Dependabot PR #53 (`@vitejs/plugin-react` v6, breaking Babel→oxc) — reporté.
+- Dependabot #180 (TypeScript 6→7) + #53 (`@vitejs/plugin-react` v6, breaking
+  Babel→oxc) — reportés (session outillage dédiée).
 - Vieux manifests *séparés* : re-`attach` sur le detect fire-and-forget peut
   écraser des réglages de fader faits pendant la fenêtre de détection —
   s'auto-répare à la sauvegarde; corriger seulement si ça mord.
@@ -1436,3 +643,4 @@ See [S.3a structure web](sessions/2026-07-13-structure-web-s3.md) ·
   play pendant l'enregistrement du worklet (~100–500 ms au premier
   chargement) peut créer deux sources pour un même stem, la première
   orpheline (inarrêtable jusqu'à sa fin naturelle) — corriger si ça mord.
+- Worker pour le DSP accords (774 ms uniques mesurés AD) — follow-up si ça mord.
