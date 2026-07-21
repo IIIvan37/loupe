@@ -210,7 +210,7 @@ msgstr "Aucun repère. En ajouter depuis la barre de repères."
 
 #. js-lingui-explicit-id
 #: src/app/analysis-panel/analysis-panel.tsx:81
-#: src/app/workstation-shell/shell-test-kit.tsx:267
+#: src/app/workstation-shell/shell-test-kit.tsx:268
 msgid "analysis.tab-loops"
 msgstr "Boucles"
 
@@ -281,7 +281,7 @@ msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
 #: src/app/lead-sheet/chord-chart-panel.tsx:173
-#: src/app/workstation-shell/shell-test-kit.tsx:252
+#: src/app/workstation-shell/shell-test-kit.tsx:253
 msgid "chords.edit"
 msgstr "Modifier"
 
@@ -403,8 +403,8 @@ msgstr "Fins alternatives (voltas)"
 
 #. js-lingui-explicit-id
 #: src/app/lead-sheet/chord-chart-panel.tsx:248
-#: src/app/workstation-shell/shell-test-kit.tsx:248
-#: src/app/workstation-shell/shell-test-kit.tsx:253
+#: src/app/workstation-shell/shell-test-kit.tsx:249
+#: src/app/workstation-shell/shell-test-kit.tsx:254
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
@@ -476,9 +476,9 @@ msgstr "Supprimer"
 
 #. js-lingui-explicit-id
 #: src/app/ui/name-editor.tsx:74
-#: src/app/workstation-shell/shell-test-kit.tsx:260
-#: src/app/workstation-shell/shell-test-kit.tsx:348
+#: src/app/workstation-shell/shell-test-kit.tsx:261
 #: src/app/workstation-shell/shell-test-kit.tsx:349
+#: src/app/workstation-shell/shell-test-kit.tsx:350
 msgid "common.name"
 msgstr "Nom"
 
@@ -494,8 +494,8 @@ msgstr "Renommer"
 #: src/app/header/header.tsx:96
 #: src/app/header/header.tsx:108
 #: src/app/loops/loop-controls.tsx:90
-#: src/app/workstation-shell/shell-test-kit.tsx:261
-#: src/app/workstation-shell/shell-test-kit.tsx:350
+#: src/app/workstation-shell/shell-test-kit.tsx:262
+#: src/app/workstation-shell/shell-test-kit.tsx:351
 msgid "common.save"
 msgstr "Enregistrer"
 
@@ -612,7 +612,7 @@ msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-header.tsx:126
-#: src/app/workstation-shell/shell-test-kit.tsx:230
+#: src/app/workstation-shell/shell-test-kit.tsx:231
 #: src/app/workstation-shell/use-file-picker.ts:24
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
@@ -644,13 +644,13 @@ msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:268
-#: src/app/workstation-shell/shell-test-kit.tsx:281
+#: src/app/workstation-shell/shell-test-kit.tsx:282
 msgid "header.projects"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:116
-#: src/app/workstation-shell/shell-test-kit.tsx:352
+#: src/app/workstation-shell/shell-test-kit.tsx:353
 msgid "header.rename-project"
 msgstr "Renommer le projet"
 
@@ -667,7 +667,7 @@ msgstr "Importer un morceau pour pouvoir l'enregistrer"
 #. js-lingui-explicit-id
 #: src/app/header/header.tsx:130
 #: src/app/header/header.tsx:132
-#: src/app/workstation-shell/shell-test-kit.tsx:346
+#: src/app/workstation-shell/shell-test-kit.tsx:347
 msgid "header.save-project"
 msgstr "Enregistrer le projet"
 
@@ -768,7 +768,7 @@ msgstr "Renommer la boucle"
 
 #. js-lingui-explicit-id
 #: src/app/loops/loop-controls.tsx:42
-#: src/app/workstation-shell/shell-test-kit.tsx:259
+#: src/app/workstation-shell/shell-test-kit.tsx:260
 msgid "loops.save-region"
 msgstr "Enregistrer la boucle"
 
@@ -917,42 +917,42 @@ msgid "markers.section-label"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:92
+#: src/app/mixer/stem-headers.tsx:79
 msgid "mixer.confidence"
 msgstr "Confiance de détection : {percent} %"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:102
+#: src/app/mixer/stem-headers.tsx:89
 msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:163
+#: src/app/mixer/stem-headers.tsx:131
 msgid "mixer.eq"
 msgstr "Égaliseur {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:183
+#: src/app/mixer/stem-headers.tsx:151
 msgid "mixer.eq-title"
 msgstr "EQ — {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:228
+#: src/app/mixer/stem-headers.tsx:196
 msgid "mixer.high-cut"
 msgstr "Coupe-haut {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:232
+#: src/app/mixer/stem-headers.tsx:200
 msgid "mixer.high-cut-hint"
 msgstr "Couper les aigus au-dessus de cette fréquence"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:198
+#: src/app/mixer/stem-headers.tsx:166
 msgid "mixer.low-cut"
 msgstr "Coupe-bas {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:202
+#: src/app/mixer/stem-headers.tsx:170
 msgid "mixer.low-cut-hint"
 msgstr "Couper les graves sous cette fréquence"
 
@@ -962,17 +962,17 @@ msgid "mixer.mix-label"
 msgstr "Mix"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:115
+#: src/app/mixer/stem-headers.tsx:102
 msgid "mixer.mute"
 msgstr "Couper {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:76
+#: src/app/mixer/stem-headers.tsx:63
 msgid "mixer.region-label"
 msgstr "Mixer"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:124
+#: src/app/mixer/stem-headers.tsx:111
 msgid "mixer.solo"
 msgstr "Isoler {name}"
 
@@ -982,12 +982,17 @@ msgid "mixer.undetected"
 msgstr "Non détectés"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:139
+#: src/app/mixer/gain-fader.tsx:76
 msgid "mixer.volume"
 msgstr "Volume {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:145
+#: src/app/mixer/gain-fader.tsx:93
+msgid "mixer.volume-db"
+msgstr "Niveau de {name} en décibels"
+
+#. js-lingui-explicit-id
+#: src/app/mixer/gain-fader.tsx:79
 msgid "mixer.volume-reset"
 msgstr "Double-clic pour revenir à 0 dB"
 
@@ -1062,7 +1067,7 @@ msgid "projects.save-failed"
 msgstr "Impossible d'enregistrer le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-test-kit.tsx:286
+#: src/app/workstation-shell/shell-test-kit.tsx:287
 #: src/projects/projects-dialog.tsx:138
 msgid "projects.title"
 msgstr "Projets"
@@ -1419,7 +1424,7 @@ msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
 #: src/app/tempo/tempo-panel.tsx:124
-#: src/app/workstation-shell/shell-test-kit.tsx:305
+#: src/app/workstation-shell/shell-test-kit.tsx:306
 msgid "tempo.bpm-field"
 msgstr "Saisir le tempo (BPM)"
 
@@ -1665,7 +1670,7 @@ msgid "waveform.reimport"
 msgstr "Importer un autre fichier"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-lanes.tsx:42
+#: src/app/mixer/stem-lanes.tsx:78
 msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 

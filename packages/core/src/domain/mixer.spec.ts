@@ -5,10 +5,12 @@ import {
   dbToAmplitude,
   effectiveGains,
   emptyMixer,
+  GAIN_DB_FINE_STEP,
   MAX_GAIN_DB,
   MIN_GAIN_DB,
   type MixerState,
   mixerReducer,
+  stepGainDb,
   UNITY_GAIN_DB
 } from './mixer.ts'
 
@@ -47,6 +49,42 @@ describe('clampGainDb', () => {
         expect(clamped).toBeGreaterThanOrEqual(MIN_GAIN_DB)
         expect(clamped).toBeLessThanOrEqual(MAX_GAIN_DB)
       })
+    )
+  })
+})
+
+describe('stepGainDb', () => {
+  it('nudges the level by one fine step in each direction', () => {
+    expect(stepGainDb(-6, 1)).toBe(-6 + GAIN_DB_FINE_STEP)
+    expect(stepGainDb(-6, -1)).toBe(-6 - GAIN_DB_FINE_STEP)
+  })
+
+  it('snaps a fractional level onto the fine-step grid first', () => {
+    // 3.2 dB rounds to the 0.5 grid (3.0), then a step up lands on 3.5.
+    expect(stepGainDb(3.2, 1)).toBe(3.5)
+    expect(stepGainDb(3.2, -1)).toBe(2.5)
+  })
+
+  it('clamps to the fader range at both ends', () => {
+    expect(stepGainDb(MAX_GAIN_DB, 1)).toBe(MAX_GAIN_DB)
+    expect(stepGainDb(MIN_GAIN_DB, -1)).toBe(MIN_GAIN_DB)
+  })
+
+  it('always lands within the range, on the 0.5 dB grid', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ min: MIN_GAIN_DB, max: MAX_GAIN_DB, noNaN: true }),
+        fc.constantFrom<-1 | 1>(-1, 1),
+        (db, direction) => {
+          const next = stepGainDb(db, direction)
+          expect(next).toBeGreaterThanOrEqual(MIN_GAIN_DB)
+          expect(next).toBeLessThanOrEqual(MAX_GAIN_DB)
+          // A multiple of the fine step (guard against float drift).
+          expect(Math.round(next / GAIN_DB_FINE_STEP)).toBeCloseTo(
+            next / GAIN_DB_FINE_STEP
+          )
+        }
+      )
     )
   })
 })

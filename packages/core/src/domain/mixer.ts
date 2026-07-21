@@ -38,6 +38,12 @@ export type MixerAction =
 
 export const emptyMixer: MixerState = []
 
+/**
+ * The fine grain one wheel notch / Shift-arrow moves a fader (AM.2) — half a
+ * decibel, for homing in on a level the whole-dB drag can't reach.
+ */
+export const GAIN_DB_FINE_STEP = 0.5
+
 /** Confine a fader level to the supported dB range; `NaN` falls back to unity. */
 export function clampGainDb(db: number): number {
   if (Number.isNaN(db)) {
@@ -50,6 +56,18 @@ export function clampGainDb(db: number): number {
     return MAX_GAIN_DB
   }
   return db
+}
+
+/**
+ * Nudge a fader level one fine step in `direction` (−1 quieter, +1 louder),
+ * clamped to the fader range. Snaps onto the 0.5 dB grid first (rounding away
+ * float drift from a typed or dragged level), so repeated wheel notches land on
+ * clean half-decibels. Mirrors `stepTempoPercent` — same grain for wheel and
+ * Shift-arrow.
+ */
+export function stepGainDb(gainDb: number, direction: -1 | 1): number {
+  const snapped = Math.round(gainDb / GAIN_DB_FINE_STEP) * GAIN_DB_FINE_STEP
+  return clampGainDb(snapped + direction * GAIN_DB_FINE_STEP)
 }
 
 /**
