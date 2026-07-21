@@ -279,10 +279,12 @@ export type { DetectedSection } from './domain/song-structure.ts'
 export { spectrumFromSamples } from './domain/spectrum.ts'
 export type {
   SpeedTrainerPolicy,
+  SpeedTrainerPreview,
   SpeedTrainerState
 } from './domain/speed-trainer.ts'
 export {
   completesLoopPass,
+  previewSpeedTrainer,
   recordLoopPass,
   startSpeedTrainer
 } from './domain/speed-trainer.ts'

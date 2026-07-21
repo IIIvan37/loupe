@@ -27,3 +27,12 @@
   font-size: var(--font-size-s);
   font-variant-numeric: tabular-nums;
 }
+
+/* The « what this ramp will do » summary above « Démarrer » — quiet, figures
+   aligned, a caption not an action. */
+.preview {
+  margin: 0;
+  color: var(--dim);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}

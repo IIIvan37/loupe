@@ -155,10 +155,11 @@ describe('WorkstationShell loops & speed trainer', () => {
       screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
     ).not.toBeInTheDocument()
     expect(screen.getByLabelText(i18n._('transport.tempo-field'))).toHaveValue(100)
-    // And the entry point is hidden while looping stays off.
+    // The entry point stays visible but disabled while looping is off (AL.4):
+    // discoverable, not vanished.
     expect(
-      screen.queryByRole('button', { name: i18n._('loops.trainer-open') })
-    ).not.toBeInTheDocument()
+      screen.getByRole('button', { name: i18n._('loops.trainer-open') })
+    ).toBeDisabled()
   })
 
   it('stops the ramp when another passage becomes the loupe', async () => {

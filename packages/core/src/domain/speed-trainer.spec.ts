@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { MAX_PLAYBACK_RATE, MIN_PLAYBACK_RATE } from './playback-rate.ts'
 import {
   completesLoopPass,
+  previewSpeedTrainer,
   recordLoopPass,
   type SpeedTrainerPolicy,
   startSpeedTrainer
@@ -169,4 +170,79 @@ it('always sits at the earned ramp position, capped at the target', () => {
       }
     )
   )
+})
+
+describe('previewSpeedTrainer', () => {
+  it('summarises the ramp the given policy will run', () => {
+    // 70 → 100 by +5 visits 70,75,80,85,90,95,100 — seven levels.
+    const preview = previewSpeedTrainer(policy())
+    expect(preview).toEqual({
+      startPercent: 70,
+      targetPercent: 100,
+      incrementPercent: 5,
+      passesPerStep: 4,
+      stepCount: 7
+    })
+  })
+
+  it('counts the capped final level when the span is not a whole multiple', () => {
+    // 70 → 100 by +7 visits 70,77,84,91,98,100(capped) — six levels.
+    expect(previewSpeedTrainer(policy({ incrementPercent: 7 })).stepCount).toBe(
+      6
+    )
+  })
+
+  it('is a single level when the ramp cannot climb', () => {
+    // A target at or below the start is lifted to the start: no climb.
+    expect(previewSpeedTrainer(policy({ targetPercent: 60 })).stepCount).toBe(1)
+    expect(
+      previewSpeedTrainer(policy({ startPercent: 100, targetPercent: 100 }))
+        .stepCount
+    ).toBe(1)
+  })
+
+  it('reflects the SAME normalisation as startSpeedTrainer (never lies)', () => {
+    // An emptied target (NaN → full speed) and a below-floor start are
+    // normalised identically to what the armed ramp will use.
+    const raw = policy({ startPercent: 10, targetPercent: Number.NaN })
+    const preview = previewSpeedTrainer(raw)
+    const armed = startSpeedTrainer(raw)
+    expect(preview.startPercent).toBe(armed.policy.startPercent)
+    expect(preview.targetPercent).toBe(armed.policy.targetPercent)
+    expect(preview.incrementPercent).toBe(armed.policy.incrementPercent)
+    expect(preview.passesPerStep).toBe(armed.policy.passesPerStep)
+  })
+
+  // Oracle: stepCount equals the number of distinct tempo levels the real ramp
+  // visits — tie the preview to `recordLoopPass` so the two never diverge.
+  it('stepCount matches the levels recordLoopPass actually visits', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ noNaN: true, min: 40, max: 150 }),
+        fc.double({ noNaN: true, min: 40, max: 150 }),
+        fc.double({ noNaN: true, min: 1, max: 60 }),
+        (startPercent, targetPercent, incrementPercent) => {
+          const p = policy({
+            startPercent,
+            targetPercent,
+            incrementPercent,
+            passesPerStep: 1
+          })
+          const { stepCount } = previewSpeedTrainer(p)
+          let state = startSpeedTrainer(p)
+          const levels = new Set<number>([state.currentPercent])
+          // One pass per step (passesPerStep 1); climb until it plateaus.
+          for (let i = 0; i < 1000; i += 1) {
+            const next = recordLoopPass(state)
+            if (next.currentPercent === state.currentPercent) {
+              break
+            }
+            levels.add(next.currentPercent)
+            state = next
+          }
+          expect(stepCount).toBe(levels.size)
+        }
+      )
+    )
+  })
 })

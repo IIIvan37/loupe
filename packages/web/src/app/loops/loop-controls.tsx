@@ -76,9 +76,10 @@ export function LoopControls({
           <Trans id="loops.inactive">Boucle inactive</Trans>
         )}
       </button>
-      {/* A ramp needs wraps: in play-through mode the entry point steps
-          aside (toggling off also stopped any running ramp). */}
-      {loopEnabled && <SpeedTrainerControls trainer={trainer} />}
+      {/* A ramp needs wraps to earn its steps: off-loop the entry point shows
+          disabled with a tooltip rather than vanishing (AL.4). Toggling the
+          loop off also stopped any running ramp. */}
+      <SpeedTrainerControls trainer={trainer} enabled={loopEnabled} />
       {!isSaved && (
         <>
           <NameEditor
