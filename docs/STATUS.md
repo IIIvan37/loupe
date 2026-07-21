@@ -7,23 +7,23 @@
 
 ## Where we are
 
-**Lot AL — la boucle de pratique au niveau d'un vrai outil** ([roadmap
-v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ et AK clos, AL en cours).
-Derniers livrés : AL.1, AL.2 (mergés) — détail en Historique.
+**Lot AL — la boucle de pratique au niveau d'un vrai outil — CLOS** ([roadmap
+v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ, AK, AL clos). AL.1→AL.4 livrés
+(AL.3 = #236) — détail en Historique.
 
-**En cours : AL.3 — vitesse/hauteur précises (branche
-`feat/al3-precise-speed-pitch`, PR à ouvrir).** Vitesse et Hauteur passent en
-pilule éditable (idiome zoom) : boutons ± + slider + **valeur cliquable-éditable**
-(`CommitNumberField`, N.4 flagging), core pur `stepTempoPercent`/`stepPitchSemitones`
-(TDD + property tests) partagé par les ± et les nouveaux raccourcis **`[`/`]`
-(vitesse ±5 %)** et **`{`/`}` (hauteur ±1 demi-ton)** ; double-clic slider = retour
-neutre (déjà là), et **le fader dB gagne le double-clic 0 dB** (`UNITY_GAIN_DB`,
-l'overlap AM.2). Peau `.stepButton` promue dans controls.module.css (zoom pill +
-steppers), `StepperField` extrait (vitesse+pitch, zéro clone jscpd). Vérif
-navigateur (footer : pilules `−  slider  +  100 %` / `−  slider  +  0`, hauteur
-48 px, zéro overflow ; bug de compile attrapé — `composes: touchTargetTall` avant
-sa définition, ordre corrigé). Gate **verte**, Stryker ciblé core en cours.
-**Prochain : AL.4** — speed-trainer découvrable.
+**En cours : AL.4 — speed-trainer découvrable (branche
+`feat/al4-trainer-discoverable`, PR à ouvrir).** (1) Le déclencheur « Rampe de
+tempo » **hors boucle** ne se cache plus : il reste visible, **désactivé avec un
+tooltip** (« Activez la boucle pour lancer la rampe ») → la fonctionnalité devient
+découvrable. (2) **Ligne d'aperçu** au-dessus de « Démarrer », dérivée en direct
+des 4 champs par un core pur `previewSpeedTrainer` (réutilise la **même**
+`normalisePolicy` que `startSpeedTrainer` → l'aperçu ne ment jamais sur la rampe
+réelle) : « 70 → 100 % · 7 paliers de +5 % » (+ « N répétitions/palier » si > 1).
+`stepCount` = niveaux distincts start..target (dernier palier plafonné compté),
+oracle fast-check contre `recordLoopPass`. Gate **verte — 1971 tests**, **Stryker
+speed-trainer.ts 100 %**.
+**Prochain : Lot AM** — le mixer devient vivant (lanes cliquables, fader console,
+confiance visible, EQ lisible).
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
@@ -37,8 +37,13 @@ re-seed des codes legacy, PKCE en bundle à rejouer.
 
 ### Roadmap excellence 7 (2026-07-19 → …) — UX exceptionnelle
 
-- 2026-07-21 · **AL.3 — vitesse/hauteur précises** (branche
-  `feat/al3-precise-speed-pitch`, PR à ouvrir) : pilule éditable (± + slider +
+- 2026-07-21 · **AL.4 — speed-trainer découvrable** (branche
+  `feat/al4-trainer-discoverable`, PR à ouvrir, **Lot AL clos**) : déclencheur
+  désactivé-avec-tooltip hors boucle (fini le contrôle caché) + ligne d'aperçu
+  dérivée des 4 champs par le core pur `previewSpeedTrainer` (même
+  `normalisePolicy` que `startSpeedTrainer`, oracle `recordLoopPass`) →
+  [rapport](sessions/2026-07-21-al4-trainer-discoverable.md)
+- 2026-07-21 · **AL.3 — vitesse/hauteur précises** (PR #236) : pilule éditable (± + slider +
   `CommitNumberField`), core `stepTempoPercent`/`stepPitchSemitones` partagé par
   les ± et les raccourcis `[`/`]` (vitesse) et `{`/`}` (hauteur), fader dB
   double-clic 0 dB (overlap AM.2), `.stepButton` promue + `StepperField` extrait
