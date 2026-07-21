@@ -1,4 +1,9 @@
-import { type BeatGrid, seekStepSeconds } from '@app/core'
+import {
+  type BeatGrid,
+  seekStepSeconds,
+  stepPitchSemitones,
+  stepTempoPercent
+} from '@app/core'
 import type { ExternalValue } from '../../lib/external-value.ts'
 import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
 import type { Markers } from '../markers/use-markers.ts'
@@ -34,6 +39,16 @@ interface ShellShortcutsDeps {
   /** The session's beat grid — empty without one (fixed-hop seek). */
   readonly grid: BeatGrid
   readonly viewport: Pick<ViewportControl, 'zoomIn' | 'zoomOut'>
+  /** Playback speed as a whole percent + its setter (the `[`/`]` steps). */
+  readonly speed: {
+    readonly percent: number
+    readonly setPercent: (percent: number) => void
+  }
+  /** Pitch in whole semitones + its setter (the `{`/`}` steps). */
+  readonly pitch: {
+    readonly semitones: number
+    readonly setSemitones: (semitones: number) => void
+  }
   readonly markers: Pick<Markers, 'addAt' | 'addSectionAt'>
   readonly toggleLoop: () => void
   readonly metronome: Pick<Metronome, 'toggle'>
@@ -55,6 +70,8 @@ export function useShellShortcuts({
   seekToSeconds,
   grid,
   viewport,
+  speed,
+  pitch,
   markers,
   toggleLoop,
   metronome,
@@ -75,6 +92,10 @@ export function useShellShortcuts({
         seekToSeconds(seekStepSeconds(position.get(), direction, grid, coarse)),
       zoomIn: viewport.zoomIn,
       zoomOut: viewport.zoomOut,
+      stepTempo: (direction) =>
+        speed.setPercent(stepTempoPercent(speed.percent, direction)),
+      stepPitch: (direction) =>
+        pitch.setSemitones(stepPitchSemitones(pitch.semitones, direction)),
       addMarker: () => markers.addAt(position.get()),
       addSectionMarker: () => markers.addSectionAt(position.get()),
       toggleLoop,

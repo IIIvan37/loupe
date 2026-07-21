@@ -62,6 +62,30 @@ describe('resolveCommand', () => {
     })
   })
 
+  it('maps the [ / ] characters to stepping the tempo down / up', () => {
+    expect(resolveCommand(defaultKeyBindings, { key: '[' })).toEqual({
+      type: 'tempoStep',
+      direction: -1
+    })
+    expect(resolveCommand(defaultKeyBindings, { key: ']' })).toEqual({
+      type: 'tempoStep',
+      direction: 1
+    })
+  })
+
+  it('maps the { / } characters to stepping the pitch down / up', () => {
+    // The shifted brackets — a distinct character, so a plain [ never fires
+    // the pitch command by accident.
+    expect(resolveCommand(defaultKeyBindings, { key: '{' })).toEqual({
+      type: 'pitchStep',
+      direction: -1
+    })
+    expect(resolveCommand(defaultKeyBindings, { key: '}' })).toEqual({
+      type: 'pitchStep',
+      direction: 1
+    })
+  })
+
   it('maps Shift+M to adding a SECTION marker', () => {
     // The hand-laid structure counterpart of M — same mnemonic, shifted.
     expect(

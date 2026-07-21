@@ -227,14 +227,18 @@ export { parseProject } from './domain/parse-project.ts'
 export {
   clampPitchSemitones,
   MAX_PITCH_SEMITONES,
-  MIN_PITCH_SEMITONES
+  MIN_PITCH_SEMITONES,
+  PITCH_SEMITONE_STEP,
+  stepPitchSemitones
 } from './domain/pitch-shift.ts'
 export {
   clampPlaybackRate,
   MAX_PLAYBACK_RATE,
   MAX_TEMPO_PERCENT,
   MIN_PLAYBACK_RATE,
-  MIN_TEMPO_PERCENT
+  MIN_TEMPO_PERCENT,
+  stepTempoPercent,
+  TEMPO_PERCENT_STEP
 } from './domain/playback-rate.ts'
 export type {
   AudioRef,

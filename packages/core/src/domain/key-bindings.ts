@@ -37,6 +37,8 @@ export type Command =
     }
   | { readonly type: 'zoomIn' }
   | { readonly type: 'zoomOut' }
+  | { readonly type: 'tempoStep'; readonly direction: -1 | 1 }
+  | { readonly type: 'pitchStep'; readonly direction: -1 | 1 }
   | { readonly type: 'addMarker' }
   | { readonly type: 'addSectionMarker' }
   | { readonly type: 'toggleLoop' }
@@ -82,6 +84,14 @@ export const defaultKeyBindings: KeyBindings = [
   },
   { chord: { key: '+' }, command: { type: 'zoomIn' } },
   { chord: { key: '-' }, command: { type: 'zoomOut' } },
+  // Practice speed/pitch (AL.3): the brackets slow down / speed up, their
+  // shifted variants ({ }) transpose. Bound by character so they land on the
+  // right keys on every layout, and { / } are distinct characters from [ / ]
+  // so a plain bracket never fires the pitch command.
+  { chord: { key: '[' }, command: { type: 'tempoStep', direction: -1 } },
+  { chord: { key: ']' }, command: { type: 'tempoStep', direction: 1 } },
+  { chord: { key: '{' }, command: { type: 'pitchStep', direction: -1 } },
+  { chord: { key: '}' }, command: { type: 'pitchStep', direction: 1 } },
   // Declared shift, and listed BEFORE the bare `m`: a character binding is
   // shift-agnostic unless it says otherwise, so order decides Shift+M.
   { chord: { key: 'm', shift: true }, command: { type: 'addSectionMarker' } },

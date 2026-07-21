@@ -92,12 +92,12 @@ describe('WorkstationShell loops & speed trainer', () => {
 
     // Arming seats the default start tempo (70 %) straight away.
     expect(engine.setTimeRatio).toHaveBeenCalledWith(0.7)
-    expect(screen.getByText('70 %')).toBeInTheDocument()
+    expect(screen.getByLabelText(i18n._('transport.tempo-field'))).toHaveValue(70)
 
     // Each completed pass (wrap at the loop end) earns the +5 % step.
     act(() => engine.emit(6.5))
     expect(engine.setTimeRatio).toHaveBeenCalledWith(0.75)
-    expect(screen.getByText('75 %')).toBeInTheDocument()
+    expect(screen.getByLabelText(i18n._('transport.tempo-field'))).toHaveValue(75)
 
     // Stopping restores the tempo the ramp armed over (100 %) and brings the
     // arm action back.
@@ -108,7 +108,7 @@ describe('WorkstationShell loops & speed trainer', () => {
       screen.getByRole('button', { name: i18n._('loops.trainer-open') })
     ).toBeInTheDocument()
     expect(engine.setTimeRatio).toHaveBeenCalledWith(1)
-    expect(screen.getByText('100 %')).toBeInTheDocument()
+    expect(screen.getByLabelText(i18n._('transport.tempo-field'))).toHaveValue(100)
   })
 
   it('stops the ramp when the user takes the tempo back on the slider', async () => {
@@ -121,7 +121,7 @@ describe('WorkstationShell loops & speed trainer', () => {
     await user.click(
       screen.getByRole('button', { name: i18n._('loops.trainer-start') })
     )
-    expect(screen.getByText('70 %')).toBeInTheDocument()
+    expect(screen.getByLabelText(i18n._('transport.tempo-field'))).toHaveValue(70)
 
     // Dragging the tempo slider is the user taking control back — the ramp
     // must not lie in the read-out nor snap the tempo down on the next wrap.
@@ -133,7 +133,7 @@ describe('WorkstationShell loops & speed trainer', () => {
     expect(
       screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
     ).not.toBeInTheDocument()
-    expect(screen.getByText('100 %')).toBeInTheDocument()
+    expect(screen.getByLabelText(i18n._('transport.tempo-field'))).toHaveValue(100)
   })
 
   it('stops the ramp when looping is toggled off (no dead ramp)', async () => {
@@ -154,7 +154,7 @@ describe('WorkstationShell loops & speed trainer', () => {
     expect(
       screen.queryByRole('button', { name: i18n._('loops.trainer-stop') })
     ).not.toBeInTheDocument()
-    expect(screen.getByText('100 %')).toBeInTheDocument()
+    expect(screen.getByLabelText(i18n._('transport.tempo-field'))).toHaveValue(100)
     // And the entry point is hidden while looping stays off.
     expect(
       screen.queryByRole('button', { name: i18n._('loops.trainer-open') })

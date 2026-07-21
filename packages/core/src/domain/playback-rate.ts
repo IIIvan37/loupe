@@ -30,3 +30,26 @@ export function clampPlaybackRate(rate: number): number {
   }
   return rate
 }
+
+/**
+ * How much one keyboard/button step moves the tempo (AL.3) — coarse enough to
+ * be felt, fine enough to home in on a target speed.
+ */
+export const TEMPO_PERCENT_STEP = 5
+
+/**
+ * Nudge a tempo read-out one step in `direction` (−1 slower, +1 faster),
+ * clamped to the playable range. Rounds first so a fractional slider position
+ * lands on a whole percent. Shared by the pill's ± buttons and the `[`/`]`
+ * shortcuts, so both move by exactly the same grain.
+ */
+export function stepTempoPercent(percent: number, direction: -1 | 1): number {
+  const next = Math.round(percent) + direction * TEMPO_PERCENT_STEP
+  if (next < MIN_TEMPO_PERCENT) {
+    return MIN_TEMPO_PERCENT
+  }
+  if (next > MAX_TEMPO_PERCENT) {
+    return MAX_TEMPO_PERCENT
+  }
+  return next
+}

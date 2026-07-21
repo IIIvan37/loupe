@@ -1,9 +1,13 @@
 import {
   formatTimecode,
   MAX_FINE_TUNE_CENTS,
+  MAX_PITCH_SEMITONES,
   MAX_TEMPO_PERCENT,
   MIN_FINE_TUNE_CENTS,
-  MIN_TEMPO_PERCENT
+  MIN_PITCH_SEMITONES,
+  MIN_TEMPO_PERCENT,
+  stepPitchSemitones,
+  stepTempoPercent
 } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
@@ -14,8 +18,9 @@ import {
   useExternalValue
 } from '../../lib/external-value.ts'
 import { Icon } from '../ui/icon.tsx'
-import { signedSemitones } from '../ui/signed-semitones.ts'
+import { StepperField } from './stepper-field.tsx'
 import styles from './transport-bar.module.css'
+// signedSemitones dropped here: the pitch read-out is now an editable field.
 
 interface TransportBarProps {
   /** The playhead, streamed outside React state (Lot L.1). */
@@ -106,62 +111,85 @@ export function TransportBar({
       </Cluster>
 
       <Cluster gap="var(--space-l)" align="center">
-        <label className={styles.field}>
-          <span className={styles.fieldLabel}>
-            {/* « Vitesse », not « Tempo » (Q.5): « Tempo » is reserved for
-                the panel's musical BPM — two same-named read-outs used to
-                measure two different quantities. The « sans toucher au
-                pitch » precision lives in the tooltip (AE.3) — a caption
-                must not carry its own documentation. */}
-            <Trans id="transport.tempo-label">Vitesse</Trans>
-          </span>
-          <input
-            type="range"
-            data-accent="amber"
-            min={MIN_TEMPO_PERCENT}
-            max={MAX_TEMPO_PERCENT}
-            value={tempoPercent}
-            aria-label={t({
-              id: 'transport.tempo-slider',
-              message: 'Vitesse en pourcentage'
-            })}
-            disabled={!canPlay}
-            title={t({
-              id: 'transport.tempo-reset',
-              message:
-                'Vitesse sans toucher au pitch — double-clic pour revenir à 100 %'
-            })}
-            onChange={(event) => onTempoChange(event.target.valueAsNumber)}
-            onDoubleClick={() => onTempoChange(100)}
-          />
-          <span className={styles.fieldValue}>{tempoPercent} %</span>
-        </label>
-        <label className={styles.field}>
-          <span className={styles.fieldLabel}>
-            <Trans id="transport.pitch-label">Hauteur</Trans>
-          </span>
-          <input
-            type="range"
-            data-accent="amber"
-            min={-12}
-            max={12}
-            value={pitchSemitones}
-            aria-label={t({
-              id: 'transport.pitch-slider',
-              message: 'Hauteur en demi-tons'
-            })}
-            disabled={!canPlay}
-            title={t({
-              id: 'transport.pitch-reset',
-              message: 'Double-clic pour revenir à 0'
-            })}
-            onChange={(event) => onPitchChange(event.target.valueAsNumber)}
-            onDoubleClick={() => onPitchChange(0)}
-          />
-          <span className={styles.fieldValue}>
-            {signedSemitones(pitchSemitones)}
-          </span>
-        </label>
+        {/* « Vitesse », not « Tempo » (Q.5): « Tempo » is reserved for the
+            panel's musical BPM. The « sans toucher au pitch » precision lives
+            in the slider tooltip (AE.3) — a caption must not document itself. */}
+        <StepperField
+          label={<Trans id="transport.tempo-label">Vitesse</Trans>}
+          value={tempoPercent}
+          min={MIN_TEMPO_PERCENT}
+          max={MAX_TEMPO_PERCENT}
+          disabled={!canPlay}
+          sliderLabel={t({
+            id: 'transport.tempo-slider',
+            message: 'Vitesse en pourcentage'
+          })}
+          sliderTitle={t({
+            id: 'transport.tempo-reset',
+            message:
+              'Vitesse sans toucher au pitch — double-clic pour revenir à 100 %'
+          })}
+          fieldLabel={t({
+            id: 'transport.tempo-field',
+            message: 'Saisir la vitesse (pourcentage)'
+          })}
+          stepDownLabel={t({
+            id: 'transport.tempo-down',
+            message: 'Ralentir la lecture'
+          })}
+          stepUpLabel={t({
+            id: 'transport.tempo-up',
+            message: 'Accélérer la lecture'
+          })}
+          unit="%"
+          neutral={100}
+          isValid={(percent) =>
+            Number.isInteger(percent) &&
+            percent >= MIN_TEMPO_PERCENT &&
+            percent <= MAX_TEMPO_PERCENT
+          }
+          onSetValue={onTempoChange}
+          onStep={(direction) =>
+            onTempoChange(stepTempoPercent(tempoPercent, direction))
+          }
+        />
+        <StepperField
+          label={<Trans id="transport.pitch-label">Hauteur</Trans>}
+          value={pitchSemitones}
+          min={MIN_PITCH_SEMITONES}
+          max={MAX_PITCH_SEMITONES}
+          disabled={!canPlay}
+          sliderLabel={t({
+            id: 'transport.pitch-slider',
+            message: 'Hauteur en demi-tons'
+          })}
+          sliderTitle={t({
+            id: 'transport.pitch-reset',
+            message: 'Double-clic pour revenir à 0'
+          })}
+          fieldLabel={t({
+            id: 'transport.pitch-field',
+            message: 'Saisir la hauteur (demi-tons)'
+          })}
+          stepDownLabel={t({
+            id: 'transport.pitch-down',
+            message: 'Baisser la hauteur d’un demi-ton'
+          })}
+          stepUpLabel={t({
+            id: 'transport.pitch-up',
+            message: 'Monter la hauteur d’un demi-ton'
+          })}
+          neutral={0}
+          isValid={(semitones) =>
+            Number.isInteger(semitones) &&
+            semitones >= MIN_PITCH_SEMITONES &&
+            semitones <= MAX_PITCH_SEMITONES
+          }
+          onSetValue={onPitchChange}
+          onStep={(direction) =>
+            onPitchChange(stepPitchSemitones(pitchSemitones, direction))
+          }
+        />
         {/* The last cents to the right key: a 30-cents-sharp recording (old
             pressing, sped-up tape) is untranscribable on whole semitones.
             Separate knob — never part of the chart's transposition. */}

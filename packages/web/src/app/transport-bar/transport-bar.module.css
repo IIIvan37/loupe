@@ -90,6 +90,23 @@
   color: var(--amber);
 }
 
+/* The speed/pitch stepper: − / + flank the slider, editable read-out at the
+   end (AL.3). One storey under the caption, like the cents row. */
+.stepperRow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.step {
+  composes: stepButton from '../ui/controls.module.css';
+}
+
+/* Compact in the footer — the pill idiom keeps the ± reachable beside it. */
+.slider {
+  width: 6rem;
+}
+
 /* The cents field, dressed as the read-outs around it (numberField skin).
    Sized `s` like the read-outs — at the inherited 1rem its box towered the
    footer (AE.2). */

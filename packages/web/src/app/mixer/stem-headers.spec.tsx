@@ -188,6 +188,18 @@ describe('StemHeaders', () => {
     expect(onSetGain).toHaveBeenCalledWith('voix', -6)
   })
 
+  it('returns the fader to unity (0 dB) on a double-click', () => {
+    const onSetGain = vi.fn()
+    renderHeaders([channel('voix', 'Voix', { gainDb: -6 })], { onSetGain })
+    // The shared « retour neutre » gesture (AL.3/AM.2).
+    fireEvent.doubleClick(
+      screen.getByRole('slider', {
+        name: i18n._('mixer.volume', { name: 'Voix' })
+      })
+    )
+    expect(onSetGain).toHaveBeenCalledWith('voix', 0)
+  })
+
   it('shows the fader level in dB', () => {
     renderHeaders([channel('voix', 'Voix', { gainDb: -6 })])
     expect(screen.getByText('-6 dB')).toBeInTheDocument()
