@@ -143,13 +143,15 @@ input[type='range']:disabled {
   }
 
   /* Ink on paper: the chart draws every line and glyph with these tokens; the
-     playhead wash is a screen affordance, not chart data. */
+     playhead wash and the editing locus ring are screen affordances, not
+     chart data. */
   :root:has([data-print-region]) {
     --bg: white;
     --text: black;
     --dim: black;
     --amber-glow: transparent;
     --amber-deep: transparent;
+    --teal: transparent;
   }
 }
 

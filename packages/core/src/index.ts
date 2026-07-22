@@ -133,10 +133,12 @@ export type {
   ChartForm,
   ChordChart,
   Measure,
+  MeasureSourceSpan,
   Section
 } from './domain/chord-chart.ts'
 export {
   chartMatchesPitch,
+  measureSourceSpans,
   parseChart,
   parseFormRollout,
   transposeChart,
