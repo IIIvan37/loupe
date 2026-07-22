@@ -1,4 +1,4 @@
-import { chartMatchesPitch, parseChart } from '@app/core'
+import { chartMatchesPitch, measureSourceSpans, parseChart } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { printUnavailableOnDesktop } from '../desktop/desktop-export.ts'
@@ -79,6 +79,44 @@ export function ChordChartPanel({
     () => chartHasContent(parseChart(source)),
     [source]
   )
+  // The measure↔text locus (AN.1): where each written bar lives in the source.
+  const spans = useMemo(() => measureSourceSpans(source), [source])
+  // The source line under the editor's caret — view state. The highlight
+  // DERIVES from (editing, caretLine), so folding the editor away retires the
+  // locus without a state sync; the stale line simply stops mattering.
+  const [caretLine, setCaretLine] = useState<number | undefined>(undefined)
+
+  /** While editing, a measure tap lands the cursor on the bar's tokens. */
+  function locateMeasure(writtenIndex: number): void {
+    const span = spans[writtenIndex]
+    const editor = editorRef.current
+    if (span === undefined || editor === null) {
+      return
+    }
+    editor.focus()
+    editor.setSelectionRange(span.start, span.end)
+    setCaretLine(span.line)
+  }
+
+  /** Follow the caret as it moves (click, arrows, typing) — `select` fires
+      on every selection change, including the collapsed caret. The line is
+      counted on the DOM value, never the `source` prop: within a keystroke's
+      event batch the prop lags the textarea, and the caret indexes the DOM. */
+  function onEditorSelect(event: React.SyntheticEvent<HTMLTextAreaElement>): void {
+    const { selectionStart, value } = event.currentTarget
+    setCaretLine(value.slice(0, selectionStart).split('\n').length - 1)
+  }
+
+  // The written measures the caret's line holds — their boxes light up so the
+  // sheet always shows where the typing lands.
+  const activeSourceMeasures = useMemo(() => {
+    if (!editing || caretLine === undefined) {
+      return undefined
+    }
+    return new Set(
+      spans.flatMap((span, index) => (span.line === caretLine ? [index] : []))
+    )
+  }, [editing, spans, caretLine])
   // The « transposing instruments » gap: the audio plays in one key, the grid
   // shows another. Octave-equivalent keys name the same chords, so the flag
   // compares modulo 12; the button still applies the exact gap so the offset
@@ -220,7 +258,11 @@ export function ChordChartPanel({
           source={source}
           header={header}
           currentMeasureIndex={currentMeasureIndex}
-          onSelectMeasure={onSelectMeasure}
+          // Editing swaps the tap's meaning: locate the bar's source text
+          // instead of seeking — even with no beat grid to seek along.
+          onSelectMeasure={editing ? locateMeasure : onSelectMeasure}
+          locating={editing}
+          activeSourceMeasures={activeSourceMeasures}
           barsPerRow={barsPerRow}
         />
       </div>
@@ -243,6 +285,11 @@ export function ChordChartPanel({
           className={styles.input}
           value={source}
           onChange={(event) => onSourceChange(event.target.value)}
+          onSelect={onEditorSelect}
+          // No caret, no locus: leaving the field (transpose, help dialog)
+          // must not keep asserting « typing lands here ». A measure tap
+          // re-arms it — its blur lands before the button's click.
+          onBlur={() => setCaretLine(undefined)}
           rows={6}
           spellCheck={false}
           aria-label={t({

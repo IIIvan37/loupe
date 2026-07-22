@@ -2,6 +2,7 @@ import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import {
   chartMatchesPitch,
+  measureSourceSpans,
   parseChart,
   parseFormRollout,
   renderChartSource,
@@ -10,6 +11,7 @@ import {
   transposeChartSource,
   unrollChart
 } from './chord-chart.ts'
+import { formatChordSymbol } from './chord-symbol.ts'
 
 describe('parseChart', () => {
   it('reads a single measure into one unlabelled section', () => {
@@ -817,6 +819,131 @@ describe('parseChart — meter changes ({time: N/M})', () => {
   it('a {time} change survives re-spelling verbatim', () => {
     expect(respellChartSource('| A# |\n{time: 2/4}\n| F |', 'flat')).toBe(
       '| Bb |\n{time: 2/4}\n| F |'
+    )
+  })
+})
+
+describe('measureSourceSpans', () => {
+  it('maps each written measure to its token span in the source', () => {
+    const source = '| C | G7 |\n| Am F |'
+    expect(measureSourceSpans(source)).toEqual([
+      { line: 0, start: 2, end: 3 },
+      { line: 0, start: 6, end: 8 },
+      { line: 1, start: 13, end: 17 }
+    ])
+    // The spans slice back to the exact cell text.
+    const spans = measureSourceSpans(source)
+    expect(spans.map((s) => source.slice(s.start, s.end))).toEqual([
+      'C',
+      'G7',
+      'Am F'
+    ])
+  })
+
+  it('skips non-grid lines exactly as the parser does', () => {
+    const source = '{key: C}\n\n[A]\n| C |\n{d.c.}\n{time: 3/4}\n| G |'
+    const spans = measureSourceSpans(source)
+    expect(spans.map((s) => source.slice(s.start, s.end))).toEqual(['C', 'G'])
+    expect(spans.map((s) => s.line)).toEqual([3, 6])
+  })
+
+  it('gives a repeat-count cell no span of its own (it merges into the bar)', () => {
+    const source = '| C :| x3 |'
+    const spans = measureSourceSpans(source)
+    expect(spans).toHaveLength(1)
+    expect(source.slice(spans[0]?.start, spans[0]?.end)).toBe('C :')
+  })
+
+  it('keeps an xN after a volta :| as its own measure span (the carry rule)', () => {
+    // parseRow refuses to merge a count into a volta's :| — so must the map.
+    const source = '|1. A :| x3 |'
+    const spans = measureSourceSpans(source)
+    expect(spans.map((s) => source.slice(s.start, s.end))).toEqual([
+      '1. A :',
+      'x3'
+    ])
+  })
+
+  it('the volta CARRIES across the row — an xN after a carried volta stays a measure', () => {
+    // B has no volta of its own; it inherits 1 from the row. Without the
+    // carry the x2 would merge into B's :| and a span would vanish.
+    const source = '|1. A | B :| x2 |'
+    const spans = measureSourceSpans(source)
+    expect(spans.map((s) => source.slice(s.start, s.end))).toEqual([
+      '1. A',
+      'B :',
+      'x2'
+    ])
+  })
+
+  it('a braced line after grid content is a row, exactly as the parser reads it', () => {
+    // After a header (and after a row), `{…}` lines are grid content — the
+    // head-directive zone is closed. The map must count their measures too.
+    const afterHeader = '[A]\n{x: y}\n| C |'
+    expect(
+      measureSourceSpans(afterHeader).map((s) =>
+        afterHeader.slice(s.start, s.end)
+      )
+    ).toEqual(['{x: y}', 'C'])
+    const afterRow = '| C |\n{t: v}'
+    expect(
+      measureSourceSpans(afterRow).map((s) => afterRow.slice(s.start, s.end))
+    ).toEqual(['C', '{t: v}'])
+  })
+
+  it('the last cell of a row without a trailing bar still gets its span', () => {
+    const source = '| C | G'
+    expect(
+      measureSourceSpans(source).map((s) => source.slice(s.start, s.end))
+    ).toEqual(['C', 'G'])
+  })
+
+  it('measures offsets on the raw line, indentation included', () => {
+    const source = '   | C |'
+    expect(measureSourceSpans(source)).toEqual([{ line: 0, start: 5, end: 6 }])
+  })
+
+  it('property — one span per written measure, in order, re-parsing to the same chords', () => {
+    const line = fc.constantFrom(
+      '| C | G :|',
+      '|: A | Bm |',
+      '  | C :| x3 |',
+      '|1. A :| x3 |',
+      '|1. F :|',
+      '|2. E |',
+      '{d.c.}',
+      '{coda}',
+      '[Verse]',
+      '{time: 3/4}',
+      '| G@ :|',
+      '|: C :|',
+      ''
+    )
+    fc.assert(
+      fc.property(fc.array(line, { maxLength: 12 }), (lines) => {
+        const source = lines.join('\n')
+        const chart = parseChart(source)
+        const measures = chart.sections.flatMap((s) => s.measures)
+        const spans = measureSourceSpans(source)
+        expect(spans).toHaveLength(measures.length)
+        let previousEnd = -1
+        spans.forEach((span, index) => {
+          // Spans never overlap and come back in written order.
+          expect(span.start).toBeGreaterThan(previousEnd)
+          previousEnd = span.end
+          // The sliced cell re-parses to the same chords — the drift guard
+          // between the mapping and the parser. Scoped to chord-shaped cells:
+          // a cell whose slice reads as a head directive standalone (e.g.
+          // `| {x: y} |`) would re-parse differently, so the corpus stays
+          // clear of it.
+          const slice = source.slice(span.start, span.end)
+          const reparsed = parseChart(slice).sections.flatMap((s) => s.measures)
+          expect(reparsed).toHaveLength(1)
+          expect(reparsed[0]?.chords.map(formatChordSymbol)).toEqual(
+            measures[index]?.chords.map(formatChordSymbol)
+          )
+        })
+      })
     )
   })
 })

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
@@ -540,5 +540,112 @@ describe('ChordChartPanel printing (P.4)', () => {
     expect(
       screen.getByRole('button', { name: printName() })
     ).toBeEnabled()
+  })
+})
+
+describe('ChordChartPanel measure locus (AN.1)', () => {
+  const source = '| C | G7 |\n| Am F |'
+
+  function renderLocus(onSelectMeasure = vi.fn()) {
+    render(
+      <ChordChartPanel
+        source={source}
+        onSourceChange={() => {}}
+        onTranspose={() => {}}
+        pitchSemitones={0}
+        transposedBy={0}
+        onSelectMeasure={onSelectMeasure}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+    return onSelectMeasure
+  }
+
+  it('keeps the seek semantics while the editor is folded', async () => {
+    const user = userEvent.setup()
+    const onSelectMeasure = renderLocus()
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('chart.measure-seek', { number: 2 })
+      })
+    )
+    expect(onSelectMeasure).toHaveBeenCalledWith(1)
+  })
+
+  it('clicking a measure while editing lands the cursor on its source token', async () => {
+    const user = userEvent.setup()
+    const onSelectMeasure = renderLocus()
+    await openEditor(user)
+    // The measure buttons now announce the locate action, not the seek.
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('chart.measure-locate', { number: 2 })
+      })
+    )
+    const editor = screen.getByRole('textbox') as HTMLTextAreaElement
+    expect(editor).toHaveFocus()
+    // « G7 » selected: the span of written measure 2 in the source.
+    expect(editor.selectionStart).toBe(6)
+    expect(editor.selectionEnd).toBe(8)
+    // Locating must not seek playback.
+    expect(onSelectMeasure).not.toHaveBeenCalled()
+  })
+
+  it('locating works even without a seek handler (no beat grid)', async () => {
+    const user = userEvent.setup()
+    render(
+      <ChordChartPanel
+        source={source}
+        onSourceChange={() => {}}
+        onTranspose={() => {}}
+        pitchSemitones={0}
+        transposedBy={0}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+    await openEditor(user)
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('chart.measure-locate', { number: 1 })
+      })
+    )
+    const editor = screen.getByRole('textbox') as HTMLTextAreaElement
+    expect(editor.selectionStart).toBe(2)
+    expect(editor.selectionEnd).toBe(3)
+  })
+
+  it('highlights the measures of the source line under the caret', async () => {
+    const user = userEvent.setup()
+    renderLocus()
+    await openEditor(user)
+    const editor = screen.getByRole('textbox') as HTMLTextAreaElement
+    // Put the caret on the second line (offset 12 = inside « Am F »).
+    editor.setSelectionRange(12, 12)
+    fireEvent.select(editor)
+    const third = screen.getByRole('button', {
+      name: i18n._('chart.measure-locate', { number: 3 })
+    })
+    const first = screen.getByRole('button', {
+      name: i18n._('chart.measure-locate', { number: 1 })
+    })
+    expect(third).toHaveAttribute('data-active-line')
+    expect(first).not.toHaveAttribute('data-active-line')
+  })
+
+  it('folding the editor away clears the active-line highlight', async () => {
+    const user = userEvent.setup()
+    renderLocus()
+    await openEditor(user)
+    const editor = screen.getByRole('textbox') as HTMLTextAreaElement
+    editor.setSelectionRange(12, 12)
+    fireEvent.select(editor)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.edit') })
+    )
+    // Back to seek buttons, none marked active.
+    const second = screen.getByRole('button', {
+      name: i18n._('chart.measure-seek', { number: 3 })
+    })
+    expect(second).not.toHaveAttribute('data-active-line')
   })
 })

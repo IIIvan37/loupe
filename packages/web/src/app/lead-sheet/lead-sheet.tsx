@@ -41,6 +41,17 @@ interface LeadSheetProps {
    * inert `<div>`s: no lying affordance.
    */
   readonly onSelectMeasure?: ((writtenIndex: number) => void) | undefined
+  /**
+   * Editing locus mode (AN.1): a measure tap places the cursor on the bar's
+   * source tokens instead of seeking — the buttons announce the locate action.
+   */
+  readonly locating?: boolean | undefined
+  /**
+   * The written measures of the source line under the editor's caret — marked
+   * on their boxes so the sheet shows where the typing lands. Undefined (not
+   * editing) marks nothing.
+   */
+  readonly activeSourceMeasures?: ReadonlySet<number> | undefined
 }
 
 interface KeyedChord {
@@ -77,6 +88,8 @@ interface KeyedSection {
 interface MeasureBoxProps {
   /** Interactive = a tap seeks; otherwise an inert <div> (same skin). */
   readonly interactive: boolean
+  /** Locus mode: the tap locates the bar's source text, not the playhead. */
+  readonly locate: boolean
   /** The measure's 1-based written number — the button's accessible name. */
   readonly number: number
   readonly onSelect: () => void
@@ -85,16 +98,20 @@ interface MeasureBoxProps {
   readonly 'aria-current': 'true' | undefined
   readonly 'data-repeat-start': true | undefined
   readonly 'data-repeat-end': true | undefined
+  readonly 'data-active-line': true | undefined
   readonly children: React.ReactNode
 }
 
 /**
  * One measure box: a seek `<button>` when the sheet is navigable, the same
  * box as an inert `<div>` when it is not (print, no grid) — the chords stay
- * plain content either way, the button's name is its aria-label.
+ * plain content either way, the button's name is its aria-label. In locus
+ * mode the same button locates the bar in the source editor instead, and its
+ * name says so — an honest affordance either way.
  */
 function MeasureBox({
   interactive,
+  locate,
   number,
   onSelect,
   ref,
@@ -113,10 +130,17 @@ function MeasureBox({
     <button
       type="button"
       ref={ref}
-      aria-label={t({
-        id: 'chart.measure-seek',
-        message: `Aller à la mesure ${number}`
-      })}
+      aria-label={
+        locate
+          ? t({
+              id: 'chart.measure-locate',
+              message: `Placer le curseur sur la mesure ${number}`
+            })
+          : t({
+              id: 'chart.measure-seek',
+              message: `Aller à la mesure ${number}`
+            })
+      }
       onClick={onSelect}
       {...shared}
     >
@@ -201,7 +225,9 @@ export function LeadSheet({
   header,
   currentMeasureIndex,
   barsPerRow,
-  onSelectMeasure
+  onSelectMeasure,
+  locating,
+  activeSourceMeasures
 }: LeadSheetProps) {
   // The sheet re-renders on every playhead frame during playback (the parent
   // ticks); only re-parse and re-key when the inputs actually change.
@@ -309,6 +335,7 @@ export function LeadSheet({
               <MeasureBox
                 key={measure.key}
                 interactive={onSelectMeasure !== undefined}
+                locate={locating === true}
                 ref={measure.current ? followPlayhead : undefined}
                 number={measure.index + 1}
                 onSelect={() => onSelectMeasure?.(measure.index)}
@@ -320,6 +347,9 @@ export function LeadSheet({
                 aria-current={measure.current ? 'true' : undefined}
                 data-repeat-start={measure.repeatStart || undefined}
                 data-repeat-end={measure.repeatEnd || undefined}
+                data-active-line={
+                  activeSourceMeasures?.has(measure.index) || undefined
+                }
               >
                 {measure.codaHere && (
                   <span className={styles.codaSign}>⊕</span>

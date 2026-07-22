@@ -153,6 +153,11 @@ describe('WorkstationShell chord chart', () => {
     await importTrack(user)
     await expectBpmReadout(60)
     await user.type(await chartEditor(user), '| C | Am | F |')
+    // Fold the editor away first — while it is open a measure tap locates
+    // the bar's source text (AN.1), it only seeks from the reading view.
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.edit') })
+    )
 
     // The third written measure first plays on the third downbeat (8 s).
     await user.click(
@@ -167,9 +172,19 @@ describe('WorkstationShell chord chart', () => {
     const { user } = renderShell()
     await importTrack(user)
     await user.type(await chartEditor(user), '| C | Am |')
+    // While the editor is open the cells locate (AN.1) — the READING view is
+    // the one with no affordance to give: fold first, then assert inert.
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.edit') })
+    )
     expect(
       screen.queryByRole('button', {
         name: i18n._('chart.measure-seek', { number: 1 })
+      })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', {
+        name: i18n._('chart.measure-locate', { number: 1 })
       })
     ).not.toBeInTheDocument()
   })

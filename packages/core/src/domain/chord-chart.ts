@@ -563,3 +563,94 @@ export function parseChart(text: string): ChordChart {
     ...(meterChanges.length > 0 && { meterChanges })
   }
 }
+
+/** Where one written measure lives in the source text: its line (0-based) and
+    the absolute [start, end) offsets of its cell's tokens — ready for a
+    textarea `setSelectionRange`. */
+export interface MeasureSourceSpan {
+  readonly line: number
+  readonly start: number
+  readonly end: number
+}
+
+/** One row cell with the raw-line offsets of its tokens — the positional twin
+    of `parseRow`'s `split('|')`+`TOKEN` pass, so cells count identically. */
+function rowCellSpans(
+  rawLine: string
+): { tokens: string[]; start: number; end: number }[] {
+  const cells: { tokens: string[]; start: number; end: number }[] = []
+  let cellStart = 0
+  for (let i = 0; i <= rawLine.length; i++) {
+    if (i !== rawLine.length && rawLine[i] !== '|') continue
+    const matches = [...rawLine.slice(cellStart, i).matchAll(TOKEN)]
+    const last = matches.at(-1)
+    if (last !== undefined) {
+      cells.push({
+        tokens: matches.map((match) => match[0]),
+        start: cellStart + (matches[0]?.index ?? 0),
+        end: cellStart + last.index + last[0].length
+      })
+    }
+    cellStart = i + 1
+  }
+  return cells
+}
+
+/**
+ * Map every written measure to its source span, in written order — the
+ * measure↔text locus the editor needs (click a bar, land on its tokens).
+ * Mirrors `parseChart`'s line dispatch and `parseRow`'s cell walk statement for
+ * statement (same `TOKEN` grammar, same repeat-count merge), so the mapping and
+ * the parser can never drift; offsets are measured on the RAW line —
+ * indentation the parser trims away still counts.
+ */
+export function measureSourceSpans(
+  source: string
+): readonly MeasureSourceSpan[] {
+  const spans: MeasureSourceSpan[] = []
+  let offset = 0
+  let gridStarted = false
+  const lines = source.split('\n')
+  for (const [lineIndex, rawLine] of lines.entries()) {
+    const lineStart = offset
+    offset += rawLine.length + 1
+    const line = rawLine.trim()
+    if (line.length === 0) continue
+    if (formKeyOf(line) !== undefined) continue
+    if (!gridStarted && directiveOf(line) !== undefined) continue
+    if (meterChangeOf(line) !== undefined) continue
+    if (HEADER.test(line)) {
+      gridStarted = true
+      continue
+    }
+    gridStarted = true
+    spans.push(...rowMeasureSpans(rawLine, lineIndex, lineStart))
+  }
+  return spans
+}
+
+/** parseRow's walk with positions: a repeat-count cell merges into the
+    previous bar and owns no span. The volta carry is mirrored too — an
+    `xN` after a volta's :| is a measure there, so it must be one here. */
+function rowMeasureSpans(
+  rawLine: string,
+  line: number,
+  lineStart: number
+): MeasureSourceSpan[] {
+  const spans: MeasureSourceSpan[] = []
+  let previous: Measure | undefined
+  let carriedVolta: number | undefined
+  for (const cell of rowCellSpans(rawLine)) {
+    if (repeatCountCell(cell.tokens, previous) !== undefined) continue
+    const measure = parseCell(cell.tokens)
+    const volta = measure.volta ?? carriedVolta
+    carriedVolta = measure.repeatEnd === true ? undefined : volta
+    previous = volta === undefined ? measure : { ...measure, volta }
+    spans.push({
+      line,
+      start: lineStart + cell.start,
+      end: lineStart + cell.end
+    })
+  }
+  return spans
+}
