@@ -52,6 +52,17 @@ interface LeadSheetProps {
    * editing) marks nothing.
    */
   readonly activeSourceMeasures?: ReadonlySet<number> | undefined
+  /**
+   * Written measures holding a token the parser read as a chord that cannot
+   * honestly be one (AN.2) — marked so the doubt is visible where it lives.
+   * Editing affordance: undefined leaves the sheet (and print) unannotated.
+   */
+  readonly suspectMeasures?: ReadonlySet<number> | undefined
+  /**
+   * Written measures the unrolled form never plays (dead tail after a
+   * {d.c.}+{fine}, volta above the pass count) — dimmed while editing.
+   */
+  readonly unreachableMeasures?: ReadonlySet<number> | undefined
 }
 
 interface KeyedChord {
@@ -99,6 +110,8 @@ interface MeasureBoxProps {
   readonly 'data-repeat-start': true | undefined
   readonly 'data-repeat-end': true | undefined
   readonly 'data-active-line': true | undefined
+  readonly 'data-suspect': true | undefined
+  readonly 'data-unreachable': true | undefined
   readonly children: React.ReactNode
 }
 
@@ -227,7 +240,9 @@ export function LeadSheet({
   barsPerRow,
   onSelectMeasure,
   locating,
-  activeSourceMeasures
+  activeSourceMeasures,
+  suspectMeasures,
+  unreachableMeasures
 }: LeadSheetProps) {
   // The sheet re-renders on every playhead frame during playback (the parent
   // ticks); only re-parse and re-key when the inputs actually change.
@@ -349,6 +364,12 @@ export function LeadSheet({
                 data-repeat-end={measure.repeatEnd || undefined}
                 data-active-line={
                   activeSourceMeasures?.has(measure.index) || undefined
+                }
+                data-suspect={
+                  suspectMeasures?.has(measure.index) || undefined
+                }
+                data-unreachable={
+                  unreachableMeasures?.has(measure.index) || undefined
                 }
               >
                 {measure.codaHere && (

@@ -1,6 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import {
+  chartDiagnostics,
   chartMatchesPitch,
   measureSourceSpans,
   parseChart,
@@ -964,6 +965,129 @@ describe('measureSourceSpans', () => {
             measures[index]?.chords.map(formatChordSymbol)
           )
         })
+      })
+    )
+  })
+})
+
+describe('chartDiagnostics', () => {
+  it('counts written measures per source line', () => {
+    const d = chartDiagnostics('| C | G |\n| Am |')
+    expect(d.measureCount).toBe(3)
+    expect(d.measuresPerLine).toEqual(
+      new Map([
+        [0, 2],
+        [1, 1]
+      ])
+    )
+    expect(d.suspectTokens).toEqual([])
+    expect(d.unreachableMeasures).toEqual([])
+  })
+
+  it('flags a token read as a chord that cannot be one', () => {
+    // x3 without a bare :| before it is NOT a pass count — the parser reads
+    // a chord with root « x ». The user deserves to know.
+    const source = '| C | x3 |'
+    const d = chartDiagnostics(source)
+    expect(d.suspectTokens).toHaveLength(1)
+    const suspect = d.suspectTokens[0]
+    expect(suspect?.token).toBe('x3')
+    expect(source.slice(suspect?.start, suspect?.end)).toBe('x3')
+    expect(suspect?.line).toBe(0)
+    // The second written measure holds the doubtful token.
+    expect(suspect?.measure).toBe(1)
+  })
+
+  it('flags a slash chord the grammar cannot re-print', () => {
+    // C/E/G round-trips to C/E — transposition would silently drop the G.
+    expect(chartDiagnostics('| C/E/G |').suspectTokens).toHaveLength(1)
+  })
+
+  it('flags a slash bass that names no pitch — the root alone is not enough', () => {
+    // F/x round-trips fine (parse is total), but « x » is no bass note:
+    // transposition would move the F and pass the x through verbatim.
+    expect(chartDiagnostics('| F/x |').suspectTokens).toHaveLength(1)
+    expect(chartDiagnostics('| F/A |').suspectTokens).toEqual([])
+  })
+
+  it('carries the spans so one walk serves the locus and the diagnostics', () => {
+    const source = '| C | G |'
+    expect(chartDiagnostics(source).spans).toEqual(measureSourceSpans(source))
+  })
+
+  it('accepts real chords, N.C., fermatas and structural tokens', () => {
+    // The x2 merges into the bare :| (a pass count, not a chord); the volta
+    // bar and repeat dots are structure, not chords.
+    const d = chartDiagnostics('|: Bb7@ | N.C. | F#m7b5 :| x2 |\n|1. F :|')
+    expect(d.suspectTokens).toEqual([])
+  })
+
+  it('structure-only and multi-chord repeat cells never yield suspects', () => {
+    // The trailing repeat dots of a multi-chord bar, a lone `:` cell (empty
+    // repeated bar) and a bare volta bar are structure, not chords — none of
+    // them may surface as « accord douteux ».
+    expect(chartDiagnostics('| C G :|').suspectTokens).toEqual([])
+    expect(chartDiagnostics('| : |').suspectTokens).toEqual([])
+    expect(chartDiagnostics('|1. |').suspectTokens).toEqual([])
+  })
+
+  it('flags a swallowed mid-grid directive as the suspect measure it became', () => {
+    // {x: y} after grid content is a ROW — two garbage chords shifting every
+    // later downbeat. Both tokens read as suspects.
+    const d = chartDiagnostics('| C |\n{x: y}')
+    expect(d.measureCount).toBe(2)
+    expect(d.suspectTokens.map((s) => s.token)).toEqual(['{x:', 'y}'])
+  })
+
+  it('lists the written measures the unrolled form never plays', () => {
+    // A fine before the d.c. makes the tail dead; a volta above the pass
+    // count is never taken.
+    expect(
+      chartDiagnostics('| C | G |\n{fine}\n{d.c.}\n| F |').unreachableMeasures
+    ).toEqual([2])
+    expect(
+      chartDiagnostics('|: C |1. A :|\n|2. B |\n|3. D :|').unreachableMeasures
+    ).toEqual([3])
+  })
+
+  it('property — diagnostics stay consistent with the parse and the spans', () => {
+    const line = fc.constantFrom(
+      '| C | G :|',
+      '|: A | Bm |',
+      '| x3 | hello |',
+      '{d.c.}',
+      '{fine}',
+      '[Verse]',
+      '|1. F :|',
+      '|2. E |',
+      '| N.C. |',
+      ''
+    )
+    fc.assert(
+      fc.property(fc.array(line, { maxLength: 10 }), (lines) => {
+        const source = lines.join('\n')
+        const d = chartDiagnostics(source)
+        const spans = measureSourceSpans(source)
+        // Same walk: the per-line counts sum to the span count.
+        expect(d.measureCount).toBe(spans.length)
+        let total = 0
+        for (const [lineIndex, count] of d.measuresPerLine) {
+          expect(count).toBeGreaterThan(0)
+          expect(spans.filter((s) => s.line === lineIndex)).toHaveLength(count)
+          total += count
+        }
+        expect(total).toBe(spans.length)
+        // Every suspect slices back to its own token text.
+        for (const suspect of d.suspectTokens) {
+          expect(source.slice(suspect.start, suspect.end)).toBe(suspect.token)
+        }
+        // Unreachable ⊆ written, sorted, and disjoint from the unroll.
+        const played = new Set(unrollChart(parseChart(source)))
+        for (const index of d.unreachableMeasures) {
+          expect(index).toBeGreaterThanOrEqual(0)
+          expect(index).toBeLessThan(d.measureCount)
+          expect(played.has(index)).toBe(false)
+        }
       })
     )
   })

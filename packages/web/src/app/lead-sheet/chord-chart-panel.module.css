@@ -93,6 +93,24 @@
   composes: hint from '../ui/controls.module.css';
 }
 
+/* The parse-feedback line (AN.2), between the sheet and the editor: what the
+   grammar read, quiet counts first, amber warnings after. */
+.parseFeedback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+.parseCount {
+  composes: hint from '../ui/controls.module.css';
+}
+
+.parseWarning {
+  composes: hint from '../ui/controls.module.css';
+  color: var(--amber);
+}
+
 /* The pitch-divergence flag: a quiet hint + its one repair action, shown only
  * while the grid's key and the heard key disagree. */
 .pitchDrift {

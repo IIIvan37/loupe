@@ -649,3 +649,122 @@ describe('ChordChartPanel measure locus (AN.1)', () => {
     expect(second).not.toHaveAttribute('data-active-line')
   })
 })
+
+describe('ChordChartPanel parse feedback (AN.2)', () => {
+  function renderPanel(source: string) {
+    render(
+      <ChordChartPanel
+        source={source}
+        onSourceChange={() => {}}
+        onTranspose={() => {}}
+        pitchSemitones={0}
+        transposedBy={0}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+  }
+
+  it('shows the measure count while editing', async () => {
+    const user = userEvent.setup()
+    renderPanel('| C | G |\n| Am |')
+    // Folded: the reading view carries no feedback line.
+    expect(
+      screen.queryByText(i18n._('chords.parse-count', { measures: 3 }))
+    ).not.toBeInTheDocument()
+    await openEditor(user)
+    // Opening focuses the editor, which fires `select` — the feedback counts
+    // the caret's line from the first paint (jsdom parks the caret at 0, so
+    // line 0's two measures).
+    expect(
+      screen.getByText(
+        i18n._('chords.parse-count-line', { measures: 3, onLine: 2 })
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('falls back to the total when the caret sits on a non-measure line', async () => {
+    const user = userEvent.setup()
+    renderPanel('| C |\n{d.c.}')
+    await openEditor(user)
+    const editor = screen.getByRole('textbox') as HTMLTextAreaElement
+    editor.setSelectionRange(7, 7)
+    fireEvent.select(editor)
+    expect(
+      screen.getByText(i18n._('chords.parse-count', { measures: 1 }))
+    ).toBeInTheDocument()
+  })
+
+  it('adds the caret line count once the caret sits on a measure row', async () => {
+    const user = userEvent.setup()
+    renderPanel('| C | G |\n| Am |')
+    await openEditor(user)
+    const editor = screen.getByRole('textbox') as HTMLTextAreaElement
+    editor.setSelectionRange(12, 12)
+    fireEvent.select(editor)
+    expect(
+      screen.getByText(
+        i18n._('chords.parse-count-line', { measures: 3, onLine: 1 })
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('warns about tokens read as chords that cannot be ones', async () => {
+    const user = userEvent.setup()
+    renderPanel('| C | x3 |')
+    await openEditor(user)
+    expect(
+      screen.getByText(
+        i18n._('chords.parse-suspects', { count: 1, examples: 'x3' })
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('warns about measures the unrolled form never plays', async () => {
+    const user = userEvent.setup()
+    renderPanel('| C | G |\n{fine}\n{d.c.}\n| F |')
+    await openEditor(user)
+    expect(
+      screen.getByText(i18n._('chords.parse-unreachable', { count: 1 }))
+    ).toBeInTheDocument()
+  })
+
+  it('stays quiet on a healthy grid — counts only, no warnings', async () => {
+    const user = userEvent.setup()
+    renderPanel('| C | G |')
+    await openEditor(user)
+    // Caret at the end of the single row: total 2, this line 2.
+    expect(
+      screen.getByText(
+        i18n._('chords.parse-count-line', { measures: 2, onLine: 2 })
+      )
+    ).toBeInTheDocument()
+    expect(document.querySelector('[data-parse-warning]')).toBeNull()
+  })
+
+  it('marks the suspect and never-played measures on the sheet while editing', async () => {
+    const user = userEvent.setup()
+    renderPanel('| C | x3 |\n{fine}\n{d.c.}\n| F |')
+    await openEditor(user)
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('chart.measure-locate', { number: 2 })
+      })
+    ).toHaveAttribute('data-suspect')
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('chart.measure-locate', { number: 3 })
+      })
+    ).toHaveAttribute('data-unreachable')
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('chart.measure-locate', { number: 1 })
+      })
+    ).not.toHaveAttribute('data-suspect')
+  })
+
+  it('leaves the reading view unmarked — diagnostics are an editing affordance', () => {
+    renderPanel('| C | x3 |')
+    // Folded, no grid: inert divs, no data-suspect anywhere.
+    expect(document.querySelector('[data-suspect]')).toBeNull()
+  })
+})
