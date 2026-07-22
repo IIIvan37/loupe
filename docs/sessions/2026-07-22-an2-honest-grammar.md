@@ -66,10 +66,12 @@
 
 - typecheck : ✅
 - tests (with coverage) : ✅ 2014 tests, 153 fichiers
-- mutation (Stryker, local, `--force --mutate chord-chart.ts`) : run final en
-  cours au moment de la rédaction — résultat consigné dans la PR (le run
-  intermédiaire post-restauration était vert à 96+ % avant les correctifs de
-  revue).
+- mutation (Stryker, local, `--force --mutate chord-chart.ts`) : ✅
+  **96,50 %** après une vague de tests tueurs (cellules structure-only :
+  `| C G :|`, `| : |`, `|1. |`) ; les 11 survivants restants du nouveau code
+  sont des mutants équivalents (garde d'honnêteté de cellule vide injouable
+  par construction, forme de `previous` sans effet sur le merge, skip de
+  ligne blanche) ; break global 90 tenu (93,07).
 - biome / sheriff / impeccable / react-doctor / knip / jscpd : ✅
   (react-doctor a imposé la découpe du panel <300 lignes — fait)
 
