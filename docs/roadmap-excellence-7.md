@@ -129,6 +129,11 @@ efface une classe entière de code mort.*
   (fondamentale **et** exposant), `maj7→△`/`dim→°`/`m7b5→ø`/`aug→+`, fallback
   `--font-ui` si Petaluma Script ne porte pas les glyphes SMuFL ; + crochets de
   volta, points de reprise.
+- **AN.5** *(ajout 2026-07-22)* — Chiffrage romain : bascule d'affichage des
+  accords en degrés relatifs à la tonalité (`{key}`) — en Do majeur, `CM7` se
+  lit `IM7`, `Dm7` → `IIm7` (ou `ii7`), racines hors gamme avec altération
+  (`♭VII`) ; transform pur côté core (label seulement, la source reste en
+  lettres), basculable dans l'UI.
 
 ### Lot AO — une âme visuelle mémorable 🟢🟢
 
@@ -177,7 +182,7 @@ efface une classe entière de code mort.*
 - [x] AL.1 · [x] AL.2 · [x] AL.3 · [x] AL.4
 - [x] AM.1 · [x] AM.2 · [~] AM.3 (écarté) · [~] AM.4 (écarté) — **Lot AM clos
   2026-07-22** (décision produit sur AM.3/AM.4)
-- [ ] AN.1 · [ ] AN.2 · [ ] AN.3 · [ ] AN.4
+- [ ] AN.1 · [ ] AN.2 · [ ] AN.3 · [ ] AN.4 · [ ] AN.5
 - [ ] AO.1 · [ ] AO.2 · [ ] AO.3
 - [ ] AP.2 · [ ] AP.3 · [ ] AP.4
 - [ ] AQ.1 · [ ] AQ.2
