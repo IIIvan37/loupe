@@ -102,8 +102,10 @@ efface une classe entière de code mort.*
 - **AM.2** — Fader console : double-clic 0 dB (`UNITY_GAIN_DB`), Shift/molette
   pas fin 0,5 dB, lecture dB éditable ; fader vertical plus long si le mixer
   gagne son panneau.
-- **AM.3** — Confiance visible : chip/pastille % (ou état « détection faible »)
-  à côté du label, title en complément.
+- **AM.3** — ~~Confiance visible : chip/pastille % (ou état « détection faible »)
+  à côté du label, title en complément.~~ **Écarté (2026-07-22, décision
+  produit)** : le degré de confiance apporte peu à l'utilisateur ; le title
+  existant suffit.
 - **AM.4** — EQ lisible + niveaux vivants : Hz affichés par slider + reset
   neutre + mention « aide d'écoute non sauvegardée » (arbitrage T.8
   session-only respecté, **pas** de persistance) ; mini-mètre par stem alimenté
@@ -171,7 +173,7 @@ efface une classe entière de code mort.*
 - [ ] AJ.1 · [ ] AJ.2 · [ ] AJ.3
 - [x] AK.1 · [x] AK.2 · [x] AK.3 · [x] AK.4
 - [x] AL.1 · [x] AL.2 · [x] AL.3 · [x] AL.4
-- [x] AM.1 · [x] AM.2 · [ ] AM.3 · [ ] AM.4
+- [x] AM.1 · [x] AM.2 · [~] AM.3 (écarté — décision produit 2026-07-22) · [ ] AM.4
 - [ ] AN.1 · [ ] AN.2 · [ ] AN.3 · [ ] AN.4
 - [ ] AO.1 · [ ] AO.2 · [ ] AO.3
 - [ ] AP.2 · [ ] AP.3 · [ ] AP.4
