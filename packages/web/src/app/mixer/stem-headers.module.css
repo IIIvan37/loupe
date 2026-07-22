@@ -109,13 +109,45 @@
   min-width: 40px;
 }
 
-.db {
+/* The editable dB read-out and its unit sit on one line, right of the fader. */
+.dbField {
   flex: none;
-  min-width: 5ch;
-  text-align: right;
+  display: flex;
+  align-items: baseline;
+  gap: 0.15em;
+  color: var(--amber);
   font-family: var(--font-mono);
   font-size: var(--font-size-2xs);
-  color: var(--amber);
+}
+
+/* The dB value, typed for an exact level. Spinners off — the wheel and
+   Shift-arrows do the fine stepping on the fader itself. */
+.db {
+  width: 3.5ch;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: right;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.db::-webkit-outer-spin-button,
+.db::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.db:focus-visible {
+  outline: 1px solid var(--amber);
+  outline-offset: 1px;
+  border-radius: var(--radius-s);
+}
+
+.dbUnit {
+  color: var(--dim);
 }
 
 /* An active filter marks its trigger even while the popover is closed —

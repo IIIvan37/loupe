@@ -9,21 +9,25 @@
 
 **Lot AL — la boucle de pratique au niveau d'un vrai outil — CLOS** ([roadmap
 v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ, AK, AL clos). AL.1→AL.4 livrés
-(AL.4 = #237) — détail en Historique.
+(AL.4 = #237) — détail en Historique. **Lot AM en cours** : AM.1 (lanes
+cliquables, PR #239).
 
-**En cours : AM.1 — lanes cliquables (branche `feat/am1-clickable-lanes`, PR à
-ouvrir).** `StemLanes` gagne une **surface pointeur unique** couvrant toutes les
-lanes : un clic n'importe où sur les stems cale la lecture via le **même**
-`onSeekRatio` (`seekToRatio`, `pointerRatio` zoom-agnostique) que la waveform
-principale → toute couche de la vue est un endroit où se caler. Un **seul** trait
-de survol traverse toutes les lanes (mirror du `.hover` waveform), effacé au
-`pointerLeave`. Surface délibérément **non-bouton** (pointeur-seul, comme la
-surface waveform). Clic-lane = seek simple, ne touche pas la région A/B. Tests :
-2 specs composant + 1 acceptation shell (clic 30 % → 3 s via le stem engine ;
-`renderShell` expose `stemEngine`). Gate **verte** + react-doctor 0 issue. Aucun
-changement core (slice adaptateur).
-**Prochain : AM.2** — fader console (double-clic 0 dB, Shift/molette 0,5 dB,
-lecture dB éditable), puis AM.3 (confiance visible) et AM.4 (EQ + mini-mètres).
+**En cours : AM.2 — fader console (branche `feat/am2-console-fader`, PR à
+ouvrir).** Le fader de volume par stem devient précis : (1) **pas fin 0,5 dB** —
+**molette** (±0,5 dB/cran ; le range natif ignorait la molette) et
+**Shift+flèches**, tous deux via un core pur `stepGainDb`/`GAIN_DB_FINE_STEP`
+calqué sur `stepTempoPercent` (arrondi grille 0,5 → ± pas → `clampGainDb`,
+property fast-check bornage+grille) ; les flèches nues gardent le pas natif 1 dB.
+(2) **Lecture dB éditable** — le `<span>` en lecture seule devient un
+`CommitNumberField` (déjà partagé tempo/transport) : saisie d'un niveau exact,
+commit Entrée/blur, re-clampé par le reducer. (3) Double-clic 0 dB déjà livré en
+AL.3. Fader vertical **différé** (conditionné à un panneau mixer inexistant ;
+casserait l'alignement rangée gouttière↔lanes). Le fader est extrait en
+sous-composant `GainFader` (ref molette non-passive + `useLatest`). Gate
+**verte** + react-doctor 0 issue, **Stryker `stepGainDb` 100 %** (survivants
+mixer.ts pré-existants).
+**Prochain : AM.3** — confiance visible (chip/pastille %), puis AM.4 (EQ lisible
++ mini-mètres par stem).
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
@@ -37,15 +41,18 @@ re-seed des codes legacy, PKCE en bundle à rejouer.
 
 ### Roadmap excellence 7 (2026-07-19 → …) — UX exceptionnelle
 
-- 2026-07-21 · **AM.1 — lanes cliquables** (branche `feat/am1-clickable-lanes`,
-  PR à ouvrir) : surface pointeur unique sur `StemLanes` → clic n'importe où cale
-  la lecture (même `onSeekRatio`/`pointerRatio` que la waveform) + trait de
-  survol unique traversant toutes les lanes →
+- 2026-07-21 · **AM.2 — fader console** (branche `feat/am2-console-fader`, PR à
+  ouvrir) : pas fin 0,5 dB (molette + Shift+flèches via core `stepGainDb`) +
+  lecture dB éditable (`CommitNumberField`), fader extrait en `GainFader` →
+  [rapport](sessions/2026-07-21-am2-console-fader.md)
+- 2026-07-21 · **AM.1 — lanes cliquables** (PR #239) : surface pointeur unique
+  sur `StemLanes` → clic n'importe où cale la lecture (même
+  `onSeekRatio`/`pointerRatio` que la waveform) + trait de survol unique
+  traversant toutes les lanes →
   [rapport](sessions/2026-07-21-am1-clickable-lanes.md)
 - 2026-07-21 · **AL.4 — speed-trainer découvrable** (PR #237, **Lot AL clos**) :
-  déclencheur
-  désactivé-avec-tooltip hors boucle (fini le contrôle caché) + ligne d'aperçu
-  dérivée des 4 champs par le core pur `previewSpeedTrainer` (même
+  déclencheur désactivé-avec-tooltip hors boucle (fini le contrôle caché) + ligne
+  d'aperçu dérivée des 4 champs par le core pur `previewSpeedTrainer` (même
   `normalisePolicy` que `startSpeedTrainer`, oracle `recordLoopPass`) →
   [rapport](sessions/2026-07-21-al4-trainer-discoverable.md)
 - 2026-07-21 · **AL.3 — vitesse/hauteur précises** (PR #236) : pilule éditable (± + slider +

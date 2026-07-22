@@ -1,13 +1,9 @@
-import {
-  MAX_GAIN_DB,
-  MIN_GAIN_DB,
-  type StemFilter,
-  UNITY_GAIN_DB
-} from '@app/core'
+import { type StemFilter } from '@app/core'
 import { Popover } from '@base-ui-components/react/popover'
 import { useLingui } from '@lingui/react/macro'
 import { cx } from '../../lib/cx.ts'
 import { stemColor } from '../stems/stem-color.ts'
+import { GainFader } from './gain-fader.tsx'
 import type { MixerChannelView } from './use-mixer.ts'
 import styles from './stem-headers.module.css'
 
@@ -20,15 +16,6 @@ interface StemHeadersProps {
   readonly onToggleSolo: (id: string) => void
   /** Download one stem as a WAV. */
   readonly onDownloadStem: (id: string) => void
-}
-
-/** Format a fader level for the mono read-out: `+3 dB`, `0 dB`, `−∞ dB`. */
-function formatDb(db: number): string {
-  if (db <= MIN_GAIN_DB) {
-    return '−∞ dB'
-  }
-  const rounded = Math.round(db)
-  return `${rounded > 0 ? '+' : ''}${rounded} dB`
 }
 
 /**
@@ -127,31 +114,12 @@ export function StemHeaders({
               >
                 S
               </button>
-              <input
-                type="range"
-                className={styles.fader}
-                data-accent="amber"
-                data-compact=""
-                min={MIN_GAIN_DB}
-                max={MAX_GAIN_DB}
-                step={1}
-                value={gainDb}
-                aria-label={t({
-                  id: 'mixer.volume',
-                  message: `Volume ${name}`
-                })}
-                // Double-click returns to unity (0 dB) — the shared « retour
-                // neutre » gesture (AL.3/AM.2), matching the transport sliders.
-                title={t({
-                  id: 'mixer.volume-reset',
-                  message: 'Double-clic pour revenir à 0 dB'
-                })}
-                onChange={(event) =>
-                  onSetGain(stem.id, event.target.valueAsNumber)
-                }
-                onDoubleClick={() => onSetGain(stem.id, UNITY_GAIN_DB)}
+              <GainFader
+                stemId={stem.id}
+                name={name}
+                gainDb={gainDb}
+                onSetGain={onSetGain}
               />
-              <span className={styles.db}>{formatDb(gainDb)}</span>
               {/* Tone shaping lives behind a popover (Y.1): the header keeps
                   its two 48px-contract lines, the EQ opens on demand.
                   Session-only: a listening aid, never saved with the

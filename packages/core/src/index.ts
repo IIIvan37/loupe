@@ -217,9 +217,11 @@ export {
   dbToAmplitude,
   effectiveGains,
   emptyMixer,
+  GAIN_DB_FINE_STEP,
   MAX_GAIN_DB,
   MIN_GAIN_DB,
   mixerReducer,
+  stepGainDb,
   UNITY_GAIN_DB
 } from './domain/mixer.ts'
 export { nudgeSeconds } from './domain/nudge-time.ts'

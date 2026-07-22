@@ -200,9 +200,52 @@ describe('StemHeaders', () => {
     expect(onSetGain).toHaveBeenCalledWith('voix', 0)
   })
 
-  it('shows the fader level in dB', () => {
+  it('shows the fader level in an editable dB field', () => {
     renderHeaders([channel('voix', 'Voix', { gainDb: -6 })])
-    expect(screen.getByText('-6 dB')).toBeInTheDocument()
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('mixer.volume-db', { name: 'Voix' })
+    })
+    expect(field).toHaveValue(-6)
+    expect(screen.getByText('dB')).toBeInTheDocument()
+  })
+
+  it('commits a typed dB level', () => {
+    const onSetGain = vi.fn()
+    renderHeaders([channel('voix', 'Voix', { gainDb: 0 })], { onSetGain })
+    const field = screen.getByRole('spinbutton', {
+      name: i18n._('mixer.volume-db', { name: 'Voix' })
+    })
+    // The field commits on blur (and Enter), not on each keystroke.
+    fireEvent.change(field, { target: { value: '-3.5' } })
+    fireEvent.blur(field)
+    expect(onSetGain).toHaveBeenCalledWith('voix', -3.5)
+  })
+
+  it('nudges the fader a fine 0.5 dB on the wheel', () => {
+    const onSetGain = vi.fn()
+    renderHeaders([channel('voix', 'Voix', { gainDb: 0 })], { onSetGain })
+    const slider = screen.getByRole('slider', {
+      name: i18n._('mixer.volume', { name: 'Voix' })
+    })
+    // Wheel up (negative deltaY) → +0.5 dB; down → −0.5 dB.
+    fireEvent.wheel(slider, { deltaY: -100 })
+    expect(onSetGain).toHaveBeenLastCalledWith('voix', 0.5)
+    fireEvent.wheel(slider, { deltaY: 100 })
+    expect(onSetGain).toHaveBeenLastCalledWith('voix', -0.5)
+  })
+
+  it('nudges the fader a fine 0.5 dB on Shift+arrow, coarse otherwise', () => {
+    const onSetGain = vi.fn()
+    renderHeaders([channel('voix', 'Voix', { gainDb: 0 })], { onSetGain })
+    const slider = screen.getByRole('slider', {
+      name: i18n._('mixer.volume', { name: 'Voix' })
+    })
+    fireEvent.keyDown(slider, { key: 'ArrowUp', shiftKey: true })
+    expect(onSetGain).toHaveBeenLastCalledWith('voix', 0.5)
+    // A plain arrow is the slider's native whole-dB step — our handler stays out.
+    onSetGain.mockClear()
+    fireEvent.keyDown(slider, { key: 'ArrowUp' })
+    expect(onSetGain).not.toHaveBeenCalled()
   })
 
   it('downloads a stem as WAV', async () => {
