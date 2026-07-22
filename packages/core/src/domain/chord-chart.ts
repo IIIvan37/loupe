@@ -583,11 +583,12 @@ function rowCellSpans(
   for (let i = 0; i <= rawLine.length; i++) {
     if (i !== rawLine.length && rawLine[i] !== '|') continue
     const matches = [...rawLine.slice(cellStart, i).matchAll(TOKEN)]
+    const first = matches[0]
     const last = matches.at(-1)
-    if (last !== undefined) {
+    if (first !== undefined && last !== undefined) {
       cells.push({
         tokens: matches.map((match) => match[0]),
-        start: cellStart + (matches[0]?.index ?? 0),
+        start: cellStart + first.index,
         end: cellStart + last.index + last[0].length
       })
     }

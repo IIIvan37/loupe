@@ -864,6 +864,27 @@ describe('measureSourceSpans', () => {
     ])
   })
 
+  it('the volta carry STOPS at its :| — a later bare :| merges its xN again', () => {
+    // A's :| closes the volta; B's :| is bare, so its x2 is a pass count.
+    // A carry that never cleared would leak volta 1 onto B and keep the x2
+    // as a phantom measure.
+    const source = '|1. A :| B :| x2 |'
+    const spans = measureSourceSpans(source)
+    expect(spans.map((s) => source.slice(s.start, s.end))).toEqual([
+      '1. A :',
+      'B :'
+    ])
+  })
+
+  it('an indented header still reads as a header — no phantom measure', () => {
+    // The dispatch trims like the parser: without it, `  [A]` would tokenize
+    // as a row and mint a span for a section label.
+    const source = '  [A]\n| C |'
+    expect(
+      measureSourceSpans(source).map((s) => source.slice(s.start, s.end))
+    ).toEqual(['C'])
+  })
+
   it('the volta CARRIES across the row — an xN after a carried volta stays a measure', () => {
     // B has no volta of its own; it inherits 1 from the row. Without the
     // carry the x2 would merge into B's :| and a span would vanish.

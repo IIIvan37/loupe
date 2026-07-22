@@ -65,10 +65,13 @@
 - typecheck : ✅
 - tests (with coverage) : ✅ 1995 tests, 153 fichiers (coverage web/core dans
   les seuils)
-- mutation (Stryker, local, `--force --mutate chord-chart.ts`) : ✅ premier
-  run 95,31 % sur chord-chart.ts avec survivants dans le nouveau code → tests
-  tueurs ajoutés, re-run en confirmation (résultat consigné dans la PR) ;
-  break global 90 tenu (92,87 %).
+- mutation (Stryker, local, `--force --mutate chord-chart.ts`) : ✅ 95,31 %
+  → **96,39 %** après deux vagues de tests tueurs (carry volta, arrêt du
+  carry au `:|`, `gridStarted`, header indenté, cellule finale sans barre) +
+  restructuration de la garde `first`/`last`. Les 6 survivants restants du
+  nouveau code sont des mutants équivalents (garde couplée `first`/`last`,
+  forme de `previous` sans effet sur le merge, skip de ligne blanche) ; break
+  global 90 tenu.
 - biome / sheriff / impeccable / react-doctor / knip / jscpd : ✅ (react-doctor
   a exigé la dérivation du surlignage — corrigé)
 
