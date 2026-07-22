@@ -126,9 +126,10 @@ efface une classe entière de code mort.*
   web) ; afficher tonalité courante/cible (ou offset signé « +3 ») + bouton
   « revenir à la tonalité écrite » + sélecteur de cible + bascule ♯/♭.
 - **AN.4** — Gravure Real Book : couche de formatage pure `b→♭`/`#→♯`
-  (fondamentale **et** exposant), `maj7→△`/`dim→°`/`m7b5→ø`/`aug→+`, fallback
-  `--font-ui` si Petaluma Script ne porte pas les glyphes SMuFL ; + crochets de
-  volta, points de reprise.
+  (fondamentale **et** exposant), `maj7→M7` (**décision 2026-07-22 : pas de
+  triangle △**), `dim→°`/`m7b5→ø`/`aug→+`, fallback `--font-ui` si Petaluma
+  Script ne porte pas les glyphes SMuFL ; + crochets de volta, points de
+  reprise.
 - **AN.5** *(ajout 2026-07-22)* — Chiffrage romain : bascule d'affichage des
   accords en degrés relatifs à la tonalité (`{key}`) — en Do majeur, `CM7` se
   lit `IM7`, `Dm7` → `IIm7` (ou `ii7`), racines hors gamme avec altération
@@ -182,7 +183,8 @@ efface une classe entière de code mort.*
 - [x] AL.1 · [x] AL.2 · [x] AL.3 · [x] AL.4
 - [x] AM.1 · [x] AM.2 · [~] AM.3 (écarté) · [~] AM.4 (écarté) — **Lot AM clos
   2026-07-22** (décision produit sur AM.3/AM.4)
-- [x] AN.1 (#241, périmètre « locus seul ») · [ ] AN.2 · [ ] AN.3 · [ ] AN.4 · [ ] AN.5
+- [x] AN.1 (#241, périmètre « locus seul ») · [x] AN.2 (#242, diagnostics
+  seuls) · [ ] AN.3 · [ ] AN.4 · [ ] AN.5
 - [ ] AO.1 · [ ] AO.2 · [ ] AO.3
 - [ ] AP.2 · [ ] AP.3 · [ ] AP.4
 - [ ] AQ.1 · [ ] AQ.2
