@@ -153,6 +153,17 @@ input[type='range']:disabled {
     --amber-deep: transparent;
     --teal: transparent;
   }
+
+  /* The AN.2 parse diagnostics (suspect outline, unreachable fade) are
+     editing affordances — printing while the editor is open must not ink
+     them. Attribute selectors: the module class names are hashed. */
+  [data-suspect] {
+    outline: none;
+  }
+
+  [data-unreachable] {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

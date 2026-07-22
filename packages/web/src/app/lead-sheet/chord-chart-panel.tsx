@@ -1,4 +1,5 @@
-import { chartMatchesPitch, measureSourceSpans, parseChart } from '@app/core'
+import { chartDiagnostics, chartMatchesPitch, parseChart } from '@app/core'
+import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { printUnavailableOnDesktop } from '../desktop/desktop-export.ts'
@@ -33,6 +34,165 @@ interface ChordChartPanelProps {
   readonly header?: ChartHeaderData | undefined
   /** Tap a measure to seek playback to it — see LeadSheet. */
   readonly onSelectMeasure?: ((writtenIndex: number) => void) | undefined
+}
+
+/** The panel's action bar: title, layout, transpose, print, edit, help.
+ *  Not a <header>: Testing Library's role mapper would still expose it as a
+ *  second `banner` landmark beside the app header. */
+function PanelHeader({
+  barsPerRow,
+  onBarsPerRow,
+  onTranspose,
+  printable,
+  editing,
+  editorId,
+  onToggleEdit,
+  onOpenHelp
+}: {
+  readonly barsPerRow: number
+  readonly onBarsPerRow: (value: number) => void
+  readonly onTranspose: (delta: number) => void
+  readonly printable: boolean
+  readonly editing: boolean
+  readonly editorId: string
+  readonly onToggleEdit: () => void
+  readonly onOpenHelp: () => void
+}) {
+  const { t } = useLingui()
+  return (
+    <div className={styles.header}>
+      {/* h3: the panel title steps down under its zone's h2 (Partition) —
+          the outline mirrors the section nesting Q.1 introduced. */}
+      <h3 className={styles.title}>
+        {t({ id: 'chords.title', message: "Grille d'accords" })}
+      </h3>
+      <BarsPerRowField value={barsPerRow} onChange={onBarsPerRow} />
+      <span className={styles.transpose}>
+        <button
+          type="button"
+          className={styles.transposeButton}
+          onClick={() => onTranspose(-1)}
+          aria-label={t({
+            id: 'chords.transpose-down',
+            message: 'Transposer un demi-ton vers le bas'
+          })}
+        >
+          −½
+        </button>
+        <button
+          type="button"
+          className={styles.transposeButton}
+          onClick={() => onTranspose(1)}
+          aria-label={t({
+            id: 'chords.transpose-up',
+            message: 'Transposer un demi-ton vers le haut'
+          })}
+        >
+          +½
+        </button>
+      </span>
+      <button
+        type="button"
+        className={styles.printButton}
+        // A source that renders no chart would print a blank page — the
+        // action waits for content, the same test the sheet uses to emit
+        // its print region. window.print() has no delegate in the desktop
+        // webview (AH.1): disabled with a hint, never a silent no-op.
+        disabled={!printable || printUnavailableOnDesktop()}
+        title={
+          printUnavailableOnDesktop()
+            ? t({
+                id: 'chords.print-desktop-soon',
+                message: "Impression bientôt disponible sur l'app de bureau"
+              })
+            : undefined
+        }
+        onClick={() => window.print()}
+      >
+        {t({ id: 'chords.print', message: 'Imprimer' })}
+      </button>
+      <button
+        type="button"
+        className={styles.editToggle}
+        aria-expanded={editing}
+        aria-controls={editorId}
+        onClick={onToggleEdit}
+      >
+        {t({ id: 'chords.edit', message: 'Modifier' })}
+      </button>
+      <button type="button" className={styles.helpButton} onClick={onOpenHelp}>
+        {t({ id: 'chords.format-help', message: 'Aide du format' })}
+      </button>
+    </div>
+  )
+}
+
+/** The two count-bearing warnings ride explicit ICU plurals — the catalog's
+ *  precedent (`analyser.summary-sections`) — resolved via the msg-descriptor
+ *  path like `analysis-summary.ts`. */
+const PARSE_SUSPECTS = msg({
+  id: 'chords.parse-suspects',
+  message:
+    '{count, plural, one {# accord douteux : {examples}} other {# accords douteux : {examples}}}'
+})
+const PARSE_UNREACHABLE = msg({
+  id: 'chords.parse-unreachable',
+  message:
+    '{count, plural, one {# mesure jamais jouée par la forme} other {# mesures jamais jouées par la forme}}'
+})
+
+/** The feedback line's count: what the grammar read, total and — once the
+ *  caret sits on a measure row — on that line. Locals are bound so the ICU
+ *  placeholders keep readable names (`onLine` is that line's measure count,
+ *  never a line number). */
+function ParseCount({
+  measures,
+  onLine
+}: {
+  readonly measures: number
+  readonly onLine: number | undefined
+}) {
+  const { t } = useLingui()
+  return (
+    <span className={styles.parseCount}>
+      {onLine === undefined
+        ? t({
+            id: 'chords.parse-count',
+            message: `Mesures lues : ${measures}`
+          })
+        : t({
+            id: 'chords.parse-count-line',
+            message: `Mesures lues : ${measures} · sur cette ligne : ${onLine}`
+          })}
+    </span>
+  )
+}
+
+/** Tokens the parser read as chords but that cannot honestly be ones. */
+function SuspectsWarning({
+  count,
+  examples
+}: {
+  readonly count: number
+  readonly examples: string
+}) {
+  const { i18n } = useLingui()
+  return (
+    <span className={styles.parseWarning} data-parse-warning="">
+      {i18n._({ ...PARSE_SUSPECTS, values: { count, examples } })}
+    </span>
+  )
+}
+
+/** Written measures the unrolled form never plays (dead tail, volta above the
+ *  pass count) — the chart claims bars the listener will never hear. */
+function UnreachableWarning({ count }: { readonly count: number }) {
+  const { i18n } = useLingui()
+  return (
+    <span className={styles.parseWarning} data-parse-warning="">
+      {i18n._({ ...PARSE_UNREACHABLE, values: { count } })}
+    </span>
+  )
 }
 
 /**
@@ -79,8 +239,14 @@ export function ChordChartPanel({
     () => chartHasContent(parseChart(source)),
     [source]
   )
-  // The measure↔text locus (AN.1): where each written bar lives in the source.
-  const spans = useMemo(() => measureSourceSpans(source), [source])
+  // The measure↔text machinery (AN.1 locus + AN.2 diagnostics), one walk:
+  // spans, per-line counts, suspect tokens, unreachable bars. Editing only —
+  // the reading view (and print) consumes none of it, so it computes nothing.
+  const diagnostics = useMemo(
+    () => (editing ? chartDiagnostics(source) : undefined),
+    [editing, source]
+  )
+  const spans = diagnostics?.spans
   // The source line under the editor's caret — view state. The highlight
   // DERIVES from (editing, caretLine), so folding the editor away retires the
   // locus without a state sync; the stale line simply stops mattering.
@@ -88,7 +254,7 @@ export function ChordChartPanel({
 
   /** While editing, a measure tap lands the cursor on the bar's tokens. */
   function locateMeasure(writtenIndex: number): void {
-    const span = spans[writtenIndex]
+    const span = spans?.[writtenIndex]
     const editor = editorRef.current
     if (span === undefined || editor === null) {
       return
@@ -110,13 +276,41 @@ export function ChordChartPanel({
   // The written measures the caret's line holds — their boxes light up so the
   // sheet always shows where the typing lands.
   const activeSourceMeasures = useMemo(() => {
-    if (!editing || caretLine === undefined) {
+    if (spans === undefined || caretLine === undefined) {
       return undefined
     }
     return new Set(
       spans.flatMap((span, index) => (span.line === caretLine ? [index] : []))
     )
-  }, [editing, spans, caretLine])
+  }, [spans, caretLine])
+  // The parse feedback's sheet marking (AN.2) — a swallowed token or a dead
+  // bar never stays silent. Undefined outside editing: unannotated sheet.
+  const suspectMeasures = useMemo(
+    () =>
+      diagnostics === undefined
+        ? undefined
+        : new Set(diagnostics.suspectTokens.map((token) => token.measure)),
+    [diagnostics]
+  )
+  const unreachableMeasures = useMemo(
+    () =>
+      diagnostics === undefined
+        ? undefined
+        : new Set(diagnostics.unreachableMeasures),
+    [diagnostics]
+  )
+  const caretLineCount =
+    caretLine === undefined
+      ? undefined
+      : diagnostics?.measuresPerLine.get(caretLine)
+  // The doubtful tokens, deduplicated for the warning line (a repeated typo
+  // reads once); an ellipsis owns up to the ones not shown.
+  const distinctSuspects = [
+    ...new Set((diagnostics?.suspectTokens ?? []).map((token) => token.token))
+  ]
+  const suspectExamples =
+    distinctSuspects.slice(0, 3).join(', ') +
+    (distinctSuspects.length > 3 ? ', …' : '')
   // The « transposing instruments » gap: the audio plays in one key, the grid
   // shows another. Octave-equivalent keys name the same chords, so the flag
   // compares modulo 12; the button still applies the exact gap so the offset
@@ -147,77 +341,16 @@ export function ChordChartPanel({
 
   return (
     <section className={styles.panel}>
-      {/* Not a <header>: Testing Library's role mapper would still expose it
-          as a second `banner` landmark beside the app header. */}
-      <div className={styles.header}>
-        {/* h3: the panel title steps down under its zone's h2 (Partition) —
-            the outline mirrors the section nesting Q.1 introduced. */}
-        <h3 className={styles.title}>
-          {t({ id: 'chords.title', message: "Grille d'accords" })}
-        </h3>
-        <BarsPerRowField value={barsPerRow} onChange={setBarsPerRow} />
-        <span className={styles.transpose}>
-          <button
-            type="button"
-            className={styles.transposeButton}
-            onClick={() => onTranspose(-1)}
-            aria-label={t({
-              id: 'chords.transpose-down',
-              message: 'Transposer un demi-ton vers le bas'
-            })}
-          >
-            −½
-          </button>
-          <button
-            type="button"
-            className={styles.transposeButton}
-            onClick={() => onTranspose(1)}
-            aria-label={t({
-              id: 'chords.transpose-up',
-              message: 'Transposer un demi-ton vers le haut'
-            })}
-          >
-            +½
-          </button>
-        </span>
-        <button
-          type="button"
-          className={styles.printButton}
-          // A source that renders no chart would print a blank page — the
-          // action waits for content, the same test the sheet uses to emit
-          // its print region. window.print() has no delegate in the desktop
-          // webview (AH.1): disabled with a hint, never a silent no-op.
-          disabled={!printable || printUnavailableOnDesktop()}
-          title={
-            printUnavailableOnDesktop()
-              ? t({
-                  id: 'chords.print-desktop-soon',
-                  message:
-                    "Impression bientôt disponible sur l'app de bureau"
-                })
-              : undefined
-          }
-          onClick={() => window.print()}
-        >
-          {t({ id: 'chords.print', message: 'Imprimer' })}
-        </button>
-        <button
-          type="button"
-          className={styles.editToggle}
-          aria-expanded={editing}
-          aria-controls={editorId}
-          onClick={() => setEditing((open) => !open)}
-        >
-          {t({ id: 'chords.edit', message: 'Modifier' })}
-        </button>
-        <button
-          type="button"
-          className={styles.helpButton}
-          onClick={() => setHelpOpen(true)}
-        >
-          {t({ id: 'chords.format-help', message: 'Aide du format' })}
-        </button>
-      </div>
+      <PanelHeader
+        barsPerRow={barsPerRow}
+        onBarsPerRow={setBarsPerRow}
+        onTranspose={onTranspose}
+        printable={printable}
+        editing={editing}
+        editorId={editorId}
+        onToggleEdit={() => setEditing((open) => !open)}
+        onOpenHelp={() => setHelpOpen(true)}
+      />
       <FormatHelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
       {gridDiverges && (
         <div className={styles.pitchDrift}>
@@ -263,6 +396,8 @@ export function ChordChartPanel({
           onSelectMeasure={editing ? locateMeasure : onSelectMeasure}
           locating={editing}
           activeSourceMeasures={activeSourceMeasures}
+          suspectMeasures={suspectMeasures}
+          unreachableMeasures={unreachableMeasures}
           barsPerRow={barsPerRow}
         />
       </div>
@@ -277,6 +412,25 @@ export function ChordChartPanel({
               'Aucune grille — saisir les accords via « Modifier » ou lancer la détection.'
           })}
         </p>
+      )}
+      {diagnostics !== undefined && (
+        <div className={styles.parseFeedback}>
+          <ParseCount
+            measures={diagnostics.measureCount}
+            onLine={caretLineCount}
+          />
+          {diagnostics.suspectTokens.length > 0 && (
+            <SuspectsWarning
+              count={diagnostics.suspectTokens.length}
+              examples={suspectExamples}
+            />
+          )}
+          {diagnostics.unreachableMeasures.length > 0 && (
+            <UnreachableWarning
+              count={diagnostics.unreachableMeasures.length}
+            />
+          )}
+        </div>
       )}
       {editing && (
         <textarea

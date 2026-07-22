@@ -130,13 +130,16 @@ export {
   relabelChartBySections
 } from './domain/chart-structure.ts'
 export type {
+  ChartDiagnostics,
   ChartForm,
   ChordChart,
   Measure,
   MeasureSourceSpan,
-  Section
+  Section,
+  SuspectToken
 } from './domain/chord-chart.ts'
 export {
+  chartDiagnostics,
   chartMatchesPitch,
   measureSourceSpans,
   parseChart,
