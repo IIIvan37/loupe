@@ -7,17 +7,15 @@
 
 ## Where we are
 
-**Lot AL — la boucle de pratique au niveau d'un vrai outil — CLOS** ([roadmap
-v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ, AK, AL clos). AL.1→AL.4 livrés
-(AL.4 = #237) — détail en Historique. **Lot AM en cours** : AM.1 (lanes
-cliquables, PR #239).
-
-**AM.2 mergée (PR #240).** **AM.3 (confiance visible) écartée** le 2026-07-22 —
-décision produit : le degré de confiance apporte peu à l'utilisateur, le
-tooltip existant suffit (une implémentation complète — core `describeConfidence`
-+ chip — a été jetée avant PR).
-**Prochain : AM.4** — EQ lisible (Hz affichés + reset neutre + mention
-session-only) + mini-mètres par stem (tap analyser).
+**Lot AM — le mixer devient vivant — CLOS** ([roadmap
+v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ, AK, AL, AM clos). AM.1 (#239) et
+AM.2 (#240) livrées ; **AM.3 (confiance visible) et AM.4 (EQ lisible +
+mini-mètres) écartées** le 2026-07-22 — décision produit : ces raffinements
+mixer apportent peu à l'outil de pratique (pour AM.3, une implémentation
+complète — core `describeConfidence` + chip — a été jetée avant PR).
+**Prochain : Lot AN — la partition à hauteur de sa lecture** (AN.1 édition
+structurée + synchro locus, AN.2 grammaire qui ne ment plus, AN.3 transposition
+juste, AN.4 gravure Real Book).
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
@@ -31,8 +29,9 @@ re-seed des codes legacy, PKCE en bundle à rejouer.
 
 ### Roadmap excellence 7 (2026-07-19 → …) — UX exceptionnelle
 
-- 2026-07-22 · **AM.3 — confiance visible : écartée** (décision produit, aucune
-  PR) — le degré de confiance apporte peu ; roadmap v7 mise à jour
+- 2026-07-22 · **AM.3 + AM.4 écartées, Lot AM clos** (décision produit, aucune
+  PR) — confiance visible et EQ lisible/mini-mètres apportent peu ; roadmap v7
+  mise à jour
 - 2026-07-21 · **AM.2 — fader console** (PR #240) : pas fin 0,5 dB (molette +
   Shift+flèches via core `stepGainDb`) +
   lecture dB éditable (`CommitNumberField`), fader extrait en `GainFader` →
