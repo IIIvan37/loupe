@@ -7,15 +7,19 @@
 
 ## Where we are
 
-**Lot AM — le mixer devient vivant — CLOS** ([roadmap
-v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ, AK, AL, AM clos). AM.1 (#239) et
-AM.2 (#240) livrées ; **AM.3 (confiance visible) et AM.4 (EQ lisible +
-mini-mètres) écartées** le 2026-07-22 — décision produit : ces raffinements
-mixer apportent peu à l'outil de pratique (pour AM.3, une implémentation
-complète — core `describeConfidence` + chip — a été jetée avant PR).
-**Prochain : Lot AN — la partition à hauteur de sa lecture** (AN.1 édition
-structurée + synchro locus, AN.2 grammaire qui ne ment plus, AN.3 transposition
-juste, AN.4 gravure Real Book).
+**Lot AN — la partition à hauteur de sa lecture — en cours** ([roadmap
+v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AM clos). **AN.1 livrée (#241,
+périmètre « locus seul »)** : core pur `measureSourceSpans` (mesure écrite →
+span source, miroir de `parseChart`, Stryker 96,39 %) ; éditeur déplié → le tap
+d'une mesure place le curseur sur ses tokens (`chart.measure-locate`) au lieu
+de seek ; la ligne source sous le caret surligne ses mesures (liseré teal,
+éteint au blur, neutralisé print, amber prioritaire). L'édition inline par
+mesure (point 3 de l'approche) est différée. **AN.5 ajouté à la roadmap** :
+accords en chiffrage romain (`IM7` en Do majeur), demande utilisateur.
+**Prochain : AN.2 — grammaire qui ne ment plus** (retour de parse — nb
+mesures/ligne, rangée inatteignable surlignée — tokens non ré-imprimables
+signalés au lieu d'avalés, snippets insérables), puis AN.3 (transposition
+juste), AN.4 (gravure Real Book), AN.5 (chiffrage romain).
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
@@ -29,6 +33,10 @@ re-seed des codes legacy, PKCE en bundle à rejouer.
 
 ### Roadmap excellence 7 (2026-07-19 → …) — UX exceptionnelle
 
+- 2026-07-22 · **AN.1 — synchro locus mesure ↔ texte source** (PR #241) : core
+  `measureSourceSpans` (miroir parseChart, tests tueurs Stryker 96,39 %), tap
+  mesure = curseur sur le token en édition, ligne du caret surlignée →
+  [rapport](sessions/2026-07-22-an1-measure-locus.md)
 - 2026-07-22 · **AM.3 + AM.4 écartées, Lot AM clos** (décision produit, aucune
   PR) — confiance visible et EQ lisible/mini-mètres apportent peu ; roadmap v7
   mise à jour

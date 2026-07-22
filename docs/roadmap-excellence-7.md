@@ -182,7 +182,7 @@ efface une classe entière de code mort.*
 - [x] AL.1 · [x] AL.2 · [x] AL.3 · [x] AL.4
 - [x] AM.1 · [x] AM.2 · [~] AM.3 (écarté) · [~] AM.4 (écarté) — **Lot AM clos
   2026-07-22** (décision produit sur AM.3/AM.4)
-- [ ] AN.1 · [ ] AN.2 · [ ] AN.3 · [ ] AN.4 · [ ] AN.5
+- [x] AN.1 (#241, périmètre « locus seul ») · [ ] AN.2 · [ ] AN.3 · [ ] AN.4 · [ ] AN.5
 - [ ] AO.1 · [ ] AO.2 · [ ] AO.3
 - [ ] AP.2 · [ ] AP.3 · [ ] AP.4
 - [ ] AQ.1 · [ ] AQ.2
