@@ -56,10 +56,11 @@ interface WaveformViewProps {
 }
 
 /**
- * The centrepiece envelope, split at the playhead (AO.1): a muted « à venir »
- * base carries the accessible name; a vivid amber→teal « lu » copy sits above,
- * clipped to the played fraction via the stage's --playhead-ratio variable —
- * paint-only per frame, no React on the tick path.
+ * The centrepiece envelope, split at the playhead (AO.1): one amber→teal
+ * gradient colours the whole track; the base « à venir » copy is dimmed by
+ * CSS, the vivid « lu » copy above it is clipped to the played fraction via
+ * the stage's --playhead-ratio variable — paint-only per frame, no React on
+ * the tick path. Same hue both sides: the split reads by intensity.
  */
 function SplitWaveform({
   waveform,
@@ -70,13 +71,15 @@ function SplitWaveform({
 }) {
   return (
     <div className={styles.waveStack}>
-      <WaveformCanvas waveform={waveform} label={label} tone="upcoming" />
+      <div className={styles.upcomingLayer}>
+        <WaveformCanvas waveform={waveform} label={label} identity />
+      </div>
       <div
         className={styles.playedClip}
         data-testid="waveform-played"
         aria-hidden="true"
       >
-        <WaveformCanvas waveform={waveform} label="" tone="played" decorative />
+        <WaveformCanvas waveform={waveform} label="" identity decorative />
       </div>
     </div>
   )
@@ -161,23 +164,20 @@ export function WaveformView({
             data-testid="waveform-surface"
             onPointerDown={gestures.beginSelect}
           >
-            {mixWaveform ? (
-              <SplitWaveform
-                waveform={mixWaveform}
-                label={t({
-                  id: 'waveform.mix-image',
-                  message: "Forme d'onde du mix"
-                })}
-              />
-            ) : (
-              <SplitWaveform
-                waveform={state.track.waveform}
-                label={t({
-                  id: 'waveform.track-image',
-                  message: "Forme d'onde de la piste"
-                })}
-              />
-            )}
+            <SplitWaveform
+              waveform={mixWaveform ?? state.track.waveform}
+              label={
+                mixWaveform
+                  ? t({
+                      id: 'waveform.mix-image',
+                      message: "Forme d'onde du mix"
+                    })
+                  : t({
+                      id: 'waveform.track-image',
+                      message: "Forme d'onde de la piste"
+                    })
+              }
+            />
           </div>
 
           {durationSeconds > 0 && (
