@@ -34,7 +34,9 @@ describe('separateTrack — when the separator yields stems', () => {
       ['vox', 'Voix'],
       ['bass', 'Basse']
     ])
-    expect(result.stems[0]?.track.waveform.peaks).toEqual([{ min: -1, max: 1 }])
+    expect(result.stems[0]?.track.waveform.peaks).toEqual([
+      { min: -1, max: 1, rms: 0.75 }
+    ])
   })
 
   it('retains the raw stem PCM as sources for playback/export', async () => {

@@ -61,8 +61,16 @@ describe('loadTrack — when the decoder yields PCM', () => {
     if (!result.ok) throw new Error('expected ok')
     expect(result.track.waveform.peaks).toHaveLength(2)
     // First half [0, 1] → max 1; second half [-1, 0.5] → min -1.
-    expect(result.track.waveform.peaks[0]).toEqual({ min: 0, max: 1 })
-    expect(result.track.waveform.peaks[1]).toEqual({ min: -1, max: 0.5 })
+    expect(result.track.waveform.peaks[0]).toEqual({
+      min: 0,
+      max: 1,
+      rms: Math.sqrt(0.5)
+    })
+    expect(result.track.waveform.peaks[1]).toEqual({
+      min: -1,
+      max: 0.5,
+      rms: Math.sqrt(0.625)
+    })
   })
 
   it('hands the decoded PCM to the playback engine (decoded once)', async () => {

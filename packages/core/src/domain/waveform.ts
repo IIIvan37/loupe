@@ -6,6 +6,8 @@
 export interface WaveformPeak {
   readonly min: number
   readonly max: number
+  /** Root-mean-square of the bucket — the loudness core under the peak tips. */
+  readonly rms: number
 }
 
 export interface Waveform {
@@ -31,19 +33,21 @@ export function buildWaveform(
     const start = Math.floor((bucket * total) / bucketCount)
     const end = Math.floor(((bucket + 1) * total) / bucketCount)
     if (end <= start) {
-      peaks.push({ min: 0, max: 0 })
+      peaks.push({ min: 0, max: 0, rms: 0 })
       continue
     }
     // Indices are in bounds by construction; the non-null asserts only satisfy
     // `noUncheckedIndexedAccess` over the `ArrayLike` index signature.
     let min = samples[start] as number
     let max = min
+    let energy = min * min
     for (let i = start + 1; i < end; i++) {
       const value = samples[i] as number
       if (value < min) min = value
       if (value > max) max = value
+      energy += value * value
     }
-    peaks.push({ min, max })
+    peaks.push({ min, max, rms: Math.sqrt(energy / (end - start)) })
   }
   return { peaks }
 }

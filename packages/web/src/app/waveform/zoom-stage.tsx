@@ -32,6 +32,7 @@ export function ZoomStage({
   children
 }: ZoomStageProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
+  const innerRef = useRef<HTMLDivElement>(null)
   const playheadRef = useRef<HTMLSpanElement>(null)
   // Epoch until which the auto-follow stays suspended after a manual scroll.
   const followSuspendedUntilRef = useRef(0)
@@ -93,6 +94,10 @@ export function ZoomStage({
         // layout on every tick; translateX stays compositor-only.
         playhead.style.transform = `translateX(${ratio * scroll.scrollWidth}px)`
       }
+      // The played fraction, published for the colour-split layers (AO.1):
+      // the vivid « lu » copy clips on this variable — clip-path is paint-only,
+      // so the per-frame write never re-renders React nor invalidates layout.
+      innerRef.current?.style.setProperty('--playhead-ratio', String(ratio))
       if (scroll && next !== null) {
         scroll.scrollLeft = next
         followedScrollLeftRef.current = scroll.scrollLeft
@@ -118,7 +123,11 @@ export function ZoomStage({
 
   return (
     <div ref={scrollRef} className={styles.scroll}>
-      <div className={styles.inner} style={{ width: `${zoom * 100}%` }}>
+      <div
+        ref={innerRef}
+        className={styles.inner}
+        style={{ width: `${zoom * 100}%` }}
+      >
         {children}
         <span
           ref={playheadRef}

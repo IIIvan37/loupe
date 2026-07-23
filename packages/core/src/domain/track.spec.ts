@@ -7,8 +7,8 @@ describe('buildTrack', () => {
     expect(track.sampleRate).toBe(4)
     expect(track.durationSeconds).toBe(1)
     expect(track.waveform.peaks).toEqual([
-      { min: 0, max: 1 },
-      { min: -1, max: 0.5 }
+      { min: 0, max: 1, rms: Math.sqrt(0.5) },
+      { min: -1, max: 0.5, rms: Math.sqrt(0.625) }
     ])
   })
 
@@ -23,8 +23,8 @@ describe('buildTrack', () => {
       2
     )
     expect(track.waveform.peaks).toEqual([
-      { min: 0, max: 0 },
-      { min: 0.5, max: 0.5 }
+      { min: 0, max: 0, rms: 0 },
+      { min: 0.5, max: 0.5, rms: 0.5 }
     ])
     // Two mono samples / 2 Hz = 1 s — guards the mixdown loop bounds.
     expect(track.durationSeconds).toBe(1)

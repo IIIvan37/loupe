@@ -213,3 +213,21 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* ——— AO.1 : the playhead colour split. ——— */
+
+/* The two-layer stack fills the surface like the single canvas did. */
+.waveStack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* The vivid « lu » copy above the muted base, revealed up to the playhead.
+ * clip-path with the stage's --playhead-ratio is paint-only per frame —
+ * the whole split costs zero layout and zero React on the tick path. */
+.playedClip {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 calc((1 - var(--playhead-ratio, 0)) * 100%) 0 0);
+}

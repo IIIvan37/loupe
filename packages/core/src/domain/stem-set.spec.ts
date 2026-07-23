@@ -15,7 +15,7 @@ describe('buildStemTrack', () => {
     const stem = buildStemTrack('vox', 'Voix', [[0, 1, -1, 0.5]], 4, 1, present)
     expect(stem.track.durationSeconds).toBe(1)
     expect(stem.track.sampleRate).toBe(4)
-    expect(stem.track.waveform.peaks).toEqual([{ min: -1, max: 1 }])
+    expect(stem.track.waveform.peaks).toEqual([{ min: -1, max: 1, rms: 0.75 }])
   })
 
   it('carries the detection verdict (confidence + presence)', () => {

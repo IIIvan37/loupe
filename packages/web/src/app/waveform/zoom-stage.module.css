@@ -20,8 +20,11 @@
   border-radius: var(--radius-l);
 }
 
-/* Width is the timeline scaled by the zoom; all layers stack inside it. */
+/* Width is the timeline scaled by the zoom; all layers stack inside it.
+ * The stage owns --playhead-ratio (AO.1): the played fraction, rewritten
+ * imperatively on every position tick for the colour-split layers below. */
 .inner {
+  --playhead-ratio: 0;
   position: relative;
   min-width: 100%;
 }

@@ -56,6 +56,33 @@ interface WaveformViewProps {
 }
 
 /**
+ * The centrepiece envelope, split at the playhead (AO.1): a muted « à venir »
+ * base carries the accessible name; a vivid amber→teal « lu » copy sits above,
+ * clipped to the played fraction via the stage's --playhead-ratio variable —
+ * paint-only per frame, no React on the tick path.
+ */
+function SplitWaveform({
+  waveform,
+  label
+}: {
+  readonly waveform: Waveform
+  readonly label: string
+}) {
+  return (
+    <div className={styles.waveStack}>
+      <WaveformCanvas waveform={waveform} label={label} tone="upcoming" />
+      <div
+        className={styles.playedClip}
+        data-testid="waveform-played"
+        aria-hidden="true"
+      >
+        <WaveformCanvas waveform={waveform} label="" tone="played" decorative />
+      </div>
+    </div>
+  )
+}
+
+/**
  * Dumb presentational view of the import state: a prompt while idle, progress
  * while decoding, an alert on failure, and — once loaded — the amber waveform
  * with click-to-seek, drag-to-select (the « loupe »), a live selection preview,
@@ -135,7 +162,7 @@ export function WaveformView({
             onPointerDown={gestures.beginSelect}
           >
             {mixWaveform ? (
-              <WaveformCanvas
+              <SplitWaveform
                 waveform={mixWaveform}
                 label={t({
                   id: 'waveform.mix-image',
@@ -143,7 +170,7 @@ export function WaveformView({
                 })}
               />
             ) : (
-              <WaveformCanvas
+              <SplitWaveform
                 waveform={state.track.waveform}
                 label={t({
                   id: 'waveform.track-image',
