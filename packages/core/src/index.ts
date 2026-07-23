@@ -274,6 +274,7 @@ export {
   projectFromSession,
   tuningOrDefault
 } from './domain/project.ts'
+export { romanizeChordSymbol } from './domain/roman-numeral.ts'
 export { seekStepSeconds } from './domain/seek-step.ts'
 export type {
   SeparationAction,
