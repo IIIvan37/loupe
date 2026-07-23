@@ -46,6 +46,13 @@ describe('ChartHeader', () => {
     ).toBeInTheDocument()
   })
 
+  it('engraves the key line accidental: {key: Bb} prints B♭', () => {
+    render(<ChartHeader derived={{}} directives={{ key: 'Bb' }} />)
+    expect(
+      screen.getByText(i18n._('chart.key-of', { key: 'B♭' }))
+    ).toBeInTheDocument()
+  })
+
   it('no key directive, no key line — the app detects no key yet', () => {
     render(<ChartHeader derived={{ title: 'X' }} directives={NONE} />)
     expect(

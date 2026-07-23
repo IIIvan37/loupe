@@ -1,4 +1,8 @@
-import { formatChordSymbol, parseChordSymbol } from '@app/core'
+import {
+  engraveChordSymbol,
+  formatChordSymbol,
+  parseChordSymbol
+} from '@app/core'
 import styles from './lead-sheet.module.css'
 
 /** A pitch name the chart typography may decompose: letter + accidental. */
@@ -25,18 +29,20 @@ export function ChordGlyph({ text }: ChordGlyphProps) {
   if (formatChordSymbol(parsed) !== text || !PITCH.test(parsed.root)) {
     return <span className={styles.glyph}>{text}</span>
   }
-  const minor = MINOR.exec(parsed.quality)?.[0] ?? ''
-  const extension = parsed.quality.slice(minor.length)
+  // Engraving is display-only (Real Book glyphs); the source keeps its ASCII.
+  const engraved = engraveChordSymbol(parsed)
+  const minor = MINOR.exec(engraved.quality)?.[0] ?? ''
+  const extension = engraved.quality.slice(minor.length)
   return (
     <span className={styles.glyph}>
       <span className={styles.glyphHead}>
-        {parsed.root + minor}
+        {engraved.root + minor}
         {extension !== '' && (
           <sup className={styles.glyphQuality}>{extension}</sup>
         )}
       </span>
-      {parsed.bass !== undefined && (
-        <span className={styles.glyphBass}>/{parsed.bass}</span>
+      {engraved.bass !== undefined && (
+        <span className={styles.glyphBass}>/{engraved.bass}</span>
       )}
     </span>
   )

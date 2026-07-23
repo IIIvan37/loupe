@@ -249,11 +249,11 @@ describe('LeadSheet', () => {
     expect(screen.getByText('𝄐')).toBeInTheDocument()
   })
 
-  it('sets a chord quality as a superscript (chart typography)', () => {
+  it('sets a chord quality as a superscript, engraved (chart typography)', () => {
     const { container } = render(<LeadSheet source={'| Fmaj7 |'} />, {
       wrapper: I18nTestingProvider
     })
-    expect(container.querySelector('sup')).toHaveTextContent('maj7')
+    expect(container.querySelector('sup')).toHaveTextContent('M7')
   })
 
   it('prints the chart head from the source directives', () => {

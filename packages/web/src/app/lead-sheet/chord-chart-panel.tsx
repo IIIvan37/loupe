@@ -2,6 +2,7 @@ import {
   type Accidental,
   chartDiagnostics,
   chartMatchesPitch,
+  engraveNote,
   keyName,
   parseChart,
   parseKeyName,
@@ -350,12 +351,13 @@ export function ChordChartPanel({
   }, [source])
   // The written → current key pair, nameable only when a {key} directive
   // names the grid — one value, so the two names can never half-exist.
+  // Engraved for display, matching the sheet's glyphs (AN.4).
   const keyShift =
     currentKey === undefined
       ? undefined
       : {
-          written: keyName(transposeKey(currentKey, -transposedBy)),
-          current: keyName(currentKey)
+          written: engraveNote(keyName(transposeKey(currentKey, -transposedBy))),
+          current: engraveNote(keyName(currentKey))
         }
 
   /** Re-spell the whole grid in the chosen accidental — pitch untouched.
