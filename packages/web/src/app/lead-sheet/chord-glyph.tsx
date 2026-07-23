@@ -5,6 +5,7 @@ import {
   parseChordSymbol,
   romanizeChordSymbol
 } from '@app/core'
+import { memo } from 'react'
 import styles from './lead-sheet.module.css'
 
 /** A pitch name the chart typography may decompose: letter + accidental. */
@@ -29,7 +30,12 @@ interface ChordGlyphProps {
     spellings (`ma`, `ma7`, `maj…`) exclude it — `madd9` is still minor. */
 const MINOR = /^m(?!aj)(?!a\d)(?!a$)[in]*/
 
-export function ChordGlyph({ text, romanKey }: ChordGlyphProps) {
+/* memo: the sheet re-renders every playhead frame during playback while each
+   glyph's (text, romanKey) stay identical — skip the per-chord re-parse. */
+export const ChordGlyph = memo(function ChordGlyph({
+  text,
+  romanKey
+}: ChordGlyphProps) {
   const parsed = parseChordSymbol(text)
   if (formatChordSymbol(parsed) !== text || !PITCH.test(parsed.root)) {
     return <span className={styles.glyph}>{text}</span>
@@ -53,4 +59,4 @@ export function ChordGlyph({ text, romanKey }: ChordGlyphProps) {
       )}
     </span>
   )
-}
+})

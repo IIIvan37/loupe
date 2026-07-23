@@ -1,16 +1,30 @@
 import type { Key } from './chord-key.ts'
-import { type ChordSymbol, pitchClassOf } from './chord-symbol.ts'
+import {
+  type ChordSymbol,
+  mapChordNotes,
+  pitchClassOf
+} from './chord-symbol.ts'
 
-/** The major-scale intervals, numbered — the reference the degrees read from. */
-const DEGREES = new Map<number, string>([
-  [0, 'I'],
-  [2, 'II'],
-  [4, 'III'],
-  [5, 'IV'],
-  [7, 'V'],
-  [9, 'VI'],
-  [11, 'VII']
-])
+/**
+ * Every interval from the tonic, as a degree of its MAJOR scale — the mode is
+ * deliberately ignored (C in A minor reads ♭III, the jazz-chart reference).
+ * Chromatic intervals all sit one semitone under a scale degree and read
+ * flat-side (`♭VII`, the tritone sub's `♭V`), never sharp.
+ */
+const DEGREES = [
+  'I',
+  '♭II',
+  'II',
+  '♭III',
+  'III',
+  'IV',
+  '♭V',
+  'V',
+  '♭VI',
+  'VI',
+  '♭VII',
+  'VII'
+] as const
 
 /**
  * Re-read a chord's letter names as degrees of `key` — `CM7` in C major
@@ -21,13 +35,11 @@ export function romanizeChordSymbol(
   symbol: ChordSymbol,
   key: Key
 ): ChordSymbol {
-  const root = degreeOf(symbol.root, key)
-  if (root === undefined) {
+  if (pitchClassOf(symbol.root) === undefined) {
     return symbol
   }
-  const bass =
-    symbol.bass === undefined ? undefined : degreeOf(symbol.bass, key)
-  return bass === undefined ? { ...symbol, root } : { ...symbol, root, bass }
+  // A bass naming no pitch keeps its letters — display must never drop it.
+  return mapChordNotes(symbol, (note) => degreeOf(note, key) ?? note)
 }
 
 /** A pitch name as a degree of `key`; no degree for no pitch name. */
@@ -36,8 +48,5 @@ function degreeOf(note: string, key: Key): string | undefined {
   if (pc === undefined) {
     return undefined
   }
-  const interval = (((pc - key.tonicPc) % 12) + 12) % 12
-  // Chromatic intervals all sit one semitone under a scale degree: the jazz
-  // idiom reads them flat-side (`♭VII`, the tritone sub's `♭V`), never sharp.
-  return DEGREES.get(interval) ?? `♭${DEGREES.get((interval + 1) % 12) ?? ''}`
+  return DEGREES[(((pc - key.tonicPc) % 12) + 12) % 12] as string
 }
