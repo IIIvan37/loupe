@@ -144,12 +144,15 @@ export {
   measureSourceSpans,
   parseChart,
   parseFormRollout,
+  respellChartSource,
   transposeChart,
   transposeChartSource,
   unrollChart
 } from './domain/chord-chart.ts'
 export type { DetectedChordSpan } from './domain/chord-detection.ts'
-export type { ChordSymbol } from './domain/chord-symbol.ts'
+export type { Key } from './domain/chord-key.ts'
+export { keyName, parseKeyName, transposeKey } from './domain/chord-key.ts'
+export type { Accidental, ChordSymbol } from './domain/chord-symbol.ts'
 export { formatChordSymbol, parseChordSymbol } from './domain/chord-symbol.ts'
 export { chromaFromSpectrum, chromaWithHarmonics } from './domain/chroma.ts'
 export { downmixToMono } from './domain/downmix.ts'

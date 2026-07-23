@@ -768,3 +768,83 @@ describe('ChordChartPanel parse feedback (AN.2)', () => {
     expect(document.querySelector('[data-suspect]')).toBeNull()
   })
 })
+
+describe('ChordChartPanel key read-out (AN.3)', () => {
+  function renderKey({
+    source = '{key: Eb}\n| Eb | Cm |',
+    transposedBy = 0,
+    onTranspose = vi.fn(),
+    onSourceChange = vi.fn()
+  } = {}) {
+    render(
+      <ChordChartPanel
+        source={source}
+        onSourceChange={onSourceChange}
+        onTranspose={onTranspose}
+        pitchSemitones={transposedBy}
+        transposedBy={transposedBy}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+    return { onTranspose, onSourceChange }
+  }
+
+  it('shows written → current key with the signed offset once transposed', () => {
+    renderKey({ transposedBy: 3 })
+    // Eb transposed back 3 was written in C.
+    expect(
+      screen.getByText(
+        i18n._('chords.key-shift', { written: 'C', current: 'Eb', offset: '+3' })
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('falls back to the bare offset when no {key} names the grid', () => {
+    renderKey({ source: '| C |', transposedBy: 1 })
+    expect(
+      screen.getByText(i18n._('chords.key-shift-offset', { offset: '+1' }))
+    ).toBeInTheDocument()
+  })
+
+  it('stays silent at the written key', () => {
+    renderKey({ transposedBy: 0 })
+    expect(
+      screen.queryByRole('button', { name: i18n._('chords.key-reset') })
+    ).not.toBeInTheDocument()
+  })
+
+  it('« Revenir à la tonalité écrite » undoes the whole offset', async () => {
+    const user = userEvent.setup()
+    const { onTranspose } = renderKey({ transposedBy: 3 })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.key-reset') })
+    )
+    expect(onTranspose).toHaveBeenCalledWith(-3)
+  })
+
+  it('the ♯/♭ toggle re-spells the source without moving any pitch', async () => {
+    const user = userEvent.setup()
+    const { onSourceChange } = renderKey({ source: '| A# | Dm |' })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.respell-flat') })
+    )
+    expect(onSourceChange).toHaveBeenCalledWith('| Bb | Dm |')
+    onSourceChange.mockClear()
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.respell-sharp') })
+    )
+    // The source prop is already sharp-spelled (controlled render): a
+    // spelling-identical pass commits nothing — the edit path (and its
+    // structure-marker sync) must not re-fire for a visual no-op.
+    expect(onSourceChange).not.toHaveBeenCalled()
+  })
+
+  it('a respell on a blank grid commits nothing (no marker wipe)', async () => {
+    const user = userEvent.setup()
+    const { onSourceChange } = renderKey({ source: '' })
+    await user.click(
+      screen.getByRole('button', { name: i18n._('chords.respell-flat') })
+    )
+    expect(onSourceChange).not.toHaveBeenCalled()
+  })
+})

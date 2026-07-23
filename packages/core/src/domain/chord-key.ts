@@ -39,6 +39,30 @@ export function keyName(key: Key): string {
 }
 
 /**
+ * Read a key name (`Bb`, `F#m`) back into its `Key` — the inverse of
+ * `keyName`, tolerant of spaces and unicode accidentals. Text naming no real
+ * tonic (prose, an unknown letter) reads as undefined: the `{key: …}`
+ * directive holds free text, so the parse must refuse rather than guess.
+ */
+export function parseKeyName(text: string): Key | undefined {
+  const trimmed = text.trim()
+  const minor = trimmed.endsWith('m')
+  const tonicPc = pitchClassOf(minor ? trimmed.slice(0, -1) : trimmed)
+  if (tonicPc === undefined) {
+    return undefined
+  }
+  return { tonicPc, mode: minor ? 'minor' : 'major' }
+}
+
+/** Move a key by `semitones`: the tonic wraps the octave, the mode stays. */
+export function transposeKey(key: Key, semitones: number): Key {
+  return {
+    tonicPc: (((key.tonicPc + semitones) % 12) + 12) % 12,
+    mode: key.mode
+  }
+}
+
+/**
  * The Krumhansl–Kessler tonal-hierarchy profiles: the perceived stability of
  * each scale degree in a major and a minor key. Correlating a piece's
  * pitch-class weights against every rotation of these picks the key.

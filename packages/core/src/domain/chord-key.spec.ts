@@ -1,6 +1,13 @@
+import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import type { DetectedChordSpan } from './chord-detection.ts'
-import { detectKey, keyAccidental, keyName } from './chord-key.ts'
+import {
+  detectKey,
+  keyAccidental,
+  keyName,
+  parseKeyName,
+  transposeKey
+} from './chord-key.ts'
 
 /** A one-bar span of `label` starting at `at` seconds (bars are 2 s here). */
 function bar(label: string | undefined, at: number): DetectedChordSpan {
@@ -118,5 +125,54 @@ describe('detectKey', () => {
       mode: 'major'
     })
     expect(detectKey([])).toEqual({ tonicPc: 0, mode: 'major' })
+  })
+})
+
+describe('parseKeyName', () => {
+  it('reads a major key name back into its Key (inverse of keyName)', () => {
+    expect(parseKeyName('Bb')).toEqual({ tonicPc: 10, mode: 'major' })
+    expect(parseKeyName('F#')).toEqual({ tonicPc: 6, mode: 'major' })
+    expect(parseKeyName('C')).toEqual({ tonicPc: 0, mode: 'major' })
+  })
+
+  it('reads the m suffix as minor', () => {
+    expect(parseKeyName('Ebm')).toEqual({ tonicPc: 3, mode: 'minor' })
+    expect(parseKeyName('Am')).toEqual({ tonicPc: 9, mode: 'minor' })
+  })
+
+  it('tolerates surrounding spaces and unicode accidentals', () => {
+    expect(parseKeyName(' B♭m ')).toEqual({ tonicPc: 10, mode: 'minor' })
+  })
+
+  it('rejects text that names no key', () => {
+    expect(parseKeyName('')).toBeUndefined()
+    expect(parseKeyName('Do majeur')).toBeUndefined()
+    expect(parseKeyName('Hm')).toBeUndefined()
+  })
+
+  it('property — round-trips every key through its own name', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 0, max: 11 }),
+        fc.constantFrom('major', 'minor'),
+        (tonicPc, mode) => {
+          const key = { tonicPc, mode } as const
+          expect(parseKeyName(keyName(key))).toEqual(key)
+        }
+      )
+    )
+  })
+})
+
+describe('transposeKey', () => {
+  it('moves the tonic, keeps the mode, wraps the octave', () => {
+    expect(transposeKey({ tonicPc: 0, mode: 'major' }, 3)).toEqual({
+      tonicPc: 3,
+      mode: 'major'
+    })
+    expect(transposeKey({ tonicPc: 2, mode: 'minor' }, -4)).toEqual({
+      tonicPc: 10,
+      mode: 'minor'
+    })
   })
 })

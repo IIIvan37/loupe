@@ -1092,3 +1092,78 @@ describe('chartDiagnostics', () => {
     )
   })
 })
+
+describe('transposeChart — key-aware respelling (AN.3)', () => {
+  it('respells the transposed grid under the arrival key accidental', () => {
+    // C +1 lands in Db (a flat key): the sharp spellings the transposer
+    // emits are re-spelled flat, {key} included.
+    const chart = transposeChart(
+      { source: '{key: C}\n| C | Am | F | G |', transposedBy: 0 },
+      1
+    )
+    expect(chart.source).toBe('{key: Db}\n| Db | Bbm | Gb | Ab |')
+    expect(chart.transposedBy).toBe(1)
+  })
+
+  it('respells sharp when the arrival key is a sharp key', () => {
+    // F -1 lands in E (4 sharps): flat spellings flip to sharps.
+    const chart = transposeChart(
+      { source: '{key: F}\n| Bb | F |', transposedBy: 0 },
+      -1
+    )
+    expect(chart.source).toBe('{key: E}\n| A | E |')
+  })
+
+  it('a minor key decides with its own flat set', () => {
+    // Am +1 → Bbm (flat minor): everything spells flat.
+    const chart = transposeChart(
+      { source: '{key: Am}\n| Am | E7 |', transposedBy: 0 },
+      1
+    )
+    expect(chart.source).toBe('{key: Bbm}\n| Bbm | F7 |')
+  })
+
+  it('without a {key} directive the transposer keeps its sharp default', () => {
+    const chart = transposeChart({ source: '| C |', transposedBy: 0 }, 1)
+    expect(chart.source).toBe('| C# |')
+  })
+
+  it('a whole-octave move keeps the text verbatim — user spellings at rest survive', () => {
+    // Bb7 is a bVII the user chose to spell flat in a sharp key: an octave
+    // move (or none) must not normalise it away.
+    const chart = transposeChart(
+      { source: '{key: C}\n| C | Bb7 |', transposedBy: 0 },
+      12
+    )
+    expect(chart.source).toBe('{key: C}\n| C | Bb7 |')
+    expect(chart.transposedBy).toBe(12)
+  })
+
+  it('the octave guard also protects sharp spellings in a FLAT key', () => {
+    // In Eb, a user's deliberate G# would be flattened by the respell — the
+    // whole-octave skip is what keeps it: nothing moved, nothing re-spelled.
+    const chart = transposeChart(
+      { source: '{key: Eb}\n| Eb | G# |', transposedBy: 0 },
+      12
+    )
+    expect(chart.source).toBe('{key: Eb}\n| Eb | G# |')
+  })
+
+  it('a sharp arrival key keeps the sharp spellings the transposer emits', () => {
+    // D +2 lands in E (sharp): C#m must stay C#m — a flat respell here
+    // would rewrite it Dbm, a name no E-major chart uses.
+    const chart = transposeChart(
+      { source: '{key: D}\n| D | Bm |', transposedBy: 0 },
+      2
+    )
+    expect(chart.source).toBe('{key: E}\n| E | C#m |')
+  })
+
+  it('an unparseable {key} value leaves the move un-respelled', () => {
+    const chart = transposeChart(
+      { source: '{key: dorian vibes}\n| C |', transposedBy: 0 },
+      1
+    )
+    expect(chart.source).toBe('{key: dorian vibes}\n| C# |')
+  })
+})
