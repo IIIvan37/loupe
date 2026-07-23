@@ -853,3 +853,63 @@ describe('ChordChartPanel key read-out (AN.3)', () => {
     expect(onSourceChange).not.toHaveBeenCalled()
   })
 })
+
+describe('ChordChartPanel roman numerals (AN.5)', () => {
+  function renderRoman(source = '{key: C}\n| Dm7 | G7 |') {
+    return render(
+      <ChordChartPanel
+        source={source}
+        onSourceChange={vi.fn()}
+        onTranspose={vi.fn()}
+        pitchSemitones={0}
+        transposedBy={0}
+      />,
+      { wrapper: I18nTestingProvider }
+    )
+  }
+
+  const toggle = () =>
+    screen.getByRole('button', { name: i18n._('chords.roman-toggle') })
+
+  it('starts in letters — roman is an option, off by default', () => {
+    renderRoman()
+    expect(screen.queryByText('IIm')).not.toBeInTheDocument()
+  })
+
+  it('the toggle re-reads the grid as degrees of the named key', async () => {
+    const user = userEvent.setup()
+    renderRoman()
+    await user.click(toggle())
+    // AN.5 decision: uppercase numerals, the quality carries the minor.
+    expect(screen.getByText('IIm')).toBeInTheDocument()
+  })
+
+  it('announces its pressed state — the sheet mode must be perceivable', async () => {
+    const user = userEvent.setup()
+    renderRoman()
+    await user.click(toggle())
+    expect(toggle()).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('toggling back returns the letters', async () => {
+    const user = userEvent.setup()
+    renderRoman()
+    await user.click(toggle())
+    await user.click(toggle())
+    expect(screen.queryByText('IIm')).not.toBeInTheDocument()
+  })
+
+  it('is disabled while no {key} names the grid — no degree without a tonic', () => {
+    renderRoman('| Dm7 | G7 |')
+    expect(toggle()).toBeDisabled()
+  })
+
+  it('the choice sticks — a fresh mount reopens in roman', async () => {
+    const user = userEvent.setup()
+    const { unmount } = renderRoman()
+    await user.click(toggle())
+    unmount()
+    renderRoman()
+    expect(screen.getByText('IIm')).toBeInTheDocument()
+  })
+})

@@ -225,22 +225,22 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chart-header.tsx:53
+#: src/app/lead-sheet/chart-header.tsx:56
 msgid "chart.form-rollout"
 msgstr "Jouer {count} fois"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chart-header.tsx:63
+#: src/app/lead-sheet/chart-header.tsx:66
 msgid "chart.key-of"
 msgstr "key of {key}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/lead-sheet.tsx:148
+#: src/app/lead-sheet/lead-sheet.tsx:154
 msgid "chart.measure-locate"
 msgstr "Placer le curseur sur la mesure {number}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/lead-sheet.tsx:152
+#: src/app/lead-sheet/lead-sheet.tsx:158
 msgid "chart.measure-seek"
 msgstr "Aller à la mesure {number}"
 
@@ -285,13 +285,13 @@ msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:130
+#: src/app/lead-sheet/chord-chart-panel.tsx:135
 #: src/app/workstation-shell/shell-test-kit.tsx:253
 msgid "chords.edit"
 msgstr "Modifier"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:509
+#: src/app/lead-sheet/chord-chart-panel.tsx:586
 msgid "chords.empty-hint"
 msgstr "Aucune grille — saisir les accords via « Modifier » ou lancer la détection."
 
@@ -321,22 +321,22 @@ msgid "chords.error.unknown"
 msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:474
+#: src/app/lead-sheet/chord-chart-panel.tsx:550
 msgid "chords.follow-pitch"
 msgstr "Transposer la grille pour suivre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:470
+#: src/app/lead-sheet/chord-chart-panel.tsx:546
 msgid "chords.follow-pitch-confirm"
 msgstr "Réécrire la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:390
+#: src/app/lead-sheet/chord-chart-panel.tsx:506
 msgid "chords.followed"
 msgstr "Grille transposée"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:133
+#: src/app/lead-sheet/chord-chart-panel.tsx:138
 #: src/app/lead-sheet/format-help-dialog.tsx:103
 msgid "chords.format-help"
 msgstr "Aide du format"
@@ -407,77 +407,87 @@ msgid "chords.help-voltas"
 msgstr "Fins alternatives (voltas)"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:549
+#: src/app/lead-sheet/chord-chart-panel.tsx:626
 #: src/app/workstation-shell/shell-test-kit.tsx:249
 #: src/app/workstation-shell/shell-test-kit.tsx:254
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:422
+#: src/app/lead-sheet/chord-chart-panel.tsx:191
 msgid "chords.key-reset"
 msgstr "Revenir à la tonalité écrite"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:168
+#: src/app/lead-sheet/chord-chart-panel.tsx:268
 msgid "chords.key-shift"
 msgstr "Tonalité : {written} → {current} ({offset})"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:172
+#: src/app/lead-sheet/chord-chart-panel.tsx:258
 msgid "chords.key-shift-offset"
 msgstr "Grille transposée de {offset}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:195
+#: src/app/lead-sheet/chord-chart-panel.tsx:291
 msgid "chords.parse-count"
 msgstr "Mesures lues : {measures}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:199
+#: src/app/lead-sheet/chord-chart-panel.tsx:295
 msgid "chords.parse-count-line"
 msgstr "Mesures lues : {measures} · sur cette ligne : {onLine}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:142
+#: src/app/lead-sheet/chord-chart-panel.tsx:147
 msgid "chords.parse-suspects"
 msgstr "{count, plural, one {# accord douteux : {examples}} other {# accords douteux : {examples}}}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:147
+#: src/app/lead-sheet/chord-chart-panel.tsx:152
 msgid "chords.parse-unreachable"
 msgstr "{count, plural, one {# mesure jamais jouée par la forme} other {# mesures jamais jouées par la forme}}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:458
+#: src/app/lead-sheet/chord-chart-panel.tsx:534
 msgid "chords.pitch-mismatch"
 msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:553
+#: src/app/lead-sheet/chord-chart-panel.tsx:630
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:121
+#: src/app/lead-sheet/chord-chart-panel.tsx:126
 msgid "chords.print"
 msgstr "Imprimer"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:113
+#: src/app/lead-sheet/chord-chart-panel.tsx:118
 msgid "chords.print-desktop-soon"
 msgstr "Impression bientôt disponible sur l'app de bureau"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:444
+#: src/app/lead-sheet/chord-chart-panel.tsx:213
 msgid "chords.respell-flat"
 msgstr "Épeler en bémols"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:433
+#: src/app/lead-sheet/chord-chart-panel.tsx:202
 msgid "chords.respell-sharp"
 msgstr "Épeler en dièses"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:229
+msgid "chords.roman-needs-key"
+msgstr "Nommer la tonalité de la grille pour lire en degrés"
+
+#. js-lingui-explicit-id
+#: src/app/lead-sheet/chord-chart-panel.tsx:237
+msgid "chords.roman-toggle"
+msgstr "Chiffrage romain"
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row.tsx:405
@@ -485,17 +495,17 @@ msgid "chords.separating"
 msgstr "Séparation des pistes avant les accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:76
+#: src/app/lead-sheet/chord-chart-panel.tsx:81
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:84
+#: src/app/lead-sheet/chord-chart-panel.tsx:89
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:95
+#: src/app/lead-sheet/chord-chart-panel.tsx:100
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 

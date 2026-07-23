@@ -153,3 +153,14 @@
 .helpButton {
   composes: editToggle;
 }
+
+/* The roman-numeral toggle (AN.5), beside the ♯/♭ respell: pressed state
+ * echoes aria-pressed, the editToggle precedent. */
+.romanToggle {
+  composes: chipButton from '../ui/controls.module.css';
+}
+
+.romanToggle[aria-pressed='true'] {
+  color: var(--text);
+  border-color: var(--amber-deep);
+}

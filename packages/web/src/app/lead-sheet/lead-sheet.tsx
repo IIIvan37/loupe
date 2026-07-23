@@ -1,6 +1,7 @@
 import {
   type ChordChart,
   formatChordSymbol,
+  type Key,
   parseChart,
   unrollChart
 } from '@app/core'
@@ -63,6 +64,11 @@ interface LeadSheetProps {
    * {d.c.}+{fine}, volta above the pass count) — dimmed while editing.
    */
   readonly unreachableMeasures?: ReadonlySet<number> | undefined
+  /**
+   * Set = print the chords as degrees of this key (AN.5 roman numerals) —
+   * display only, the source keeps its letters. Undefined prints letters.
+   */
+  readonly romanKey?: Key | undefined
 }
 
 interface KeyedChord {
@@ -242,7 +248,8 @@ export function LeadSheet({
   locating,
   activeSourceMeasures,
   suspectMeasures,
-  unreachableMeasures
+  unreachableMeasures,
+  romanKey
 }: LeadSheetProps) {
   // The sheet re-renders on every playhead frame during playback (the parent
   // ticks); only re-parse and re-key when the inputs actually change.
@@ -388,7 +395,11 @@ export function LeadSheet({
                   <span className={styles.fermata}>𝄐</span>
                 )}
                 {measure.chords.map((chord) => (
-                  <ChordGlyph key={chord.key} text={chord.text} />
+                  <ChordGlyph
+                    key={chord.key}
+                    text={chord.text}
+                    romanKey={romanKey}
+                  />
                 ))}
                 {measure.repeatCount !== undefined && (
                   <span className={styles.passCount}>
