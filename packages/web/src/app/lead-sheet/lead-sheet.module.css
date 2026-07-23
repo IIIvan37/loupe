@@ -140,19 +140,23 @@ button.measure {
   border-inline-start: 3px double var(--text);
 }
 
+/* True repeat dots — two stacked, drawn as text so they survive print
+ * (backgrounds don't). Vertical writing stacks the two bullets; the insets
+ * are physical because logical ones would pivot with the writing mode. */
 .measure[data-repeat-start]::before,
 .measure[data-repeat-end]::after {
-  content: ':';
+  content: '••';
   position: absolute;
-  inset-block-start: 50%;
-  transform: translateY(-60%);
-  font-family: var(--font-chart);
-  font-size: var(--font-size-l);
+  top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  font-size: var(--font-size-xs);
+  line-height: 1;
   color: var(--text);
 }
 
 .measure[data-repeat-start]::before {
-  inset-inline-start: var(--space-3xs);
+  left: var(--space-3xs);
 }
 
 .measure[data-repeat-end] {
@@ -160,7 +164,7 @@ button.measure {
 }
 
 .measure[data-repeat-end]::after {
-  inset-inline-end: var(--space-3xs);
+  right: var(--space-3xs);
 }
 
 /* A volta measure carries the bracket line; the number prints once, where
@@ -178,9 +182,15 @@ button.measure {
   color: var(--text);
 }
 
+/* The number sits inside the bracket; its left border is the bracket's
+ * opening descender — flush with the volta's top line. */
 .voltaLabel {
   composes: annotation;
-  inset-inline-start: var(--space-3xs);
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  border-inline-start: 1px solid var(--text);
+  padding-block-start: var(--space-3xs);
+  padding-inline-start: var(--space-3xs);
   font-size: var(--font-size-xs);
 }
 

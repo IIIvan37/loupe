@@ -10,9 +10,30 @@ describe('ChordGlyph', () => {
     expect(container).toHaveTextContent('Am7/G')
   })
 
-  it('sets the quality as a superscript', () => {
+  it('sets the quality as a superscript, engraved Real Book style', () => {
+    // AN.4 decision: `maj7` prints `M7` — no triangle.
     const { container } = render(<ChordGlyph text="Fmaj7" />)
-    expect(container.querySelector('sup')).toHaveTextContent('maj7')
+    expect(container.querySelector('sup')).toHaveTextContent('M7')
+  })
+
+  it('engraves the root accidental as a music glyph', () => {
+    render(<ChordGlyph text="Bb7" />)
+    expect(screen.getByText('B♭')).toBeInTheDocument()
+  })
+
+  it('engraves the extension accidental too', () => {
+    const { container } = render(<ChordGlyph text="C7b9" />)
+    expect(container.querySelector('sup')).toHaveTextContent('7♭9')
+  })
+
+  it('engraves the slash bass accidental', () => {
+    render(<ChordGlyph text="C/F#" />)
+    expect(screen.getByText('/F♯')).toBeInTheDocument()
+  })
+
+  it('prints half-diminished as ø', () => {
+    const { container } = render(<ChordGlyph text="Am7b5" />)
+    expect(container.querySelector('sup')).toHaveTextContent('ø')
   })
 
   it('the minor m stays at baseline — only the extension is superscript', () => {
