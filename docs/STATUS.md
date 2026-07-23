@@ -7,13 +7,12 @@
 
 ## Where we are
 
-**Lot AN — la partition à hauteur de sa lecture — en cours** ([roadmap
-v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AM clos). AN.1 (#241, locus),
-AN.2 (#242, diagnostics) et **AN.3 (#243, transposition juste)** livrées —
-détail en Historique. **Reste : AN.4 (gravure Real Book — `b→♭`/`#→♯`,
-`maj7→M7` — décision : pas de triangle —, `dim→°`/`m7b5→ø`/`aug→+`, crochets
-de volta, points de reprise), AN.5 (chiffrage romain `IM7`, ajout
-utilisateur).**
+**Lot AN clos** ([roadmap v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AN
+livrés) : AN.1→AN.5 mergées (#241–#245), détail en Historique. **Prochain :
+Lot AO — une âme visuelle mémorable**, en commençant par **AO.1 (waveform
+pièce maîtresse : enveloppe deux tons crête+RMS — ajouter `rms` à
+`WaveformPeak` en TDD core — + split couleur au playhead lu/à venir)** ;
+checkpoint d'approche UI avant de coder.
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
@@ -27,6 +26,16 @@ re-seed des codes legacy, PKCE en bundle à rejouer.
 
 ### Roadmap excellence 7 (2026-07-19 → …) — UX exceptionnelle
 
+- 2026-07-23 · **AN.5 — chiffrage romain en option** (PR #245, **Lot AN
+  clos**) : core `romanizeChordSymbol` (degrés depuis le tonique majeur,
+  `IIm7`, chromatismes `♭VII` flat-side, basse slash aussi, Stryker 100 %),
+  bascule off par défaut désactivée sans `{key:}`, préférence localStorage ;
+  `ChordGlyph` mémoïsé, `PitchDriftFlag` extrait →
+  [rapport](sessions/2026-07-23-an5-roman-numerals.md)
+- 2026-07-23 · **AN.4 — gravure Real Book** (PR #244) : `engraveChordSymbol`
+  pur (`b→♭`/`#→♯`, `maj7→M7` sans triangle, `dim→°`/`m7b5→ø`/`aug→+`),
+  épellations pliées, crochets de volta + points de reprise honnêtes →
+  [rapport](sessions/2026-07-23-an4-real-book-engraving.md)
 - 2026-07-23 · **AN.3 — transposition juste et lisible** (PR #243, périmètre
   « sans sélecteur de cible ») : core `parseKeyName`/`transposeKey` +
   re-épelage auto à la transposition (skip octave, vers bémol seulement),

@@ -184,7 +184,8 @@ efface une classe entière de code mort.*
 - [x] AM.1 · [x] AM.2 · [~] AM.3 (écarté) · [~] AM.4 (écarté) — **Lot AM clos
   2026-07-22** (décision produit sur AM.3/AM.4)
 - [x] AN.1 (#241, périmètre « locus seul ») · [x] AN.2 (#242, diagnostics
-  seuls) · [x] AN.3 (#243, sans sélecteur de cible) · [ ] AN.4 · [ ] AN.5
+  seuls) · [x] AN.3 (#243, sans sélecteur de cible) · [x] AN.4 (#244) ·
+  [x] AN.5 (#245, option off par défaut) — **Lot AN clos**
 - [ ] AO.1 · [ ] AO.2 · [ ] AO.3
 - [ ] AP.2 · [ ] AP.3 · [ ] AP.4
 - [ ] AQ.1 · [ ] AQ.2
