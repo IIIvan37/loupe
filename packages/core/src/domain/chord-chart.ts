@@ -1,3 +1,4 @@
+import { keyAccidental, parseKeyName } from './chord-key.ts'
 import {
   type Accidental,
   type ChordSymbol,
@@ -258,10 +259,35 @@ export function transposeChart(
   if (!Number.isInteger(semitones) || chart.source.trim() === '') {
     return chart
   }
+  const moved = transposeChartSource(chart.source, semitones)
   return {
-    source: transposeChartSource(chart.source, semitones),
+    // A whole-octave move keeps the text verbatim (transposeNote's own
+    // guard) — never re-spell what did not move.
+    source: semitones % 12 === 0 ? moved : respellUnderKey(moved),
     transposedBy: chart.transposedBy + semitones
   }
+}
+
+/**
+ * Re-spell a transposed source under its ARRIVAL key (AN.3): the transposer
+ * spells with sharps, but `{key: C}` moved up one lands in Db — a flat key
+ * whose grid must read `Db | Bbm`, never `C# | A#m`. The `{key: …}` directive
+ * (already transposed by the same move) decides; a missing or unparseable key
+ * keeps the transposer's sharp default. A SHARP arrival key skips the pass:
+ * every moved token already came out sharp-spelled, so the respell would be a
+ * no-op walk — and skipping keeps the rule explicit: only the accidental the
+ * move itself got wrong is corrected, never the user's own spelling at rest.
+ */
+function respellUnderKey(source: string): string {
+  const keyDirective = parseChart(source).directives['key']
+  if (keyDirective === undefined) {
+    return source
+  }
+  const key = parseKeyName(keyDirective)
+  if (key === undefined || keyAccidental(key) !== 'flat') {
+    return source
+  }
+  return respellChartSource(source, 'flat')
 }
 
 /**

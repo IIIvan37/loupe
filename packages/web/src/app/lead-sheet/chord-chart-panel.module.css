@@ -124,6 +124,31 @@
   composes: quietButton from '../ui/controls.module.css';
 }
 
+/* The key line (AN.3): shift read-out, way back, ♯/♭ respell — one quiet
+   cluster under the header. */
+.keyRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.keyShift {
+  composes: hint from '../ui/controls.module.css';
+}
+
+.keyReset {
+  composes: quietButton from '../ui/controls.module.css';
+}
+
+.respell {
+  composes: chipRow from '../ui/controls.module.css';
+}
+
+.respellButton {
+  composes: chipButton from '../ui/controls.module.css';
+}
+
 /* « Aide du format » sits beside « Modifier », same quiet chip. */
 .helpButton {
   composes: editToggle;

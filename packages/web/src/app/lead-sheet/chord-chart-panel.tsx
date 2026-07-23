@@ -1,4 +1,13 @@
-import { chartDiagnostics, chartMatchesPitch, parseChart } from '@app/core'
+import {
+  type Accidental,
+  chartDiagnostics,
+  chartMatchesPitch,
+  keyName,
+  parseChart,
+  parseKeyName,
+  respellChartSource,
+  transposeKey
+} from '@app/core'
 import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
@@ -141,6 +150,101 @@ const PARSE_UNREACHABLE = msg({
     '{count, plural, one {# mesure jamais jouée par la forme} other {# mesures jamais jouées par la forme}}'
 })
 
+/** The key line (AN.3): where the grid sits relative to its written key, the
+ *  way back, and the ♯/♭ respell — spelling is a reading preference, never a
+ *  pitch move. */
+function KeyRow({
+  transposedBy,
+  keys,
+  onTranspose,
+  onRespell
+}: {
+  readonly transposedBy: number
+  /** The written → current key names, or undefined when no {key} names the
+      grid — always both or neither. */
+  readonly keys: { readonly written: string; readonly current: string } | undefined
+  readonly onTranspose: (delta: number) => void
+  readonly onRespell: (accidental: Accidental) => void
+}) {
+  const { t } = useLingui()
+  return (
+    <div className={styles.keyRow}>
+      {transposedBy !== 0 && (
+        <>
+          <KeyShift keys={keys} offset={signedSemitones(transposedBy)} />
+          <button
+            type="button"
+            className={styles.keyReset}
+            onClick={() => onTranspose(-transposedBy)}
+          >
+            {t({
+              id: 'chords.key-reset',
+              message: 'Revenir à la tonalité écrite'
+            })}
+          </button>
+        </>
+      )}
+      <span className={styles.respell}>
+        <button
+          type="button"
+          className={styles.respellButton}
+          aria-label={t({
+            id: 'chords.respell-sharp',
+            message: 'Épeler en dièses'
+          })}
+          onClick={() => onRespell('sharp')}
+        >
+          ♯
+        </button>
+        <button
+          type="button"
+          className={styles.respellButton}
+          aria-label={t({
+            id: 'chords.respell-flat',
+            message: 'Épeler en bémols'
+          })}
+          onClick={() => onRespell('flat')}
+        >
+          ♭
+        </button>
+      </span>
+    </div>
+  )
+}
+
+/** Where the grid sits: « Tonalité : C → Eb (+3) » when a {key} names it,
+ *  the bare signed offset otherwise. Only rendered while transposed. */
+function KeyShift({
+  keys,
+  offset
+}: {
+  readonly keys:
+    | { readonly written: string; readonly current: string }
+    | undefined
+  readonly offset: string
+}) {
+  const { t } = useLingui()
+  if (keys === undefined) {
+    return (
+      <span className={styles.keyShift}>
+        {t({
+          id: 'chords.key-shift-offset',
+          message: `Grille transposée de ${offset}`
+        })}
+      </span>
+    )
+  }
+  const { written, current } = keys
+  return (
+    <span className={styles.keyShift}>
+      {t({
+        id: 'chords.key-shift',
+        message: `Tonalité : ${written} → ${current} (${offset})`
+      })}
+    </span>
+  )
+}
+
 /** The feedback line's count: what the grammar read, total and — once the
  *  caret sits on a measure row — on that line. Locals are bound so the ICU
  *  placeholders keep readable names (`onLine` is that line's measure count,
@@ -233,12 +337,37 @@ export function ChordChartPanel({
       editorRef.current?.focus()
     }
   }, [editing])
-  // What « Imprimer » guards on: the sheet parses the same source anyway, so
-  // one extra parse per source change is nothing — no lifted state needed.
-  const printable = useMemo(
-    () => chartHasContent(parseChart(source)),
-    [source]
-  )
+  // What « Imprimer » guards on, plus the grid's named key (AN.3) — one
+  // parse serves both. The sheet parses the same source anyway, so an extra
+  // parse per source change is nothing — no lifted state needed.
+  const { printable, currentKey } = useMemo(() => {
+    const parsed = parseChart(source)
+    const named = parsed.directives['key']
+    return {
+      printable: chartHasContent(parsed),
+      currentKey: named === undefined ? undefined : parseKeyName(named)
+    }
+  }, [source])
+  // The written → current key pair, nameable only when a {key} directive
+  // names the grid — one value, so the two names can never half-exist.
+  const keyShift =
+    currentKey === undefined
+      ? undefined
+      : {
+          written: keyName(transposeKey(currentKey, -transposedBy)),
+          current: keyName(currentKey)
+        }
+
+  /** Re-spell the whole grid in the chosen accidental — pitch untouched.
+      A spelling-identical result (blank grid, already-sharp grid under ♯)
+      commits nothing: `onSourceChange` rides the edit path, whose structure
+      sync must not re-fire — let alone wipe markers — for a visual no-op. */
+  function respell(accidental: Accidental): void {
+    const respelled = respellChartSource(source, accidental)
+    if (respelled !== source) {
+      onSourceChange(respelled)
+    }
+  }
   // The measure↔text machinery (AN.1 locus + AN.2 diagnostics), one walk:
   // spans, per-line counts, suspect tokens, unreachable bars. Editing only —
   // the reading view (and print) consumes none of it, so it computes nothing.
@@ -350,6 +479,12 @@ export function ChordChartPanel({
         editorId={editorId}
         onToggleEdit={() => setEditing((open) => !open)}
         onOpenHelp={() => setHelpOpen(true)}
+      />
+      <KeyRow
+        transposedBy={transposedBy}
+        keys={keyShift}
+        onTranspose={onTranspose}
+        onRespell={respell}
       />
       <FormatHelpDialog open={helpOpen} onOpenChange={setHelpOpen} />
       {gridDiverges && (
