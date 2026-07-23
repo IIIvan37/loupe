@@ -8,11 +8,12 @@
 ## Where we are
 
 **Lot AN — la partition à hauteur de sa lecture — en cours** ([roadmap
-v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AM clos). AN.1 (#241, locus) et
-**AN.2 (#242, diagnostics)** livrées — détail en Historique. **Reste : AN.3
-(transposition juste et lisible : `respellChartSource`, tonalité affichée,
-bascule ♯/♭), AN.4 (gravure Real Book — décision : `maj7→M7`, pas de
-triangle), AN.5 (chiffrage romain `IM7`, ajout utilisateur).**
+v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AM clos). AN.1 (#241, locus),
+AN.2 (#242, diagnostics) et **AN.3 (#243, transposition juste)** livrées —
+détail en Historique. **Reste : AN.4 (gravure Real Book — `b→♭`/`#→♯`,
+`maj7→M7` — décision : pas de triangle —, `dim→°`/`m7b5→ø`/`aug→+`, crochets
+de volta, points de reprise), AN.5 (chiffrage romain `IM7`, ajout
+utilisateur).**
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
@@ -26,6 +27,11 @@ re-seed des codes legacy, PKCE en bundle à rejouer.
 
 ### Roadmap excellence 7 (2026-07-19 → …) — UX exceptionnelle
 
+- 2026-07-23 · **AN.3 — transposition juste et lisible** (PR #243, périmètre
+  « sans sélecteur de cible ») : core `parseKeyName`/`transposeKey` +
+  re-épelage auto à la transposition (skip octave, vers bémol seulement),
+  KeyRow « Tonalité : C → Eb (+3) » + retour à la tonalité écrite + chips ♯/♭
+  → [rapport](sessions/2026-07-23-an3-honest-transposition.md)
 - 2026-07-22 · **AN.2 — retour de parse honnête** (PR #242) : core
   `chartDiagnostics` (mesures/ligne, tokens suspects — round-trip partagé +
   basse slash —, mesures jamais jouées via `unrollChart`, Stryker 96,5 %),
