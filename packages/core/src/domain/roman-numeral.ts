@@ -38,15 +38,15 @@ export function romanizeChordSymbol(
   if (pitchClassOf(symbol.root) === undefined) {
     return symbol
   }
-  // A bass naming no pitch keeps its letters — display must never drop it.
-  return mapChordNotes(symbol, (note) => degreeOf(note, key) ?? note)
+  return mapChordNotes(symbol, (note) => degreeOf(note, key))
 }
 
-/** A pitch name as a degree of `key`; no degree for no pitch name. */
-function degreeOf(note: string, key: Key): string | undefined {
+/** A pitch name as a degree of `key`; letters naming no pitch (a slash bass
+    the grammar tolerates) stay verbatim — display must never drop content. */
+function degreeOf(note: string, key: Key): string {
   const pc = pitchClassOf(note)
   if (pc === undefined) {
-    return undefined
+    return note
   }
   return DEGREES[(((pc - key.tonicPc) % 12) + 12) % 12] as string
 }

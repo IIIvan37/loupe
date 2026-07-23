@@ -60,6 +60,14 @@ describe('romanizeChordSymbol', () => {
     expect(roman.quality).toBe('m7b5')
   })
 
+  it('keeps a bass naming no pitch verbatim — display never drops content', () => {
+    const roman = romanizeChordSymbol(
+      { root: 'C', quality: '', bass: 'X' },
+      { tonicPc: 0, mode: 'major' }
+    )
+    expect(roman.bass).toBe('X')
+  })
+
   it('leaves a symbol whose root is no pitch name untouched', () => {
     const symbol = { root: 'N.C.', quality: '' }
     expect(romanizeChordSymbol(symbol, { tonicPc: 0, mode: 'major' })).toBe(
