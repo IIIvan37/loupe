@@ -1,6 +1,16 @@
-import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { engraveChordSymbol } from './chord-engraving.ts'
+import { engraveChordSymbol, engraveNote } from './chord-engraving.ts'
+
+describe('engraveNote', () => {
+  // A `{key: …}` directive is free text: only a LEADING pitch engraves.
+  it('leaves a mid-string flat untouched — prose is no pitch name', () => {
+    expect(engraveNote('the Bb one')).toBe('the Bb one')
+  })
+
+  it('leaves a mid-string sharp untouched too', () => {
+    expect(engraveNote('tune in F#')).toBe('tune in F#')
+  })
+})
 
 describe('engraveChordSymbol', () => {
   it('prints maj7 as M7 — the Real Book major, no triangle', () => {
@@ -35,6 +45,40 @@ describe('engraveChordSymbol', () => {
 
   it('prints a pasted unicode m7♭5 as ø too', () => {
     expect(engraveChordSymbol({ root: 'A', quality: 'm7♭5' }).quality).toBe('ø')
+  })
+
+  it('folds the min7b5 spelling to the same ø — one chord, one mark', () => {
+    expect(engraveChordSymbol({ root: 'A', quality: 'min7b5' }).quality).toBe(
+      'ø'
+    )
+  })
+
+  it('folds the mi7b5 spelling to ø as well', () => {
+    expect(engraveChordSymbol({ root: 'A', quality: 'mi7b5' }).quality).toBe(
+      'ø'
+    )
+  })
+
+  it('folds the capitalized Maj7 spelling to M7', () => {
+    expect(engraveChordSymbol({ root: 'C', quality: 'Maj7' }).quality).toBe(
+      'M7'
+    )
+  })
+
+  it('folds the ma7 spelling to M7 — ma before a degree is major', () => {
+    expect(engraveChordSymbol({ root: 'C', quality: 'ma7' }).quality).toBe('M7')
+  })
+
+  it('madd9 stays minor — ma before a letter is no major marker', () => {
+    expect(engraveChordSymbol({ root: 'C', quality: 'madd9' }).quality).toBe(
+      'madd9'
+    )
+  })
+
+  it('folds minor-major: mmaj7 prints mM7', () => {
+    expect(engraveChordSymbol({ root: 'C', quality: 'mmaj7' }).quality).toBe(
+      'mM7'
+    )
   })
 
   it('engraves a flat extension: 7b9 prints 7♭9', () => {
@@ -83,31 +127,35 @@ describe('engraveChordSymbol', () => {
   })
 
   it('engraving is idempotent — printing a print changes nothing', () => {
-    const symbols = fc.record(
-      {
-        root: fc.constantFrom('C', 'C#', 'Db', 'F', 'B♭', 'G♯'),
-        quality: fc.constantFrom(
-          '',
-          'm7',
-          'maj7',
-          'maj9',
-          'dim7',
-          'aug',
-          'm7b5',
-          '7b9',
-          '13#11',
-          'sus4',
-          'add9'
-        ),
-        bass: fc.constantFrom('E', 'Ab', 'F#')
-      },
-      { requiredKeys: ['root', 'quality'] }
+    // Exhaustive over the vocabulary table (not sampled): every root ×
+    // quality × bass combination must be a fixpoint after one pass.
+    const roots = ['C', 'C#', 'Db', 'F', 'B♭', 'G♯']
+    const qualities = [
+      '',
+      'm7',
+      'maj7',
+      'Maj7',
+      'ma7',
+      'madd9',
+      'mmaj7',
+      'dim7',
+      'aug',
+      'm7b5',
+      'min7b5',
+      '7b9',
+      '13#11',
+      'sus4',
+      'add9'
+    ]
+    const basses = [undefined, 'E', 'Ab', 'F#']
+    const symbols = roots.flatMap((root) =>
+      qualities.flatMap((quality) =>
+        basses.map((bass) =>
+          bass === undefined ? { root, quality } : { root, quality, bass }
+        )
+      )
     )
-    fc.assert(
-      fc.property(symbols, (symbol) => {
-        const once = engraveChordSymbol(symbol)
-        expect(engraveChordSymbol(once)).toEqual(once)
-      })
-    )
+    const once = symbols.map(engraveChordSymbol)
+    expect(once.map(engraveChordSymbol)).toEqual(once)
   })
 })

@@ -791,10 +791,15 @@ describe('ChordChartPanel key read-out (AN.3)', () => {
 
   it('shows written → current key with the signed offset once transposed', () => {
     renderKey({ transposedBy: 3 })
-    // Eb transposed back 3 was written in C.
+    // Eb transposed back 3 was written in C; the read-out engraves the flat
+    // so the line matches the sheet's B♭-style glyphs (AN.4).
     expect(
       screen.getByText(
-        i18n._('chords.key-shift', { written: 'C', current: 'Eb', offset: '+3' })
+        i18n._('chords.key-shift', {
+          written: 'C',
+          current: 'E♭',
+          offset: '+3'
+        })
       )
     ).toBeInTheDocument()
   })

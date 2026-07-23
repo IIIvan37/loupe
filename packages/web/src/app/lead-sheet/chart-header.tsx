@@ -1,4 +1,4 @@
-import { parseFormRollout } from '@app/core'
+import { engraveNote, parseFormRollout } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import styles from './lead-sheet.module.css'
 
@@ -38,7 +38,10 @@ export function ChartHeader({ derived, directives }: ChartHeaderProps) {
   const { t } = useLingui()
   const title = over(directives.title) ?? derived.title
   const artist = over(directives.artist) ?? derived.artist
-  const key = over(directives.key)
+  // Engraved for display only, like the chord glyphs — the printed head must
+  // not spell `Bb` beside a grid full of B♭.
+  const writtenKey = over(directives.key)
+  const key = writtenKey === undefined ? undefined : engraveNote(writtenKey)
   const tempo =
     over(directives.tempo) ??
     (derived.bpm === undefined ? undefined : String(Math.round(derived.bpm)))

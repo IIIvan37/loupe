@@ -135,25 +135,30 @@ export function respellNote(note: string, accidental: Accidental): string {
     : spellPitchClass(pitchClass, accidental)
 }
 
+/** Apply a note transform to the chord's root and optional slash bass. */
+export function mapChordNotes(
+  symbol: ChordSymbol,
+  mapNote: (note: string) => string
+): ChordSymbol {
+  const root = mapNote(symbol.root)
+  return symbol.bass === undefined
+    ? { ...symbol, root }
+    : { ...symbol, root, bass: mapNote(symbol.bass) }
+}
+
 /** Re-spell a chord's root and slash bass under the key's accidental. */
 export function respellChordSymbol(
   symbol: ChordSymbol,
   accidental: Accidental
 ): ChordSymbol {
-  const root = respellNote(symbol.root, accidental)
-  return symbol.bass === undefined
-    ? { ...symbol, root }
-    : { ...symbol, root, bass: respellNote(symbol.bass, accidental) }
+  return mapChordNotes(symbol, (note) => respellNote(note, accidental))
 }
 
 export function transposeChordSymbol(
   symbol: ChordSymbol,
   semitones: number
 ): ChordSymbol {
-  const root = transposeNote(symbol.root, semitones)
-  return symbol.bass === undefined
-    ? { ...symbol, root }
-    : { ...symbol, root, bass: transposeNote(symbol.bass, semitones) }
+  return mapChordNotes(symbol, (note) => transposeNote(note, semitones))
 }
 
 export function parseChordSymbol(text: string): ChordSymbol {
