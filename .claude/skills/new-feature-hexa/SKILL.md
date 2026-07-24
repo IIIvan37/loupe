@@ -45,11 +45,19 @@ build/spike that consumer first**. Don't invent the shape.
 
 ## 3. INNER loop — pull the domain into existence (TDD)
 
-- Only now create domain units, and only the ones the outer test demands:
-  `packages/core/src/domain/<name>.ts` (+ `<name>.spec.ts`, RED first per
-  `tdd-cycle`: one assertion, fake-it, triangulate).
+- Only now create domain units, and only the ones the outer test demands.
+  **Where they are born**: in the NURSERY (`packages/core/src/domain/<name>.ts`,
+  flat) when the concept is new — or inside an existing feature module once
+  modules exist (`core/src/<feature>/domain/`) when it plainly belongs to one.
+  Never invent a feature folder for a first file: boundaries are discovered, not
+  decreed. (+ `<name>.spec.ts`, RED first per `tdd-cycle`: one behavior per
+  test, fake-it, triangulate.)
 - Pure functions over your model. No `node:*`, no globals (Biome `noRestricted*` +
   Sheriff enforce it). New domain sub-folder? Add its tag to `sheriff.config.ts`.
+- **Ambient state is a port, never a global.** Time, randomness, IDs, env config:
+  the moment a domain function wants one, stop and inject a port that yields the
+  value — the adapter reads the host, the core receives a plain value and does
+  pure arithmetic, a fixed fake pins it in tests.
 - `fast-check` for cross-input invariants.
 - Stop when the outer acceptance test goes green. No extra domain API.
 
@@ -64,6 +72,26 @@ build/spike that consumer first**. Don't invent the shape.
 > A new adapter package is this recipe at package scale: a package depending on
 > `@app/core`, adapters implementing the EXISTING ports, no new core code unless a
 > port is genuinely missing.
+
+## 4bis. Extraction — when a module becomes apparent
+
+The signal is the rule of three: a third file sharing a prefix/concept, a
+use-case + port serving a single cluster. Naming the boundary stays YOUR call.
+(The mechanism — dormant Sheriff placeholder rules for
+`core/src/<feature>/{domain,application}` and the `modules:hint` script —
+arrives with lot TS.5 of the template-sync plan.) Then:
+
+1. **Name** the module.
+2. **`git mv` the whole slice's center** — domain files, its use-cases, its
+   ports (out of the nursery `ports.ts`), its fakes — into
+   `core/src/<name>/{domain,application}`.
+3. **Let the gate enumerate the frontier.** Each Sheriff violation is one
+   decision with three exits: join the module / promote to `shared/` (second
+   consumer only — never create there directly) / a declared one-line depRule
+   exception. Mikado stop rule: prerequisites deeper than ~2 levels → revert,
+   extract the prerequisites first.
+4. **Depth check** before closing (Ousterhout): exports vs files — a module
+   whose surface grows as fast as its contents was not ready.
 
 ## 5. Prove it & register
 

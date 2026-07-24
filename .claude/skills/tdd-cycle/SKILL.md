@@ -7,7 +7,7 @@ description: Drive a change through strict red-green-refactor TDD. Use for ANY c
 
 The core is pure (no I/O) by design — there is no excuse to write code before a
 test. One micro-cycle per behavior. Never write production code without a failing
-test that demands it. Two disciplines are non-negotiable: **one assertion per
+test that demands it. Two disciplines are non-negotiable: **one behavior per
 test** and **triangulation** (don't generalize the code until a test forces it).
 
 **Double loop (outside-in).** This unit cycle is the INNER loop. Domain work is
@@ -20,10 +20,11 @@ don't write it.
 ## RED — write one failing test first
 
 - Colocate: `packages/<pkg>/src/<...>/<name>.spec.ts` next to the unit.
-- **One assertion per test.** A test pins exactly ONE behavior and ends in a
-  single `expect`. A second fact = a second test. (Arrange/act may be shared via a
-  helper; the *assertion* is singular.) A property test counts as one assertion:
-  one invariant per `it`.
+- **One behavior per test.** A test pins exactly ONE behavior — one scenario,
+  one observable outcome. Several `expect`s are fine when they describe facets
+  of that SAME outcome (one execution). A second *behavior* = a second test; if
+  the test name needs an "and" between two rules, split it. A property test
+  counts as one behavior: one invariant per `it`.
 - Name the test by the rule, not the function (`rejects an empty name`). The name
   should read as the single fact being asserted.
 - For pure domain logic, assert on returned values — no mocks.
@@ -53,7 +54,28 @@ cross-layer dependency.
 ## REFACTOR — clean under green
 
 - Improve names/structure/duplication with the tests as a safety net.
-- `jscpd` is blocking (threshold 0): factor any copy-paste into a shared helper.
+- **Structural and behavioral changes never share a commit** (Beck, *Tidy
+  First?*). Commit the green behavior first (`feat:`/`fix:`), then refactor and
+  commit that separately (`refactor:`). A `refactor:` diff reviews as "nothing
+  observable changed"; mixing the two destroys that property for both halves.
+- **A clone found by jscpd has three exits, not one** (the `.jscpd.json`
+  threshold ratchet stays — every clone demands a *decision*, not necessarily a
+  merge):
+  1. **Factor** — when both sites encode the SAME knowledge and would always
+     change together.
+  2. **Mark deliberate** — `// jscpd:ignore-start` … `// jscpd:ignore-end`
+     with a one-line reason, when the similarity is coincidental or crosses a
+     boundary (a domain type and an adapter DTO may look identical; unifying
+     them welds the wire format to the model — the very coupling the hexagon
+     exists to prevent).
+  3. **When unsure, keep the duplication.** "Duplication is far cheaper than
+     the wrong abstraction" (Sandi Metz), and the rule of three says wait for
+     the third occurrence — the coverage + mutation net makes late factoring
+     cheap and safe.
+- **Listen to the tests** (GOOS, Freeman & Pryce): a test that is painful to
+  write is design feedback, not a testing problem. Too many fakes to wire →
+  the unit has too many dependencies; an endless arrange → the concept is cut
+  wrong. Fix the design, not the test.
 - Tests must stay green. If you change behavior, that's a new RED.
 
 ## Close the cycle
@@ -63,7 +85,7 @@ cross-layer dependency.
 
 ## Anti-patterns (stop if you catch yourself)
 
-- **Multiple assertions in one test** — split into one `it` per fact.
+- **Multiple behaviors in one test** — split into one `it` per behavior.
 - **Skipping triangulation** — jumping to the general algorithm before two examples
   force it.
 - **Speculative domain code** — a domain unit no outer test demands. Name the
