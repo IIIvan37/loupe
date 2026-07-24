@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { MixerState } from '../domain/mixer.ts'
-import type { AudioRef, Project } from '../domain/project.ts'
+import type { AudioRef } from '../domain/project.ts'
+// Relative on purpose: inside the core the subpath alias would be a
+// self-import; adapters go through '@app/core/testing'.
+import { createInMemoryProjectStore as fakeProjectStore } from '../testing/in-memory-project-store.ts'
 import type { ProjectAudioStore, ProjectStore } from './ports.ts'
 import {
   deleteProject,
@@ -9,27 +12,6 @@ import {
   renameProject,
   saveProject
 } from './projects.ts'
-
-function fakeProjectStore(
-  initial: readonly Project[] = []
-): ProjectStore & { readonly saved: Map<string, Project> } {
-  const saved = new Map(initial.map((p) => [p.id, p]))
-  return {
-    saved,
-    async list() {
-      return [...saved.values()]
-    },
-    async load(id) {
-      return saved.get(id)
-    },
-    async save(project) {
-      saved.set(project.id, project)
-    },
-    async delete(id) {
-      saved.delete(id)
-    }
-  }
-}
 
 function fakeAudioStore(): ProjectAudioStore & {
   readonly blobs: Map<AudioRef, ArrayBuffer>
