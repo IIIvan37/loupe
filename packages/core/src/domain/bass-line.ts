@@ -1,4 +1,4 @@
-import type { BeatGrid } from './beat-grid.ts'
+import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
 import { formatChordSymbol, parseChordSymbol } from './chord-symbol.ts'
 import { spectrumFromSamples } from './spectrum.ts'
 

@@ -1,5 +1,4 @@
 import { applyBassSlash } from '../domain/bass-line.ts'
-import type { BeatGrid } from '../domain/beat-grid.ts'
 import {
   chartMeters,
   cutBySections,
@@ -11,8 +10,10 @@ import { chordLabelPerMeasure } from '../domain/chord-detection.ts'
 import { detectKey, keyAccidental, keyName } from '../domain/chord-key.ts'
 import { encodeChartSource } from '../domain/form-encoder.ts'
 import type { DetectedSection } from '../domain/song-structure.ts'
-import { errorMessage } from './error-message.ts'
-import type { ChordDetector, DecodedAudio } from './ports.ts'
+import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
+import type { DecodedAudio } from '../shared/decoded-audio.ts'
+import { errorMessage } from '../shared/error-message.ts'
+import type { ChordDetector } from './ports.ts'
 
 export interface DetectChordsInput {
   /** The already-decoded track — the SAME PCM the player loaded, not a re-import. */

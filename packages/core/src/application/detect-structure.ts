@@ -1,10 +1,11 @@
-import type { BeatGrid } from '../domain/beat-grid.ts'
 import {
   type DetectedSection,
   snapSectionsToGrid
 } from '../domain/song-structure.ts'
-import { errorMessage } from './error-message.ts'
-import type { DecodedAudio, StructureDetector } from './ports.ts'
+import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
+import type { DecodedAudio } from '../shared/decoded-audio.ts'
+import { errorMessage } from '../shared/error-message.ts'
+import type { StructureDetector } from './ports.ts'
 
 export interface DetectStructureInput {
   /** The already-decoded track — the SAME PCM the player loaded, not a re-import. */

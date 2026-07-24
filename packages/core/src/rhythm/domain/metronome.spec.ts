@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import { CHROMA_MAX_HZ } from '../../domain/chroma.ts'
 import type { BeatGrid } from './beat-grid.ts'
-import { CHROMA_MAX_HZ } from './chroma.ts'
 import { buildCountIn, synthesizeClickTrack } from './metronome.ts'
 
 const sampleRate = 8000

@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type {
-  DecodedAudio,
-  SeparationProgress,
-  StemSeparator
-} from './ports.ts'
+import type { DecodedAudio } from '../shared/decoded-audio.ts'
+import type { SeparationProgress, StemSeparator } from './ports.ts'
 import { SeparationError, separateTrack } from './separate-track.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }

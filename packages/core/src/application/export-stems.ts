@@ -1,6 +1,6 @@
 import { padChannels, stemExportFilename } from '../domain/stem-export.ts'
 import { encodeWav } from '../domain/wav-encoder.ts'
-import { errorMessage } from './error-message.ts'
+import { errorMessage } from '../shared/error-message.ts'
 import type { ArchiveWriter, SeparatedStem } from './ports.ts'
 
 export interface ExportStemsInput {

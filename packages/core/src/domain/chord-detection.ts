@@ -1,4 +1,4 @@
-import type { BeatGrid } from './beat-grid.ts'
+import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
 
 /**
  * One stretch of detected harmony: a chord token (in the grid's own spelling,

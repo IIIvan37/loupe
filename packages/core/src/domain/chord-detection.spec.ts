@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { BeatGrid } from './beat-grid.ts'
+import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
 import {
   chordLabelPerMeasure,
   type DetectedChordSpan

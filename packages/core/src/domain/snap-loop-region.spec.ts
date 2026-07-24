@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import { meteredGrid } from '../rhythm/testing/metered-grid-fixture.ts'
 import { makeLoopRegion } from './loop-region.ts'
-import { meteredGrid } from './metered-grid-fixture.ts'
 import { snapLoopRegionToGrid } from './snap-loop-region.ts'
 
 const arbGrid = fc
