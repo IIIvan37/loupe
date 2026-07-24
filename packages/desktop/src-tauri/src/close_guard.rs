@@ -68,10 +68,7 @@ pub fn arm_close_guard(state: tauri::State<'_, CloseGuardState>) {
 /// latch and actually close. Destroying the last window ends the app; the
 /// latch lets the ensuing `ExitRequested` through.
 #[tauri::command]
-pub fn confirm_close(
-  window: tauri::WebviewWindow,
-  state: tauri::State<'_, CloseGuardState>,
-) {
+pub fn confirm_close(window: tauri::WebviewWindow, state: tauri::State<'_, CloseGuardState>) {
   state.exit_allowed.store(true, Ordering::SeqCst);
   let _ = window.destroy();
 }
