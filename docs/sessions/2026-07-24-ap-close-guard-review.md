@@ -74,8 +74,9 @@
 - **Single next action** : merger la PR de `fix/ap-close-guard-review`, puis
   mettre à jour `docs/STATUS.md` sur `main` (commit doc-only) — il annonce
   encore « Prochain : Lot AP ou AQ » alors qu'AP est livré (#249 + cette
-  revue) ; le prochain choix réel est **Lot AQ** (vocabulaire et copy) ou
-  TS.4 (resync template).
+  revue) ; décision : **finir le lot TS d'abord** (TS.4 puis TS.5,
+  [template-sync-plan.md](../template-sync-plan.md)), le Lot AQ
+  (vocabulaire et copy) vient après.
 - Gotchas : le replay bundle utilisateur du Lot AP n'a toujours pas été
   fait ; `.github/copilot-instructions.md` traîne non suivi dans l'arbre
   (pas à moi, laissé hors commit).
