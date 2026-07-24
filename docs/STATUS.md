@@ -14,13 +14,16 @@ fenêtre persistée/titre + métadonnées bundle (#249), revue post-clôture
 corrigée (#253 : race d'armement, window-state sur ⌘Q, `destroy` raté).
 Reste dû côté AP : replay bundle utilisateur (croix rouge/⌘Q propre et sale,
 géométrie maximisée après relance, titre natif avec ●).
-Lot TS ([template-sync-plan.md](template-sync-plan.md)) : TS.1–TS.4 livrés
-(#251, #252, #250, #254 — configs, fitness functions, ADR, subpath
-`@app/core/testing` + contrat `ProjectStore`).
-**Prochain : TS.5 modules émergents ([ADR-0005](adr/0005-modules-emergents.md))
-— d'abord le mécanisme (placeholders Sheriff, ratchet nursery,
-`modules:hint`), puis une extraction par PR — avant le Lot AQ (vocabulaire et
-copy)** ; checkpoint d'approche avant chaque slice UI.
+Lot TS ([template-sync-plan.md](template-sync-plan.md)) : TS.1–TS.5.1 livrés
+(#251, #252, #250, #254, #255) — configs, fitness functions, ADR, subpath
+`@app/core/testing` + contrat `ProjectStore`, et le **mécanisme des modules
+émergents** ([ADR-0005](adr/0005-modules-emergents.md)) : placeholders Sheriff
+dormants, ratchet nursery, isolation inter-features, `pnpm modules:hint`.
+**Prochain : TS.5.2 — première extraction `rhythm`** (git mv de la tranche
+verticale, la gate énumère la frontière, procédure Mikado ; promotions
+`shared/` attendues : median, nearest-time, timecode), les extractions
+suivantes à intercaler avec le travail produit ; puis Lot AQ (vocabulaire et
+copy) ; checkpoint d'approche avant chaque slice UI.
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri

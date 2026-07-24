@@ -122,5 +122,5 @@ intercaler avec le travail produit (une extraction quand on touche la zone).
 | TS.2 | purity / public-surface / docs specs + Result | ✅ #252 |
 | TS.3 | Pratique ADR | ✅ #250 |
 | TS.4 | Subpath testing + premier contrat | ✅ #254 |
-| TS.5.1 | Mécanisme (placeholders Sheriff, ratchet, `modules:hint`) | ⬜ |
+| TS.5.1 | Mécanisme (placeholders Sheriff, ratchet, `modules:hint`) | ✅ #255 |
 | TS.5.x | Extractions de modules (une PR chacune) | ⬜ |
