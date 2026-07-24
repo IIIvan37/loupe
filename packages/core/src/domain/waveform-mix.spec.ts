@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest'
 import type { Waveform } from './waveform.ts'
 import { combineWaveforms } from './waveform-mix.ts'
 
-function wave(...peaks: ReadonlyArray<[number, number]>): Waveform {
-  return { peaks: peaks.map(([min, max]) => ({ min, max })) }
+function wave(
+  ...peaks: ReadonlyArray<[number, number] | [number, number, number]>
+): Waveform {
+  return { peaks: peaks.map(([min, max, rms = 0]) => ({ min, max, rms })) }
 }
 
 describe('combineWaveforms', () => {
@@ -62,6 +64,34 @@ describe('combineWaveforms', () => {
     expect(combineWaveforms([{ waveform: a, gain: 0 }])).toEqual(
       wave([0, 0], [0, 0])
     )
+  })
+
+  it('sums layer rms in energy, not linearly (uncorrelated stems)', () => {
+    const a = wave([-0.3, 0.3, 0.3])
+    const b = wave([-0.4, 0.4, 0.4])
+    expect(
+      combineWaveforms([
+        { waveform: a, gain: 1 },
+        { waveform: b, gain: 1 }
+      ]).peaks[0]?.rms
+    ).toBeCloseTo(0.5, 10)
+  })
+
+  it('scales a layer rms by its gain', () => {
+    const w = wave([-0.4, 0.6, 0.4])
+    expect(
+      combineWaveforms([{ waveform: w, gain: 0.5 }]).peaks[0]?.rms
+    ).toBeCloseTo(0.2, 10)
+  })
+
+  it('clamps the combined rms to the peak limit', () => {
+    const a = wave([-1, 1, 0.9])
+    expect(
+      combineWaveforms([
+        { waveform: a, gain: 1 },
+        { waveform: a, gain: 1 }
+      ]).peaks[0]?.rms
+    ).toBe(1)
   })
 
   // Property: the combined envelope always stays within [-1, 1].

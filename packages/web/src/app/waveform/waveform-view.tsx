@@ -56,6 +56,36 @@ interface WaveformViewProps {
 }
 
 /**
+ * The centrepiece envelope, split at the playhead (AO.1): one amber→teal
+ * gradient colours the whole track; the base « à venir » copy is dimmed by
+ * CSS, the vivid « lu » copy above it is clipped to the played fraction via
+ * the stage's --playhead-ratio variable — paint-only per frame, no React on
+ * the tick path. Same hue both sides: the split reads by intensity.
+ */
+function SplitWaveform({
+  waveform,
+  label
+}: {
+  readonly waveform: Waveform
+  readonly label: string
+}) {
+  return (
+    <div className={styles.waveStack}>
+      <div className={styles.upcomingLayer}>
+        <WaveformCanvas waveform={waveform} label={label} identity />
+      </div>
+      <div
+        className={styles.playedClip}
+        data-testid="waveform-played"
+        aria-hidden="true"
+      >
+        <WaveformCanvas waveform={waveform} label="" identity decorative />
+      </div>
+    </div>
+  )
+}
+
+/**
  * Dumb presentational view of the import state: a prompt while idle, progress
  * while decoding, an alert on failure, and — once loaded — the amber waveform
  * with click-to-seek, drag-to-select (the « loupe »), a live selection preview,
@@ -134,23 +164,20 @@ export function WaveformView({
             data-testid="waveform-surface"
             onPointerDown={gestures.beginSelect}
           >
-            {mixWaveform ? (
-              <WaveformCanvas
-                waveform={mixWaveform}
-                label={t({
-                  id: 'waveform.mix-image',
-                  message: "Forme d'onde du mix"
-                })}
-              />
-            ) : (
-              <WaveformCanvas
-                waveform={state.track.waveform}
-                label={t({
-                  id: 'waveform.track-image',
-                  message: "Forme d'onde de la piste"
-                })}
-              />
-            )}
+            <SplitWaveform
+              waveform={mixWaveform ?? state.track.waveform}
+              label={
+                mixWaveform
+                  ? t({
+                      id: 'waveform.mix-image',
+                      message: "Forme d'onde du mix"
+                    })
+                  : t({
+                      id: 'waveform.track-image',
+                      message: "Forme d'onde de la piste"
+                    })
+              }
+            />
           </div>
 
           {durationSeconds > 0 && (

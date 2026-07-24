@@ -97,6 +97,23 @@ describe('ZoomStage', () => {
     }
   })
 
+  it('publishes the played fraction as a CSS variable for the split layers', () => {
+    // AO.1: the played/upcoming colour split clips on --playhead-ratio — same
+    // imperative apply as the playhead, zero React re-render per frame.
+    const position = createExternalValue(0)
+    const { container } = renderStage({ position })
+    mockGeometry(container.querySelector('[class*="scroll"]') as Element)
+    act(() => position.set(4))
+    const inner = container.querySelector('[class*="inner"]') as HTMLElement
+    expect(inner.style.getPropertyValue('--playhead-ratio')).toBe('0.4')
+  })
+
+  it('publishes a zero ratio before the first tick', () => {
+    const { container } = renderStage()
+    const inner = container.querySelector('[class*="inner"]') as HTMLElement
+    expect(inner.style.getPropertyValue('--playhead-ratio')).toBe('0')
+  })
+
   describe('page-follow (Lot L.2)', () => {
     function renderZoomedStage() {
       const position = createExternalValue(0)

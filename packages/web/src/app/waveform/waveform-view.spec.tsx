@@ -12,7 +12,7 @@ import { WaveformView } from './waveform-view.tsx'
 const track: Track = {
   sampleRate: 4,
   durationSeconds: 1,
-  waveform: { peaks: [{ min: -1, max: 1 }] }
+  waveform: { peaks: [{ min: -1, max: 1, rms: 0.7 }] }
 }
 
 const noop = () => {}
@@ -341,8 +341,23 @@ describe('WaveformView', () => {
     ).toBeInTheDocument()
   })
 
+  it('stacks a played overlay over the upcoming envelope (AO.1 split)', () => {
+    renderLoaded()
+    // The vivid « lu » copy clips on --playhead-ratio; the muted « à venir »
+    // base keeps the accessible name — one image for AT, two for the eyes.
+    expect(screen.getByTestId('waveform-played')).toBeInTheDocument()
+  })
+
+  it('hides the played overlay from assistive tech — it is the same image', () => {
+    renderLoaded()
+    expect(screen.getByTestId('waveform-played')).toHaveAttribute(
+      'aria-hidden',
+      'true'
+    )
+  })
+
   it('draws a single mix envelope when given a combined mix waveform', () => {
-    renderLoaded({ mixWaveform: { peaks: [{ min: -0.5, max: 0.5 }] } })
+    renderLoaded({ mixWaveform: { peaks: [{ min: -0.5, max: 0.5, rms: 0.3 }] } })
     // The one summed mix envelope replaces the un-separated track envelope;
     // the individual stems live in their own lanes, not overlaid here.
     expect(
