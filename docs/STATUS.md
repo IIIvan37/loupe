@@ -7,12 +7,14 @@
 
 ## Where we are
 
-**Lot AN clos** ([roadmap v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AN
-livrés) : AN.1→AN.5 mergées (#241–#245), détail en Historique. **Prochain :
-Lot AO — une âme visuelle mémorable**, en commençant par **AO.1 (waveform
-pièce maîtresse : enveloppe deux tons crête+RMS — ajouter `rms` à
-`WaveformPeak` en TDD core — + split couleur au playhead lu/à venir)** ;
-checkpoint d'approche UI avant de coder.
+**Lot AO — une âme visuelle mémorable — en cours** ([roadmap
+v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AN clos). **AO.1 (#246,
+waveform pièce maîtresse)** livrée — détail en Historique. **Reste : AO.2
+(vie et profondeur : motion tokens sur les hovers, halo/pulsation ambre sur
+Play pendant la lecture sous `prefers-reduced-motion`, élévation de repos
+`inset 0 1px 0 rgba(255,255,255,.04)`), AO.3 (signature de marque
+loupe/amber-teal en motif récurrent)** ; checkpoint d'approche UI avant de
+coder chaque slice.
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
@@ -26,6 +28,12 @@ re-seed des codes legacy, PKCE en bundle à rejouer.
 
 ### Roadmap excellence 7 (2026-07-19 → …) — UX exceptionnelle
 
+- 2026-07-23 · **AO.1 — waveform pièce maîtresse** (PR #246) : core `rms` sur
+  `WaveformPeak` (énergie par bucket, mix en `√Σ(g·rms)²`), halo de crête +
+  cœur RMS borné, gradient horizontal ambre→teal continu, split lu/à venir
+  par intensité via `--playhead-ratio` (clip-path, zéro re-render/frame) ;
+  itération visuelle validée à l'écran →
+  [rapport](sessions/2026-07-23-ao1-waveform-centerpiece.md)
 - 2026-07-23 · **AN.5 — chiffrage romain en option** (PR #245, **Lot AN
   clos**) : core `romanizeChordSymbol` (degrés depuis le tonique majeur,
   `IIm7`, chromatismes `♭VII` flat-side, basse slash aussi, Stryker 100 %),
