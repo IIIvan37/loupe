@@ -80,6 +80,9 @@
      for the dark UI: deep, low-spread, so the ombre reads without a halo. */
   --shadow-1: 0 4px 12px rgb(0 0 0 / 0.35);
   --shadow-2: 0 12px 32px rgb(0 0 0 / 0.5);
+  /* Resting elevation (AO.2): a hairline top light on raised faces — depth
+     reads from light above, not only from the drop shadow below. */
+  --elevation-rest: inset 0 1px 0 rgb(255 255 255 / 0.04);
 
   /* Stacking order — one scale, so overlays never fight by accident. Gaps of 10
      leave room to slot a layer in without renumbering. Popovers sit ABOVE

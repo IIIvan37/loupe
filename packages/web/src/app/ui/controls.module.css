@@ -8,12 +8,31 @@
    is exactly how the header actions drifted 25 % above the scale (v6 AE.1).
    Consumers may still override deliberately. */
 
+/* AO.2 — every skin's hover settles on the motion tokens (colour, border,
+   fill, shadow). Transform stays OUT of the list: the 1px pressed dip is
+   instantaneous on purpose, so the reduced-motion reset has nothing to undo. */
+.amberButton,
+.secondaryAction,
+.ghostButton,
+.numberField,
+.quietButton,
+.confirmFace,
+.stepButton {
+  transition:
+    color var(--motion-fast) var(--motion-ease),
+    border-color var(--motion-fast) var(--motion-ease),
+    background-color var(--motion-fast) var(--motion-ease),
+    box-shadow var(--motion-fast) var(--motion-ease);
+}
+
 .amberButton {
   border-radius: var(--radius);
   border: 1px solid var(--amber);
   background: var(--amber);
   color: var(--bg);
   font-size: var(--font-size-s);
+  /* Raised face: lit from above at rest (AO.2). */
+  box-shadow: var(--elevation-rest);
 }
 
 .amberButton:hover:not(:disabled) {
@@ -123,6 +142,7 @@
   background: var(--panel-2);
   color: var(--text);
   font-size: var(--font-size-s);
+  box-shadow: var(--elevation-rest);
 }
 
 .quietButton:hover:not(:disabled) {
@@ -199,6 +219,7 @@
   color: var(--dim);
   font-size: var(--font-size-s);
   line-height: 1;
+  box-shadow: var(--elevation-rest);
 }
 
 .stepButton:hover:not(:disabled) {

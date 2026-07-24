@@ -35,7 +35,7 @@
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--elevation-rest), var(--shadow-1);
 }
 
 .title {
