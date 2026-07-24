@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { BeatGrid } from './beat-grid.ts'
+import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
 import { type DetectedSection, snapSectionsToGrid } from './song-structure.ts'
 
 /** A 4/4 grid at a steady bar length: `bars` downbeats `barSeconds` apart, each

@@ -21,17 +21,6 @@ export {
   StructureDetectionError
 } from './application/detect-structure.ts'
 export type {
-  DetectTempoDeps,
-  DetectTempoInput,
-  DetectTempoResult,
-  TempoAnalysis,
-  TempoDetectionErrorCode
-} from './application/detect-tempo.ts'
-export {
-  detectTempo,
-  TempoDetectionError
-} from './application/detect-tempo.ts'
-export type {
   ExportStemsDeps,
   ExportStemsInput,
   ExportStemsResult
@@ -54,8 +43,6 @@ export type {
   ArchiveWriter,
   AudioFileDecoder,
   ChordDetector,
-  DecodedAudio,
-  DetectedTempo,
   DownloadProgress,
   FetchedTrack,
   PlaybackEngine,
@@ -69,7 +56,6 @@ export type {
   StemSeparator,
   StemSource,
   StructureDetector,
-  TempoDetector,
   TrackMetadata,
   TrackMetadataReader,
   TrackSource,
@@ -102,20 +88,6 @@ export { SeparationError, separateTrack } from './application/separate-track.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
 export { monoMixWithout } from './domain/analysis-mix.ts'
 export { bassNotePerMeasure } from './domain/bass-line.ts'
-export type {
-  Beat,
-  BeatGrid,
-  DetectedBeat,
-  OctaveFactor,
-  TempoValue
-} from './domain/beat-grid.ts'
-export {
-  DEFAULT_BEATS_PER_BAR,
-  foldTempoOctave,
-  MAX_BEATS_PER_BAR,
-  measureIndexAt,
-  remeterGrid
-} from './domain/beat-grid.ts'
 // chartSectionAnchors is the chart→timeline half of the marker sync: the web
 // re-derives the structure markers from the edited source (chart = authority).
 export type { SectionAnchor } from './domain/chart-structure.ts'
@@ -188,15 +160,6 @@ export {
   makeLoopRegion,
   wrapToLoop
 } from './domain/loop-region.ts'
-export type { ManualTempo } from './domain/manual-tempo.ts'
-export {
-  appendTap,
-  buildManualGrid,
-  MAX_MANUAL_BPM,
-  MIN_MANUAL_BPM,
-  normalizeManualBpm,
-  tapTempoBpm
-} from './domain/manual-tempo.ts'
 export type { Marker } from './domain/marker.ts'
 export type { MarkerList } from './domain/marker-list.ts'
 export {
@@ -206,8 +169,6 @@ export {
   removeMarker,
   replaceStructureMarkers
 } from './domain/marker-list.ts'
-export type { ClickTrackOptions, CountIn } from './domain/metronome.ts'
-export { buildCountIn, synthesizeClickTrack } from './domain/metronome.ts'
 export type {
   ChannelGain,
   MixerAction,
@@ -223,7 +184,6 @@ export {
   stepGainDb,
   UNITY_GAIN_DB
 } from './domain/mixer.ts'
-export { nudgeSeconds } from './domain/nudge-time.ts'
 export { parseProject } from './domain/parse-project.ts'
 export {
   clampPitchSemitones,
@@ -288,12 +248,6 @@ export {
 export { stemExportFilename } from './domain/stem-export.ts'
 export type { StemSet, StemTrack } from './domain/stem-set.ts'
 export { buildStemTrack } from './domain/stem-set.ts'
-export type { TempoMap, TempoSegment } from './domain/tempo-map.ts'
-export {
-  buildTempoMap,
-  sanitizeBeatGrid,
-  tempoAt
-} from './domain/tempo-map.ts'
 export { formatTimecode } from './domain/timecode.ts'
 export type { Track } from './domain/track.ts'
 export type {
@@ -314,3 +268,54 @@ export { encodeWav } from './domain/wav-encoder.ts'
 export type { Waveform, WaveformPeak } from './domain/waveform.ts'
 export type { WaveformLayer } from './domain/waveform-mix.ts'
 export { combineWaveforms } from './domain/waveform-mix.ts'
+export type {
+  DetectTempoDeps,
+  DetectTempoInput,
+  DetectTempoResult,
+  TempoAnalysis,
+  TempoDetectionErrorCode
+} from './rhythm/application/detect-tempo.ts'
+export {
+  detectTempo,
+  TempoDetectionError
+} from './rhythm/application/detect-tempo.ts'
+export type {
+  DetectedTempo,
+  TempoDetector
+} from './rhythm/application/ports.ts'
+export type {
+  Beat,
+  BeatGrid,
+  DetectedBeat,
+  OctaveFactor,
+  TempoValue
+} from './rhythm/domain/beat-grid.ts'
+export {
+  DEFAULT_BEATS_PER_BAR,
+  foldTempoOctave,
+  MAX_BEATS_PER_BAR,
+  measureIndexAt,
+  remeterGrid
+} from './rhythm/domain/beat-grid.ts'
+export type { ManualTempo } from './rhythm/domain/manual-tempo.ts'
+export {
+  appendTap,
+  buildManualGrid,
+  MAX_MANUAL_BPM,
+  MIN_MANUAL_BPM,
+  normalizeManualBpm,
+  tapTempoBpm
+} from './rhythm/domain/manual-tempo.ts'
+export type { ClickTrackOptions, CountIn } from './rhythm/domain/metronome.ts'
+export {
+  buildCountIn,
+  synthesizeClickTrack
+} from './rhythm/domain/metronome.ts'
+export { nudgeSeconds } from './rhythm/domain/nudge-time.ts'
+export type { TempoMap, TempoSegment } from './rhythm/domain/tempo-map.ts'
+export {
+  buildTempoMap,
+  sanitizeBeatGrid,
+  tempoAt
+} from './rhythm/domain/tempo-map.ts'
+export type { DecodedAudio } from './shared/decoded-audio.ts'

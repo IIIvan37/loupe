@@ -1,4 +1,8 @@
-import { type BeatGrid, dominantMeter, meterPerMeasure } from './beat-grid.ts'
+import {
+  type BeatGrid,
+  dominantMeter,
+  meterPerMeasure
+} from '../rhythm/domain/beat-grid.ts'
 import {
   isPrintableToken,
   parseChart,

@@ -1,4 +1,4 @@
-import { errorMessage } from './error-message.ts'
+import { errorMessage } from '../shared/error-message.ts'
 import type {
   DownloadProgress,
   TrackSource,

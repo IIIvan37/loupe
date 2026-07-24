@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import type { DecodedAudio } from '../../shared/decoded-audio.ts'
 import type { DetectedBeat } from '../domain/beat-grid.ts'
 import { detectTempo, TempoDetectionError } from './detect-tempo.ts'
-import type { DecodedAudio, TempoDetector } from './ports.ts'
+import type { TempoDetector } from './ports.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 

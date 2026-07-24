@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import type { BeatGrid } from '../domain/beat-grid.ts'
 import type { DetectedChordSpan } from '../domain/chord-detection.ts'
-import { meteredGrid } from '../domain/metered-grid-fixture.ts'
+import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
+import { meteredGrid } from '../rhythm/testing/metered-grid-fixture.ts'
+import type { DecodedAudio } from '../shared/decoded-audio.ts'
 import { ChordDetectionError, detectChords } from './detect-chords.ts'
-import type { ChordDetector, DecodedAudio } from './ports.ts'
+import type { ChordDetector } from './ports.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 

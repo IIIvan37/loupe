@@ -1,5 +1,5 @@
-import type { BeatGrid } from './beat-grid.ts'
-import { median } from './median.ts'
+import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
+import { median } from '../shared/median.ts'
 import { nearestTime } from './nearest-time.ts'
 
 /**
