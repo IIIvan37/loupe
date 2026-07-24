@@ -30,6 +30,7 @@
     "check:dead": "knip",
     "check:dup": "jscpd packages",
     "check:tokens": "bash scripts/check-css-tokens.sh",
+    "modules:hint": "node scripts/modules-hint.ts",
     "gate": "pnpm run \"/^(typecheck|check|check:arch|check:design|check:react|check:tokens|test:coverage|check:dead|check:dup)$/\"",
     "prepare": "husky"
   },
