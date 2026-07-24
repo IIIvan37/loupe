@@ -1,6 +1,7 @@
 # ADR 0002 — Les obligations des ports vivent dans des contrats, servis par `@app/core/testing`
 
-- **Statut** : accepté — mise en œuvre au lot TS.4, puis au fil des extractions TS.5
+- **Statut** : accepté — en vigueur depuis le lot TS.4 (subpath + contrat
+  `ProjectStore`) ; couverture des autres ports au fil des extractions TS.5
 - **Date** : 2026-07-24 (adapté de l'ADR-0002 du template `hexagonal-tdd-starter`)
 
 ## Contexte
@@ -63,8 +64,6 @@ Mise en œuvre incrémentale :
   adapter (parsing HTTP, formats de fichiers) reste dans la spec de cet
   adapter. Un contrat qui grossit d'assertions d'adapter cesse d'être un
   contrat.
-- Tant que TS.4 n'est pas fait, cet ADR décrit une intention, pas un état — le
-  statut le dit explicitement.
 
 ## Alternatives envisagées
 

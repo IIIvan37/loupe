@@ -125,9 +125,22 @@ export default defineConfig({
     }
   },
   resolve: {
-    alias: {
-      '@app/core': new URL('./packages/core/src/index.ts', import.meta.url)
-        .pathname
-    }
+    // Array form on purpose: '@app/core' alone would prefix-match
+    // '@app/core/testing' and mangle it into 'index.ts/testing' — the
+    // subpath entry must come first.
+    alias: [
+      {
+        find: '@app/core/testing',
+        replacement: new URL(
+          './packages/core/src/testing/index.ts',
+          import.meta.url
+        ).pathname
+      },
+      {
+        find: '@app/core',
+        replacement: new URL('./packages/core/src/index.ts', import.meta.url)
+          .pathname
+      }
+    ]
   }
 })

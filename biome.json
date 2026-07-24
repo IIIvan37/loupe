@@ -58,6 +58,23 @@
   },
   "overrides": [
     {
+      "includes": ["packages/web/src/**", "!**/*.spec.ts", "!**/*.spec.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "@app/core/testing": "Fakes and port contracts are for SPECS. Production adapter code consumes @app/core only. (Sheriff cannot split a package by file pattern, so this rule is what makes the boundary structural for web.)"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "includes": ["packages/core/src/**", "!**/*.spec.ts"],
       "linter": {
         "rules": {

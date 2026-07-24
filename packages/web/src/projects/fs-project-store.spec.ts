@@ -1,4 +1,5 @@
 import type { Project } from '@app/core'
+import { projectStoreContract } from '@app/core/testing'
 import { describe, expect, it } from 'vitest'
 import { sha256Hex } from './content-hash.ts'
 import {
@@ -20,6 +21,12 @@ const project: Project = {
 }
 
 const wavBytes = new TextEncoder().encode('wav')
+
+// The port's obligations, replayed against this adapter — same suite the
+// in-memory reference passes (packages/core/src/testing).
+projectStoreContract('createFsProjectStore', () => ({
+  store: createFsProjectStore(memoryFs().fs)
+}))
 
 describe('createFsProjectStore', () => {
   it('round-trips a manifest through projects/{id}.json', async () => {
