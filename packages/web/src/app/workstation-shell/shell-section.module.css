@@ -22,12 +22,19 @@
   cursor: pointer;
 }
 
-.foldToggle::after {
-  content: ' ▸';
+/* The disclosure chevron (AO.3, shared icon vocabulary): drawn once, rotated
+   by state — the fold reads as motion, not as a glyph swap. Sized against the
+   label's small caps; nudged onto their optical baseline. */
+.chevron {
+  width: 1em;
+  height: 1em;
+  margin-inline-start: var(--space-2xs);
+  vertical-align: -0.15em;
+  transition: transform var(--motion-fast) var(--motion-ease);
 }
 
-.foldToggle[aria-expanded='true']::after {
-  content: ' ▾';
+.foldToggle[aria-expanded='false'] .chevron {
+  transform: rotate(-90deg);
 }
 
 /* The acquired-state read-out (teal = what the machine produced). */

@@ -3,6 +3,7 @@ import { Popover } from '@base-ui-components/react/popover'
 import { useLingui } from '@lingui/react/macro'
 import { cx } from '../../lib/cx.ts'
 import { stemColor } from '../stems/stem-color.ts'
+import { Icon } from '../ui/icon.tsx'
 import { GainFader } from './gain-fader.tsx'
 import type { MixerChannelView } from './use-mixer.ts'
 import styles from './stem-headers.module.css'
@@ -92,7 +93,7 @@ export function StemHeaders({
                 })}
                 onClick={() => onDownloadStem(stem.id)}
               >
-                WAV ↓
+                WAV <Icon name="download" className={styles.downloadIcon} />
               </button>
             </div>
             <div className={styles.controls}>

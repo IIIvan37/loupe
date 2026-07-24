@@ -1,5 +1,6 @@
 import { type ReactNode, useId } from 'react'
 import { Stack } from '../../layout/stack/stack.tsx'
+import { Icon } from '../ui/icon.tsx'
 import styles from './shell-section.module.css'
 
 interface ShellSectionFold {
@@ -43,6 +44,9 @@ export function ShellSection({ label, fold, children }: ShellSectionProps) {
                 onClick={fold.onToggle}
               >
                 {label}
+                {/* One chevron from the shared vocabulary (AO.3) — rotated by
+                    CSS on the aria-expanded state, no glyph swap. */}
+                <Icon name="chevron" className={styles.chevron} />
               </button>
             </h2>
             {!fold.open && fold.summary !== undefined && (

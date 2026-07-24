@@ -33,6 +33,6 @@
 
 .toggleOn {
   border-color: var(--amber);
-  background: var(--amber-glow);
+  background: var(--loupe-wash);
   color: var(--amber);
 }
