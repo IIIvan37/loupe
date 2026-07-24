@@ -36,6 +36,14 @@
   app` → magic link réel → session visible au menu compte. NB : le lien
   admin `generate_link` (dev) reste en fragment implicite et ne logge plus —
   c'est voulu, tester avec un vrai magic link.
+  **2026-07-24 — deux bugs corrigés avant le replay** (branche
+  `fix/desktop-auth-cold-start`) : l'URL de LANCEMENT n'était jamais lue
+  (`onOpenUrl` ne rejoue pas le lien qui démarre l'app — il faut
+  `getCurrent()`), et l'échec d'échange PKCE était avalé (`void`) — il
+  logge désormais en console. Rappels macOS : deep links **seulement** avec
+  le bundle installé dans `/Applications`, et le magic link doit être
+  demandé **depuis cette app installée** (le code_verifier vit dans son
+  webview — un lien demandé en dev ne peut pas être échangé par le bundle).
 - [x] **Exports desktop** — **FAIT ET VÉRIFIÉ EN BUNDLE RELEASE
   (2026-07-19)** : flux natif deux temps (dialogue immédiat via
   `pick_export_path`, écriture Rust via `write_export` sous jeton), toast
