@@ -17,7 +17,10 @@ pnpm gate
 `gate` runs, in order (parallelized by pnpm's script regex):
 
 1. `pnpm typecheck` — `tsc --noEmit`, strict (all `noUnused*`,
-   `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`).
+   `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`), plus
+   `erasableSyntaxOnly`: the strip-only invariant (no `enum`, no parameter
+   properties, no `namespace`, no decorators) is rejected by the compiler
+   anywhere in the tree — even in a file no import reaches yet.
 2. `pnpm check` — biome lint + format.
 3. `pnpm check:arch` — `sheriff verify`: hexagonal layering on the module graph
    (`core:domain` → nothing, `application` → `domain`, `cli` → `core:api`). Browser
@@ -47,9 +50,14 @@ Individual pieces if needed: `pnpm typecheck`, `pnpm check:fix` (biome auto-fix)
   boundary rule: `sheriff.config.ts` (tags + depRules).
 - **knip**: an orphan export = either wire it or delete it. No dead code "just in
   case".
-- **jscpd**: a clone = factor into a shared helper (often pure domain). Don't
-  duplicate across strategies/variants. A threshold failure means the new code
-  added duplication — factor it out rather than bumping `.jscpd.json`.
+- **jscpd**: a clone demands a DECISION, not automatically a merge — three
+  exits: **factor** (same knowledge, changes together — often pure domain),
+  **mark deliberate** (`// jscpd:ignore-start`/`-end` + a one-line reason —
+  coincidental likeness, or a boundary crossing like domain type vs adapter
+  DTO), or **when unsure, keep the duplication** — the wrong abstraction costs
+  more than the clone (Metz). A threshold failure means the new code added
+  duplication past the budget — factor it out rather than bumping
+  `.jscpd.json`; never `ignore` without the reason line.
 
 ## Before declaring done
 

@@ -27,7 +27,7 @@ Trois specs d'invariants portées depuis `IIIvan37/hexagonal-tdd-starter`
    liens vers des rapports individuels, ≤ 5 session reports actifs +
    convention de nommage `<YYYY-MM-DD>-<slug>.md`. La section « path truth »
    (les living docs ne nomment que des chemins existants) du template est
-   **différée à TS.3** : elle référence `docs/adr/` qui n'existe pas encore.
+   **différée** : à porter maintenant que `docs/adr/` existe (TS.3 mergé).
    Câblage : `docs` ajouté à l'`include` du `tsconfig.json` racine,
    `docs/**/*.spec.ts` ajouté à l'`include` vitest (coverage inchangée).
 
@@ -48,8 +48,9 @@ externe touché : `use-mixer.spec.tsx` recalculait des attendus via
 - `docs/STATUS.md` : 694 → 47 lignes non vides (historique effondré en une
   ligne par ère, liens de sessions individuels supprimés — le détail vit
   déjà dans les rapports datés).
-- `docs/sessions/archive/` créé (+ README) ; **196 rapports archivés**, les
-  4 rapports du 2026-07-24 restent actifs + celui-ci = 5.
+- `docs/sessions/archive/` créé (+ README) ; **198 rapports archivés** (196 à
+  l'ouverture du lot + 2 après le merge de TS.1/TS.3 qui ont ajouté leurs
+  rapports), 5 actifs.
 
 ## Différé / notes
 
