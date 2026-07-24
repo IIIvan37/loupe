@@ -64,7 +64,11 @@ export default defineConfig({
     environment: 'node',
     // Silences jsdom's "Not implemented: getContext()" noise (see the file).
     setupFiles: ['./vitest.setup.ts'],
-    include: ['packages/*/src/**/*.spec.ts', 'packages/*/src/**/*.spec.tsx'],
+    include: [
+      'packages/*/src/**/*.spec.ts',
+      'packages/*/src/**/*.spec.tsx',
+      'docs/**/*.spec.ts'
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],

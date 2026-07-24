@@ -7,5 +7,5 @@
       "@app/core": ["./packages/core/src/index.ts"]
     }
   },
-  "include": ["packages/core/src", "*.config.ts", "sheriff.config.ts"]
+  "include": ["packages/core/src", "docs", "*.config.ts", "sheriff.config.ts"]
 }
