@@ -3,9 +3,20 @@
   "compilerOptions": {
     "noEmit": true,
     "types": ["vitest/globals", "node"],
+    // LOAD-BEARING for Sheriff, not a tsc convenience: sheriff resolves the
+    // '@app/core' specifier through these paths. Without them `check:arch`
+    // stays green while enforcing NOTHING on web→core:api edges. tsc and
+    // vitest both resolve via the package `exports` and don't need this.
+    // Renaming the packages means updating exports
+    // (packages/core/package.json) AND here.
     "paths": {
       "@app/core": ["./packages/core/src/index.ts"]
     }
   },
-  "include": ["packages/core/src", "*.config.ts", "sheriff.config.ts"]
+  "include": [
+    "packages/core/src",
+    "scripts",
+    "*.config.ts",
+    "sheriff.config.ts"
+  ]
 }

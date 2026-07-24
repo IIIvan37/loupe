@@ -47,11 +47,14 @@ export type TempoDetectionErrorCode =
  * the code; anything else it catches folds into `unknown`.
  */
 export class TempoDetectionError extends Error {
+  readonly code: Exclude<TempoDetectionErrorCode, 'unknown'>
+
   constructor(
-    readonly code: Exclude<TempoDetectionErrorCode, 'unknown'>,
+    code: Exclude<TempoDetectionErrorCode, 'unknown'>,
     detail: string
   ) {
     super(detail)
+    this.code = code
     this.name = 'TempoDetectionError'
   }
 }
