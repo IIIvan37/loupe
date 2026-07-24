@@ -21,9 +21,12 @@ export function appAuth(): AuthPort | null {
         ? createAuth(client, `${url}/functions/v1`, anonKey)
         : null
     if (client && instance && isTauriShell()) {
-      // Desktop shell: the magic link comes back as a `loupe://` deep link.
-      void import('@tauri-apps/plugin-deep-link').then(({ onOpenUrl }) =>
-        installDeepLinkAuth(client, onOpenUrl)
+      // Desktop shell: the magic link comes back as a `loupe://` deep link —
+      // as a runtime event while the app runs, as the LAUNCH URL when the
+      // link starts it (getCurrent; onOpenUrl never replays that one).
+      void import('@tauri-apps/plugin-deep-link').then(
+        ({ getCurrent, onOpenUrl }) =>
+          installDeepLinkAuth(client, onOpenUrl, getCurrent)
       )
     }
   }

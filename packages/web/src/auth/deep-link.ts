@@ -36,17 +36,30 @@ export type OpenUrlSubscribe = (
   handler: (urls: string[]) => void
 ) => Promise<() => void>
 
+/** The plugin's `getCurrent`: the URL(s) that LAUNCHED the app, or null. */
+export type CurrentUrls = () => Promise<string[] | null>
+
 export function installDeepLinkAuth(
   client: SupabaseClient,
-  subscribe: OpenUrlSubscribe
+  subscribe: OpenUrlSubscribe,
+  current: CurrentUrls
 ): void {
-  void subscribe((urls) => {
-    for (const url of urls) {
-      const callback = parseAuthCallback(url)
-      if (callback) {
-        void client.auth.exchangeCodeForSession(callback.code)
-        return
-      }
+  const handle = async (urls: readonly string[]): Promise<void> => {
+    const callback = urls
+      .map(parseAuthCallback)
+      .find((parsed) => parsed !== undefined)
+    if (!callback) {
+      return
     }
-  })
+    const { error } = await client.auth.exchangeCodeForSession(callback.code)
+    if (error) {
+      // Diagnosis-only (the state listeners simply see no session): a
+      // silent failure here left the user staring at « pas de session ».
+      console.error('auth callback exchange failed:', error.message)
+    }
+  }
+  // Cold start: when the magic link LAUNCHES the app, onOpenUrl never
+  // replays the launch URL — it must be read explicitly.
+  void current().then((urls) => (urls ? handle(urls) : undefined))
+  void subscribe((urls) => void handle(urls))
 }

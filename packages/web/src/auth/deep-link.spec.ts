@@ -45,14 +45,21 @@ function fakeClient() {
   }
 }
 
+/** No launch URL — the app was opened normally. */
+const noLaunchUrl = async () => null
+
 describe('installDeepLinkAuth', () => {
   it('exchanges the code from the first valid callback in a batch', async () => {
     const { client, exchangeCodeForSession } = fakeClient()
     let deliver: (urls: string[]) => void = () => {}
-    installDeepLinkAuth(client, async (handler) => {
-      deliver = handler
-      return () => {}
-    })
+    installDeepLinkAuth(
+      client,
+      async (handler) => {
+        deliver = handler
+        return () => {}
+      },
+      noLaunchUrl
+    )
     deliver([
       'loupe://auth-callback?error=access_denied',
       'loupe://auth-callback?code=abc-123'
@@ -66,12 +73,57 @@ describe('installDeepLinkAuth', () => {
   it('ignores batches with no usable callback', async () => {
     const { client, exchangeCodeForSession } = fakeClient()
     let deliver: (urls: string[]) => void = () => {}
-    installDeepLinkAuth(client, async (handler) => {
-      deliver = handler
-      return () => {}
-    })
+    installDeepLinkAuth(
+      client,
+      async (handler) => {
+        deliver = handler
+        return () => {}
+      },
+      noLaunchUrl
+    )
     deliver(['loupe://auth-callback'])
     deliver([])
     expect(exchangeCodeForSession).not.toHaveBeenCalled()
+  })
+
+  it('exchanges the code from the URL that LAUNCHED the app', async () => {
+    // Cold start: the magic link starts the app — onOpenUrl never replays the
+    // launch URL, so the install must read it explicitly (getCurrent).
+    const { client, exchangeCodeForSession } = fakeClient()
+    installDeepLinkAuth(
+      client,
+      async () => () => {},
+      async () => ['loupe://auth-callback?code=cold-1']
+    )
+    await vi.waitFor(() =>
+      expect(exchangeCodeForSession).toHaveBeenCalledWith('cold-1')
+    )
+  })
+
+  it('a launch without deep link installs nothing', async () => {
+    const { client, exchangeCodeForSession } = fakeClient()
+    installDeepLinkAuth(client, async () => () => {}, noLaunchUrl)
+    await Promise.resolve()
+    expect(exchangeCodeForSession).not.toHaveBeenCalled()
+  })
+
+  it('reports a failed exchange — a swallowed error left the user staring at « pas de session »', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const exchangeCodeForSession = vi.fn(async () => ({
+        error: { message: 'code verifier not found' }
+      }))
+      const client = {
+        auth: { exchangeCodeForSession }
+      } as unknown as SupabaseClient
+      installDeepLinkAuth(
+        client,
+        async () => () => {},
+        async () => ['loupe://auth-callback?code=bad-1']
+      )
+      await vi.waitFor(() => expect(errorSpy).toHaveBeenCalled())
+    } finally {
+      errorSpy.mockRestore()
+    }
   })
 })
