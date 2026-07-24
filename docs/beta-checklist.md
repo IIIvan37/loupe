@@ -30,20 +30,20 @@
 
 ## Vérifications à rejouer (bundle desktop)
 
-- [ ] **PKCE bout-en-bout en bundle Tauri** (AC.3 a changé le flux : le
-  callback porte `?code=`, plus jamais de tokens) — recette T2.1bis :
-  `pnpm --filter @app/web build` → `pnpm exec tauri build --debug --bundles
-  app` → magic link réel → session visible au menu compte. NB : le lien
-  admin `generate_link` (dev) reste en fragment implicite et ne logge plus —
-  c'est voulu, tester avec un vrai magic link.
-  **2026-07-24 — deux bugs corrigés avant le replay** (branche
-  `fix/desktop-auth-cold-start`) : l'URL de LANCEMENT n'était jamais lue
-  (`onOpenUrl` ne rejoue pas le lien qui démarre l'app — il faut
-  `getCurrent()`), et l'échec d'échange PKCE était avalé (`void`) — il
-  logge désormais en console. Rappels macOS : deep links **seulement** avec
-  le bundle installé dans `/Applications`, et le magic link doit être
-  demandé **depuis cette app installée** (le code_verifier vit dans son
-  webview — un lien demandé en dev ne peut pas être échangé par le bundle).
+- [x] **PKCE bout-en-bout en bundle Tauri — FAIT ET VÉRIFIÉ (2026-07-24)** :
+  bundle debug installé, magic link réel, session au menu compte. Recette :
+  `pnpm --filter @app/desktop tauri build --debug --bundles app` (le build
+  web s'enchaîne via `beforeBuildCommand` ; la CLI Tauri vit dans
+  `@app/desktop`, un `pnpm exec tauri` à la racine échoue) → installer le
+  `.app` dans `/Applications` → demander le lien **depuis l'app installée**.
+  **Deux bugs corrigés pour y arriver** (PR #248) : l'URL de LANCEMENT
+  n'était jamais lue (`onOpenUrl` ne rejoue pas le lien qui démarre l'app —
+  il faut `getCurrent()`), et l'échec d'échange PKCE était avalé (`void`) —
+  il logge désormais en console. Rappels macOS : deep links **seulement**
+  avec le bundle installé dans `/Applications` (jamais `tauri dev`), et le
+  magic link doit être demandé depuis cette app (le code_verifier vit dans
+  son webview). NB : le lien admin `generate_link` (dev) reste en fragment
+  implicite et ne logge plus — c'est voulu.
 - [x] **Exports desktop** — **FAIT ET VÉRIFIÉ EN BUNDLE RELEASE
   (2026-07-19)** : flux natif deux temps (dialogue immédiat via
   `pick_export_path`, écriture Rust via `write_export` sous jeton), toast

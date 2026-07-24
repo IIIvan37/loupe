@@ -21,14 +21,11 @@
 
 ## Not done / remaining
 
-- **Replay bundle par l'utilisateur** (seul juge : vrai mail + vraie
-  machine) : build → installer dans /Applications → demander le lien depuis
-  l'app installée → cliquer → session au menu compte, puis relancer l'app
-  pour vérifier la persistance (l'auth ne doit avoir lieu qu'une fois —
-  session Supabase persistée + refresh auto, attente produit confirmée).
-- Si le replay échoue encore : l'erreur est désormais lisible dans la
-  console du webview (`auth callback exchange failed: …`) — elle nommera la
-  cause résiduelle (allowlist, verifier, expiration).
+- **Replay bundle : FAIT ET VÉRIFIÉ par l'utilisateur (2026-07-24)** —
+  bundle debug depuis cette branche, magic link réel, session installée.
+  Premier essai raté faute de fix dans le build (PR non mergée + commande
+  `pnpm exec tauri` fausse à la racine) — checklist corrigée
+  (`pnpm --filter @app/desktop tauri build --debug --bundles app`).
 
 ## Decisions
 
