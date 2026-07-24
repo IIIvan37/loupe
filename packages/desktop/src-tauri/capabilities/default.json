@@ -5,12 +5,20 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
+    "core:window:allow-set-title",
     "deep-link:default",
     "fs:allow-appdata-read-recursive",
     "fs:allow-appdata-write-recursive",
     {
       "identifier": "fs:scope",
-      "deny": [{ "path": "$APPDATA/bin" }, { "path": "$APPDATA/bin/**" }]
+      "deny": [
+        {
+          "path": "$APPDATA/bin"
+        },
+        {
+          "path": "$APPDATA/bin/**"
+        }
+      ]
     }
   ]
 }

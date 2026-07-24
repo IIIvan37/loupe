@@ -291,7 +291,7 @@ msgid "chords.edit"
 msgstr "Modifier"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:586
+#: src/app/lead-sheet/chord-chart-panel.tsx:613
 msgid "chords.empty-hint"
 msgstr "Aucune grille — saisir les accords via « Modifier » ou lancer la détection."
 
@@ -321,17 +321,17 @@ msgid "chords.error.unknown"
 msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:550
+#: src/app/lead-sheet/chord-chart-panel.tsx:393
 msgid "chords.follow-pitch"
 msgstr "Transposer la grille pour suivre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:546
+#: src/app/lead-sheet/chord-chart-panel.tsx:389
 msgid "chords.follow-pitch-confirm"
 msgstr "Réécrire la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:506
+#: src/app/lead-sheet/chord-chart-panel.tsx:368
 msgid "chords.followed"
 msgstr "Grille transposée"
 
@@ -407,7 +407,7 @@ msgid "chords.help-voltas"
 msgstr "Fins alternatives (voltas)"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:626
+#: src/app/lead-sheet/chord-chart-panel.tsx:653
 #: src/app/workstation-shell/shell-test-kit.tsx:249
 #: src/app/workstation-shell/shell-test-kit.tsx:254
 msgid "chords.input-label"
@@ -449,12 +449,12 @@ msgid "chords.parse-unreachable"
 msgstr "{count, plural, one {# mesure jamais jouée par la forme} other {# mesures jamais jouées par la forme}}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:534
+#: src/app/lead-sheet/chord-chart-panel.tsx:377
 msgid "chords.pitch-mismatch"
 msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:630
+#: src/app/lead-sheet/chord-chart-panel.tsx:657
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
@@ -514,6 +514,7 @@ msgstr "Transposer un demi-ton vers le haut"
 #: src/app/ui/operation-status.tsx:72
 #: src/app/ui/popover-form.tsx:59
 #: src/app/workstation-shell/confirm-import-dialog.tsx:55
+#: src/app/workstation-shell/confirm-quit-dialog.tsx:52
 msgid "common.cancel"
 msgstr "Annuler"
 
@@ -581,7 +582,7 @@ msgid "drop.overlay"
 msgstr "Déposez le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:387
+#: src/app/workstation-shell/workstation-shell.tsx:403
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -977,42 +978,42 @@ msgid "markers.section-label"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:79
+#: src/app/mixer/stem-headers.tsx:80
 msgid "mixer.confidence"
 msgstr "Confiance de détection : {percent} %"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:89
+#: src/app/mixer/stem-headers.tsx:90
 msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:131
+#: src/app/mixer/stem-headers.tsx:132
 msgid "mixer.eq"
 msgstr "Égaliseur {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:151
+#: src/app/mixer/stem-headers.tsx:152
 msgid "mixer.eq-title"
 msgstr "EQ — {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:196
+#: src/app/mixer/stem-headers.tsx:197
 msgid "mixer.high-cut"
 msgstr "Coupe-haut {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:200
+#: src/app/mixer/stem-headers.tsx:201
 msgid "mixer.high-cut-hint"
 msgstr "Couper les aigus au-dessus de cette fréquence"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:166
+#: src/app/mixer/stem-headers.tsx:167
 msgid "mixer.low-cut"
 msgstr "Coupe-bas {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:170
+#: src/app/mixer/stem-headers.tsx:171
 msgid "mixer.low-cut-hint"
 msgstr "Couper les graves sous cette fréquence"
 
@@ -1022,17 +1023,17 @@ msgid "mixer.mix-label"
 msgstr "Mix"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:102
+#: src/app/mixer/stem-headers.tsx:103
 msgid "mixer.mute"
 msgstr "Couper {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:63
+#: src/app/mixer/stem-headers.tsx:64
 msgid "mixer.region-label"
 msgstr "Mixer"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:111
+#: src/app/mixer/stem-headers.tsx:112
 msgid "mixer.solo"
 msgstr "Isoler {name}"
 
@@ -1136,6 +1137,21 @@ msgstr "Projets"
 #: src/app/workstation-shell/shell-dialogs.tsx:46
 msgid "projects.unreachable"
 msgstr "Impossible de lister les projets — réessayer."
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/confirm-quit-dialog.tsx:42
+msgid "quit.confirm-body"
+msgstr "Le travail non enregistré sera perdu."
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/confirm-quit-dialog.tsx:59
+msgid "quit.confirm-quit"
+msgstr "Quitter"
+
+#. js-lingui-explicit-id
+#: src/app/workstation-shell/confirm-quit-dialog.tsx:39
+msgid "quit.confirm-title"
+msgstr "Quitter sans enregistrer ?"
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row.tsx:29
@@ -1585,7 +1601,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:267
+#: src/app/workstation-shell/workstation-shell.tsx:270
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
@@ -1695,37 +1711,37 @@ msgid "transport.tempo-up"
 msgstr "Accélérer la lecture"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:104
+#: src/app/waveform/waveform-view.tsx:134
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:265
+#: src/app/waveform/waveform-view.tsx:292
 msgid "waveform.import-error"
 msgstr "L'import a échoué : ce fichier n'a pas pu être lu."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:92
+#: src/app/waveform/waveform-view.tsx:122
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:140
+#: src/app/waveform/waveform-view.tsx:171
 msgid "waveform.mix-image"
 msgstr "Forme d'onde du mix"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:215
+#: src/app/waveform/waveform-view.tsx:242
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:201
+#: src/app/waveform/waveform-view.tsx:228
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:271
+#: src/app/waveform/waveform-view.tsx:298
 msgid "waveform.reimport"
 msgstr "Importer un autre fichier"
 
@@ -1735,7 +1751,7 @@ msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:148
+#: src/app/waveform/waveform-view.tsx:175
 msgid "waveform.track-image"
 msgstr "Forme d'onde de la piste"
 
