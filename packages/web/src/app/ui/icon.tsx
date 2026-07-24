@@ -13,6 +13,8 @@ export type IconName =
   | 'close'
   | 'loop'
   | 'check'
+  | 'download'
+  | 'chevron'
 
 /**
  * The per-name artwork, on a 24×24 grid. Transport marks are filled (the media
@@ -35,12 +37,15 @@ const glyphs: Record<IconName, ReactNode> = {
   loop: (
     <path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3" />
   ),
-  check: <path d="M5 13l4 4L19 7" />
+  check: <path d="M5 13l4 4L19 7" />,
+  download: <path d="M12 3v12M7 10l5 5 5-5M4 19h16" />,
+  /* Points DOWN (the open state); hosts rotate it -90° while folded. */
+  chevron: <path d="M6 9l6 6 6-6" />
 }
 
 interface IconProps {
   readonly name: IconName
-  readonly className?: string
+  readonly className?: string | undefined
 }
 
 /**

@@ -190,3 +190,10 @@
   flex: 1;
   min-width: 32px;
 }
+
+/* The download glyph rides the chip's text size (AO.3 icon vocabulary). */
+.downloadIcon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+}

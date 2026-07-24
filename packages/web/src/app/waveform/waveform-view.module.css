@@ -103,7 +103,7 @@
 .selection {
   position: absolute;
   inset-block: 0;
-  background: var(--amber-glow);
+  background: var(--loupe-wash);
   border-inline: 1px solid var(--amber);
   pointer-events: none;
 }

@@ -22,7 +22,7 @@
   background: var(--panel-2);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-2);
+  box-shadow: var(--elevation-rest), var(--shadow-2);
   color: var(--text);
   font-size: var(--font-size-s);
   pointer-events: auto;

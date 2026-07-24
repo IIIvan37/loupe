@@ -20,6 +20,14 @@
   --amber: #e5a53d; /* what plays / is active / the loupe loop */
   --amber-deep: #b07d23; /* active marker / preset borders */
   --amber-glow: rgba(229, 165, 61, 0.18); /* the loupe wash */
+  /* The loupe wash as a MOTIF (AO.3): the same top-lit amber gradient signs
+     every « what the loupe magnifies » surface — active loop, playing
+     measure, live selection — instead of three flat fills. */
+  --loupe-wash: linear-gradient(
+    180deg,
+    rgba(229, 165, 61, 0.26),
+    rgba(229, 165, 61, 0.1)
+  );
   --teal: #56b8c9; /* what the AI detected */
   --teal-deep: #2c6f7a;
 
@@ -80,6 +88,9 @@
      for the dark UI: deep, low-spread, so the ombre reads without a halo. */
   --shadow-1: 0 4px 12px rgb(0 0 0 / 0.35);
   --shadow-2: 0 12px 32px rgb(0 0 0 / 0.5);
+  /* Resting elevation (AO.2): a hairline top light on raised faces — depth
+     reads from light above, not only from the drop shadow below. */
+  --elevation-rest: inset 0 1px 0 rgb(255 255 255 / 0.04);
 
   /* Stacking order — one scale, so overlays never fight by accident. Gaps of 10
      leave room to slot a layer in without renumbering. Popovers sit ABOVE
