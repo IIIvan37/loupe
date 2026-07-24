@@ -47,7 +47,7 @@ import { useShellShortcuts } from './use-shell-shortcuts.ts'
 import { useStemExport } from './use-stem-export.ts'
 import { useChartWithStructure } from './use-chart-with-structure.ts'
 import { useTempoDetection } from './use-tempo-detection.ts'
-import { useUnloadGuard } from './use-unload-guard.ts'
+import { QuitGuard } from './quit-guard.tsx'
 import styles from './workstation-shell.module.css'
 
 /** The live tuning as a manifest persists it — an untouched fine-tune stays
@@ -296,9 +296,6 @@ export function WorkstationShell({
     importStatus: importState.status
   })
 
-  // Reload/close would silently drop unsaved work — let the browser confirm.
-  useUnloadGuard(session.unsavedWork)
-
   // Global command surfaces (keyboard + native menu) — only live once loaded.
   useShellShortcuts({
     enabled: isLoaded,
@@ -350,6 +347,9 @@ export function WorkstationShell({
         onConfirm={drop.confirm}
         onCancel={drop.cancel}
       />
+      {/* Leaving must never silently drop unsaved work — browser AND
+          desktop paths, one self-contained guard (AP.2). */}
+      <QuitGuard unsavedWork={session.unsavedWork} />
       <ShellHeader
         metadata={metadata}
         session={session}

@@ -1,5 +1,6 @@
 import { useLingui } from '@lingui/react/macro'
 import { appAuth } from '../../auth/app-auth.ts'
+import { useWindowTitle } from './use-window-title.ts'
 import type { AuthPort, MintFailureReason } from '../../auth/auth-port.ts'
 import { AccountMenuSlot } from '../account/account-menu-slot.tsx'
 import { Header } from '../header/header.tsx'
@@ -70,6 +71,10 @@ export function ShellHeader({
   // The account port: injected in tests, else the app singleton (null when
   // Supabase isn't configured → no control, the analysis gate is a no-op).
   const resolvedAuth = auth !== undefined ? auth : appAuth()
+
+  // The window title mirrors this header's identity line (AP.3):
+  // « morceau — Loupe » + dirty dot, browser tab and native window alike.
+  useWindowTitle(metadata.title, session.unsavedWork)
 
   // A running URL download narrates itself in the busy line, phase by phase
   // — the percentage rides the progress bar, not the copy (R.4).

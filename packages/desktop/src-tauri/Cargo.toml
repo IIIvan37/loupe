@@ -1,10 +1,10 @@
 [package]
 name = "app"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+description = "Loupe — poste de travail de transcription musicale"
+authors = ["Ivan Duchauffour"]
+license = "UNLICENSED"
+repository = "https://github.com/IIIvan37/loupe"
 edition = "2021"
 rust-version = "1.77.2"
 
@@ -27,6 +27,7 @@ tauri-plugin-deep-link = "2.4.9"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-single-instance = "2"
+tauri-plugin-window-state = "2"
 tokio = { version = "1", features = ["process", "io-util", "time", "rt", "macros", "sync"] }
 url = "2"
 ureq = "3"

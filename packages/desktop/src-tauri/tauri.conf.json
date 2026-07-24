@@ -43,6 +43,9 @@
     ],
     "android": {
       "debugApplicationIdSuffix": ".debug"
-    }
+    },
+    "copyright": "© 2026 Ivan Duchauffour",
+    "category": "Music",
+    "publisher": "Ivan Duchauffour"
   }
 }
