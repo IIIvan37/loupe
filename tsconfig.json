@@ -15,6 +15,7 @@
   },
   "include": [
     "packages/core/src",
+    "docs",
     "scripts",
     "*.config.ts",
     "sheriff.config.ts"

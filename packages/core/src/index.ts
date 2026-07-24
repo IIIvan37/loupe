@@ -111,7 +111,6 @@ export type {
 } from './domain/beat-grid.ts'
 export {
   DEFAULT_BEATS_PER_BAR,
-  detectMeter,
   foldTempoOctave,
   MAX_BEATS_PER_BAR,
   measureIndexAt,
@@ -141,12 +140,10 @@ export type {
 export {
   chartDiagnostics,
   chartMatchesPitch,
-  measureSourceSpans,
   parseChart,
   parseFormRollout,
   respellChartSource,
   transposeChart,
-  transposeChartSource,
   unrollChart
 } from './domain/chord-chart.ts'
 export type { DetectedChordSpan } from './domain/chord-detection.ts'
@@ -158,7 +155,7 @@ export type { Key } from './domain/chord-key.ts'
 export { keyName, parseKeyName, transposeKey } from './domain/chord-key.ts'
 export type { Accidental, ChordSymbol } from './domain/chord-symbol.ts'
 export { formatChordSymbol, parseChordSymbol } from './domain/chord-symbol.ts'
-export { chromaFromSpectrum, chromaWithHarmonics } from './domain/chroma.ts'
+export { chromaWithHarmonics } from './domain/chroma.ts'
 export { downmixToMono } from './domain/downmix.ts'
 export {
   clampFineTuneCents,
@@ -169,11 +166,6 @@ export type {
   DetectedStem,
   StemEnergy
 } from './domain/instrument-detection.ts'
-export {
-  detectInstruments,
-  PRESENCE_THRESHOLD,
-  stemEnergy
-} from './domain/instrument-detection.ts'
 export type {
   Command,
   KeyBinding,
@@ -182,8 +174,7 @@ export type {
 } from './domain/key-bindings.ts'
 export {
   defaultKeyBindings,
-  resolveCommand,
-  SEEK_STEP_SECONDS
+  resolveCommand
 } from './domain/key-bindings.ts'
 export type { LoopLibrary, NamedLoop } from './domain/loop-library.ts'
 export {
@@ -193,7 +184,6 @@ export {
 } from './domain/loop-library.ts'
 export type { LoopRegion } from './domain/loop-region.ts'
 export {
-  loopContains,
   loopLength,
   makeLoopRegion,
   wrapToLoop
@@ -225,11 +215,8 @@ export type {
   MixerState
 } from './domain/mixer.ts'
 export {
-  clampGainDb,
-  dbToAmplitude,
   effectiveGains,
   emptyMixer,
-  GAIN_DB_FINE_STEP,
   MAX_GAIN_DB,
   MIN_GAIN_DB,
   mixerReducer,
@@ -242,17 +229,13 @@ export {
   clampPitchSemitones,
   MAX_PITCH_SEMITONES,
   MIN_PITCH_SEMITONES,
-  PITCH_SEMITONE_STEP,
   stepPitchSemitones
 } from './domain/pitch-shift.ts'
 export {
   clampPlaybackRate,
-  MAX_PLAYBACK_RATE,
   MAX_TEMPO_PERCENT,
-  MIN_PLAYBACK_RATE,
   MIN_TEMPO_PERCENT,
-  stepTempoPercent,
-  TEMPO_PERCENT_STEP
+  stepTempoPercent
 } from './domain/playback-rate.ts'
 export type {
   AudioRef,
@@ -271,7 +254,6 @@ export {
   chartTransposedBy,
   fineTuneOrDefault,
   projectChordChart,
-  projectFromSession,
   tuningOrDefault
 } from './domain/project.ts'
 export { romanizeChordSymbol } from './domain/roman-numeral.ts'

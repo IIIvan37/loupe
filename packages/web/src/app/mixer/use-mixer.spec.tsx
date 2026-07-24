@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
 import {
   type StemFilter,
-  dbToAmplitude,
   type MixerState,
   type SeparatedStem,
   type StemSet,
@@ -10,6 +9,10 @@ import {
 import { act, renderHook } from '@testing-library/react'
 import { vi } from 'vitest'
 import { type Mixer, useMixer } from './use-mixer.ts'
+
+// Local oracle for the dB→amplitude law (10^(db/20)); the core keeps
+// `dbToAmplitude` internal to its mixer domain (no production consumer).
+const dbToAmplitude = (db: number): number => 10 ** (db / 20)
 
 const audio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 const emptyTrack = { sampleRate: 4, durationSeconds: 1, waveform: { peaks: [] } }
