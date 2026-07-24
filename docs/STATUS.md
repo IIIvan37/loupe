@@ -8,13 +8,16 @@
 
 ## Where we are
 
-**Lot AO clos** ([roadmap v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AO
-livrés) : AO.1 (#246), AO.2+AO.3 (#247). En passant : **auth desktop réparée
-et vérifiée en bundle** (#248, PKCE cold start ; item checklist beta coché).
-**Prochain : au choix — Lot AP (nativité desktop : AP.2 garde de fermeture
-native, AP.3 fenêtre persistée + titre, AP.4 métadonnées bundle) ou Lot AQ
-(vocabulaire et copy : AQ.1 lexique morceau/piste, AQ.2 anti-anglais + ton)** ;
-checkpoint d'approche avant chaque slice UI.
+**Lot AP clos** ([roadmap v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AP
+livrés) : AP.1 menus natifs (#224), AP.2–AP.4 garde de fermeture native +
+fenêtre persistée/titre + métadonnées bundle (#249), revue post-clôture
+corrigée (#253 : race d'armement, window-state sur ⌘Q, `destroy` raté).
+Reste dû côté AP : replay bundle utilisateur (croix rouge/⌘Q propre et sale,
+géométrie maximisée après relance, titre natif avec ●).
+**Prochain : finir le lot TS ([template-sync-plan.md](template-sync-plan.md))
+— TS.4 subpath `@app/core/testing` + contrats de ports, puis TS.5 modules
+émergents — avant le Lot AQ (vocabulaire et copy)** ; checkpoint d'approche
+avant chaque slice UI.
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
@@ -26,7 +29,7 @@ codes legacy, PKCE en bundle à rejouer.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
-- 2026-07-19 → 07-24 · **Roadmap excellence 7** (UX exceptionnelle) : Lots AJ (offload-only), AK (funnel), AL (boucles/vitesse), AM (mixer), AN (grammaire/gravure/romain), AO (waveform/vie/signature) + fix auth desktop PKCE.
+- 2026-07-19 → 07-24 · **Roadmap excellence 7** (UX exceptionnelle) : Lots AJ (offload-only), AK (funnel), AL (boucles/vitesse), AM (mixer), AN (grammaire/gravure/romain), AO (waveform/vie/signature), AP (nativité desktop + revue) + fix auth desktop PKCE.
 - 2026-07-18 → 07-19 · **Phase 2 desktop + solde v6** : sécurité desktop (PKCE, CSP, yt-dlp épinglé), export natif, menus natifs, SMTP beta, mutants form-encoder.
 - 2026-07-16 → 07-18 · **Phase 2 client léger Tauri/Modal** : spike GO, deep-link auth, stores fs, yt-dlp sidecar, retrait du serveur du chemin nominal ; M1.1–M1.4 (tempo/accords/séparation sur Modal).
 - 2026-07-16 · **Roadmap excellence 5** (17,2/20) : les cinq 🟠 (X.1–AA.1).

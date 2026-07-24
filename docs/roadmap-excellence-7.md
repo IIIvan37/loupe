@@ -188,7 +188,8 @@ efface une classe entière de code mort.*
   [x] AN.5 (#245, option off par défaut) — **Lot AN clos**
 - [x] AO.1 (#246, gradient horizontal + split par intensité) · [x] AO.2
   (#247) · [x] AO.3 (#247, ×2/÷2 restés texte — décision) — **Lot AO clos**
-- [ ] AP.2 · [ ] AP.3 · [ ] AP.4
+- [x] AP.2 · [x] AP.3 · [x] AP.4 (#249) + revue post-clôture (#253) —
+  **Lot AP clos** (replay bundle utilisateur encore dû)
 - [ ] AQ.1 · [ ] AQ.2
 
 **Déjà-tranchés (5, écartés)** : l'EQ session-only (T.8/T.8b — AM.4 le
