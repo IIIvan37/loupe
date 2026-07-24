@@ -91,7 +91,39 @@ describe('useCloseGuard', () => {
     try {
       renderHook(() => useCloseGuard(true, vi.fn()))
       await flush()
+      // The channel name is the Rust-side contract (CLOSE_REQUESTED): a
+      // typo here would leave the guard dead while every spec stays green.
+      expect(listen).toHaveBeenCalledWith(
+        'close-requested',
+        expect.any(Function)
+      )
       expect(invoke).toHaveBeenCalledWith('arm_close_guard')
+    } finally {
+      restore()
+    }
+  })
+
+  it('never arms the shell when the unmount lands mid-install', async () => {
+    const restore = stubTauriShell()
+    try {
+      let resolveListen: (() => void) | undefined
+      listen.mockImplementationOnce(
+        (_event: string, callback: Handler) =>
+          new Promise<typeof unlisten>((resolve) => {
+            handler = callback
+            resolveListen = () => resolve(unlisten)
+          })
+      )
+      const hook = renderHook(() => useCloseGuard(false, vi.fn()))
+      await flush()
+      // Let install() pass the subscription step, then tear down before the
+      // arming invoke resolves — arming now would hold exits open forever.
+      resolveListen?.()
+      await Promise.resolve()
+      hook.unmount()
+      await flush()
+      expect(invoke).not.toHaveBeenCalledWith('arm_close_guard')
+      expect(unlisten).toHaveBeenCalledTimes(1)
     } finally {
       restore()
     }

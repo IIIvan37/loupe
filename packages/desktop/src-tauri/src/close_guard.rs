@@ -7,12 +7,14 @@
 //! The guard only bites once the webview has ARMED it (right after it
 //! subscribes): before React mounts there is no unsaved work to protect,
 //! and a crashed/hung webview must never make the app unclosable — an
-//! unarmed guard lets every exit through. Known limit: a webview reload
-//! would leave the guard armed with no listener; the app never navigates,
-//! so that path only exists in dev.
+//! unarmed guard lets every exit through. Known limit: a webview that dies
+//! AFTER arming (dev reload, or a WKWebView content-process crash) leaves
+//! the guard held with no listener — Tauri exposes no crash event to detect
+//! it, so force-quit stays the escape hatch on that path.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{AppHandle, Emitter, Manager, RunEvent, Runtime, Window, WindowEvent};
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 /// Event the webview listens for; carries no payload.
 pub const CLOSE_REQUESTED: &str = "close-requested";
@@ -69,6 +71,14 @@ pub fn arm_close_guard(state: tauri::State<'_, CloseGuardState>) {
 /// latch lets the ensuing `ExitRequested` through.
 #[tauri::command]
 pub fn confirm_close(window: tauri::WebviewWindow, state: tauri::State<'_, CloseGuardState>) {
+  // The window-state plugin captures maximized/fullscreen only on
+  // `CloseRequested` — a guarded Cmd+Q never fires one, and by `Exit` the
+  // window is already destroyed. Save while it is still alive.
+  let _ = window.app_handle().save_window_state(StateFlags::all());
   state.exit_allowed.store(true, Ordering::SeqCst);
-  let _ = window.destroy();
+  if window.destroy().is_err() {
+    // The app survived: re-engage the guard, or every later exit would
+    // sail through the open latch and drop whatever gets edited next.
+    state.exit_allowed.store(false, Ordering::SeqCst);
+  }
 }

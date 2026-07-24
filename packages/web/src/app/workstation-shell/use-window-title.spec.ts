@@ -20,7 +20,9 @@ const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 describe('useWindowTitle', () => {
   beforeEach(() => {
     setTitle.mockClear()
-    document.title = 'Loupe — poste de travail de transcription'
+    // A sentinel, NOT the expected fallback: the fallback test must prove
+    // the hook writes the base title, not inherit it from the environment.
+    document.title = 'stale title from a previous state'
   })
 
   it('titles the window after the loaded track', () => {

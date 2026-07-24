@@ -48,6 +48,11 @@ export function useCloseGuard(
       // Only NOW may the shell hold exits open: arming before the listener
       // exists would make the app unclosable on a slow mount.
       const { invoke } = await import('@tauri-apps/api/core')
+      // A teardown can land while that module loads — the listener is
+      // already gone, so arming would hold exits open with nobody deciding.
+      if (disposed) {
+        return
+      }
       void invoke('arm_close_guard')
     }
     void install()
