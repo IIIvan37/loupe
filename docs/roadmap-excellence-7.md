@@ -186,8 +186,8 @@ efface une classe entière de code mort.*
 - [x] AN.1 (#241, périmètre « locus seul ») · [x] AN.2 (#242, diagnostics
   seuls) · [x] AN.3 (#243, sans sélecteur de cible) · [x] AN.4 (#244) ·
   [x] AN.5 (#245, option off par défaut) — **Lot AN clos**
-- [x] AO.1 (#246, gradient horizontal + split par intensité) · [ ] AO.2 ·
-  [ ] AO.3
+- [x] AO.1 (#246, gradient horizontal + split par intensité) · [x] AO.2
+  (#247) · [x] AO.3 (#247, ×2/÷2 restés texte — décision) — **Lot AO clos**
 - [ ] AP.2 · [ ] AP.3 · [ ] AP.4
 - [ ] AQ.1 · [ ] AQ.2
 

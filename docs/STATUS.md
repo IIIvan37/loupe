@@ -7,14 +7,14 @@
 
 ## Where we are
 
-**Lot AO — une âme visuelle mémorable — en cours** ([roadmap
-v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AN clos). **AO.1 (#246,
-waveform pièce maîtresse)** livrée — détail en Historique. **Reste : AO.2
-(vie et profondeur : motion tokens sur les hovers, halo/pulsation ambre sur
-Play pendant la lecture sous `prefers-reduced-motion`, élévation de repos
-`inset 0 1px 0 rgba(255,255,255,.04)`), AO.3 (signature de marque
-loupe/amber-teal en motif récurrent)** ; checkpoint d'approche UI avant de
-coder chaque slice.
+**Lot AO clos** ([roadmap v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AO
+livrés) : AO.1 (#246), AO.2+AO.3 (#247) — détail en Historique. En passant :
+**auth desktop réparée et vérifiée en bundle** (#248, PKCE cold start ; item
+checklist beta coché). **Prochain : au choix — Lot AP (nativité desktop :
+AP.2 garde de fermeture native, AP.3 fenêtre persistée + titre, AP.4
+métadonnées bundle) ou Lot AQ (vocabulaire et copy : AQ.1 lexique
+morceau/piste, AQ.2 anti-anglais + ton)** ; checkpoint d'approche avant
+chaque slice UI.
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
@@ -28,6 +28,17 @@ re-seed des codes legacy, PKCE en bundle à rejouer.
 
 ### Roadmap excellence 7 (2026-07-19 → …) — UX exceptionnelle
 
+- 2026-07-24 · **Fix auth desktop — PKCE cold start** (PR #248, vérifié en
+  bundle) : `getCurrent()` lit l'URL de lancement (`onOpenUrl` ne la rejoue
+  jamais), échec d'échange loggé au lieu d'avalé ; commande de build
+  corrigée dans la checklist →
+  [rapport](sessions/2026-07-24-desktop-auth-cold-start.md)
+- 2026-07-24 · **AO.2 + AO.3 — vie, profondeur, signature** (PR #247, **Lot
+  AO clos**) : transitions motion sur les 7 peaux, token `--elevation-rest`,
+  halo Play sur `[aria-pressed]`, icônes download/chevron rotatif,
+  `--loupe-wash` en motif →
+  [AO.2](sessions/2026-07-24-ao2-life-depth.md) ·
+  [AO.3](sessions/2026-07-24-ao3-brand-signature.md)
 - 2026-07-23 · **AO.1 — waveform pièce maîtresse** (PR #246) : core `rms` sur
   `WaveformPeak` (énergie par bucket, mix en `√Σ(g·rms)²`), halo de crête +
   cœur RMS borné, gradient horizontal ambre→teal continu, split lu/à venir
