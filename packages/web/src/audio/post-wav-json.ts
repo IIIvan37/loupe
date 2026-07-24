@@ -6,11 +6,11 @@ import { encodeAnalysisWavMemo } from './encode-analysis-wav-memo.ts'
  * discriminate the statuses it knows how to explain (503 = engine missing).
  */
 class HttpStatusError extends Error {
-  constructor(
-    readonly status: number,
-    message: string
-  ) {
+  readonly status: number
+
+  constructor(status: number, message: string) {
     super(message)
+    this.status = status
     this.name = 'HttpStatusError'
   }
 }

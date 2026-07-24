@@ -70,11 +70,14 @@ export type ChordDetectionErrorCode =
  * the code; anything else it catches folds into `unknown`.
  */
 export class ChordDetectionError extends Error {
+  readonly code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large'
+
   constructor(
-    readonly code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large',
+    code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large',
     detail: string
   ) {
     super(detail)
+    this.code = code
     this.name = 'ChordDetectionError'
   }
 }

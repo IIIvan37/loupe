@@ -35,11 +35,11 @@ export interface SeparateTrackDeps {
  * the same contract the detections carry (N.1, extended in M1.4).
  */
 export class SeparationError extends Error {
-  constructor(
-    readonly code: Exclude<SeparationErrorCode, 'unknown'>,
-    detail: string
-  ) {
+  readonly code: Exclude<SeparationErrorCode, 'unknown'>
+
+  constructor(code: Exclude<SeparationErrorCode, 'unknown'>, detail: string) {
     super(detail)
+    this.code = code
     this.name = 'SeparationError'
   }
 }

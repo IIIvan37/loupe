@@ -40,11 +40,14 @@ export type StructureDetectionErrorCode =
  * code; anything else it catches folds into `unknown`.
  */
 export class StructureDetectionError extends Error {
+  readonly code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large'
+
   constructor(
-    readonly code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large',
+    code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large',
     detail: string
   ) {
     super(detail)
+    this.code = code
     this.name = 'StructureDetectionError'
   }
 }
