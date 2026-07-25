@@ -1,4 +1,4 @@
-import { buildTrack, type Track } from '../domain/track.ts'
+import { buildTrack, type Track } from '../audio/domain/track.ts'
 import type { DecodedAudio } from '../shared/decoded-audio.ts'
 import { errorMessage } from '../shared/error-message.ts'
 import type { AudioFileDecoder, PlaybackEngine } from './ports.ts'
