@@ -14,16 +14,20 @@ fenêtre persistée/titre + métadonnées bundle (#249), revue post-clôture
 corrigée (#253 : race d'armement, window-state sur ⌘Q, `destroy` raté).
 Reste dû côté AP : replay bundle utilisateur (croix rouge/⌘Q propre et sale,
 géométrie maximisée après relance, titre natif avec ●).
-Lot TS ([template-sync-plan.md](template-sync-plan.md)) : TS.1–TS.5.1 livrés
-(#251, #252, #250, #254, #255) — configs, fitness functions, ADR, subpath
-`@app/core/testing` + contrat `ProjectStore`, et le **mécanisme des modules
-émergents** ([ADR-0005](adr/0005-modules-emergents.md)) : placeholders Sheriff
-dormants, ratchet nursery, isolation inter-features, `pnpm modules:hint`.
-**Prochain : TS.5.2 — première extraction `rhythm`** (git mv de la tranche
-verticale, la gate énumère la frontière, procédure Mikado ; promotions
-`shared/` attendues : median, nearest-time, timecode), les extractions
-suivantes à intercaler avec le travail produit ; puis Lot AQ (vocabulaire et
-copy) ; checkpoint d'approche avant chaque slice UI.
+Lot TS ([template-sync-plan.md](template-sync-plan.md)) : TS.1–TS.5.2 livrés
+(#251, #252, #250, #254, #255, #256) — configs, fitness functions, ADR,
+subpath `@app/core/testing`, mécanisme des modules émergents
+([ADR-0005](adr/0005-modules-emergents.md)), et la **première extraction :
+`rhythm`** (beat-grid, tempo-map, manual-tempo, metronome, nudge-time,
+detect-tempo + ses ports) avec les promotions `shared/` (median,
+error-message, DecodedAudio). `fine-tune` reste en nursery (c'est du pitch,
+pas du rythme).
+**Prochain : TS.5.3 — extraction `harmony`** (`chord-*` ×5, chroma,
+roman-numeral, harmonic-cycle, bass-line…) : première depRule inter-features
+explicite (`feature:harmony → feature:rhythm`) et réparation du cycle
+`harmonic-cycle → section-matching` ; extractions suivantes à intercaler avec
+le travail produit ; puis Lot AQ (vocabulaire et copy) ; checkpoint d'approche
+avant chaque slice UI.
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri

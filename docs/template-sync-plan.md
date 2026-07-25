@@ -123,4 +123,5 @@ intercaler avec le travail produit (une extraction quand on touche la zone).
 | TS.3 | Pratique ADR | ✅ #250 |
 | TS.4 | Subpath testing + premier contrat | ✅ #254 |
 | TS.5.1 | Mécanisme (placeholders Sheriff, ratchet, `modules:hint`) | ✅ #255 |
-| TS.5.x | Extractions de modules (une PR chacune) | ⬜ |
+| TS.5.2 | Extraction `rhythm` + promotions shared (median, error-message, DecodedAudio) | ✅ #256 |
+| TS.5.x | Extractions suivantes : harmony, structure, loops, separation, project | ⬜ |
