@@ -3,14 +3,14 @@ import {
   parseChart,
   renderChartSource,
   unrollChart
-} from '../harmony/domain/chord-chart.ts'
-import { formatChordSymbol } from '../harmony/domain/chord-symbol.ts'
+} from '../../harmony/domain/chord-chart.ts'
+import { formatChordSymbol } from '../../harmony/domain/chord-symbol.ts'
 import {
   type BeatGrid,
   dominantMeter,
   meterPerMeasure
-} from '../rhythm/domain/beat-grid.ts'
-import { matchesTolerantly, votedBlock } from '../shared/section-matching.ts'
+} from '../../rhythm/domain/beat-grid.ts'
+import { matchesTolerantly, votedBlock } from '../../shared/section-matching.ts'
 import type { DetectedSection } from './song-structure.ts'
 
 /**

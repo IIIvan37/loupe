@@ -1,12 +1,4 @@
 import { applyBassSlash } from '../domain/bass-line.ts'
-import {
-  chartMeters,
-  cutBySections,
-  renderStructuredSource,
-  timeLine
-} from '../domain/chart-structure.ts'
-import { encodeChartSource } from '../domain/form-encoder.ts'
-import type { DetectedSection } from '../domain/song-structure.ts'
 import { respellChartSource } from '../harmony/domain/chord-chart.ts'
 import { chordLabelPerMeasure } from '../harmony/domain/chord-detection.ts'
 import {
@@ -17,6 +9,14 @@ import {
 import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
 import type { DecodedAudio } from '../shared/decoded-audio.ts'
 import { errorMessage } from '../shared/error-message.ts'
+import {
+  chartMeters,
+  cutBySections,
+  renderStructuredSource,
+  timeLine
+} from '../structure/domain/chart-structure.ts'
+import { encodeChartSource } from '../structure/domain/form-encoder.ts'
+import type { DetectedSection } from '../structure/domain/song-structure.ts'
 import type { ChordDetector } from './ports.ts'
 
 export interface DetectChordsInput {

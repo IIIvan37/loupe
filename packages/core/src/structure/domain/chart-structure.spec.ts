@@ -4,11 +4,11 @@ import {
   parseChart,
   renderChartSource,
   unrollChart
-} from '../harmony/domain/chord-chart.ts'
-import { formatChordSymbol } from '../harmony/domain/chord-symbol.ts'
-import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
-import { measureIndexAt } from '../rhythm/domain/beat-grid.ts'
-import { meteredGrid } from '../rhythm/testing/metered-grid-fixture.ts'
+} from '../../harmony/domain/chord-chart.ts'
+import { formatChordSymbol } from '../../harmony/domain/chord-symbol.ts'
+import type { BeatGrid } from '../../rhythm/domain/beat-grid.ts'
+import { measureIndexAt } from '../../rhythm/domain/beat-grid.ts'
+import { meteredGrid } from '../../rhythm/testing/metered-grid-fixture.ts'
 import {
   chartMeters,
   chartSectionAnchors,

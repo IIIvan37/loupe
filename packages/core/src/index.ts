@@ -11,16 +11,6 @@ export {
   detectChords
 } from './application/detect-chords.ts'
 export type {
-  DetectStructureDeps,
-  DetectStructureInput,
-  DetectStructureResult,
-  StructureDetectionErrorCode
-} from './application/detect-structure.ts'
-export {
-  detectStructure,
-  StructureDetectionError
-} from './application/detect-structure.ts'
-export type {
   ExportStemsDeps,
   ExportStemsInput,
   ExportStemsResult
@@ -55,7 +45,6 @@ export type {
   StemPlaybackEngine,
   StemSeparator,
   StemSource,
-  StructureDetector,
   TrackMetadata,
   TrackMetadataReader,
   TrackSource,
@@ -88,18 +77,6 @@ export { SeparationError, separateTrack } from './application/separate-track.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
 export { monoMixWithout } from './domain/analysis-mix.ts'
 export { bassNotePerMeasure } from './domain/bass-line.ts'
-// chartSectionAnchors is the chart→timeline half of the marker sync: the web
-// re-derives the structure markers from the edited source (chart = authority).
-export type { SectionAnchor } from './domain/chart-structure.ts'
-// deduceStructure / renderStructuredSource stay internal to the detectChords
-// use-case; relabelChartBySections is a chart-source transform (family of
-// transposeChart / renderChartSource) the web applies with translated section
-// headers, so it is public like the rest of the chart utilities.
-export {
-  chartSectionAnchors,
-  measureSeekTime,
-  relabelChartBySections
-} from './domain/chart-structure.ts'
 export { downmixToMono } from './domain/downmix.ts'
 export {
   clampFineTuneCents,
@@ -200,10 +177,6 @@ export type {
 export { initialSeparation, separationReducer } from './domain/separation.ts'
 export type { SnapUnit } from './domain/snap-loop-region.ts'
 export { snapLoopRegionToGrid } from './domain/snap-loop-region.ts'
-export type { DetectedSection } from './domain/song-structure.ts'
-// snapSectionsToGrid stays internal to the detectStructure use-case — like the
-// chord slice's chordLabelPerMeasure / deduceStructure folds, an adapter only
-// ever consumes the use-case, never the domain fold.
 export { spectrumFromSamples } from './domain/spectrum.ts'
 export type {
   SpeedTrainerPolicy,
@@ -326,3 +299,30 @@ export {
   tempoAt
 } from './rhythm/domain/tempo-map.ts'
 export type { DecodedAudio } from './shared/decoded-audio.ts'
+export type {
+  DetectStructureDeps,
+  DetectStructureInput,
+  DetectStructureResult,
+  StructureDetectionErrorCode
+} from './structure/application/detect-structure.ts'
+export {
+  detectStructure,
+  StructureDetectionError
+} from './structure/application/detect-structure.ts'
+export type { StructureDetector } from './structure/application/ports.ts'
+// chartSectionAnchors is the chart→timeline half of the marker sync: the web
+// re-derives the structure markers from the edited source (chart = authority).
+export type { SectionAnchor } from './structure/domain/chart-structure.ts'
+// deduceStructure / renderStructuredSource stay internal to the detectChords
+// use-case; relabelChartBySections is a chart-source transform (family of
+// transposeChart / renderChartSource) the web applies with translated section
+// headers, so it is public like the rest of the chart utilities.
+export {
+  chartSectionAnchors,
+  measureSeekTime,
+  relabelChartBySections
+} from './structure/domain/chart-structure.ts'
+export type { DetectedSection } from './structure/domain/song-structure.ts'
+// snapSectionsToGrid stays internal to the detectStructure use-case — like the
+// chord slice's chordLabelPerMeasure / deduceStructure folds, an adapter only
+// ever consumes the use-case, never the domain fold.

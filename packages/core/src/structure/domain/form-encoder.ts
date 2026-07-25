@@ -1,10 +1,10 @@
-import { renderChartSource } from '../harmony/domain/chord-chart.ts'
-import { detectCycle } from '../harmony/domain/harmonic-cycle.ts'
+import { renderChartSource } from '../../harmony/domain/chord-chart.ts'
+import { detectCycle } from '../../harmony/domain/harmonic-cycle.ts'
 import {
   endingVariants,
   matchesTolerantly,
   votedBlock
-} from '../shared/section-matching.ts'
+} from '../../shared/section-matching.ts'
 import {
   deduceInstances,
   deduceStructure,
