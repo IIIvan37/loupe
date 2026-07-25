@@ -14,6 +14,21 @@ export const MAX_FINE_TUNE_CENTS = 50
  * non-number smuggled in by a hand-edited manifest — falls back to no
  * adjustment (same contract as `clampPitchSemitones`).
  */
+/**
+ * Normalise the optional persisted fine-tune of a project tuning: a manifest
+ * (or tuning) that predates the field means no adjustment, so absent reads as
+ * 0 — the same « old manifest » rule as the project's
+ * `tuningOrDefault`/`chartTransposedBy`, kept here so the re-clamp lives with
+ * the clamp it applies (the tuning's other scalars re-clamp through
+ * `clampPlaybackRate`/`clampPitchSemitones` the same way). A corrupted
+ * (hand-edited) value reads as 0 through the clamp's NaN contract.
+ */
+export function fineTuneOrDefault(
+  tuning: { readonly fineTuneCents?: number } | undefined
+): number {
+  return clampFineTuneCents(tuning?.fineTuneCents ?? 0)
+}
+
 export function clampFineTuneCents(cents: number): number {
   if (typeof cents !== 'number' || Number.isNaN(cents)) {
     return 0

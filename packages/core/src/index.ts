@@ -67,6 +67,7 @@ export type { Waveform, WaveformPeak } from './audio/domain/waveform.ts'
 export { bassNotePerMeasure } from './domain/bass-line.ts'
 export {
   clampFineTuneCents,
+  fineTuneOrDefault,
   MAX_FINE_TUNE_CENTS,
   MIN_FINE_TUNE_CENTS
 } from './domain/fine-tune.ts'
@@ -108,7 +109,6 @@ export type {
 } from './domain/project.ts'
 export {
   chartTransposedBy,
-  fineTuneOrDefault,
   projectChordChart,
   tuningOrDefault
 } from './domain/project.ts'
