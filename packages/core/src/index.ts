@@ -89,21 +89,6 @@ export {
   removeMarker,
   replaceStructureMarkers
 } from './domain/marker-list.ts'
-export type {
-  ChannelGain,
-  MixerAction,
-  MixerChannel,
-  MixerState
-} from './domain/mixer.ts'
-export {
-  effectiveGains,
-  emptyMixer,
-  MAX_GAIN_DB,
-  MIN_GAIN_DB,
-  mixerReducer,
-  stepGainDb,
-  UNITY_GAIN_DB
-} from './domain/mixer.ts'
 export { parseProject } from './domain/parse-project.ts'
 export {
   clampPitchSemitones,
@@ -289,6 +274,21 @@ export type {
   DetectedStem,
   StemEnergy
 } from './separation/domain/instrument-detection.ts'
+export type {
+  ChannelGain,
+  MixerAction,
+  MixerChannel,
+  MixerState
+} from './separation/domain/mixer.ts'
+export {
+  effectiveGains,
+  emptyMixer,
+  MAX_GAIN_DB,
+  MIN_GAIN_DB,
+  mixerReducer,
+  stepGainDb,
+  UNITY_GAIN_DB
+} from './separation/domain/mixer.ts'
 export type {
   SeparationAction,
   SeparationErrorCode,
