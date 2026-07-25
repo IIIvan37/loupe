@@ -14,20 +14,20 @@ fenêtre persistée/titre + métadonnées bundle (#249), revue post-clôture
 corrigée (#253 : race d'armement, window-state sur ⌘Q, `destroy` raté).
 Reste dû côté AP : replay bundle utilisateur (croix rouge/⌘Q propre et sale,
 géométrie maximisée après relance, titre natif avec ●).
-Lot TS ([template-sync-plan.md](template-sync-plan.md)) : TS.1–TS.5.5 livrés
-(#251, #252, #250, #254, #255, #256, #257, #258, #259) — configs, fitness
-functions, ADR, subpath `@app/core/testing`, mécanisme des modules émergents
-([ADR-0005](adr/0005-modules-emergents.md)), extractions **`rhythm`**,
-**`harmony`**, **`structure`** (+ `nearest-time` promu shared) et **`loops`**
-(arête unique `loops → rhythm`, aucun port n'embarque : la persistance des
-boucles suit `ProjectStore`). Restent en nursery à dessein : `detect-chords`
-(composition ADR-0005), `bass-line` (attend le module `audio`).
-**Prochain : TS.5.6 — extraction `separation`** (`separation`, `stem-set`,
-`instrument-detection`, `analysis-mix`…) : première extraction avec une vraie
-tranche application (`separate-track`, `export-stems` + leurs ports) ; puis
-`project` ; promotion `timecode` en attente d'un second consommateur module ;
-extractions intercalées avec le produit ; puis Lot AQ (vocabulaire et copy) ;
-checkpoint d'approche avant chaque slice UI.
+Lot TS ([template-sync-plan.md](template-sync-plan.md)) : TS.1–TS.5.7 livrés
+(#250–#252, #254–#261) — configs, fitness functions, ADR, subpath testing,
+modules émergents ([ADR-0005](adr/0005-modules-emergents.md)) : `rhythm`,
+`harmony`, `structure`, `loops`, `audio` (base du DAG) et `separation`
+(première tranche application : use-cases + 5 ports en module, arête
+`separation → audio`). Récoltes labo remontées au template (starter#27, #29) :
+`pnpm test:mutation:diff` (mutation scopée aux modules touchés, 6 min vs 24 ;
+le run complet CI post-merge fait foi) et ratchet racine docs (≤ 8 actifs).
+Nursery à dessein : `detect-chords`, `bass-line`.
+**Prochain : TS.5.8 — extraction `project`** (project, parse-project,
+use-cases projects + ports `ProjectStore`/`ProjectAudioStore` + kit testing) ;
+`timecode` attend un second consommateur ; TS.6 resync link-checker docs ;
+puis Lot AQ ; checkpoint avant chaque slice UI. Lot store Jotai cadré
+(pilote separation+mixer, playhead en expérience finale) — après TS.5.
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [template-sync-plan.md](template-sync-plan.md) (resync template,
