@@ -12,7 +12,7 @@ import {
   type ProjectTuning,
   projectFromSession
 } from '../domain/project.ts'
-import { errorMessage } from './error-message.ts'
+import { errorMessage } from '../shared/error-message.ts'
 import type { ProjectAudioStore, ProjectStore } from './ports.ts'
 
 export interface ProjectDeps {

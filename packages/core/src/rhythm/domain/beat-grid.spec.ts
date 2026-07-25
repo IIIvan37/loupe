@@ -1,5 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import { meteredGrid } from '../testing/metered-grid-fixture.ts'
 import {
   type BeatGrid,
   buildBeatGrid,
@@ -12,7 +13,6 @@ import {
   meterPerMeasure,
   remeterGrid
 } from './beat-grid.ts'
-import { meteredGrid } from './metered-grid-fixture.ts'
 
 /** Positioned beats (barPosition 1 = downbeat), four to the bar. */
 function bar4(times: readonly number[]): readonly DetectedBeat[] {

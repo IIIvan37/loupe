@@ -1,8 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { BeatGrid } from '../domain/beat-grid.ts'
 import type { DetectedSection } from '../domain/song-structure.ts'
+import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
+import type { DecodedAudio } from '../shared/decoded-audio.ts'
 import { detectStructure, StructureDetectionError } from './detect-structure.ts'
-import type { DecodedAudio, StructureDetector } from './ports.ts'
+import type { StructureDetector } from './ports.ts'
 
 const audio: DecodedAudio = {
   sampleRate: 48000,

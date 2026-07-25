@@ -1,5 +1,5 @@
+import { median } from '../../shared/median.ts'
 import type { Beat, BeatGrid } from './beat-grid.ts'
-import { median } from './median.ts'
 
 /** One stretch of steady tempo: from this instant on, the track runs at `bpm`. */
 export interface TempoSegment {

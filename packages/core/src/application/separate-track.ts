@@ -5,9 +5,9 @@ import {
 } from '../domain/instrument-detection.ts'
 import type { SeparationErrorCode } from '../domain/separation.ts'
 import { buildStemTrack, type StemSet } from '../domain/stem-set.ts'
-import { errorMessage } from './error-message.ts'
+import type { DecodedAudio } from '../shared/decoded-audio.ts'
+import { errorMessage } from '../shared/error-message.ts'
 import type {
-  DecodedAudio,
   SeparatedStem,
   SeparationProgress,
   StemSeparator

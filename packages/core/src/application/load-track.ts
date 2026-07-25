@@ -1,6 +1,7 @@
 import { buildTrack, type Track } from '../domain/track.ts'
-import { errorMessage } from './error-message.ts'
-import type { AudioFileDecoder, DecodedAudio, PlaybackEngine } from './ports.ts'
+import type { DecodedAudio } from '../shared/decoded-audio.ts'
+import { errorMessage } from '../shared/error-message.ts'
+import type { AudioFileDecoder, PlaybackEngine } from './ports.ts'
 
 export interface LoadTrackInput {
   readonly bytes: ArrayBuffer

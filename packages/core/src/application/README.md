@@ -2,6 +2,8 @@
 
 The single place to look before adding a feature, so ports and use-cases get
 **reused, not reinvented** (`/new-feature-hexa`). Keep this in sync.
+Extracted feature modules (ADR-0005) keep their rows here; their files live in
+`core/src/<feature>/application` (e.g. `detectTempo` → `../rhythm/application/`).
 
 ## Use-cases
 

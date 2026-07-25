@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { meteredGrid } from './metered-grid-fixture.ts'
+import { meteredGrid } from '../testing/metered-grid-fixture.ts'
 import { nudgeSeconds } from './nudge-time.ts'
 
 // Two 4/4 bars, a beat every 0.5s: beats at 0, 0.5, …, 3.5; downbeats at 0 and 2.

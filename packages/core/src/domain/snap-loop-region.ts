@@ -1,4 +1,4 @@
-import type { BeatGrid } from './beat-grid.ts'
+import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
 import type { LoopRegion } from './loop-region.ts'
 import { makeLoopRegion } from './loop-region.ts'
 import { nearestTime } from './nearest-time.ts'

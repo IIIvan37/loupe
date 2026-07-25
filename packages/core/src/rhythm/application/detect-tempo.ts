@@ -1,11 +1,12 @@
+import type { DecodedAudio } from '../../shared/decoded-audio.ts'
+import { errorMessage } from '../../shared/error-message.ts'
 import {
   type BeatGrid,
   buildBeatGrid,
   detectMeter
 } from '../domain/beat-grid.ts'
 import { sanitizeBeatGrid } from '../domain/tempo-map.ts'
-import { errorMessage } from './error-message.ts'
-import type { DecodedAudio, TempoDetector } from './ports.ts'
+import type { TempoDetector } from './ports.ts'
 
 export interface DetectTempoInput {
   /** The already-decoded track — the SAME PCM the player loaded, not a re-import. */

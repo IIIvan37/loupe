@@ -1,6 +1,6 @@
-import type { BeatGrid } from './beat-grid.ts'
+import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
+import { adjacentGridTime } from '../rhythm/domain/nudge-time.ts'
 import { SEEK_STEP_SECONDS } from './key-bindings.ts'
-import { adjacentGridTime } from './nudge-time.ts'
 
 /**
  * One arrow-key seek of the playhead: to the adjacent beat when a grid

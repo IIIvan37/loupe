@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
+import type { DecodedAudio } from '../shared/decoded-audio.ts'
 import { loadTrack } from './load-track.ts'
-import type { AudioFileDecoder, DecodedAudio, PlaybackEngine } from './ports.ts'
+import type { AudioFileDecoder, PlaybackEngine } from './ports.ts'
 
 const bytes = new ArrayBuffer(8)
 

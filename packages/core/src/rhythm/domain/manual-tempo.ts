@@ -1,5 +1,5 @@
+import { median } from '../../shared/median.ts'
 import { type Beat, type BeatGrid, clampBeatsPerBar } from './beat-grid.ts'
-import { median } from './median.ts'
 
 /** The slowest tempo a manual override may set (clamped, not rejected). */
 export const MIN_MANUAL_BPM = 20
