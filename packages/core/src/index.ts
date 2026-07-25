@@ -75,9 +75,14 @@ export type {
 } from './application/separate-track.ts'
 export { SeparationError, separateTrack } from './application/separate-track.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
+export { downmixToMono } from './audio/domain/downmix.ts'
+export { spectrumFromSamples } from './audio/domain/spectrum.ts'
+export type { Track } from './audio/domain/track.ts'
+export { decodeWav } from './audio/domain/wav-decoder.ts'
+export { encodeWav } from './audio/domain/wav-encoder.ts'
+export type { Waveform, WaveformPeak } from './audio/domain/waveform.ts'
 export { monoMixWithout } from './domain/analysis-mix.ts'
 export { bassNotePerMeasure } from './domain/bass-line.ts'
-export { downmixToMono } from './domain/downmix.ts'
 export {
   clampFineTuneCents,
   MAX_FINE_TUNE_CENTS,
@@ -163,7 +168,6 @@ export type {
   SeparationStatus
 } from './domain/separation.ts'
 export { initialSeparation, separationReducer } from './domain/separation.ts'
-export { spectrumFromSamples } from './domain/spectrum.ts'
 export type {
   SpeedTrainerPolicy,
   SpeedTrainerPreview,
@@ -179,7 +183,6 @@ export { stemExportFilename } from './domain/stem-export.ts'
 export type { StemSet, StemTrack } from './domain/stem-set.ts'
 export { buildStemTrack } from './domain/stem-set.ts'
 export { formatTimecode } from './domain/timecode.ts'
-export type { Track } from './domain/track.ts'
 export type {
   TransportAction,
   TransportState
@@ -193,9 +196,6 @@ export {
   zoomIn,
   zoomOut
 } from './domain/viewport.ts'
-export { decodeWav } from './domain/wav-decoder.ts'
-export { encodeWav } from './domain/wav-encoder.ts'
-export type { Waveform, WaveformPeak } from './domain/waveform.ts'
 export type { WaveformLayer } from './domain/waveform-mix.ts'
 export { combineWaveforms } from './domain/waveform-mix.ts'
 export type {

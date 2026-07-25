@@ -1,4 +1,4 @@
-import type { Waveform, WaveformPeak } from './waveform.ts'
+import type { Waveform, WaveformPeak } from '../audio/domain/waveform.ts'
 
 /** One stem's envelope weighted by its effective linear gain in the mix. */
 export interface WaveformLayer {

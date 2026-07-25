@@ -1,6 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { chromaFromSpectrum } from '../harmony/domain/chroma.ts'
+import { chromaFromSpectrum } from '../../harmony/domain/chroma.ts'
 import { spectrumFromSamples } from './spectrum.ts'
 
 const SAMPLE_RATE = 44100
