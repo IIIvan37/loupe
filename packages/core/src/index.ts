@@ -97,18 +97,6 @@ export {
   defaultKeyBindings,
   resolveCommand
 } from './domain/key-bindings.ts'
-export type { LoopLibrary, NamedLoop } from './domain/loop-library.ts'
-export {
-  addLoop,
-  emptyLoopLibrary,
-  removeLoop
-} from './domain/loop-library.ts'
-export type { LoopRegion } from './domain/loop-region.ts'
-export {
-  loopLength,
-  makeLoopRegion,
-  wrapToLoop
-} from './domain/loop-region.ts'
 export type { Marker } from './domain/marker.ts'
 export type { MarkerList } from './domain/marker-list.ts'
 export {
@@ -175,8 +163,6 @@ export type {
   SeparationStatus
 } from './domain/separation.ts'
 export { initialSeparation, separationReducer } from './domain/separation.ts'
-export type { SnapUnit } from './domain/snap-loop-region.ts'
-export { snapLoopRegionToGrid } from './domain/snap-loop-region.ts'
 export { spectrumFromSamples } from './domain/spectrum.ts'
 export type {
   SpeedTrainerPolicy,
@@ -248,6 +234,20 @@ export {
 } from './harmony/domain/chord-symbol.ts'
 export { chromaWithHarmonics } from './harmony/domain/chroma.ts'
 export { romanizeChordSymbol } from './harmony/domain/roman-numeral.ts'
+export type { LoopLibrary, NamedLoop } from './loops/domain/loop-library.ts'
+export {
+  addLoop,
+  emptyLoopLibrary,
+  removeLoop
+} from './loops/domain/loop-library.ts'
+export type { LoopRegion } from './loops/domain/loop-region.ts'
+export {
+  loopLength,
+  makeLoopRegion,
+  wrapToLoop
+} from './loops/domain/loop-region.ts'
+export type { SnapUnit } from './loops/domain/snap-loop-region.ts'
+export { snapLoopRegionToGrid } from './loops/domain/snap-loop-region.ts'
 export type {
   DetectTempoDeps,
   DetectTempoInput,

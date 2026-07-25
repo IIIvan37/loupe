@@ -80,6 +80,9 @@ export const config: SheriffConfig = {
     // The conceptual DAG, one edge at a time: harmony reads the beat grid
     // (chord-detection folds spans onto it) — rhythm never looks up.
     'feature:harmony': [sameTag, 'shared', 'feature:rhythm'],
+    // Loops read the beat grid (snap-loop-region snaps A/B bounds onto it) —
+    // rhythm never looks up.
+    'feature:loops': [sameTag, 'shared', 'feature:rhythm'],
     // Structure reads chords (chart-structure, form-encoder render sections
     // over the chart) and the beat grid (snapping, measure seeks) — neither
     // ever looks up at structure.

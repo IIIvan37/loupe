@@ -1,6 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import type { LoopLibrary } from './loop-library.ts'
+import type { LoopLibrary } from '../loops/domain/loop-library.ts'
 import type { MarkerList } from './marker-list.ts'
 import type { MixerState } from './mixer.ts'
 import {
