@@ -1,4 +1,4 @@
-import { sequenceAgreement } from './section-matching.ts'
+import { sequenceAgreement } from '../../shared/section-matching.ts'
 
 type MeasureLabels = readonly (string | undefined)[]
 

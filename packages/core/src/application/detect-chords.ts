@@ -5,11 +5,15 @@ import {
   renderStructuredSource,
   timeLine
 } from '../domain/chart-structure.ts'
-import { respellChartSource } from '../domain/chord-chart.ts'
-import { chordLabelPerMeasure } from '../domain/chord-detection.ts'
-import { detectKey, keyAccidental, keyName } from '../domain/chord-key.ts'
 import { encodeChartSource } from '../domain/form-encoder.ts'
 import type { DetectedSection } from '../domain/song-structure.ts'
+import { respellChartSource } from '../harmony/domain/chord-chart.ts'
+import { chordLabelPerMeasure } from '../harmony/domain/chord-detection.ts'
+import {
+  detectKey,
+  keyAccidental,
+  keyName
+} from '../harmony/domain/chord-key.ts'
 import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
 import type { DecodedAudio } from '../shared/decoded-audio.ts'
 import { errorMessage } from '../shared/error-message.ts'

@@ -73,11 +73,13 @@ export const config: SheriffConfig = {
     ],
 
     // Feature isolation: a feature sees itself and the kernel. A REAL
-    // inter-feature dependency is one explicit line here (e.g.
-    // `'feature:structure': [sameTag, 'shared', 'feature:harmony']`),
-    // visible in review. The nursery carries no feature tag, so a feature
-    // importing the nursery violates this rule — that is the ratchet.
+    // inter-feature dependency is one explicit line here, visible in review.
+    // The nursery carries no feature tag, so a feature importing the nursery
+    // violates this rule — that is the ratchet.
     'feature:*': [sameTag, 'shared'],
+    // The conceptual DAG, one edge at a time: harmony reads the beat grid
+    // (chord-detection folds spans onto it) — rhythm never looks up.
+    'feature:harmony': [sameTag, 'shared', 'feature:rhythm'],
 
     // The nursery may use the kernel, itself, and any already-extracted
     // feature (downward only — the reverse is the ratchet above).

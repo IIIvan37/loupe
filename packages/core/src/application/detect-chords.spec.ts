@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { DetectedChordSpan } from '../domain/chord-detection.ts'
+import type { DetectedChordSpan } from '../harmony/domain/chord-detection.ts'
 import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
 import { meteredGrid } from '../rhythm/testing/metered-grid-fixture.ts'
 import type { DecodedAudio } from '../shared/decoded-audio.ts'

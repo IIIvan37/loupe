@@ -1,7 +1,7 @@
-import type { DetectedChordSpan } from '../domain/chord-detection.ts'
 import type { AudioRef, Project } from '../domain/project.ts'
 import type { SeparationPhase } from '../domain/separation.ts'
 import type { DetectedSection } from '../domain/song-structure.ts'
+import type { DetectedChordSpan } from '../harmony/domain/chord-detection.ts'
 import type { DecodedAudio } from '../shared/decoded-audio.ts'
 
 /**
