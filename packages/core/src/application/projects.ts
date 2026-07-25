@@ -1,4 +1,3 @@
-import type { LoopLibrary } from '../domain/loop-library.ts'
 import type { MarkerList } from '../domain/marker-list.ts'
 import type { MixerState } from '../domain/mixer.ts'
 import {
@@ -12,6 +11,7 @@ import {
   type ProjectTuning,
   projectFromSession
 } from '../domain/project.ts'
+import type { LoopLibrary } from '../loops/domain/loop-library.ts'
 import { errorMessage } from '../shared/error-message.ts'
 import type { ProjectAudioStore, ProjectStore } from './ports.ts'
 

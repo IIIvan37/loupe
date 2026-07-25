@@ -1,5 +1,5 @@
-import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
-import { nearestTime } from '../shared/nearest-time.ts'
+import type { BeatGrid } from '../../rhythm/domain/beat-grid.ts'
+import { nearestTime } from '../../shared/nearest-time.ts'
 import type { LoopRegion } from './loop-region.ts'
 import { makeLoopRegion } from './loop-region.ts'
 

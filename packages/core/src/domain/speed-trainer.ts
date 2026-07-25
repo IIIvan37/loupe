@@ -1,4 +1,4 @@
-import type { LoopRegion } from './loop-region.ts'
+import type { LoopRegion } from '../loops/domain/loop-region.ts'
 import { MAX_TEMPO_PERCENT, MIN_TEMPO_PERCENT } from './playback-rate.ts'
 
 /**
