@@ -87,6 +87,18 @@ export const config: SheriffConfig = {
     // tracks, waveform-mix combines their waveforms, export-stems encodes
     // WAVs) — audio never looks up.
     'feature:separation': [sameTag, 'shared', 'feature:audio'],
+    // Project is the DAG's sink: a manifest persists what the other features
+    // model — the loop library and armed A/B region (loops), the beat grid and
+    // manual tempo (rhythm), the markers (markers), the stems and mixer
+    // (separation). None of them ever looks up at project.
+    'feature:project': [
+      sameTag,
+      'shared',
+      'feature:loops',
+      'feature:markers',
+      'feature:rhythm',
+      'feature:separation'
+    ],
     // Structure reads chords (chart-structure, form-encoder render sections
     // over the chart) and the beat grid (snapping, measure seeks) — neither
     // ever looks up at structure.

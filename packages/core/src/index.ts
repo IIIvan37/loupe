@@ -28,8 +28,6 @@ export type {
   DownloadProgress,
   FetchedTrack,
   PlaybackEngine,
-  ProjectAudioStore,
-  ProjectStore,
   SpectrumFrame,
   StemFilter,
   StemPlaybackEngine,
@@ -39,24 +37,6 @@ export type {
   TrackSource,
   TrackSourceMetadata
 } from './application/ports.ts'
-export type {
-  DeleteProjectResult,
-  ListProjectsResult,
-  OpenedStem,
-  OpenProjectResult,
-  ProjectDeps,
-  RenameProjectResult,
-  SaveProjectInput,
-  SaveProjectResult,
-  SaveProjectStem
-} from './application/projects.ts'
-export {
-  deleteProject,
-  listProjects,
-  openProject,
-  renameProject,
-  saveProject
-} from './application/projects.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
 export { downmixToMono } from './audio/domain/downmix.ts'
 export { spectrumFromSamples } from './audio/domain/spectrum.ts'
@@ -81,7 +61,6 @@ export {
   defaultKeyBindings,
   resolveCommand
 } from './domain/key-bindings.ts'
-export { parseProject } from './domain/parse-project.ts'
 export {
   clampPitchSemitones,
   MAX_PITCH_SEMITONES,
@@ -94,24 +73,6 @@ export {
   MIN_TEMPO_PERCENT,
   stepTempoPercent
 } from './domain/playback-rate.ts'
-export type {
-  AudioRef,
-  Project,
-  ProjectActiveLoop,
-  ProjectChordChart,
-  ProjectSeparation,
-  ProjectSource,
-  ProjectStamp,
-  ProjectStem,
-  ProjectTempo,
-  ProjectTuning,
-  SessionSnapshot
-} from './domain/project.ts'
-export {
-  chartTransposedBy,
-  projectChordChart,
-  tuningOrDefault
-} from './domain/project.ts'
 export { seekStepSeconds } from './domain/seek-step.ts'
 export type {
   SpeedTrainerPolicy,
@@ -197,6 +158,47 @@ export {
   removeMarker,
   replaceStructureMarkers
 } from './markers/domain/marker-list.ts'
+export type {
+  ProjectAudioStore,
+  ProjectStore
+} from './project/application/ports.ts'
+export type {
+  DeleteProjectResult,
+  ListProjectsResult,
+  OpenedStem,
+  OpenProjectResult,
+  ProjectDeps,
+  RenameProjectResult,
+  SaveProjectInput,
+  SaveProjectResult,
+  SaveProjectStem
+} from './project/application/projects.ts'
+export {
+  deleteProject,
+  listProjects,
+  openProject,
+  renameProject,
+  saveProject
+} from './project/application/projects.ts'
+export { parseProject } from './project/domain/parse-project.ts'
+export type {
+  AudioRef,
+  Project,
+  ProjectActiveLoop,
+  ProjectChordChart,
+  ProjectSeparation,
+  ProjectSource,
+  ProjectStamp,
+  ProjectStem,
+  ProjectTempo,
+  ProjectTuning,
+  SessionSnapshot
+} from './project/domain/project.ts'
+export {
+  chartTransposedBy,
+  projectChordChart,
+  tuningOrDefault
+} from './project/domain/project.ts'
 export type {
   DetectTempoDeps,
   DetectTempoInput,

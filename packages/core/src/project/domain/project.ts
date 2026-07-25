@@ -1,9 +1,9 @@
-import type { LoopLibrary } from '../loops/domain/loop-library.ts'
-import type { LoopRegion } from '../loops/domain/loop-region.ts'
-import type { MarkerList } from '../markers/domain/marker-list.ts'
-import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
-import type { ManualTempo } from '../rhythm/domain/manual-tempo.ts'
-import type { MixerChannel, MixerState } from '../separation/domain/mixer.ts'
+import type { LoopLibrary } from '../../loops/domain/loop-library.ts'
+import type { LoopRegion } from '../../loops/domain/loop-region.ts'
+import type { MarkerList } from '../../markers/domain/marker-list.ts'
+import type { BeatGrid } from '../../rhythm/domain/beat-grid.ts'
+import type { ManualTempo } from '../../rhythm/domain/manual-tempo.ts'
+import type { MixerChannel, MixerState } from '../../separation/domain/mixer.ts'
 
 /**
  * An opaque pointer to audio bytes that live outside the hexagon — the original

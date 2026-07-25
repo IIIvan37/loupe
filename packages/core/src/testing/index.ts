@@ -5,6 +5,6 @@
 // to depend on vitest. Fakes of still-in-nursery ports live directly here;
 // each module extraction (TS.5) takes its ports, contracts and fakes along.
 
-export { createInMemoryProjectStore } from './in-memory-project-store.ts'
-export type { ProjectStoreSubject } from './project-store-contract.ts'
-export { projectStoreContract } from './project-store-contract.ts'
+export { createInMemoryProjectStore } from '../project/testing/in-memory-project-store.ts'
+export type { ProjectStoreSubject } from '../project/testing/project-store-contract.ts'
+export { projectStoreContract } from '../project/testing/project-store-contract.ts'
