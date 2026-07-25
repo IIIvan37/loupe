@@ -1,4 +1,4 @@
-import { buildTrack, type Track } from '../audio/domain/track.ts'
+import { buildTrack, type Track } from '../../audio/domain/track.ts'
 import type { DetectedStem } from './instrument-detection.ts'
 
 /**

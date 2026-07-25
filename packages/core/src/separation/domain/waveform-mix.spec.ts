@@ -1,6 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import type { Waveform } from '../audio/domain/waveform.ts'
+import type { Waveform } from '../../audio/domain/waveform.ts'
 import { combineWaveforms } from './waveform-mix.ts'
 
 function wave(
