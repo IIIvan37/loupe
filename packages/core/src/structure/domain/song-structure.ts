@@ -1,6 +1,6 @@
-import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
-import { median } from '../shared/median.ts'
-import { nearestTime } from './nearest-time.ts'
+import type { BeatGrid } from '../../rhythm/domain/beat-grid.ts'
+import { median } from '../../shared/median.ts'
+import { nearestTime } from '../../shared/nearest-time.ts'
 
 /**
  * One functional section of a song: a label (the engine's raw vocabulary —

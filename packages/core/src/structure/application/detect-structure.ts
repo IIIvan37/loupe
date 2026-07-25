@@ -1,10 +1,10 @@
+import type { BeatGrid } from '../../rhythm/domain/beat-grid.ts'
+import type { DecodedAudio } from '../../shared/decoded-audio.ts'
+import { errorMessage } from '../../shared/error-message.ts'
 import {
   type DetectedSection,
   snapSectionsToGrid
 } from '../domain/song-structure.ts'
-import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
-import type { DecodedAudio } from '../shared/decoded-audio.ts'
-import { errorMessage } from '../shared/error-message.ts'
 import type { StructureDetector } from './ports.ts'
 
 export interface DetectStructureInput {
