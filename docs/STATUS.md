@@ -30,8 +30,7 @@ extractions intercalées avec le produit ; puis Lot AQ (vocabulaire et copy) ;
 checkpoint d'approche avant chaque slice UI.
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
-cours) · [client-leger-plan.md](client-leger-plan.md) (**Phase 2 Modal + Tauri
-terminée**) · [template-sync-plan.md](template-sync-plan.md) (resync template,
+cours) · [template-sync-plan.md](template-sync-plan.md) (resync template,
 lots TS.1–TS.5). **Garde-fous beta restants** (cf.
 [beta-checklist.md](beta-checklist.md)) : plafond de dépense Modal (mesuré
 ~3,67 $/mois), SMTP custom **déjà câblé** (Resend/`iiivan.org`), re-seed des
@@ -63,7 +62,7 @@ codes legacy, PKCE en bundle à rejouer.
 ## Plans
 
 - **En cours** : [roadmap-excellence-7.md](roadmap-excellence-7.md) (Lots AJ–AQ) · [template-sync-plan.md](template-sync-plan.md) (TS.1–TS.5).
-- **Complets** : [client-leger-plan.md](client-leger-plan.md) · [roadmap-excellence-6.md](roadmap-excellence-6.md) · [roadmap-excellence-5.md](roadmap-excellence-5.md) · [roadmap-excellence-4.md](roadmap-excellence-4.md) · [roadmap-excellence-3.md](roadmap-excellence-3.md) · [roadmap-excellence-2.md](roadmap-excellence-2.md) · [roadmap-excellence.md](roadmap-excellence.md) · [chord-charts-plan.md](chord-charts-plan.md) · [tempo-detection-plan.md](tempo-detection-plan.md) · [jalon-2-plan.md](jalon-2-plan.md) · [jalon-1-plan.md](jalon-1-plan.md).
+- **Complets** : dans [docs/archive/](archive/) (plans clos + vision produit du kickoff).
 
 ## Veille / différé
 
