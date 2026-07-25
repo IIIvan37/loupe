@@ -80,15 +80,6 @@ export {
   defaultKeyBindings,
   resolveCommand
 } from './domain/key-bindings.ts'
-export type { Marker } from './domain/marker.ts'
-export type { MarkerList } from './domain/marker-list.ts'
-export {
-  addMarker,
-  emptyMarkerList,
-  moveMarker,
-  removeMarker,
-  replaceStructureMarkers
-} from './domain/marker-list.ts'
 export { parseProject } from './domain/parse-project.ts'
 export {
   clampPitchSemitones,
@@ -197,6 +188,15 @@ export {
 } from './loops/domain/loop-region.ts'
 export type { SnapUnit } from './loops/domain/snap-loop-region.ts'
 export { snapLoopRegionToGrid } from './loops/domain/snap-loop-region.ts'
+export type { Marker } from './markers/domain/marker.ts'
+export type { MarkerList } from './markers/domain/marker-list.ts'
+export {
+  addMarker,
+  emptyMarkerList,
+  moveMarker,
+  removeMarker,
+  replaceStructureMarkers
+} from './markers/domain/marker-list.ts'
 export type {
   DetectTempoDeps,
   DetectTempoInput,

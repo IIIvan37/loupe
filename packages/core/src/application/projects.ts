@@ -1,4 +1,3 @@
-import type { MarkerList } from '../domain/marker-list.ts'
 import {
   mixerMatchesStems,
   type Project,
@@ -11,6 +10,7 @@ import {
   projectFromSession
 } from '../domain/project.ts'
 import type { LoopLibrary } from '../loops/domain/loop-library.ts'
+import type { MarkerList } from '../markers/domain/marker-list.ts'
 import type { MixerState } from '../separation/domain/mixer.ts'
 import { errorMessage } from '../shared/error-message.ts'
 import type { ProjectAudioStore, ProjectStore } from './ports.ts'
