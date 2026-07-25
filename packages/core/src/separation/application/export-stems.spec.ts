@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decodeWav } from '../audio/domain/wav-decoder.ts'
+import { decodeWav } from '../../audio/domain/wav-decoder.ts'
 import { type ExportStemsResult, exportStems } from './export-stems.ts'
 import type { ArchiveFile, ArchiveWriter, SeparatedStem } from './ports.ts'
 

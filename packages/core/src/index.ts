@@ -11,12 +11,6 @@ export {
   detectChords
 } from './application/detect-chords.ts'
 export type {
-  ExportStemsDeps,
-  ExportStemsInput,
-  ExportStemsResult
-} from './application/export-stems.ts'
-export { exportStems } from './application/export-stems.ts'
-export type {
   ImportFromUrlDeps,
   ImportFromUrlInput,
   ImportFromUrlResult
@@ -29,8 +23,6 @@ export type {
 } from './application/load-track.ts'
 export { loadTrack } from './application/load-track.ts'
 export type {
-  ArchiveFile,
-  ArchiveWriter,
   AudioFileDecoder,
   ChordDetector,
   DownloadProgress,
@@ -38,12 +30,9 @@ export type {
   PlaybackEngine,
   ProjectAudioStore,
   ProjectStore,
-  SeparatedStem,
-  SeparationProgress,
   SpectrumFrame,
   StemFilter,
   StemPlaybackEngine,
-  StemSeparator,
   StemSource,
   TrackMetadata,
   TrackMetadataReader,
@@ -68,12 +57,6 @@ export {
   renameProject,
   saveProject
 } from './application/projects.ts'
-export type {
-  SeparateTrackDeps,
-  SeparateTrackInput,
-  SeparateTrackResult
-} from './application/separate-track.ts'
-export { SeparationError, separateTrack } from './application/separate-track.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
 export { downmixToMono } from './audio/domain/downmix.ts'
 export { spectrumFromSamples } from './audio/domain/spectrum.ts'
@@ -81,17 +64,12 @@ export type { Track } from './audio/domain/track.ts'
 export { decodeWav } from './audio/domain/wav-decoder.ts'
 export { encodeWav } from './audio/domain/wav-encoder.ts'
 export type { Waveform, WaveformPeak } from './audio/domain/waveform.ts'
-export { monoMixWithout } from './domain/analysis-mix.ts'
 export { bassNotePerMeasure } from './domain/bass-line.ts'
 export {
   clampFineTuneCents,
   MAX_FINE_TUNE_CENTS,
   MIN_FINE_TUNE_CENTS
 } from './domain/fine-tune.ts'
-export type {
-  DetectedStem,
-  StemEnergy
-} from './domain/instrument-detection.ts'
 export type {
   Command,
   KeyBinding,
@@ -160,15 +138,6 @@ export {
 } from './domain/project.ts'
 export { seekStepSeconds } from './domain/seek-step.ts'
 export type {
-  SeparationAction,
-  SeparationErrorCode,
-  SeparationFailure,
-  SeparationPhase,
-  SeparationState,
-  SeparationStatus
-} from './domain/separation.ts'
-export { initialSeparation, separationReducer } from './domain/separation.ts'
-export type {
   SpeedTrainerPolicy,
   SpeedTrainerPreview,
   SpeedTrainerState
@@ -179,9 +148,6 @@ export {
   recordLoopPass,
   startSpeedTrainer
 } from './domain/speed-trainer.ts'
-export { stemExportFilename } from './domain/stem-export.ts'
-export type { StemSet, StemTrack } from './domain/stem-set.ts'
-export { buildStemTrack } from './domain/stem-set.ts'
 export { formatTimecode } from './domain/timecode.ts'
 export type {
   TransportAction,
@@ -196,8 +162,6 @@ export {
   zoomIn,
   zoomOut
 } from './domain/viewport.ts'
-export type { WaveformLayer } from './domain/waveform-mix.ts'
-export { combineWaveforms } from './domain/waveform-mix.ts'
 export type {
   ChartDiagnostics,
   ChartForm,
@@ -298,6 +262,50 @@ export {
   sanitizeBeatGrid,
   tempoAt
 } from './rhythm/domain/tempo-map.ts'
+export type {
+  ExportStemsDeps,
+  ExportStemsInput,
+  ExportStemsResult
+} from './separation/application/export-stems.ts'
+export { exportStems } from './separation/application/export-stems.ts'
+export type {
+  ArchiveFile,
+  ArchiveWriter,
+  SeparatedStem,
+  SeparationProgress,
+  StemSeparator
+} from './separation/application/ports.ts'
+export type {
+  SeparateTrackDeps,
+  SeparateTrackInput,
+  SeparateTrackResult
+} from './separation/application/separate-track.ts'
+export {
+  SeparationError,
+  separateTrack
+} from './separation/application/separate-track.ts'
+export { monoMixWithout } from './separation/domain/analysis-mix.ts'
+export type {
+  DetectedStem,
+  StemEnergy
+} from './separation/domain/instrument-detection.ts'
+export type {
+  SeparationAction,
+  SeparationErrorCode,
+  SeparationFailure,
+  SeparationPhase,
+  SeparationState,
+  SeparationStatus
+} from './separation/domain/separation.ts'
+export {
+  initialSeparation,
+  separationReducer
+} from './separation/domain/separation.ts'
+export { stemExportFilename } from './separation/domain/stem-export.ts'
+export type { StemSet, StemTrack } from './separation/domain/stem-set.ts'
+export { buildStemTrack } from './separation/domain/stem-set.ts'
+export type { WaveformLayer } from './separation/domain/waveform-mix.ts'
+export { combineWaveforms } from './separation/domain/waveform-mix.ts'
 export type { DecodedAudio } from './shared/decoded-audio.ts'
 export type {
   DetectStructureDeps,

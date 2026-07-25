@@ -1,5 +1,4 @@
 import type { AudioRef, Project } from '../domain/project.ts'
-import type { SeparationPhase } from '../domain/separation.ts'
 import type { DetectedChordSpan } from '../harmony/domain/chord-detection.ts'
 import type { DecodedAudio } from '../shared/decoded-audio.ts'
 
@@ -89,20 +88,6 @@ export interface ProjectAudioStore {
   get(ref: AudioRef): Promise<ArrayBuffer | undefined>
 }
 
-/** One isolated source the separator produced — raw PCM, like a mini `DecodedAudio`. */
-export interface SeparatedStem {
-  readonly id: string
-  readonly label: string
-  readonly audio: DecodedAudio
-}
-
-/** A progress update from a running separation: which phase, and how far in. */
-export interface SeparationProgress {
-  readonly phase: SeparationPhase
-  /** Completion of the current phase in [0, 1]. */
-  readonly fraction: number
-}
-
 /** One stem loaded into the mixer: its id (matching the `MixerState` channel) and PCM. */
 export interface StemSource {
   readonly id: string
@@ -162,21 +147,6 @@ export interface StemPlaybackEngine {
 }
 
 /**
- * Driven port: split decoded audio into isolated stems. Long-running and
- * progressive — it streams phase/fraction through `onProgress`. Implemented by an
- * adapter (web: a stub now, a Demucs WASM worker next, a cloud API later); the
- * pure core never knows which, and the audio is the SAME PCM the player loaded.
- */
-export interface StemSeparator {
-  separate(
-    audio: DecodedAudio,
-    onProgress: (progress: SeparationProgress) => void,
-    /** Cooperative cancellation — an aborted run should reject promptly. */
-    signal?: AbortSignal
-  ): Promise<readonly SeparatedStem[]>
-}
-
-/**
  * Driven port: estimate a track's chords from decoded PCM, as timestamped
  * spans — NOT beat-synchronised; folding them onto the beat grid is the core's
  * job (`chordLabelPerMeasure`). Implemented by an adapter (web: an HTTP call to
@@ -192,21 +162,6 @@ export interface ChordDetector {
     /** Cooperative cancellation — an aborted run should reject promptly. */
     signal?: AbortSignal
   ): Promise<readonly DetectedChordSpan[]>
-}
-
-/** One file destined for the export archive: its name and encoded bytes. */
-export interface ArchiveFile {
-  readonly name: string
-  readonly bytes: Uint8Array
-}
-
-/**
- * Driven port: bundle named files into one downloadable archive and return its
- * bytes. Implemented by an adapter (web: a zip); the pure core never touches
- * Blob or the DOM — triggering the actual download is the adapter's business.
- */
-export interface ArchiveWriter {
-  write(files: readonly ArchiveFile[]): Promise<Uint8Array<ArrayBuffer>>
 }
 
 /** Metadata a media source reports, used to pre-fill the imported project's name. */

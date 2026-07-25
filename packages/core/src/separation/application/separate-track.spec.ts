@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { DecodedAudio } from '../shared/decoded-audio.ts'
+import type { DecodedAudio } from '../../shared/decoded-audio.ts'
 import type { SeparationProgress, StemSeparator } from './ports.ts'
 import { SeparationError, separateTrack } from './separate-track.ts'
 
