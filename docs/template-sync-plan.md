@@ -125,4 +125,6 @@ intercaler avec le travail produit (une extraction quand on touche la zone).
 | TS.5.1 | Mécanisme (placeholders Sheriff, ratchet, `modules:hint`) | ✅ #255 |
 | TS.5.2 | Extraction `rhythm` + promotions shared (median, error-message, DecodedAudio) | ✅ #256 |
 | TS.5.3 | Extraction `harmony` + `section-matching` promu shared (cycle réparé), depRule `harmony → rhythm` | ✅ #257 |
-| TS.5.x | Extractions suivantes : structure, loops, separation, project | ⬜ |
+| TS.5.4 | Extraction `structure` + promotion `nearest-time` en shared, depRule `structure → harmony, rhythm` | ✅ #258 |
+| TS.5.5 | Extraction `loops`, depRule `loops → rhythm` (aucun port n'embarque) | ✅ #259 |
+| TS.5.x | Extractions suivantes : separation, project | ⬜ |
