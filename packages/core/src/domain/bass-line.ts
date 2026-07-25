@@ -1,5 +1,8 @@
+import {
+  formatChordSymbol,
+  parseChordSymbol
+} from '../harmony/domain/chord-symbol.ts'
 import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
-import { formatChordSymbol, parseChordSymbol } from './chord-symbol.ts'
 import { spectrumFromSamples } from './spectrum.ts'
 
 /** The bass register: below E1 the FFT bins blur, above ~middle C a "bass"

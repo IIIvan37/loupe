@@ -1,16 +1,16 @@
 import {
-  type BeatGrid,
-  dominantMeter,
-  meterPerMeasure
-} from '../rhythm/domain/beat-grid.ts'
-import {
   isPrintableToken,
   parseChart,
   renderChartSource,
   unrollChart
-} from './chord-chart.ts'
-import { formatChordSymbol } from './chord-symbol.ts'
-import { matchesTolerantly, votedBlock } from './section-matching.ts'
+} from '../harmony/domain/chord-chart.ts'
+import { formatChordSymbol } from '../harmony/domain/chord-symbol.ts'
+import {
+  type BeatGrid,
+  dominantMeter,
+  meterPerMeasure
+} from '../rhythm/domain/beat-grid.ts'
+import { matchesTolerantly, votedBlock } from '../shared/section-matching.ts'
 import type { DetectedSection } from './song-structure.ts'
 
 /**

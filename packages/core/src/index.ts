@@ -100,34 +100,6 @@ export {
   measureSeekTime,
   relabelChartBySections
 } from './domain/chart-structure.ts'
-export type {
-  ChartDiagnostics,
-  ChartForm,
-  ChordChart,
-  Measure,
-  MeasureSourceSpan,
-  Section,
-  SuspectToken
-} from './domain/chord-chart.ts'
-export {
-  chartDiagnostics,
-  chartMatchesPitch,
-  parseChart,
-  parseFormRollout,
-  respellChartSource,
-  transposeChart,
-  unrollChart
-} from './domain/chord-chart.ts'
-export type { DetectedChordSpan } from './domain/chord-detection.ts'
-export {
-  engraveChordSymbol,
-  engraveNote
-} from './domain/chord-engraving.ts'
-export type { Key } from './domain/chord-key.ts'
-export { keyName, parseKeyName, transposeKey } from './domain/chord-key.ts'
-export type { Accidental, ChordSymbol } from './domain/chord-symbol.ts'
-export { formatChordSymbol, parseChordSymbol } from './domain/chord-symbol.ts'
-export { chromaWithHarmonics } from './domain/chroma.ts'
 export { downmixToMono } from './domain/downmix.ts'
 export {
   clampFineTuneCents,
@@ -216,7 +188,6 @@ export {
   projectChordChart,
   tuningOrDefault
 } from './domain/project.ts'
-export { romanizeChordSymbol } from './domain/roman-numeral.ts'
 export { seekStepSeconds } from './domain/seek-step.ts'
 export type {
   SeparationAction,
@@ -268,6 +239,42 @@ export { encodeWav } from './domain/wav-encoder.ts'
 export type { Waveform, WaveformPeak } from './domain/waveform.ts'
 export type { WaveformLayer } from './domain/waveform-mix.ts'
 export { combineWaveforms } from './domain/waveform-mix.ts'
+export type {
+  ChartDiagnostics,
+  ChartForm,
+  ChordChart,
+  Measure,
+  MeasureSourceSpan,
+  Section,
+  SuspectToken
+} from './harmony/domain/chord-chart.ts'
+export {
+  chartDiagnostics,
+  chartMatchesPitch,
+  parseChart,
+  parseFormRollout,
+  respellChartSource,
+  transposeChart,
+  unrollChart
+} from './harmony/domain/chord-chart.ts'
+export type { DetectedChordSpan } from './harmony/domain/chord-detection.ts'
+export {
+  engraveChordSymbol,
+  engraveNote
+} from './harmony/domain/chord-engraving.ts'
+export type { Key } from './harmony/domain/chord-key.ts'
+export {
+  keyName,
+  parseKeyName,
+  transposeKey
+} from './harmony/domain/chord-key.ts'
+export type { Accidental, ChordSymbol } from './harmony/domain/chord-symbol.ts'
+export {
+  formatChordSymbol,
+  parseChordSymbol
+} from './harmony/domain/chord-symbol.ts'
+export { chromaWithHarmonics } from './harmony/domain/chroma.ts'
+export { romanizeChordSymbol } from './harmony/domain/roman-numeral.ts'
 export type {
   DetectTempoDeps,
   DetectTempoInput,

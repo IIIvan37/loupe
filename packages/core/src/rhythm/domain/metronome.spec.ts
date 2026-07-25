@@ -1,6 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { CHROMA_MAX_HZ } from '../../domain/chroma.ts'
+import { CHROMA_MAX_HZ } from '../../harmony/domain/chroma.ts'
 import type { BeatGrid } from './beat-grid.ts'
 import { buildCountIn, synthesizeClickTrack } from './metronome.ts'
 

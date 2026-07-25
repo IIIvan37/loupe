@@ -1,3 +1,10 @@
+import { renderChartSource } from '../harmony/domain/chord-chart.ts'
+import { detectCycle } from '../harmony/domain/harmonic-cycle.ts'
+import {
+  endingVariants,
+  matchesTolerantly,
+  votedBlock
+} from '../shared/section-matching.ts'
 import {
   deduceInstances,
   deduceStructure,
@@ -7,13 +14,6 @@ import {
   timeLine,
   withRepeatBars
 } from './chart-structure.ts'
-import { renderChartSource } from './chord-chart.ts'
-import { detectCycle } from './harmonic-cycle.ts'
-import {
-  endingVariants,
-  matchesTolerantly,
-  votedBlock
-} from './section-matching.ts'
 
 type MeasureLabels = readonly (string | undefined)[]
 type Meters = readonly (number | undefined)[]

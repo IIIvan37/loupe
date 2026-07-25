@@ -1,5 +1,11 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import {
+  parseChart,
+  renderChartSource,
+  unrollChart
+} from '../harmony/domain/chord-chart.ts'
+import { formatChordSymbol } from '../harmony/domain/chord-symbol.ts'
 import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
 import { measureIndexAt } from '../rhythm/domain/beat-grid.ts'
 import { meteredGrid } from '../rhythm/testing/metered-grid-fixture.ts'
@@ -12,8 +18,6 @@ import {
   relabelChartBySections,
   renderStructuredSource
 } from './chart-structure.ts'
-import { parseChart, renderChartSource, unrollChart } from './chord-chart.ts'
-import { formatChordSymbol } from './chord-symbol.ts'
 import type { DetectedSection } from './song-structure.ts'
 
 /** A 4/4 grid: `bars` downbeats `barSeconds` apart, three off-beats each. */
