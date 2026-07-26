@@ -57,6 +57,7 @@ from .netguard import LoopbackOnlyMiddleware, OriginGuardMiddleware
 from .origins import allowed_origins, env_list
 from .projects import collect_garbage
 from .projects import router as projects_router
+from .temp_sweep import sweep_stale_downloads
 from .warm import Loader, start_model_warmup
 
 _DEFAULT_HOSTS = "localhost,127.0.0.1"
@@ -79,6 +80,10 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     otherwise pay the model load. Opt-out: LOUPE_WARM_MODELS=0."""
     with contextlib.suppress(Exception):
         collect_garbage()
+    # Same boot moment, same best-effort stance, for the download temp dirs a
+    # hard kill left behind (D2 — parity with the Rust sidecar's T2.3 sweep).
+    with contextlib.suppress(Exception):
+        sweep_stale_downloads()
     start_model_warmup(_warm_loaders)
     yield
 
