@@ -1,11 +1,16 @@
 import type { ProjectDeps } from '@app/core'
 import { isTauriShell } from '../auth/tauri-env.ts'
+import { isServerShell } from '../lib/server-shell.ts'
 import {
   collectFsGarbage,
   createFsProjectAudioStore,
   createFsProjectStore,
   type ProjectFs
 } from './fs-project-store.ts'
+import {
+  createHttpProjectAudioStore,
+  createHttpProjectStore
+} from './http-project-store.ts'
 import { createTauriProjectFs } from './tauri-fs.ts'
 
 // One sweep per app run, like the server's lifespan GC — not one per shell
@@ -53,11 +58,12 @@ function afterSweep(fs: ProjectFs, ready: Promise<void>): ProjectFs {
 /**
  * Build the project persistence adapters (`ProjectStore` + `ProjectAudioStore`).
  * Inside the Tauri shell projects live on the local filesystem (T2.2 — « les
- * projets restent locaux ») under the app-data directory. Offload-only
- * (Lot AJ): there is no local server, so **saved projects are desktop-only** —
- * the browser is an analysis-only playground whose project UI is hidden, and
- * these stores are an empty null-object so the hooks stay inert (list is empty,
- * nothing persists).
+ * projets restent locaux ») under the app-data directory. In the server shell
+ * (distribution D1) the page is served by the local loupe server and the HTTP
+ * stores talk to their own origin (`server/app/projects.py`). In the plain
+ * browser there is no backend: the project UI is hidden and these stores are
+ * an empty null-object so the hooks stay inert (list is empty, nothing
+ * persists).
  */
 export function createProjectStores(): ProjectDeps {
   if (isTauriShell()) {
@@ -67,6 +73,13 @@ export function createProjectStores(): ProjectDeps {
     return {
       store: createFsProjectStore(gated),
       audio: createFsProjectAudioStore(gated)
+    }
+  }
+  if (isServerShell()) {
+    const origin = window.location.origin
+    return {
+      store: createHttpProjectStore(origin),
+      audio: createHttpProjectAudioStore(origin)
     }
   }
   return emptyProjectStores()

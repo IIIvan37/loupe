@@ -42,11 +42,14 @@ from __future__ import annotations
 
 import contextlib
 import json
+import os
 from collections.abc import AsyncIterator
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .api_docs import error_responses
@@ -57,6 +60,9 @@ from .projects import router as projects_router
 from .warm import Loader, start_model_warmup
 
 _DEFAULT_HOSTS = "localhost,127.0.0.1"
+
+# The monorepo's built web app — the default dist the server offers to serve.
+_REPO_WEB_DIST = Path(__file__).resolve().parents[2] / "packages" / "web" / "dist"
 
 # The `warm()` hooks of whichever detection modules imported successfully —
 # filled by the capability blocks below, consumed by the lifespan warm-up.
@@ -177,3 +183,14 @@ else:
 @app.get("/health")
 async def health() -> dict:
     return {"status": "ok", "model": MODEL_NAME, "device": device}
+
+
+# Distribution D1: when a built web dist is present, the server is the app's
+# own origin — it serves the UI and the HTTP adapters talk same-origin. The
+# mount comes last so every API route above wins; without a dist (dev, CI)
+# nothing is mounted and the API serves unchanged. Env-overridable for the
+# packaged layouts of D3/D4.
+_dist_env = os.environ.get("LOUPE_WEB_DIST")
+_web_dist = Path(_dist_env) if _dist_env else _REPO_WEB_DIST
+if (_web_dist / "index.html").is_file():
+    app.mount("/", StaticFiles(directory=_web_dist, html=True), name="web")

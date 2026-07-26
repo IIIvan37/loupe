@@ -15,6 +15,7 @@ import {
 import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
 import { isTauriShell } from '../../auth/tauri-env.ts'
+import { isServerShell } from '../../lib/server-shell.ts'
 import { gateReasonsOf } from '../account/gate-reasons.ts'
 import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
@@ -133,8 +134,9 @@ interface WorkstationShellProps {
   readonly projectStores?: ProjectDeps
   /** Injected in tests; defaults to the real Web Audio one-shot player. */
   readonly countInPlayer?: CountInPlayer
-  /** Whether the desktop shell hosts the app; defaults to `isTauriShell()`.
-   * Injected in tests to exercise the browser-vs-desktop entry-point gating. */
+  /** Whether a local backend hosts the app (Tauri shell or the loupe server,
+   * D1) — gates Save / Projects / URL import. Injected in tests to exercise
+   * the plain-browser entry-point gating. */
   readonly desktop?: boolean
 }
 
@@ -157,7 +159,7 @@ export function WorkstationShell({
   trackSource,
   projectStores,
   countInPlayer,
-  desktop = isTauriShell()
+  desktop = isTauriShell() || isServerShell()
 }: WorkstationShellProps) {
   const { t } = useLingui()
   const { toaster, notifySuccess } = useToaster()
