@@ -8,4 +8,8 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL?: string
   /** Supabase anon key — public by design (RLS enforces access, not secrecy). */
   readonly VITE_SUPABASE_ANON_KEY?: string
+  /** `server` when this build is the dist served by the local loupe server
+   * (distribution D1) — its backend is then its own origin. Baked at build
+   * time, never probed at runtime. */
+  readonly VITE_SHELL?: string
 }

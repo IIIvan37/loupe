@@ -103,7 +103,7 @@ D6 peut s'intercaler dès D3 (la route 1 tourne partout où uv tourne).
 
 | Lot | Contenu | État |
 | --- | --- | --- |
-| D1 | Spike bout-en-bout route 1 (adaptateurs HTTP ressuscités, verdict) | ⬜ |
+| D1 | Spike bout-en-bout route 1 (adaptateurs HTTP ressuscités, verdict **GO**) | ✅ #275 |
 | D2 | Durcissement localhost (Origin/token, port, sortie, stockage standard) | ⬜ |
 | D3 | Packaging `uvx loupe` + port définitif + allowlists — beta technique | ⬜ |
 | D4 | Binaire Rust (crate yt-dlp partagé, axum + embed, stores) | ⬜ |

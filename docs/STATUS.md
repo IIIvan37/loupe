@@ -20,9 +20,11 @@ AJ→AQ tous livrés ; dernier : AQ vocabulaire/copy + garde-fou
 ([plan archivé](archive/template-sync-plan.md), #250–#263, récoltes
 starter#27/#33). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
 ≈ transport ; `timecode` attend un second consommateur.
-**Prochain : D1 — spike bout-en-bout serveur local** (web dist servie par le
-serveur, adaptateurs HTTP d'AJ.3b ressuscités, parcours réel complet, verdict
-GO/NO-GO). Lot store Jotai toujours cadré (pilote separation+mixer), en
+**D1 clos, verdict GO** (étape livrée par PR #275) : dist servie par le
+serveur, adaptateurs HTTP ressuscités, parcours réel complet (import YouTube →
+projets → PKCE → tempo + séparation Modal 6 pistes → save). **Prochain : D2 —
+durcissement localhost** (token de session ; Origin/Host/loopback existent
+déjà) ; gotcha PKCE navigateur-par-défaut à traiter en D3. Lot store Jotai en
 attente derrière la distribution ; checkpoint avant chaque slice UI.
 
 **Plans actifs** : [distribution-plan.md](distribution-plan.md) (D1–D6, en
