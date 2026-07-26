@@ -36,7 +36,7 @@ export function ShellDropLayer({
         <output className={styles.dropOverlay}>
           <span className={styles.dropOverlayInner}>
             <Trans id="drop.overlay">
-              Déposez le fichier audio pour l'importer
+              Déposer le fichier audio pour l'importer
             </Trans>
           </span>
         </output>

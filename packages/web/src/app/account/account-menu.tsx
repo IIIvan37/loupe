@@ -234,7 +234,7 @@ export function AccountMenu({
                     }}
                   >
                     <label className={styles.label} htmlFor={codeId}>
-                      <Trans id="account.beta-code">Code beta</Trans>
+                      <Trans id="account.beta-code">Code bêta</Trans>
                     </label>
                     <input
                       id={codeId}

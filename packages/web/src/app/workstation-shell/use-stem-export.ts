@@ -54,7 +54,7 @@ export function useStemExport({
   const [exporting, setExporting] = useState(false)
   const stemsExportedMessage = t({
     id: 'toast.stems-exported',
-    message: 'Stems exportés'
+    message: 'Pistes exportées'
   })
   const fileExportedMessage = t({
     id: 'toast.file-exported',

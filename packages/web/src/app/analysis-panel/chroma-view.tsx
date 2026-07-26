@@ -73,7 +73,7 @@ export function ChromaView({ readSpectrum, playing, position }: ChromaViewProps)
       <p className={styles.idle}>
         {t({
           id: 'analysis.chroma-idle',
-          message: 'Importer une piste pour voir les notes dominantes.'
+          message: 'Importer un morceau pour voir les notes dominantes.'
         })}
       </p>
     )

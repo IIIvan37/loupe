@@ -79,10 +79,6 @@
   --font-size-chart-title: 1.6rem;
   --font-size-chart-glyph: 1.5rem;
 
-  /* Letter-spacing for the small uppercase section labels (panel headings,
-     transport captions…) — one value, so every label tracks the same. */
-  --tracking-label: 0.08em;
-
   /* Elevation — two steps only. `1` lifts light overlays (menus, popovers) off
      the panel; `2` is the modal dialog sitting above a dimmed backdrop. Tuned
      for the dark UI: deep, low-spread, so the ombre reads without a halo. */

@@ -178,7 +178,9 @@ efface une classe entière de code mort.*
 ## Suivi
 
 - [x] AP.1
-- [ ] AJ.1 · [ ] AJ.2 · [ ] AJ.3
+- [x] AJ.1 · [x] AJ.2 (#225) · [x] AJ.3 (#227) — **Lot AJ clos** (cases
+  cochées a posteriori : le travail était livré, le Suivi ne l'enregistrait
+  pas)
 - [x] AK.1 · [x] AK.2 · [x] AK.3 · [x] AK.4
 - [x] AL.1 · [x] AL.2 · [x] AL.3 · [x] AL.4
 - [x] AM.1 · [x] AM.2 · [~] AM.3 (écarté) · [~] AM.4 (écarté) — **Lot AM clos
@@ -190,7 +192,9 @@ efface une classe entière de code mort.*
   (#247) · [x] AO.3 (#247, ×2/÷2 restés texte — décision) — **Lot AO clos**
 - [x] AP.2 · [x] AP.3 · [x] AP.4 (#249) + revue post-clôture (#253) —
   **Lot AP clos** (replay bundle utilisateur encore dû)
-- [ ] AQ.1 · [ ] AQ.2
+- [x] AQ.1 · [x] AQ.2 (livrés ensemble + hors-plan : majuscules CSS retirées,
+  trim léger des textes longs, garde-fou lexique `copy-lexicon.spec.ts`) —
+  **Lot AQ clos**
 
 **Déjà-tranchés (5, écartés)** : l'EQ session-only (T.8/T.8b — AM.4 le
 respecte), l'embuscade de quota à l'import (AG.1 mergé), le cold-start narré

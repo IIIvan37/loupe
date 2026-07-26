@@ -6,8 +6,3 @@
   font-size: var(--font-size-2xs);
   line-height: 1.4;
 }
-
-.label {
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
-}

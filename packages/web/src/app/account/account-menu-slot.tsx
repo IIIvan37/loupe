@@ -15,14 +15,14 @@ const GATE_NOTICES: Readonly<Record<MintFailureReason, MessageDescriptor>> = {
   }),
   'not-a-beta-member': msg({
     id: 'account.gate-beta',
-    message: 'Entrer un code beta pour accéder aux analyses.'
+    message: 'Entrer un code bêta pour accéder aux analyses.'
   }),
   'quota-exceeded': msg({
     id: 'account.gate-quota',
     // Actionable, not just descriptive: name the reset (the `usage` window
     // is monthly by contract) and what stays usable meanwhile.
     message:
-      'Quota d’analyses du mois atteint — il se réinitialise le 1ᵉʳ du mois. Lecture, boucles et grille restent utilisables.'
+      'Quota d’analyses atteint — réinitialisation le 1ᵉʳ du mois. Lecture, boucles et grille restent utilisables.'
   }),
   error: msg({
     id: 'account.gate-error',

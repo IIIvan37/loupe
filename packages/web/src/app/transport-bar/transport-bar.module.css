@@ -99,8 +99,6 @@
 .fieldLabel {
   color: var(--dim);
   font-size: var(--font-size-2xs);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
 }
 
 .fieldValue {

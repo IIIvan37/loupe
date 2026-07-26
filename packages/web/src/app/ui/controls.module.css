@@ -274,8 +274,6 @@
   color: var(--dim);
   font-size: var(--font-size-xs);
   font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
 }
 
 /* One skin for a rendered keyboard key (<kbd>): empty-state hints and the

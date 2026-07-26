@@ -88,7 +88,7 @@ const ROWS: ReadonlyArray<{
     example: '{title: …} {key: …} {tempo: …}',
     meaning: msg({
       id: 'chords.help-directives',
-      message: "Surcharger l'en-tête du chart"
+      message: "Surcharger l'en-tête de la grille"
     })
   }
 ]

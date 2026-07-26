@@ -613,7 +613,7 @@ export function ChordChartPanel({
           {t({
             id: 'chords.empty-hint',
             message:
-              'Aucune grille — saisir les accords via « Modifier » ou lancer la détection.'
+              'Aucune grille — saisir les accords ou lancer la détection.'
           })}
         </p>
       )}

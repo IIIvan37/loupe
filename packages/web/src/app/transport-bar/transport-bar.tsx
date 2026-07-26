@@ -112,7 +112,7 @@ export function TransportBar({
 
       <Cluster gap="var(--space-l)" align="center">
         {/* « Vitesse », not « Tempo » (Q.5): « Tempo » is reserved for the
-            panel's musical BPM. The « sans toucher au pitch » precision lives
+            panel's musical BPM. The « sans changer la hauteur » precision lives
             in the slider tooltip (AE.3) — a caption must not document itself. */}
         <StepperField
           label={<Trans id="transport.tempo-label">Vitesse</Trans>}
@@ -127,7 +127,7 @@ export function TransportBar({
           sliderTitle={t({
             id: 'transport.tempo-reset',
             message:
-              'Vitesse sans toucher au pitch — double-clic pour revenir à 100 %'
+              'Vitesse sans changer la hauteur — double-clic : 100 %'
           })}
           fieldLabel={t({
             id: 'transport.tempo-field',

@@ -174,7 +174,7 @@ export function WaveformView({
                     })
                   : t({
                       id: 'waveform.track-image',
-                      message: "Forme d'onde de la piste"
+                      message: "Forme d'onde du morceau"
                     })
               }
             />
