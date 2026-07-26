@@ -20,14 +20,15 @@ AJ→AQ tous livrés ; dernier : AQ vocabulaire/copy + garde-fou
 ([plan archivé](archive/template-sync-plan.md), #250–#263, récoltes
 starter#27/#33). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
 ≈ transport ; `timecode` attend un second consommateur.
-**D1–D4.a clos** (PRs #275–#278) : parcours réel complet validé (D1, verdict
-GO), durcissement réduit à l'audit (D2), **packaging livré** (D3 : entry
-point `loupe`, wheel autonome 1,4 Mo, port **6173** déployé et curl-vérifié
-sur les 4 allowlists) — **la beta technique est possible** ; D4.a : crate
-`loupe-download` partagé (workspace cargo racine, download.rs 470→76).
-**Prochain : D4.b — serveur axum** (rust-embed de la dist, gardes réseau
-portées, contrat NDJSON /download) ; puis D4.c stores, D5 release. Lot store
-Jotai en attente ; checkpoint avant chaque slice UI.
+**D1–D4.b clos** (PRs #275–#279) : verdict GO (D1), audit localhost (D2),
+**route 1 livrée** (D3 : wheel `loupe` 1,4 Mo, port 6173 — **beta technique
+possible**), crate `loupe-download` (D4.a), **D4.b : crate `loupe-server`**
+— binaire `loupe` 6,9 Mo (axum + rust-embed de la dist server-shell), gardes
+D2 portées, `/download` NDJSON + store `/audio` sur le crate partagé, CLI
+parité `cli.py`, vérifié de bout en bout (vrai download YouTube en release).
+**Prochain : D4.c — stores projets Rust** (`/projects` + `/gc`, parité
+`projects.py`, même `~/.loupe` → migration zéro code) ; puis D5 release, D6
+plateformes. Lot store Jotai en attente ; checkpoint avant chaque slice UI.
 
 **Plans actifs** : [distribution-plan.md](distribution-plan.md) (D1–D6, en
 cours). **Garde-fous beta restants** (cf.
