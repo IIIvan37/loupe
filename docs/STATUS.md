@@ -20,12 +20,14 @@ AJ→AQ tous livrés ; dernier : AQ vocabulaire/copy + garde-fou
 ([plan archivé](archive/template-sync-plan.md), #250–#263, récoltes
 starter#27/#33). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
 ≈ transport ; `timecode` attend un second consommateur.
-**D1 clos, verdict GO** (étape livrée par PR #275) : dist servie par le
-serveur, adaptateurs HTTP ressuscités, parcours réel complet (import YouTube →
-projets → PKCE → tempo + séparation Modal 6 pistes → save). **Prochain : D2 —
-durcissement localhost** (token de session ; Origin/Host/loopback existent
-déjà) ; gotcha PKCE navigateur-par-défaut à traiter en D3. Lot store Jotai en
-attente derrière la distribution ; checkpoint avant chaque slice UI.
+**D1 clos, verdict GO** (PR #275) : dist servie par le serveur, adaptateurs
+HTTP ressuscités, parcours réel complet (import YouTube → projets → PKCE →
+tempo + séparation Modal 6 pistes → save). **D2 clos** (PR #276) : sweep des
+téléchargements orphelins ; décisions — pas de token (gardes suffisantes),
+stockage `~/.loupe` acté, port/sortie déplacés en D3. **Prochain : D3 —
+packaging route 1** (entry point `loupe`, port définitif + 3 allowlists, doc
+`uvx` — première beta technique possible). Lot store Jotai en attente ;
+checkpoint avant chaque slice UI.
 
 **Plans actifs** : [distribution-plan.md](distribution-plan.md) (D1–D6, en
 cours). **Garde-fous beta restants** (cf.
