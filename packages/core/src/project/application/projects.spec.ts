@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { MixerState } from '../domain/mixer.ts'
+import type { MixerState } from '../../separation/domain/mixer.ts'
 import type { AudioRef } from '../domain/project.ts'
 // Relative on purpose: inside the core the subpath alias would be a
 // self-import; adapters go through '@app/core/testing'.

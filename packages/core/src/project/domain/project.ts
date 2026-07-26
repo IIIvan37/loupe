@@ -1,10 +1,9 @@
-import type { LoopLibrary } from '../loops/domain/loop-library.ts'
-import type { LoopRegion } from '../loops/domain/loop-region.ts'
-import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
-import type { ManualTempo } from '../rhythm/domain/manual-tempo.ts'
-import { clampFineTuneCents } from './fine-tune.ts'
-import type { MarkerList } from './marker-list.ts'
-import type { MixerChannel, MixerState } from './mixer.ts'
+import type { LoopLibrary } from '../../loops/domain/loop-library.ts'
+import type { LoopRegion } from '../../loops/domain/loop-region.ts'
+import type { MarkerList } from '../../markers/domain/marker-list.ts'
+import type { BeatGrid } from '../../rhythm/domain/beat-grid.ts'
+import type { ManualTempo } from '../../rhythm/domain/manual-tempo.ts'
+import type { MixerChannel, MixerState } from '../../separation/domain/mixer.ts'
 
 /**
  * An opaque pointer to audio bytes that live outside the hexagon — the original
@@ -195,17 +194,6 @@ export function tuningOrDefault(
   tuning: ProjectTuning | undefined
 ): ProjectTuning {
   return tuning ?? NEUTRAL_TUNING
-}
-
-/**
- * Normalise the optional persisted fine-tune: a manifest (or tuning) that
- * predates the field means no adjustment, so absent reads as 0 — same « old
- * manifest » rule as `tuningOrDefault`/`chartTransposedBy`, kept in one place
- * so the fingerprint and the restore path agree on it. A corrupted
- * (hand-edited) value reads as 0 through the clamp's NaN contract.
- */
-export function fineTuneOrDefault(tuning: ProjectTuning | undefined): number {
-  return clampFineTuneCents(tuning?.fineTuneCents ?? 0)
 }
 
 /**

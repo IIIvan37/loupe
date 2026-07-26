@@ -1,6 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { clampFineTuneCents } from './fine-tune.ts'
+import { clampFineTuneCents, fineTuneOrDefault } from './fine-tune.ts'
 
 describe('clampFineTuneCents', () => {
   it('keeps an in-range integer untouched', () => {
@@ -39,5 +39,23 @@ describe('clampFineTuneCents', () => {
         ).toBe(true)
       })
     )
+  })
+})
+
+describe('fineTuneOrDefault', () => {
+  it('reads 0 for a manifest with no tuning at all', () => {
+    expect(fineTuneOrDefault(undefined)).toBe(0)
+  })
+
+  it('reads 0 for a tuning that predates the field', () => {
+    expect(fineTuneOrDefault({})).toBe(0)
+  })
+
+  it('returns a persisted fine-tune', () => {
+    expect(fineTuneOrDefault({ fineTuneCents: -30 })).toBe(-30)
+  })
+
+  it('reads a corrupted (hand-edited) fine-tune as 0', () => {
+    expect(fineTuneOrDefault({ fineTuneCents: Number.NaN })).toBe(0)
   })
 })

@@ -28,8 +28,6 @@ export type {
   DownloadProgress,
   FetchedTrack,
   PlaybackEngine,
-  ProjectAudioStore,
-  ProjectStore,
   SpectrumFrame,
   StemFilter,
   StemPlaybackEngine,
@@ -39,24 +37,6 @@ export type {
   TrackSource,
   TrackSourceMetadata
 } from './application/ports.ts'
-export type {
-  DeleteProjectResult,
-  ListProjectsResult,
-  OpenedStem,
-  OpenProjectResult,
-  ProjectDeps,
-  RenameProjectResult,
-  SaveProjectInput,
-  SaveProjectResult,
-  SaveProjectStem
-} from './application/projects.ts'
-export {
-  deleteProject,
-  listProjects,
-  openProject,
-  renameProject,
-  saveProject
-} from './application/projects.ts'
 export { isSupportedSourceUrl } from './application/supported-source.ts'
 export { downmixToMono } from './audio/domain/downmix.ts'
 export { spectrumFromSamples } from './audio/domain/spectrum.ts'
@@ -67,6 +47,7 @@ export type { Waveform, WaveformPeak } from './audio/domain/waveform.ts'
 export { bassNotePerMeasure } from './domain/bass-line.ts'
 export {
   clampFineTuneCents,
+  fineTuneOrDefault,
   MAX_FINE_TUNE_CENTS,
   MIN_FINE_TUNE_CENTS
 } from './domain/fine-tune.ts'
@@ -80,31 +61,6 @@ export {
   defaultKeyBindings,
   resolveCommand
 } from './domain/key-bindings.ts'
-export type { Marker } from './domain/marker.ts'
-export type { MarkerList } from './domain/marker-list.ts'
-export {
-  addMarker,
-  emptyMarkerList,
-  moveMarker,
-  removeMarker,
-  replaceStructureMarkers
-} from './domain/marker-list.ts'
-export type {
-  ChannelGain,
-  MixerAction,
-  MixerChannel,
-  MixerState
-} from './domain/mixer.ts'
-export {
-  effectiveGains,
-  emptyMixer,
-  MAX_GAIN_DB,
-  MIN_GAIN_DB,
-  mixerReducer,
-  stepGainDb,
-  UNITY_GAIN_DB
-} from './domain/mixer.ts'
-export { parseProject } from './domain/parse-project.ts'
 export {
   clampPitchSemitones,
   MAX_PITCH_SEMITONES,
@@ -117,25 +73,6 @@ export {
   MIN_TEMPO_PERCENT,
   stepTempoPercent
 } from './domain/playback-rate.ts'
-export type {
-  AudioRef,
-  Project,
-  ProjectActiveLoop,
-  ProjectChordChart,
-  ProjectSeparation,
-  ProjectSource,
-  ProjectStamp,
-  ProjectStem,
-  ProjectTempo,
-  ProjectTuning,
-  SessionSnapshot
-} from './domain/project.ts'
-export {
-  chartTransposedBy,
-  fineTuneOrDefault,
-  projectChordChart,
-  tuningOrDefault
-} from './domain/project.ts'
 export { seekStepSeconds } from './domain/seek-step.ts'
 export type {
   SpeedTrainerPolicy,
@@ -212,6 +149,56 @@ export {
 } from './loops/domain/loop-region.ts'
 export type { SnapUnit } from './loops/domain/snap-loop-region.ts'
 export { snapLoopRegionToGrid } from './loops/domain/snap-loop-region.ts'
+export type { Marker } from './markers/domain/marker.ts'
+export type { MarkerList } from './markers/domain/marker-list.ts'
+export {
+  addMarker,
+  emptyMarkerList,
+  moveMarker,
+  removeMarker,
+  replaceStructureMarkers
+} from './markers/domain/marker-list.ts'
+export type {
+  ProjectAudioStore,
+  ProjectStore
+} from './project/application/ports.ts'
+export type {
+  DeleteProjectResult,
+  ListProjectsResult,
+  OpenedStem,
+  OpenProjectResult,
+  ProjectDeps,
+  RenameProjectResult,
+  SaveProjectInput,
+  SaveProjectResult,
+  SaveProjectStem
+} from './project/application/projects.ts'
+export {
+  deleteProject,
+  listProjects,
+  openProject,
+  renameProject,
+  saveProject
+} from './project/application/projects.ts'
+export { parseProject } from './project/domain/parse-project.ts'
+export type {
+  AudioRef,
+  Project,
+  ProjectActiveLoop,
+  ProjectChordChart,
+  ProjectSeparation,
+  ProjectSource,
+  ProjectStamp,
+  ProjectStem,
+  ProjectTempo,
+  ProjectTuning,
+  SessionSnapshot
+} from './project/domain/project.ts'
+export {
+  chartTransposedBy,
+  projectChordChart,
+  tuningOrDefault
+} from './project/domain/project.ts'
 export type {
   DetectTempoDeps,
   DetectTempoInput,
@@ -289,6 +276,21 @@ export type {
   DetectedStem,
   StemEnergy
 } from './separation/domain/instrument-detection.ts'
+export type {
+  ChannelGain,
+  MixerAction,
+  MixerChannel,
+  MixerState
+} from './separation/domain/mixer.ts'
+export {
+  effectiveGains,
+  emptyMixer,
+  MAX_GAIN_DB,
+  MIN_GAIN_DB,
+  mixerReducer,
+  stepGainDb,
+  UNITY_GAIN_DB
+} from './separation/domain/mixer.ts'
 export type {
   SeparationAction,
   SeparationErrorCode,
