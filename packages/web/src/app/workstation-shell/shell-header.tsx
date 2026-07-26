@@ -107,7 +107,7 @@ export function ShellHeader({
     }
   } else if (exportingStems) {
     pendingBusy = {
-      label: t({ id: 'header.exporting', message: 'Export des stems…' })
+      label: t({ id: 'header.exporting', message: 'Export des pistes…' })
     }
   } else if (name !== undefined) {
     pendingBusy = {

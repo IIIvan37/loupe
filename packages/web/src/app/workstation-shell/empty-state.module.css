@@ -37,8 +37,6 @@
 .sub {
   margin: 0;
   font-size: var(--font-size-s);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
   color: var(--dim);
 }
 
@@ -65,8 +63,6 @@
   margin: 0;
   color: var(--dim);
   font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-label);
 }
 
 /* The three value hooks: a row of icon-topped cards on wide viewports, that

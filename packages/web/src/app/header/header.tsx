@@ -237,11 +237,11 @@ export function Header({
               canExport
                 ? t({
                     id: 'header.export-ready',
-                    message: 'Télécharger les stems en ZIP'
+                    message: 'Télécharger les pistes en ZIP'
                   })
                 : t({
                     id: 'header.export-needs-stems',
-                    message: 'Séparer les pistes pour exporter les stems'
+                    message: "Séparer les pistes avant l'export"
                   })
             }
             onClick={onExportStems}

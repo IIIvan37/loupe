@@ -26,11 +26,11 @@ function over(value: string | undefined): string | undefined {
 }
 
 /**
- * The printed lead-sheet head: `key of X` and `♩ = BPM` on the top line, then
- * title and artist, then the meta line (style). Derived from the session by
- * default, overridden field by field by the source's directives so the chart
+ * The printed lead-sheet head: `Tonalité : X` and `♩ = BPM` on the top line,
+ * then title and artist, then the meta line (style). Derived from the session
+ * by default, overridden field by field by the source's directives so the chart
  * stays self-supporting. `♩` is chart notation (document content like the
- * chord letters, no catalog entry); `key of` is prose, so it rides Lingui.
+ * chord letters, no catalog entry); the key label is prose, so it rides Lingui.
  * The time signature is NOT a head field: it prints as stave notation at the
  * head of the grid's first system (the mockup's stacked 4-over-4).
  */
@@ -63,7 +63,7 @@ export function ChartHeader({ derived, directives }: ChartHeaderProps) {
       {(key !== undefined || tempo !== undefined) && (
         <p className={styles.chartTopLine}>
           {key !== undefined && (
-            <span>{t({ id: 'chart.key-of', message: `key of ${key}` })}</span>
+            <span>{t({ id: 'chart.key-of', message: `Tonalité : ${key}` })}</span>
           )}
           {tempo !== undefined && (
             <span className={styles.chartTempo}>♩ = {tempo}</span>

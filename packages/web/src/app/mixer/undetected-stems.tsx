@@ -22,7 +22,7 @@ export function UndetectedStems({ stems }: UndetectedStemsProps) {
   }
   return (
     <p className={styles.undetected}>
-      <span className={styles.label}>
+      <span>
         <Trans id="mixer.undetected">Non détectés</Trans>
       </span>{' '}
       <span>{stems.map((stem) => stem.label).join(' · ')}</span>

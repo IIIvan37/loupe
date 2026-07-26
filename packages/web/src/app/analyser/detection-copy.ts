@@ -44,7 +44,7 @@ export const STRUCTURE_ERROR_COPY: Readonly<
   }),
   'too-large': msg({
     id: 'structure.error.too-large',
-    message: "Piste trop volumineuse pour l'analyse."
+    message: "Morceau trop volumineux pour l'analyse."
   }),
   unknown: msg({
     id: 'structure.error.unknown',
@@ -78,7 +78,7 @@ export const CHORDS_ERROR_COPY: Readonly<
   }),
   'too-large': msg({
     id: 'chords.error.too-large',
-    message: "Piste trop volumineuse pour l'analyse."
+    message: "Morceau trop volumineux pour l'analyse."
   }),
   unknown: msg({
     id: 'chords.error.unknown',
@@ -101,7 +101,7 @@ export const TEMPO_ERROR_COPY: Readonly<
   }),
   'too-large': msg({
     id: 'tempo.error.too-large',
-    message: "Piste trop volumineuse pour l'analyse."
+    message: "Morceau trop volumineux pour l'analyse."
   }),
   unknown: msg({
     id: 'tempo.error.unknown',
@@ -134,7 +134,7 @@ export const SEPARATION_ERROR_COPY: Readonly<
   }),
   'too-large': msg({
     id: 'separation.error.too-large',
-    message: 'Piste trop volumineuse pour la séparation.'
+    message: 'Morceau trop volumineux pour la séparation.'
   }),
   unknown: msg({
     id: 'separation.error.unknown',

@@ -102,7 +102,7 @@ export function EmptyState({
           ⬓
         </p>
         <h2 id="empty-headline" className={cx(styles.headline)}>
-          <Trans id="empty.headline">Glissez un fichier audio ici</Trans>
+          <Trans id="empty.headline">Glisser un fichier audio ici</Trans>
         </h2>
         <p className={cx(styles.sub)}>
           <Trans id="empty.sub">WAV, MP3, FLAC, M4A…</Trans>
@@ -114,7 +114,7 @@ export function EmptyState({
         {onImportUrl && (
           <div className={cx(styles.urlImport)}>
             <p className={cx(styles.separator)}>
-              <Trans id="empty.or">ou collez un lien</Trans>
+              <Trans id="empty.or">ou coller un lien</Trans>
             </p>
             <UrlImportField
               value={url}

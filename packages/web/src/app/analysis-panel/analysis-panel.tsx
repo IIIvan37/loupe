@@ -151,8 +151,7 @@ export function AnalysisPanel({
           {loops.length === 0 ? (
             <p>
               <Trans id="analysis.no-loops">
-                Aucune boucle. En enregistrer une depuis une sélection A/B sur la
-                forme d'onde.
+                Aucune boucle. En enregistrer une depuis une sélection A/B.
               </Trans>
             </p>
           ) : (

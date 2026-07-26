@@ -190,7 +190,9 @@ efface une classe entière de code mort.*
   (#247) · [x] AO.3 (#247, ×2/÷2 restés texte — décision) — **Lot AO clos**
 - [x] AP.2 · [x] AP.3 · [x] AP.4 (#249) + revue post-clôture (#253) —
   **Lot AP clos** (replay bundle utilisateur encore dû)
-- [ ] AQ.1 · [ ] AQ.2
+- [x] AQ.1 · [x] AQ.2 (livrés ensemble + hors-plan : majuscules CSS retirées,
+  trim léger des textes longs, garde-fou lexique `copy-lexicon.spec.ts`) —
+  **Lot AQ clos**
 
 **Déjà-tranchés (5, écartés)** : l'EQ session-only (T.8/T.8b — AM.4 le
 respecte), l'embuscade de quota à l'import (AG.1 mergé), le cold-start narré

@@ -39,13 +39,13 @@ function GatedNotice({ auth }: { readonly auth: AuthPort }) {
   if (state.status === 'signed-out') {
     message = (
       <Trans id="analysis.locked-sign-in">
-        Connectez-vous pour débloquer les analyses.
+        Se connecter pour débloquer les analyses.
       </Trans>
     )
   } else if (status !== undefined && !status.member) {
     message = (
       <Trans id="analysis.locked-beta">
-        Entrez un code beta pour débloquer les analyses.
+        Entrer un code bêta pour débloquer les analyses.
       </Trans>
     )
   }
