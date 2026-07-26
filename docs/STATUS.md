@@ -8,24 +8,24 @@
 
 ## Where we are
 
-**Roadmap v7 soldée** ([roadmap v7](roadmap-excellence-7.md), Lots AJ→AQ tous
-livrés) : dernier lot **AQ clos** (vocabulaire/copy, livré par PR #265) —
-lexique 3 niveaux appliqué (morceau/piste/grille), anglais brut éradiqué
-(« Tonalité : {key} », hauteur, bêta), infinitif partout, Mix/Tap gardés en
-termes métier ; hors-plan : majuscules CSS retirées (8 eyebrow labels +
-`--tracking-label`), trim léger des textes longs, garde-fou
-`copy-lexicon.spec.ts` (liste noire sur le catalogue). Reste dû côté AP :
-replay bundle utilisateur (croix rouge/⌘Q propre et sale, géométrie maximisée
-après relance, titre natif avec ●).
-**Lot TS clos** ([plan archivé](archive/template-sync-plan.md)) : TS.1–TS.6
-livrés (#250–#263) ; récoltes starter#27/#33. Nursery à dessein :
-`detect-chords`, `bass-line` ; le reste ≈ transport (candidat au rapport
-ts5-8) ; `timecode` attend un second consommateur.
-**Prochain : replay bundle AP côté utilisateur**, puis cadrage du lot store
-Jotai (pilote separation+mixer, playhead en expérience finale) ; checkpoint
-avant chaque slice UI.
+**Cap distribution acté (2026-07-26)** : loupe se distribue en **serveur
+local + navigateur** ([distribution-plan.md](distribution-plan.md), lots
+D1–D6 — spike Python sur le `server/` existant, puis binaire Rust). Motifs :
+cible multi-OS, import YouTube central (yt-dlp = IP résidentielle), zéro
+signature, un seul moteur web. Le shell **Tauri passe en sommeil** (canal
+signé réactivable, CI conservée) ; le replay bundle AP devient sans objet.
+**Roadmap v7 soldée** ([archivée](archive/roadmap-excellence-7.md), Lots
+AJ→AQ tous livrés ; dernier : AQ vocabulaire/copy + garde-fou
+`copy-lexicon.spec.ts`, PR #265). **Lot TS clos**
+([plan archivé](archive/template-sync-plan.md), #250–#263, récoltes
+starter#27/#33). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
+≈ transport ; `timecode` attend un second consommateur.
+**Prochain : D1 — spike bout-en-bout serveur local** (web dist servie par le
+serveur, adaptateurs HTTP d'AJ.3b ressuscités, parcours réel complet, verdict
+GO/NO-GO). Lot store Jotai toujours cadré (pilote separation+mixer), en
+attente derrière la distribution ; checkpoint avant chaque slice UI.
 
-**Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
+**Plans actifs** : [distribution-plan.md](distribution-plan.md) (D1–D6, en
 cours). **Garde-fous beta restants** (cf.
 [beta-checklist.md](beta-checklist.md)) : plafond de dépense Modal (mesuré
 ~3,67 $/mois), SMTP custom **déjà câblé** (Resend/`iiivan.org`), re-seed des
@@ -57,7 +57,7 @@ codes legacy, PKCE en bundle à rejouer.
 
 ## Plans
 
-- **En cours** : [roadmap-excellence-7.md](roadmap-excellence-7.md) (Lots AJ–AQ).
+- **En cours** : [distribution-plan.md](distribution-plan.md) (lots D1–D6).
 - **Complets** : dans [docs/archive/](archive/) (plans clos + vision produit du kickoff).
 
 ## Veille / différé
