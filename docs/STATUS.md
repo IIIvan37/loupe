@@ -8,24 +8,22 @@
 
 ## Where we are
 
-**Lot AP clos** ([roadmap v7](roadmap-excellence-7.md), Lots AJ→AQ ; AJ→AP
-livrés) : AP.1 menus natifs (#224), AP.2–AP.4 garde de fermeture native +
-fenêtre persistée/titre + métadonnées bundle (#249), revue post-clôture
-corrigée (#253 : race d'armement, window-state sur ⌘Q, `destroy` raté).
-Reste dû côté AP : replay bundle utilisateur (croix rouge/⌘Q propre et sale,
-géométrie maximisée après relance, titre natif avec ●).
+**Roadmap v7 soldée** ([roadmap v7](roadmap-excellence-7.md), Lots AJ→AQ tous
+livrés) : dernier lot **AQ clos** (vocabulaire/copy, livré par PR #265) —
+lexique 3 niveaux appliqué (morceau/piste/grille), anglais brut éradiqué
+(« Tonalité : {key} », hauteur, bêta), infinitif partout, Mix/Tap gardés en
+termes métier ; hors-plan : majuscules CSS retirées (8 eyebrow labels +
+`--tracking-label`), trim léger des textes longs, garde-fou
+`copy-lexicon.spec.ts` (liste noire sur le catalogue). Reste dû côté AP :
+replay bundle utilisateur (croix rouge/⌘Q propre et sale, géométrie maximisée
+après relance, titre natif avec ●).
 **Lot TS clos** ([plan archivé](archive/template-sync-plan.md)) : TS.1–TS.6
-livrés (#250–#263) — configs, fitness functions, ADR, subpath testing, modules
-émergents ([ADR-0005](adr/0005-modules-emergents.md)) : `rhythm`, `harmony`,
-`structure`, `loops`, `audio`, `separation`, `markers`, `project` ; TS.6 =
-link-checker des living docs dans `docs/docs.spec.ts` (« living docs name only
-paths that exist », étape livrée par PR #263). STATUS/Suivi merge-invariants
-**dans la PR** (convention template). Nursery à dessein : `detect-chords`,
-`bass-line` ; le reste ≈ transport (candidat noté au rapport ts5-8) ;
-`timecode` attend un second consommateur.
-**Prochain : Lot AQ — vocabulaire et copy** (AQ.1 lexique « Piste », AQ.2
-anglais brut + ton, roadmap v7) ; checkpoint avant chaque slice UI. Lot store
-Jotai cadré (pilote separation+mixer, playhead en expérience finale).
+livrés (#250–#263) ; récoltes starter#27/#33. Nursery à dessein :
+`detect-chords`, `bass-line` ; le reste ≈ transport (candidat au rapport
+ts5-8) ; `timecode` attend un second consommateur.
+**Prochain : replay bundle AP côté utilisateur**, puis cadrage du lot store
+Jotai (pilote separation+mixer, playhead en expérience finale) ; checkpoint
+avant chaque slice UI.
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours). **Garde-fous beta restants** (cf.
