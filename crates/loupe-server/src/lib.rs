@@ -15,6 +15,7 @@ mod fs_atomic;
 pub mod netguard;
 pub mod project_store;
 pub mod static_web;
+pub mod version_check;
 
 use audio_store::{AudioStore, StoreError, QUOTA_MESSAGE};
 use axum::body::Body;
