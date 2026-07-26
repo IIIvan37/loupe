@@ -53,5 +53,13 @@
   chaque `pnpm test`/gate — tout nouveau doc vivant qui nomme un chemin
   inexistant fera échouer la suite ; les exemples hypothétiques ne doivent
   pas ressembler à de vrais chemins (placeholders `<feature>`, `…` unicode
-  ou backtick sans forme de chemin). `.github/copilot-instructions.md`
+  ou backtick sans forme de chemin). **Piège attrapé en CI** : un chemin
+  gitignoré (le `.venv` du serveur) existe localement mais pas en CI — le
+  check est dépendant de l'environnement pour les artefacts machine-local ;
+  ne jamais nommer un chemin gitignoré hors bloc fencé (leçon starter à
+  récolter : ne compter que les fichiers trackés). `.github/copilot-instructions.md`
   untracked présent dans le worktree (pas à moi, laissé tel quel).
+- Le job CI « Dependency audit » échoue **aussi sur main** : le endpoint
+  audit du registry npm ne passe plus avec pnpm 10.11.0 épinglé
+  (« not valid JSON », reproduit localement) ; vérifié OK avec pnpm 11.17.0
+  (1 moderate < seuil high) → bump `packageManager` dans une PR dédiée.
