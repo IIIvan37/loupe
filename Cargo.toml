@@ -3,4 +3,4 @@
 # tomorrow. One lockfile, one target dir, one fmt/clippy/test sweep.
 [workspace]
 resolver = "2"
-members = ["crates/loupe-download", "packages/desktop/src-tauri"]
+members = ["crates/loupe-download", "crates/loupe-server", "packages/desktop/src-tauri"]

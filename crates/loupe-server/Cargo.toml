@@ -1,0 +1,31 @@
+[package]
+name = "loupe-server"
+version = "0.1.0"
+description = "loupe local server (route 2): axum, embedded web dist, yt-dlp download"
+edition = "2021"
+rust-version = "1.77.2"
+license = "UNLICENSED"
+
+[[bin]]
+name = "loupe"
+path = "src/main.rs"
+
+[dependencies]
+axum = "0.8"
+hex = "0.4"
+loupe-download = { path = "../loupe-download" }
+mime_guess = "2"
+rust-embed = "8"
+serde_json = "1.0"
+sha2 = "0.10"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal", "fs", "sync", "time"] }
+tokio-stream = "0.1"
+tokio-util = { version = "0.7", features = ["io"] }
+tower-http = { version = "0.6", features = ["cors"] }
+ureq = "3"
+webbrowser = "1"
+
+[dev-dependencies]
+http-body-util = "0.1"
+tempfile = "3"
+tower = { version = "0.5", features = ["util"] }

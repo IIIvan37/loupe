@@ -1,7 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "ignoreExportsUsedInFile": true,
-  "ignore": ["supabase/**", "packages/desktop/**", "server/**"],
+  "ignore": ["supabase/**", "packages/desktop/**", "server/**", "crates/**"],
   "workspaces": {
     ".": {
       "entry": ["sheriff.config.ts"]
