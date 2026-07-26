@@ -54,11 +54,13 @@
 - **Single next action**: merger PR #275, puis attaquer **D2** (durcissement
   localhost — token de session en tête, le reste des gardes existe déjà).
 - Gotchas :
-  - **PKCE et magic link** : le lien s'ouvre dans le navigateur PAR DÉFAUT ;
-    si ce n'est pas le contexte qui a demandé le lien, l'échange échoue
-    silencieusement (vécu en spike : session posée dans le mauvais profil ;
-    résolu en collant l'URL du lien dans le bon onglet). Sujet UX à traiter
-    en D3 — pistes : détection + message, ou flux OTP à code.
+  - **PKCE et magic link** : le lien s'ouvre dans le navigateur par défaut.
+    En usage réel c'est aussi celui qui a demandé le lien → même profil,
+    l'échange passe. Le contexte scindé vécu en spike était un **artefact du
+    montage de test** (Chrome piloté = instance de debug séparée du Chrome
+    par défaut, qui portait une session antérieure) ; résolu en collant l'URL
+    du lien dans l'onglet demandeur. Risque résiduel réel limité (navigateur
+    non-défaut, clic sur téléphone) — simple note UX pour D3, pas un chantier.
   - « Artiste inconnu » après réouverture : l'uploader n'est pas persisté au
     manifeste projet (identique desktop, antérieur à D1).
   - Build serveur : `VITE_SHELL=server pnpm --filter @app/web build` (la
