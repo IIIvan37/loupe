@@ -59,7 +59,8 @@
   ne jamais nommer un chemin gitignoré hors bloc fencé (leçon starter à
   récolter : ne compter que les fichiers trackés). `.github/copilot-instructions.md`
   untracked présent dans le worktree (pas à moi, laissé tel quel).
-- Le job CI « Dependency audit » échoue **aussi sur main** : le endpoint
-  audit du registry npm ne passe plus avec pnpm 10.11.0 épinglé
-  (« not valid JSON », reproduit localement) ; vérifié OK avec pnpm 11.17.0
-  (1 moderate < seuil high) → bump `packageManager` dans une PR dédiée.
+- Le job CI « Dependency audit » a échoué ~15 min sur toutes les branches
+  (main inclus) : incident **transitoire** du endpoint audit du registry npm
+  (« not valid JSON » avec pnpm 10.11.0, reproduit localement, rétabli
+  ensuite). Pendant l'incident, pnpm 10.34.5 et 11.17.0 passaient (décodage
+  plus tolérant) → PR #264 (bump 10.34.5) ouverte en durcissement, optionnelle.
