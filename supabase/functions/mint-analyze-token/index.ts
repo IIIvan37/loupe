@@ -33,7 +33,7 @@ const ISSUER = 'loupe-supabase'
 // origins, kept in sync with the Python default). Adding a per-deployment
 // origin is still an env change everywhere (see docs/j2-supabase-runbook.md).
 const DEFAULT_ALLOWED_ORIGINS =
-  'http://localhost:5173,http://127.0.0.1:5173,tauri://localhost,http://tauri.localhost'
+  'http://localhost:5173,http://127.0.0.1:5173,http://localhost:6173,http://127.0.0.1:6173,tauri://localhost,http://tauri.localhost'
 
 export function parseAllowedOrigins(raw: string): Set<string> {
   // A literal '*' is dropped like the Python side does (it is inert here —

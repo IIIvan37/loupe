@@ -22,8 +22,12 @@ import os
 # belong in the default like `localhost:5173` does. A deployment that SETS
 # `LOUPE_ALLOWED_ORIGINS` overrides this wholesale, so Modal/Supabase must
 # list the Tauri origins in their env too (see docs/j2-supabase-runbook.md).
+# 5173 = Vite dev ; 6173 = the distributed local server (`loupe`, D3) — both
+# are nominal client origins, like the Tauri schemes (dormant shell, kept).
 DEFAULT_ALLOWED_ORIGINS = (
-    "http://localhost:5173,http://127.0.0.1:5173,tauri://localhost,http://tauri.localhost"
+    "http://localhost:5173,http://127.0.0.1:5173"
+    ",http://localhost:6173,http://127.0.0.1:6173"
+    ",tauri://localhost,http://tauri.localhost"
 )
 
 

@@ -1,8 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "loupe-server"
-version = "0.0.0"
-description = "loupe's standalone FastAPI backend (storage + separation/tempo/download)"
+version = "0.1.0"
+description = "loupe — atelier de pratique musicale (serveur local + navigateur)"
 requires-python = ">=3.11"
+# The DISTRIBUTED dependency set (D3): storage + download + static serving.
+# The ML stacks (torch, demucs, beat_this…) stay in requirements.txt for the
+# dev/CI host — their modules are lazy imports whose endpoints the web app
+# never calls in distribution (analyses run on Modal).
+dependencies = [
+    "fastapi==0.139.1",
+    "uvicorn[standard]==0.51.0",
+    "yt-dlp==2026.7.4",
+]
+
+[project.scripts]
+loupe = "app.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+# The built web app, copied here by scripts/build-server-dist.sh right before
+# `uv build` — the wheel is self-contained (see app/web_dist.py resolution).
+artifacts = ["app/web_dist"]
 
 [tool.ruff]
 line-length = 100

@@ -30,7 +30,25 @@ verified manually. **When you add server logic, put the decidable part in a
 torch-free module** — don't grow the ML shells. It's what keeps the fast,
 torch-free CI meaningful.
 
-## Run
+## Install & run (distribution, D3)
+
+The distributable is a **self-contained wheel**: this server, the built web
+app packaged inside (`app/web_dist`), and a `loupe` entry point — light
+dependencies only (fastapi / uvicorn / yt-dlp). The analyses run on Modal;
+the ML endpoints answer "unavailable" and the served app never calls them.
+
+```sh
+bash scripts/build-server-dist.sh                  # web dist (server shell) + wheel
+uv tool install --from server/dist/loupe_server-0.1.0-py3-none-any.whl loupe-server
+loupe                                              # http://localhost:6173, opens the browser
+```
+
+`loupe --port <n>` picks another port, `--no-browser` skips the opener; data
+lives in `~/.loupe` (`LOUPE_DATA_DIR` overrides). The default port **6173**
+sits in the three origin-allowlist defaults (this server, Modal, the Edge
+Function) and in Supabase's auth redirect allowlist.
+
+## Run (dev/CI host, full ML)
 
 ```sh
 python -m venv .venv && source .venv/bin/activate
@@ -52,11 +70,9 @@ is delegated to the upstream package + HTTPS. Routing beat_this through
 `pinned_weights` stays on the table if its loader ever exposes a
 checkpoint-path hook.
 
-Point the web app at it:
-
-```sh
-VITE_SEPARATOR_URL=http://localhost:8000 pnpm --filter @app/web dev
-```
+To serve the web app from this server (server shell, D1): build it with
+`VITE_SHELL=server pnpm --filter @app/web build`, then the server picks the
+dist up automatically (`LOUPE_WEB_DIST` overrides the location).
 
 (Defaults to `http://localhost:8000` when the variable is unset.)
 

@@ -68,6 +68,19 @@ def test_api_routes_win_over_the_static_mount(
     assert res.json()["status"] == "ok"
 
 
+def test_resolution_prefers_env_then_packaged_then_repo(tmp_path: Path) -> None:
+    # The wheel ships the web app as `app/web_dist` (D3): a packaged install
+    # serves ITS OWN dist; the env override wins everywhere; the monorepo
+    # layout is the dev fallback.
+    from app.web_dist import resolve_web_dist
+
+    packaged = _dist(tmp_path)
+    repo = tmp_path / "repo-dist"
+    assert resolve_web_dist("/elsewhere", packaged, repo) == Path("/elsewhere")
+    assert resolve_web_dist(None, packaged, repo) == packaged
+    assert resolve_web_dist(None, tmp_path / "absent", repo) == repo
+
+
 def test_without_a_dist_the_api_still_serves(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, fresh_main
 ) -> None:
