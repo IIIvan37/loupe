@@ -1,4 +1,5 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
@@ -14,7 +15,9 @@ import { describe, expect, it } from 'vitest'
  *
  * Anything that only accumulates is derivable elsewhere and does not belong
  * here: the session list is `ls docs/sessions/`, the history is `git log`,
- * the plans live in their own dated documents.
+ * the plans live in their own dated documents, the durable decisions in
+ * `docs/adr/` (indexed by subject, so bounded by the number of topics rather
+ * than the number of commits).
  *
  * These bounds are deliberately mechanical. Discipline is what already failed.
  */
@@ -49,8 +52,8 @@ describe('docs/STATUS.md stays a snapshot, not a log', () => {
     expect(
       lines.length,
       `\nSTATUS.md has ${lines.length} non-blank lines (max ${STATUS_MAX_LINES}).` +
-        '\nIt describes the PRESENT. Move history to docs/sessions/ and' +
-        '\ncollapse finished roadmap rows.'
+        '\nIt describes the PRESENT. Move history to docs/sessions/, durable' +
+        '\ndecisions to docs/adr/, and collapse finished roadmap rows.'
     ).toBeLessThanOrEqual(STATUS_MAX_LINES)
   })
 
@@ -97,5 +100,235 @@ describe('docs/sessions stays a rolling window', () => {
         /^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$/
       )
     }
+  })
+})
+
+/*
+ * Path truth: the LIVING docs (README, CLAUDE.md, skills, STATUS, the in-tree
+ * registry READMEs) may only name files that exist. The method is described on
+ * several surfaces on purpose — each has a different reader — and prose is
+ * exactly the redundancy no compiler checks: on the template this spec came
+ * from, three surfaces still pointed at pre-move paths after one extraction.
+ * Dated documents (session reports, ADR bodies) are exempt: they describe a
+ * past that was true when written.
+ */
+
+const ROOT = resolve(DOCS, '..')
+
+/** Safe-charset, ≥ 2 segments: no placeholders (<, {), globs (*), specifiers (@, :). */
+const PATH_SHAPED = /^[\w.-]+(?:\/[\w.-]+)+\/?$/
+
+/** First segments that promise "this is a repo path", even without a dot. */
+const KNOWN_ROOTS = new Set([
+  'packages',
+  'docs',
+  'scripts',
+  'server',
+  'supabase',
+  '.claude',
+  '.github'
+])
+
+/**
+ * A path-shaped mention is CHECKED when it commits to being a path: it has a
+ * file extension, a trailing slash, or a known top-level root. Bare two-word
+ * fractions (`try/catch`), branch names (`feat/…`) stay prose.
+ */
+function isCheckablePath(candidate: string): boolean {
+  if (!PATH_SHAPED.test(candidate)) {
+    return false
+  }
+  if (candidate.endsWith('/')) {
+    return true
+  }
+  const segments = candidate.split('/')
+  const last = segments[segments.length - 1] ?? ''
+  return last.includes('.') || KNOWN_ROOTS.has(segments[0] ?? '')
+}
+
+/** Inline-code spans and markdown link targets that look like repo paths. */
+function pathCandidatesOf(markdown: string): readonly string[] {
+  const blanked = markdown.replace(/```[\s\S]*?```/g, ' ')
+  const spans = [...blanked.matchAll(/`([^`\n]+)`/g)].map((m) => m[1] ?? '')
+  const links = [...blanked.matchAll(/\]\(([^)\s]+)\)/g)].map((m) => m[1] ?? '')
+  return [...spans, ...links].filter(isCheckablePath)
+}
+
+/** Ancestor directories of a file list, in posix form (any separator in). */
+function ancestorDirsOf(files: readonly string[]): readonly string[] {
+  return [
+    ...new Set(
+      files.flatMap((file) => {
+        const parts = file.split(/[\\/]/).slice(0, -1)
+        return parts.map((_, i) => parts.slice(0, i + 1).join('/'))
+      })
+    )
+  ]
+}
+
+/** Every repo path (files and directories), relative to the root, in posix form. */
+function repoPaths(): readonly string[] {
+  const skip = new Set([
+    'node_modules',
+    '.git',
+    'reports',
+    'coverage',
+    'dist',
+    'target',
+    '.venv',
+    '__pycache__',
+    '.pytest_cache',
+    '.ruff_cache',
+    '.stryker-tmp',
+    '.temp',
+    '.branches'
+  ])
+  const files: string[] = []
+  const walkDir = (dir: string): void => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name)
+      if (entry.isDirectory()) {
+        if (!skip.has(entry.name)) {
+          walkDir(path)
+        }
+      } else {
+        files.push(relative(ROOT, path).replaceAll('\\', '/'))
+      }
+    }
+  }
+  walkDir(ROOT)
+  return [...new Set([...files, ...ancestorDirsOf(files)])]
+}
+
+/** True when `candidate` exists — relative to the doc, the root, or as a suffix. */
+function resolvesInRepo(
+  candidate: string,
+  docDir: string,
+  paths: readonly string[]
+): boolean {
+  const clean = candidate.replace(/\/$/, '')
+  if (existsSync(resolve(docDir, clean)) || existsSync(resolve(ROOT, clean))) {
+    return true
+  }
+  // The Windows CI leg walks backslash paths; doc mentions use slashes.
+  return paths.some((p) => {
+    const posix = p.replaceAll('\\', '/')
+    return posix === clean || posix.endsWith(`/${clean}`)
+  })
+}
+
+/** The living docs: everything that claims to describe the present. */
+function livingDocs(): readonly string[] {
+  const skillsDir = join(ROOT, '.claude/skills')
+  const skills = readdirSync(skillsDir, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => `.claude/skills/${e.name}/SKILL.md`)
+  const registries = [
+    'packages/core/src/application/README.md',
+    'packages/core/src/domain/README.md'
+  ]
+  return [
+    'README.md',
+    'CLAUDE.md',
+    'CONTRIBUTING.md',
+    'docs/STATUS.md',
+    'docs/ARCHITECTURE.md',
+    'docs/adr/README.md',
+    'server/README.md',
+    ...skills,
+    ...registries
+  ].filter((doc) => existsSync(join(ROOT, doc)))
+}
+
+describe('the path detector itself', () => {
+  it.each([
+    'packages/core/src/index.ts',
+    'core/src/shared/result.ts',
+    'docs/sessions/',
+    'packages/core',
+    '../shared/'
+  ])('checks %j', (candidate) => {
+    expect(isCheckablePath(candidate)).toBe(true)
+  })
+
+  it.each([
+    'try/catch',
+    'feat/emergent-modules',
+    '@app/core/testing',
+    'node:fs',
+    'core/src/<feature>/domain',
+    '*.spec.ts',
+    'https://example.com/page',
+    'red-green-refactor'
+  ])('leaves %j to prose', (candidate) => {
+    expect(isCheckablePath(candidate)).toBe(false)
+  })
+
+  it('reads inline code and link targets, not fenced blocks', () => {
+    const markdown = [
+      'See `packages/core/src/index.ts` and [the ADR](docs/adr/README.md).',
+      '```',
+      'packages/inside/a-fence.ts',
+      '```'
+    ].join('\n')
+    expect(pathCandidatesOf(markdown)).toEqual([
+      'packages/core/src/index.ts',
+      'docs/adr/README.md'
+    ])
+  })
+
+  it('resolves doc-relative, root-relative and suffix mentions', () => {
+    const paths = repoPaths()
+    expect(resolvesInRepo('packages/core/src/index.ts', ROOT, paths)).toBe(true)
+    expect(resolvesInRepo('core/src/index.ts', ROOT, paths)).toBe(true)
+    expect(
+      resolvesInRepo(
+        '../shared/',
+        join(ROOT, 'packages/core/src/domain'),
+        paths
+      )
+    ).toBe(true)
+    expect(resolvesInRepo('no-such/no-file.ts', ROOT, paths)).toBe(false)
+  })
+
+  it('matches suffixes across Windows separators too', () => {
+    // On the Windows CI leg, repoPaths() yields backslash-separated paths;
+    // doc mentions always use forward slashes. Its first run proved the
+    // comparison must bridge the two.
+    expect(
+      resolvesInRepo('core/src/index.ts', ROOT, [
+        'packages\\core\\src\\index.ts'
+      ])
+    ).toBe(true)
+  })
+
+  it('derives ancestor directories across Windows separators too', () => {
+    // Second Windows lesson: directories are derived from the file list by
+    // splitting on the separator — split on '/' alone and the Windows leg
+    // has no directories at all, so every `dir/` mention reads as broken.
+    expect(ancestorDirsOf(['docs\\sessions\\archive\\README.md'])).toEqual([
+      'docs',
+      'docs/sessions',
+      'docs/sessions/archive'
+    ])
+  })
+})
+
+describe('living docs name only paths that exist', () => {
+  const paths = repoPaths()
+
+  it.each(livingDocs())('%s', (doc) => {
+    const markdown = readFileSync(join(ROOT, doc), 'utf8')
+    const docDir = dirname(join(ROOT, doc))
+    const broken = pathCandidatesOf(markdown).filter(
+      (candidate) => !resolvesInRepo(candidate, docDir, paths)
+    )
+    expect(
+      broken,
+      `\n${doc} names paths that do not exist: ${broken.join(', ')}.` +
+        '\nThe doc drifted from the tree — fix the mention (or the tree).' +
+        '\nHypothetical examples must not look like real paths; dated docs' +
+        '\n(sessions, ADR bodies) are exempt by design.'
+    ).toEqual([])
   })
 })
