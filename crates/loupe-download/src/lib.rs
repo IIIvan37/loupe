@@ -234,7 +234,7 @@ pub async fn download_track(
   // so anything lingering here is an orphan from a crash, power loss or a
   // kill whose per-op removal lost a flush/unlink race. Sweep it before we
   // start rather than trust every exit path to clean up after itself.
-  sweep_orphan_downloads(&data_dir.join("downloads"));
+  sweep_stale_downloads(&data_dir.join("downloads"));
   let out_rel = format!("downloads/{}", download_dir_name());
   let out_dir = data_dir.join(&out_rel);
   std::fs::create_dir_all(&out_dir).map_err(|e| e.to_string())?;
@@ -351,13 +351,33 @@ fn collect_result(out_dir: &Path, out_rel: &str) -> Result<DownloadedTrack, Stri
   })
 }
 
-/// Remove every leftover per-download temp dir (best-effort).
-fn sweep_orphan_downloads(downloads_dir: &Path) {
+/// Only *stale* temp dirs are swept: several loupe processes (the dormant
+/// Tauri shell, two `loupe` servers on different ports) may share one data
+/// dir, so an unconditional sweep would delete a concurrent instance's live
+/// download. The margin is far beyond any real extraction time — same policy
+/// as the Python server's D2 sweep (`server/app/temp_sweep.py`).
+const STALE_AFTER: Duration = Duration::from_secs(60 * 60);
+
+/// Remove leftover per-download temp dirs older than the stale threshold
+/// (best-effort). Public so server shells can also sweep once at boot.
+pub fn sweep_stale_downloads(downloads_dir: &Path) {
+  sweep_downloads_older_than(downloads_dir, STALE_AFTER);
+}
+
+fn sweep_downloads_older_than(downloads_dir: &Path, stale_after: Duration) {
   let Ok(entries) = std::fs::read_dir(downloads_dir) else {
     return;
   };
   for entry in entries.flatten() {
-    let _ = std::fs::remove_dir_all(entry.path());
+    let stale = entry
+      .metadata()
+      .and_then(|m| m.modified())
+      .ok()
+      .and_then(|t| t.elapsed().ok())
+      .is_some_and(|age| age >= stale_after);
+    if stale {
+      let _ = std::fs::remove_dir_all(entry.path());
+    }
   }
 }
 
@@ -415,6 +435,24 @@ mod tests {
     assert_eq!(parse_progress_line("PROGRESS 10 0"), None);
     assert_eq!(parse_progress_line("[download] 12% of ~3MiB"), None);
     assert_eq!(parse_progress_line(""), None);
+  }
+
+  #[test]
+  fn sweep_spares_fresh_dirs_and_removes_stale_ones() {
+    let root = tempfile::tempdir().unwrap();
+    let live = root.path().join("dl-live");
+    std::fs::create_dir_all(live.join("nested")).unwrap();
+    // A just-created dir is fresh: spared by the real threshold, removed by a
+    // zero threshold (everything qualifies as stale).
+    sweep_downloads_older_than(root.path(), STALE_AFTER);
+    assert!(live.is_dir());
+    sweep_downloads_older_than(root.path(), Duration::ZERO);
+    assert!(!live.exists());
+  }
+
+  #[test]
+  fn sweep_tolerates_a_missing_downloads_dir() {
+    sweep_downloads_older_than(Path::new("/nonexistent/downloads"), Duration::ZERO);
   }
 
   #[tokio::test]
