@@ -56,7 +56,9 @@ can't see.
   use-case/port in `core`, adapter in `web`; register it in
   [packages/core/src/application/README.md](packages/core/src/application/README.md).
 - **Close every step** with `/session-report` (updates `docs/STATUS.md` + a dated
-  report under `docs/sessions/`). The report ships **inside** the feature's PR.
+  report under `docs/sessions/`). Report **and** STATUS/Suivi ship **inside** the
+  feature's PR — STATUS phrased merge-invariantly ("step N, delivered by PR
+  #NN"), no post-merge doc-only commit.
 - **Confirm the approach before coding a UI slice.** When a slice has a mockup or
   an interaction constraint (zoom model, scroll behaviour, layout), state the
   intended approach in 2–3 lines and check it against the mockup **before** writing

@@ -14,20 +14,21 @@ fenêtre persistée/titre + métadonnées bundle (#249), revue post-clôture
 corrigée (#253 : race d'armement, window-state sur ⌘Q, `destroy` raté).
 Reste dû côté AP : replay bundle utilisateur (croix rouge/⌘Q propre et sale,
 géométrie maximisée après relance, titre natif avec ●).
-Lot TS ([template-sync-plan.md](template-sync-plan.md)) : TS.1–TS.5.7 livrés
-(#250–#252, #254–#261) — configs, fitness functions, ADR, subpath testing,
+Lot TS ([template-sync-plan.md](template-sync-plan.md)) : TS.1–TS.5.8 livrés
+(#250–#252, #254–#262) — configs, fitness functions, ADR, subpath testing,
 modules émergents ([ADR-0005](adr/0005-modules-emergents.md)) : `rhythm`,
-`harmony`, `structure`, `loops`, `audio` (base du DAG) et `separation`
-(première tranche application : use-cases + 5 ports en module, arête
-`separation → audio`). Récoltes labo remontées au template (starter#27, #29) :
-`pnpm test:mutation:diff` (mutation scopée aux modules touchés, 6 min vs 24 ;
-le run complet CI post-merge fait foi) et ratchet racine docs (≤ 8 actifs).
-Nursery à dessein : `detect-chords`, `bass-line`.
-**Prochain : TS.5.8 — extraction `project`** (project, parse-project,
-use-cases projects + ports `ProjectStore`/`ProjectAudioStore` + kit testing) ;
-`timecode` attend un second consommateur ; TS.6 resync link-checker docs ;
-puis Lot AQ ; checkpoint avant chaque slice UI. Lot store Jotai cadré
-(pilote separation+mixer, playhead en expérience finale) — après TS.5.
+`harmony`, `structure`, `loops`, `audio`, `separation`, `markers` et `project`
+(sommet du DAG — use-cases + ports `ProjectStore`/`ProjectAudioStore` +
+premier kit `<feature>/testing` en module ; arêtes `project → loops, markers,
+rhythm, separation` ; prérequis Mikado : mixer → separation,
+`fineTuneOrDefault` → fine-tune). STATUS/Suivi désormais merge-invariants
+**dans la PR** (convention template, plus de doc-only post-merge). Nursery à
+dessein : `detect-chords`, `bass-line` ; le reste du domain nursery est
+~tout transport (candidat noté au rapport ts.5.8).
+**Prochain : TS.6 — resync link-checker docs** (« living docs name only paths
+that exist ») ; `timecode` attend un second consommateur ; puis Lot AQ ;
+checkpoint avant chaque slice UI. Lot store Jotai cadré (pilote
+separation+mixer, playhead en expérience finale).
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
 cours) · [template-sync-plan.md](template-sync-plan.md) (resync template,

@@ -57,7 +57,7 @@ past ~5 active reports, `git mv` the oldest into `docs/sessions/archive/`
 (create it on first use). Nothing is deleted — the working set just stays
 scannable.
 
-## 4. Update the canonical STATUS — on `main`, after the merge
+## 4. Rewrite the canonical STATUS — inside the PR, merge-invariantly
 
 `docs/STATUS.md` is a **snapshot of the present, not a log**: only the current
 step detailed, one "Historique" line per past step (detail lives in
@@ -65,17 +65,19 @@ step detailed, one "Historique" line per past step (detail lives in
 
 - **Where we are** — phase, step, packages. Replace the old text.
 - **Next action** — the SINGLE next thing. Replace it.
-- **Write it merge-invariantly.** Name the step and its PR ("step N, delivered
-  by PR #NN" is true before and after the merge), never the feature branch or
-  the PR's lifecycle state. Only the dated report keeps pre-merge phrasing (it
-  describes a past).
+- **Write it merge-invariantly.** STATUS (and the roadmap's Suivi table) ship
+  inside the PR but are read on `main` after the merge — any fact that flips
+  at merge time is born stale. Name the step and its PR ("step N, delivered by
+  PR #NN" is true before and after), never the feature branch or the PR's
+  lifecycle state ("PR opening", "merge on green CI"); make the next action
+  the one that follows the merge. Only the dated report keeps pre-merge
+  phrasing (it describes a past).
 - **Open questions** — only what is genuinely undecided; delete each one when
   resolved.
 
-**Loupe convention**: STATUS (and the roadmap Suivi) stay OUT of feature
-branches — they are a conflict magnet across parallel slices. Update them on
-`main` via a doc-only commit **after** the merge. Only the dated report ships
-inside the PR.
+If two parallel slices both touch STATUS, the conflict is trivial by
+construction (a snapshot, one current step per zone) — resolve it by keeping
+both facts, never by moving STATUS back out of the PRs.
 
 ## 5. Keep memory in sync (optional, if the plan shifted)
 
@@ -83,19 +85,21 @@ If a durable cross-session decision changed (an invariant, a resolved open
 question, a scope change), capture it. Don't duplicate the whole report — just the
 durable decision.
 
-## 6. Commit the report on the feature branch — BEFORE the PR
+## 6. Commit the report + STATUS on the feature branch — BEFORE the PR
 
-The dated report describes the work the PR contains, so it ships **inside** the
-PR — never as a separate post-merge commit.
+The dated report and the STATUS/Suivi update describe the work the PR
+contains, so they ship **inside** the PR — never as a separate post-merge
+commit on `main`.
 
-- Commit it on the **feature branch**, before `gh pr create`. Order per feature:
-  feature commits → this report commit → `pnpm gate` → push → open PR → merge.
+- Commit them on the **feature branch**, before `gh pr create`. Order per
+  feature: feature commits → this report commit → `pnpm gate` → push → open
+  PR → merge.
 - Phrase the **dated report** for the **pre-merge** state ("PR #N opened",
   branch still current) — not as if it were already merged. STATUS is the
-  opposite (see step 4): merge-invariant, updated on `main` after the merge.
+  opposite (see step 4): merge-invariant, because it lives on `main`.
 - The doc-only-direct-to-`main` exception (see the `block-commit-on-main` hook)
-  covers the post-merge STATUS update and any **standalone** report not tied to
-  a code PR; a report that accompanies code goes in that code's PR.
+  is only for a **standalone** report not tied to a code PR; a report that
+  accompanies code goes in that code's PR.
 
 ## Output
 

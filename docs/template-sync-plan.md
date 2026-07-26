@@ -129,5 +129,5 @@ intercaler avec le travail produit (une extraction quand on touche la zone).
 | TS.5.5 | Extraction `loops`, depRule `loops → rhythm` (aucun port n'embarque) | ✅ #259 |
 | TS.5.6 | Extraction `audio` (waveform, downmix, track, wav-encoder/decoder, spectrum) — prérequis Mikado de separation, aucune depRule | ✅ #260 |
 | TS.5.7 | Extraction `separation` (6 domain + use-cases + 5 ports en module), depRule `separation → audio` ; récolte `test:mutation:diff` (→ starter#27) | ✅ #261 |
-| TS.5.8 | Extraction `project` (project, parse-project, use-cases projects + ports ProjectStore/ProjectAudioStore + kit testing) | ⬜ |
+| TS.5.8 | Extraction `project` (domain + use-cases + ports ProjectStore/ProjectAudioStore + premier kit `<feature>/testing`), 4 arêtes `project → loops, markers, rhythm, separation` ; prérequis Mikado : mixer → separation, module `markers`, fineTuneOrDefault → fine-tune | ✅ #262 |
 | TS.6 | Resync template → Loupe : link-checker de `docs.spec.ts` (« living docs name only paths that exist ») | ⬜ |
