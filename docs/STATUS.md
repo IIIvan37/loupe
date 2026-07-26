@@ -14,31 +14,28 @@ fenêtre persistée/titre + métadonnées bundle (#249), revue post-clôture
 corrigée (#253 : race d'armement, window-state sur ⌘Q, `destroy` raté).
 Reste dû côté AP : replay bundle utilisateur (croix rouge/⌘Q propre et sale,
 géométrie maximisée après relance, titre natif avec ●).
-Lot TS ([template-sync-plan.md](template-sync-plan.md)) : TS.1–TS.5.8 livrés
-(#250–#252, #254–#262) — configs, fitness functions, ADR, subpath testing,
-modules émergents ([ADR-0005](adr/0005-modules-emergents.md)) : `rhythm`,
-`harmony`, `structure`, `loops`, `audio`, `separation`, `markers` et `project`
-(sommet du DAG — use-cases + ports `ProjectStore`/`ProjectAudioStore` +
-premier kit `<feature>/testing` en module ; arêtes `project → loops, markers,
-rhythm, separation` ; prérequis Mikado : mixer → separation,
-`fineTuneOrDefault` → fine-tune). STATUS/Suivi désormais merge-invariants
-**dans la PR** (convention template, plus de doc-only post-merge). Nursery à
-dessein : `detect-chords`, `bass-line` ; le reste du domain nursery est
-~tout transport (candidat noté au rapport ts.5.8).
-**Prochain : TS.6 — resync link-checker docs** (« living docs name only paths
-that exist ») ; `timecode` attend un second consommateur ; puis Lot AQ ;
-checkpoint avant chaque slice UI. Lot store Jotai cadré (pilote
-separation+mixer, playhead en expérience finale).
+**Lot TS clos** ([plan archivé](archive/template-sync-plan.md)) : TS.1–TS.6
+livrés (#250–#263) — configs, fitness functions, ADR, subpath testing, modules
+émergents ([ADR-0005](adr/0005-modules-emergents.md)) : `rhythm`, `harmony`,
+`structure`, `loops`, `audio`, `separation`, `markers`, `project` ; TS.6 =
+link-checker des living docs dans `docs/docs.spec.ts` (« living docs name only
+paths that exist », étape livrée par PR #263). STATUS/Suivi merge-invariants
+**dans la PR** (convention template). Nursery à dessein : `detect-chords`,
+`bass-line` ; le reste ≈ transport (candidat noté au rapport ts5-8) ;
+`timecode` attend un second consommateur.
+**Prochain : Lot AQ — vocabulaire et copy** (AQ.1 lexique « Piste », AQ.2
+anglais brut + ton, roadmap v7) ; checkpoint avant chaque slice UI. Lot store
+Jotai cadré (pilote separation+mixer, playhead en expérience finale).
 
 **Plans actifs** : [roadmap v7](roadmap-excellence-7.md) (UX exceptionnelle, en
-cours) · [template-sync-plan.md](template-sync-plan.md) (resync template,
-lots TS.1–TS.5). **Garde-fous beta restants** (cf.
+cours). **Garde-fous beta restants** (cf.
 [beta-checklist.md](beta-checklist.md)) : plafond de dépense Modal (mesuré
 ~3,67 $/mois), SMTP custom **déjà câblé** (Resend/`iiivan.org`), re-seed des
 codes legacy, PKCE en bundle à rejouer.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
+- 2026-07-25 → 07-26 · **Resync template (Lot TS)** : configs/CI, fitness functions, pratique ADR, subpath testing, 8 modules émergents (rhythm → project), link-checker des living docs.
 - 2026-07-19 → 07-24 · **Roadmap excellence 7** (UX exceptionnelle) : Lots AJ (offload-only), AK (funnel), AL (boucles/vitesse), AM (mixer), AN (grammaire/gravure/romain), AO (waveform/vie/signature), AP (nativité desktop + revue) + fix auth desktop PKCE.
 - 2026-07-18 → 07-19 · **Phase 2 desktop + solde v6** : sécurité desktop (PKCE, CSP, yt-dlp épinglé), export natif, menus natifs, SMTP beta, mutants form-encoder.
 - 2026-07-16 → 07-18 · **Phase 2 client léger Tauri/Modal** : spike GO, deep-link auth, stores fs, yt-dlp sidecar, retrait du serveur du chemin nominal ; M1.1–M1.4 (tempo/accords/séparation sur Modal).
@@ -62,7 +59,7 @@ codes legacy, PKCE en bundle à rejouer.
 
 ## Plans
 
-- **En cours** : [roadmap-excellence-7.md](roadmap-excellence-7.md) (Lots AJ–AQ) · [template-sync-plan.md](template-sync-plan.md) (TS.1–TS.5).
+- **En cours** : [roadmap-excellence-7.md](roadmap-excellence-7.md) (Lots AJ–AQ).
 - **Complets** : dans [docs/archive/](archive/) (plans clos + vision produit du kickoff).
 
 ## Veille / différé
