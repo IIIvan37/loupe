@@ -59,6 +59,7 @@ from .projects import collect_garbage
 from .projects import router as projects_router
 from .temp_sweep import sweep_stale_downloads
 from .warm import Loader, start_model_warmup
+from .web_dist import resolve_web_dist
 
 _DEFAULT_HOSTS = "localhost,127.0.0.1"
 
@@ -195,7 +196,10 @@ async def health() -> dict:
 # mount comes last so every API route above wins; without a dist (dev, CI)
 # nothing is mounted and the API serves unchanged. Env-overridable for the
 # packaged layouts of D3/D4.
-_dist_env = os.environ.get("LOUPE_WEB_DIST")
-_web_dist = Path(_dist_env) if _dist_env else _REPO_WEB_DIST
+_web_dist = resolve_web_dist(
+    os.environ.get("LOUPE_WEB_DIST"),
+    packaged=Path(__file__).resolve().parent / "web_dist",
+    repo=_REPO_WEB_DIST,
+)
 if (_web_dist / "index.html").is_file():
     app.mount("/", StaticFiles(directory=_web_dist, html=True), name="web")

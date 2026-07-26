@@ -115,7 +115,7 @@ D6 peut s'intercaler dès D3 (la route 1 tourne partout où uv tourne).
 | --- | --- | --- |
 | D1 | Spike bout-en-bout route 1 (adaptateurs HTTP ressuscités, verdict **GO**) | ✅ #275 |
 | D2 | Durcissement localhost — sweep orphelins ; décisions : pas de token, `~/.loupe` acté, port/sortie → D3 | ✅ #276 |
-| D3 | Packaging `uvx loupe` + port définitif + allowlists — beta technique | ⬜ |
+| D3 | Entry point `loupe` + wheel autonome (1,4 Mo, deps légères) + port 6173 déployé aux 4 allowlists — beta technique possible | ✅ #277 |
 | D4 | Binaire Rust (crate yt-dlp partagé, axum + embed, stores) | ⬜ |
 | D5 | Pipeline GitHub Releases + brew tap + notification de version | ⬜ |
 | D6 | Validation Linux + Windows | ⬜ |

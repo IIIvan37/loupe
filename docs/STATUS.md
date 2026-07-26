@@ -20,14 +20,15 @@ AJ→AQ tous livrés ; dernier : AQ vocabulaire/copy + garde-fou
 ([plan archivé](archive/template-sync-plan.md), #250–#263, récoltes
 starter#27/#33). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
 ≈ transport ; `timecode` attend un second consommateur.
-**D1 clos, verdict GO** (PR #275) : dist servie par le serveur, adaptateurs
-HTTP ressuscités, parcours réel complet (import YouTube → projets → PKCE →
-tempo + séparation Modal 6 pistes → save). **D2 clos** (PR #276) : sweep des
-téléchargements orphelins ; décisions — pas de token (gardes suffisantes),
-stockage `~/.loupe` acté, port/sortie déplacés en D3. **Prochain : D3 —
-packaging route 1** (entry point `loupe`, port définitif + 3 allowlists, doc
-`uvx` — première beta technique possible). Lot store Jotai en attente ;
-checkpoint avant chaque slice UI.
+**D1–D3 clos** (PRs #275, #276, #277) : parcours réel complet validé (import
+YouTube → projets → PKCE → tempo + séparation Modal), durcissement réduit à
+l'audit (gardes déjà en place, sweep orphelins ajouté), et **packaging livré**
+— entry point `loupe`, wheel autonome 1,4 Mo (deps légères, dist embarquée),
+port **6173** déployé et curl-vérifié sur les 4 allowlists (origins locaux,
+Modal, Edge, auth redirect). **La beta technique est possible** (build local +
+envoi de la wheel). **Prochain : D4.a — crate yt-dlp partagé** (extraction
+depuis src-tauri) vers le binaire Rust ; D5 automatisera la release. Lot store
+Jotai en attente ; checkpoint avant chaque slice UI.
 
 **Plans actifs** : [distribution-plan.md](distribution-plan.md) (D1–D6, en
 cours). **Garde-fous beta restants** (cf.

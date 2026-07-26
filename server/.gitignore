@@ -10,3 +10,8 @@ htmlcov/
 
 server/.analyze-jwt-secret.local
 coverage.xml
+
+# Distribution build artifacts (scripts/build-server-dist.sh) — the web dist
+# copied into the package, and the wheel it produces.
+app/web_dist/
+dist/
