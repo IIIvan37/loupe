@@ -47,22 +47,32 @@ seule implémentation yt-dlp partagée avec un éventuel retour Tauri).
   fermeture/relance. **Verdict GO/NO-GO sur l'expérience**, consigné au
   session report.
 
-### D2 — Durcissement localhost
+### D2 — Durcissement localhost (réduit à l'audit : l'essentiel existait)
 
-- Garde Origin/Host stricte + token de session (query au démarrage → header)
-  sur les routes mutantes ; refuser les requêtes cross-site.
-- Port occupé : message clair (+ retry port suivant ou `--port`).
-- Sémantique de sortie : Ctrl-C propre, sweep temp yt-dlp au démarrage
-  (parité T2.3).
-- Stockage : chemin standard par OS (XDG / Application Support / AppData),
-  parité manifeste avec les stores FS Tauri (un projet créé par l'un se
-  rouvre dans l'autre — même format `projects/{id}.json` + `audio/{sha256}`).
+- Sweep au boot des temp `loupe-download-*` orphelins d'un kill dur (parité
+  T2.3 Rust), marge d'âge pour épargner le download vif d'une instance
+  concurrente.
+- **Décision — pas de token de session** : les trois gardes de `netguard.py`
+  (loopback socket + TrustedHost + OriginGuard, testées jusqu'au niveau
+  route) ferment la surface navigateur — un POST cross-origin porte toujours
+  un Origin, refusé hors allowlist ; un process local same-user lirait le
+  token de toute façon. Résultat négatif documenté.
+- **Décision — le stockage reste `~/.loupe`** (env `LOUPE_DATA_DIR`) :
+  idiomatique pour un outil CLI, données existantes, zéro migration. La
+  parité de format avec les stores FS Tauri est prouvée (D1 : projet du
+  18/07 rouvert).
+- Port occupé + sémantique de sortie → déplacés en **D3** : ils appartiennent
+  à l'entry point `loupe`, qui naît là-bas.
 
 ### D3 — Packaging route 1 (beta amis techniques)
 
-- Entry point `loupe` (pyproject) : démarre le serveur, ouvre le navigateur.
+- Entry point `loupe` (pyproject) : démarre le serveur, ouvre le navigateur ;
+  port occupé → message clair (+ `--port`), Ctrl-C propre.
 - Distribution `uvx` (PyPI ou `git+https`) ; doc d'installation testeur
   (3 lignes) ; port définitif tranché + ajouté aux 3 allowlists.
+- Note UX magic link (gotcha D1, requalifié artefact de test) : risque limité
+  au navigateur non-défaut / clic mobile — message ou OTP si le terrain le
+  confirme.
 - **Première beta possible ici** — testeurs techniques, 3 OS.
 
 ### D4 — Route 2 : binaire Rust (l'artefact cible)
@@ -104,7 +114,7 @@ D6 peut s'intercaler dès D3 (la route 1 tourne partout où uv tourne).
 | Lot | Contenu | État |
 | --- | --- | --- |
 | D1 | Spike bout-en-bout route 1 (adaptateurs HTTP ressuscités, verdict **GO**) | ✅ #275 |
-| D2 | Durcissement localhost (Origin/token, port, sortie, stockage standard) | ⬜ |
+| D2 | Durcissement localhost — sweep orphelins ; décisions : pas de token, `~/.loupe` acté, port/sortie → D3 | ✅ #276 |
 | D3 | Packaging `uvx loupe` + port définitif + allowlists — beta technique | ⬜ |
 | D4 | Binaire Rust (crate yt-dlp partagé, axum + embed, stores) | ⬜ |
 | D5 | Pipeline GitHub Releases + brew tap + notification de version | ⬜ |
