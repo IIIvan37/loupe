@@ -400,3 +400,191 @@ async fn download_refuses_a_body_that_is_not_json() {
     .unwrap();
   assert_eq!(response.status(), StatusCode::BAD_REQUEST);
 }
+
+fn put_project(id: &str, manifest: &str) -> Request<Body> {
+  local_request(
+    "PUT",
+    &format!("/projects/{id}"),
+    Body::from(manifest.to_owned()),
+  )
+}
+
+#[tokio::test]
+async fn project_crud_roundtrip_with_idempotent_delete() {
+  let dir = tempfile::tempdir().unwrap();
+  let config = test_config(dir.path());
+  let manifest = serde_json::json!({"id": "p1", "name": "Song"});
+
+  let response = app(config.clone())
+    .oneshot(put_project("p1", &manifest.to_string()))
+    .await
+    .unwrap();
+  assert_eq!(response.status(), StatusCode::NO_CONTENT);
+
+  let response = app(config.clone())
+    .oneshot(local_request("GET", "/projects/p1", Body::empty()))
+    .await
+    .unwrap();
+  assert_eq!(response.status(), StatusCode::OK);
+  assert_eq!(response.headers()["content-type"], "application/json");
+  let value: serde_json::Value = serde_json::from_slice(&body_bytes(response).await).unwrap();
+  assert_eq!(value, manifest);
+
+  let response = app(config.clone())
+    .oneshot(local_request("GET", "/projects", Body::empty()))
+    .await
+    .unwrap();
+  assert_eq!(response.status(), StatusCode::OK);
+  let listed: serde_json::Value = serde_json::from_slice(&body_bytes(response).await).unwrap();
+  assert_eq!(listed, serde_json::json!([manifest]));
+
+  let response = app(config.clone())
+    .oneshot(local_request("DELETE", "/projects/p1", Body::empty()))
+    .await
+    .unwrap();
+  assert_eq!(response.status(), StatusCode::NO_CONTENT);
+  let response = app(config.clone())
+    .oneshot(local_request("GET", "/projects/p1", Body::empty()))
+    .await
+    .unwrap();
+  assert_eq!(response.status(), StatusCode::NOT_FOUND);
+  // Delete is idempotent — deleting a gone project still succeeds.
+  let response = app(config)
+    .oneshot(local_request("DELETE", "/projects/p1", Body::empty()))
+    .await
+    .unwrap();
+  assert_eq!(response.status(), StatusCode::NO_CONTENT);
+}
+
+#[tokio::test]
+async fn put_rejects_a_manifest_that_is_not_json() {
+  let dir = tempfile::tempdir().unwrap();
+  let response = app(test_config(dir.path()))
+    .oneshot(put_project("p1", "{ not json"))
+    .await
+    .unwrap();
+  assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
+async fn put_refuses_a_manifest_over_the_cap() {
+  let dir = tempfile::tempdir().unwrap();
+  let config = test_config(dir.path());
+  let oversized = format!(
+    r#"{{"pad":"{}"}}"#,
+    "x".repeat(config.max_manifest_bytes as usize)
+  );
+  let response = app(config)
+    .oneshot(put_project("p1", &oversized))
+    .await
+    .unwrap();
+  assert_eq!(response.status(), StatusCode::PAYLOAD_TOO_LARGE);
+}
+
+#[tokio::test]
+async fn malformed_project_id_is_404() {
+  let dir = tempfile::tempdir().unwrap();
+  let config = test_config(dir.path());
+  for method in ["GET", "PUT", "DELETE"] {
+    let body = if method == "PUT" {
+      Body::from("{}")
+    } else {
+      Body::empty()
+    };
+    let response = app(config.clone())
+      .oneshot(local_request(method, "/projects/bad*id", body))
+      .await
+      .unwrap();
+    assert_eq!(response.status(), StatusCode::NOT_FOUND, "{method}");
+  }
+}
+
+#[tokio::test]
+async fn list_is_empty_then_skips_a_corrupt_manifest() {
+  let dir = tempfile::tempdir().unwrap();
+  let config = test_config(dir.path());
+
+  let response = app(config.clone())
+    .oneshot(local_request("GET", "/projects", Body::empty()))
+    .await
+    .unwrap();
+  let listed: serde_json::Value = serde_json::from_slice(&body_bytes(response).await).unwrap();
+  assert_eq!(listed, serde_json::json!([]));
+
+  app(config.clone())
+    .oneshot(put_project("good", r#"{"id":"good"}"#))
+    .await
+    .unwrap();
+  std::fs::write(dir.path().join("projects/broken.json"), "{ nope").unwrap();
+  let response = app(config)
+    .oneshot(local_request("GET", "/projects", Body::empty()))
+    .await
+    .unwrap();
+  let listed: serde_json::Value = serde_json::from_slice(&body_bytes(response).await).unwrap();
+  assert_eq!(listed, serde_json::json!([{"id": "good"}]));
+}
+
+#[tokio::test]
+async fn gc_sweeps_orphaned_blobs_and_reports_a_summary() {
+  let dir = tempfile::tempdir().unwrap();
+  let config = test_config(dir.path());
+
+  // Park two blobs, then save a manifest referencing only the first.
+  let response = app(config.clone())
+    .oneshot(local_request("POST", "/audio", Body::from("kept")))
+    .await
+    .unwrap();
+  let value: serde_json::Value = serde_json::from_slice(&body_bytes(response).await).unwrap();
+  let kept_ref = value["ref"].as_str().unwrap().to_owned();
+  app(config.clone())
+    .oneshot(local_request("POST", "/audio", Body::from("orphan bytes")))
+    .await
+    .unwrap();
+  app(config.clone())
+    .oneshot(put_project(
+      "p1",
+      &serde_json::json!({"source": {"audioRef": kept_ref}}).to_string(),
+    ))
+    .await
+    .unwrap();
+
+  let response = app(config.clone())
+    .oneshot(local_request("POST", "/gc", Body::empty()))
+    .await
+    .unwrap();
+  assert_eq!(response.status(), StatusCode::OK);
+  let summary: serde_json::Value = serde_json::from_slice(&body_bytes(response).await).unwrap();
+  assert_eq!(
+    summary,
+    serde_json::json!({"deleted": 1, "reclaimedBytes": 12, "kept": 1})
+  );
+
+  // The referenced blob survived; the orphan is gone.
+  let response = app(config)
+    .oneshot(local_request(
+      "GET",
+      &format!("/audio/{kept_ref}"),
+      Body::empty(),
+    ))
+    .await
+    .unwrap();
+  assert_eq!(body_bytes(response).await, b"kept");
+}
+
+#[tokio::test]
+async fn boot_gc_sweeps_orphans_with_the_same_summary_shape() {
+  // The binary's lifespan-parity sweep: same stores, same summary.
+  let dir = tempfile::tempdir().unwrap();
+  let config = test_config(dir.path());
+  app(config.clone())
+    .oneshot(local_request("POST", "/audio", Body::from("orphan bytes")))
+    .await
+    .unwrap();
+
+  let summary = loupe_server::boot_gc(&config);
+
+  assert_eq!(
+    summary,
+    serde_json::json!({"deleted": 1, "reclaimedBytes": 12, "kept": 0})
+  );
+}

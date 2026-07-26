@@ -1,9 +1,11 @@
 //! Content-addressed audio blob store — the Rust side of the `/audio`
 //! contract in `server/app/projects.py` (same directory, same format: blobs
 //! under `<data_dir>/audio/<sha256>`), so switching route 1 → route 2 needs
-//! zero migration. Manifest routes (`/projects`, `/gc`) follow in D4.c.
+//! zero migration.
 
+use crate::fs_atomic::write_atomic;
 use sha2::{Digest, Sha256};
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 pub const QUOTA_MESSAGE: &str =
@@ -46,23 +48,54 @@ impl AudioStore {
     is_valid_ref(reference).then(|| self.audio_dir.join(reference))
   }
 
-  /// Total bytes held by our content-addressed blobs (ignores strays/.tmp).
-  fn store_size(&self) -> u64 {
+  /// The store's own content-addressed blobs with their sizes — the single
+  /// definition of "a blob we own": leaves .tmp files and anything else not
+  /// named with a bare sha256 untouched.
+  fn blobs(&self) -> Vec<(PathBuf, u64)> {
     let Ok(entries) = std::fs::read_dir(&self.audio_dir) else {
-      return 0;
+      return Vec::new();
     };
     entries
       .flatten()
       .filter(|entry| entry.file_name().to_str().is_some_and(is_valid_ref))
-      .filter_map(|entry| entry.metadata().ok())
-      .filter(|metadata| metadata.is_file())
-      .map(|metadata| metadata.len())
-      .sum()
+      .filter_map(|entry| {
+        let metadata = entry
+          .metadata()
+          .ok()
+          .filter(|metadata| metadata.is_file())?;
+        Some((entry.path(), metadata.len()))
+      })
+      .collect()
+  }
+
+  /// Total bytes held by our content-addressed blobs (ignores strays/.tmp).
+  fn store_size(&self) -> u64 {
+    self.blobs().iter().map(|(_, size)| size).sum()
+  }
+
+  /// Delete every owned blob whose ref is not in `live`, returning
+  /// `(deleted, reclaimed_bytes)`. Only a delete that actually succeeded is
+  /// counted — a blob the filesystem refuses to remove stays on disk and
+  /// must not be reported as reclaimed.
+  pub fn sweep_orphans(&self, live: &HashSet<String>) -> (u64, u64) {
+    let mut deleted = 0;
+    let mut reclaimed = 0;
+    for (path, size) in self.blobs() {
+      let name = path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or_default();
+      if !live.contains(name) && std::fs::remove_file(&path).is_ok() {
+        deleted += 1;
+        reclaimed += size;
+      }
+    }
+    (deleted, reclaimed)
   }
 
   /// Park bytes in the content-addressed store, returning their sha256 ref.
-  /// Idempotent: identical bytes re-point at the one blob. Written to a .tmp
-  /// then renamed, so a half-written blob is never exposed under its ref.
+  /// Idempotent: identical bytes re-point at the one blob. Written atomically,
+  /// so a half-written blob is never exposed under its ref.
   pub fn store(&self, data: &[u8]) -> Result<String, StoreError> {
     let reference = hex::encode(Sha256::digest(data));
     let path = self.audio_dir.join(&reference);
@@ -70,11 +103,7 @@ impl AudioStore {
       if self.store_size() + data.len() as u64 > self.max_store_bytes {
         return Err(StoreError::QuotaExceeded);
       }
-      let io = |e: std::io::Error| StoreError::Io(e.to_string());
-      std::fs::create_dir_all(&self.audio_dir).map_err(io)?;
-      let tmp = path.with_extension("tmp");
-      std::fs::write(&tmp, data).map_err(io)?;
-      std::fs::rename(&tmp, &path).map_err(io)?;
+      write_atomic(&self.audio_dir, &path, data).map_err(|e| StoreError::Io(e.to_string()))?;
     }
     Ok(reference)
   }
@@ -107,7 +136,13 @@ mod tests {
     let blob = store.blob_path(&reference).unwrap();
     assert_eq!(std::fs::read(&blob).unwrap(), b"abc");
     assert_eq!(store.store(b"abc").unwrap(), reference);
-    assert!(!blob.with_extension("tmp").exists());
+    let leftovers: Vec<_> = std::fs::read_dir(dir.path().join("audio"))
+      .unwrap()
+      .flatten()
+      .map(|entry| entry.path())
+      .filter(|path| path.extension().is_some_and(|ext| ext == "tmp"))
+      .collect();
+    assert_eq!(leftovers, Vec::<PathBuf>::new());
   }
 
   #[test]

@@ -1,8 +1,8 @@
 //! Local server for loupe, route 2 (distribution D4.b): one static binary
 //! that serves the embedded web app and the localhost API around it. The
 //! calculation stays on Modal — this server only serves the UI, downloads
-//! tracks (via the shared `loupe-download` crate) and stores blobs; project
-//! manifests follow in D4.c.
+//! tracks (via the shared `loupe-download` crate) and stores blobs and
+//! project manifests (D4.c).
 //!
 //! The trust model is `server/app/main.py`'s, guard for guard: CORS <
 //! OriginGuard < TrustedHost < LoopbackOnly (innermost first), so a request
@@ -11,7 +11,9 @@
 pub mod audio_store;
 pub mod config;
 pub mod download;
+mod fs_atomic;
 pub mod netguard;
+pub mod project_store;
 pub mod static_web;
 
 use audio_store::{AudioStore, StoreError, QUOTA_MESSAGE};
@@ -23,6 +25,7 @@ use axum::routing::{get, post};
 use axum::Router;
 use config::Config;
 use download::DownloadEngine;
+use project_store::{ProjectError, ProjectStore};
 use std::sync::Arc;
 use tokio::sync::Semaphore;
 use tokio_util::io::ReaderStream;
@@ -31,12 +34,14 @@ use tower_http::cors::{Any, CorsLayer};
 pub struct AppState {
   pub config: Config,
   pub store: AudioStore,
+  pub projects: ProjectStore,
   pub engine: Arc<dyn DownloadEngine>,
   pub download_slots: Semaphore,
 }
 
 pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
   let store = AudioStore::new(&config.data_dir, config.max_audio_store_bytes);
+  let projects = ProjectStore::new(&config.data_dir);
   let guard_config = Arc::new(config.clone());
   let cors = CorsLayer::new()
     .allow_origin(
@@ -50,6 +55,7 @@ pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
     .allow_headers(Any);
   let state = Arc::new(AppState {
     store,
+    projects,
     engine,
     download_slots: Semaphore::new(config.download_slots),
     config,
@@ -64,6 +70,17 @@ pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
       )),
     )
     .route("/audio/{ref}", get(get_audio))
+    .route("/projects", get(list_projects))
+    .route(
+      "/projects/{id}",
+      get(get_project)
+        .put(save_project)
+        .delete(delete_project)
+        .layer(DefaultBodyLimit::max(
+          state.config.max_manifest_bytes as usize,
+        )),
+    )
+    .route("/gc", post(run_gc))
     .route(
       "/download",
       post(download::download).layer(DefaultBodyLimit::max(
@@ -92,18 +109,18 @@ async fn health() -> Json<serde_json::Value> {
   Json(serde_json::json!({"status": "ok", "model": null, "device": null}))
 }
 
-async fn upload_audio(State(state): State<Arc<AppState>>, body: axum::body::Bytes) -> Response {
+async fn upload_audio(
+  State(state): State<Arc<AppState>>,
+  body: axum::body::Bytes,
+) -> Result<Response, Response> {
   let store = state.store.clone();
-  match tokio::task::spawn_blocking(move || store.store(&body)).await {
-    Ok(Ok(reference)) => Json(serde_json::json!({"ref": reference})).into_response(),
-    Ok(Err(StoreError::QuotaExceeded)) => {
+  Ok(match blocking(move || store.store(&body)).await? {
+    Ok(reference) => Json(serde_json::json!({"ref": reference})).into_response(),
+    Err(StoreError::QuotaExceeded) => {
       (StatusCode::INSUFFICIENT_STORAGE, QUOTA_MESSAGE).into_response()
     }
-    Ok(Err(StoreError::Io(message))) => {
-      (StatusCode::INTERNAL_SERVER_ERROR, message).into_response()
-    }
-    Err(join_error) => (StatusCode::INTERNAL_SERVER_ERROR, join_error.to_string()).into_response(),
-  }
+    Err(StoreError::Io(message)) => (StatusCode::INTERNAL_SERVER_ERROR, message).into_response(),
+  })
 }
 
 async fn get_audio(State(state): State<Arc<AppState>>, Path(reference): Path<String>) -> Response {
@@ -128,4 +145,85 @@ async fn get_audio(State(state): State<Arc<AppState>>, Path(reference): Path<Str
     Body::from_stream(ReaderStream::new(file)),
   )
     .into_response()
+}
+
+/// Run a blocking store closure off the async runtime, 500 on a lost worker.
+async fn blocking<T: Send + 'static>(
+  task: impl FnOnce() -> T + Send + 'static,
+) -> Result<T, Response> {
+  tokio::task::spawn_blocking(task)
+    .await
+    .map_err(|join_error| {
+      (StatusCode::INTERNAL_SERVER_ERROR, join_error.to_string()).into_response()
+    })
+}
+
+/// The one place a `ProjectError` becomes an HTTP status (Python parity:
+/// 404 "unknown project", 400 "manifest is not JSON", 500 otherwise).
+fn project_error(error: ProjectError) -> Response {
+  match error {
+    ProjectError::UnknownProject => (StatusCode::NOT_FOUND, "unknown project").into_response(),
+    ProjectError::NotJson => (StatusCode::BAD_REQUEST, "manifest is not JSON").into_response(),
+    ProjectError::Io(message) => (StatusCode::INTERNAL_SERVER_ERROR, message).into_response(),
+  }
+}
+
+async fn list_projects(State(state): State<Arc<AppState>>) -> Result<Response, Response> {
+  let store = state.projects.clone();
+  let manifests = blocking(move || store.list()).await?;
+  Ok(Json(manifests).into_response())
+}
+
+async fn get_project(
+  State(state): State<Arc<AppState>>,
+  Path(id): Path<String>,
+) -> Result<Response, Response> {
+  let store = state.projects.clone();
+  let manifest = blocking(move || store.load(&id))
+    .await?
+    .map_err(project_error)?;
+  // The manifest is persisted verbatim, so it is served verbatim too.
+  Ok(([(header::CONTENT_TYPE, "application/json")], manifest).into_response())
+}
+
+async fn save_project(
+  State(state): State<Arc<AppState>>,
+  Path(id): Path<String>,
+  body: axum::body::Bytes,
+) -> Result<Response, Response> {
+  let store = state.projects.clone();
+  blocking(move || store.save(&id, &body))
+    .await?
+    .map_err(project_error)?;
+  Ok(StatusCode::NO_CONTENT.into_response())
+}
+
+async fn delete_project(
+  State(state): State<Arc<AppState>>,
+  Path(id): Path<String>,
+) -> Result<Response, Response> {
+  let store = state.projects.clone();
+  blocking(move || store.delete(&id))
+    .await?
+    .map_err(project_error)?;
+  Ok(StatusCode::NO_CONTENT.into_response())
+}
+
+/// Sweep orphaned audio blobs. Idempotent; safe to call when idle.
+async fn run_gc(State(state): State<Arc<AppState>>) -> Result<Response, Response> {
+  let projects = state.projects.clone();
+  let audio = state.store.clone();
+  let summary = blocking(move || project_store::collect_garbage(&projects, &audio)).await?;
+  Ok(Json(summary).into_response())
+}
+
+/// Boot-time GC, parity with the Python lifespan hook: the one moment nothing
+/// is in flight, so a blob uploaded but not yet named by a saved manifest can
+/// never be mistaken for an orphan — which is why no HTTP client calls `/gc`
+/// itself. Best-effort by construction (a skipped or empty sweep is a valid
+/// summary, never an error).
+pub fn boot_gc(config: &Config) -> serde_json::Value {
+  let projects = ProjectStore::new(&config.data_dir);
+  let audio = AudioStore::new(&config.data_dir, config.max_audio_store_bytes);
+  project_store::collect_garbage(&projects, &audio)
 }
