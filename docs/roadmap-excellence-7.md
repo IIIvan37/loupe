@@ -178,7 +178,9 @@ efface une classe entière de code mort.*
 ## Suivi
 
 - [x] AP.1
-- [ ] AJ.1 · [ ] AJ.2 · [ ] AJ.3
+- [x] AJ.1 · [x] AJ.2 (#225) · [x] AJ.3 (#227) — **Lot AJ clos** (cases
+  cochées a posteriori : le travail était livré, le Suivi ne l'enregistrait
+  pas)
 - [x] AK.1 · [x] AK.2 · [x] AK.3 · [x] AK.4
 - [x] AL.1 · [x] AL.2 · [x] AL.3 · [x] AL.4
 - [x] AM.1 · [x] AM.2 · [~] AM.3 (écarté) · [~] AM.4 (écarté) — **Lot AM clos
