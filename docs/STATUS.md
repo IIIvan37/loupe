@@ -10,30 +10,30 @@
 
 **Cap distribution acté (2026-07-26)** : loupe se distribue en **serveur
 local + navigateur** ([distribution-plan.md](distribution-plan.md), lots
-D1–D6 — spike Python sur le `server/` existant, puis binaire Rust). Motifs :
-cible multi-OS, import YouTube central (yt-dlp = IP résidentielle), zéro
-signature, un seul moteur web. Le shell **Tauri passe en sommeil** (canal
-signé réactivable, CI conservée) ; le replay bundle AP devient sans objet.
+D1–D6). Motifs : cible multi-OS, import YouTube central (yt-dlp = IP
+résidentielle), zéro signature, un seul moteur web. Le shell **Tauri passe
+en sommeil** (canal signé réactivable, CI conservée).
 **Roadmap v7 soldée** ([archivée](archive/roadmap-excellence-7.md), Lots
 AJ→AQ tous livrés ; dernier : AQ vocabulaire/copy + garde-fou
 `copy-lexicon.spec.ts`, PR #265). **Lot TS clos**
 ([plan archivé](archive/template-sync-plan.md), #250–#263, récoltes
 starter#27/#33). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
 ≈ transport ; `timecode` attend un second consommateur.
-**D1–D4 clos** (PRs #275–#280) : GO (D1), audit localhost (D2), **route 1
-livrée** (D3 : wheel 1,4 Mo, port 6173 — **beta technique possible**),
-crates `loupe-download` (D4.a) + `loupe-server` (D4.b : binaire 6,9 Mo,
-axum + rust-embed, gardes D2, `/download` NDJSON), **D4.c : stores projets
-Rust** (`/projects` + `/gc` parité `projects.py`, même `~/.loupe` → zéro
-migration, GC au boot, écritures atomiques) — **le binaire route 2 sert
-l'atelier complet**. **Prochain : D5 — pipeline de release** (GitHub
-Releases 3 OS sur tag, brew tap, notification de version) ; puis D6. Lot
-store Jotai en attente ; checkpoint avant chaque slice UI.
+**D1–D5 clos** (PRs #275–#281) : route 1 (D1–D3 : wheel `loupe`, port
+6173), crates `loupe-download` (D4.a) + `loupe-server` (D4.b : binaire
+axum + rust-embed, `/download`), **D4.c** (`/projects` + `/gc`, même
+`~/.loupe` → zéro migration), **D5 : pipeline de release** (tag `vX.Y.Z`
+→ binaire 3 OS + checksums + formule Homebrew ; `--version` ; notification
+de version au démarrage). **Le binaire route 2 sert l'atelier complet et se
+release en un tag.** **Prochain : D6 — validation Linux + Windows**
+(parcours réel : yt-dlp, chemins, pare-feu, SmartScreen). Avant la 1re
+release : créer le tap `IIIvan37/homebrew-loupe` + secret
+`HOMEBREW_TAP_TOKEN` (cf. `docs/RELEASING.md`). Lot store Jotai en attente,
+checkpoint avant chaque slice UI.
 
-**Plans actifs** : [distribution-plan.md](distribution-plan.md) (D1–D6, en
-cours). **Garde-fous beta restants** (cf.
-[beta-checklist.md](beta-checklist.md)) : plafond de dépense Modal (mesuré
-~3,67 $/mois), SMTP custom **déjà câblé** (Resend/`iiivan.org`), re-seed des
+**Plans actifs** : [distribution-plan.md](distribution-plan.md) (D6 restant).
+**Garde-fous beta restants** (cf. [beta-checklist.md](beta-checklist.md)) :
+plafond Modal (mesuré ~3,67 $/mois), SMTP custom câblé (Resend), re-seed des
 codes legacy, PKCE en bundle à rejouer.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
