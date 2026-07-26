@@ -50,6 +50,7 @@
       "!**/.stryker-tmp",
       "!**/public",
       "!packages/desktop/src-tauri/target",
+      "!target",
       "!packages/desktop/src-tauri/gen",
       "!server",
       "!supabase"

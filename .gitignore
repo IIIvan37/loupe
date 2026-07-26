@@ -16,3 +16,4 @@ reports/
 *.local
 .env*.local
 .tmp-verify/
+/target/
