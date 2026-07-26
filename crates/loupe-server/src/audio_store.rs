@@ -60,6 +60,20 @@ impl AudioStore {
       .sum()
   }
 
+  /// The store's own content-addressed blobs — leaves .tmp files and
+  /// anything else not named with a bare sha256 untouched.
+  pub fn owned_blobs(&self) -> Vec<PathBuf> {
+    let Ok(entries) = std::fs::read_dir(&self.audio_dir) else {
+      return Vec::new();
+    };
+    entries
+      .flatten()
+      .filter(|entry| entry.file_name().to_str().is_some_and(is_valid_ref))
+      .filter(|entry| entry.metadata().is_ok_and(|metadata| metadata.is_file()))
+      .map(|entry| entry.path())
+      .collect()
+  }
+
   /// Park bytes in the content-addressed store, returning their sha256 ref.
   /// Idempotent: identical bytes re-point at the one blob. Written to a .tmp
   /// then renamed, so a half-written blob is never exposed under its ref.

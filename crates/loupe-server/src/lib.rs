@@ -12,6 +12,7 @@ pub mod audio_store;
 pub mod config;
 pub mod download;
 pub mod netguard;
+pub mod project_store;
 pub mod static_web;
 
 use audio_store::{AudioStore, StoreError, QUOTA_MESSAGE};
@@ -23,6 +24,7 @@ use axum::routing::{get, post};
 use axum::Router;
 use config::Config;
 use download::DownloadEngine;
+use project_store::{ProjectStore, SaveError};
 use std::sync::Arc;
 use tokio::sync::Semaphore;
 use tokio_util::io::ReaderStream;
@@ -31,12 +33,14 @@ use tower_http::cors::{Any, CorsLayer};
 pub struct AppState {
   pub config: Config,
   pub store: AudioStore,
+  pub projects: ProjectStore,
   pub engine: Arc<dyn DownloadEngine>,
   pub download_slots: Semaphore,
 }
 
 pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
   let store = AudioStore::new(&config.data_dir, config.max_audio_store_bytes);
+  let projects = ProjectStore::new(&config.data_dir);
   let guard_config = Arc::new(config.clone());
   let cors = CorsLayer::new()
     .allow_origin(
@@ -50,6 +54,7 @@ pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
     .allow_headers(Any);
   let state = Arc::new(AppState {
     store,
+    projects,
     engine,
     download_slots: Semaphore::new(config.download_slots),
     config,
@@ -64,6 +69,17 @@ pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
       )),
     )
     .route("/audio/{ref}", get(get_audio))
+    .route("/projects", get(list_projects))
+    .route(
+      "/projects/{id}",
+      get(get_project)
+        .put(save_project)
+        .delete(delete_project)
+        .layer(DefaultBodyLimit::max(
+          state.config.max_manifest_bytes as usize,
+        )),
+    )
+    .route("/gc", post(run_gc))
     .route(
       "/download",
       post(download::download).layer(DefaultBodyLimit::max(
@@ -128,4 +144,72 @@ async fn get_audio(State(state): State<Arc<AppState>>, Path(reference): Path<Str
     Body::from_stream(ReaderStream::new(file)),
   )
     .into_response()
+}
+
+const UNKNOWN_PROJECT: &str = "unknown project";
+
+/// Run a blocking store closure off the async runtime, 500 on a lost worker.
+async fn blocking<T: Send + 'static>(
+  task: impl FnOnce() -> T + Send + 'static,
+) -> Result<T, Response> {
+  tokio::task::spawn_blocking(task)
+    .await
+    .map_err(|join_error| {
+      (StatusCode::INTERNAL_SERVER_ERROR, join_error.to_string()).into_response()
+    })
+}
+
+async fn list_projects(State(state): State<Arc<AppState>>) -> Response {
+  let store = state.projects.clone();
+  match blocking(move || store.list()).await {
+    Ok(manifests) => Json(manifests).into_response(),
+    Err(response) => response,
+  }
+}
+
+async fn get_project(State(state): State<Arc<AppState>>, Path(id): Path<String>) -> Response {
+  let store = state.projects.clone();
+  match blocking(move || store.load(&id)).await {
+    // The manifest is persisted verbatim, so it is served verbatim too.
+    Ok(Some(manifest)) => ([(header::CONTENT_TYPE, "application/json")], manifest).into_response(),
+    Ok(None) => (StatusCode::NOT_FOUND, UNKNOWN_PROJECT).into_response(),
+    Err(response) => response,
+  }
+}
+
+async fn save_project(
+  State(state): State<Arc<AppState>>,
+  Path(id): Path<String>,
+  body: axum::body::Bytes,
+) -> Response {
+  let store = state.projects.clone();
+  match blocking(move || store.save(&id, &body)).await {
+    Ok(Ok(())) => StatusCode::NO_CONTENT.into_response(),
+    Ok(Err(SaveError::InvalidId)) => (StatusCode::NOT_FOUND, UNKNOWN_PROJECT).into_response(),
+    Ok(Err(SaveError::NotJson)) => {
+      (StatusCode::BAD_REQUEST, "manifest is not JSON").into_response()
+    }
+    Ok(Err(SaveError::Io(message))) => (StatusCode::INTERNAL_SERVER_ERROR, message).into_response(),
+    Err(response) => response,
+  }
+}
+
+async fn delete_project(State(state): State<Arc<AppState>>, Path(id): Path<String>) -> Response {
+  let store = state.projects.clone();
+  match blocking(move || store.delete(&id)).await {
+    Ok(Some(Ok(()))) => StatusCode::NO_CONTENT.into_response(),
+    Ok(Some(Err(message))) => (StatusCode::INTERNAL_SERVER_ERROR, message).into_response(),
+    Ok(None) => (StatusCode::NOT_FOUND, UNKNOWN_PROJECT).into_response(),
+    Err(response) => response,
+  }
+}
+
+/// Sweep orphaned audio blobs. Idempotent; safe to call when idle.
+async fn run_gc(State(state): State<Arc<AppState>>) -> Response {
+  let projects = state.projects.clone();
+  let audio = state.store.clone();
+  match blocking(move || project_store::collect_garbage(&projects, &audio)).await {
+    Ok(summary) => Json(summary).into_response(),
+    Err(response) => response,
+  }
 }
