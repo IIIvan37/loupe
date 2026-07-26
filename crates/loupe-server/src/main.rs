@@ -92,6 +92,9 @@ async fn main() -> ExitCode {
   // Boot backstop for temp dirs a hard kill left behind (D2 parity) — the
   // engine also sweeps before each download.
   loupe_download::sweep_stale_downloads(&config.data_dir.join("downloads"));
+  // Reclaim orphaned audio blobs while nothing is in flight (lifespan-hook
+  // parity) — the browser client relies on this and never calls /gc.
+  loupe_server::boot_gc(&config);
 
   // Bind first instead of probing: no TOCTOU, and `--port 0` naturally picks
   // a free port that the printed URL reflects.

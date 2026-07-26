@@ -570,3 +570,21 @@ async fn gc_sweeps_orphaned_blobs_and_reports_a_summary() {
     .unwrap();
   assert_eq!(body_bytes(response).await, b"kept");
 }
+
+#[tokio::test]
+async fn boot_gc_sweeps_orphans_with_the_same_summary_shape() {
+  // The binary's lifespan-parity sweep: same stores, same summary.
+  let dir = tempfile::tempdir().unwrap();
+  let config = test_config(dir.path());
+  app(config.clone())
+    .oneshot(local_request("POST", "/audio", Body::from("orphan bytes")))
+    .await
+    .unwrap();
+
+  let summary = loupe_server::boot_gc(&config);
+
+  assert_eq!(
+    summary,
+    serde_json::json!({"deleted": 1, "reclaimedBytes": 12, "kept": 0})
+  );
+}

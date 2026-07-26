@@ -5,6 +5,7 @@
 //! JSON: the core owns the `Project` shape, this server only files it.
 
 use crate::audio_store::{is_valid_ref, AudioStore};
+use crate::fs_atomic::write_atomic;
 use serde_json::Value;
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
@@ -20,11 +21,14 @@ pub fn is_valid_project_id(candidate: &str) -> bool {
 }
 
 #[derive(Debug)]
-pub enum SaveError {
-  /// The id cannot name a manifest file — answered as an unknown project.
-  InvalidId,
+pub enum ProjectError {
+  /// A malformed id or an absent manifest — both answered 404, like Python's
+  /// `_project_path` + `is_file` checks.
+  UnknownProject,
   /// The manifest is opaque (persisted verbatim) but must at least be JSON.
   NotJson,
+  /// A real filesystem fault (permissions, disk) — never disguised as an
+  /// absent project.
   Io(String),
 }
 
@@ -46,35 +50,42 @@ impl ProjectStore {
     is_valid_project_id(project_id).then(|| self.projects_dir.join(format!("{project_id}.json")))
   }
 
-  /// The manifest's raw bytes, or None for a malformed id or absent project.
-  pub fn load(&self, project_id: &str) -> Option<Vec<u8>> {
-    std::fs::read(self.manifest_path(project_id)?).ok()
-  }
-
-  /// Persist the manifest verbatim. Written to a .tmp then renamed, so a
-  /// half-written manifest is never exposed under its id.
-  pub fn save(&self, project_id: &str, manifest: &[u8]) -> Result<(), SaveError> {
-    let path = self.manifest_path(project_id).ok_or(SaveError::InvalidId)?;
-    if serde_json::from_slice::<Value>(manifest).is_err() {
-      return Err(SaveError::NotJson);
+  /// The manifest's raw bytes, exactly as saved.
+  pub fn load(&self, project_id: &str) -> Result<Vec<u8>, ProjectError> {
+    let path = self
+      .manifest_path(project_id)
+      .ok_or(ProjectError::UnknownProject)?;
+    match std::fs::read(&path) {
+      Ok(bytes) => Ok(bytes),
+      Err(e) if e.kind() == std::io::ErrorKind::NotFound => Err(ProjectError::UnknownProject),
+      Err(e) => Err(ProjectError::Io(e.to_string())),
     }
-    let io = |e: std::io::Error| SaveError::Io(e.to_string());
-    std::fs::create_dir_all(&self.projects_dir).map_err(io)?;
-    let tmp = path.with_extension("tmp");
-    std::fs::write(&tmp, manifest).map_err(io)?;
-    std::fs::rename(&tmp, &path).map_err(io)?;
-    Ok(())
   }
 
-  /// Idempotent: deleting an absent project succeeds. A malformed id is an
-  /// unknown project (None), like every other route.
-  pub fn delete(&self, project_id: &str) -> Option<Result<(), String>> {
-    let path = self.manifest_path(project_id)?;
-    Some(match std::fs::remove_file(&path) {
+  /// Persist the manifest verbatim, atomically — a half-written manifest is
+  /// never exposed under its id.
+  pub fn save(&self, project_id: &str, manifest: &[u8]) -> Result<(), ProjectError> {
+    let path = self
+      .manifest_path(project_id)
+      .ok_or(ProjectError::UnknownProject)?;
+    // IgnoredAny: full syntactic validation without building a JSON tree —
+    // manifests run to MBs and this sits on the autosave path.
+    if serde_json::from_slice::<serde::de::IgnoredAny>(manifest).is_err() {
+      return Err(ProjectError::NotJson);
+    }
+    write_atomic(&self.projects_dir, &path, manifest).map_err(|e| ProjectError::Io(e.to_string()))
+  }
+
+  /// Idempotent: deleting an absent project succeeds.
+  pub fn delete(&self, project_id: &str) -> Result<(), ProjectError> {
+    let path = self
+      .manifest_path(project_id)
+      .ok_or(ProjectError::UnknownProject)?;
+    match std::fs::remove_file(&path) {
       Ok(()) => Ok(()),
       Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
-      Err(e) => Err(e.to_string()),
-    })
+      Err(e) => Err(ProjectError::Io(e.to_string())),
+    }
   }
 
   /// Every parseable manifest, sorted by filename — one corrupt manifest must
@@ -83,7 +94,10 @@ impl ProjectStore {
     self.read_manifests().0
   }
 
-  /// Every parseable manifest, plus the count that would not parse.
+  /// Every parseable manifest, plus the count that would not read or parse.
+  /// No `is_file` pre-filter: a `*.json` entry that cannot be read (a stray
+  /// directory, a permissions fault) must count as unreadable so the GC
+  /// aborts, exactly like Python's glob + failed `read_text`.
   fn read_manifests(&self) -> (Vec<Value>, usize) {
     let Ok(entries) = std::fs::read_dir(&self.projects_dir) else {
       return (Vec::new(), 0);
@@ -91,18 +105,18 @@ impl ProjectStore {
     let mut paths: Vec<PathBuf> = entries
       .flatten()
       .map(|entry| entry.path())
-      .filter(|path| path.extension().is_some_and(|ext| ext == "json") && path.is_file())
+      .filter(|path| path.extension().is_some_and(|ext| ext == "json"))
       .collect();
     paths.sort();
     let mut manifests = Vec::new();
     let mut unreadable = 0;
     for path in paths {
       match std::fs::read(&path)
-        .map_err(|_| ())
-        .and_then(|bytes| serde_json::from_slice(&bytes).map_err(|_| ()))
+        .ok()
+        .and_then(|bytes| serde_json::from_slice(&bytes).ok())
       {
-        Ok(manifest) => manifests.push(manifest),
-        Err(()) => unreadable += 1,
+        Some(manifest) => manifests.push(manifest),
+        None => unreadable += 1,
       }
     }
     (manifests, unreadable)
@@ -138,8 +152,8 @@ pub fn referenced_refs(manifests: &[Value]) -> HashSet<String> {
 /// A manifest-scan GC, exactly what the core's `ProjectAudioStore` doc defers
 /// to the adapter: gather every ref the manifests use, delete every blob
 /// whose name is not among them. **Conservative** — if any manifest can't be
-/// parsed we abort without deleting a thing, since we cannot account for its
-/// refs and would risk erasing live audio. Run when idle: a blob just
+/// read or parsed we abort without deleting a thing, since we cannot account
+/// for its refs and would risk erasing live audio. Run when idle: a blob just
 /// uploaded but not yet named by a saved manifest would look orphaned.
 pub fn collect_garbage(projects: &ProjectStore, audio: &AudioStore) -> Value {
   let (manifests, unreadable) = projects.read_manifests();
@@ -153,17 +167,7 @@ pub fn collect_garbage(projects: &ProjectStore, audio: &AudioStore) -> Value {
   }
 
   let live = referenced_refs(&manifests);
-  let mut deleted = 0;
-  let mut reclaimed = 0;
-  for path in audio.owned_blobs() {
-    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-    if !live.contains(name) {
-      reclaimed += std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
-      if std::fs::remove_file(&path).is_ok() {
-        deleted += 1;
-      }
-    }
-  }
+  let (deleted, reclaimed) = audio.sweep_orphans(&live);
   serde_json::json!({"deleted": deleted, "reclaimedBytes": reclaimed, "kept": live.len()})
 }
 
@@ -202,12 +206,24 @@ mod tests {
     let store = ProjectStore::new(dir.path());
     store.save("p1", br#"{"id":"p1"}"#).unwrap();
     assert_eq!(store.load("p1").unwrap(), br#"{"id":"p1"}"#);
-    // Persisted verbatim, atomically: no leftover .tmp next to the manifest.
-    assert!(!dir.path().join("projects/p1.tmp").exists());
-    assert_eq!(store.delete("p1"), Some(Ok(())));
-    assert!(store.load("p1").is_none());
-    assert_eq!(store.delete("p1"), Some(Ok(())));
-    assert!(store.delete("bad*id").is_none());
+    // Persisted verbatim, atomically: no leftover tmp next to the manifest.
+    let leftovers: Vec<_> = std::fs::read_dir(dir.path().join("projects"))
+      .unwrap()
+      .flatten()
+      .map(|entry| entry.path())
+      .filter(|path| path.extension().is_some_and(|ext| ext == "tmp"))
+      .collect();
+    assert_eq!(leftovers, Vec::<PathBuf>::new());
+    assert!(store.delete("p1").is_ok());
+    assert!(matches!(
+      store.load("p1"),
+      Err(ProjectError::UnknownProject)
+    ));
+    assert!(store.delete("p1").is_ok());
+    assert!(matches!(
+      store.delete("bad*id"),
+      Err(ProjectError::UnknownProject)
+    ));
   }
 
   #[test]
@@ -216,13 +232,29 @@ mod tests {
     let store = ProjectStore::new(dir.path());
     assert!(matches!(
       store.save("p1", b"{ not json"),
-      Err(SaveError::NotJson)
+      Err(ProjectError::NotJson)
     ));
     assert!(matches!(
       store.save("bad*id", b"{}"),
-      Err(SaveError::InvalidId)
+      Err(ProjectError::UnknownProject)
     ));
-    assert!(store.load("p1").is_none());
+    assert!(matches!(
+      store.load("p1"),
+      Err(ProjectError::UnknownProject)
+    ));
+  }
+
+  #[cfg(unix)]
+  #[test]
+  fn load_surfaces_a_read_fault_instead_of_pretending_absence() {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = tempfile::tempdir().unwrap();
+    let store = ProjectStore::new(dir.path());
+    store.save("p1", b"{}").unwrap();
+    let path = dir.path().join("projects/p1.json");
+    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o000)).unwrap();
+    assert!(matches!(store.load("p1"), Err(ProjectError::Io(_))));
+    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o644)).unwrap();
   }
 
   #[test]
@@ -303,6 +335,21 @@ mod tests {
   }
 
   #[test]
+  fn gc_aborts_on_a_json_entry_that_cannot_be_read_at_all() {
+    // A stray DIRECTORY named like a manifest: Python's glob picks it up and
+    // the failed read aborts the sweep — the port must be as conservative.
+    let dir = tempfile::tempdir().unwrap();
+    let audio = audio_with_blobs(dir.path(), &[(REF_A, b"x")]);
+    let projects = ProjectStore::new(dir.path());
+    std::fs::create_dir_all(dir.path().join("projects/trap.json")).unwrap();
+
+    let result = collect_garbage(&projects, &audio);
+
+    assert_eq!(result["skipped"], serde_json::json!(true));
+    assert!(dir.path().join("audio").join(REF_A).exists());
+  }
+
+  #[test]
   fn gc_leaves_non_blob_files_alone() {
     let dir = tempfile::tempdir().unwrap();
     // An interrupted upload next to nothing referenced.
@@ -314,6 +361,28 @@ mod tests {
     collect_garbage(&projects, &audio);
 
     assert!(tmp.exists());
+  }
+
+  #[cfg(unix)]
+  #[test]
+  fn gc_counts_only_blobs_it_actually_deleted() {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = tempfile::tempdir().unwrap();
+    let audio = audio_with_blobs(dir.path(), &[(REF_B, b"orphan bytes")]);
+    let projects = ProjectStore::new(dir.path());
+    // A read-only directory makes the unlink fail: the blob stays, so the
+    // summary must not report its bytes as reclaimed.
+    let audio_dir = dir.path().join("audio");
+    std::fs::set_permissions(&audio_dir, std::fs::Permissions::from_mode(0o555)).unwrap();
+
+    let result = collect_garbage(&projects, &audio);
+
+    std::fs::set_permissions(&audio_dir, std::fs::Permissions::from_mode(0o755)).unwrap();
+    assert_eq!(
+      result,
+      serde_json::json!({"deleted": 0, "reclaimedBytes": 0, "kept": 0})
+    );
+    assert!(audio_dir.join(REF_B).exists());
   }
 
   #[test]
