@@ -63,7 +63,7 @@ build/spike that consumer first**. Don't invent the shape.
 
 ## 4. Adapter in web (the only impure code)
 
-- `packages/web/src/...` implements the port (Web Audio / localStorage / DOM /
+- An adapter under `packages/web/src/` implements the port (Web Audio / localStorage / DOM /
   file APIs) and a smart hook wires it into the UI: assemble input → inject real
   ports → map Result. Adapters may import browser APIs — they live outside the
   hexagon.

@@ -30,7 +30,7 @@ statut de l'ancien.
 ## Provenance
 
 La pratique vient du template [`hexagonal-tdd-starter`](https://github.com/IIIvan37/hexagonal-tdd-starter)
-(lot TS.3 du [plan de resynchronisation](../template-sync-plan.md)). Les ADR
+(lot TS.3 du [plan de resynchronisation](../archive/template-sync-plan.md)). Les ADR
 0001 à 0005 adaptent au contexte de loupe ceux du template qui s'y appliquent ;
 les ADR 0006 à 0009 actent des décisions propres à loupe qui n'avaient
 jusqu'ici que des session reports ou CLAUDE.md comme trace. Deux ADR du

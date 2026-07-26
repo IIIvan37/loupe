@@ -70,8 +70,7 @@ pnpm dev          # = concurrently: dev:server (uvicorn) + dev:web (Vite)
 ```
 
 `pnpm dev:server` / `pnpm dev:web` run them individually. `dev:server` calls the
-venv's uvicorn directly (`server/.venv/bin/uvicorn`), so the venv must
-be set up first.
+venv's own `uvicorn` binary directly, so the venv must be set up first.
 
 ## HTTP contract
 
