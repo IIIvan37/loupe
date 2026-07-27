@@ -15,13 +15,22 @@ struct Args {
   no_browser: bool,
 }
 
-const USAGE: &str = "usage: loupe [--port <numéro>] [--no-browser]\n\n\
+/// What the invocation asks for: serve, or print something and exit.
+#[derive(Debug, PartialEq)]
+enum Command {
+  Run(Args),
+  Help,
+  Version,
+}
+
+const USAGE: &str = "usage: loupe [--port <numéro>] [--no-browser] [--version]\n\n\
 Démarre l'atelier loupe et ouvre le navigateur.\n\n\
 options:\n  \
 --port <numéro>   port d'écoute local (défaut : 6173)\n  \
---no-browser      ne pas ouvrir le navigateur au démarrage";
+--no-browser      ne pas ouvrir le navigateur au démarrage\n  \
+--version         afficher la version et quitter";
 
-fn parse_args(argv: &[String]) -> Result<Option<Args>, String> {
+fn parse_args(argv: &[String]) -> Result<Command, String> {
   let mut args = Args {
     port: DEFAULT_PORT,
     no_browser: false,
@@ -29,7 +38,8 @@ fn parse_args(argv: &[String]) -> Result<Option<Args>, String> {
   let mut iter = argv.iter();
   while let Some(arg) = iter.next() {
     match arg.as_str() {
-      "-h" | "--help" => return Ok(None),
+      "-h" | "--help" => return Ok(Command::Help),
+      "-V" | "--version" => return Ok(Command::Version),
       "--no-browser" => args.no_browser = true,
       "--port" => {
         let value = iter.next().ok_or("--port attend un numéro")?;
@@ -47,7 +57,26 @@ fn parse_args(argv: &[String]) -> Result<Option<Args>, String> {
       },
     }
   }
-  Ok(Some(args))
+  Ok(Command::Run(args))
+}
+
+/// Tell the user when a newer release exists (D5) — one line, best-effort,
+/// on its own thread so it never delays serving. Opt-out:
+/// LOUPE_NO_VERSION_CHECK=1.
+fn spawn_version_check() {
+  if std::env::var_os("LOUPE_NO_VERSION_CHECK").is_some() {
+    return;
+  }
+  std::thread::spawn(|| {
+    use loupe_server::version_check::{latest_release_tag, newer_version, RELEASES_REPO};
+    let newer = latest_release_tag(RELEASES_REPO)
+      .and_then(|tag| newer_version(env!("CARGO_PKG_VERSION"), &tag));
+    if let Some(version) = newer {
+      println!(
+        "loupe : version {version} disponible — https://github.com/{RELEASES_REPO}/releases/latest"
+      );
+    }
+  });
 }
 
 /// Open `url` as soon as `/health` answers; give up quietly past the deadline
@@ -76,9 +105,15 @@ fn spawn_browser_opener(url: String) {
 async fn main() -> ExitCode {
   let argv: Vec<String> = std::env::args().skip(1).collect();
   let args = match parse_args(&argv) {
-    Ok(Some(args)) => args,
-    Ok(None) => {
+    Ok(Command::Run(args)) => args,
+    Ok(Command::Help) => {
       println!("{USAGE}");
+      return ExitCode::SUCCESS;
+    }
+    Ok(Command::Version) => {
+      // The release workflow pins this to the git tag (tag → crate →
+      // --version, one version everywhere).
+      println!("loupe {}", env!("CARGO_PKG_VERSION"));
       return ExitCode::SUCCESS;
     }
     Err(message) => {
@@ -89,6 +124,7 @@ async fn main() -> ExitCode {
   };
 
   let config = Config::from_env();
+  spawn_version_check();
   // Boot backstop for temp dirs a hard kill left behind (D2 parity) — the
   // engine also sweeps before each download.
   loupe_download::sweep_stale_downloads(&config.data_dir.join("downloads"));
@@ -143,11 +179,17 @@ mod tests {
     items.iter().map(|s| (*s).to_owned()).collect()
   }
 
+  fn run_args(argv_items: &[&str]) -> Args {
+    match parse_args(&argv(argv_items)).unwrap() {
+      Command::Run(args) => args,
+      other => panic!("expected Run, got {other:?}"),
+    }
+  }
+
   #[test]
   fn defaults_to_port_6173_with_the_browser_on() {
-    let args = parse_args(&[]).unwrap().unwrap();
     assert_eq!(
-      args,
+      run_args(&[]),
       Args {
         port: 6173,
         no_browser: false
@@ -157,25 +199,23 @@ mod tests {
 
   #[test]
   fn accepts_both_port_forms_and_no_browser() {
-    let args = parse_args(&argv(&["--port", "7000", "--no-browser"]))
-      .unwrap()
-      .unwrap();
     assert_eq!(
-      args,
+      run_args(&["--port", "7000", "--no-browser"]),
       Args {
         port: 7000,
         no_browser: true
       }
     );
-    let args = parse_args(&argv(&["--port=7001"])).unwrap().unwrap();
-    assert_eq!(args.port, 7001);
+    assert_eq!(run_args(&["--port=7001"]).port, 7001);
   }
 
   #[test]
-  fn refuses_garbage_and_reports_help() {
+  fn refuses_garbage_and_reports_help_and_version() {
     assert!(parse_args(&argv(&["--port"])).is_err());
     assert!(parse_args(&argv(&["--port", "beaucoup"])).is_err());
     assert!(parse_args(&argv(&["--vite"])).is_err());
-    assert!(parse_args(&argv(&["--help"])).unwrap().is_none());
+    assert_eq!(parse_args(&argv(&["--help"])).unwrap(), Command::Help);
+    assert_eq!(parse_args(&argv(&["--version"])).unwrap(), Command::Version);
+    assert_eq!(parse_args(&argv(&["-V"])).unwrap(), Command::Version);
   }
 }

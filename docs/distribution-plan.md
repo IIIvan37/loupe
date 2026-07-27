@@ -119,5 +119,5 @@ D6 peut s'intercaler dès D3 (la route 1 tourne partout où uv tourne).
 | D4.a | Crate `loupe-download` partagé (workspace cargo, download.rs 470→76 lignes) | ✅ #278 |
 | D4.b | Crate `loupe-server` : binaire `loupe` 6,9 Mo (axum + rust-embed), gardes D2 portées, `/download` + store `/audio` sur le crate partagé, sweep gardé par âge | ✅ #279 |
 | D4.c | Stores projets Rust : `/projects` CRUD + `/gc` (parité `projects.py`, même `~/.loupe`), GC au boot (parité lifespan), écriture atomique partagée à tmp uniques | ✅ #280 |
-| D5 | Pipeline GitHub Releases + brew tap + notification de version | ⬜ |
+| D5 | Pipeline GitHub Releases : workflow tag → binaire 3 OS (macOS arm64 · Linux x64 · Windows x64) + checksums + formule Homebrew générée ; `--version` (tag = version crate) ; notification de version au démarrage | ✅ #281 |
 | D6 | Validation Linux + Windows | ⬜ |

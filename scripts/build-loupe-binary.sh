@@ -12,4 +12,6 @@ rm -rf crates/loupe-server/web_dist
 cp -R packages/web/dist crates/loupe-server/web_dist
 
 cargo build --release -p loupe-server
-ls -lh target/release/loupe
+# `loupe` on unix, `loupe.exe` on windows (the release workflow runs this
+# script on all three OS).
+ls -lh target/release/loupe target/release/loupe.exe 2>/dev/null || true
