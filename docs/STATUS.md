@@ -10,26 +10,26 @@
 
 **Cap distribution acté (2026-07-26)** : loupe se distribue en **serveur
 local + navigateur** ([distribution-plan.md](distribution-plan.md), lots
-D1–D6). Motifs : cible multi-OS, import YouTube central (yt-dlp = IP
-résidentielle), zéro signature, un seul moteur web. Le shell **Tauri passe
-en sommeil** (canal signé réactivable, CI conservée).
+D1–D6 ; motifs : multi-OS, yt-dlp local, zéro signature, un moteur web). Le
+shell **Tauri passe en sommeil** (canal signé réactivable, CI conservée).
 **Roadmap v7 soldée** ([archivée](archive/roadmap-excellence-7.md), Lots
 AJ→AQ tous livrés ; dernier : AQ vocabulaire/copy + garde-fou
 `copy-lexicon.spec.ts`, PR #265). **Lot TS clos**
 ([plan archivé](archive/template-sync-plan.md), #250–#263, récoltes
 starter#27/#33). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
 ≈ transport ; `timecode` attend un second consommateur.
-**D1–D5 clos** (PRs #275–#281) : route 1 (D1–D3 : wheel `loupe`, port
-6173), crates `loupe-download` (D4.a) + `loupe-server` (D4.b : binaire
-axum + rust-embed, `/download`), **D4.c** (`/projects` + `/gc`, même
-`~/.loupe` → zéro migration), **D5 : pipeline de release** (tag `vX.Y.Z`
-→ binaire 3 OS + checksums + formule Homebrew ; `--version` ; notification
-de version au démarrage). **Le binaire route 2 sert l'atelier complet et se
-release en un tag.** **Prochain : D6 — validation Linux + Windows**
-(parcours réel : yt-dlp, chemins, pare-feu, SmartScreen). Avant la 1re
-release : créer le tap `IIIvan37/homebrew-loupe` + secret
-`HOMEBREW_TAP_TOKEN` (cf. `docs/RELEASING.md`). Lot store Jotai en attente,
-checkpoint avant chaque slice UI.
+**D1–D5 clos** (PRs #275–#281) : route 1 (wheel `loupe`, port 6173), crates
+`loupe-download` + `loupe-server` (binaire axum + rust-embed, `/download`,
+`/projects` + `/gc` sur `~/.loupe` → zéro migration), **pipeline de
+release** (tag `vX.Y.Z` → binaire 3 OS + checksums + formule Homebrew ;
+`--version` ; notification de version). **Le binaire route 2 sert l'atelier
+complet et se release en un tag.** **D6 outillage livré** (#282 : build
+`workflow_dispatch` sans release, job CI `Rust Windows`, checklist
+`docs/d6-platform-validation.md`, audit portabilité OK). **Prochain : run
+VM réel** (Windows 11 ARM émulé x64 + Ubuntu ARM64 qemu — yt-dlp, chemins,
+SmartScreen ; tap Homebrew à créer avant la 1re release, cf.
+`docs/RELEASING.md`). Lot store Jotai en attente, checkpoint avant chaque
+slice UI.
 
 **Plans actifs** : [distribution-plan.md](distribution-plan.md) (D6 restant).
 **Garde-fous beta restants** (cf. [beta-checklist.md](beta-checklist.md)) :
