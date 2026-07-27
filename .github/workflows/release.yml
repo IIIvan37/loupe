@@ -64,20 +64,27 @@ jobs:
       - name: Build the loupe binary
         shell: bash
         run: ./scripts/build-loupe-binary.sh
-      - name: Package archive
+      # A dispatch ref can be a branch (`feat/x`); '/' would make the archive
+      # name a path, so flatten it. Windows gets a real .zip via PowerShell —
+      # `tar` in git-bash is GNU tar, which cannot write zip (it silently
+      # emits an uncompressed tar under the .zip name); unix gets .tar.gz.
+      - name: Package archive (unix)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           mkdir -p dist-release
-          # A dispatch ref can be a branch (`feat/x`); '/' would make the
-          # archive name a path, so flatten it.
           ref="${GITHUB_REF_NAME//\//-}"
-          archive="loupe-${ref}-${{ matrix.target }}"
-          if [ "${{ matrix.target }}" = "x86_64-pc-windows-msvc" ]; then
-            # bsdtar (shipped with Windows) writes zip from -a + .zip name.
-            tar -a -cf "dist-release/${archive}.zip" -C target/release loupe.exe
-          else
-            tar -czf "dist-release/${archive}.tar.gz" -C target/release loupe
-          fi
+          tar -czf "dist-release/loupe-${ref}-${{ matrix.target }}.tar.gz" \
+            -C target/release loupe
+      - name: Package archive (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist-release | Out-Null
+          $ref = "${env:GITHUB_REF_NAME}" -replace '/', '-'
+          $archive = "loupe-$ref-${{ matrix.target }}.zip"
+          Compress-Archive -Path target/release/loupe.exe `
+            -DestinationPath "dist-release/$archive"
       - uses: actions/upload-artifact@v7
         with:
           name: loupe-${{ matrix.target }}
