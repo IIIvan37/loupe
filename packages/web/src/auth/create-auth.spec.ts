@@ -12,6 +12,8 @@ function fakeClient(
       email: string
       options?: { emailRedirectTo?: string }
     }) => void
+    verifyError?: { message: string }
+    onVerify?: (args: { email: string; token: string; type: string }) => void
   } = {}
 ): SupabaseClient {
   const session = overrides.session ?? null
@@ -27,6 +29,14 @@ function fakeClient(
       }) => {
         overrides.onOtp?.(args)
         return { error: overrides.otpError ?? null }
+      },
+      verifyOtp: async (args: {
+        email: string
+        token: string
+        type: string
+      }) => {
+        overrides.onVerify?.(args)
+        return { error: overrides.verifyError ?? null }
       },
       signOut: async () => ({ error: null })
     },
@@ -63,6 +73,26 @@ describe('createAuth', () => {
     vi.stubGlobal('window', { __TAURI_INTERNALS__: {} })
     await createAuth(client, FUNCTIONS_URL, ANON).sendMagicLink('a@b.co')
     expect(seen[0]?.options?.emailRedirectTo).toBe('loupe://auth-callback')
+  })
+
+  it('verifies the OTP code in place (type "email", no redirect) — true on success, false on error', async () => {
+    const seen: Array<{ email: string; token: string; type: string }> = []
+    const ok = createAuth(
+      fakeClient({ onVerify: (args) => seen.push(args) }),
+      FUNCTIONS_URL,
+      ANON
+    )
+    expect(await ok.verifyOtp('a@b.co', '123456')).toBe(true)
+    expect(seen[0]).toEqual({ email: 'a@b.co', token: '123456', type: 'email' })
+
+    const bad = createAuth(
+      fakeClient({
+        verifyError: { message: 'Token has expired or is invalid' }
+      }),
+      FUNCTIONS_URL,
+      ANON
+    )
+    expect(await bad.verifyOtp('a@b.co', '000000')).toBe(false)
   })
 
   it('surfaces a magic-link send error', async () => {

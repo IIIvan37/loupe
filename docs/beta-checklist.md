@@ -27,6 +27,19 @@
   par l'API brute `POST /dns_zones/{id}/dns_records`.
 - [ ] **Re-seed des codes beta legacy < 32 chars** en prod (runbook U.3 :
   `gen_random_uuid()`, le CHECK d'entropie ne couvre que les nouveaux).
+- [ ] **Template email « Magic Link » avec le code OTP (D6)** : l'auth du
+  shell serveur/navigateur passe par un **code à 6 chiffres** tapé dans
+  l'app (`verifyOtp`), pas par la redirection (fragile sur localhost —
+  serveur-encore-vivant, même navigateur, `localhost`→`::1`). Il faut donc
+  que le mail contienne le token. Dashboard Supabase → Auth → Email
+  Templates → **Magic Link** : ajouter `{{ .Token }}` au corps (garder
+  `{{ .ConfirmationURL }}` pour le repli Tauri deep-link). Sans ça, le mail
+  n'a que le lien et l'utilisateur n'a aucun code à saisir.
+- [ ] **Redirect allowlist `http://127.0.0.1:6173`** (D6) : le binaire ouvre
+  désormais `127.0.0.1` (et non `localhost`, IPv4-only bind). Pour que le
+  **repli** magic-link fonctionne encore, ajouter `http://127.0.0.1:6173` à
+  l'allowlist de redirection Supabase (Auth → URL Configuration), à côté de
+  `http://localhost:6173`. L'OTP, lui, n'a besoin d'aucune redirection.
 
 ## Vérifications à rejouer (bundle desktop)
 

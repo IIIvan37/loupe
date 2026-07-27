@@ -69,6 +69,17 @@ export function createAuth(
       }
     },
 
+    async verifyOtp(email: string, code: string): Promise<boolean> {
+      // `type: 'email'` — the 6-digit code path of the same email `signInWithOtp`
+      // sent. No `emailRedirectTo`: this exchanges in place, never navigating.
+      const { error } = await client.auth.verifyOtp({
+        email,
+        token: code,
+        type: 'email'
+      })
+      return !error
+    },
+
     async signOut(): Promise<void> {
       await client.auth.signOut()
     },

@@ -52,8 +52,16 @@ export interface AuthPort {
   currentState(): Promise<AuthState>
   /** Subscribe to sign-in/sign-out; returns an unsubscribe. */
   onChange(listener: (state: AuthState) => void): () => void
-  /** Send a magic-link email (passwordless sign-in). */
+  /** Send the passwordless sign-in email — a one-time code AND a magic link
+   * (the same `signInWithOtp` call backs both `verifyOtp` and the redirect). */
   sendMagicLink(email: string): Promise<void>
+  /**
+   * Verify the one-time code the user typed from that email. No redirect: the
+   * session installs in place, so this is the robust path for a localhost
+   * server (the magic link needs the server still up in the same browser).
+   * Resolves to whether the code signed the user in.
+   */
+  verifyOtp(email: string, code: string): Promise<boolean>
   signOut(): Promise<void>
   /** Redeem a beta invite code for the signed-in user (idempotent server-side). */
   redeemBetaCode(code: string): Promise<RedeemResult>
