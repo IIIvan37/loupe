@@ -12,11 +12,15 @@ Le pipeline sait produire les binaires sans publier de Release :
 ```sh
 gh workflow run release.yml --ref main
 gh run watch                       # attendre la fin
-gh run download <run-id>           # récupère les .zip / .tar.gz par cible
+gh run download <run-id> --dir loupe-bin   # un binaire brut par cible
 ```
 
-Cibles produites : `x86_64-pc-windows-msvc` (.zip), `x86_64-unknown-linux-gnu`
-(.tar.gz), `aarch64-apple-darwin` (.tar.gz).
+Un dispatch livre le **binaire brut** (pas d'archive) : `gh run download`
+dépose `loupe-<cible>/loupe` (ou `loupe.exe`), directement exécutable — pas
+de zip-dans-zip (GitHub emballe déjà tout artefact de run dans un zip au
+téléchargement). Les archives de distribution (`.tar.gz`/`.zip`) ne sont
+fabriquées que sur un tag, dans le job `release`. Cibles :
+`x86_64-pc-windows-msvc`, `x86_64-unknown-linux-gnu`, `aarch64-apple-darwin`.
 
 **Note d'architecture** : les VMs de test sont en ARM64, la distribution vise
 le x64. Windows 11 ARM **émule x64 nativement** — le test y est fidèle.

@@ -64,31 +64,17 @@ jobs:
       - name: Build the loupe binary
         shell: bash
         run: ./scripts/build-loupe-binary.sh
-      # A dispatch ref can be a branch (`feat/x`); '/' would make the archive
-      # name a path, so flatten it. Windows gets a real .zip via PowerShell —
-      # `tar` in git-bash is GNU tar, which cannot write zip (it silently
-      # emits an uncompressed tar under the .zip name); unix gets .tar.gz.
-      - name: Package archive (unix)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          mkdir -p dist-release
-          ref="${GITHUB_REF_NAME//\//-}"
-          tar -czf "dist-release/loupe-${ref}-${{ matrix.target }}.tar.gz" \
-            -C target/release loupe
-      - name: Package archive (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path dist-release | Out-Null
-          $ref = "${env:GITHUB_REF_NAME}" -replace '/', '-'
-          $archive = "loupe-$ref-${{ matrix.target }}.zip"
-          Compress-Archive -Path target/release/loupe.exe `
-            -DestinationPath "dist-release/$archive"
+      # Upload the RAW binary, not a pre-made archive: GitHub always wraps an
+      # artifact in one zip on download, so uploading a .zip yields a
+      # confusing zip-in-zip. The distributable .tar.gz/.zip are built once,
+      # on Linux, in the release job — where `tar`/`zip` behave consistently
+      # (git-bash's `tar` is GNU tar and cannot write a real zip).
       - uses: actions/upload-artifact@v7
         with:
           name: loupe-${{ matrix.target }}
-          path: dist-release/*
+          path: |
+            target/release/loupe
+            target/release/loupe.exe
           if-no-files-found: error
 
   release:
@@ -105,28 +91,41 @@ jobs:
       TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
     steps:
       - uses: actions/checkout@v7
+      # No merge-multiple: keep each target's binary in its own dir
+      # (staged/loupe-<target>/loupe[.exe]) so the same `loupe` name from
+      # Linux and macOS does not collide.
       - uses: actions/download-artifact@v7
         with:
-          path: artifacts
-          merge-multiple: true
+          path: staged
+      - name: Package distributable archives
+        run: |
+          mkdir -p dist
+          v="$GITHUB_REF_NAME"
+          tar -czf "dist/loupe-$v-x86_64-unknown-linux-gnu.tar.gz" \
+            -C staged/loupe-x86_64-unknown-linux-gnu loupe
+          tar -czf "dist/loupe-$v-aarch64-apple-darwin.tar.gz" \
+            -C staged/loupe-aarch64-apple-darwin loupe
+          # Info-ZIP `zip` here (Linux) writes a real, cross-platform zip.
+          ( cd staged/loupe-x86_64-pc-windows-msvc \
+            && zip -q "$GITHUB_WORKSPACE/dist/loupe-$v-x86_64-pc-windows-msvc.zip" loupe.exe )
       - name: Checksums
         run: |
-          cd artifacts
+          cd dist
           sha256sum -- * > SHA256SUMS
           cat SHA256SUMS
       - name: Generate Homebrew formula
         run: |
           version="${GITHUB_REF_NAME#v}"
-          sha_of() { sha256sum "artifacts/$1" | cut -d' ' -f1; }
+          sha_of() { sha256sum "dist/$1" | cut -d' ' -f1; }
           sed -e "s/{{VERSION}}/${version}/g" \
               -e "s/{{SHA_DARWIN_ARM64}}/$(sha_of "loupe-${GITHUB_REF_NAME}-aarch64-apple-darwin.tar.gz")/" \
               -e "s/{{SHA_LINUX_X64}}/$(sha_of "loupe-${GITHUB_REF_NAME}-x86_64-unknown-linux-gnu.tar.gz")/" \
-              packaging/homebrew/loupe.rb.tmpl > artifacts/loupe.rb
+              packaging/homebrew/loupe.rb.tmpl > dist/loupe.rb
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" artifacts/* \
+          gh release create "$GITHUB_REF_NAME" dist/* \
             --title "loupe $GITHUB_REF_NAME" \
             --generate-notes
       # Only when the tap secret is configured (fine-grained PAT, contents
@@ -137,7 +136,7 @@ jobs:
         run: |
           git clone "https://x-access-token:${TAP_TOKEN}@github.com/IIIvan37/homebrew-loupe.git" tap
           mkdir -p tap/Formula
-          cp artifacts/loupe.rb tap/Formula/loupe.rb
+          cp dist/loupe.rb tap/Formula/loupe.rb
           cd tap
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
