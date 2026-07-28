@@ -7,10 +7,11 @@ import { useSeparation } from '../separation/use-separation.ts'
 /**
  * The stem playback stack: one engine shared by the mixer (gains + loading) and
  * the transport, the separation flow (its buffers are the stems' only retained
- * PCM — zero-copy export/save), and the mixer. Plus two derived flags:
+ * PCM — zero-copy export/save), and the mixer. Plus one derived flag,
  * `stemsReady` (a separation produced stems — drives the export + what a save
- * persists) and `stemsActive` (the mixer holds any stem — the metronome can
- * join without a separation, so this is NOT the same as `stemsReady`).
+ * persists). Whether the mixer holds any stem is NOT here: it is the mixer's own
+ * `stemsActiveAtom` (ADR 0010), read by whoever needs it — the metronome can
+ * join the mix without a separation, so it was never the same fact anyway.
  */
 export function useStemStack(
   stemEngine: StemPlaybackEngine | undefined,
@@ -26,7 +27,6 @@ export function useStemStack(
     stemPlayback,
     separation,
     mixer,
-    stemsReady: separation.state.status === 'ready',
-    stemsActive: mixer.channels.length > 0
+    stemsReady: separation.state.status === 'ready'
   }
 }

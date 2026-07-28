@@ -16,6 +16,7 @@ import {
   type TrackMetadataReader,
   type TransportState
 } from '@app/core'
+import { useAtomValue } from 'jotai'
 import { useMemo, useRef, useState } from 'react'
 import { createMusicMetadataReader } from '../../audio/music-metadata-reader.ts'
 import { createWebAudioDecoder } from '../../audio/web-audio-decoder.ts'
@@ -26,6 +27,7 @@ import {
   type SpeedTrainer,
   useSpeedTrainer
 } from '../loops/use-speed-trainer.ts'
+import { stemsActiveAtom } from '../mixer/mixer-atoms.ts'
 import { useLoop } from './use-loop.ts'
 import { useTransportEngines } from './use-transport-engines.ts'
 
@@ -98,17 +100,18 @@ export interface Player {
  * hook wires them to the import flow and the tempo/pitch controls. The decoder
  * and engines default to the real Web Audio adapters and are injected in tests.
  *
- * Unified transport: once `stemsActive` is set (the mixer has stems), the same
- * play/pause/seek/tempo/pitch controls drive the multitrack `StemPlaybackEngine`
- * instead of the single-track one — one playhead, one loop, for the whole mix.
+ * Unified transport: once the mixer holds stems, the same play/pause/seek/
+ * tempo/pitch controls drive the multitrack `StemPlaybackEngine` instead of the
+ * single-track one — one playhead, one loop, for the whole mix. That fact is
+ * read from the mixer's own atom (ADR 0010), not handed down by the shell.
  */
 export function usePlayer(
   decoder?: AudioFileDecoder,
   engine?: PlaybackEngine,
   metadataReader?: TrackMetadataReader,
-  stemEngine?: StemPlaybackEngine,
-  stemsActive = false
+  stemEngine?: StemPlaybackEngine
 ): Player {
+  const stemsActive = useAtomValue(stemsActiveAtom)
   const audioDecoder = useMemo(
     () => decoder ?? createWebAudioDecoder(),
     [decoder]

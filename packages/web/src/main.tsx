@@ -1,4 +1,5 @@
 import { I18nProvider } from '@lingui/react'
+import { Provider as AtomStoreProvider } from 'jotai'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@fontsource/inter/400.css'
@@ -21,7 +22,11 @@ if (!container) {
 createRoot(container).render(
   <StrictMode>
     <I18nProvider i18n={i18n}>
-      <WorkstationShell />
+      {/* The app's one atom store, explicit rather than Jotai's implicit
+          default — the boundary tests recreate per case (ADR 0010). */}
+      <AtomStoreProvider>
+        <WorkstationShell />
+      </AtomStoreProvider>
     </I18nProvider>
   </StrictMode>
 )

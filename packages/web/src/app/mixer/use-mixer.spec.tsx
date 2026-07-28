@@ -2,13 +2,21 @@
 import {
   type StemFilter,
   type MixerState,
+  type StemPlaybackEngine,
   type SeparatedStem,
   type StemSet,
   type StemSource
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { Provider } from 'jotai'
 import { vi } from 'vitest'
 import { type Mixer, useMixer } from './use-mixer.ts'
+
+/** The mixer state lives in module-level atoms, so it is shared by construction:
+ * mount under a Provider (it creates a store per mount) or the previous test's
+ * mix is still loaded in the next one. */
+const mountMixer = (engine: StemPlaybackEngine) =>
+  renderHook(() => useMixer(engine), { wrapper: Provider })
 
 // Local oracle for the dB→amplitude law (10^(db/20)); the core keeps
 // `dbToAmplitude` internal to its mixer domain (no production consumer).
@@ -53,7 +61,7 @@ function mountLoaded(
   withStems: StemSet = stems,
   withSources: readonly SeparatedStem[] = sources
 ): { result: { current: Mixer } } {
-  const hook = renderHook(() => useMixer(engine))
+  const hook = mountMixer(engine)
   act(() => {
     hook.result.current.load(withStems, withSources)
   })
@@ -269,7 +277,7 @@ describe('useMixer', () => {
 
   it('restores a persisted mixer and pushes its effective gains to the engine', () => {
     const engine = fakeEngine()
-    const hook = renderHook(() => useMixer(engine))
+    const hook = mountMixer(engine)
     const saved: MixerState = [
       { id: 'voix', gainDb: -6, muted: false, soloed: false },
       { id: 'basse', gainDb: 0, muted: true, soloed: false }
