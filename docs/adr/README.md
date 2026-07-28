@@ -56,3 +56,4 @@ vrais fichiers.
 | [0007](0007-offload-calcul-audio-modal.md) | Le calcul audio lourd part sur Modal ; le cloud calcule et oublie | accepté |
 | [0008](0008-copy-ui-lingui-ids-semantiques.md) | La copy UI passe par Lingui : ids sémantiques, catalogue source français, infinitifs | accepté |
 | [0009](0009-time-stretch-soundtouch.md) | Time-stretch via SoundTouch (MPL-2.0), pas Rubber Band (GPL) | accepté |
+| [0010](0010-etat-de-vue-atomes-par-feature.md) | L'état de vue appartient à sa feature ; le shell compose, il ne détient pas | accepté |
