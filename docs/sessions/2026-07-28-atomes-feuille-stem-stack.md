@@ -24,11 +24,23 @@
   ne perd que `stemsActive`, `stemsReady` reste une prop.
 - L'état de `useSeparation` n'a pas bougé (async, refs de run, ports injectés) —
   c'est la feuille suivante logique, et la plus chère.
-- Les **trois invariants `check:design`** de l'ADR (pas de prop
-  `ReturnType<typeof useX>`, plafond de champs par `*Props`, plafond de hooks
-  par composant) ne sont pas encore posés.
-- Les 29 props `ReturnType<typeof useX>` et les 35 champs de `ShellMainProps`
-  sont intacts : cette feuille valide la forme, elle ne dégraisse pas le shell.
+- Les 29 props `ReturnType<typeof useX>` (26 après cette feuille) et les 35
+  champs de `ShellMainProps` sont intacts : cette feuille valide la forme et
+  pose les cliquets, elle ne dégraisse pas encore le shell.
+
+## Ajout — les trois cliquets de composition (même PR)
+
+- **`composition-invariants.spec.ts`** grave les trois invariants de l'ADR en
+  fitness function AST (le pattern « ratchet des docs » que l'ADR cite,
+  cf. `docs/docs.spec.ts`) : plafonds **≤ 26** props `ReturnType<typeof useX>`
+  (cible 0), **≤ 35** champs sur le plus large `*Props` (`ShellMainProps`),
+  **≤ 25** hooks dans le composant le plus chargé (`WorkstationShell`).
+- Seuils calés sur l'existant mesuré (AST, TypeScript compiler API), destinés
+  à **descendre d'un cran par feuille** ; jamais monter. La spec vit dans les
+  globs vitest → bloquante dans la gate, exclue de la couverture (`**/*.spec`).
+- Ce que Sheriff et react-doctor ne voient pas : un `ReturnType<typeof useX>`
+  entre deux dossiers de `web` est un import légal ; le cliquet est le seul à
+  compter le couplage par sac de hook.
 
 ## Decisions
 
@@ -68,10 +80,12 @@
 
 ## State to resume from
 
-- **Single next action** : PR #287 ouverte sur la branche — une fois mergée,
-  poser les **trois invariants `check:design`** (cliquets au-dessus de
-  l'existant) avant les feuilles suivantes, pour que chaque migration fasse
-  descendre un seuil mesuré.
+- **Single next action** : les cliquets sont posés (même PR #287). Prochaine
+  **feuille Mikado** — le hook de coordination suivant. Candidat le moins cher
+  après le mixer : `use-resume-gated-analysis` (58 lignes, dérive tempo +
+  séparation) ou `use-stem-stack` complété (`stemsReady` encore threadé).
+  Chaque feuille doit faire **descendre au moins un des trois cliquets**
+  (`composition-invariants.spec.ts`) dans sa propre PR — c'est le contrat.
 - Gotchas :
   - Toute spec montant `useMixer` (ou le shell) doit être sous un `Provider` :
     sans lui le mix du test précédent est encore chargé. Les specs actuelles ne
