@@ -79,8 +79,8 @@ Ubuntu ARM64 n'exécute un binaire x64 que via `qemu-user-static`
 
 | Plateforme | Date | Verdict | Notes |
 | --- | --- | --- | --- |
-| Windows 11 ARM (x64 ému.) | 2026-07-28 | 🟡 | démarrage + auth OTP OK ; reste import/séparation/projet/relance |
-| Ubuntu ARM64 (qemu x64) | | ⬜ | |
+| Windows 11 ARM (x64 ému.) | 2026-07-28 | ✅ | parcours complet OK — démarrage, auth OTP, import YouTube, séparation Modal, projet, relance |
+| Ubuntu ARM64 (qemu x64) | | ⬜ | non rejoué en session ; test x64/qemu faible, cible `aarch64-linux` native différée |
 
 > Un bug de portabilité trouvé ici = un correctif + un test de
 > non-régression (le job CI `Rust Windows` couvre déjà les chemins/FS des

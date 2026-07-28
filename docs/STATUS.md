@@ -18,20 +18,20 @@ AJ→AQ tous livrés ; dernier : AQ vocabulaire/copy + garde-fou
 ([plan archivé](archive/template-sync-plan.md), #250–#263, récoltes
 starter#27/#33). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
 ≈ transport ; `timecode` attend un second consommateur.
-**D1–D5 clos** (PRs #275–#281) : route 1 (wheel `loupe`, port 6173), crates
+**D1–D6 clos** (PRs #275–#285) : route 1 (wheel `loupe`), crates
 `loupe-download` + `loupe-server` (binaire axum + rust-embed, `/download`,
-`/projects` + `/gc` sur `~/.loupe` → zéro migration), **pipeline de
-release** (tag `vX.Y.Z` → binaire 3 OS + checksums + formule Homebrew ;
-`--version` ; notification de version). **Le binaire route 2 sert l'atelier
-complet et se release en un tag.** **D6 outillage livré** (#282 : build
-`workflow_dispatch` sans release, job CI `Rust Windows`, checklist
-`docs/d6-platform-validation.md`, audit portabilité OK). **Prochain : run
-VM réel** (Windows 11 ARM émulé x64 + Ubuntu ARM64 qemu — yt-dlp, chemins,
-SmartScreen ; tap Homebrew à créer avant la 1re release, cf.
-`docs/RELEASING.md`). Lot store Jotai en attente, checkpoint avant chaque
-slice UI.
+`/projects` + `/gc` sur `~/.loupe` → zéro migration), **pipeline de release**
+(tag `vX.Y.Z` → binaire 3 OS + checksums + formule Homebrew ; `--version` ;
+notif de version), **validation VM** (job CI `Rust Windows` ; 3 bugs levés :
+zip Windows #283, zip-dans-zip #284, auth OTP + `127.0.0.1` #285). **Parcours
+complet OK sur Windows 11 ARM (2026-07-28)** — auth par code OTP (template
+Supabase posé), plus de dépendance à la redirection localhost. **Prochain :
+1re release réelle** — tap `IIIvan37/homebrew-loupe` + secret
+`HOMEBREW_TAP_TOKEN` (cf. `docs/RELEASING.md`), bump version crate, tag.
+Ubuntu ARM64 natif différé. Lot store Jotai en attente, checkpoint UI.
 
-**Plans actifs** : [distribution-plan.md](distribution-plan.md) (D6 restant).
+**Plans actifs** : [distribution-plan.md](distribution-plan.md) (D1–D6 clos ;
+reste la 1re release taguée + le tap).
 **Garde-fous beta restants** (cf. [beta-checklist.md](beta-checklist.md)) :
 plafond Modal (mesuré ~3,67 $/mois), SMTP custom câblé (Resend), re-seed des
 codes legacy, PKCE en bundle à rejouer.
