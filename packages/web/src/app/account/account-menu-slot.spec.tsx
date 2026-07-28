@@ -22,6 +22,7 @@ function fakeAuth(
     onChange: () => () => {},
     accountStatus: async () => over.status,
     sendMagicLink: vi.fn(async () => {}),
+    verifyOtp: vi.fn(async () => true),
     redeemBetaCode: vi.fn(async () => 'redeemed' as const),
     signOut: vi.fn(async () => {}),
     mintToken: async () => ({ ok: false as const, reason: 'error' as const })

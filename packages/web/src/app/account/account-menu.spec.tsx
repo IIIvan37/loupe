@@ -24,9 +24,11 @@ function fakeAuth(
     state?: AuthState
     status?: AccountStatus
     redeem?: RedeemResult
+    verify?: boolean
   } = {}
 ): AuthPort & {
   sendMagicLink: ReturnType<typeof vi.fn>
+  verifyOtp: ReturnType<typeof vi.fn>
   redeemBetaCode: ReturnType<typeof vi.fn>
   signOut: ReturnType<typeof vi.fn>
   /** Push a live auth change to the hook's `onChange` listener (sign-in). */
@@ -43,6 +45,7 @@ function fakeAuth(
     },
     accountStatus: async () => over.status,
     sendMagicLink: vi.fn(async () => {}),
+    verifyOtp: vi.fn(async () => over.verify ?? true),
     redeemBetaCode: vi.fn(async () => over.redeem ?? 'redeemed'),
     signOut: vi.fn(async () => {}),
     mintToken: async () => ({ ok: false as const, reason: 'error' as const }),
@@ -91,8 +94,55 @@ describe('AccountMenu', () => {
     expect(auth.sendMagicLink).toHaveBeenCalledWith('ivan@loupe.test')
     expect(
       await screen.findByText(
-        i18n._('account.link-sent-to', { sentTo: 'ivan@loupe.test' })
+        i18n._('account.code-sent-to', { sentTo: 'ivan@loupe.test' })
       )
+    ).toBeInTheDocument()
+  })
+
+  it('sent state: verifies the typed OTP code in place (no redirect)', async () => {
+    const user = userEvent.setup()
+    const auth = fakeAuth()
+    renderMenu(auth)
+
+    await user.type(
+      await screen.findByLabelText(i18n._('account.email')),
+      'ivan@loupe.test'
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('account.send-link') })
+    )
+
+    await user.type(
+      await screen.findByLabelText(i18n._('account.otp-code')),
+      '123456'
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('account.otp-submit') })
+    )
+    expect(auth.verifyOtp).toHaveBeenCalledWith('ivan@loupe.test', '123456')
+  })
+
+  it('sent state: a rejected code shows the retry error', async () => {
+    const user = userEvent.setup()
+    const auth = fakeAuth({ verify: false })
+    renderMenu(auth)
+
+    await user.type(
+      await screen.findByLabelText(i18n._('account.email')),
+      'ivan@loupe.test'
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('account.send-link') })
+    )
+    await user.type(
+      await screen.findByLabelText(i18n._('account.otp-code')),
+      '000000'
+    )
+    await user.click(
+      screen.getByRole('button', { name: i18n._('account.otp-submit') })
+    )
+    expect(
+      await screen.findByText(i18n._('account.otp-error'))
     ).toBeInTheDocument()
   })
 

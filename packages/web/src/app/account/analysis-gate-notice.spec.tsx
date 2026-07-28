@@ -18,6 +18,7 @@ function fakeAuth(over: { state?: AuthState; status?: AccountStatus }): AuthPort
     onChange: () => () => {},
     accountStatus: async () => over.status,
     sendMagicLink: async () => {},
+    verifyOtp: async () => true,
     signOut: async () => {},
     redeemBetaCode: async () => 'redeemed',
     mintToken: async () => ({ ok: false, reason: 'error' })

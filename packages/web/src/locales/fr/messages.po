@@ -14,27 +14,37 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:237
+#: src/app/account/account-menu.tsx:271
 msgid "account.beta-code"
 msgstr "Code bêta"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:181
+#: src/app/account/account-menu.tsx:215
 msgid "account.change-email"
 msgstr "Changer d'adresse"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:255
+#: src/app/account/account-menu.tsx:289
 msgid "account.code-error"
 msgstr "Vérification impossible — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:247
+#: src/app/account/account-menu.tsx:281
 msgid "account.code-invalid"
 msgstr "Code invalide, déjà utilisé, ou trop d'essais — réessayer plus tard."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:190
+#: src/app/account/account-menu.tsx:157
+msgid "account.code-sent-spam"
+msgstr "Saisir le code reçu par email — penser aux spams."
+
+#. js-lingui-explicit-id
+#: src/app/account/account-menu.tsx:152
+msgid "account.code-sent-to"
+msgstr "Code de connexion envoyé à {sentTo}."
+
+#. js-lingui-explicit-id
+#: src/app/account/account-menu.tsx:224
 msgid "account.email"
 msgstr "Email"
 
@@ -59,29 +69,34 @@ msgid "account.gate-sign-in"
 msgstr "Se connecter pour lancer une analyse."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:202
+#: src/app/account/account-menu.tsx:236
 msgid "account.link-error"
 msgstr "Envoi impossible — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:153
-msgid "account.link-sent-spam"
-msgstr "Ouvrir l'email pour continuer — penser aux spams."
-
-#. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:148
-msgid "account.link-sent-to"
-msgstr "Lien de connexion envoyé à {sentTo}."
-
-#. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:121
+#: src/app/account/account-menu.tsx:125
 msgid "account.menu"
 msgstr "Compte"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:268
+#: src/app/account/account-menu.tsx:302
 msgid "account.no-code-request"
 msgstr "Pas de code ? Demander un accès"
+
+#. js-lingui-explicit-id
+#: src/app/account/account-menu.tsx:162
+msgid "account.otp-code"
+msgstr "Code reçu par email"
+
+#. js-lingui-explicit-id
+#: src/app/account/account-menu.tsx:174
+msgid "account.otp-error"
+msgstr "Code incorrect ou expiré — réessayer."
+
+#. js-lingui-explicit-id
+#: src/app/account/account-menu.tsx:189
+msgid "account.otp-submit"
+msgstr "Se connecter"
 
 #. js-lingui-explicit-id
 #: src/app/account/account-menu.tsx:50
@@ -89,37 +104,37 @@ msgid "account.quota-this-month"
 msgstr "Analyses ce mois : {used}/{quota}"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:265
+#: src/app/account/account-menu.tsx:299
 msgid "account.redeem"
 msgstr "Valider le code"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:173
+#: src/app/account/account-menu.tsx:207
 msgid "account.resend"
 msgstr "Renvoyer"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:169
+#: src/app/account/account-menu.tsx:203
 msgid "account.resend-in"
 msgstr "Renvoyer dans {secondsLeft} s"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:212
+#: src/app/account/account-menu.tsx:246
 msgid "account.send-link"
 msgstr "Recevoir un lien"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:114
+#: src/app/account/account-menu.tsx:118
 msgid "account.sign-in"
 msgstr "Se connecter"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:141
+#: src/app/account/account-menu.tsx:145
 msgid "account.sign-in-title"
 msgstr "Se connecter pour analyser"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:280
+#: src/app/account/account-menu.tsx:314
 msgid "account.sign-out"
 msgstr "Se déconnecter"
 
@@ -582,7 +597,7 @@ msgid "drop.overlay"
 msgstr "Déposer le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:387
+#: src/app/workstation-shell/workstation-shell.tsx:389
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
@@ -1601,7 +1616,7 @@ msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:267
+#: src/app/workstation-shell/workstation-shell.tsx:269
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 

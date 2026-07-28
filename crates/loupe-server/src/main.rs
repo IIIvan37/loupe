@@ -148,7 +148,11 @@ async fn main() -> ExitCode {
     .local_addr()
     .map(|addr| addr.port())
     .unwrap_or(args.port);
-  let url = format!("http://localhost:{port}");
+  // 127.0.0.1, not `localhost`: the listener binds IPv4 only, and on Windows
+  // `localhost` often resolves to IPv6 `::1` first — a fresh navigation there
+  // (e.g. an auth redirect) hits nothing and is refused. The literal keeps the
+  // opened URL, the bind, and every later same-origin request on one address.
+  let url = format!("http://127.0.0.1:{port}");
   println!("loupe : atelier sur {url} (Ctrl-C pour quitter)");
   if !args.no_browser {
     spawn_browser_opener(url);

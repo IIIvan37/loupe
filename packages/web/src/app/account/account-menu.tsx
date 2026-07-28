@@ -66,15 +66,19 @@ export function AccountMenu({
     state,
     status,
     linkPhase,
+    verifyPhase,
     redeemPhase,
     sendMagicLink,
+    verifyCode,
     resetLink,
     signOut,
     redeemCode
   } = useAuth(auth)
   const [email, setEmail] = useState('')
+  const [otpCode, setOtpCode] = useState('')
   const [code, setCode] = useState('')
   const emailId = useId()
+  const otpId = useId()
   const codeId = useId()
   const cooldown = useCountdown()
 
@@ -132,7 +136,13 @@ export function AccountMenu({
                 className={styles.section}
                 onSubmit={(e) => {
                   e.preventDefault()
-                  if (email.trim() !== '') {
+                  // In the sent state the visible field is the OTP code, so
+                  // Enter verifies it rather than re-sending the email.
+                  if (linkPhase === 'sent') {
+                    if (sentTo !== '' && otpCode.trim() !== '') {
+                      verifyCode(sentTo, otpCode.trim())
+                    }
+                  } else if (email.trim() !== '') {
                     send(email.trim())
                   }
                 }}
@@ -145,15 +155,45 @@ export function AccountMenu({
                 {linkPhase === 'sent' ? (
                   <div className={styles.sent}>
                     <p className={styles.hint}>
-                      <Trans id="account.link-sent-to">
-                        Lien de connexion envoyé à {sentTo}.
+                      <Trans id="account.code-sent-to">
+                        Code de connexion envoyé à {sentTo}.
                       </Trans>
                     </p>
                     <p className={styles.hint}>
-                      <Trans id="account.link-sent-spam">
-                        Ouvrir l'email pour continuer — penser aux spams.
+                      <Trans id="account.code-sent-spam">
+                        Saisir le code reçu par email — penser aux spams.
                       </Trans>
                     </p>
+                    <label className={styles.label} htmlFor={otpId}>
+                      <Trans id="account.otp-code">Code reçu par email</Trans>
+                    </label>
+                    <input
+                      id={otpId}
+                      className={styles.input}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      value={otpCode}
+                      onChange={(e) => setOtpCode(e.target.value)}
+                    />
+                    {verifyPhase === 'error' && (
+                      <p className={styles.error} role="alert">
+                        <Trans id="account.otp-error">
+                          Code incorrect ou expiré — réessayer.
+                        </Trans>
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      className={styles.submit}
+                      disabled={verifyPhase === 'verifying'}
+                      onClick={() => {
+                        if (sentTo !== '' && otpCode.trim() !== '') {
+                          verifyCode(sentTo, otpCode.trim())
+                        }
+                      }}
+                    >
+                      <Trans id="account.otp-submit">Se connecter</Trans>
+                    </button>
                     <div className={styles.sentActions}>
                       <button
                         type="button"

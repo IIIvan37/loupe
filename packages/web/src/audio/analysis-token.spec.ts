@@ -15,6 +15,7 @@ function fakeAuth(result: MintResult): AuthPort & { mints: number } {
     currentState: async () => ({ status: 'signed-out' as const }),
     onChange: () => () => {},
     sendMagicLink: async () => {},
+    verifyOtp: async () => true,
     signOut: async () => {},
     redeemBetaCode: async () => 'redeemed' as const,
     accountStatus: async () => undefined,

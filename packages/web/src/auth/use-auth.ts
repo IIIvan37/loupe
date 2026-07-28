@@ -9,6 +9,9 @@ import type {
 
 /** Where the magic-link step is: idle → sending → sent (check your email) / error. */
 export type LinkPhase = 'idle' | 'sending' | 'sent' | 'error'
+/** Where the OTP-code step is: idle → verifying → error (success flips the
+ * session to signed-in via `onChange`, so there is no 'done' phase). */
+export type VerifyPhase = 'idle' | 'verifying' | 'error'
 /** Where a code redemption is: idle → redeeming → its outcome. */
 export type RedeemPhase = 'idle' | 'redeeming' | RedeemResult
 
@@ -17,8 +20,11 @@ export interface UseAuth {
   /** Membership + quota, once signed in (undefined while signed out / loading). */
   readonly status: AccountStatus | undefined
   readonly linkPhase: LinkPhase
+  readonly verifyPhase: VerifyPhase
   readonly redeemPhase: RedeemPhase
   readonly sendMagicLink: (email: string) => void
+  /** Verify the OTP code the user typed; success signs them in via `onChange`. */
+  readonly verifyCode: (email: string, code: string) => void
   /** Return the magic-link step to idle — « Changer d'adresse » from the sent
    * state, showing the email field again (AK.1). */
   readonly resetLink: () => void
@@ -37,6 +43,7 @@ export function useAuth(auth: AuthPort): UseAuth {
   const [state, setState] = useState<AuthState>({ status: 'signed-out' })
   const [status, setStatus] = useState<AccountStatus | undefined>()
   const [linkPhase, setLinkPhase] = useState<LinkPhase>('idle')
+  const [verifyPhase, setVerifyPhase] = useState<VerifyPhase>('idle')
   const [redeemPhase, setRedeemPhase] = useState<RedeemPhase>('idle')
 
   // Read the persisted session on mount, then follow sign-in/out live.
@@ -50,6 +57,7 @@ export function useAuth(auth: AuthPort): UseAuth {
     const unsubscribe = auth.onChange((s) => {
       setState(s)
       setLinkPhase('idle')
+      setVerifyPhase('idle')
     })
     return () => {
       live = false
@@ -89,6 +97,7 @@ export function useAuth(auth: AuthPort): UseAuth {
   const sendMagicLink = useCallback(
     (email: string) => {
       setLinkPhase('sending')
+      setVerifyPhase('idle')
       auth.sendMagicLink(email).then(
         () => setLinkPhase('sent'),
         () => setLinkPhase('error')
@@ -97,7 +106,23 @@ export function useAuth(auth: AuthPort): UseAuth {
     [auth]
   )
 
-  const resetLink = useCallback(() => setLinkPhase('idle'), [])
+  const verifyCode = useCallback(
+    (email: string, code: string) => {
+      setVerifyPhase('verifying')
+      // Success flips the session to signed-in through `onChange` (which also
+      // clears this phase); only a failed code needs surfacing here.
+      auth.verifyOtp(email, code).then(
+        (ok) => setVerifyPhase(ok ? 'idle' : 'error'),
+        () => setVerifyPhase('error')
+      )
+    },
+    [auth]
+  )
+
+  const resetLink = useCallback(() => {
+    setLinkPhase('idle')
+    setVerifyPhase('idle')
+  }, [])
 
   const signOut = useCallback(() => {
     void auth.signOut().then(() => clearAnalysisToken())
@@ -120,8 +145,10 @@ export function useAuth(auth: AuthPort): UseAuth {
     state,
     status,
     linkPhase,
+    verifyPhase,
     redeemPhase,
     sendMagicLink,
+    verifyCode,
     resetLink,
     signOut,
     redeemCode
