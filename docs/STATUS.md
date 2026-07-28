@@ -25,7 +25,7 @@ cf. `docs/RELEASING.md` ; Ubuntu ARM64 natif différé). **Chantier parallèle �
 la feature possède son état, le shell compose. **Feuille 1** (mixer en atomes +
 3 cliquets, PR #287), **feuille 2** (tempo : `tempoAnalysisAtom` +
 `tempoGateReasonAtom` ; `use-separate-and-load` + `use-resume-gated-analysis`
-délestés de leur prop `tempo` ; cliquet `ReturnType` **26 → 24**, PR #NN).
+délestés de leur prop `tempo` ; cliquet `ReturnType` **26 → 24**, PR #290).
 **Prochaine feuille** : champ de vue `useTempo` suivant ou `useSeparation` ;
 chaque feuille descend ≥1 cliquet (`composition-invariants.spec.ts`) dans sa
 PR. Checkpoint UI avant chaque slice.

@@ -2,7 +2,7 @@
 
 ## Done
 
-- **Deuxième feuille Mikado** (branche `feat/atomes-feuille-tempo`, PR #NN) :
+- **Deuxième feuille Mikado** (branche `feat/atomes-feuille-tempo`, PR #290) :
   `app/tempo/tempo-atoms.ts` créé — deux atomes primitifs `tempoAnalysisAtom` et
   `tempoGateReasonAtom`, les seuls champs de vue de `useTempo` qu'un hook de
   coordination lit **seul**. Zéro logique dans le fichier : les transitions
