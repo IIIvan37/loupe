@@ -1,7 +1,6 @@
 import {
   type ChannelGain,
   effectiveGains,
-  emptyMixer,
   type MixerAction,
   type MixerState,
   mixerReducer,
@@ -11,7 +10,9 @@ import {
   type StemSet,
   type StemTrack
 } from '@app/core'
-import { useMemo, useReducer, useState } from 'react'
+import { useAtom } from 'jotai'
+import { useMemo } from 'react'
+import { mixableAtom, mixerStateAtom, stemFiltersAtom } from './mixer-atoms.ts'
 
 /** One mixer strip: the stem to display + its live controls and fading level. */
 export interface MixerChannelView {
@@ -79,15 +80,11 @@ export interface Mixer {
  * gain (clamped) is each lane's opacity.
  */
 export function useMixer(engine: StemPlaybackEngine): Mixer {
-  const [state, dispatch] = useReducer(mixerReducer, emptyMixer)
-  // The stems being mixed (present + with PCM), kept for the channel views —
-  // display tracks only, never the PCM: that lives once, in the engine.
-  const [mixable, setMixable] = useState<readonly StemTrack[]>([])
-  // Per-stem tone filters — a listening aid, session-only: reset with every
-  // fresh mix and NEVER part of MixerState (what a save persists).
-  const [filters, setFilters] = useState<Readonly<Record<string, StemFilter>>>(
-    {}
-  )
+  // The state itself lives in the feature's atoms (ADR 0010); the hook keeps
+  // what only it can do — driving the playback engine alongside each change.
+  const [state, dispatch] = useAtom(mixerStateAtom)
+  const [mixable, setMixable] = useAtom(mixableAtom)
+  const [filters, setFilters] = useAtom(stemFiltersAtom)
 
   // Pair each present stem with its PCM, hand the pairs to the gain graph and
   // adopt the display tracks. Both `load` and `restore` start here; only the

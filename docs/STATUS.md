@@ -13,10 +13,8 @@ local + navigateur** ([distribution-plan.md](distribution-plan.md), lots
 D1–D6 ; motifs : multi-OS, yt-dlp local, zéro signature, un moteur web). Le
 shell **Tauri passe en sommeil** (canal signé réactivable, CI conservée).
 **Roadmap v7 soldée** ([archivée](archive/roadmap-excellence-7.md), Lots
-AJ→AQ tous livrés ; dernier : AQ vocabulaire/copy + garde-fou
-`copy-lexicon.spec.ts`, PR #265). **Lot TS clos**
-([plan archivé](archive/template-sync-plan.md), #250–#263, récoltes
-starter#27/#33). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
+AJ→AQ) ; **Lot TS clos** ([archivé](archive/template-sync-plan.md),
+#250–#263). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
 ≈ transport ; `timecode` attend un second consommateur.
 **D1–D6 clos** (PRs #275–#285) : route 1 (wheel `loupe`), crates
 `loupe-download` + `loupe-server` (binaire axum + rust-embed, `/download`,
@@ -24,11 +22,13 @@ starter#27/#33). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
 (tag `vX.Y.Z` → binaire 3 OS + checksums + formule Homebrew ; `--version` ;
 notif de version), **validation VM** (job CI `Rust Windows` ; 3 bugs levés :
 zip Windows #283, zip-dans-zip #284, auth OTP + `127.0.0.1` #285). **Parcours
-complet OK sur Windows 11 ARM (2026-07-28)** — auth par code OTP (template
-Supabase posé), plus de dépendance à la redirection localhost. **Prochain :
-1re release réelle** — tap `IIIvan37/homebrew-loupe` + secret
-`HOMEBREW_TAP_TOKEN` (cf. `docs/RELEASING.md`), bump version crate, tag.
-Ubuntu ARM64 natif différé. Lot store Jotai en attente, checkpoint UI.
+complet OK sur Windows 11 ARM (2026-07-28)** — auth par code OTP. **Prochain
+distribution : 1re release taguée** (tap + secret `HOMEBREW_TAP_TOKEN`,
+cf. `docs/RELEASING.md` ; Ubuntu ARM64 natif différé). **Chantier parallèle —
+état de vue** ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md), #286) :
+la feature possède son état, le shell compose ; **feuille 1 (mixer en atomes
+Jotai) + 3 cliquets `check:design` livrés (PR #287)** ; feuille Mikado
+suivante ensuite. Checkpoint UI avant chaque slice.
 
 **Plans actifs** : [distribution-plan.md](distribution-plan.md) (D1–D6 clos ;
 reste la 1re release taguée + le tap).

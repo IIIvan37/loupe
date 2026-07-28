@@ -14,6 +14,7 @@ import type {
 import { SeparationError } from '@app/core'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
+import { Provider } from 'jotai'
 import { afterEach, beforeAll, beforeEach, vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
@@ -221,7 +222,16 @@ export function renderShell(
       trackSource={{ fetch: () => new Promise(() => {}) }}
       {...overrides}
     />,
-    { wrapper: I18nTestingProvider }
+    {
+      // Its own atom store per render (Jotai's Provider creates one per mount)
+      // — the features' atoms are module-level, so without it the previous
+      // test's mix is still loaded in the next one.
+      wrapper: ({ children }) => (
+        <I18nTestingProvider>
+          <Provider>{children}</Provider>
+        </I18nTestingProvider>
+      )
+    }
   )
   return { engine, stemEngine, user, ...utils }
 }

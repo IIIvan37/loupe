@@ -163,15 +163,11 @@ export function WorkstationShell({
 }: WorkstationShellProps) {
   const { t } = useLingui()
   const { toaster, notifySuccess } = useToaster()
-  const { stemPlayback, separation, mixer, stemsReady, stemsActive } =
-    useStemStack(stemEngine, separator)
-  const player = usePlayer(
-    decoder,
-    engine,
-    metadataReader,
-    stemPlayback,
-    stemsActive
+  const { stemPlayback, separation, mixer, stemsReady } = useStemStack(
+    stemEngine,
+    separator
   )
+  const player = usePlayer(decoder, engine, metadataReader, stemPlayback)
   const {
     importState,
     loadedAudio,
