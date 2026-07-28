@@ -13,6 +13,7 @@ import {
   type TempoDetectionErrorCode,
   type TempoDetector
 } from '@app/core'
+import { useAtom } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   type EnsureTokenResult,
@@ -21,6 +22,7 @@ import {
 } from '../../audio/analysis-token.ts'
 import { createTempoDetector } from '../../audio/create-tempo-detector.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
+import { tempoAnalysisAtom, tempoGateReasonAtom } from './tempo-atoms.ts'
 
 /** How far the felt tempo may be nudged from the detection: ±2 octaves. */
 const MAX_OCTAVE_SHIFT = 2
@@ -133,13 +135,15 @@ export function useTempo(
   gate: () => Promise<EnsureTokenResult> = ensureAnalysisToken
 ): Tempo {
   const engine = useMemo(() => detector ?? createTempoDetector(), [detector])
-  const [analysis, setAnalysis] = useState<TempoAnalysis>()
+  // Owned by the feature (ADR 0010): these two fields are read cross-feature on
+  // their own, so they live in atoms; the rest stays local until pulled out.
+  const [analysis, setAnalysis] = useAtom(tempoAnalysisAtom)
+  const [gateReason, setGateReason] = useAtom(tempoGateReasonAtom)
   const [octaveShift, setOctaveShift] = useState(0)
   const [manual, setManual] = useState<ManualTempo>()
   const [detecting, setDetecting] = useState(false)
   const [cancelled, setCancelled] = useState(false)
   const [error, setError] = useState<TempoDetectionErrorCode>()
-  const [gateReason, setGateReason] = useState<MintFailureReason>()
   const runIdRef = useRef(0)
   // The in-flight run's abort controller: a superseded run must release the
   // server's analysis slot, not just have its late result dropped.

@@ -194,7 +194,7 @@ export function WorkstationShell({
   const tempo = useTempo(tempoDetector)
   const metronome = useMetronome({ mixer })
   // Separate the loaded track and wire the stems (+ metronome) into the mixer.
-  const separateAndLoad = useSeparateAndLoad({ separation, tempo, mixer, metronome })
+  const separateAndLoad = useSeparateAndLoad({ separation, mixer, metronome })
   useModalWarmup(loadedAudio) // warm the Modal container on import (no-op locally)
   // Chart session + « Détecter les accords » / « Détecter la structure » —
   // the chart↔structure pairing (S.3b) lives in its own hook.
@@ -327,7 +327,6 @@ export function WorkstationShell({
   const resumeGatedAnalysis = useResumeGatedAnalysis({
     structureDetection,
     chordDetection,
-    tempo,
     tempoDetection,
     separation,
     separateAndLoad,

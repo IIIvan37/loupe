@@ -2,14 +2,25 @@
 import type { DecodedAudio, TempoDetector } from '@app/core'
 import { TempoDetectionError } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { getDefaultStore } from 'jotai'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { tempoAnalysisAtom, tempoGateReasonAtom } from './tempo-atoms.ts'
 import { useTempo } from './use-tempo.ts'
 
 // The analysis gate only engages on the offload path (VITE_ANALYSIS_URL set).
 // A developer's .env.local may set it, so pin it OFF for the default cases —
 // their synchronous detector semantics assume the token-less local path. The
 // gate cases opt back in.
-beforeEach(() => vi.stubEnv('VITE_ANALYSIS_URL', ''))
+beforeEach(() => {
+  vi.stubEnv('VITE_ANALYSIS_URL', '')
+  // `analysis` and `gateReason` are feature-owned atoms now (ADR 0010). These
+  // mounts share jotai's default store, so clear the two between tests — the
+  // fresh-per-mount isolation a Provider gives, without threading one through
+  // every heterogeneous mount in this file.
+  const store = getDefaultStore()
+  store.set(tempoAnalysisAtom, undefined)
+  store.set(tempoGateReasonAtom, undefined)
+})
 afterEach(() => vi.unstubAllEnvs())
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
