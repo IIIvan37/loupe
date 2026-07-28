@@ -61,11 +61,25 @@ Ubuntu ARM64 n'exécute un binaire x64 que via `qemu-user-static`
       actionnable + exit 1.
 - [ ] **Ctrl-C** : arrêt propre.
 
+## Trouvailles & correctifs (la validation en VM les a levés)
+
+- **Zip Windows invalide** (#283) : `tar -a` en `shell: bash` sur le runner
+  Windows = GNU tar (git-bash), pas bsdtar → tar déguisé en `.zip`. Fix :
+  `Compress-Archive`.
+- **Zip-dans-zip au download** (#284) : GitHub emballe tout artefact de run.
+  Fix : uploader le **binaire brut**, fabriquer les archives sur Linux.
+- **Auth magic link cassée** (#285) : (a) serveur bind IPv4-only mais ouvrait
+  `localhost` → `::1` refusé sur Windows → ouvre `127.0.0.1` ; (b) le magic
+  link par redirection exige serveur-vivant + même navigateur + même origin +
+  ouvre un onglet → **auth par code OTP** (`verifyOtp`, zéro redirection).
+  Template email Supabase posé (code + lien), cf. `beta-checklist.md`.
+  **Confirmé OK par l'utilisateur sur Windows 11 ARM (2026-07-28).**
+
 ## Résultats
 
 | Plateforme | Date | Verdict | Notes |
 | --- | --- | --- | --- |
-| Windows 11 ARM (x64 ému.) | | ⬜ | |
+| Windows 11 ARM (x64 ému.) | 2026-07-28 | 🟡 | démarrage + auth OTP OK ; reste import/séparation/projet/relance |
 | Ubuntu ARM64 (qemu x64) | | ⬜ | |
 
 > Un bug de portabilité trouvé ici = un correctif + un test de

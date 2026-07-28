@@ -27,19 +27,23 @@
   par l'API brute `POST /dns_zones/{id}/dns_records`.
 - [ ] **Re-seed des codes beta legacy < 32 chars** en prod (runbook U.3 :
   `gen_random_uuid()`, le CHECK d'entropie ne couvre que les nouveaux).
-- [ ] **Template email « Magic Link » avec le code OTP (D6)** : l'auth du
-  shell serveur/navigateur passe par un **code à 6 chiffres** tapé dans
-  l'app (`verifyOtp`), pas par la redirection (fragile sur localhost —
-  serveur-encore-vivant, même navigateur, `localhost`→`::1`). Il faut donc
-  que le mail contienne le token. Dashboard Supabase → Auth → Email
-  Templates → **Magic Link** : ajouter `{{ .Token }}` au corps (garder
-  `{{ .ConfirmationURL }}` pour le repli Tauri deep-link). Sans ça, le mail
-  n'a que le lien et l'utilisateur n'a aucun code à saisir.
-- [ ] **Redirect allowlist `http://127.0.0.1:6173`** (D6) : le binaire ouvre
-  désormais `127.0.0.1` (et non `localhost`, IPv4-only bind). Pour que le
-  **repli** magic-link fonctionne encore, ajouter `http://127.0.0.1:6173` à
-  l'allowlist de redirection Supabase (Auth → URL Configuration), à côté de
-  `http://localhost:6173`. L'OTP, lui, n'a besoin d'aucune redirection.
+- [x] **Template email « Magic Link » avec le code OTP (D6)** — **FAIT ET
+  VÉRIFIÉ (2026-07-28)** : l'auth du shell serveur/navigateur passe par un
+  **code à 6 chiffres** tapé dans l'app (`verifyOtp`), pas par la redirection
+  (fragile sur localhost — serveur-encore-vivant, même navigateur,
+  `localhost`→`::1`). Template posé via l'API Management
+  (`PATCH …/config/auth`, `mailer_templates_magic_link_content` +
+  `mailer_subjects_magic_link`), français branché loupe : code `{{ .Token }}`
+  en avant + dans le **sujet** (visible dans l'aperçu boîte mail), lien
+  `{{ .ConfirmationURL }}` gardé en repli Tauri. **Parcours OTP confirmé OK
+  par l'utilisateur** (code reçu, connexion en place, PR #285). Gotcha :
+  l'API Management est derrière Cloudflare qui **bloque le User-Agent
+  `Python-urllib` (403 code 1010)** — passer par `curl`.
+- [ ] **Redirect allowlist `http://127.0.0.1:6173`** (D6, optionnel) : le
+  binaire ouvre désormais `127.0.0.1` (bind IPv4-only). Pour le **repli**
+  magic-link sur le shell serveur, ajouter `http://127.0.0.1:6173` à
+  l'allowlist de redirection (Auth → URL Configuration). **Pas nécessaire
+  pour l'OTP** (aucune redirection).
 
 ## Vérifications à rejouer (bundle desktop)
 
