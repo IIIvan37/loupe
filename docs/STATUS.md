@@ -24,7 +24,7 @@ cf. `docs/RELEASING.md` ; Ubuntu ARM64 natif différé). **Chantier parallèle �
 état de vue** ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md), #286) :
 la feature possède son état, le shell compose. Feuilles livrées : mixer (PR
 #287), tempo (PR #290, cliquet `ReturnType` 26 → 24), séparation
-(`separationGateReasonAtom`, cliquet **24 → 23**). **Prochaine feuille : la
+(`separationGateReasonAtom`, cliquet **24 → 23**, PR #292). **Prochaine feuille : la
 clé de voûte de l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md)**
 — `AudioSessionProvider` (moteur + ports en contexte, références stables
 uniquement) : les feuilles d'état pur sont épuisées, les 23 props `ReturnType`

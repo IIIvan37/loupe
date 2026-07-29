@@ -2,7 +2,8 @@
 
 ## Done
 
-- **Troisième feuille Mikado** (branche `feat/atomes-feuille-separation-gate`) :
+- **Troisième feuille Mikado** (branche `feat/atomes-feuille-separation-gate`,
+  PR #292) :
   `app/separation/separation-atoms.ts` créé — un atome primitif
   `separationGateReasonAtom`, le seul champ de vue de `useSeparation` qu'un hook
   de coordination lit **seul**. Zéro logique dans le fichier : toutes les
