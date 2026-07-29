@@ -21,10 +21,9 @@
   23 échoue). Contrat de feuille tenu : au moins un cliquet baisse dans la PR.
 - Isolation des tests : `tempo-atoms.spec.tsx` monte `useTempo` + un
   consommateur étranger sur **un** store (deux arbres) pour prouver la lecture
-  croisée sans prop, comme `mixer-atoms.spec.tsx`. `use-tempo.spec.ts` remet les
-  deux atomes du store par défaut à `undefined` en `beforeEach` (les 43 montages
-  y sont hétérogènes, sans helper commun — le reset donne la même isolation que
-  le `Provider` sans threader un wrapper partout).
+  croisée sans prop, comme `mixer-atoms.spec.tsx`. `use-tempo.spec.ts` monte sous
+  un `Provider` frais par test (helper `renderTempo`, 43 sites) — même idiome que
+  `use-mixer.spec.tsx`, isolation des atomes garantie sans reset manuel.
 
 ## Not done / remaining
 
@@ -46,12 +45,13 @@
   puis on bascule le(s) consommateur(s) qui ne lisent QUE de la vue pour lâcher
   leur prop `ReturnType`. Ici deux hooks de coordination d'un coup (26 → 24).
   Voir [ADR 0010](../adr/0010-etat-de-vue-atomes-par-feature.md).
-- **Reset du store par défaut vs `Provider`.** `use-tempo.spec.ts` isole par
-  `getDefaultStore().set(atom, undefined)` en `beforeEach` plutôt que par
-  `{ wrapper: Provider }` (idiome du mixer). Motif : 40 montages hétérogènes
-  sans helper `render` commun — le reset est un point d'édition unique et donne
-  la même isolation. Divergence d'idiome assumée ; à revoir si la cohérence
-  stricte est préférée.
+- **Isolation des tests par `Provider`, pas par reset.** `use-tempo.spec.ts`
+  monte via un helper `renderTempo(...args)` qui enveloppe dans `{ wrapper:
+  Provider }` (Provider sans `store` = store frais par montage) — l'idiome exact
+  du mixer (`use-mixer.spec.tsx`). Un premier jet avait isolé par
+  `getDefaultStore().set(atom, undefined)` en `beforeEach` ; abandonné pour
+  garder **un seul idiome d'isolation** dans la couche web (loupe = labo : la
+  cohérence d'idiome est un livrable).
 
 ## Gate status
 
@@ -75,9 +75,10 @@
   doit faire **descendre au moins un des trois cliquets**
   (`composition-invariants.spec.ts`) dans sa propre PR — c'est le contrat.
 - Gotchas :
-  - Toute spec montant `useTempo` (ou le shell) hors `Provider` doit remettre
-    `tempoAnalysisAtom`/`tempoGateReasonAtom` à `undefined` entre tests, sinon
-    l'état du test précédent fuit (atomes = singletons du store par défaut).
+  - Toute spec montant `useTempo` (ou le shell) doit être sous un `Provider`
+    (store frais par montage), sinon l'état du test précédent fuit (atomes =
+    singletons du store par défaut). Idiome : helper `renderTempo` /
+    `{ wrapper: Provider }`.
   - Run coverage local fiable : `npx vitest run --coverage --maxWorkers=5`.
   - Cliquet `MAX_RETURN_TYPE_PROPS` est **tight à 24** : le baisser encore
     exige un vrai harvest, pas juste passer.
