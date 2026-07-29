@@ -1,6 +1,7 @@
 import type { StemPlaybackEngine, StemSeparator } from '@app/core'
 import { useMemo } from 'react'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
+import { useAudioSession } from '../audio-session/audio-session.ts'
 import { useMixer } from '../mixer/use-mixer.ts'
 import { useSeparation } from '../separation/use-separation.ts'
 
@@ -14,14 +15,19 @@ import { useSeparation } from '../separation/use-separation.ts'
  * join the mix without a separation, so it was never the same fact anyway.
  */
 export function useStemStack(
-  stemEngine: StemPlaybackEngine | undefined,
-  separator: StemSeparator | undefined
+  stemEngine?: StemPlaybackEngine,
+  separator?: StemSeparator
 ) {
+  const session = useAudioSession()
+  const injectedEngine = stemEngine ?? session.stemEngine
   const stemPlayback = useMemo(
-    () => stemEngine ?? createWebAudioStemPlayback(),
-    [stemEngine]
+    () => injectedEngine ?? createWebAudioStemPlayback(),
+    [injectedEngine]
   )
-  const separation = useSeparation(stemPlayback.stemAudio, separator)
+  const separation = useSeparation(
+    stemPlayback.stemAudio,
+    separator ?? session.separator
+  )
   const mixer = useMixer(stemPlayback)
   return {
     stemPlayback,

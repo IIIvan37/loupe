@@ -19,18 +19,18 @@ clos** ([archive](archive/template-sync-plan.md)). Nursery à dessein :
 distribution : 1re release taguée** (tap + `HOMEBREW_TAP_TOKEN`,
 cf. `docs/RELEASING.md` ; Ubuntu ARM64 natif différé). **Chantier parallèle —
 état de vue** ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md), #286) :
-la feature possède son état, le shell compose. Feuilles livrées : mixer (PR
-#287), tempo (PR #290, cliquet `ReturnType` 26 → 24), séparation
-(`separationGateReasonAtom`, cliquet **24 → 23**, PR #292). Les feuilles d'état
-pur sont épuisées (les 23 props `ReturnType` restantes tiennent à des
-callbacks/API impératives). **Revue d'architecture (2026-07-29) : cap 0010/0011
-validé**, séquencement acté — correctifs courts **livrés** (mint single-flight,
-PR #293 ; abort au démontage de `useSeparation`, PR #294) ; **prochaine étape : clé de
-voûte de l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md)**
-(`AudioSessionProvider`), puis ADR graphe de modules web + tags Sheriff
-(3 cycles de features relevés), puis interface étroite de session (DIP).
-Chaque feuille du chantier descend ≥1 cliquet
-(`composition-invariants.spec.ts`) dans sa PR. Checkpoint UI avant chaque slice.
+la feature possède son état, le shell compose. Feuilles livrées : mixer (#287),
+tempo (#290), séparation (#292) — cliquet `ReturnType` 26 → 23. Revue
+d'architecture (2026-07-29) : cap validé, correctifs livrés (#293, #294).
+**Clé de voûte de
+l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md) posée (PR #295)** :
+`AudioSessionProvider` (ports seuls), 7 hooks lisent `arg ?? session ?? réel`,
+`WorkstationShellProps` fond à `desktop` seul. **Prochaine feuille : le player
+en référence stable** (ShellFooter se sert seul, cliquet 23 → 21), puis ADR
+graphe de modules web + tags Sheriff (3 cycles relevés), puis interface
+étroite de session (DIP). Chaque feuille descend ≥1 cliquet
+(`composition-invariants.spec.ts`) dans sa PR ; les feuilles d'infrastructure
+en sont exemptées (documenté au rapport). Checkpoint UI avant chaque slice.
 
 **Garde-fous beta restants** (cf. [beta-checklist.md](beta-checklist.md)) :
 plafond Modal (mesuré ~3,67 $/mois), SMTP custom câblé (Resend), re-seed des

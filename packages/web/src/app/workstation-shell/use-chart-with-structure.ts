@@ -6,6 +6,7 @@ import type {
   TempoAnalysis
 } from '@app/core'
 import { useMemo } from 'react'
+import { useAudioSession } from '../audio-session/audio-session.ts'
 import { useChordChartSession } from '../lead-sheet/use-chord-chart-session.ts'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import { syncStructureMarkersFromChart } from '../markers/chart-marker-sync.ts'
@@ -61,6 +62,9 @@ export function useChartWithStructure({
     () => markerSections(markers.markers),
     [markers.markers]
   )
+  // The detectors are session ports (ADR 0011): an explicit arg (unit tests)
+  // wins, then the session's injection, then the real adapter downstream.
+  const session = useAudioSession()
   const { chart: chordChart, detection: chordDetection } = useChordChartSession(
     {
       loadedAudio,
@@ -70,7 +74,7 @@ export function useChartWithStructure({
       stems: separation.sources.length > 0 ? separation.sources : undefined,
       ensureStems: () => separateAndLoad(loadedAudio),
       cancelSeparation: separation.cancel,
-      detector: chordDetector,
+      detector: chordDetector ?? session.chordDetector,
       onSourceEdited: (source) =>
         syncStructureMarkersFromChart(source, grid, markers)
     }
@@ -81,7 +85,7 @@ export function useChartWithStructure({
     beatsPerBar,
     markers,
     chart: chordChart,
-    detector: structureDetector
+    detector: structureDetector ?? session.structureDetector
   })
   return { chordChart, chordDetection, structureDetection }
 }

@@ -8,16 +8,11 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createCountInPlayer } from '../../audio/count-in-player.ts'
 import { useLatest } from '../../lib/use-latest.ts'
+import {
+  type CountInPlayer,
+  useAudioSession
+} from '../audio-session/audio-session.ts'
 import { METRONOME_ID } from './metronome-stem.ts'
-
-/**
- * Plays one bar of clicks out of band (the transport hasn't started yet) and
- * reports back when it ends. Returns a cancel that silences the clicks without
- * firing `onEnded`.
- */
-export interface CountInPlayer {
-  readonly play: (countIn: CountIn, onEnded: () => void) => () => void
-}
 
 export interface CountInParams {
   /** Whether the transport can start at all (a track is loaded). */
@@ -36,7 +31,8 @@ export interface CountInParams {
   readonly togglePlayback: () => void
   /** Seats the landing: the playhead snaps to the nearest grid beat. */
   readonly seekToSeconds: (seconds: number) => void
-  /** Injected in tests; defaults to the real Web Audio one-shot player. */
+  /** Injected in unit tests; the session context injects app-wide (ADR 0011);
+   * defaults to the real Web Audio one-shot player. */
   readonly player?: CountInPlayer | undefined
 }
 
@@ -59,10 +55,9 @@ export interface CountInTransport {
  * is gone.
  */
 export function useCountIn(params: CountInParams): CountInTransport {
-  const player = useMemo(
-    () => params.player ?? createCountInPlayer(),
-    [params.player]
-  )
+  const session = useAudioSession()
+  const injected = params.player ?? session.countInPlayer
+  const player = useMemo(() => injected ?? createCountInPlayer(), [injected])
   const [countingIn, setCountingIn] = useState(false)
   // The pending count-in's cancel; also the "is one pending" flag the toggle
   // reads synchronously (state alone would lag a render behind).
