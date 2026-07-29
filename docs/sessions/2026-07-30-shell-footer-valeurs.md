@@ -2,7 +2,8 @@
 
 ## Done
 
-- **Feuille 5 du chantier 0010/0011** (branche `refactor/shell-footer-valeurs`) :
+- **Feuille 5 du chantier 0010/0011** (branche `refactor/shell-footer-valeurs`,
+  PR #296) :
   `ShellFooter` ne reçoit plus les sacs `player: ReturnType<typeof usePlayer>`
   + `countIn: ReturnType<typeof useCountIn>` — il reçoit les **12 valeurs et
   callbacks étroits** qu'il lit (position, durée, isPlaying, tempo/pitch/

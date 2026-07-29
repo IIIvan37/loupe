@@ -20,7 +20,7 @@ distribution : 1re release taguée** (tap + `HOMEBREW_TAP_TOKEN`,
 cf. `docs/RELEASING.md` ; Ubuntu ARM64 natif différé). **Chantier parallèle —
 état de vue** ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md), #286) :
 la feature possède son état, le shell compose. Feuilles : mixer (#287), tempo
-(#290), séparation (#292), footer en valeurs — cliquet `ReturnType`
+(#290), séparation (#292), footer en valeurs (#296) — cliquet `ReturnType`
 **26 → 21**. Revue d'architecture (2026-07-29) : cap validé, correctifs
 livrés (#293, #294). **Clé de voûte de
 l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md) posée (PR #295)** :
