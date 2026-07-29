@@ -14,7 +14,7 @@ import {
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useAtom } from 'jotai'
-import { useMemo, useReducer, useRef, useState } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
   type EnsureTokenResult,
   ensureAnalysisToken,
@@ -124,6 +124,12 @@ export function useSeparation(
   // Feature-owned view state (ADR 0010): the gated-analysis replay reads this
   // off the atom, so the shell no longer threads the separation bag to it.
   const [gateReason, setGateReason] = useAtom(separationGateReasonAtom)
+
+  // Unmounting mid-run must release the transfer and the server-side work too
+  // (cancel/reset already do) — same cleanup as useTempo's.
+  useEffect(() => {
+    return () => controllerRef.current?.abort()
+  }, [])
 
   // The PCM-backed view of the separated stems, derived from the engine's
   // buffers (zero-copy channel views). Computed on demand — consumers are all

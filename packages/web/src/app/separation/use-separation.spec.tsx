@@ -98,6 +98,30 @@ describe('useSeparation', () => {
     expect(result.current.state.status).toBe('idle')
   })
 
+  it('unmounting mid-run aborts the port — the server work is released', () => {
+    let seen: AbortSignal | undefined
+    const separator: StemSeparator = {
+      separate: (_audio, _onProgress, signal) => {
+        seen = signal
+        return new Promise(() => {})
+      }
+    }
+    const { result, unmount } = renderHook(
+      () => useSeparation(pcmOf(stems), separator),
+      { wrapper: TestProviders }
+    )
+
+    act(() => {
+      void result.current.separate(audio)
+    })
+    expect(seen?.aborted).toBe(false)
+
+    // Closing the workstation mid-separation must not leave the transfer and
+    // the server-side compute running with nothing to consume them.
+    unmount()
+    expect(seen?.aborted).toBe(true)
+  })
+
   it('rebuilds the ready state from persisted stems without the separator', async () => {
     const { separator } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
