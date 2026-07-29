@@ -26,12 +26,12 @@ la feature possède son état, le shell compose. **Feuille 1** (mixer en atomes 
 3 cliquets, PR #287), **feuille 2** (tempo : `tempoAnalysisAtom` +
 `tempoGateReasonAtom` ; `use-separate-and-load` + `use-resume-gated-analysis`
 délestés de leur prop `tempo` ; cliquet `ReturnType` **26 → 24**, PR #290).
-**Prochaine feuille** : champ de vue `useTempo` suivant ou `useSeparation` ;
-chaque feuille descend ≥1 cliquet (`composition-invariants.spec.ts`) dans sa
-PR. Checkpoint UI avant chaque slice.
+Terminus précisé par l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md)
+(shell = layout, moteur + ports en contexte de session). **Prochaine feuille** :
+champ de vue `useTempo` suivant ou `useSeparation` ; chaque feuille descend ≥1
+cliquet (`composition-invariants.spec.ts`) dans sa PR. Checkpoint UI avant
+chaque slice.
 
-**Plans actifs** : [distribution-plan.md](distribution-plan.md) (D1–D6 clos ;
-reste la 1re release taguée + le tap).
 **Garde-fous beta restants** (cf. [beta-checklist.md](beta-checklist.md)) :
 plafond Modal (mesuré ~3,67 $/mois), SMTP custom câblé (Resend), re-seed des
 codes legacy, PKCE en bundle à rejouer.
@@ -62,7 +62,7 @@ codes legacy, PKCE en bundle à rejouer.
 
 ## Plans
 
-- **En cours** : [distribution-plan.md](distribution-plan.md) (lots D1–D6).
+- **En cours** : [distribution-plan.md](distribution-plan.md) (D1–D6 clos ; reste la 1re release taguée + le tap).
 - **Complets** : dans [docs/archive/](archive/) (plans clos + vision produit du kickoff).
 
 ## Veille / différé
