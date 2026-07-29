@@ -3,7 +3,7 @@
 ## Done
 
 - **Correctif 2 de la revue d'architecture** (branche
-  `fix/separation-abort-on-unmount`) : `useSeparation` aborte son
+  `fix/separation-abort-on-unmount`, PR #294) : `useSeparation` aborte son
   `AbortController` en vol au démontage — un shell fermé en pleine séparation
   laissait le transfert (42 MB) et le calcul serveur tourner sans consommateur.
   Même cleanup d'effet que `useTempo` (le modèle que la revue pointait) ;
