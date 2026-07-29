@@ -3,7 +3,7 @@ import { useAtomValue } from 'jotai'
 import { useCallback } from 'react'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
-import type { useSeparation } from '../separation/use-separation.ts'
+import { separationGateReasonAtom } from '../separation/separation-atoms.ts'
 import { tempoGateReasonAtom } from '../tempo/tempo-atoms.ts'
 import type { useTempoDetection } from './use-tempo-detection.ts'
 
@@ -11,7 +11,6 @@ interface ResumeFlows {
   readonly structureDetection: StructureDetection
   readonly chordDetection: ChordDetection
   readonly tempoDetection: ReturnType<typeof useTempoDetection>
-  readonly separation: ReturnType<typeof useSeparation>
   readonly separateAndLoad: (
     audio: DecodedAudio | undefined
   ) => Promise<readonly SeparatedStem[] | undefined>
@@ -28,13 +27,13 @@ export function useResumeGatedAnalysis(flows: ResumeFlows): () => void {
     structureDetection,
     chordDetection,
     tempoDetection,
-    separation,
     separateAndLoad,
     loadedAudio
   } = flows
-  // The tempo's gate reason is feature-owned now (ADR 0010): read it off the
-  // atom instead of receiving the whole tempo bag as a prop.
+  // The tempo's and separation's gate reasons are feature-owned now (ADR
+  // 0010): read them off their atoms instead of receiving whole hook bags.
   const tempoGateReason = useAtomValue(tempoGateReasonAtom)
+  const separationGateReason = useAtomValue(separationGateReasonAtom)
   return useCallback(() => {
     if (structureDetection.gateReason !== undefined) {
       void structureDetection.detect()
@@ -45,7 +44,7 @@ export function useResumeGatedAnalysis(flows: ResumeFlows): () => void {
     if (tempoGateReason !== undefined) {
       tempoDetection.retry()
     }
-    if (separation.gateReason !== undefined) {
+    if (separationGateReason !== undefined) {
       void separateAndLoad(loadedAudio)
     }
   }, [
@@ -53,7 +52,7 @@ export function useResumeGatedAnalysis(flows: ResumeFlows): () => void {
     chordDetection,
     tempoGateReason,
     tempoDetection,
-    separation,
+    separationGateReason,
     separateAndLoad,
     loadedAudio
   ])

@@ -13,6 +13,7 @@ import {
   stemExportFilename
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
+import { useAtom } from 'jotai'
 import { useMemo, useReducer, useRef, useState } from 'react'
 import {
   type EnsureTokenResult,
@@ -23,6 +24,7 @@ import { createSeparator } from '../../audio/create-separator.ts'
 import { deliverFile } from '../../audio/deliver-file.ts'
 import { createZipArchiveWriter } from '../../audio/zip-archive-writer.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
+import { separationGateReasonAtom } from './separation-atoms.ts'
 
 // Per-stem peak resolution. Matches the main view's, so the stems sum cleanly
 // into the audible-mix waveform shown there and the lanes stay crisp when zoomed.
@@ -119,7 +121,9 @@ export function useSeparation(
   // the engine. Reactive so consumers re-render when a run commits.
   const [descriptors, setDescriptors] = useState<readonly StemDescriptor[]>([])
   const [exportError, setExportError] = useState<string>()
-  const [gateReason, setGateReason] = useState<MintFailureReason>()
+  // Feature-owned view state (ADR 0010): the gated-analysis replay reads this
+  // off the atom, so the shell no longer threads the separation bag to it.
+  const [gateReason, setGateReason] = useAtom(separationGateReasonAtom)
 
   // The PCM-backed view of the separated stems, derived from the engine's
   // buffers (zero-copy channel views). Computed on demand — consumers are all

@@ -328,7 +328,6 @@ export function WorkstationShell({
     structureDetection,
     chordDetection,
     tempoDetection,
-    separation,
     separateAndLoad,
     loadedAudio
   })

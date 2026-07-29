@@ -3,10 +3,20 @@
 // (O.5). Wires useSeparation to createHttpSeparator over a fake fetch.
 import type { DecodedAudio } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { Provider } from 'jotai'
+import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { createHttpSeparator } from '../../audio/http-separator.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { useSeparation } from './use-separation.ts'
+
+/** Fresh atom store per mount (the gate reason is a feature atom now, ADR
+ * 0010) — without the Provider, one test's gate reason leaks into the next. */
+const TestProviders = ({ children }: { readonly children: ReactNode }) => (
+  <I18nTestingProvider>
+    <Provider>{children}</Provider>
+  </I18nTestingProvider>
+)
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
@@ -25,7 +35,7 @@ describe('useSeparation × createHttpSeparator — abort end-to-end (O.5)', () =
     const separator = createHttpSeparator('https://modal.example', async () => 'jwt')
     const { result } = renderHook(
       () => useSeparation(() => undefined, separator, undefined, gate),
-      { wrapper: I18nTestingProvider }
+      { wrapper: TestProviders }
     )
     let run: Promise<unknown> = Promise.resolve()
     act(() => { run = result.current.separate(audio) })
@@ -50,7 +60,7 @@ describe('useSeparation × createHttpSeparator — abort end-to-end (O.5)', () =
     const separator = createHttpSeparator('https://modal.example', async () => 'jwt')
     const { result } = renderHook(
       () => useSeparation(() => undefined, separator, undefined, async () => ({ ok: true })),
-      { wrapper: I18nTestingProvider }
+      { wrapper: TestProviders }
     )
     let run: Promise<unknown> = Promise.resolve()
     act(() => { run = result.current.separate(audio) })
