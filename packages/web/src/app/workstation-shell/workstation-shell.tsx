@@ -2,6 +2,7 @@ import { formatTimecode, type ProjectTuning } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
 import { isTauriShell } from '../../auth/tauri-env.ts'
+import type { ExternalValue } from '../../lib/external-value.ts'
 import { isServerShell } from '../../lib/server-shell.ts'
 import { gateReasonsOf } from '../account/gate-reasons.ts'
 import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
@@ -54,34 +55,50 @@ function tuningSnapshot(
   }
 }
 
-/** The transport footer, wired from the player (tempo/pitch/fine-tune). */
+/** The transport footer, wired from the values it reads — never a hook bag
+ * (ADR 0010): formatting and unit conversion live here, state upstairs. */
 function ShellFooter({
-  player,
-  isLoaded,
-  countIn
+  position,
+  durationSeconds,
+  isPlaying,
+  canPlay,
+  onPlayPause,
+  seekToSeconds,
+  timeRatio,
+  setTimeRatio,
+  pitchSemitones,
+  setPitchSemitones,
+  fineTuneCents,
+  setFineTuneCents
 }: {
-  readonly player: ReturnType<typeof usePlayer>
-  readonly isLoaded: boolean
-  readonly countIn: ReturnType<typeof useCountIn>
+  readonly position: ExternalValue<number>
+  readonly durationSeconds: number
+  readonly isPlaying: boolean
+  readonly canPlay: boolean
+  readonly onPlayPause: () => void
+  readonly seekToSeconds: (seconds: number) => void
+  readonly timeRatio: number
+  readonly setTimeRatio: (ratio: number) => void
+  readonly pitchSemitones: number
+  readonly setPitchSemitones: (semitones: number) => void
+  readonly fineTuneCents: number
+  readonly setFineTuneCents: (cents: number) => void
 }) {
-  const { transport, position } = player
   return (
     <TransportBar
       position={position}
-      duration={formatTimecode(transport.durationSeconds)}
-      // During the count-in the button reads « pause » — pressing it abandons
-      // the count, exactly what a pause means at that instant.
-      isPlaying={transport.isPlaying || countIn.countingIn}
-      canPlay={isLoaded}
-      onPlayPause={countIn.togglePlayback}
-      onSeekToStart={() => player.seekToSeconds(0)}
-      onSeekToEnd={() => player.seekToSeconds(transport.durationSeconds)}
-      tempoPercent={Math.round(player.timeRatio * 100)}
-      pitchSemitones={player.pitchSemitones}
-      onTempoChange={(percent) => player.setTimeRatio(percent / 100)}
-      onPitchChange={player.setPitchSemitones}
-      fineTuneCents={player.fineTuneCents}
-      onFineTuneChange={player.setFineTuneCents}
+      duration={formatTimecode(durationSeconds)}
+      isPlaying={isPlaying}
+      canPlay={canPlay}
+      onPlayPause={onPlayPause}
+      onSeekToStart={() => seekToSeconds(0)}
+      onSeekToEnd={() => seekToSeconds(durationSeconds)}
+      tempoPercent={Math.round(timeRatio * 100)}
+      pitchSemitones={pitchSemitones}
+      onTempoChange={(percent) => setTimeRatio(percent / 100)}
+      onPitchChange={setPitchSemitones}
+      fineTuneCents={fineTuneCents}
+      onFineTuneChange={setFineTuneCents}
     />
   )
 }
@@ -393,7 +410,22 @@ export function WorkstationShell({
         />
       )}
 
-      <ShellFooter player={player} isLoaded={isLoaded} countIn={countIn} />
+      <ShellFooter
+        position={position}
+        durationSeconds={transport.durationSeconds}
+        // During the count-in the button reads « pause » — pressing it
+        // abandons the count, exactly what a pause means at that instant.
+        isPlaying={transport.isPlaying || countIn.countingIn}
+        canPlay={isLoaded}
+        onPlayPause={countIn.togglePlayback}
+        seekToSeconds={seekToSeconds}
+        timeRatio={timeRatio}
+        setTimeRatio={player.setTimeRatio}
+        pitchSemitones={pitchSemitones}
+        setPitchSemitones={player.setPitchSemitones}
+        fineTuneCents={fineTuneCents}
+        setFineTuneCents={player.setFineTuneCents}
+      />
 
       <ToastRegion toaster={toaster} />
     </div>
