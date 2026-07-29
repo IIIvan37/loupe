@@ -1,15 +1,15 @@
 import type { DecodedAudio, SeparatedStem } from '@app/core'
+import { useAtomValue } from 'jotai'
 import { useCallback } from 'react'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import type { useSeparation } from '../separation/use-separation.ts'
-import type { useTempo } from '../tempo/use-tempo.ts'
+import { tempoGateReasonAtom } from '../tempo/tempo-atoms.ts'
 import type { useTempoDetection } from './use-tempo-detection.ts'
 
 interface ResumeFlows {
   readonly structureDetection: StructureDetection
   readonly chordDetection: ChordDetection
-  readonly tempo: ReturnType<typeof useTempo>
   readonly tempoDetection: ReturnType<typeof useTempoDetection>
   readonly separation: ReturnType<typeof useSeparation>
   readonly separateAndLoad: (
@@ -27,12 +27,14 @@ export function useResumeGatedAnalysis(flows: ResumeFlows): () => void {
   const {
     structureDetection,
     chordDetection,
-    tempo,
     tempoDetection,
     separation,
     separateAndLoad,
     loadedAudio
   } = flows
+  // The tempo's gate reason is feature-owned now (ADR 0010): read it off the
+  // atom instead of receiving the whole tempo bag as a prop.
+  const tempoGateReason = useAtomValue(tempoGateReasonAtom)
   return useCallback(() => {
     if (structureDetection.gateReason !== undefined) {
       void structureDetection.detect()
@@ -40,7 +42,7 @@ export function useResumeGatedAnalysis(flows: ResumeFlows): () => void {
     if (chordDetection.gateReason !== undefined) {
       void chordDetection.detect()
     }
-    if (tempo.gateReason !== undefined) {
+    if (tempoGateReason !== undefined) {
       tempoDetection.retry()
     }
     if (separation.gateReason !== undefined) {
@@ -49,7 +51,7 @@ export function useResumeGatedAnalysis(flows: ResumeFlows): () => void {
   }, [
     structureDetection,
     chordDetection,
-    tempo,
+    tempoGateReason,
     tempoDetection,
     separation,
     separateAndLoad,

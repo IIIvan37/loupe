@@ -2,6 +2,7 @@
 import type { DecodedAudio, TempoDetector } from '@app/core'
 import { TempoDetectionError } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { Provider } from 'jotai'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTempo } from './use-tempo.ts'
 
@@ -11,6 +12,12 @@ import { useTempo } from './use-tempo.ts'
 // gate cases opt back in.
 beforeEach(() => vi.stubEnv('VITE_ANALYSIS_URL', ''))
 afterEach(() => vi.unstubAllEnvs())
+
+// `analysis` and `gateReason` are feature-owned atoms now (ADR 0010). Mount
+// under a fresh Provider store per test (Provider with no `store` prop creates
+// one) so no mix from a prior test leaks in — same idiom as use-mixer.spec.
+const renderTempo = (...args: Parameters<typeof useTempo>) =>
+  renderHook(() => useTempo(...args), { wrapper: Provider })
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
@@ -28,13 +35,13 @@ function detectorOf(bpm: number, beatTimes: number[]): TempoDetector {
 
 describe('useTempo', () => {
   it('starts idle with no analysis', () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    const { result } = renderTempo(detectorOf(120, []))
     expect(result.current.analysis).toBeUndefined()
     expect(result.current.detecting).toBe(false)
   })
 
   it('exposes the detected BPM and grid after a run', async () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5, 1])))
+    const { result } = renderTempo(detectorOf(120, [0, 0.5, 1]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -48,7 +55,7 @@ describe('useTempo', () => {
         throw new Error('server down')
       }
     }
-    const { result } = renderHook(() => useTempo(boom))
+    const { result } = renderTempo(boom)
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -61,7 +68,7 @@ describe('useTempo', () => {
         throw new TempoDetectionError('network', 'fetch failed')
       }
     }
-    const { result } = renderHook(() => useTempo(down))
+    const { result } = renderTempo(down)
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -78,7 +85,7 @@ describe('useTempo', () => {
         return new Promise(() => {})
       }
     }
-    const { result } = renderHook(() => useTempo(pending))
+    const { result } = renderTempo(pending)
     void result.current.detect(audio)
     act(() => result.current.reset())
     expect(seenSignal?.aborted).toBe(true)
@@ -94,7 +101,7 @@ describe('useTempo', () => {
         return new Promise(() => {})
       }
     }
-    const { result } = renderHook(() => useTempo(pending))
+    const { result } = renderTempo(pending)
     void result.current.detect(audio)
     void result.current.detect(audio)
     expect(signals[0]?.aborted).toBe(true)
@@ -109,7 +116,7 @@ describe('useTempo', () => {
         return new Promise(() => {})
       }
     }
-    const { result, unmount } = renderHook(() => useTempo(pending))
+    const { result, unmount } = renderTempo(pending)
     void result.current.detect(audio)
     unmount()
     expect(seenSignal?.aborted).toBe(true)
@@ -123,7 +130,7 @@ describe('useTempo', () => {
         return new Promise(() => {})
       }
     }
-    const { result } = renderHook(() => useTempo(pending))
+    const { result } = renderTempo(pending)
     void result.current.detect(audio)
     act(() => {
       result.current.overrideBpm(120, 10)
@@ -135,7 +142,7 @@ describe('useTempo', () => {
     // X.2: cancelling is not a failure (no error), but it must not be a dead
     // end either — the mark lets the row keep an idle « Détecter » face.
     const pending: TempoDetector = { detect: () => new Promise(() => {}) }
-    const { result } = renderHook(() => useTempo(pending))
+    const { result } = renderTempo(pending)
     void result.current.detect(audio)
     act(() => result.current.cancelDetection())
     expect(result.current.cancelled).toBe(true)
@@ -144,7 +151,7 @@ describe('useTempo', () => {
   })
 
   it('clears the cancelled mark when a new detection starts', async () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 1])))
+    const { result } = renderTempo(detectorOf(120, [0, 1]))
     act(() => result.current.cancelDetection())
     await act(async () => {
       await result.current.detect(audio)
@@ -154,21 +161,21 @@ describe('useTempo', () => {
   })
 
   it('clears the cancelled mark on reset', () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    const { result } = renderTempo(detectorOf(120, []))
     act(() => result.current.cancelDetection())
     act(() => result.current.reset())
     expect(result.current.cancelled).toBe(false)
   })
 
   it('clears the cancelled mark when a persisted analysis is seated', () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    const { result } = renderTempo(detectorOf(120, []))
     act(() => result.current.cancelDetection())
     act(() => result.current.set({ bpm: 100, grid: [], beatsPerBar: 4 }))
     expect(result.current.cancelled).toBe(false)
   })
 
   it('clears the analysis on reset', async () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 1])))
+    const { result } = renderTempo(detectorOf(120, [0, 1]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -177,7 +184,7 @@ describe('useTempo', () => {
   })
 
   it('has a zero octave shift after a fresh detection', async () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5])))
+    const { result } = renderTempo(detectorOf(120, [0, 0.5]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -185,7 +192,7 @@ describe('useTempo', () => {
   })
 
   it('doubles the BPM when folding up an octave', async () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5, 1])))
+    const { result } = renderTempo(detectorOf(120, [0, 0.5, 1]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -196,7 +203,7 @@ describe('useTempo', () => {
   })
 
   it('tracks the octave shift as it folds', async () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5, 1])))
+    const { result } = renderTempo(detectorOf(120, [0, 0.5, 1]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -207,8 +214,8 @@ describe('useTempo', () => {
   })
 
   it('stops folding at the octave bound', async () => {
-    const { result } = renderHook(() =>
-      useTempo(detectorOf(120, [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]))
+    const { result } = renderTempo(
+      detectorOf(120, [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5])
     )
     await act(async () => {
       await result.current.detect(audio)
@@ -220,7 +227,7 @@ describe('useTempo', () => {
   })
 
   it('restores a persisted octave shift on set', () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    const { result } = renderTempo(detectorOf(120, []))
     act(() => {
       result.current.set({ bpm: 60, grid: [], beatsPerBar: 4 }, -1)
     })
@@ -228,7 +235,7 @@ describe('useTempo', () => {
   })
 
   it('overrides the tempo manually when nothing was detected', () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    const { result } = renderTempo(detectorOf(120, []))
     act(() => {
       result.current.overrideBpm(100, 3)
     })
@@ -242,9 +249,7 @@ describe('useTempo', () => {
 
   it('keeps the detected downbeat phase when overriding the BPM', async () => {
     // Detected grid: downbeat at 0.5 (barPosition 1 lands on the first beat).
-    const { result } = renderHook(() =>
-      useTempo(detectorOf(120, [0.5, 1, 1.5, 2]))
-    )
+    const { result } = renderTempo(detectorOf(120, [0.5, 1, 1.5, 2]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -259,9 +264,7 @@ describe('useTempo', () => {
   })
 
   it('keeps the detected meter when overriding the BPM', async () => {
-    const { result } = renderHook(() =>
-      useTempo(detectorOf(120, [0, 0.5, 1, 1.5, 2, 2.5]))
-    )
+    const { result } = renderTempo(detectorOf(120, [0, 0.5, 1, 1.5, 2, 2.5]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -272,7 +275,7 @@ describe('useTempo', () => {
   })
 
   it('rejects a non-positive or non-finite manual BPM', async () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5])))
+    const { result } = renderTempo(detectorOf(120, [0, 0.5]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -287,7 +290,7 @@ describe('useTempo', () => {
   })
 
   it('resets the octave shift on a manual override', async () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5, 1])))
+    const { result } = renderTempo(detectorOf(120, [0, 0.5, 1]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -299,7 +302,7 @@ describe('useTempo', () => {
   })
 
   it('anchors a downbeat at the playhead on alignPhase', async () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5, 1])))
+    const { result } = renderTempo(detectorOf(120, [0, 0.5, 1]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -315,7 +318,7 @@ describe('useTempo', () => {
   })
 
   it('cannot align the phase before any tempo exists', () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    const { result } = renderTempo(detectorOf(120, []))
     act(() => {
       expect(result.current.alignPhase(1, 3)).toBeUndefined()
     })
@@ -323,7 +326,7 @@ describe('useTempo', () => {
   })
 
   it('folds the manual override along with the analysis', async () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5])))
+    const { result } = renderTempo(detectorOf(120, [0, 0.5]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -336,7 +339,7 @@ describe('useTempo', () => {
   })
 
   it('clears the manual override on a fresh detection', async () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [0, 0.5])))
+    const { result } = renderTempo(detectorOf(120, [0, 0.5]))
     act(() => {
       result.current.overrideBpm(100, 3)
     })
@@ -348,7 +351,7 @@ describe('useTempo', () => {
   })
 
   it('clears the manual override on reset', () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    const { result } = renderTempo(detectorOf(120, []))
     act(() => {
       result.current.overrideBpm(100, 3)
     })
@@ -357,7 +360,7 @@ describe('useTempo', () => {
   })
 
   it('restores a persisted manual override on set', () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    const { result } = renderTempo(detectorOf(120, []))
     act(() => {
       result.current.set({ bpm: 90, grid: [], beatsPerBar: 4 }, 0, {
         bpm: 90,
@@ -368,7 +371,7 @@ describe('useTempo', () => {
   })
 
   it('seating a persisted analysis without an override clears any manual', () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    const { result } = renderTempo(detectorOf(120, []))
     act(() => {
       result.current.overrideBpm(100, 3)
     })
@@ -387,7 +390,7 @@ describe('useTempo', () => {
             resolve({ bpm: 90, beats: [{ timeSeconds: 0, barPosition: 1 }] })
         })
     }
-    const { result } = renderHook(() => useTempo(gated))
+    const { result } = renderTempo(gated)
     let pending: Promise<unknown> | undefined
     act(() => {
       pending = result.current.detect(audio)
@@ -405,7 +408,7 @@ describe('useTempo', () => {
 describe('useTempo — meter correction', () => {
   it('re-flags the grid downbeats on a meter correction', async () => {
     const times = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]
-    const { result } = renderHook(() => useTempo(detectorOf(120, times)))
+    const { result } = renderTempo(detectorOf(120, times))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -430,7 +433,7 @@ describe('useTempo — meter correction', () => {
 
   it('keeps every beat instant through a meter correction', async () => {
     const times = [0, 0.5, 1, 1.5]
-    const { result } = renderHook(() => useTempo(detectorOf(120, times)))
+    const { result } = renderTempo(detectorOf(120, times))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -444,7 +447,7 @@ describe('useTempo — meter correction', () => {
   })
 
   it('cannot correct the meter before any analysis exists', () => {
-    const { result } = renderHook(() => useTempo(detectorOf(120, [])))
+    const { result } = renderTempo(detectorOf(120, []))
     let corrected: ReturnType<typeof result.current.overrideMeter>
     act(() => {
       corrected = result.current.overrideMeter(3)
@@ -463,7 +466,7 @@ describe('useTempo — meter correction', () => {
         )
       })
     }
-    const { result } = renderHook(() => useTempo(slipped))
+    const { result } = renderTempo(slipped)
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -491,7 +494,7 @@ describe('useTempo — meter correction', () => {
         }
       }
     }
-    const { result } = renderHook(() => useTempo(flaky))
+    const { result } = renderTempo(flaky)
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -507,9 +510,7 @@ describe('useTempo — meter correction', () => {
   })
 
   it('rejects a degenerate or out-of-range meter', async () => {
-    const { result } = renderHook(() =>
-      useTempo(detectorOf(120, [0, 0.5, 1, 1.5, 2]))
-    )
+    const { result } = renderTempo(detectorOf(120, [0, 0.5, 1, 1.5, 2]))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -527,12 +528,10 @@ describe('useTempo — meter correction', () => {
     // The gate only runs on the offload path; stub it on for the gate cases.
     vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
     const detect = vi.fn()
-    const { result } = renderHook(() =>
-      useTempo({ detect }, async () => ({
-        ok: false,
-        reason: 'sign-in-required'
-      }))
-    )
+    const { result } = renderTempo({ detect }, async () => ({
+      ok: false,
+      reason: 'sign-in-required'
+    }))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -552,9 +551,7 @@ describe('useTempo — meter correction', () => {
       >()
       .mockResolvedValueOnce({ ok: false, reason: 'quota-exceeded' })
       .mockResolvedValue({ ok: true })
-    const { result } = renderHook(() =>
-      useTempo(detectorOf(120, [0, 0.5, 1]), gate)
-    )
+    const { result } = renderTempo(detectorOf(120, [0, 0.5, 1]), gate)
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -575,9 +572,7 @@ describe('useTempo — meter correction', () => {
         open = resolve
       }
     )
-    const { result } = renderHook(() =>
-      useTempo({ detect: vi.fn() }, () => gatePromise)
-    )
+    const { result } = renderTempo({ detect: vi.fn() }, () => gatePromise)
     let run: Promise<unknown> = Promise.resolve()
     act(() => {
       run = result.current.detect(audio)
@@ -596,7 +591,7 @@ describe('useTempo — meter correction', () => {
       open = resolve
     })
     const detect = vi.fn()
-    const { result } = renderHook(() => useTempo({ detect }, () => gatePromise))
+    const { result } = renderTempo({ detect }, () => gatePromise)
     let run: Promise<unknown> = Promise.resolve()
     act(() => {
       run = result.current.detect(audio)
@@ -612,12 +607,10 @@ describe('useTempo — meter correction', () => {
 
   it('a reset clears a lingering gate reason', async () => {
     vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
-    const { result } = renderHook(() =>
-      useTempo({ detect: vi.fn() }, async () => ({
-        ok: false,
-        reason: 'not-a-beta-member'
-      }))
-    )
+    const { result } = renderTempo({ detect: vi.fn() }, async () => ({
+      ok: false,
+      reason: 'not-a-beta-member'
+    }))
     await act(async () => {
       await result.current.detect(audio)
     })
@@ -628,9 +621,7 @@ describe('useTempo — meter correction', () => {
 
   it('skips the gate on the token-less local path', async () => {
     const gate = vi.fn()
-    const { result } = renderHook(() =>
-      useTempo(detectorOf(120, [0, 0.5, 1]), gate)
-    )
+    const { result } = renderTempo(detectorOf(120, [0, 0.5, 1]), gate)
     await act(async () => {
       await result.current.detect(audio)
     })

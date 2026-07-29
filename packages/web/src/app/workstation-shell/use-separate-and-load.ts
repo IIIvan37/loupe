@@ -4,18 +4,18 @@ import {
   type SeparatedStem,
   UNITY_GAIN_DB
 } from '@app/core'
+import { useAtomValue } from 'jotai'
 import type { useMixer } from '../mixer/use-mixer.ts'
 import type { useSeparation } from '../separation/use-separation.ts'
 import {
   DEFAULT_METRONOME_CHANNEL,
   METRONOME_ID
 } from '../tempo/metronome-stem.ts'
+import { tempoAnalysisAtom } from '../tempo/tempo-atoms.ts'
 import type { useMetronome } from '../tempo/use-metronome.ts'
-import type { useTempo } from '../tempo/use-tempo.ts'
 
 interface SeparateAndLoadDeps {
   readonly separation: ReturnType<typeof useSeparation>
-  readonly tempo: ReturnType<typeof useTempo>
   readonly mixer: ReturnType<typeof useMixer>
   readonly metronome: ReturnType<typeof useMetronome>
 }
@@ -28,12 +28,14 @@ interface SeparateAndLoadDeps {
  */
 export function useSeparateAndLoad({
   separation,
-  tempo,
   mixer,
   metronome
 }: SeparateAndLoadDeps): (
   audio: DecodedAudio | undefined
 ) => Promise<readonly SeparatedStem[] | undefined> {
+  // The tempo grid is feature-owned now (ADR 0010): read it off the atom rather
+  // than threading the whole tempo bag through the shell to reach it.
+  const analysis = useAtomValue(tempoAnalysisAtom)
   // Resolves with the isolated sources once the mixer is wired — the chord
   // flow's implicit separation (4a) awaits them; undefined on failure/cancel
   // (the caller falls back, separation's own UI already told the story).
@@ -45,7 +47,7 @@ export function useSeparateAndLoad({
       if (!result) {
         return undefined
       }
-      if (tempo.analysis) {
+      if (analysis) {
         // Fresh stems start at unity; carry the metronome's current settings
         // (muted by default, or whatever the user set). Only PRESENT stems get a
         // channel — same as `mixer.load`, so masked ones never become phantom
@@ -66,7 +68,7 @@ export function useSeparateAndLoad({
           mixer.state.find((channel) => channel.id === METRONOME_ID) ??
           DEFAULT_METRONOME_CHANNEL
         metronome.attach(
-          tempo.analysis.grid,
+          analysis.grid,
           result.stems,
           result.sources,
           audio,

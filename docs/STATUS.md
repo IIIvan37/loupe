@@ -16,19 +16,19 @@ shell **Tauri passe en sommeil** (canal signé réactivable, CI conservée).
 AJ→AQ) ; **Lot TS clos** ([archivé](archive/template-sync-plan.md),
 #250–#263). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
 ≈ transport ; `timecode` attend un second consommateur.
-**D1–D6 clos** (PRs #275–#285) : route 1 (wheel `loupe`), crates
-`loupe-download` + `loupe-server` (binaire axum + rust-embed, `/download`,
-`/projects` + `/gc` sur `~/.loupe` → zéro migration), **pipeline de release**
-(tag `vX.Y.Z` → binaire 3 OS + checksums + formule Homebrew ; `--version` ;
-notif de version), **validation VM** (job CI `Rust Windows` ; 3 bugs levés :
-zip Windows #283, zip-dans-zip #284, auth OTP + `127.0.0.1` #285). **Parcours
-complet OK sur Windows 11 ARM (2026-07-28)** — auth par code OTP. **Prochain
+**D1–D6 clos** (PRs #275–#285, détail dans sessions/) : wheel `loupe`, crates
+`loupe-download` + `loupe-server` (axum + rust-embed sur `~/.loupe`), pipeline
+de release taguée, validation VM Windows 11 ARM (auth OTP). **Prochain
 distribution : 1re release taguée** (tap + secret `HOMEBREW_TAP_TOKEN`,
 cf. `docs/RELEASING.md` ; Ubuntu ARM64 natif différé). **Chantier parallèle —
 état de vue** ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md), #286) :
-la feature possède son état, le shell compose ; **feuille 1 (mixer en atomes
-Jotai) + 3 cliquets `check:design` livrés (PR #287)** ; feuille Mikado
-suivante ensuite. Checkpoint UI avant chaque slice.
+la feature possède son état, le shell compose. **Feuille 1** (mixer en atomes +
+3 cliquets, PR #287), **feuille 2** (tempo : `tempoAnalysisAtom` +
+`tempoGateReasonAtom` ; `use-separate-and-load` + `use-resume-gated-analysis`
+délestés de leur prop `tempo` ; cliquet `ReturnType` **26 → 24**, PR #290).
+**Prochaine feuille** : champ de vue `useTempo` suivant ou `useSeparation` ;
+chaque feuille descend ≥1 cliquet (`composition-invariants.spec.ts`) dans sa
+PR. Checkpoint UI avant chaque slice.
 
 **Plans actifs** : [distribution-plan.md](distribution-plan.md) (D1–D6 clos ;
 reste la 1re release taguée + le tap).
