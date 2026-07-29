@@ -22,13 +22,13 @@ de release taguée, validation VM Windows 11 ARM (auth OTP). **Prochain
 distribution : 1re release taguée** (tap + secret `HOMEBREW_TAP_TOKEN`,
 cf. `docs/RELEASING.md` ; Ubuntu ARM64 natif différé). **Chantier parallèle —
 état de vue** ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md), #286) :
-la feature possède son état, le shell compose. **Feuille 1** (mixer en atomes +
-3 cliquets, PR #287), **feuille 2** (tempo : `tempoAnalysisAtom` +
-`tempoGateReasonAtom` ; `use-separate-and-load` + `use-resume-gated-analysis`
-délestés de leur prop `tempo` ; cliquet `ReturnType` **26 → 24**, PR #290).
-Terminus précisé par l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md)
-(shell = layout, moteur + ports en contexte de session). **Prochaine feuille** :
-champ de vue `useTempo` suivant ou `useSeparation` ; chaque feuille descend ≥1
+la feature possède son état, le shell compose. Feuilles livrées : mixer (PR
+#287), tempo (PR #290, cliquet `ReturnType` 26 → 24), séparation
+(`separationGateReasonAtom`, cliquet **24 → 23**, PR #292). **Prochaine feuille : la
+clé de voûte de l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md)**
+— `AudioSessionProvider` (moteur + ports en contexte, références stables
+uniquement) : les feuilles d'état pur sont épuisées, les 23 props `ReturnType`
+restantes tiennent à des callbacks/API impératives. Chaque feuille descend ≥1
 cliquet (`composition-invariants.spec.ts`) dans sa PR. Checkpoint UI avant
 chaque slice.
 

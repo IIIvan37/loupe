@@ -7,10 +7,20 @@ import type {
   StemSeparator
 } from '@app/core'
 import { act, renderHook, waitFor } from '@testing-library/react'
+import { Provider } from 'jotai'
+import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { useSeparation } from './use-separation.ts'
+
+/** Fresh atom store per mount (the gate reason is a feature atom now, ADR
+ * 0010) — without the Provider, one test's gate reason leaks into the next. */
+const TestProviders = ({ children }: { readonly children: ReactNode }) => (
+  <I18nTestingProvider>
+    <Provider>{children}</Provider>
+  </I18nTestingProvider>
+)
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
@@ -42,7 +52,7 @@ describe('useSeparation', () => {
   it('runs a separation to completion and exposes the stems', async () => {
     const { separator, finish } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
-      wrapper: I18nTestingProvider
+      wrapper: TestProviders
     })
 
     act(() => {
@@ -71,7 +81,7 @@ describe('useSeparation', () => {
       }
     }
     const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
-      wrapper: I18nTestingProvider
+      wrapper: TestProviders
     })
 
     act(() => {
@@ -91,7 +101,7 @@ describe('useSeparation', () => {
   it('rebuilds the ready state from persisted stems without the separator', async () => {
     const { separator } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
-      wrapper: I18nTestingProvider
+      wrapper: TestProviders
     })
 
     let restored: Awaited<ReturnType<typeof result.current.restore>>
@@ -112,7 +122,7 @@ describe('useSeparation', () => {
     const engineView: DecodedAudio = { sampleRate: 4, channels: [[0.25, 0, 0, 0]] }
     const { separator } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(() => engineView, separator), {
-      wrapper: I18nTestingProvider
+      wrapper: TestProviders
     })
 
     await act(async () => {
@@ -125,7 +135,7 @@ describe('useSeparation', () => {
   it('drops a stem whose PCM the engine no longer holds', async () => {
     const { separator } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(() => undefined, separator), {
-      wrapper: I18nTestingProvider
+      wrapper: TestProviders
     })
 
     await act(async () => {
@@ -147,7 +157,7 @@ describe('useSeparation', () => {
           ok: false,
           reason: 'sign-in-required'
         })),
-      { wrapper: I18nTestingProvider }
+      { wrapper: TestProviders }
     )
     await act(async () => {
       await result.current.separate(audio)
@@ -176,7 +186,7 @@ describe('useSeparation', () => {
           undefined,
           gate
         ),
-      { wrapper: I18nTestingProvider }
+      { wrapper: TestProviders }
     )
     await act(async () => {
       await result.current.separate(audio)
@@ -207,7 +217,7 @@ describe('useSeparation', () => {
           undefined,
           () => gatePromise
         ),
-      { wrapper: I18nTestingProvider }
+      { wrapper: TestProviders }
     )
     let run: Promise<unknown> = Promise.resolve()
     act(() => {
@@ -231,7 +241,7 @@ describe('useSeparation', () => {
     const { result } = renderHook(
       () =>
         useSeparation(pcmOf(stems), { separate }, undefined, () => gatePromise),
-      { wrapper: I18nTestingProvider }
+      { wrapper: TestProviders }
     )
     let run: Promise<unknown> = Promise.resolve()
     act(() => {
@@ -255,7 +265,7 @@ describe('useSeparation', () => {
           ok: false,
           reason: 'not-a-beta-member'
         })),
-      { wrapper: I18nTestingProvider }
+      { wrapper: TestProviders }
     )
     await act(async () => {
       await result.current.separate(audio)
@@ -272,7 +282,7 @@ describe('useSeparation', () => {
     const { separator } = deferredSeparator()
     const { result } = renderHook(
       () => useSeparation(pcmOf(stems), separator, undefined, gate),
-      { wrapper: I18nTestingProvider }
+      { wrapper: TestProviders }
     )
     await act(async () => {
       await result.current.restore(audio, stems)
@@ -285,7 +295,7 @@ describe('useSeparation', () => {
   it('ignores a stale run that finishes after a reset', async () => {
     const { separator, finish } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
-      wrapper: I18nTestingProvider
+      wrapper: TestProviders
     })
 
     // Start a run, then reset (as a new import does) before it resolves.
@@ -343,7 +353,7 @@ describe('useSeparation — exportStems (the aligned stem folder)', () => {
     const { separator } = deferredSeparator()
     const { result } = renderHook(
       () => useSeparation(pcmOf(ready), separator, archive),
-      { wrapper: I18nTestingProvider }
+      { wrapper: TestProviders }
     )
     await act(async () => {
       await result.current.restore(audio, ready)
