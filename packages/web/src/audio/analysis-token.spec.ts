@@ -129,4 +129,72 @@ describe('analysis token gate', () => {
     clearAnalysisToken()
     expect(cachedAnalysisToken()).toBeUndefined()
   })
+
+  /** An AuthPort whose mints resolve only when the test says so (all at once). */
+  function deferredAuth(): AuthPort & {
+    mints: number
+    finish: (result: MintResult) => void
+  } {
+    const resolvers: Array<(result: MintResult) => void> = []
+    const base = fakeAuth(OK)
+    return {
+      ...base,
+      finish: (result) => {
+        for (const resolve of resolvers.splice(0)) {
+          resolve(result)
+        }
+      },
+      async mintToken(): Promise<MintResult> {
+        this.mints += 1
+        return new Promise<MintResult>((r) => {
+          resolvers.push(r)
+        })
+      }
+    }
+  }
+
+  it('concurrent ensures share ONE mint — a single quota unit is spent', async () => {
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
+    const auth = deferredAuth()
+
+    // Two analyses gate at the same time (e.g. tempo + separation on import).
+    const first = ensureAnalysisToken(auth)
+    const second = ensureAnalysisToken(auth)
+    auth.finish(OK)
+
+    expect(await first).toEqual({ ok: true, used: 3, quota: 20 })
+    expect(await second).toEqual({ ok: true, used: 3, quota: 20 })
+    expect(auth.mints).toBe(1)
+    expect(cachedAnalysisToken()).toBe('minted-tok')
+  })
+
+  it('a sign-out during the mint supersedes it: no cache, a typed refusal', async () => {
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
+    const auth = deferredAuth()
+
+    const pending = ensureAnalysisToken(auth)
+    clearAnalysisToken() // the user signed out while the mint was in flight
+    auth.finish(OK)
+
+    // The minted token belongs to the signed-out session — it must neither be
+    // cached nor let the gated run proceed.
+    expect(await pending).toEqual({ ok: false, reason: 'sign-in-required' })
+    expect(cachedAnalysisToken()).toBeUndefined()
+  })
+
+  it('after a mid-flight sign-out, the next ensure mints afresh', async () => {
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
+    const auth = deferredAuth()
+
+    const superseded = ensureAnalysisToken(auth)
+    clearAnalysisToken()
+    // A new sign-in's analysis must NOT join the superseded in-flight mint.
+    const fresh = ensureAnalysisToken(auth)
+    auth.finish(OK)
+
+    expect(await superseded).toEqual({ ok: false, reason: 'sign-in-required' })
+    expect(await fresh).toEqual({ ok: true, used: 3, quota: 20 })
+    expect(auth.mints).toBe(2)
+    expect(cachedAnalysisToken()).toBe('minted-tok')
+  })
 })
