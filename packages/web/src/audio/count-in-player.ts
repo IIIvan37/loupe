@@ -1,5 +1,5 @@
 import { type CountIn, synthesizeClickTrack } from '@app/core'
-import type { CountInPlayer } from '../app/tempo/use-count-in.ts'
+import type { CountInPlayer } from '../app/audio-session/audio-session.ts'
 import { audioBufferFrom } from './web-audio-shared.ts'
 
 /**

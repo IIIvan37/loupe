@@ -2,12 +2,9 @@
 import type { CountIn, MixerState, TempoAnalysis } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
 import { vi } from 'vitest'
+import type { CountInPlayer } from '../audio-session/audio-session.ts'
 import { METRONOME_ID } from './metronome-stem.ts'
-import {
-  type CountInParams,
-  type CountInPlayer,
-  useCountIn
-} from './use-count-in.ts'
+import { type CountInParams, useCountIn } from './use-count-in.ts'
 
 /** A steady 120 BPM grid (beats every 0.5 s), downbeats every 4. */
 const analysis: TempoAnalysis = {

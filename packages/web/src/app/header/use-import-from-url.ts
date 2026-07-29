@@ -6,6 +6,7 @@ import {
 } from '@app/core'
 import { useMemo, useRef, useState } from 'react'
 import { createTrackSource } from '../../audio/create-track-source.ts'
+import { useAudioSession } from '../audio-session/audio-session.ts'
 
 /** What the header needs to drive the URL-import surface. */
 export interface UrlImport {
@@ -34,7 +35,9 @@ export function useImportFromUrl(
   onImported: (bytes: ArrayBuffer, metadata: TrackSourceMetadata) => void,
   source?: TrackSource
 ): UrlImport {
-  const trackSource = useMemo(() => source ?? createTrackSource(), [source])
+  const session = useAudioSession()
+  const injected = source ?? session.trackSource
+  const trackSource = useMemo(() => injected ?? createTrackSource(), [injected])
   const [progress, setProgress] = useState<DownloadProgress | undefined>(
     undefined
   )

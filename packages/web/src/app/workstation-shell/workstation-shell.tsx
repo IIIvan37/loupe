@@ -1,17 +1,4 @@
-import {
-  type AudioFileDecoder,
-  type ChordDetector,
-  formatTimecode,
-  type PlaybackEngine,
-  type ProjectTuning,
-  type ProjectDeps,
-  type StemPlaybackEngine,
-  type StemSeparator,
-  type StructureDetector,
-  type TempoDetector,
-  type TrackMetadataReader,
-  type TrackSource
-} from '@app/core'
+import { formatTimecode, type ProjectTuning } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
 import { isTauriShell } from '../../auth/tauri-env.ts'
@@ -23,7 +10,7 @@ import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { useLoops } from '../loops/use-loops.ts'
 import { useMarkers } from '../markers/use-markers.ts'
-import { type CountInPlayer, useCountIn } from '../tempo/use-count-in.ts'
+import { useCountIn } from '../tempo/use-count-in.ts'
 import { useMetronome } from '../tempo/use-metronome.ts'
 import { useTempo } from '../tempo/use-tempo.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
@@ -121,19 +108,6 @@ function playbackSteppers(player: ReturnType<typeof usePlayer>): {
 }
 
 interface WorkstationShellProps {
-  /** Ports injected in tests; default to the real Web Audio adapters. */
-  readonly decoder?: AudioFileDecoder
-  readonly engine?: PlaybackEngine
-  readonly stemEngine?: StemPlaybackEngine
-  readonly metadataReader?: TrackMetadataReader
-  readonly separator?: StemSeparator
-  readonly tempoDetector?: TempoDetector
-  readonly chordDetector?: ChordDetector
-  readonly structureDetector?: StructureDetector
-  readonly trackSource?: TrackSource
-  readonly projectStores?: ProjectDeps
-  /** Injected in tests; defaults to the real Web Audio one-shot player. */
-  readonly countInPlayer?: CountInPlayer
   /** Whether a local backend hosts the app (Tauri shell or the loupe server,
    * D1) — gates Save / Projects / URL import. Injected in tests to exercise
    * the plain-browser entry-point gating. */
@@ -145,29 +119,18 @@ interface WorkstationShellProps {
  * separation, project session) and the global keyboard shortcuts, then hands
  * the wired state to the view regions — ShellHeader (identity + actions +
  * import entry point), ShellDialogs (overlays), ShellMain (timeline +
- * analysis) and the transport bar.
+ * analysis) and the transport bar. The ports are not its business anymore:
+ * each consumer hook reaches them through the audio session (ADR 0011).
  */
 export function WorkstationShell({
-  decoder,
-  engine,
-  stemEngine,
-  metadataReader,
-  separator,
-  tempoDetector,
-  chordDetector,
-  structureDetector,
-  trackSource,
-  projectStores,
-  countInPlayer,
   desktop = isTauriShell() || isServerShell()
 }: WorkstationShellProps) {
   const { t } = useLingui()
   const { toaster, notifySuccess } = useToaster()
-  const { stemPlayback, separation, mixer, stemsReady } = useStemStack(
-    stemEngine,
-    separator
-  )
-  const player = usePlayer(decoder, engine, metadataReader, stemPlayback)
+  const { stemPlayback, separation, mixer, stemsReady } = useStemStack()
+  // The stem engine is a SINGLETON shared with the mixer/separation stack —
+  // hand the stack's instance over, never let the player make its own.
+  const player = usePlayer(undefined, undefined, undefined, stemPlayback)
   const {
     importState,
     loadedAudio,
@@ -191,7 +154,7 @@ export function WorkstationShell({
     speedTrainer
   } = player
   const markers = useMarkers()
-  const tempo = useTempo(tempoDetector)
+  const tempo = useTempo()
   const metronome = useMetronome({ mixer })
   // Separate the loaded track and wire the stems (+ metronome) into the mixer.
   const separateAndLoad = useSeparateAndLoad({ separation, mixer, metronome })
@@ -204,9 +167,7 @@ export function WorkstationShell({
       analysis: tempo.analysis,
       markers,
       separation,
-      separateAndLoad,
-      chordDetector,
-      structureDetector
+      separateAndLoad
     })
   const loops = useLoops()
   const loopEditing = useLoopEditing(loops, {
@@ -230,7 +191,6 @@ export function WorkstationShell({
   })
   // The whole project ↔ session lifecycle (save/open/detach-on-import).
   const session = useProjectSession({
-    stores: projectStores,
     importFile,
     loadedBytes,
     metadata,
@@ -267,7 +227,7 @@ export function WorkstationShell({
   })
 
   // Importing from a URL reuses the exact file-decode path once the bytes land.
-  const urlImport = useImportFromUrl(session.importDownloaded, trackSource)
+  const urlImport = useImportFromUrl(session.importDownloaded)
 
   // Every start goes through the count-in: one bar of clicks first when the
   // click lane is audible, a plain start otherwise. Pause stays immediate.
@@ -280,8 +240,7 @@ export function WorkstationShell({
     metronomeEnabled: metronome.enabled,
     mixerState: mixer.state,
     togglePlayback,
-    seekToSeconds,
-    player: countInPlayer
+    seekToSeconds
   })
 
   const isLoaded = importState.status === 'loaded'

@@ -22,6 +22,7 @@ import {
 } from '../../audio/analysis-token.ts'
 import { createTempoDetector } from '../../audio/create-tempo-detector.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
+import { useAudioSession } from '../audio-session/audio-session.ts'
 import { tempoAnalysisAtom, tempoGateReasonAtom } from './tempo-atoms.ts'
 
 /** How far the felt tempo may be nudged from the detection: ±2 octaves. */
@@ -134,7 +135,9 @@ export function useTempo(
    * to the app gate; a no-op pass locally. Injected in tests. */
   gate: () => Promise<EnsureTokenResult> = ensureAnalysisToken
 ): Tempo {
-  const engine = useMemo(() => detector ?? createTempoDetector(), [detector])
+  const session = useAudioSession()
+  const injected = detector ?? session.tempoDetector
+  const engine = useMemo(() => injected ?? createTempoDetector(), [injected])
   // Owned by the feature (ADR 0010): these two fields are read cross-feature on
   // their own, so they live in atoms; the rest stays local until pulled out.
   const [analysis, setAnalysis] = useAtom(tempoAnalysisAtom)

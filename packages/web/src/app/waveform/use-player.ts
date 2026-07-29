@@ -23,6 +23,7 @@ import { createWebAudioDecoder } from '../../audio/web-audio-decoder.ts'
 import { createWebAudioPlayback } from '../../audio/web-audio-playback.ts'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import type { ExternalValue } from '../../lib/external-value.ts'
+import { useAudioSession } from '../audio-session/audio-session.ts'
 import {
   type SpeedTrainer,
   useSpeedTrainer
@@ -111,19 +112,27 @@ export function usePlayer(
   metadataReader?: TrackMetadataReader,
   stemEngine?: StemPlaybackEngine
 ): Player {
+  const session = useAudioSession()
   const stemsActive = useAtomValue(stemsActiveAtom)
+  const injectedDecoder = decoder ?? session.decoder
   const audioDecoder = useMemo(
-    () => decoder ?? createWebAudioDecoder(),
-    [decoder]
+    () => injectedDecoder ?? createWebAudioDecoder(),
+    [injectedDecoder]
   )
-  const playback = useMemo(() => engine ?? createWebAudioPlayback(), [engine])
+  const injectedEngine = engine ?? session.engine
+  const playback = useMemo(
+    () => injectedEngine ?? createWebAudioPlayback(),
+    [injectedEngine]
+  )
+  const injectedStemEngine = stemEngine ?? session.stemEngine
   const stemPlayback = useMemo(
-    () => stemEngine ?? createWebAudioStemPlayback(),
-    [stemEngine]
+    () => injectedStemEngine ?? createWebAudioStemPlayback(),
+    [injectedStemEngine]
   )
+  const injectedReader = metadataReader ?? session.metadataReader
   const reader = useMemo(
-    () => metadataReader ?? createMusicMetadataReader(),
-    [metadataReader]
+    () => injectedReader ?? createMusicMetadataReader(),
+    [injectedReader]
   )
   const [metadata, setMetadata] = useState<TrackMetadata>(NO_METADATA)
   const [importState, setImportState] = useState<ImportState>({

@@ -11,6 +11,7 @@ import '@fontsource/space-grotesk/500.css'
 import './styles/petaluma-script.css'
 import './styles/tokens.css'
 import './styles/global.css'
+import { AudioSessionProvider } from './app/audio-session/audio-session-provider.tsx'
 import { WorkstationShell } from './app/workstation-shell/workstation-shell.tsx'
 import { i18n } from './i18n/i18n.ts'
 
@@ -25,7 +26,11 @@ createRoot(container).render(
       {/* The app's one atom store, explicit rather than Jotai's implicit
           default — the boundary tests recreate per case (ADR 0010). */}
       <AtomStoreProvider>
-        <WorkstationShell />
+        {/* The audio ports' one injection point (ADR 0011). Production
+            injects nothing: every consumer falls back to its real adapter. */}
+        <AudioSessionProvider value={{}}>
+          <WorkstationShell />
+        </AudioSessionProvider>
       </AtomStoreProvider>
     </I18nProvider>
   </StrictMode>

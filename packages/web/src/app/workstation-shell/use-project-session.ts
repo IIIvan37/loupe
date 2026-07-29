@@ -14,6 +14,7 @@ import { type ChangeEvent, useRef, useState } from 'react'
 import { nextPaint } from '../../lib/next-paint.ts'
 import { sessionSignature } from '../../projects/session-signature.ts'
 import { type Projects, useProjects } from '../../projects/use-projects.ts'
+import { useAudioSession } from '../audio-session/audio-session.ts'
 import { isSyntheticStem } from '../mixer/synthetic-stem.ts'
 import {
   DEFAULT_METRONOME_CHANNEL,
@@ -106,7 +107,10 @@ export interface ProjectSession {
  * after the user moved on to a new import is discarded instead of clobbering it.
  */
 export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
-  const projects = useProjects(deps.stores)
+  // The stores are a session port (ADR 0011): an explicit arg (tests) wins,
+  // then the session's injection, then the real stores inside useProjects.
+  const session = useAudioSession()
+  const projects = useProjects(deps.stores ?? session.projectStores)
   const [trackName, setTrackName] = useState<string | null>(null)
   const [openingId, setOpeningId] = useState<string | undefined>(undefined)
   // Encoding the stems for a save freezes the thread — the header narrates it.

@@ -18,6 +18,8 @@ import { Provider } from 'jotai'
 import { afterEach, beforeAll, beforeEach, vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
+import { AudioSessionProvider } from '../audio-session/audio-session-provider.tsx'
+import type { AudioSession } from '../audio-session/audio-session.ts'
 import { WorkstationShell } from './workstation-shell.tsx'
 
 
@@ -197,42 +199,43 @@ export function pointerGesture(
 
 /** Render the shell with the default fakes; override any port per test. */
 export function renderShell(
-  overrides: Partial<Parameters<typeof WorkstationShell>[0]> = {}
+  overrides: Partial<AudioSession> & { readonly desktop?: boolean } = {}
 ) {
   const user = userEvent.setup()
   const engine = fakeEngine()
   const stemEngine = fakeStemEngine()
-  const utils = render(
-    <WorkstationShell
-      decoder={okDecoder}
-      engine={engine}
-      stemEngine={stemEngine}
-      metadataReader={silentReader}
-      // The nominal client is the desktop shell, so specs render in desktop
-      // mode by default — saved projects + URL import are available. A browser
-      // gating spec overrides `desktop: false`.
-      desktop
-      // Inert analysis ports by default (offload-only: the real factories now
-      // require VITE_ANALYSIS_URL and would throw). A never-resolving fake
-      // keeps each flow idle; a flow's own tests inject one that answers.
-      tempoDetector={{ detect: () => new Promise(() => {}) }}
-      chordDetector={{ detect: () => new Promise(() => {}) }}
-      structureDetector={{ detect: () => new Promise(() => {}) }}
-      separator={{ separate: () => new Promise(() => {}) }}
-      trackSource={{ fetch: () => new Promise(() => {}) }}
-      {...overrides}
-    />,
-    {
-      // Its own atom store per render (Jotai's Provider creates one per mount)
-      // — the features' atoms are module-level, so without it the previous
-      // test's mix is still loaded in the next one.
-      wrapper: ({ children }) => (
-        <I18nTestingProvider>
-          <Provider>{children}</Provider>
-        </I18nTestingProvider>
-      )
-    }
-  )
+  // The nominal client is the desktop shell, so specs render in desktop mode
+  // by default — saved projects + URL import are available. A browser gating
+  // spec overrides `desktop: false`.
+  const { desktop = true, ...ports } = overrides
+  // The ONE injection point (ADR 0011): the ports ride the session context,
+  // not props. Analysis ports are inert by default (offload-only: the real
+  // factories require VITE_ANALYSIS_URL and would throw) — a never-resolving
+  // fake keeps each flow idle; a flow's own tests inject one that answers.
+  const session: AudioSession = {
+    decoder: okDecoder,
+    engine,
+    stemEngine,
+    metadataReader: silentReader,
+    tempoDetector: { detect: () => new Promise(() => {}) },
+    chordDetector: { detect: () => new Promise(() => {}) },
+    structureDetector: { detect: () => new Promise(() => {}) },
+    separator: { separate: () => new Promise(() => {}) },
+    trackSource: { fetch: () => new Promise(() => {}) },
+    ...ports
+  }
+  const utils = render(<WorkstationShell desktop={desktop} />, {
+    // Its own atom store per render (Jotai's Provider creates one per mount)
+    // — the features' atoms are module-level, so without it the previous
+    // test's mix is still loaded in the next one.
+    wrapper: ({ children }) => (
+      <I18nTestingProvider>
+        <Provider>
+          <AudioSessionProvider value={session}>{children}</AudioSessionProvider>
+        </Provider>
+      </I18nTestingProvider>
+    )
+  })
   return { engine, stemEngine, user, ...utils }
 }
 
