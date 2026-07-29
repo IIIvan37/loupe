@@ -8,7 +8,7 @@
   (1) mint single-flight, (2) abort au démontage de `useSeparation`, (3) clé
   de voûte 0011, (4) ADR graphe de modules web + tags Sheriff (après la clé de
   voûte), (5) interface étroite de session (DIP) en feuille du chantier.
-- **Correctif 1 livré** (branche `fix/analysis-token-single-flight`) :
+- **Correctif 1 livré** (branche `fix/analysis-token-single-flight`, PR #293) :
   `ensureAnalysisToken` protégé contre la concurrence —
   - **single-flight** : un gate arrivant pendant un mint en vol rejoint la
     même promesse au lieu de dépenser une **seconde unité de quota** (scénario

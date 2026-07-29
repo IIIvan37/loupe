@@ -24,7 +24,7 @@ la feature possède son état, le shell compose. Feuilles livrées : mixer (PR
 (`separationGateReasonAtom`, cliquet **24 → 23**, PR #292). Les feuilles d'état
 pur sont épuisées (les 23 props `ReturnType` restantes tiennent à des
 callbacks/API impératives). **Revue d'architecture (2026-07-29) : cap 0010/0011
-validé**, séquencement acté — correctifs courts (mint single-flight ; abort au
+validé**, séquencement acté — correctifs courts (mint single-flight, PR #293 ; abort au
 démontage de `useSeparation`), puis **clé de voûte de
 l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md)**
 (`AudioSessionProvider`), puis ADR graphe de modules web + tags Sheriff
