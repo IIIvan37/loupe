@@ -3,8 +3,8 @@
 ## Done
 
 - **La clé de voûte de l'[ADR 0011](../adr/0011-shell-layout-contexte-session-audio.md)**
-  (branche `feat/audio-session-provider`), découpage « ports seuls » choisi par
-  Ivan : `app/audio-session/audio-session.tsx` — le bag `AudioSession`
+  (branche `feat/audio-session-provider`, PR #295), découpage « ports seuls »
+  choisi par Ivan : `app/audio-session/audio-session.tsx` — le bag `AudioSession`
   (11 ports, références stables posées au montage), `AudioSessionProvider`,
   `useAudioSession()`. Défaut `{}` : la prod n'a besoin d'aucun Provider, les
   adaptateurs réels restent créés au point de consommation, comme avant.

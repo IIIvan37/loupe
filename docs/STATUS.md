@@ -23,7 +23,7 @@ la feature possède son état, le shell compose. Feuilles livrées : mixer (#287
 tempo (#290), séparation (#292) — cliquet `ReturnType` 26 → 23. Revue
 d'architecture (2026-07-29) : cap validé, correctifs livrés (#293, #294).
 **Clé de voûte de
-l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md) posée** :
+l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md) posée (PR #295)** :
 `AudioSessionProvider` (ports seuls), 7 hooks lisent `arg ?? session ?? réel`,
 `WorkstationShellProps` fond à `desktop` seul. **Prochaine feuille : le player
 en référence stable** (ShellFooter se sert seul, cliquet 23 → 21), puis ADR
