@@ -12,25 +12,25 @@
 local + navigateur** ([distribution-plan.md](distribution-plan.md), lots
 D1–D6 ; motifs : multi-OS, yt-dlp local, zéro signature, un moteur web). Le
 shell **Tauri passe en sommeil** (canal signé réactivable, CI conservée).
-**Roadmap v7 soldée** ([archivée](archive/roadmap-excellence-7.md), Lots
-AJ→AQ) ; **Lot TS clos** ([archivé](archive/template-sync-plan.md),
-#250–#263). Nursery à dessein : `detect-chords`, `bass-line` ; le reste
-≈ transport ; `timecode` attend un second consommateur.
-**D1–D6 clos** (PRs #275–#285, détail dans sessions/) : wheel `loupe`, crates
-`loupe-download` + `loupe-server` (axum + rust-embed sur `~/.loupe`), pipeline
-de release taguée, validation VM Windows 11 ARM (auth OTP). **Prochain
-distribution : 1re release taguée** (tap + secret `HOMEBREW_TAP_TOKEN`,
+**Roadmap v7 soldée** ([archive](archive/roadmap-excellence-7.md)) ; **Lot TS
+clos** ([archive](archive/template-sync-plan.md)). Nursery à dessein :
+`detect-chords`, `bass-line` ; `timecode` attend un second consommateur.
+**D1–D6 clos** (PRs #275–#285, détail dans sessions/) ; **prochain
+distribution : 1re release taguée** (tap + `HOMEBREW_TAP_TOKEN`,
 cf. `docs/RELEASING.md` ; Ubuntu ARM64 natif différé). **Chantier parallèle —
 état de vue** ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md), #286) :
 la feature possède son état, le shell compose. Feuilles livrées : mixer (PR
 #287), tempo (PR #290, cliquet `ReturnType` 26 → 24), séparation
-(`separationGateReasonAtom`, cliquet **24 → 23**, PR #292). **Prochaine feuille : la
-clé de voûte de l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md)**
-— `AudioSessionProvider` (moteur + ports en contexte, références stables
-uniquement) : les feuilles d'état pur sont épuisées, les 23 props `ReturnType`
-restantes tiennent à des callbacks/API impératives. Chaque feuille descend ≥1
-cliquet (`composition-invariants.spec.ts`) dans sa PR. Checkpoint UI avant
-chaque slice.
+(`separationGateReasonAtom`, cliquet **24 → 23**, PR #292). Les feuilles d'état
+pur sont épuisées (les 23 props `ReturnType` restantes tiennent à des
+callbacks/API impératives). **Revue d'architecture (2026-07-29) : cap 0010/0011
+validé**, séquencement acté — correctifs courts (mint single-flight ; abort au
+démontage de `useSeparation`), puis **clé de voûte de
+l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md)**
+(`AudioSessionProvider`), puis ADR graphe de modules web + tags Sheriff
+(3 cycles de features relevés), puis interface étroite de session (DIP).
+Chaque feuille du chantier descend ≥1 cliquet
+(`composition-invariants.spec.ts`) dans sa PR. Checkpoint UI avant chaque slice.
 
 **Garde-fous beta restants** (cf. [beta-checklist.md](beta-checklist.md)) :
 plafond Modal (mesuré ~3,67 $/mois), SMTP custom câblé (Resend), re-seed des

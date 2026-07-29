@@ -16,6 +16,12 @@ import type { AuthPort, MintFailureReason } from '../auth/auth-port.ts'
 const SKEW_SECONDS = 30
 
 let cached: { token: string; expiresAt: number } | undefined
+// Single-flight: concurrent gates share ONE mint (a mint spends a quota unit
+// server-side — two simultaneous analyses must not spend two).
+let inflight: Promise<EnsureTokenResult> | undefined
+// Bumped by every clear (sign-out): a mint that started before the bump is
+// superseded — its token belongs to the closed session and must not land.
+let generation = 0
 
 function nowSeconds(): number {
   return Math.floor(Date.now() / 1000)
@@ -38,9 +44,13 @@ export function cachedAnalysisToken(): string | undefined {
   return undefined
 }
 
-/** Drop the cached token (on sign-out — the next analysis re-mints). */
+/** Drop the cached token (on sign-out — the next analysis re-mints). Also
+ * supersedes any in-flight mint: its late token must not repopulate the cache,
+ * and a new sign-in's analysis must not join it. */
 export function clearAnalysisToken(): void {
   cached = undefined
+  inflight = undefined
+  generation += 1
 }
 
 /** This month's usage as the last mint reported it. */
@@ -79,7 +89,22 @@ export async function ensureAnalysisToken(
   if (cachedAnalysisToken() !== undefined) {
     return { ok: true }
   }
+  // Single-flight: a gate arriving while a mint is in flight joins it instead
+  // of spending a second quota unit.
+  inflight ??= mint(auth).finally(() => {
+    inflight = undefined
+  })
+  return inflight
+}
+
+async function mint(auth: AuthPort): Promise<EnsureTokenResult> {
+  const startedIn = generation
   const result = await auth.mintToken()
+  // A sign-out since the mint started (the clear bumped the generation): the
+  // token belongs to the closed session — refuse the run, cache nothing.
+  if (generation !== startedIn) {
+    return { ok: false, reason: 'sign-in-required' }
+  }
   if (!result.ok) {
     return { ok: false, reason: result.reason }
   }
