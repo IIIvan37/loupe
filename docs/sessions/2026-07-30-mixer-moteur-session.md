@@ -55,8 +55,10 @@
 - tests : ✅ suite complète verte (web 1117/1117), couverture 96,8 %
   statements / 92,3 % branches.
 - mutation : **sans objet** — aucune source core touchée (web uniquement).
-- sonar : analyse CI de la PR #303 en attente au moment du rapport — à
-  lire (`pnpm sonar 303`) avant merge.
+- sonar : ✅ quality gate OK sur la PR #303 — 0 issue ouverte, 0 hotspot.
+- CI PR #303 : ✅ tous les checks verts (commit messages, dependency audit,
+  edge functions, quality gate, server, SonarCloud ; mutation core skippée —
+  aucune source core).
 
 ## State to resume from
 
