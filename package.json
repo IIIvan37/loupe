@@ -31,8 +31,11 @@
     "check:dead": "knip",
     "check:dup": "jscpd packages",
     "check:tokens": "bash scripts/check-css-tokens.sh",
+    "check:i18n": "bash scripts/check-i18n.sh",
+    "check:sonar": "bash scripts/check-sonar-triage.sh",
     "modules:hint": "node scripts/modules-hint.ts",
-    "gate": "pnpm run \"/^(typecheck|check|check:arch|check:design|check:react|check:tokens|test:coverage|check:dead|check:dup)$/\"",
+    "sonar": "node scripts/sonar-issues.ts",
+    "gate": "pnpm run \"/^(typecheck|check|check:arch|check:design|check:react|check:tokens|check:i18n|check:sonar|test:coverage|check:dead|check:dup)$/\" && bash scripts/gate-stamp.sh write",
     "prepare": "husky"
   },
   "devDependencies": {

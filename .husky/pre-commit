@@ -61,17 +61,34 @@ if [ -n "$staged" ]; then
   fi
 fi
 
-# Blocking guardrails (greenfield: no debt, so no tolerance). Same composition
-# as `pnpm gate` — a commit that passes here cannot fail CI on a skipped check.
-# (Only repo-wide `biome check` is replaced by the staged-only pass above, so a
-# partial commit isn't blocked by unformatted WIP files; CI covers the rest.)
-echo "🔍 gate (typecheck + arch + design + react + coverage + knip + jscpd)"
-pnpm -s typecheck
-pnpm -s check:arch
-pnpm -s check:design
-pnpm -s check:react
-pnpm -s test:coverage
-pnpm -s check:dead
-pnpm -s check:dup
+# `pnpm gate` stamps the working tree it validated. If the tree still hashes to
+# that stamp, these very checks already ran on these very bytes — replaying them
+# would burn the loop's most expensive minutes to reprint the same green. Any
+# difference (including the biome --write above, if it changed anything) misses
+# the stamp and the full set runs. See scripts/gate-stamp.sh.
+if bash scripts/gate-stamp.sh check; then
+  echo "✅ gate already green on this exact tree (stamped) — skipping the replay"
+  exit 0
+fi
+
+# Blocking guardrails (greenfield: no debt, so no tolerance). ONE regex, the
+# same shape `gate` uses, minus repo-wide `check` (biome) — replaced by the
+# staged-only pass above, so a partial commit isn't blocked by unformatted WIP
+# files; CI covers the rest. A commit that passes here cannot fail CI on a
+# skipped check.
+#
+# The regex form is used for ONE reason: it cannot drift out of sync with
+# `gate` the way a hand-maintained list does — `check:tokens` had already gone
+# missing from that list. The parallelism it also brings is close to free but
+# nearly worthless: measured on one tree, `test:coverage` alone is ~99 s, the
+# whole parallel set ~106 s, the same set one after another ~108 s. Everything
+# hides behind coverage either way. What actually removes the cost is the
+# stamp above.
+echo "🔍 gate (typecheck + arch + design + react + tokens + i18n + coverage + knip + jscpd)"
+pnpm run "/^(typecheck|check:arch|check:design|check:react|check:tokens|check:i18n|check:sonar|test:coverage|check:dead|check:dup)$/"
+
+# Everything the gate covers just passed on this tree — stamp it so an amend or
+# a quick follow-up commit on the same bytes doesn't pay for it again.
+bash scripts/gate-stamp.sh write
 
 echo "✅ Pre-commit OK"

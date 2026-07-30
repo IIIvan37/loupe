@@ -12,7 +12,10 @@ pnpm monorepo with a **pure hexagonal core** + a React (`web`) adapter,
 ## Commands
 
 - `pnpm gate` — **the blocking quality gate**: typecheck → biome → `check:arch`
-  (Sheriff) → tests with coverage → knip → jscpd. Run before declaring anything done.
+  (Sheriff) → `check:design`/`check:react` → `check:tokens`/`check:i18n`/`check:sonar`
+  → tests with coverage → knip → jscpd. Run before declaring anything done. A green run
+  stamps the tree it validated, so the pre-commit hook doesn't replay it on the
+  same bytes (`scripts/gate-stamp.sh`).
 - `pnpm test` / `pnpm test:watch` / `pnpm test:coverage` — vitest (`*.spec.ts`,
   colocated). Run one: `pnpm test <path>` (NOT `pnpm test -- <path>` — the `--`
   defeats the filter and the whole suite runs).
@@ -21,7 +24,15 @@ pnpm monorepo with a **pure hexagonal core** + a React (`web`) adapter,
   before opening the PR** (wired into `/session-report`). The full run
   (`pnpm test:mutation`) stays CI's post-merge job — that one is authoritative.
   Kept out of `gate` (too slow per commit). One heavy run at a time: never
-  overlap Stryker with `gate` or a full suite (CPU starvation fails tests).
+  overlap Stryker with `gate` or a full suite (CPU starvation fails tests) —
+  enforced by `.claude/hooks/block-overlapping-heavy-runs.sh`.
+- `pnpm sonar` — the SonarCloud findings CI already computed, in the terminal
+  (current branch's PR, else `main`; `pnpm sonar <PR#>` targets one). Public
+  project, so no token. Read it at each close-step: Sonar catches rules the
+  local detectors don't. **False positives are triaged in
+  `sonar-project.properties`**, as code, so the reasoning travels with the PR —
+  never resolved in the web UI. `check:sonar` (in the gate) fails when an
+  exemption names a file that moved: it would stop applying in silence.
 - `pnpm typecheck` / `pnpm check` / `pnpm check:fix` / `pnpm check:arch`
   / `pnpm check:dead` / `pnpm check:dup`.
 - Run the app: `pnpm --filter @app/web dev`.
@@ -73,7 +84,9 @@ can't see.
   source catalog `packages/web/src/locales/fr/messages.po`, **infinitive forms**
   (no tutoiement/vouvoiement). After changing copy run
   `pnpm --filter @app/web i18n:extract` (it overwrites the source-locale msgstr —
-  required whenever a message changes). Specs never hardcode copy: they resolve
+  required whenever a message changes). **`check:i18n` in the gate enforces it**:
+  it re-extracts and fails on a diff. Reference comments carry no line numbers
+  (`lingui.config.ts`), so a diff always means a real change of copy. Specs never hardcode copy: they resolve
   keys via `i18n._('id', values)` under the `I18nTestingProvider` wrapper (see
   the `react-testing-patterns` and `lingui-best-practices` skills).
 - **Conventional Commits** (enforced by commitlint + the husky `commit-msg` hook).

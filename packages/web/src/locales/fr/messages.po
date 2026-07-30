@@ -14,863 +14,854 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:271
+#: src/app/account/account-menu.tsx
 msgid "account.beta-code"
 msgstr "Code bêta"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:215
+#: src/app/account/account-menu.tsx
 msgid "account.change-email"
 msgstr "Changer d'adresse"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:289
+#: src/app/account/account-menu.tsx
 msgid "account.code-error"
 msgstr "Vérification impossible — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:281
+#: src/app/account/account-menu.tsx
 msgid "account.code-invalid"
 msgstr "Code invalide, déjà utilisé, ou trop d'essais — réessayer plus tard."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:157
+#: src/app/account/account-menu.tsx
 msgid "account.code-sent-spam"
 msgstr "Saisir le code reçu par email — penser aux spams."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:152
+#: src/app/account/account-menu.tsx
 msgid "account.code-sent-to"
 msgstr "Code de connexion envoyé à {sentTo}."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:224
+#: src/app/account/account-menu.tsx
 msgid "account.email"
 msgstr "Email"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu-slot.tsx:16
+#: src/app/account/account-menu-slot.tsx
 msgid "account.gate-beta"
 msgstr "Entrer un code bêta pour accéder aux analyses."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu-slot.tsx:27
+#: src/app/account/account-menu-slot.tsx
 msgid "account.gate-error"
 msgstr "Analyse indisponible — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu-slot.tsx:20
+#: src/app/account/account-menu-slot.tsx
 msgid "account.gate-quota"
 msgstr "Quota d’analyses atteint — réinitialisation le 1ᵉʳ du mois. Lecture, boucles et grille restent utilisables."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu-slot.tsx:12
+#: src/app/account/account-menu-slot.tsx
 msgid "account.gate-sign-in"
 msgstr "Se connecter pour lancer une analyse."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:236
+#: src/app/account/account-menu.tsx
 msgid "account.link-error"
 msgstr "Envoi impossible — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:125
+#: src/app/account/account-menu.tsx
 msgid "account.menu"
 msgstr "Compte"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:302
+#: src/app/account/account-menu.tsx
 msgid "account.no-code-request"
 msgstr "Pas de code ? Demander un accès"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:162
+#: src/app/account/account-menu.tsx
 msgid "account.otp-code"
 msgstr "Code reçu par email"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:174
+#: src/app/account/account-menu.tsx
 msgid "account.otp-error"
 msgstr "Code incorrect ou expiré — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:189
+#: src/app/account/account-menu.tsx
 msgid "account.otp-submit"
 msgstr "Se connecter"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:50
+#: src/app/account/account-menu.tsx
 msgid "account.quota-this-month"
 msgstr "Analyses ce mois : {used}/{quota}"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:299
+#: src/app/account/account-menu.tsx
 msgid "account.redeem"
 msgstr "Valider le code"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:207
+#: src/app/account/account-menu.tsx
 msgid "account.resend"
 msgstr "Renvoyer"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:203
+#: src/app/account/account-menu.tsx
 msgid "account.resend-in"
 msgstr "Renvoyer dans {secondsLeft} s"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:246
+#: src/app/account/account-menu.tsx
 msgid "account.send-link"
 msgstr "Recevoir un lien"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:118
+#: src/app/account/account-menu.tsx
 msgid "account.sign-in"
 msgstr "Se connecter"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:145
+#: src/app/account/account-menu.tsx
 msgid "account.sign-in-title"
 msgstr "Se connecter pour analyser"
 
 #. js-lingui-explicit-id
-#: src/app/account/account-menu.tsx:314
+#: src/app/account/account-menu.tsx
 msgid "account.sign-out"
 msgstr "Se déconnecter"
 
 #. js-lingui-explicit-id
-#: src/app/ui/alert-banner.tsx:23
+#: src/app/ui/alert-banner.tsx
 msgid "alerts.close"
 msgstr "Fermer l'alerte"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analysis-summary.ts:14
+#: src/app/analyser/analysis-summary.ts
 msgid "analyser.summary-grid"
 msgstr "grille {0} mes."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analysis-summary.ts:9
+#: src/app/analyser/analysis-summary.ts
 msgid "analyser.summary-meter"
 msgstr "{0} temps"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analysis-summary.ts:10
+#: src/app/analyser/analysis-summary.ts
 msgid "analyser.summary-sections"
 msgstr "{0, plural, one {# section} other {# sections}}"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:289
+#: src/app/analyser/analyser-row.tsx
 msgid "analyser.tempo-detect"
 msgstr "Détecter le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:248
+#: src/app/analyser/analyser-row.tsx
 msgid "analyser.tempo-detecting"
 msgstr "Analyse du tempo…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:281
+#: src/app/analyser/analyser-row.tsx
 msgid "analyser.tempo-done"
 msgstr "Tempo détecté"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:115
+#: src/app/analyser/detection-copy.ts
 msgid "analysis.blocked-offline"
 msgstr "Hors ligne — les analyses nécessitent le réseau."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/chroma-view.tsx:74
+#: src/app/analysis-panel/chroma-view.tsx
 msgid "analysis.chroma-idle"
 msgstr "Importer un morceau pour voir les notes dominantes."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/chroma-view.tsx:86
+#: src/app/analysis-panel/chroma-view.tsx
 msgid "analysis.chroma-label"
 msgstr "Notes dominantes à la position de lecture"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/chroma-view.tsx:116
+#: src/app/analysis-panel/chroma-view.tsx
 msgid "analysis.chroma-legend"
 msgstr "Estompé : harmoniques probables d’une note plus grave."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:40
+#: src/app/analyser/analyser-row.tsx
 msgid "analysis.cold-start"
 msgstr "Démarrage du service d'analyse (jusqu'à ~1 min)…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:21
+#: src/app/analyser/detection-copy.ts
 msgid "analysis.error.network-offload"
 msgstr "Service d'analyse injoignable — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/account/analysis-gate-notice.tsx:47
+#: src/app/account/analysis-gate-notice.tsx
 msgid "analysis.locked-beta"
 msgstr "Entrer un code bêta pour débloquer les analyses."
 
 #. js-lingui-explicit-id
-#: src/app/account/analysis-gate-notice.tsx:41
+#: src/app/account/analysis-gate-notice.tsx
 msgid "analysis.locked-sign-in"
 msgstr "Se connecter pour débloquer les analyses."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:153
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "analysis.no-loops"
 msgstr "Aucune boucle. En enregistrer une depuis une sélection A/B."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:96
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "analysis.no-markers"
 msgstr "Aucun repère. En ajouter depuis la barre de repères."
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:81
-#: src/app/workstation-shell/shell-test-kit.tsx:268
+#: src/app/analysis-panel/analysis-panel.tsx
+#: src/app/workstation-shell/shell-test-kit.tsx
 msgid "analysis.tab-loops"
 msgstr "Boucles"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:78
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "analysis.tab-markers"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:75
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chart-header.tsx:56
+#: src/app/lead-sheet/chart-header.tsx
 msgid "chart.form-rollout"
 msgstr "Jouer {count} fois"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chart-header.tsx:66
+#: src/app/lead-sheet/chart-header.tsx
 msgid "chart.key-of"
 msgstr "Tonalité : {key}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/lead-sheet.tsx:154
+#: src/app/lead-sheet/lead-sheet.tsx
 msgid "chart.measure-locate"
 msgstr "Placer le curseur sur la mesure {number}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/lead-sheet.tsx:158
+#: src/app/lead-sheet/lead-sheet.tsx
 msgid "chart.measure-seek"
 msgstr "Aller à la mesure {number}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/bars-per-row-field.tsx:73
+#: src/app/lead-sheet/bars-per-row-field.tsx
 msgid "chords.bars-per-row"
 msgstr "Mesures par ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/bars-per-row-field.tsx:78
+#: src/app/lead-sheet/bars-per-row-field.tsx
 msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:422
+#: src/app/analyser/analyser-row.tsx
 msgid "chords.detect"
 msgstr "Détecter les accords"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:438
+#: src/app/analyser/analyser-row.tsx
 msgid "chords.detect-confirm"
 msgstr "Remplacer la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:414
+#: src/app/analyser/analyser-row.tsx
 msgid "chords.detect-done"
 msgstr "Grille pré-remplie depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:398
+#: src/app/analyser/analyser-row.tsx
 msgid "chords.detect-failed"
 msgstr "Échec de la détection des accords"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:55
+#: src/app/analyser/detection-copy.ts
 msgid "chords.detect-needs-grid"
 msgstr "Détecter d'abord le tempo — la grille de mesures ancre les accords."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:409
+#: src/app/analyser/analyser-row.tsx
 msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:135
-#: src/app/workstation-shell/shell-test-kit.tsx:253
+#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/workstation-shell/shell-test-kit.tsx
 msgid "chords.edit"
 msgstr "Modifier"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:613
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.empty-hint"
 msgstr "Aucune grille — saisir les accords ou lancer la détection."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:69
+#: src/app/analyser/detection-copy.ts
 msgid "chords.error.engine-unavailable"
 msgstr "Service d'analyse indisponible pour le moment — réessayer plus tard."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:65
+#: src/app/analyser/detection-copy.ts
 msgid "chords.error.no-chords"
 msgstr "Aucun accord détecté sur ce morceau."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:75
+#: src/app/analyser/detection-copy.ts
 msgid "chords.error.timeout"
 msgstr "L'analyse des accords a expiré — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:79
+#: src/app/analyser/detection-copy.ts
 msgid "chords.error.too-large"
 msgstr "Morceau trop volumineux pour l'analyse."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:83
+#: src/app/analyser/detection-copy.ts
 msgid "chords.error.unknown"
 msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:393
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.follow-pitch"
 msgstr "Transposer la grille pour suivre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:389
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.follow-pitch-confirm"
 msgstr "Réécrire la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:368
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.followed"
 msgstr "Grille transposée"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:138
-#: src/app/lead-sheet/format-help-dialog.tsx:103
+#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.format-help"
 msgstr "Aide du format"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:104
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.format-help-intro"
 msgstr "La grille se tape en texte : une ligne par rangée de mesures."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:89
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-directives"
 msgstr "Surcharger l'en-tête de la grille"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:64
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-fermata"
 msgstr "Point d'orgue"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:68
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-form"
 msgstr "Marques de forme (da capo, coda, fin)"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:28
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-measures"
 msgstr "Une mesure entre deux barres"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:46
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-repeat"
 msgstr "Reprise"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:50
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-repeat-count"
 msgstr "Reprise jouée N fois"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:82
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-rollout"
 msgstr "Jouer toute la grille N fois"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:24
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-section"
 msgstr "Nommer une section"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:42
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-silence"
 msgstr "Mesure sans accord"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:35
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-split"
 msgstr "Un accord par moitié de mesure"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:75
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-time"
 msgstr "Signature rythmique (en tête ou en cours de grille)"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx:57
+#: src/app/lead-sheet/format-help-dialog.tsx
 msgid "chords.help-voltas"
 msgstr "Fins alternatives (voltas)"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:653
-#: src/app/workstation-shell/shell-test-kit.tsx:249
-#: src/app/workstation-shell/shell-test-kit.tsx:254
+#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/workstation-shell/shell-test-kit.tsx
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:191
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.key-reset"
 msgstr "Revenir à la tonalité écrite"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:268
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.key-shift"
 msgstr "Tonalité : {written} → {current} ({offset})"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:258
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.key-shift-offset"
 msgstr "Grille transposée de {offset}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:291
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.parse-count"
 msgstr "Mesures lues : {measures}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:295
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.parse-count-line"
 msgstr "Mesures lues : {measures} · sur cette ligne : {onLine}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:147
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.parse-suspects"
 msgstr "{count, plural, one {# accord douteux : {examples}} other {# accords douteux : {examples}}}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:152
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.parse-unreachable"
 msgstr "{count, plural, one {# mesure jamais jouée par la forme} other {# mesures jamais jouées par la forme}}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:377
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.pitch-mismatch"
 msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:657
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:126
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.print"
 msgstr "Imprimer"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:118
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.print-desktop-soon"
 msgstr "Impression bientôt disponible sur l'app de bureau"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:213
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.respell-flat"
 msgstr "Épeler en bémols"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:202
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.respell-sharp"
 msgstr "Épeler en dièses"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:229
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.roman-needs-key"
 msgstr "Nommer la tonalité de la grille pour lire en degrés"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:237
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.roman-toggle"
 msgstr "Chiffrage romain"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:405
+#: src/app/analyser/analyser-row.tsx
 msgid "chords.separating"
 msgstr "Séparation des pistes avant les accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:81
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:89
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx:100
+#: src/app/lead-sheet/chord-chart-panel.tsx
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:153
-#: src/app/ui/operation-status.tsx:72
-#: src/app/ui/popover-form.tsx:59
-#: src/app/workstation-shell/confirm-import-dialog.tsx:55
-#: src/app/workstation-shell/confirm-quit-dialog.tsx:52
+#: src/app/header/import-menu.tsx
+#: src/app/ui/operation-status.tsx
+#: src/app/ui/popover-form.tsx
+#: src/app/workstation-shell/confirm-import-dialog.tsx
+#: src/app/workstation-shell/confirm-quit-dialog.tsx
 msgid "common.cancel"
 msgstr "Annuler"
 
 #. js-lingui-explicit-id
-#: src/app/ui/app-dialog.tsx:41
+#: src/app/ui/app-dialog.tsx
 msgid "common.close"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:295
-#: src/app/header/import-menu.tsx:107
-#: src/projects/projects-dialog.tsx:81
+#: src/app/analysis-panel/analysis-panel.tsx
+#: src/app/header/import-menu.tsx
+#: src/projects/projects-dialog.tsx
 msgid "common.confirm"
 msgstr "Confirmer ?"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:212
+#: src/projects/projects-dialog.tsx
 msgid "common.delete"
 msgstr "Supprimer"
 
 #. js-lingui-explicit-id
-#: src/app/ui/name-editor.tsx:74
-#: src/app/workstation-shell/shell-test-kit.tsx:261
-#: src/app/workstation-shell/shell-test-kit.tsx:349
-#: src/app/workstation-shell/shell-test-kit.tsx:350
+#: src/app/ui/name-editor.tsx
+#: src/app/workstation-shell/shell-test-kit.tsx
 msgid "common.name"
 msgstr "Nom"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:280
-#: src/projects/projects-dialog.tsx:186
+#: src/app/analysis-panel/analysis-panel.tsx
+#: src/projects/projects-dialog.tsx
 msgid "common.rename"
 msgstr "Renommer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:76
-#: src/app/header/header.tsx:88
-#: src/app/header/header.tsx:96
-#: src/app/header/header.tsx:108
-#: src/app/loops/loop-controls.tsx:90
-#: src/app/workstation-shell/shell-test-kit.tsx:262
-#: src/app/workstation-shell/shell-test-kit.tsx:351
+#: src/app/header/header.tsx
+#: src/app/loops/loop-controls.tsx
+#: src/app/workstation-shell/shell-test-kit.tsx
 msgid "common.save"
 msgstr "Enregistrer"
 
 #. js-lingui-explicit-id
 #. placeholder {0}: fileName ?? ''
-#: src/app/workstation-shell/confirm-import-dialog.tsx:44
+#: src/app/workstation-shell/confirm-import-dialog.tsx
 msgid "drop.confirm-body"
 msgstr "« {0} » remplacera le travail non enregistré."
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/confirm-import-dialog.tsx:62
+#: src/app/workstation-shell/confirm-import-dialog.tsx
 msgid "drop.confirm-import"
 msgstr "Importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/confirm-import-dialog.tsx:41
+#: src/app/workstation-shell/confirm-import-dialog.tsx
 msgid "drop.confirm-title"
 msgstr "Remplacer la session ?"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-drop-layer.tsx:38
+#: src/app/workstation-shell/shell-drop-layer.tsx
 msgid "drop.overlay"
 msgstr "Déposer le fichier audio pour l'importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:389
+#: src/app/workstation-shell/workstation-shell.tsx
 msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:105
+#: src/app/workstation-shell/empty-state.tsx
 msgid "empty.headline"
 msgstr "Glisser un fichier audio ici"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:46
+#: src/app/workstation-shell/empty-state.tsx
 msgid "empty.hook-detect-desc"
 msgstr "Grille d'accords et BPM automatiques"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:43
+#: src/app/workstation-shell/empty-state.tsx
 msgid "empty.hook-detect-title"
 msgstr "Détecter accords & tempo"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:56
+#: src/app/workstation-shell/empty-state.tsx
 msgid "empty.hook-loop-desc"
 msgstr "Répéter un passage, ralentir sans changer la hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:54
+#: src/app/workstation-shell/empty-state.tsx
 msgid "empty.hook-loop-title"
 msgstr "Boucler & ralentir"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:36
+#: src/app/workstation-shell/empty-state.tsx
 msgid "empty.hook-separate-desc"
 msgstr "Isoler voix, basse, batterie…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:34
+#: src/app/workstation-shell/empty-state.tsx
 msgid "empty.hook-separate-title"
 msgstr "Séparer les pistes"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:111
+#: src/app/workstation-shell/empty-state.tsx
 msgid "empty.import"
 msgstr "Importer un fichier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:117
+#: src/app/workstation-shell/empty-state.tsx
 msgid "empty.or"
 msgstr "ou coller un lien"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx:108
+#: src/app/workstation-shell/empty-state.tsx
 msgid "empty.sub"
 msgstr "WAV, MP3, FLAC, M4A…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:86
+#: src/app/workstation-shell/shell-header.tsx
 msgid "header.downloading"
 msgstr "Téléchargement…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:249
+#: src/app/header/header.tsx
 msgid "header.export"
 msgstr "Exporter"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:242
+#: src/app/header/header.tsx
 msgid "header.export-needs-stems"
 msgstr "Séparer les pistes avant l'export"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:238
+#: src/app/header/header.tsx
 msgid "header.export-ready"
 msgstr "Télécharger les pistes en ZIP"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:110
+#: src/app/workstation-shell/shell-header.tsx
 msgid "header.exporting"
 msgstr "Export des pistes…"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:108
+#: src/app/header/import-menu.tsx
 msgid "header.import"
 msgstr "Importer"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:90
+#: src/app/header/import-menu.tsx
 msgid "header.import-confirm"
 msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:131
-#: src/app/workstation-shell/shell-test-kit.tsx:231
-#: src/app/workstation-shell/use-file-picker.ts:24
+#: src/app/workstation-shell/shell-header.tsx
+#: src/app/workstation-shell/shell-test-kit.tsx
+#: src/app/workstation-shell/use-file-picker.ts
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:118
+#: src/app/header/import-menu.tsx
 msgid "header.import-from-file"
 msgstr "Fichier…"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:126
+#: src/app/header/import-menu.tsx
 msgid "header.import-from-url"
 msgstr "Depuis une URL…"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:144
+#: src/app/header/import-menu.tsx
 msgid "header.import-url-title"
 msgstr "Importer depuis une URL"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:125
+#: src/app/workstation-shell/shell-header.tsx
 msgid "header.no-track"
 msgstr "Aucun morceau"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:114
+#: src/app/workstation-shell/shell-header.tsx
 msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:268
-#: src/app/workstation-shell/shell-test-kit.tsx:282
+#: src/app/header/header.tsx
+#: src/app/workstation-shell/shell-test-kit.tsx
 msgid "header.projects"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:116
-#: src/app/workstation-shell/shell-test-kit.tsx:353
+#: src/app/header/header.tsx
+#: src/app/workstation-shell/shell-test-kit.tsx
 msgid "header.rename-project"
 msgstr "Renommer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:111
+#: src/app/header/header.tsx
 msgid "header.save-as"
 msgstr "Enregistrer sous un autre nom"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:83
+#: src/app/header/header.tsx
 msgid "header.save-needs-track"
 msgstr "Importer un morceau pour pouvoir l'enregistrer"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:130
-#: src/app/header/header.tsx:132
-#: src/app/workstation-shell/shell-test-kit.tsx:347
+#: src/app/header/header.tsx
+#: src/app/workstation-shell/shell-test-kit.tsx
 msgid "header.save-project"
 msgstr "Enregistrer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:180
+#: src/app/header/header.tsx
 msgid "header.saved"
 msgstr "Enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:106
+#: src/app/workstation-shell/shell-header.tsx
 msgid "header.saving"
 msgstr "Enregistrement du projet…"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:220
+#: src/app/header/header.tsx
 msgid "header.shortcuts-tip"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:216
+#: src/app/header/header.tsx
 msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:90
+#: src/app/workstation-shell/shell-header.tsx
 msgid "header.transcoding"
 msgstr "Extraction de l'audio…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx:130
+#: src/app/workstation-shell/shell-header.tsx
 msgid "header.unknown-artist"
 msgstr "Artiste inconnu"
 
 #. js-lingui-explicit-id
-#: src/app/header/header.tsx:179
+#: src/app/header/header.tsx
 msgid "header.unsaved"
 msgstr "● Non enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/ui/url-import-field.tsx:62
+#: src/app/ui/url-import-field.tsx
 msgid "import.url-field"
 msgstr "Lien du morceau"
 
 #. js-lingui-explicit-id
-#: src/app/ui/url-import-field.tsx:54
+#: src/app/ui/url-import-field.tsx
 msgid "import.url-hint"
 msgstr "YouTube · SoundCloud"
 
 #. js-lingui-explicit-id
-#: src/app/ui/url-import-field.tsx:83
+#: src/app/ui/url-import-field.tsx
 msgid "import.url-submit"
 msgstr "Importer le lien"
 
 #. js-lingui-explicit-id
-#: src/app/ui/url-import-field.tsx:71
+#: src/app/ui/url-import-field.tsx
 msgid "import.url-unsupported"
 msgstr "Hôte non supporté — YouTube ou SoundCloud uniquement"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:74
+#: src/app/loops/loop-controls.tsx
 msgid "loops.active"
 msgstr "Boucle active"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:97
+#: src/app/loops/loop-controls.tsx
 msgid "loops.clear-region"
 msgstr "Effacer"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:184
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "loops.confirm-remove"
 msgstr "Confirmer la suppression de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:76
+#: src/app/loops/loop-controls.tsx
 msgid "loops.inactive"
 msgstr "Boucle inactive"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:54
+#: src/app/loops/loop-controls.tsx
 msgid "loops.readout"
 msgstr "{start} → {end} · {length}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:180
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "loops.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:173
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "loops.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:169
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "loops.rename-title"
 msgstr "Renommer la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:42
-#: src/app/workstation-shell/shell-test-kit.tsx:260
+#: src/app/loops/loop-controls.tsx
+#: src/app/workstation-shell/shell-test-kit.tsx
 msgid "loops.save-region"
 msgstr "Enregistrer la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/loops/loop-controls.tsx:62
+#: src/app/loops/loop-controls.tsx
 msgid "loops.section-label"
 msgstr "Boucles"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:189
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-increment"
 msgstr "Incrément (%)"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:109
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-needs-loop"
 msgstr "Activez la boucle pour lancer la rampe de tempo"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:114
-#: src/app/loops/speed-trainer-controls.tsx:175
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-open"
 msgstr "Rampe de tempo"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:195
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-passes"
 msgstr "Répétitions par palier"
 
@@ -878,7 +869,7 @@ msgstr "Répétitions par palier"
 #. placeholder {0}: preview.startPercent
 #. placeholder {1}: preview.targetPercent
 #. placeholder {2}: preview.incrementPercent
-#: src/app/loops/speed-trainer-controls.tsx:161
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-preview"
 msgstr "{0} → {1} % · {stepsLabel} de +{2} %"
 
@@ -887,900 +878,898 @@ msgstr "{0} → {1} % · {stepsLabel} de +{2} %"
 #. placeholder {1}: preview.targetPercent
 #. placeholder {2}: preview.incrementPercent
 #. placeholder {3}: preview.passesPerStep
-#: src/app/loops/speed-trainer-controls.tsx:165
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-preview-passes"
 msgstr "{0} → {1} % · {stepsLabel} de +{2} % · {3} répétitions/palier"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:178
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-start"
 msgstr "Démarrer"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:183
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-start-percent"
 msgstr "Départ (%)"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:122
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-status"
 msgstr "Rampe {currentPercent} % → {targetPercent} %"
 
 #. js-lingui-explicit-id
 #. placeholder {0}: preview.stepCount
-#: src/app/loops/speed-trainer-controls.tsx:155
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-steps"
 msgstr "{0} paliers"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:154
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-steps-one"
 msgstr "1 palier"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:134
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-stop"
 msgstr "Arrêter la rampe"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:204
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-target"
 msgstr "Plafond (%)"
 
 #. js-lingui-explicit-id
-#: src/app/loops/speed-trainer-controls.tsx:176
+#: src/app/loops/speed-trainer-controls.tsx
 msgid "loops.trainer-title"
 msgstr "Rampe de tempo"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:33
+#: src/app/markers/marker-controls.tsx
 msgid "markers.add"
 msgstr "+ Repère"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:42
+#: src/app/markers/marker-controls.tsx
 msgid "markers.add-section"
 msgstr "+ Section"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:135
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "markers.confirm-remove"
 msgstr "Confirmer la suppression de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/markers/use-markers.ts:16
+#: src/app/markers/use-markers.ts
 msgid "markers.default-name"
 msgstr "Repère {number}"
 
 #. js-lingui-explicit-id
-#: src/app/markers/use-markers.ts:22
+#: src/app/markers/use-markers.ts
 msgid "markers.default-section-name"
 msgstr "Section {number}"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-rail.tsx:152
+#: src/app/markers/marker-rail.tsx
 msgid "markers.drag-hint"
 msgstr "Clic : se positionner — glisser ou ←/→ : déplacer"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-rail.tsx:148
+#: src/app/markers/marker-rail.tsx
 msgid "markers.go-to"
 msgstr "Aller à {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:115
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "markers.loop-named"
 msgstr "Boucler {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:131
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "markers.remove-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:126
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "markers.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/app/analysis-panel/analysis-panel.tsx:122
+#: src/app/analysis-panel/analysis-panel.tsx
 msgid "markers.rename-title"
 msgstr "Renommer le repère"
 
 #. js-lingui-explicit-id
-#: src/app/markers/marker-controls.tsx:25
+#: src/app/markers/marker-controls.tsx
 msgid "markers.section-label"
 msgstr "Repères"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:80
+#: src/app/mixer/stem-headers.tsx
 msgid "mixer.confidence"
 msgstr "Confiance de détection : {percent} %"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:90
+#: src/app/mixer/stem-headers.tsx
 msgid "mixer.download-wav"
 msgstr "Télécharger {name} en WAV"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:132
+#: src/app/mixer/stem-headers.tsx
 msgid "mixer.eq"
 msgstr "Égaliseur {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:152
+#: src/app/mixer/stem-headers.tsx
 msgid "mixer.eq-title"
 msgstr "EQ — {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:197
+#: src/app/mixer/stem-headers.tsx
 msgid "mixer.high-cut"
 msgstr "Coupe-haut {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:201
+#: src/app/mixer/stem-headers.tsx
 msgid "mixer.high-cut-hint"
 msgstr "Couper les aigus au-dessus de cette fréquence"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:167
+#: src/app/mixer/stem-headers.tsx
 msgid "mixer.low-cut"
 msgstr "Coupe-bas {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:171
+#: src/app/mixer/stem-headers.tsx
 msgid "mixer.low-cut-hint"
 msgstr "Couper les graves sous cette fréquence"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-stage.tsx:93
+#: src/app/workstation-shell/shell-stage.tsx
 msgid "mixer.mix-label"
 msgstr "Mix"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:103
+#: src/app/mixer/stem-headers.tsx
 msgid "mixer.mute"
 msgstr "Couper {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:64
+#: src/app/mixer/stem-headers.tsx
 msgid "mixer.region-label"
 msgstr "Mixer"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-headers.tsx:112
+#: src/app/mixer/stem-headers.tsx
 msgid "mixer.solo"
 msgstr "Isoler {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/undetected-stems.tsx:26
+#: src/app/mixer/undetected-stems.tsx
 msgid "mixer.undetected"
 msgstr "Non détectés"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/gain-fader.tsx:83
+#: src/app/mixer/gain-fader.tsx
 msgid "mixer.volume"
 msgstr "Volume {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/gain-fader.tsx:100
+#: src/app/mixer/gain-fader.tsx
 msgid "mixer.volume-db"
 msgstr "Niveau de {name} en décibels"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/gain-fader.tsx:86
+#: src/app/mixer/gain-fader.tsx
 msgid "mixer.volume-reset"
 msgstr "Double-clic pour revenir à 0 dB"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:220
+#: src/projects/projects-dialog.tsx
 msgid "projects.confirm-delete"
 msgstr "Confirmer la suppression de {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:201
+#: src/projects/projects-dialog.tsx
 msgid "projects.confirm-open"
 msgstr "Confirmer l'ouverture de {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/use-projects.ts:180
+#: src/projects/use-projects.ts
 msgid "projects.delete-failed"
 msgstr "Impossible de supprimer le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:213
+#: src/projects/projects-dialog.tsx
 msgid "projects.delete-named"
 msgstr "Supprimer {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:139
+#: src/projects/projects-dialog.tsx
 msgid "projects.description"
 msgstr "Reprendre un projet enregistré là où il a été laissé."
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:151
+#: src/projects/projects-dialog.tsx
 msgid "projects.empty"
 msgstr "Aucun projet enregistré"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:122
+#: src/projects/projects-dialog.tsx
 msgid "projects.open"
 msgstr "Ouvrir"
 
 #. js-lingui-explicit-id
-#: src/projects/use-projects.ts:134
+#: src/projects/use-projects.ts
 msgid "projects.open-failed"
 msgstr "Impossible d'ouvrir le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:121
+#: src/projects/projects-dialog.tsx
 msgid "projects.opening-row"
 msgstr "Ouverture…"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:184
+#: src/projects/projects-dialog.tsx
 msgid "projects.rename"
 msgstr "Renommer"
 
 #. js-lingui-explicit-id
-#: src/projects/use-projects.ts:159
+#: src/projects/use-projects.ts
 msgid "projects.rename-failed"
 msgstr "Impossible de renommer le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:179
+#: src/projects/projects-dialog.tsx
 msgid "projects.rename-named"
 msgstr "Renommer {name}"
 
 #. js-lingui-explicit-id
-#: src/projects/projects-dialog.tsx:174
+#: src/projects/projects-dialog.tsx
 msgid "projects.rename-title"
 msgstr "Renommer le projet"
 
 #. js-lingui-explicit-id
-#: src/projects/use-projects.ts:110
+#: src/projects/use-projects.ts
 msgid "projects.save-failed"
 msgstr "Impossible d'enregistrer le projet : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-test-kit.tsx:287
-#: src/projects/projects-dialog.tsx:138
+#: src/app/workstation-shell/shell-test-kit.tsx
+#: src/projects/projects-dialog.tsx
 msgid "projects.title"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-dialogs.tsx:46
+#: src/app/workstation-shell/shell-dialogs.tsx
 msgid "projects.unreachable"
 msgstr "Impossible de lister les projets — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/confirm-quit-dialog.tsx:42
+#: src/app/workstation-shell/confirm-quit-dialog.tsx
 msgid "quit.confirm-body"
 msgstr "Le travail non enregistré sera perdu."
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/confirm-quit-dialog.tsx:59
+#: src/app/workstation-shell/confirm-quit-dialog.tsx
 msgid "quit.confirm-quit"
 msgstr "Quitter"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/confirm-quit-dialog.tsx:39
+#: src/app/workstation-shell/confirm-quit-dialog.tsx
 msgid "quit.confirm-title"
 msgstr "Quitter sans enregistrer ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:29
+#: src/app/analyser/analyser-row.tsx
 msgid "separation.analysing"
 msgstr "Analyse du mix…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:191
+#: src/app/analyser/analyser-row.tsx
 msgid "separation.detect-failed"
 msgstr "Échec de la séparation"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:37
-#: src/app/analyser/analyser-row.tsx:204
-#: src/app/analyser/analysis-summary.ts:8
+#: src/app/analyser/analyser-row.tsx
+#: src/app/analyser/analysis-summary.ts
 msgid "separation.done"
 msgstr "Pistes séparées"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:125
+#: src/app/analyser/detection-copy.ts
 msgid "separation.error.engine-unavailable"
 msgstr "Service d'analyse indisponible pour le moment — réessayer plus tard."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:131
+#: src/app/analyser/detection-copy.ts
 msgid "separation.error.timeout"
 msgstr "La séparation a expiré — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:135
+#: src/app/analyser/detection-copy.ts
 msgid "separation.error.too-large"
 msgstr "Morceau trop volumineux pour la séparation."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:139
+#: src/app/analyser/detection-copy.ts
 msgid "separation.error.unknown"
 msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/separation/use-separation.ts:267
+#: src/app/separation/use-separation.ts
 msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:210
+#: src/app/analyser/analyser-row.tsx
 msgid "separation.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:211
+#: src/app/analyser/analyser-row.tsx
 msgid "separation.separate"
 msgstr "Séparer les pistes"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:30
+#: src/app/analyser/analyser-row.tsx
 msgid "separation.separating"
 msgstr "Séparation des pistes…"
 
 #. js-lingui-explicit-id
-#: src/app/header/import-menu.tsx:98
-#: src/projects/projects-dialog.tsx:168
+#: src/app/header/import-menu.tsx
+#: src/projects/projects-dialog.tsx
 msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:277
+#: src/app/workstation-shell/shell-main.tsx
 msgid "shell.zone.analysis"
 msgstr "Analyse"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:325
+#: src/app/workstation-shell/shell-main.tsx
 msgid "shell.zone.chart"
 msgstr "Partition"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx:241
+#: src/app/workstation-shell/shell-main.tsx
 msgid "shell.zone.timeline"
 msgstr "Timeline"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:114
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.add-marker"
 msgstr "Ajouter un repère"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:118
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.add-section"
 msgstr "Ajouter une section"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:74
+#: src/app/keyboard/shortcuts-dialog.tsx
 msgid "shortcuts.availability"
 msgstr "Disponibles une fois un morceau chargé."
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:26
+#: src/app/keyboard/shortcuts-dialog.tsx
 msgid "shortcuts.gesture-click"
 msgstr "Clic"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:48
+#: src/app/keyboard/shortcuts-dialog.tsx
 msgid "shortcuts.gesture-dblclick"
 msgstr "Double-clic"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:33
-#: src/app/keyboard/shortcuts-dialog.tsx:41
+#: src/app/keyboard/shortcuts-dialog.tsx
 msgid "shortcuts.gesture-drag"
 msgstr "Glisser"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:34
+#: src/app/keyboard/shortcuts-dialog.tsx
 msgid "shortcuts.gesture-loop"
 msgstr "Créer une boucle A/B sur la forme d'onde (Alt : sans aimantation)"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:42
+#: src/app/keyboard/shortcuts-dialog.tsx
 msgid "shortcuts.gesture-marker"
 msgstr "Déplacer un repère (clic : aller au repère, ←/→ : décaler)"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:49
+#: src/app/keyboard/shortcuts-dialog.tsx
 msgid "shortcuts.gesture-reset"
 msgstr "Réinitialiser un curseur (vitesse, hauteur)"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:27
+#: src/app/keyboard/shortcuts-dialog.tsx
 msgid "shortcuts.gesture-seek"
 msgstr "Se positionner sur la forme d'onde"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:90
+#: src/app/keyboard/shortcuts-dialog.tsx
 msgid "shortcuts.gestures"
 msgstr "Gestes"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:36
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.key-enter"
 msgstr "Entrée"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:37
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.key-escape"
 msgstr "Échap"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:35
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.key-space"
 msgstr "Espace"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:106
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.pitch-down"
 msgstr "Baisser la hauteur d’un demi-ton"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:110
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.pitch-up"
 msgstr "Monter la hauteur d’un demi-ton"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:76
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.play-pause"
 msgstr "Lecture / Pause"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:132
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.save-project"
 msgstr "Enregistrer le projet"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:80
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.seek-back"
 msgstr "Reculer d’un temps (5 s sans grille)"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:88
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.seek-back-bar"
 msgstr "Reculer d’une mesure"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:84
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.seek-forward"
 msgstr "Avancer d’un temps (5 s sans grille)"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:92
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.seek-forward-bar"
 msgstr "Avancer d’une mesure"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:98
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.tempo-down"
 msgstr "Ralentir la lecture"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:102
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.tempo-up"
 msgstr "Accélérer la lecture"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcuts-dialog.tsx:73
+#: src/app/keyboard/shortcuts-dialog.tsx
 msgid "shortcuts.title"
 msgstr "Raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:122
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.toggle-loop"
 msgstr "Activer / désactiver la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:126
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.toggle-metronome"
 msgstr "Activer / désactiver le métronome"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:96
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.zoom-in"
 msgstr "Zoom avant"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:97
+#: src/app/keyboard/shortcut-hints.ts
 msgid "shortcuts.zoom-out"
 msgstr "Zoom arrière"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:352
+#: src/app/analyser/analyser-row.tsx
 msgid "structure.detect"
 msgstr "Détecter la structure"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:311
+#: src/app/analyser/analyser-row.tsx
 msgid "structure.detect-confirm"
 msgstr "Remplacer les repères de structure ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:317
+#: src/app/analyser/analyser-row.tsx
 msgid "structure.detect-confirm-both"
 msgstr "Remplacer les repères de structure et la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:321
+#: src/app/analyser/analyser-row.tsx
 msgid "structure.detect-confirm-grid"
 msgstr "Réétiqueter la grille d’accords ?"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:341
+#: src/app/analyser/analyser-row.tsx
 msgid "structure.detect-done"
 msgstr "Repères de structure posés depuis la détection"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:329
+#: src/app/analyser/analyser-row.tsx
 msgid "structure.detect-failed"
 msgstr "Échec de la détection de la structure"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:336
+#: src/app/analyser/analyser-row.tsx
 msgid "structure.detecting"
 msgstr "Détection de la structure…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:353
+#: src/app/analyser/analyser-row.tsx
 msgid "structure.detecting-short"
 msgstr "Détection…"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:35
+#: src/app/analyser/detection-copy.ts
 msgid "structure.error.engine-unavailable"
 msgstr "Service d'analyse indisponible pour le moment — réessayer plus tard."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:31
+#: src/app/analyser/detection-copy.ts
 msgid "structure.error.no-structure"
 msgstr "Aucune structure détectée sur ce morceau."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:41
+#: src/app/analyser/detection-copy.ts
 msgid "structure.error.timeout"
 msgstr "L'analyse de la structure a expiré — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:45
+#: src/app/analyser/detection-copy.ts
 msgid "structure.error.too-large"
 msgstr "Morceau trop volumineux pour l'analyse."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:49
+#: src/app/analyser/detection-copy.ts
 msgid "structure.error.unknown"
 msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/markers/section-label.ts:20
+#: src/app/markers/section-label.ts
 msgid "structure.section.bridge"
 msgstr "Pont"
 
 #. js-lingui-explicit-id
-#: src/app/markers/section-label.ts:19
+#: src/app/markers/section-label.ts
 msgid "structure.section.chorus"
 msgstr "Refrain"
 
 #. js-lingui-explicit-id
-#: src/app/markers/section-label.ts:21
+#: src/app/markers/section-label.ts
 msgid "structure.section.inst"
 msgstr "Instrumental"
 
 #. js-lingui-explicit-id
-#: src/app/markers/section-label.ts:13
+#: src/app/markers/section-label.ts
 msgid "structure.section.intro"
 msgstr "Intro"
 
 #. js-lingui-explicit-id
-#: src/app/markers/section-label.ts:22
+#: src/app/markers/section-label.ts
 msgid "structure.section.outro"
 msgstr "Outro"
 
 #. js-lingui-explicit-id
-#: src/app/markers/section-label.ts:15
+#: src/app/markers/section-label.ts
 msgid "structure.section.pre-chorus"
 msgstr "Pré-refrain"
 
 #. js-lingui-explicit-id
-#: src/app/markers/section-label.ts:23
+#: src/app/markers/section-label.ts
 msgid "structure.section.silence"
 msgstr "Silence"
 
 #. js-lingui-explicit-id
-#: src/app/markers/section-label.ts:14
+#: src/app/markers/section-label.ts
 msgid "structure.section.verse"
 msgstr "Couplet"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:214
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.align"
 msgstr "Caler la grille sur la tête de lecture"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:219
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.align-short"
 msgstr "Caler"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analysis-summary.ts:7
-#: src/app/tempo/tempo-panel.tsx:26
+#: src/app/analyser/analysis-summary.ts
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.bpm"
 msgstr "{0} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:124
-#: src/app/workstation-shell/shell-test-kit.tsx:306
+#: src/app/tempo/tempo-panel.tsx
+#: src/app/workstation-shell/shell-test-kit.tsx
 msgid "tempo.bpm-field"
 msgstr "Saisir le tempo (BPM)"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:25
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.detecting"
 msgstr "Analyse…"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:189
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.double"
 msgstr "Doubler le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:92
+#: src/app/analyser/detection-copy.ts
 msgid "tempo.error.engine-unavailable"
 msgstr "Service d'analyse indisponible pour le moment — réessayer plus tard."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:98
+#: src/app/analyser/detection-copy.ts
 msgid "tempo.error.timeout"
 msgstr "L'analyse du tempo a expiré — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:102
+#: src/app/analyser/detection-copy.ts
 msgid "tempo.error.too-large"
 msgstr "Morceau trop volumineux pour l'analyse."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts:106
+#: src/app/analyser/detection-copy.ts
 msgid "tempo.error.unknown"
 msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:177
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.halve"
 msgstr "Diviser le tempo par deux"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:115
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:139
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.manual-badge"
 msgstr "Manuel"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:156
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.meter-field"
 msgstr "Saisir le mètre (temps par mesure)"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:167
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.meter-unit"
 msgstr "temps"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:144
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.range"
 msgstr "{min}–{max} BPM"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:112
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.region-label"
 msgstr "Tempo"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row.tsx:260
+#: src/app/analyser/analyser-row.tsx
 msgid "tempo.retry"
 msgstr "Réessayer"
 
 #. js-lingui-explicit-id
-#: src/app/keyboard/shortcut-hints.ts:131
-#: src/app/tempo/tempo-panel.tsx:205
+#: src/app/keyboard/shortcut-hints.ts
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.tap"
 msgstr "Taper le tempo"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:207
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.tap-short"
 msgstr "Tap"
 
 #. js-lingui-explicit-id
-#: src/app/tempo/tempo-panel.tsx:135
+#: src/app/tempo/tempo-panel.tsx
 msgid "tempo.unit"
 msgstr "BPM"
 
 #. js-lingui-explicit-id
-#: src/app/ui/toast-region.tsx:18
+#: src/app/ui/toast-region.tsx
 msgid "toast.dismiss"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/use-stem-export.ts:59
+#: src/app/workstation-shell/use-stem-export.ts
 msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/workstation-shell.tsx:269
+#: src/app/workstation-shell/workstation-shell.tsx
 msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/ui/toast-region.tsx:38
+#: src/app/ui/toast-region.tsx
 msgid "toast.region"
 msgstr "Notifications"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/use-stem-export.ts:55
+#: src/app/workstation-shell/use-stem-export.ts
 msgid "toast.stems-exported"
 msgstr "Pistes exportées"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:100
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.end"
 msgstr "Fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:211
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.fine-tune-field"
 msgstr "Saisir l'ajustement fin (cents)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:200
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.fine-tune-label"
 msgstr "Ajustement fin"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:223
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.fine-tune-unit"
 msgstr "cents"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:88
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.pause"
 msgstr "Pause"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:174
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.pitch-down"
 msgstr "Baisser la hauteur d’un demi-ton"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:170
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.pitch-field"
 msgstr "Saisir la hauteur (demi-tons)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:157
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.pitch-label"
 msgstr "Hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:166
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.pitch-reset"
 msgstr "Double-clic pour revenir à 0"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:162
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.pitch-slider"
 msgstr "Hauteur en demi-tons"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:178
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.pitch-up"
 msgstr "Monter la hauteur d’un demi-ton"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:89
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.play"
 msgstr "Lecture"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:76
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.start"
 msgstr "Début"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:136
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.tempo-down"
 msgstr "Ralentir la lecture"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:132
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.tempo-field"
 msgstr "Saisir la vitesse (pourcentage)"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:118
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.tempo-label"
 msgstr "Vitesse"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:127
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.tempo-reset"
 msgstr "Vitesse sans changer la hauteur — double-clic : 100 %"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:123
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.tempo-slider"
 msgstr "Vitesse en pourcentage"
 
 #. js-lingui-explicit-id
-#: src/app/transport-bar/transport-bar.tsx:140
+#: src/app/transport-bar/transport-bar.tsx
 msgid "transport.tempo-up"
 msgstr "Accélérer la lecture"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:134
+#: src/app/waveform/waveform-view.tsx
 msgid "waveform.decoding"
 msgstr "Décodage…"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:292
+#: src/app/waveform/waveform-view.tsx
 msgid "waveform.import-error"
 msgstr "L'import a échoué : ce fichier n'a pas pu être lu."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:122
+#: src/app/waveform/waveform-view.tsx
 msgid "waveform.import-hint"
 msgstr "Importer un fichier audio pour afficher sa forme d'onde."
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:171
+#: src/app/waveform/waveform-view.tsx
 msgid "waveform.mix-image"
 msgstr "Forme d'onde du mix"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:242
+#: src/app/waveform/waveform-view.tsx
 msgid "waveform.move-loop-end"
 msgstr "Déplacer la fin de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:228
+#: src/app/waveform/waveform-view.tsx
 msgid "waveform.move-loop-start"
 msgstr "Déplacer le début de la boucle"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:298
+#: src/app/waveform/waveform-view.tsx
 msgid "waveform.reimport"
 msgstr "Importer un autre fichier"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/stem-lanes.tsx:78
+#: src/app/mixer/stem-lanes.tsx
 msgid "waveform.stem-image"
 msgstr "Forme d'onde de {name}"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/waveform-view.tsx:175
+#: src/app/waveform/waveform-view.tsx
 msgid "waveform.track-image"
 msgstr "Forme d'onde du morceau"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/viewport-controls.tsx:64
+#: src/app/waveform/viewport-controls.tsx
 msgid "waveform.zoom-in"
 msgstr "Zoomer"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/viewport-controls.tsx:40
+#: src/app/waveform/viewport-controls.tsx
 msgid "waveform.zoom-out"
 msgstr "Dézoomer"
 
 #. js-lingui-explicit-id
-#: src/app/waveform/viewport-controls.tsx:54
+#: src/app/waveform/viewport-controls.tsx
 msgid "waveform.zoom-slider"
 msgstr "Zoom de la forme d'onde"
