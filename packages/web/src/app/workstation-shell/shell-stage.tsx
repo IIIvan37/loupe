@@ -17,14 +17,13 @@ import {
   loopRegionAtom,
   transportAtom
 } from '../waveform/player-atoms.ts'
-import type { useViewport } from '../waveform/use-viewport.ts'
+import { useViewport } from '../waveform/use-viewport.ts'
 import { ViewportControls } from '../waveform/viewport-controls.tsx'
 import { WaveformView } from '../waveform/waveform-view.tsx'
 import { ZoomStage } from '../waveform/zoom-stage.tsx'
 import styles from './workstation-shell.module.css'
 
 interface ShellStageProps {
-  readonly viewport: ReturnType<typeof useViewport>
   /** Stems the separation masked as near-silent — named in the gutter. */
   readonly undetectedStems: readonly { readonly id: string; readonly label: string }[]
   readonly onDownloadStem: (id: string) => void
@@ -40,7 +39,6 @@ interface ShellStageProps {
  * playhead, loupe, beat grid — is read here, not threaded by the shell.
  */
 export function ShellStage({
-  viewport,
   undetectedStems,
   onDownloadStem,
   loopEditing,
@@ -50,6 +48,9 @@ export function ShellStage({
   // The region wears the session mix itself (ADR 0010): same atoms, same
   // engine (seated in the session, ADR 0011) as the shell's instance.
   const mixer = useMixer()
+  // Same for the session zoom: the shell's shortcuts drive the level the
+  // stage's controls show, nothing threaded between them.
+  const viewport = useViewport()
   const markers = useMarkers()
   const importState = useAtomValue(importStateAtom)
   const { durationSeconds } = useAtomValue(transportAtom)

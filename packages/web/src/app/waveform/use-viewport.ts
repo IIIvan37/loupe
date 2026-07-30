@@ -4,7 +4,8 @@ import {
   zoomIn as zoomInLevel,
   zoomOut as zoomOutLevel
 } from '@app/core'
-import { useState } from 'react'
+import { useAtom } from 'jotai'
+import { viewportZoomAtom } from './viewport-atoms.ts'
 
 export interface ViewportControl {
   /** Current magnification, 1× … 6×. */
@@ -18,11 +19,13 @@ export interface ViewportControl {
 }
 
 /**
- * Smart hook holding the zoom level. The pure domain owns the clamp + step;
- * horizontal panning lives in the DOM (the waveform's scroll container).
+ * Smart hook holding the zoom level — an atom the feature owns (ADR 0010), so
+ * every consumer instance drives the same session zoom. The pure domain owns
+ * the clamp + step; horizontal panning lives in the DOM (the waveform's
+ * scroll container).
  */
 export function useViewport(): ViewportControl {
-  const [zoom, setZoomState] = useState(MIN_ZOOM)
+  const [zoom, setZoomState] = useAtom(viewportZoomAtom)
 
   return {
     zoom,
