@@ -24,11 +24,14 @@ en DAG déclaré ([ADR 0012](adr/0012-graphe-de-modules-web.md), PR #299).
 **Le player est une référence stable de session** (0011, livré par PR
 #300) : `PlayerHandle` dans le session context (`AudioSessionWithPlayer`),
 état de vue du player en atomes, `ShellMain`/`ShellStage` régions smart —
-cliquet `MAX_PROPS_FIELDS` **35 → 22**. **Prochaine étape : les sacs de
-feature en atomes** (candidat : `markers`) pour faire descendre les 21
-props `ReturnType`, puis interface étroite de session (DIP). Chaque
-feuille descend ≥1 cliquet (`composition-invariants.spec.ts`), feuilles
-d'infrastructure exemptées. Checkpoint UI avant chaque slice.
+cliquet `MAX_PROPS_FIELDS` **35 → 22**. **Les repères sont le premier sac
+de feature en atome** (0010, livré par PR #301) : `markersAtom`, régions
+lisant `useMarkers` elles-mêmes — cliquets `ReturnType` **21 → 19**,
+`MAX_PROPS_FIELDS` **22 → 21**. **Prochaine étape : sac suivant en atomes**
+(candidat : `tempo`, sinon `mixer`), puis interface étroite de session
+(DIP). Chaque feuille descend ≥1 cliquet
+(`composition-invariants.spec.ts`), feuilles d'infrastructure exemptées.
+Checkpoint UI avant chaque slice.
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
 Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
