@@ -19,17 +19,17 @@ gate, `pnpm sonar`, workers vitest bornés en local.
 **Chantier état de vue / shell**
 ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md),
 [0011](adr/0011-shell-layout-contexte-session-audio.md)) : feuilles
-#287→#301 livrées (player référence stable de session — 0011, PR #300 ;
-repères premier sac en atome — 0010, PR #301), graphe de modules web en DAG
-déclaré ([ADR 0012](adr/0012-graphe-de-modules-web.md), PR #299). **Le
-tempo est le deuxième sac de feature en atomes** (0010, étape livrée par PR
-#302) : tout le sac dans `tempo-atoms.ts`, jeton de run + abort partagés
-par store (`tempoRunAtom` — un cancel/seat croisé supersède le detect en
-vol), `ShellMain`/`ShellAnalyserRow` lisent `useTempo()` elles-mêmes, les
-six callbacks tempo repliés en un prop `TempoDetection` — cliquets
-`ReturnType` **19 → 17**, `MAX_PROPS_FIELDS` **21 → 20**. **Prochaine
-étape : sac suivant en atomes** (candidat : `mixer`, sinon `viewport`),
-puis interface étroite de session (DIP). Chaque feuille descend ≥1 cliquet
+#287→#302 livrées (player référence stable de session — 0011, PR #300 ;
+repères puis tempo en sacs d'atomes, jeton de run partagé — 0010, PRs
+#301–#302), graphe de modules web en DAG déclaré
+([ADR 0012](adr/0012-graphe-de-modules-web.md), PR #299). **Le mixer
+est lu par les régions elles-mêmes** (0010/0011, étape livrée par PR #303) :
+le moteur de stems (à état) rejoint la session enrichie à côté du `player`,
+`useMixer()` s'appelle nu (repli `session.stemEngine`, throw sinon), le prop
+`mixer` tombe de `ShellMain`/`ShellStage` — cliquet `ReturnType` **17 → 15**,
+arête Sheriff `mixer → audio-session` déclarée. **Prochaine étape : sac
+suivant en atomes** (candidat : `viewport`, sinon `separation`), puis
+interface étroite de session (DIP). Chaque feuille descend ≥1 cliquet
 (`composition-invariants.spec.ts`), feuilles d'infrastructure exemptées.
 Checkpoint UI avant chaque slice.
 
