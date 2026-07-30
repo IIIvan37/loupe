@@ -1,6 +1,5 @@
 import {
   buildTempoMap,
-  type SpectrumFrame,
   makeLoopRegion,
   type Marker,
   measureIndexAt,
@@ -8,50 +7,48 @@ import {
   type OctaveFactor
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
-import { type ComponentProps, useMemo } from 'react'
-import {
-  type ExternalValue,
-  useExternalValue
-} from '../../lib/external-value.ts'
+import { useAtomValue } from 'jotai'
+import { useMemo } from 'react'
+import { useExternalValue } from '../../lib/external-value.ts'
 import { Stack } from '../../layout/stack/stack.tsx'
 import { AnalysisGateNotice } from '../account/analysis-gate-notice.tsx'
 import { analysisSummary } from '../analyser/analysis-summary.ts'
 import type { AnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { AnalysisPanel } from '../analysis-panel/analysis-panel.tsx'
+import { usePlayerHandle } from '../audio-session/audio-session.ts'
 import type { ChartHeaderData } from '../lead-sheet/chart-header.tsx'
 import { ChordChartPanel } from '../lead-sheet/chord-chart-panel.tsx'
 import type { ChordChartState } from '../lead-sheet/use-chord-chart.ts'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import { LoopControls } from '../loops/loop-controls.tsx'
+import { speedTrainerStateAtom } from '../loops/speed-trainer-atoms.ts'
 import type { useLoopEditing } from '../loops/use-loop-editing.ts'
 import type { useLoops } from '../loops/use-loops.ts'
-import type { SpeedTrainer } from '../loops/use-speed-trainer.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
 import { markerSections } from '../markers/section-markers.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import type { useMarkers } from '../markers/use-markers.ts'
 import type { useMixer } from '../mixer/use-mixer.ts'
 import type { useSeparation } from '../separation/use-separation.ts'
+import { countingInAtom } from '../tempo/tempo-atoms.ts'
 import { TempoPanel } from '../tempo/tempo-panel.tsx'
 import type { useTempo } from '../tempo/use-tempo.ts'
+import {
+  importStateAtom,
+  loopEnabledAtom,
+  loopRegionAtom,
+  pitchSemitonesAtom,
+  transportAtom
+} from '../waveform/player-atoms.ts'
 import type { useViewport } from '../waveform/use-viewport.ts'
-import type { WaveformView } from '../waveform/waveform-view.tsx'
 import { ShellAnalyserRow } from './shell-analyser-row.tsx'
 import { ShellSection } from './shell-section.tsx'
 import { ShellStage } from './shell-stage.tsx'
 import styles from './workstation-shell.module.css'
 
 interface ShellMainProps {
-  readonly isLoaded: boolean
-  /** Whether the transport is running — the Spectre tab polls only then. */
-  readonly isPlaying: boolean
-  /** One read of the audible spectrum (the active engine's analyser tap). */
-  readonly readSpectrum: () => SpectrumFrame | undefined
   /** Whether the Analyse zone is unfolded — owned by the shell (Q.3). */
   readonly analysisFold: AnalysisFold
-  /** The playhead, streamed outside React state (Lot L.1). */
-  readonly position: ExternalValue<number>
-  readonly durationSeconds: number
   readonly markers: ReturnType<typeof useMarkers>
   readonly viewport: ReturnType<typeof useViewport>
   readonly mixer: ReturnType<typeof useMixer>
@@ -61,14 +58,6 @@ interface ShellMainProps {
   readonly tempo: ReturnType<typeof useTempo>
   /** Download one mixer lane as a WAV (synthetic lanes + separated stems). */
   readonly onDownloadStem: (id: string) => void
-  readonly mainViewState: ComponentProps<typeof WaveformView>['state']
-  readonly loopRegion: ComponentProps<typeof WaveformView>['loopRegion']
-  readonly loopEnabled: boolean
-  readonly onToggleLoop: () => void
-  /** The speed-trainer ramp riding the loupe (loop controls). */
-  readonly speedTrainer: SpeedTrainer
-  readonly onSeekSeconds: (seconds: number) => void
-  readonly onSeekRatio: (ratio: number) => void
   /** Fold the detected tempo an octave (×2 / ÷2) and re-seat the click. */
   readonly onFoldTempo: (factor: OctaveFactor) => void
   /** Relaunch a failed tempo detection (the panel's « Réessayer »). */
@@ -90,8 +79,6 @@ interface ShellMainProps {
     ChordChartState,
     'source' | 'transposedBy' | 'setSource' | 'transpose'
   >
-  /** The live audio pitch shift — the key the ear hears the track in. */
-  readonly pitchSemitones: number
   /** What the session derives for the chart head (tags, BPM, bar length). */
   readonly chartHeader: ChartHeaderData
   /** « Détecter les accords » — the chord-detection flow the panel drives. */
@@ -102,15 +89,12 @@ interface ShellMainProps {
 
 /**
  * The workstation body: the timeline column (markers, zoomable stage, loops,
- * separation) beside the analysis panel.
+ * separation) beside the analysis panel. A smart region (ADR 0011): the
+ * player it renders — playhead, transport, loupe, pitch, trainer — is
+ * reached through the session and the player's atoms, never threaded down.
  */
 export function ShellMain({
-  isLoaded,
-  isPlaying,
-  readSpectrum,
   analysisFold,
-  position,
-  durationSeconds,
   markers,
   viewport,
   mixer,
@@ -119,12 +103,6 @@ export function ShellMain({
   separation,
   tempo,
   onDownloadStem,
-  mainViewState,
-  loopRegion,
-  loopEnabled,
-  onToggleLoop,
-  speedTrainer,
-  onSeekSeconds,
   onFoldTempo,
   onRetryTempo,
   onOverrideBpm,
@@ -132,16 +110,28 @@ export function ShellMain({
   onTapTempo,
   onAlignTempoPhase,
   onReimport,
-  onSeekRatio,
   canSeparate,
   onSeparate,
   chordChart,
-  pitchSemitones,
   chartHeader,
   chordDetection,
   structureDetection
 }: ShellMainProps) {
   const { t } = useLingui()
+  const player = usePlayerHandle()
+  const importState = useAtomValue(importStateAtom)
+  const transport = useAtomValue(transportAtom)
+  const loopRegion = useAtomValue(loopRegionAtom)
+  const loopEnabled = useAtomValue(loopEnabledAtom)
+  const pitchSemitones = useAtomValue(pitchSemitonesAtom)
+  const countingIn = useAtomValue(countingInAtom)
+  const trainerState = useAtomValue(speedTrainerStateAtom)
+  const isLoaded = importState.status === 'loaded'
+  // During the count-in the region already renders « playing » — the Spectre
+  // tab polls and the transport is committed to start.
+  const isPlaying = transport.isPlaying || countingIn
+  const { durationSeconds } = transport
+  const { position } = player
   // Stems the separation masked as near-silent — captioned in the mixer gutter.
   const undetectedStems =
     separation.state.status === 'ready'
@@ -225,7 +215,7 @@ export function ShellMain({
             position.get()
           )
           if (target !== undefined) {
-            onSeekSeconds(target)
+            player.seekToSeconds(target)
           }
         }
 
@@ -246,31 +236,22 @@ export function ShellMain({
             onAddSection={() => markers.addSectionAt(position.get())}
           />
           <ShellStage
-            isLoaded={isLoaded}
-            position={position}
-            durationSeconds={durationSeconds}
             viewport={viewport}
             mixer={mixer}
             undetectedStems={undetectedStems}
             onDownloadStem={onDownloadStem}
             markers={markers}
             loopEditing={loopEditing}
-            beatGrid={tempo.analysis?.grid ?? []}
-            mainViewState={mainViewState}
-            loopRegion={loopRegion}
-            loopEnabled={loopEnabled}
-            onSeekSeconds={onSeekSeconds}
-            onSeekRatio={onSeekRatio}
             onReimport={onReimport}
           />
           <LoopControls
             region={loopRegion}
             isSaved={loopEditing.isSaved}
             loopEnabled={loopEnabled}
-            onToggleLoop={onToggleLoop}
+            onToggleLoop={player.toggleLoop}
             onSaveRegion={loopEditing.saveRegion}
             onClearRegion={loopEditing.clearRegion}
-            trainer={speedTrainer}
+            trainer={{ ...player.speedTrainer, state: trainerState }}
           />
           </ShellSection>
           <ShellSection
@@ -341,11 +322,11 @@ export function ShellMain({
 
       <div className={styles.panelSlot}>
         <AnalysisPanel
-          readSpectrum={readSpectrum}
+          readSpectrum={player.readSpectrum}
           playing={isPlaying}
           position={position}
           markers={markers.markers}
-          onSeekMarker={onSeekSeconds}
+          onSeekMarker={player.seekToSeconds}
           onRenameMarker={markers.rename}
           onRemoveMarker={markers.remove}
           onLoopSection={onLoopSection}

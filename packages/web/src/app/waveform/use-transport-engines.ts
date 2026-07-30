@@ -1,7 +1,6 @@
 import {
   completesLoopPass,
   type DecodedAudio,
-  initialTransport,
   type LoopRegion,
   type PlaybackEngine,
   type StemPlaybackEngine,
@@ -10,19 +9,14 @@ import {
   transportReducer,
   wrapToLoop
 } from '@app/core'
-import {
-  type Dispatch,
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useRef
-} from 'react'
+import { useAtom } from 'jotai'
+import { type Dispatch, useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   createExternalValue,
   type ExternalValue
 } from '../../lib/external-value.ts'
 import { useLatest } from '../../lib/use-latest.ts'
+import { transportAtom } from './player-atoms.ts'
 
 /** The transport surface both engines share — what the active one is driven by. */
 export type TransportControls = Pick<
@@ -81,7 +75,13 @@ export function useTransportEngines({
   loopEnabled,
   onLoopWrap
 }: TransportEnginesParams): TransportEngines {
-  const [transport, reduce] = useReducer(transportReducer, initialTransport)
+  // The control state rides the feature's atom (ADR 0010) so the regions read
+  // play/duration on their own; the reducer stays the only transition path.
+  const [transport, setTransport] = useAtom(transportAtom)
+  const reduce: Dispatch<TransportAction> = useCallback(
+    (action) => setTransport((current) => transportReducer(current, action)),
+    [setTransport]
+  )
   // The playhead lives OUTSIDE the reducer: engines stream it per animation
   // frame, and routing that through React state re-rendered the whole
   // workstation on every frame (Lot L.1). The store carries the raw engine
@@ -98,7 +98,7 @@ export function useTransportEngines({
       }
       reduce(action)
     },
-    [position]
+    [position, reduce]
   )
 
   // Latest loop + enabled flag kept in refs so the (mount-once) position listener

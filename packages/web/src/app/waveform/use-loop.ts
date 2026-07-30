@@ -1,5 +1,6 @@
 import type { LoopRegion } from '@app/core'
-import { useState } from 'react'
+import { useAtom } from 'jotai'
+import { loopEnabledAtom, loopRegionAtom } from './player-atoms.ts'
 
 export interface LoopController {
   /** The active A/B loop (the « loupe »), or undefined when off. */
@@ -15,14 +16,14 @@ export interface LoopController {
 
 /**
  * The A/B loop state (« loupe ») in one place: the armed region, whether it
- * wraps, and the two seat/restore heuristics. Pure UI state — the transport
- * engines read the live values via {@link useTransportEngines} to wrap playback.
+ * wraps, and the two seat/restore heuristics. Pure UI state, riding the
+ * feature's atoms (ADR 0010) so a region reads the live loupe on its own —
+ * the transport engines read it via {@link useTransportEngines} to wrap
+ * playback.
  */
 export function useLoop(): LoopController {
-  const [loopRegion, setLoopRegionState] = useState<LoopRegion | undefined>(
-    undefined
-  )
-  const [loopEnabled, setLoopEnabledState] = useState(true)
+  const [loopRegion, setLoopRegionState] = useAtom(loopRegionAtom)
+  const [loopEnabled, setLoopEnabledState] = useAtom(loopEnabledAtom)
 
   function setLoopRegion(region: LoopRegion | undefined): void {
     // Selecting a region where there was none re-arms looping, so a fresh loupe

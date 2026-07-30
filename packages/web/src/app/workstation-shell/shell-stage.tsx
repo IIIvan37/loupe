@@ -1,7 +1,8 @@
-import type { ExternalValue } from '../../lib/external-value.ts'
 import { Trans } from '@lingui/react/macro'
-import { type BeatGrid, combineWaveforms } from '@app/core'
-import { type ComponentProps, useMemo } from 'react'
+import { combineWaveforms } from '@app/core'
+import { useAtomValue } from 'jotai'
+import { useMemo } from 'react'
+import { usePlayerHandle } from '../audio-session/audio-session.ts'
 import { StemHeaders } from '../mixer/stem-headers.tsx'
 import { StemLanes } from '../mixer/stem-lanes.tsx'
 import { UndetectedStems } from '../mixer/undetected-stems.tsx'
@@ -9,6 +10,13 @@ import type { useMixer } from '../mixer/use-mixer.ts'
 import type { useMarkers } from '../markers/use-markers.ts'
 import { MarkerRail } from '../markers/marker-rail.tsx'
 import type { useLoopEditing } from '../loops/use-loop-editing.ts'
+import { tempoAnalysisAtom } from '../tempo/tempo-atoms.ts'
+import {
+  importStateAtom,
+  loopEnabledAtom,
+  loopRegionAtom,
+  transportAtom
+} from '../waveform/player-atoms.ts'
 import type { useViewport } from '../waveform/use-viewport.ts'
 import { ViewportControls } from '../waveform/viewport-controls.tsx'
 import { WaveformView } from '../waveform/waveform-view.tsx'
@@ -16,10 +24,6 @@ import { ZoomStage } from '../waveform/zoom-stage.tsx'
 import styles from './workstation-shell.module.css'
 
 interface ShellStageProps {
-  readonly isLoaded: boolean
-  /** The playhead in seconds, streamed outside React state (Lot L.1). */
-  readonly position: ExternalValue<number>
-  readonly durationSeconds: number
   readonly viewport: ReturnType<typeof useViewport>
   readonly mixer: ReturnType<typeof useMixer>
   /** Stems the separation masked as near-silent — named in the gutter. */
@@ -27,12 +31,6 @@ interface ShellStageProps {
   readonly onDownloadStem: (id: string) => void
   readonly markers: ReturnType<typeof useMarkers>
   readonly loopEditing: ReturnType<typeof useLoopEditing>
-  readonly beatGrid: BeatGrid
-  readonly mainViewState: ComponentProps<typeof WaveformView>['state']
-  readonly loopRegion: ComponentProps<typeof WaveformView>['loopRegion']
-  readonly loopEnabled: boolean
-  readonly onSeekSeconds: (seconds: number) => void
-  readonly onSeekRatio: (ratio: number) => void
   /** Reopen the file picker — the error stage's way out of a failed import. */
   readonly onReimport: () => void
 }
@@ -40,25 +38,25 @@ interface ShellStageProps {
 /**
  * The zoomable stage: a fixed gutter (zoom controls + per-stem headers)
  * row-aligned with the scrollable lanes (marker rail, waveform, stem lanes).
+ * A smart region (ADR 0011): the player state it renders — import lifecycle,
+ * playhead, loupe, beat grid — is read here, not threaded by the shell.
  */
 export function ShellStage({
-  isLoaded,
-  position,
-  durationSeconds,
   viewport,
   mixer,
   undetectedStems,
   onDownloadStem,
   markers,
   loopEditing,
-  beatGrid,
-  mainViewState,
-  loopRegion,
-  loopEnabled,
-  onSeekSeconds,
-  onSeekRatio,
   onReimport
 }: ShellStageProps) {
+  const player = usePlayerHandle()
+  const importState = useAtomValue(importStateAtom)
+  const { durationSeconds } = useAtomValue(transportAtom)
+  const loopRegion = useAtomValue(loopRegionAtom)
+  const loopEnabled = useAtomValue(loopEnabledAtom)
+  const beatGrid = useAtomValue(tempoAnalysisAtom)?.grid ?? []
+  const isLoaded = importState.status === 'loaded'
   // Fold the present stems back into one envelope — the waveform of the audible
   // mix, each stem weighted by its effective gain so muting/soloing reshapes it.
   // Undefined for an un-separated track (the view then shows its lone waveform).
@@ -106,31 +104,31 @@ export function ShellStage({
       </div>
       <ZoomStage
         zoom={viewport.zoom}
-        position={position}
+        position={player.position}
         durationSeconds={durationSeconds}
       >
         <MarkerRail
           markers={markers.markers}
           durationSeconds={durationSeconds}
-          onSeek={onSeekSeconds}
+          onSeek={player.seekToSeconds}
           onMove={markers.move}
           beatGrid={beatGrid}
         />
         <WaveformView
-          state={mainViewState}
+          state={importState}
           loopRegion={loopRegion}
           loopEnabled={loopEnabled}
           beatGrid={beatGrid}
           mixWaveform={mixWaveform}
           durationSeconds={durationSeconds}
-          onSeek={onSeekRatio}
+          onSeek={player.seekToRatio}
           onSelectRegion={loopEditing.selectRegion}
           onAdjustRegion={loopEditing.adjustRegion}
           onReimport={onReimport}
         />
         <StemLanes
           channels={mixer.channels}
-          onSeekRatio={onSeekRatio}
+          onSeekRatio={player.seekToRatio}
           durationSeconds={durationSeconds}
         />
       </ZoomStage>

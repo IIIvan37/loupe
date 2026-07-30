@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import type { CountIn, MixerState, TempoAnalysis } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { Provider } from 'jotai'
 import { vi } from 'vitest'
 import type { CountInPlayer } from '../audio-session/audio-session.ts'
 import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
@@ -45,6 +46,14 @@ function fakePlayer(): FakePlayer {
   }
 }
 
+/** renderHook under a fresh atom store — `countingIn` rides a Jotai atom. */
+function mountHook<Result, Props>(
+  render: (props: Props) => Result,
+  options?: { readonly initialProps: Props }
+) {
+  return renderHook(render, { ...options, wrapper: Provider })
+}
+
 function params(overrides: Partial<CountInParams> = {}): CountInParams {
   return {
     canPlay: true,
@@ -64,7 +73,7 @@ describe('useCountIn', () => {
   it('defers the start behind one bar of clicks when the click is audible', () => {
     const player = fakePlayer()
     const toggle = vi.fn()
-    const { result } = renderHook(() =>
+    const { result } = mountHook(() =>
       useCountIn({ ...params({ togglePlayback: toggle }), player })
     )
 
@@ -83,7 +92,7 @@ describe('useCountIn', () => {
   it('starts playback when the count-in ends', () => {
     const player = fakePlayer()
     const toggle = vi.fn()
-    const { result } = renderHook(() =>
+    const { result } = mountHook(() =>
       useCountIn({ ...params({ togglePlayback: toggle }), player })
     )
 
@@ -101,7 +110,7 @@ describe('useCountIn', () => {
   it('a second press during the count-in abandons it, still paused', () => {
     const player = fakePlayer()
     const toggle = vi.fn()
-    const { result } = renderHook(() =>
+    const { result } = mountHook(() =>
       useCountIn({ ...params({ togglePlayback: toggle }), player })
     )
 
@@ -120,7 +129,7 @@ describe('useCountIn', () => {
   it('snaps an off-beat playhead onto the grid before counting', () => {
     const player = fakePlayer()
     const seek = vi.fn()
-    const { result } = renderHook(() =>
+    const { result } = mountHook(() =>
       useCountIn({
         ...params({ getPositionSeconds: () => 1.3, seekToSeconds: seek }),
         player
@@ -138,7 +147,7 @@ describe('useCountIn', () => {
   it('leaves the playhead alone when it already sits on a beat', () => {
     const player = fakePlayer()
     const seek = vi.fn()
-    const { result } = renderHook(() =>
+    const { result } = mountHook(() =>
       useCountIn({
         ...params({ getPositionSeconds: () => 1.5, seekToSeconds: seek }),
         player
@@ -170,7 +179,7 @@ describe('useCountIn', () => {
         }))
       ]
     }
-    const { result } = renderHook(() =>
+    const { result } = mountHook(() =>
       useCountIn({
         ...params({ analysis: variable, getPositionSeconds: () => 10 }),
         player
@@ -187,7 +196,7 @@ describe('useCountIn', () => {
 
   it('stretches the count with the playback rate', () => {
     const player = fakePlayer()
-    const { result } = renderHook(() =>
+    const { result } = mountHook(() =>
       useCountIn({ ...params({ timeRatio: 0.5 }), player })
     )
 
@@ -205,7 +214,7 @@ describe('useCountIn', () => {
     const muted: MixerState = audibleMixer.map((channel) =>
       channel.id === METRONOME_ID ? { ...channel, muted: true } : channel
     )
-    const { result } = renderHook(() =>
+    const { result } = mountHook(() =>
       useCountIn({
         ...params({ togglePlayback: toggle, mixerState: muted }),
         player
@@ -226,7 +235,7 @@ describe('useCountIn', () => {
     const soloElsewhere: MixerState = audibleMixer.map((channel) =>
       channel.id === 'piste' ? { ...channel, soloed: true } : channel
     )
-    const { result } = renderHook(() =>
+    const { result } = mountHook(() =>
       useCountIn({
         ...params({ togglePlayback: toggle, mixerState: soloElsewhere }),
         player
@@ -244,7 +253,7 @@ describe('useCountIn', () => {
   it('plays straight away without a metronome or a tempo', () => {
     const player = fakePlayer()
     const toggle = vi.fn()
-    const { result, rerender } = renderHook(
+    const { result, rerender } = mountHook(
       (props: CountInParams) => useCountIn({ ...props, player }),
       { initialProps: params({ togglePlayback: toggle, analysis: undefined }) }
     )
@@ -264,7 +273,7 @@ describe('useCountIn', () => {
   it('pauses immediately — a count-in only fronts a start', () => {
     const player = fakePlayer()
     const toggle = vi.fn()
-    const { result } = renderHook(() =>
+    const { result } = mountHook(() =>
       useCountIn({ ...params({ togglePlayback: toggle, isPlaying: true }), player })
     )
 
@@ -279,7 +288,7 @@ describe('useCountIn', () => {
   it('abandons a pending count-in when the tempo is replaced or reset', () => {
     const player = fakePlayer()
     const toggle = vi.fn()
-    const { result, rerender } = renderHook(
+    const { result, rerender } = mountHook(
       (props: CountInParams) => useCountIn({ ...props, player }),
       { initialProps: params({ togglePlayback: toggle }) }
     )

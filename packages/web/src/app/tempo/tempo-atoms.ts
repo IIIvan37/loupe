@@ -22,3 +22,9 @@ export const tempoAnalysisAtom = atom<TempoAnalysis | undefined>(undefined)
 export const tempoGateReasonAtom = atom<MintFailureReason | undefined>(
   undefined
 )
+
+/**
+ * Whether a count-in is sounding (the transport is about to start) — the
+ * regions render « playing » during the count; only `useCountIn` writes it.
+ */
+export const countingInAtom = atom(false)

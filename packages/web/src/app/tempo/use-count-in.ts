@@ -5,7 +5,8 @@ import {
   type MixerState,
   type TempoAnalysis
 } from '@app/core'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useAtom } from 'jotai'
+import { useEffect, useMemo, useRef } from 'react'
 import { createCountInPlayer } from '../../audio/count-in-player.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 import {
@@ -13,6 +14,7 @@ import {
   useAudioSession
 } from '../audio-session/audio-session.ts'
 import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
+import { countingInAtom } from './tempo-atoms.ts'
 
 export interface CountInParams {
   /** Whether the transport can start at all (a track is loaded). */
@@ -58,7 +60,9 @@ export function useCountIn(params: CountInParams): CountInTransport {
   const session = useAudioSession()
   const injected = params.player ?? session.countInPlayer
   const player = useMemo(() => injected ?? createCountInPlayer(), [injected])
-  const [countingIn, setCountingIn] = useState(false)
+  // Rides the feature's atom (ADR 0010): the regions render « playing »
+  // during the count without the shell threading the flag down.
+  const [countingIn, setCountingIn] = useAtom(countingInAtom)
   // The pending count-in's cancel; also the "is one pending" flag the toggle
   // reads synchronously (state alone would lag a render behind).
   const cancelRef = useRef<(() => void) | undefined>(undefined)
@@ -132,7 +136,7 @@ export function useCountIn(params: CountInParams): CountInTransport {
       cancelRef.current = undefined
       setCountingIn(false)
     }
-  }, [analysis])
+  }, [analysis, setCountingIn])
 
   return { countingIn, togglePlayback }
 }

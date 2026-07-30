@@ -28,7 +28,7 @@ function fieldNumber(value: string): number {
 }
 
 interface SpeedTrainerControlsProps {
-  readonly trainer: SpeedTrainer
+  readonly trainer: Pick<SpeedTrainer, 'state' | 'start' | 'stop'>
   /** Whether the loop is active — the ramp needs wraps to earn its steps. When
    * false the entry point shows disabled with a tooltip rather than hiding, so
    * the practice feature stays discoverable (AL.4). */

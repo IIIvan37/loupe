@@ -6,6 +6,7 @@ import type {
   StemPlaybackEngine
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { Provider } from 'jotai'
 import { describe, expect, it, vi } from 'vitest'
 import {
   type TransportEnginesParams,
@@ -74,7 +75,8 @@ function mount(
         trackAudio: undefined,
         ...props
       }),
-    { initialProps: initial }
+    // A fresh atom store per mount — the transport rides a Jotai atom now.
+    { initialProps: initial, wrapper: Provider }
   )
 }
 

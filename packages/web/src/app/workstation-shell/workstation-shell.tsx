@@ -6,6 +6,7 @@ import type { ExternalValue } from '../../lib/external-value.ts'
 import { isServerShell } from '../../lib/server-shell.ts'
 import { gateReasonsOf } from '../account/gate-reasons.ts'
 import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
+import { AudioSessionWithPlayer } from '../audio-session/audio-session-provider.tsx'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
 import { useLoopEditing } from '../loops/use-loop-editing.ts'
@@ -161,7 +162,6 @@ export function WorkstationShell({
     loopRegion,
     importFile,
     togglePlayback,
-    seekToRatio,
     seekToSeconds,
     restoreTuning,
     setLoopRegion,
@@ -309,6 +309,7 @@ export function WorkstationShell({
   })
 
   return (
+    <AudioSessionWithPlayer player={player.handle}>
     <div className={styles.shell} {...drop.dropHandlers}>
       <ShellDropLayer
         fileInputRef={fileInputRef}
@@ -372,41 +373,28 @@ export function WorkstationShell({
         />
       ) : (
         <ShellMain
-          isLoaded={isLoaded}
-          isPlaying={transport.isPlaying || countIn.countingIn}
-          readSpectrum={player.readSpectrum}
           analysisFold={analysisFold}
-          position={position}
-        durationSeconds={transport.durationSeconds}
-        markers={markers}
-        viewport={viewport}
-        mixer={mixer}
-        loops={loops}
-        loopEditing={loopEditing}
-        separation={separation}
-        tempo={tempo}
-        onDownloadStem={stemExport.downloadStem}
-        mainViewState={importState}
-        loopRegion={loopRegion}
-        loopEnabled={loopEnabled}
-        onToggleLoop={toggleLoop}
-        speedTrainer={speedTrainer}
-        onSeekSeconds={seekToSeconds}
-        onSeekRatio={seekToRatio}
-        onFoldTempo={tempoDetection.fold}
-        onRetryTempo={tempoDetection.retry}
-        onOverrideBpm={tempoDetection.setBpm}
-        onOverrideMeter={tempoDetection.setMeter}
-        onTapTempo={tempoDetection.tap}
-        onAlignTempoPhase={tempoDetection.alignPhase}
-        onReimport={openFilePicker}
-        canSeparate={isLoaded && loadedAudio !== undefined}
-        onSeparate={() => separateAndLoad(loadedAudio)}
-        chordChart={chordChart}
-        pitchSemitones={pitchSemitones}
-        chartHeader={deriveChartHeader(metadata, session.trackName, tempo.analysis)}
-        chordDetection={chordDetection}
-        structureDetection={structureDetection}
+          markers={markers}
+          viewport={viewport}
+          mixer={mixer}
+          loops={loops}
+          loopEditing={loopEditing}
+          separation={separation}
+          tempo={tempo}
+          onDownloadStem={stemExport.downloadStem}
+          onFoldTempo={tempoDetection.fold}
+          onRetryTempo={tempoDetection.retry}
+          onOverrideBpm={tempoDetection.setBpm}
+          onOverrideMeter={tempoDetection.setMeter}
+          onTapTempo={tempoDetection.tap}
+          onAlignTempoPhase={tempoDetection.alignPhase}
+          onReimport={openFilePicker}
+          canSeparate={isLoaded && loadedAudio !== undefined}
+          onSeparate={() => separateAndLoad(loadedAudio)}
+          chordChart={chordChart}
+          chartHeader={deriveChartHeader(metadata, session.trackName, tempo.analysis)}
+          chordDetection={chordDetection}
+          structureDetection={structureDetection}
         />
       )}
 
@@ -429,5 +417,6 @@ export function WorkstationShell({
 
       <ToastRegion toaster={toaster} />
     </div>
+    </AudioSessionWithPlayer>
   )
 }
