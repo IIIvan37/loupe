@@ -4,8 +4,10 @@ import {
   type SpeedTrainerState,
   startSpeedTrainer
 } from '@app/core'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useAtom } from 'jotai'
+import { useCallback, useMemo, useRef } from 'react'
 import { useLatest } from '../../lib/use-latest.ts'
+import { speedTrainerStateAtom } from './speed-trainer-atoms.ts'
 
 export interface SpeedTrainer {
   /** The running ramp, or undefined when the trainer is off. */
@@ -36,20 +38,23 @@ export function useSpeedTrainer(
   applyTempoPercent: (percent: number) => void,
   currentTempoPercent: () => number
 ): SpeedTrainer {
-  const [state, setState] = useState<SpeedTrainerState | undefined>(undefined)
+  const [state, setState] = useAtom(speedTrainerStateAtom)
   const stateRef = useRef<SpeedTrainerState | undefined>(undefined)
   const applyRef = useLatest(applyTempoPercent)
   const currentRef = useLatest(currentTempoPercent)
   // The tempo to give back when the practice ends, memorised at arming.
   const resumePercentRef = useRef(100)
 
-  const start = useCallback((policy: SpeedTrainerPolicy) => {
-    resumePercentRef.current = currentRef.current()
-    const armed = startSpeedTrainer(policy)
-    stateRef.current = armed
-    setState(armed)
-    applyRef.current(armed.currentPercent)
-  }, [])
+  const start = useCallback(
+    (policy: SpeedTrainerPolicy) => {
+      resumePercentRef.current = currentRef.current()
+      const armed = startSpeedTrainer(policy)
+      stateRef.current = armed
+      setState(armed)
+      applyRef.current(armed.currentPercent)
+    },
+    [setState]
+  )
 
   const stop = useCallback(() => {
     // Restore only when a ramp was actually running: every lifecycle seam
@@ -61,7 +66,7 @@ export function useSpeedTrainer(
     }
     stateRef.current = undefined
     setState(undefined)
-  }, [])
+  }, [setState])
 
   const recordPass = useCallback(() => {
     const current = stateRef.current
@@ -74,7 +79,7 @@ export function useSpeedTrainer(
     if (next.currentPercent !== current.currentPercent) {
       applyRef.current(next.currentPercent)
     }
-  }, [])
+  }, [setState])
 
   return useMemo(
     () => ({ state, start, stop, recordPass }),

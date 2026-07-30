@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { act, renderHook } from '@testing-library/react'
+import { Provider } from 'jotai'
 import { describe, expect, it, vi } from 'vitest'
 import { useSpeedTrainer } from './use-speed-trainer.ts'
 
@@ -13,7 +14,9 @@ const policy = {
 describe('useSpeedTrainer', () => {
   it('is off until started, and arming seats the start tempo', () => {
     const apply = vi.fn()
-    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100))
+    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100), {
+      wrapper: Provider
+    })
     expect(result.current.state).toBeUndefined()
 
     act(() => result.current.start(policy))
@@ -24,7 +27,9 @@ describe('useSpeedTrainer', () => {
 
   it('applies the stepped tempo once the cadence is earned, not before', () => {
     const apply = vi.fn()
-    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100))
+    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100), {
+      wrapper: Provider
+    })
     act(() => result.current.start(policy))
     apply.mockClear()
 
@@ -40,7 +45,9 @@ describe('useSpeedTrainer', () => {
   it('stop restores the tempo memorised at arming, and later passes are inert', () => {
     const apply = vi.fn()
     // The player was at 100 % when the ramp armed.
-    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100))
+    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100), {
+      wrapper: Provider
+    })
     act(() => result.current.start(policy))
     act(() => result.current.recordPass())
     act(() => result.current.recordPass())
@@ -58,17 +65,21 @@ describe('useSpeedTrainer', () => {
 
   it('stopping an already-off trainer applies nothing', () => {
     const apply = vi.fn()
-    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100))
+    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100), {
+      wrapper: Provider
+    })
     act(() => result.current.stop())
     expect(apply).not.toHaveBeenCalled()
   })
 
   it('keeps recordPass identity-stable across renders (mount-once listener)', () => {
-    const { result, rerender } = renderHook(() =>
-      useSpeedTrainer(
-        () => {},
-        () => 100
-      )
+    const { result, rerender } = renderHook(
+      () =>
+        useSpeedTrainer(
+          () => {},
+          () => 100
+        ),
+      { wrapper: Provider }
     )
     const first = result.current.recordPass
     rerender()

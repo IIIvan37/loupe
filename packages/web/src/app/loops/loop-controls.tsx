@@ -19,8 +19,9 @@ interface LoopControlsProps {
   /** Save the active region under a name (a fresh saved loop). */
   readonly onSaveRegion: (name: string, region: LoopRegion) => void
   readonly onClearRegion: () => void
-  /** The speed-trainer ramp riding this loupe. */
-  readonly trainer: SpeedTrainer
+  /** The speed-trainer ramp riding this loupe — its view: the running state
+   * plus arm/stop (`recordPass` belongs to the transport wiring, not here). */
+  readonly trainer: Pick<SpeedTrainer, 'state' | 'start' | 'stop'>
 }
 
 /**

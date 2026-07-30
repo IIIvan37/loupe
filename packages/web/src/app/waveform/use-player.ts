@@ -11,24 +11,32 @@ import {
   type ProjectTuning,
   type SpectrumFrame,
   type StemPlaybackEngine,
-  type Track,
   type TrackMetadata,
   type TrackMetadataReader,
   type TransportState
 } from '@app/core'
-import { useAtomValue } from 'jotai'
+import { useAtom, useAtomValue } from 'jotai'
 import { useMemo, useRef, useState } from 'react'
 import { createMusicMetadataReader } from '../../audio/music-metadata-reader.ts'
 import { createWebAudioDecoder } from '../../audio/web-audio-decoder.ts'
 import { createWebAudioPlayback } from '../../audio/web-audio-playback.ts'
 import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
 import type { ExternalValue } from '../../lib/external-value.ts'
-import { useAudioSession } from '../audio-session/audio-session.ts'
+import { useLatest } from '../../lib/use-latest.ts'
+import {
+  type PlayerHandle,
+  useAudioSession
+} from '../audio-session/audio-session.ts'
 import {
   type SpeedTrainer,
   useSpeedTrainer
 } from '../loops/use-speed-trainer.ts'
 import { stemsActiveAtom } from '../mixer/mixer-atoms.ts'
+import {
+  type ImportState,
+  importStateAtom,
+  pitchSemitonesAtom
+} from './player-atoms.ts'
 import { useLoop } from './use-loop.ts'
 import { useTransportEngines } from './use-transport-engines.ts'
 
@@ -37,11 +45,7 @@ const NO_METADATA: TrackMetadata = { title: undefined, artist: undefined }
 /** Peak resolution: more buckets than screen pixels, so it stays crisp at 1×. */
 const BUCKET_COUNT = 1200
 
-export type ImportState =
-  | { readonly status: 'idle' }
-  | { readonly status: 'loading' }
-  | { readonly status: 'loaded'; readonly track: Track }
-  | { readonly status: 'error'; readonly message: string }
+export type { ImportState } from './player-atoms.ts'
 
 export interface Player {
   readonly importState: ImportState
@@ -92,6 +96,9 @@ export interface Player {
   readonly restoreLoop: (region: LoopRegion, enabled: boolean) => void
   /** The speed-trainer ramp riding the loupe (arms, steps on wraps, stops). */
   readonly speedTrainer: SpeedTrainer
+  /** The player as a stable reference, seated in the session by the shell so
+   * the regions reach it themselves (ADR 0011). */
+  readonly handle: PlayerHandle
 }
 
 /**
@@ -135,9 +142,9 @@ export function usePlayer(
     [injectedReader]
   )
   const [metadata, setMetadata] = useState<TrackMetadata>(NO_METADATA)
-  const [importState, setImportState] = useState<ImportState>({
-    status: 'idle'
-  })
+  // The import lifecycle and the pitch ride the feature's atoms (ADR 0010):
+  // the regions render them on their own instead of receiving them as props.
+  const [importState, setImportState] = useAtom(importStateAtom)
   const [loadedAudio, setLoadedAudio] = useState<DecodedAudio | undefined>(
     undefined
   )
@@ -145,7 +152,7 @@ export function usePlayer(
     undefined
   )
   const [timeRatio, setTimeRatioState] = useState(1)
-  const [pitchSemitones, setPitchSemitonesState] = useState(0)
+  const [pitchSemitones, setPitchSemitonesState] = useAtom(pitchSemitonesAtom)
   const [fineTuneCents, setFineTuneCentsState] = useState(0)
   const loop = useLoop()
   // The ramp applies its earned tempo through the same clamped path the
@@ -353,6 +360,30 @@ export function usePlayer(
     loop.restoreLoop(region, enabled)
   }
 
+  function readSpectrum(): SpectrumFrame | undefined {
+    return stemsActive ? stemPlayback.spectrum?.() : playback.spectrum?.()
+  }
+
+  // The handle's methods delegate through refs so the object can keep ONE
+  // identity for the whole session (the stable-reference contract of ADR
+  // 0011) while the closures underneath stay render-fresh.
+  const seekToSecondsRef = useLatest(seekToSeconds)
+  const seekToRatioRef = useLatest(seekToRatio)
+  const toggleLoopRef = useLatest(toggleLoop)
+  const readSpectrumRef = useLatest(readSpectrum)
+  const { start: startTrainer, stop: stopTrainer } = speedTrainer
+  const handle = useMemo<PlayerHandle>(
+    () => ({
+      position,
+      readSpectrum: () => readSpectrumRef.current(),
+      seekToSeconds: (seconds) => seekToSecondsRef.current(seconds),
+      seekToRatio: (ratio) => seekToRatioRef.current(ratio),
+      toggleLoop: () => toggleLoopRef.current(),
+      speedTrainer: { start: startTrainer, stop: stopTrainer }
+    }),
+    [position, startTrainer, stopTrainer]
+  )
+
   return {
     importState,
     loadedAudio,
@@ -372,12 +403,12 @@ export function usePlayer(
     setPitchSemitones,
     setFineTuneCents,
     restoreTuning,
-    readSpectrum: () =>
-      stemsActive ? stemPlayback.spectrum?.() : playback.spectrum?.(),
+    readSpectrum,
     setLoopRegion,
     loopEnabled: loop.loopEnabled,
     toggleLoop,
     restoreLoop,
-    speedTrainer
+    speedTrainer,
+    handle
   }
 }

@@ -22,7 +22,7 @@ import { describe, expect, it } from 'vitest'
  * instead of the values needed. Target: 0. */
 const MAX_RETURN_TYPE_PROPS = 21
 /** Fields on the widest `*Props` type (today `ShellMainProps`). */
-const MAX_PROPS_FIELDS = 35
+const MAX_PROPS_FIELDS = 22
 /** Hooks called in the busiest component (today the workstation shell). */
 const MAX_HOOKS_PER_COMPONENT = 25
 
