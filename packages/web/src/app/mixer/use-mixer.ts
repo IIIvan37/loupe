@@ -12,6 +12,7 @@ import {
 } from '@app/core'
 import { useAtom } from 'jotai'
 import { useMemo } from 'react'
+import { useAudioSession } from '../audio-session/audio-session.ts'
 import { mixableAtom, mixerStateAtom, stemFiltersAtom } from './mixer-atoms.ts'
 
 /** One mixer strip: the stem to display + its live controls and fading level. */
@@ -70,6 +71,20 @@ export interface Mixer {
   readonly toggleSolo: (id: string) => void
 }
 
+/** The session's engine is seated by the shell; its absence is a programming
+ * error, not a fallback case — the mix has ONE gain graph, so a bare consumer
+ * must never create a private engine of its own (unlike stateless ports). */
+function requireStemEngine(
+  engine: StemPlaybackEngine | undefined
+): StemPlaybackEngine {
+  if (engine === undefined) {
+    throw new Error(
+      'useMixer: no stem engine in the audio session — render under the workstation shell'
+    )
+  }
+  return engine
+}
+
 /**
  * Smart hook (= driving adapter logic): owns the pure `MixerState` for the
  * present stems and keeps the `StemPlaybackEngine` in step with it. `load` (from
@@ -78,13 +93,45 @@ export interface Mixer {
  * then; every later control change pushes `effectiveGains` from its own handler,
  * so solo/mute/volume are always reflected in what is heard. The same effective
  * gain (clamped) is each lane's opacity.
+ *
+ * Callable by any consumer (ADR 0010): the engine argument is the shell stack's
+ * (it creates the singleton); a region calls it bare and reaches the same
+ * engine through the audio session (ADR 0011).
  */
-export function useMixer(engine: StemPlaybackEngine): Mixer {
+export function useMixer(injected?: StemPlaybackEngine): Mixer {
+  const session = useAudioSession()
   // The state itself lives in the feature's atoms (ADR 0010); the hook keeps
   // what only it can do — driving the playback engine alongside each change.
   const [state, dispatch] = useAtom(mixerStateAtom)
   const [mixable, setMixable] = useAtom(mixableAtom)
   const [filters, setFilters] = useAtom(stemFiltersAtom)
+
+  const channels = useMemo<readonly MixerChannelView[]>(() => {
+    const gainById = new Map<string, ChannelGain>(
+      effectiveGains(state).map((gain) => [gain.id, gain])
+    )
+    const stemById = new Map(mixable.map((item) => [item.id, item]))
+    return state.flatMap((channel) => {
+      const entry = stemById.get(channel.id)
+      if (!entry) {
+        return []
+      }
+      const gain = gainById.get(channel.id)?.gain ?? 0
+      return [
+        {
+          stem: entry,
+          gainDb: channel.gainDb,
+          muted: channel.muted,
+          soloed: channel.soloed,
+          gain,
+          level: Math.min(gain, 1),
+          filter: filters[channel.id] ?? {}
+        }
+      ]
+    })
+  }, [state, mixable, filters])
+
+  const engine = requireStemEngine(injected ?? session.stemEngine)
 
   // Pair each present stem with its PCM, hand the pairs to the gain graph and
   // adopt the display tracks. Both `load` and `restore` start here; only the
@@ -170,31 +217,6 @@ export function useMixer(engine: StemPlaybackEngine): Mixer {
       engine.setGain(id, gain)
     }
   }
-
-  const channels = useMemo<readonly MixerChannelView[]>(() => {
-    const gainById = new Map<string, ChannelGain>(
-      effectiveGains(state).map((gain) => [gain.id, gain])
-    )
-    const stemById = new Map(mixable.map((item) => [item.id, item]))
-    return state.flatMap((channel) => {
-      const entry = stemById.get(channel.id)
-      if (!entry) {
-        return []
-      }
-      const gain = gainById.get(channel.id)?.gain ?? 0
-      return [
-        {
-          stem: entry,
-          gainDb: channel.gainDb,
-          muted: channel.muted,
-          soloed: channel.soloed,
-          gain,
-          level: Math.min(gain, 1),
-          filter: filters[channel.id] ?? {}
-        }
-      ]
-    })
-  }, [state, mixable, filters])
 
   return {
     channels,

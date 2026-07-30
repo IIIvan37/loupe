@@ -309,7 +309,7 @@ export function WorkstationShell({
   })
 
   return (
-    <AudioSessionWithPlayer player={player.handle}>
+    <AudioSessionWithPlayer player={player.handle} stemEngine={stemPlayback}>
     <div className={styles.shell} {...drop.dropHandlers}>
       <ShellDropLayer
         fileInputRef={fileInputRef}
@@ -375,7 +375,6 @@ export function WorkstationShell({
         <ShellMain
           analysisFold={analysisFold}
           viewport={viewport}
-          mixer={mixer}
           loops={loops}
           loopEditing={loopEditing}
           separation={separation}

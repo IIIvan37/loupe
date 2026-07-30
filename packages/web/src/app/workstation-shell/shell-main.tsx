@@ -27,7 +27,6 @@ import { MarkerControls } from '../markers/marker-controls.tsx'
 import { markerSections } from '../markers/section-markers.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import { useMarkers } from '../markers/use-markers.ts'
-import type { useMixer } from '../mixer/use-mixer.ts'
 import type { useSeparation } from '../separation/use-separation.ts'
 import { countingInAtom } from '../tempo/tempo-atoms.ts'
 import { TempoPanel } from '../tempo/tempo-panel.tsx'
@@ -50,7 +49,6 @@ interface ShellMainProps {
   /** Whether the Analyse zone is unfolded — owned by the shell (Q.3). */
   readonly analysisFold: AnalysisFold
   readonly viewport: ReturnType<typeof useViewport>
-  readonly mixer: ReturnType<typeof useMixer>
   readonly loops: ReturnType<typeof useLoops>
   readonly loopEditing: ReturnType<typeof useLoopEditing>
   readonly separation: ReturnType<typeof useSeparation>
@@ -85,7 +83,6 @@ interface ShellMainProps {
 export function ShellMain({
   analysisFold,
   viewport,
-  mixer,
   loops,
   loopEditing,
   separation,
@@ -223,7 +220,6 @@ export function ShellMain({
           />
           <ShellStage
             viewport={viewport}
-            mixer={mixer}
             undetectedStems={undetectedStems}
             onDownloadStem={onDownloadStem}
             loopEditing={loopEditing}

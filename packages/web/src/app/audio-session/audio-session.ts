@@ -63,6 +63,8 @@ export interface PlayerHandle {
 export interface AudioSession {
   readonly decoder?: AudioFileDecoder
   readonly engine?: PlaybackEngine
+  /** Injectable in tests AND re-seated by the shell once its stack created the
+   * singleton (like {@link player}) — a region's `useMixer()` reads it here. */
   readonly stemEngine?: StemPlaybackEngine
   readonly metadataReader?: TrackMetadataReader
   readonly separator?: StemSeparator

@@ -206,8 +206,15 @@ export const config: SheriffConfig = {
     ],
     // The mixer reads the stems' colours — and NEVER tempo nor waveform
     // (ADR 0012, cycles 1 & 2: it owns its synthetic lane ids, and the canvas
-    // its lanes draw with belongs to the kit).
-    'web:feature:mixer': [sameTag, ...WEB_KIT, 'web:feature:stems'],
+    // its lanes draw with belongs to the kit). It reaches the session for the
+    // ONE stem engine the shell seated (ADR 0011) — a region's bare
+    // `useMixer()` must drive the shell's gain graph, never a private one.
+    'web:feature:mixer': [
+      sameTag,
+      ...WEB_KIT,
+      'web:feature:audio-session',
+      'web:feature:stems'
+    ],
     'web:feature:separation': [sameTag, ...WEB_KIT, 'web:audio', 'web:auth'],
     // The metronome and count-in are mixer CLIENTS: they seat stems in the mix
     // (ADR 0012, cycle 1) — the mix never looks up at them.
