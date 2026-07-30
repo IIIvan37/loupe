@@ -19,16 +19,16 @@ gate, `pnpm sonar`, workers vitest bornés en local.
 **Chantier état de vue / shell**
 ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md),
 [0011](adr/0011-shell-layout-contexte-session-audio.md)) : feuilles
-#287→#302 livrées (player référence stable de session — 0011, PR #300 ;
-repères puis tempo en sacs d'atomes, jeton de run partagé — 0010, PRs
-#301–#302), graphe de modules web en DAG déclaré
-([ADR 0012](adr/0012-graphe-de-modules-web.md), PR #299). **Le mixer
-est lu par les régions elles-mêmes** (0010/0011, étape livrée par PR #303) :
-le moteur de stems (à état) rejoint la session enrichie à côté du `player`,
-`useMixer()` s'appelle nu (repli `session.stemEngine`, throw sinon), le prop
-`mixer` tombe de `ShellMain`/`ShellStage` — cliquet `ReturnType` **17 → 15**,
-arête Sheriff `mixer → audio-session` déclarée. **Prochaine étape : sac
-suivant en atomes** (candidat : `viewport`, sinon `separation`), puis
+#287→#303 livrées (player référence stable de session — 0011, PR #300 ;
+repères, tempo puis mixer/moteur de stems en session — 0010/0011, PRs
+#301–#303), graphe de modules web en DAG déclaré
+([ADR 0012](adr/0012-graphe-de-modules-web.md), PR #299). **Le zoom du
+viewport est un atome de la feature waveform** (0010, étape livrée par
+PR #304) : `useViewport()` multi-instances, `ShellStage` le lit lui-même,
+le prop `viewport` tombe de `ShellMain`/`ShellStage` — cliquet `ReturnType`
+**15 → 13** ; état de vue pur, ni session ADR 0011 ni arête Sheriff. **Prochaine étape :
+sac suivant en atomes** (candidat : `separation` — vérifier d'abord s'il
+pilote un adaptateur à état → session ADR 0011, sinon atomes seuls), puis
 interface étroite de session (DIP). Chaque feuille descend ≥1 cliquet
 (`composition-invariants.spec.ts`), feuilles d'infrastructure exemptées.
 Checkpoint UI avant chaque slice.
