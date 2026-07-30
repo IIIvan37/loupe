@@ -8,8 +8,9 @@ import {
   replaceStructureMarkers
 } from '@app/core'
 import { msg } from '@lingui/core/macro'
-import { useState } from 'react'
+import { useAtom } from 'jotai'
 import { i18n } from '../../i18n/i18n.ts'
+import { markersAtom } from './marker-atoms.ts'
 import type { SectionMarker } from './section-markers.ts'
 
 // The auto label minted for a fresh marker: « Repère 1 », « Repère 2 », …
@@ -54,11 +55,12 @@ export interface Markers {
 }
 
 /**
- * Smart hook holding the (in-memory) marker list. Identity and the auto label are
- * minted here — the impure bits the pure `MarkerList` domain refuses to own.
+ * Smart hook over the feature's marker list (`markersAtom`) — every consumer
+ * sees the same session list. Identity and the auto label are minted here —
+ * the impure bits the pure `MarkerList` domain refuses to own.
  */
 export function useMarkers(): Markers {
-  const [markers, setMarkers] = useState<MarkerList>(emptyMarkerList)
+  const [markers, setMarkers] = useAtom(markersAtom)
 
   function addAt(timeSeconds: number): void {
     setMarkers((current) => {

@@ -27,7 +27,7 @@ import type { useLoops } from '../loops/use-loops.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
 import { markerSections } from '../markers/section-markers.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
-import type { useMarkers } from '../markers/use-markers.ts'
+import { useMarkers } from '../markers/use-markers.ts'
 import type { useMixer } from '../mixer/use-mixer.ts'
 import type { useSeparation } from '../separation/use-separation.ts'
 import { countingInAtom } from '../tempo/tempo-atoms.ts'
@@ -49,7 +49,6 @@ import styles from './workstation-shell.module.css'
 interface ShellMainProps {
   /** Whether the Analyse zone is unfolded — owned by the shell (Q.3). */
   readonly analysisFold: AnalysisFold
-  readonly markers: ReturnType<typeof useMarkers>
   readonly viewport: ReturnType<typeof useViewport>
   readonly mixer: ReturnType<typeof useMixer>
   readonly loops: ReturnType<typeof useLoops>
@@ -95,7 +94,6 @@ interface ShellMainProps {
  */
 export function ShellMain({
   analysisFold,
-  markers,
   viewport,
   mixer,
   loops,
@@ -119,6 +117,7 @@ export function ShellMain({
 }: ShellMainProps) {
   const { t } = useLingui()
   const player = usePlayerHandle()
+  const markers = useMarkers()
   const importState = useAtomValue(importStateAtom)
   const transport = useAtomValue(transportAtom)
   const loopRegion = useAtomValue(loopRegionAtom)
@@ -240,7 +239,6 @@ export function ShellMain({
             mixer={mixer}
             undetectedStems={undetectedStems}
             onDownloadStem={onDownloadStem}
-            markers={markers}
             loopEditing={loopEditing}
             onReimport={onReimport}
           />

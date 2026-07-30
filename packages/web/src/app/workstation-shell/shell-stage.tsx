@@ -7,7 +7,7 @@ import { StemHeaders } from '../mixer/stem-headers.tsx'
 import { StemLanes } from '../mixer/stem-lanes.tsx'
 import { UndetectedStems } from '../mixer/undetected-stems.tsx'
 import type { useMixer } from '../mixer/use-mixer.ts'
-import type { useMarkers } from '../markers/use-markers.ts'
+import { useMarkers } from '../markers/use-markers.ts'
 import { MarkerRail } from '../markers/marker-rail.tsx'
 import type { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { tempoAnalysisAtom } from '../tempo/tempo-atoms.ts'
@@ -29,7 +29,6 @@ interface ShellStageProps {
   /** Stems the separation masked as near-silent — named in the gutter. */
   readonly undetectedStems: readonly { readonly id: string; readonly label: string }[]
   readonly onDownloadStem: (id: string) => void
-  readonly markers: ReturnType<typeof useMarkers>
   readonly loopEditing: ReturnType<typeof useLoopEditing>
   /** Reopen the file picker — the error stage's way out of a failed import. */
   readonly onReimport: () => void
@@ -46,11 +45,11 @@ export function ShellStage({
   mixer,
   undetectedStems,
   onDownloadStem,
-  markers,
   loopEditing,
   onReimport
 }: ShellStageProps) {
   const player = usePlayerHandle()
+  const markers = useMarkers()
   const importState = useAtomValue(importStateAtom)
   const { durationSeconds } = useAtomValue(transportAtom)
   const loopRegion = useAtomValue(loopRegionAtom)
