@@ -69,8 +69,7 @@
 - tests : ✅ suite complète verte (1129 tests web, +6), couverture 96,83 %
   statements / 92,30 % branches.
 - mutation : **sans objet** — aucune source core touchée (web uniquement).
-- sonar : en attente d'analyse CI sur la PR #306 au moment du rapport
-  initial (mis à jour ci-dessous une fois lue).
+- sonar : ✅ quality gate OK sur la PR #306 — 0 issue ouverte, 0 hotspot.
 
 ## State to resume from
 
