@@ -1,3 +1,4 @@
+import type { StemPlaybackEngine } from '@app/core'
 import { type ReactNode, useMemo } from 'react'
 import {
   type AudioSession,
@@ -26,20 +27,27 @@ export function AudioSessionProvider({
 }
 
 /**
- * The session the regions see: the injected ports plus the live player as a
- * stable reference (ADR 0011). The shell mounts it once the player exists;
- * both parts keep one identity, so the enriched value never changes after
- * mount and re-renders no one.
+ * The session the regions see: the injected ports plus the live player and the
+ * live stem engine as stable references (ADR 0011). The shell mounts it once
+ * they exist; every part keeps one identity, so the enriched value never
+ * changes after mount and re-renders no one. The stem engine is seated for the
+ * same reason as the player: a region's `useMixer()` must drive the SHELL's
+ * singleton gain graph, never a private one.
  */
 export function AudioSessionWithPlayer({
   player,
+  stemEngine,
   children
 }: {
   readonly player: PlayerHandle
+  readonly stemEngine: StemPlaybackEngine
   readonly children: ReactNode
 }) {
   const injected = useAudioSession()
-  const value = useMemo(() => ({ ...injected, player }), [injected, player])
+  const value = useMemo(
+    () => ({ ...injected, player, stemEngine }),
+    [injected, player, stemEngine]
+  )
   return (
     <AudioSessionContext.Provider value={value}>
       {children}

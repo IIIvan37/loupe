@@ -8,8 +8,10 @@ import {
   type StemSource
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
-import { Provider } from 'jotai'
+import { Provider, createStore } from 'jotai'
+import type { ReactNode } from 'react'
 import { vi } from 'vitest'
+import { AudioSessionProvider } from '../audio-session/audio-session-provider.tsx'
 import { type Mixer, useMixer } from './use-mixer.ts'
 
 /** The mixer state lives in module-level atoms, so it is shared by construction:
@@ -299,6 +301,36 @@ describe('useMixer', () => {
     expect(basse?.level).toBe(0)
   })
 
+  it('reaches the session stem engine when none is passed (ADR 0011)', () => {
+    // A region calls `useMixer()` bare: the engine is the one the shell seated
+    // in the audio session — never a fresh graph of its own.
+    const engine = fakeEngine()
+    const wrapper = ({ children }: { readonly children: ReactNode }) => (
+      <Provider>
+        <AudioSessionProvider value={{ stemEngine: engine }}>
+          {children}
+        </AudioSessionProvider>
+      </Provider>
+    )
+    const { result } = renderHook(() => useMixer(), { wrapper })
+
+    act(() => {
+      result.current.load(stems, sources)
+    })
+
+    expect(engine.load).toHaveBeenCalledOnce()
+    expect(result.current.channels.map((c) => c.stem.id)).toEqual([
+      'voix',
+      'basse'
+    ])
+  })
+
+  it('throws without an engine — the mix has ONE graph, never a private one', () => {
+    expect(() =>
+      renderHook(() => useMixer(), { wrapper: Provider })
+    ).toThrow(/no stem engine in the audio session/)
+  })
+
   it('only mixes the stems that are present and whose PCM is available', () => {
     const engine = fakeEngine()
     // A present stem with no matching source, and an absent one: both excluded.
@@ -314,5 +346,57 @@ describe('useMixer', () => {
       'basse'
     ])
     expect(engine.load.mock.calls[0]?.[0]).toHaveLength(2)
+  })
+})
+
+/**
+ * The shell's instance (engine passed) and a region's instance (bare, session
+ * engine) under ONE store — the shape the regions reach when they read the hook
+ * themselves (ADR 0010): one mix, one gain graph, whichever instance moves.
+ */
+function mountShellAndRegion(engine: ReturnType<typeof fakeEngine>) {
+  const store = createStore()
+  const wrapper = ({ children }: { readonly children: ReactNode }) => (
+    <Provider store={store}>
+      <AudioSessionProvider value={{ stemEngine: engine }}>
+        {children}
+      </AudioSessionProvider>
+    </Provider>
+  )
+  const shell = renderHook(() => useMixer(engine), { wrapper })
+  const region = renderHook(() => useMixer(), { wrapper })
+  return { shell, region }
+}
+
+describe('useMixer across two consumers (one store)', () => {
+  it('a region sees the mix the shell loaded, with no prop threaded', () => {
+    const engine = fakeEngine()
+    const { shell, region } = mountShellAndRegion(engine)
+
+    act(() => {
+      shell.result.current.load(stems, sources)
+    })
+
+    expect(region.result.current.channels.map((c) => c.stem.id)).toEqual([
+      'voix',
+      'basse'
+    ])
+  })
+
+  it('a mute from the region reaches the one gain graph and the shell', () => {
+    const engine = fakeEngine()
+    const { shell, region } = mountShellAndRegion(engine)
+    act(() => {
+      shell.result.current.load(stems, sources)
+    })
+
+    act(() => {
+      region.result.current.toggleMute('voix')
+    })
+
+    expect(engine.setGain).toHaveBeenCalledWith('voix', 0)
+    expect(
+      shell.result.current.channels.find((c) => c.stem.id === 'voix')?.muted
+    ).toBe(true)
   })
 })

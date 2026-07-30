@@ -1,10 +1,17 @@
 // @vitest-environment jsdom
-import type { AudioFileDecoder, TempoDetector } from '@app/core'
+import type {
+  AudioFileDecoder,
+  StemPlaybackEngine,
+  TempoDetector
+} from '@app/core'
 import { renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import type { ExternalValue } from '../../lib/external-value.ts'
-import { AudioSessionProvider } from './audio-session-provider.tsx'
+import {
+  AudioSessionProvider,
+  AudioSessionWithPlayer
+} from './audio-session-provider.tsx'
 import {
   type PlayerHandle,
   useAudioSession,
@@ -65,5 +72,51 @@ describe('usePlayerHandle', () => {
     expect(() => renderHook(() => usePlayerHandle())).toThrow(
       /no player in the audio session/
     )
+  })
+})
+
+describe('AudioSessionWithPlayer', () => {
+  const position: ExternalValue<number> = {
+    get: () => 0,
+    subscribe: () => () => {}
+  }
+  const player: PlayerHandle = {
+    position,
+    readSpectrum: () => undefined,
+    seekToSeconds: () => {},
+    seekToRatio: () => {},
+    toggleLoop: () => {},
+    speedTrainer: { start: () => {}, stop: () => {} }
+  }
+  const stemEngine: StemPlaybackEngine = {
+    load: async () => {},
+    addStem: async () => {},
+    removeStem: () => {},
+    play: () => {},
+    pause: () => {},
+    seekTo: () => {},
+    setTimeRatio: () => {},
+    setPitchSemitones: () => {},
+    setGain: () => {},
+    stemAudio: () => undefined,
+    onPositionChange: () => () => {}
+  }
+
+  it('seats the live stem engine beside the player, over the injected ports', () => {
+    // The shell's singleton engine joins the enriched session (ADR 0011) so a
+    // region's `useMixer()` drives the SAME graph as the shell's own instance.
+    const wrapper = ({ children }: { readonly children: ReactNode }) => (
+      <AudioSessionProvider value={{ decoder }}>
+        <AudioSessionWithPlayer player={player} stemEngine={stemEngine}>
+          {children}
+        </AudioSessionWithPlayer>
+      </AudioSessionProvider>
+    )
+
+    const { result } = renderHook(() => useAudioSession(), { wrapper })
+
+    expect(result.current.player).toBe(player)
+    expect(result.current.stemEngine).toBe(stemEngine)
+    expect(result.current.decoder).toBe(decoder)
   })
 })
