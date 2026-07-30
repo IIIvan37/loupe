@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { isTauriShell } from '../lib/tauri-env.ts'
 import type {
   AccountStatus,
   AuthPort,
@@ -6,8 +7,6 @@ import type {
   MintResult,
   RedeemResult
 } from './auth-port.ts'
-
-import { isTauriShell } from './tauri-env.ts'
 
 /**
  * Where the magic link returns the user — the running app origin, or the

@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import {
   cachedAnalysisToken,
   isAnalysisOffloaded
-} from '../../audio/analysis-token.ts'
+} from '../../auth/analysis-token.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
 import type { useMetronome } from '../tempo/use-metronome.ts'

@@ -5,9 +5,9 @@ import { deliverFile } from '../../audio/deliver-file.ts'
 import { encodeWavMemo } from '../../audio/encode-wav-memo.ts'
 import { exportBaseName } from '../../lib/export-base-name.ts'
 import { nextPaint } from '../../lib/next-paint.ts'
+import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
 import { TRACK_STEM_ID } from '../mixer/track-stem.ts'
 import type { Separation } from '../separation/use-separation.ts'
-import { METRONOME_ID } from '../tempo/metronome-stem.ts'
 import type { Tempo } from '../tempo/use-tempo.ts'
 
 interface StemExportDeps {

@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   clearAnalysisToken,
   ensureAnalysisToken
-} from '../../audio/analysis-token.ts'
+} from '../../auth/analysis-token.ts'
 import type {
   AccountStatus,
   AuthPort,

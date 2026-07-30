@@ -1,5 +1,5 @@
-import { appAuth } from '../auth/app-auth.ts'
-import type { AuthPort, MintFailureReason } from '../auth/auth-port.ts'
+import { appAuth } from './app-auth.ts'
+import type { AuthPort, MintFailureReason } from './auth-port.ts'
 
 /**
  * The analyse-token gate. Analysis on the Modal offload needs a SHORT-LIVED

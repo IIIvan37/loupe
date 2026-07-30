@@ -1,5 +1,5 @@
+import { cachedAnalysisToken } from '../auth/analysis-token.ts'
 import { analysisUrl } from './analysis-endpoint.ts'
-import { cachedAnalysisToken } from './analysis-token.ts'
 
 /**
  * Warm the Modal analysis container ahead of use — the mitigation the spike

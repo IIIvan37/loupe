@@ -3,7 +3,7 @@ import { type PointerEvent, useRef, useState } from 'react'
 import { clamp01 } from '../../lib/clamp01.ts'
 import { pointerRatio } from '../../lib/pointer-ratio.ts'
 import { stemColorVar } from '../stems/stem-color.ts'
-import { WaveformCanvas } from '../waveform/waveform-canvas.tsx'
+import { WaveformCanvas } from '../ui/waveform-canvas.tsx'
 import type { MixerChannelView } from './use-mixer.ts'
 import styles from './stem-lanes.module.css'
 

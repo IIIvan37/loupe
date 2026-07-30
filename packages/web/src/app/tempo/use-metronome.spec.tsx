@@ -9,7 +9,8 @@ import type {
 import { act, renderHook } from '@testing-library/react'
 import { vi } from 'vitest'
 import type { Mixer } from '../mixer/use-mixer.ts'
-import { DEFAULT_METRONOME_CHANNEL, METRONOME_ID } from './metronome-stem.ts'
+import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
+import { DEFAULT_METRONOME_CHANNEL } from './metronome-stem.ts'
 import { useMetronome } from './use-metronome.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }

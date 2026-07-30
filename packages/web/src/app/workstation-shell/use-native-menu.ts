@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { isTauriShell } from '../../auth/tauri-env.ts'
+import { isTauriShell } from '../../lib/tauri-env.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 
 /** The shell actions the native menu bar drives (`menu.rs` item ids). */

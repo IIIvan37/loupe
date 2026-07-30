@@ -1,6 +1,6 @@
 import type { TempoDetector } from '@app/core'
+import { cachedAnalysisToken } from '../auth/analysis-token.ts'
 import { analysisUrl } from './analysis-endpoint.ts'
-import { cachedAnalysisToken } from './analysis-token.ts'
 import { createHttpTempoDetector } from './http-tempo-detector.ts'
 
 /**

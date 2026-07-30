@@ -9,9 +9,10 @@ import type {
 import { UNITY_GAIN_DB } from '@app/core'
 import { useState } from 'react'
 import { useLatest } from '../../lib/use-latest.ts'
+import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
 import { buildTrackStem, TRACK_STEM_ID } from '../mixer/track-stem.ts'
 import type { Mixer } from '../mixer/use-mixer.ts'
-import { buildMetronomeStem, METRONOME_ID } from './metronome-stem.ts'
+import { buildMetronomeStem } from './metronome-stem.ts'
 
 export interface MetronomeDeps {
   readonly mixer: Mixer

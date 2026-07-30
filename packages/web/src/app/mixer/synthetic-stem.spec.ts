@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { METRONOME_ID } from '../tempo/metronome-stem.ts'
-import { isSyntheticStem } from './synthetic-stem.ts'
+import { isSyntheticStem, METRONOME_ID } from './synthetic-stem.ts'
 import { TRACK_STEM_ID } from './track-stem.ts'
 
 describe('isSyntheticStem', () => {

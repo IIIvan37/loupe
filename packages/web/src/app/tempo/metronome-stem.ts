@@ -8,9 +8,8 @@ import {
   synthesizeClickTrack,
   UNITY_GAIN_DB
 } from '@app/core'
+import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
 
-/** The stem id/label the metronome click occupies in the mixer. */
-export const METRONOME_ID = 'metronome'
 const METRONOME_LABEL = 'Métronome'
 
 /**

@@ -1,5 +1,5 @@
 import type { BeatGrid } from '@app/core'
-import { isAnalysisOffloaded } from '../../audio/analysis-token.ts'
+import { isAnalysisOffloaded } from '../../auth/analysis-token.ts'
 import { AnalyserRow } from '../analyser/analyser-row.tsx'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
