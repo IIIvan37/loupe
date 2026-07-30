@@ -1,10 +1,9 @@
-import type { BeatGrid } from '@app/core'
 import { isAnalysisOffloaded } from '../../auth/analysis-token.ts'
 import { AnalyserRow } from '../analyser/analyser-row.tsx'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import type { useSeparation } from '../separation/use-separation.ts'
-import type { useTempo } from '../tempo/use-tempo.ts'
+import { useTempo } from '../tempo/use-tempo.ts'
 import { useOnline } from './use-online.ts'
 
 interface ShellAnalyserRowProps {
@@ -13,7 +12,6 @@ interface ShellAnalyserRowProps {
   readonly separation: ReturnType<typeof useSeparation>
   readonly canSeparate: boolean
   readonly onSeparate: () => void
-  readonly tempo: ReturnType<typeof useTempo>
   /** Relaunch a failed/cancelled tempo detection (the idle/error faces). */
   readonly onRetryTempo: () => void
   readonly structureDetection: StructureDetection
@@ -21,7 +19,6 @@ interface ShellAnalyserRowProps {
   readonly hasStructureMarkers: boolean
   /** Whether a chord grid exists — a detection replaces/relabels it. */
   readonly hasChartSource: boolean
-  readonly grid: BeatGrid | undefined
   readonly chordDetection: ChordDetection
 }
 
@@ -37,18 +34,20 @@ export function ShellAnalyserRow({
   separation,
   canSeparate,
   onSeparate,
-  tempo,
   onRetryTempo,
   structureDetection,
   hasStructureMarkers,
   hasChartSource,
-  grid,
   chordDetection
 }: ShellAnalyserRowProps) {
   const offloaded = isAnalysisOffloaded()
   const online = useOnline()
+  // The row wears the tempo item's state itself (ADR 0010) — same session
+  // tempo as the shell's instance, cancel included (shared run token).
+  const tempo = useTempo()
   // The measures always need a downbeat-flagged grid to anchor the chords on.
-  const hasDownbeat = grid?.some((beat) => beat.downbeat) ?? false
+  const hasDownbeat =
+    tempo.analysis?.grid.some((beat) => beat.downbeat) ?? false
   const chordsBlockedReason: 'no-grid' | undefined = hasDownbeat
     ? undefined
     : 'no-grid'

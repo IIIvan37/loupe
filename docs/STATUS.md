@@ -19,17 +19,17 @@ gate, `pnpm sonar`, workers vitest bornés en local.
 **Chantier état de vue / shell**
 ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md),
 [0011](adr/0011-shell-layout-contexte-session-audio.md)) : feuilles
-#287→#296 livrées (cliquet `ReturnType` **26 → 21**), graphe de modules web
-en DAG déclaré ([ADR 0012](adr/0012-graphe-de-modules-web.md), PR #299).
-**Le player est une référence stable de session** (0011, livré par PR
-#300) : `PlayerHandle` dans le session context (`AudioSessionWithPlayer`),
-état de vue du player en atomes, `ShellMain`/`ShellStage` régions smart —
-cliquet `MAX_PROPS_FIELDS` **35 → 22**. **Les repères sont le premier sac
-de feature en atome** (0010, livré par PR #301) : `markersAtom`, régions
-lisant `useMarkers` elles-mêmes — cliquets `ReturnType` **21 → 19**,
-`MAX_PROPS_FIELDS` **22 → 21**. **Prochaine étape : sac suivant en atomes**
-(candidat : `tempo`, sinon `mixer`), puis interface étroite de session
-(DIP). Chaque feuille descend ≥1 cliquet
+#287→#301 livrées (player référence stable de session — 0011, PR #300 ;
+repères premier sac en atome — 0010, PR #301), graphe de modules web en DAG
+déclaré ([ADR 0012](adr/0012-graphe-de-modules-web.md), PR #299). **Le
+tempo est le deuxième sac de feature en atomes** (0010, étape livrée par PR
+#302) : tout le sac dans `tempo-atoms.ts`, jeton de run + abort partagés
+par store (`tempoRunAtom` — un cancel/seat croisé supersède le detect en
+vol), `ShellMain`/`ShellAnalyserRow` lisent `useTempo()` elles-mêmes, les
+six callbacks tempo repliés en un prop `TempoDetection` — cliquets
+`ReturnType` **19 → 17**, `MAX_PROPS_FIELDS` **21 → 20**. **Prochaine
+étape : sac suivant en atomes** (candidat : `mixer`, sinon `viewport`),
+puis interface étroite de session (DIP). Chaque feuille descend ≥1 cliquet
 (`composition-invariants.spec.ts`), feuilles d'infrastructure exemptées.
 Checkpoint UI avant chaque slice.
 

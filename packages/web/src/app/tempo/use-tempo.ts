@@ -13,8 +13,8 @@ import {
   type TempoDetectionErrorCode,
   type TempoDetector
 } from '@app/core'
-import { useAtom } from 'jotai'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useAtom, useAtomValue } from 'jotai'
+import { useEffect, useMemo, useRef } from 'react'
 import { createTempoDetector } from '../../audio/create-tempo-detector.ts'
 import {
   type EnsureTokenResult,
@@ -23,7 +23,16 @@ import {
 } from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
 import { useAudioSession } from '../audio-session/audio-session.ts'
-import { tempoAnalysisAtom, tempoGateReasonAtom } from './tempo-atoms.ts'
+import {
+  manualTempoAtom,
+  tempoAnalysisAtom,
+  tempoCancelledAtom,
+  tempoDetectingAtom,
+  tempoErrorAtom,
+  tempoGateReasonAtom,
+  tempoOctaveShiftAtom,
+  tempoRunAtom
+} from './tempo-atoms.ts'
 
 /** How far the felt tempo may be nudged from the detection: ±2 octaves. */
 const MAX_OCTAVE_SHIFT = 2
@@ -138,19 +147,23 @@ export function useTempo(
   const session = useAudioSession()
   const injected = detector ?? session.tempoDetector
   const engine = useMemo(() => injected ?? createTempoDetector(), [injected])
-  // Owned by the feature (ADR 0010): these two fields are read cross-feature on
-  // their own, so they live in atoms; the rest stays local until pulled out.
+  // The whole bag is owned by the feature (ADR 0010): every field lives in an
+  // atom so any consumer instance sees the same session tempo.
   const [analysis, setAnalysis] = useAtom(tempoAnalysisAtom)
   const [gateReason, setGateReason] = useAtom(tempoGateReasonAtom)
-  const [octaveShift, setOctaveShift] = useState(0)
-  const [manual, setManual] = useState<ManualTempo>()
-  const [detecting, setDetecting] = useState(false)
-  const [cancelled, setCancelled] = useState(false)
-  const [error, setError] = useState<TempoDetectionErrorCode>()
-  const runIdRef = useRef(0)
-  // The in-flight run's abort controller: a superseded run must release the
-  // server's analysis slot, not just have its late result dropped.
-  const controllerRef = useRef<AbortController | undefined>(undefined)
+  const [octaveShift, setOctaveShift] = useAtom(tempoOctaveShiftAtom)
+  const [manual, setManual] = useAtom(manualTempoAtom)
+  const [detecting, setDetecting] = useAtom(tempoDetectingAtom)
+  const [cancelled, setCancelled] = useAtom(tempoCancelledAtom)
+  const [error, setError] = useAtom(tempoErrorAtom)
+  // The session's single run (token + in-flight abort controller), shared by
+  // every instance: a superseded run must release the server's analysis slot,
+  // and the superseder may be another instance (the row's cancel, an open's
+  // seat). The box is mutated in place — it is bookkeeping, never rendered.
+  const run = useAtomValue(tempoRunAtom)
+  // The controllers THIS instance created, for the unmount cleanup only — a
+  // read-only consumer unmounting must not abort a run it never started.
+  const myControllerRef = useRef<AbortController | undefined>(undefined)
 
   /**
    * Supersede any in-flight run: bump the token AND abort its transfer.
@@ -159,13 +172,13 @@ export function useTempo(
    * unmount cleanup below, where every setState is a no-op anyway.
    */
   function supersede(): number {
-    controllerRef.current?.abort()
-    return ++runIdRef.current
+    run.controller?.abort()
+    return ++run.runId
   }
 
   // Unmounting mid-run must release the server's analysis slot too.
   useEffect(() => {
-    return () => controllerRef.current?.abort()
+    return () => myControllerRef.current?.abort()
   }, [])
 
   async function detect(
@@ -184,7 +197,7 @@ export function useTempo(
       const gated = await gate()
       // A cancel (or a newer run) during the mint bumped the token — this
       // superseded run must not start the detector when the gate resolves.
-      if (runIdRef.current !== runId) {
+      if (run.runId !== runId) {
         return undefined
       }
       if (!gated.ok) {
@@ -194,14 +207,15 @@ export function useTempo(
       }
     }
     const controller = new AbortController()
-    controllerRef.current = controller
+    run.controller = controller
+    myControllerRef.current = controller
     const result = await detectTempo(
       { audio, signal: controller.signal },
       { detector: engine }
     )
     // Commit only if this is still the latest run: a newer detect or a reset
     // since the await bumped the token, making this result stale.
-    if (runIdRef.current === runId) {
+    if (run.runId === runId) {
       setDetecting(false)
       if (result.ok) {
         // A fresh detection starts from its own octave and supersedes any

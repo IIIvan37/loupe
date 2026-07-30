@@ -379,14 +379,8 @@ export function WorkstationShell({
           loops={loops}
           loopEditing={loopEditing}
           separation={separation}
-          tempo={tempo}
           onDownloadStem={stemExport.downloadStem}
-          onFoldTempo={tempoDetection.fold}
-          onRetryTempo={tempoDetection.retry}
-          onOverrideBpm={tempoDetection.setBpm}
-          onOverrideMeter={tempoDetection.setMeter}
-          onTapTempo={tempoDetection.tap}
-          onAlignTempoPhase={tempoDetection.alignPhase}
+          tempoDetection={tempoDetection}
           onReimport={openFilePicker}
           canSeparate={isLoaded && loadedAudio !== undefined}
           onSeparate={() => separateAndLoad(loadedAudio)}
