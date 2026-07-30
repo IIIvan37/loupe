@@ -19,18 +19,19 @@ gate, `pnpm sonar`, workers vitest bornés en local.
 **Chantier état de vue / shell**
 ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md),
 [0011](adr/0011-shell-layout-contexte-session-audio.md),
-[0012](adr/0012-graphe-de-modules-web.md)) : feuilles #287→#304 livrées
+[0012](adr/0012-graphe-de-modules-web.md)) : feuilles #287→#305 livrées
 (player référence stable PR #300 ; repères, tempo, mixer/moteur de stems,
-zoom viewport PRs #301–#304 ; DAG web PR #299). **Le sac `separation` est
-en atomes de sa feature** (0010, étape livrée par la PR #305) : machine
-d'états, descripteurs, erreur d'export et jeton de run/abort dans
-`separation-atoms.ts` ; `ShellMain`, `ShellAnalyserRow` et
-`useSeparateAndLoad` appellent `useSeparation()` eux-mêmes — cliquet
-`ReturnType` **13 → 10** ; pas d'adaptateur à état derrière, donc atomes
-seuls + arête Sheriff `separation → audio-session`. **Prochaine étape :
-sac `loops`/`loopEditing` en atomes** (même question rituelle
-adaptateur-à-état d'abord), puis interface étroite de session (DIP).
-Chaque feuille descend ≥1 cliquet ; checkpoint UI avant chaque slice.
+zoom viewport, separation PRs #301–#305 ; DAG web PR #299). **Le sac
+`loops`/`loopEditing` est en atomes de sa feature** (0010, étape livrée par
+la PR #306) : bibliothèque et loop actif dans `loop-atoms.ts` ; pas
+d'adaptateur à état derrière, mais le bridge PILOTE le player — via le
+`PlayerHandle` de session (ADR 0011), qui gagne `setLoopRegion` ; l'API du
+bridge parle en secondes (conversion dans `ShellStage`) — cliquet
+`ReturnType` **10 → 7** ; arêtes Sheriff `loops → audio-session/tempo`.
+**Prochaine étape : l'interface étroite de session (DIP)** — généraliser le
+motif `CountInPlayer`/`PlayerHandle` (le seam déclare, l'adaptateur
+implémente) ; les 7 `ReturnType` restants = deps d'orchestrateurs (dériver
+des atomes). Chaque feuille descend ≥1 cliquet ; checkpoint UI par slice.
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
 Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
