@@ -24,10 +24,9 @@ export function useStemStack(
     () => injectedEngine ?? createWebAudioStemPlayback(),
     [injectedEngine]
   )
-  const separation = useSeparation(
-    stemPlayback.stemAudio,
-    separator ?? session.separator
-  )
+  // The hook falls back to the session's separator itself; only the PCM
+  // read-back is the stack's to hand over (its engine owns the buffers).
+  const separation = useSeparation(stemPlayback.stemAudio, separator)
   const mixer = useMixer(stemPlayback)
   return {
     stemPlayback,

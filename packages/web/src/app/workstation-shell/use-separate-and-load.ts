@@ -7,13 +7,12 @@ import {
 import { useAtomValue } from 'jotai'
 import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
 import type { useMixer } from '../mixer/use-mixer.ts'
-import type { useSeparation } from '../separation/use-separation.ts'
+import { useSeparation } from '../separation/use-separation.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
 import { tempoAnalysisAtom } from '../tempo/tempo-atoms.ts'
 import type { useMetronome } from '../tempo/use-metronome.ts'
 
 interface SeparateAndLoadDeps {
-  readonly separation: ReturnType<typeof useSeparation>
   readonly mixer: ReturnType<typeof useMixer>
   readonly metronome: ReturnType<typeof useMetronome>
 }
@@ -25,12 +24,14 @@ interface SeparateAndLoadDeps {
  * reads as one call; the audio-engine sync belongs to this moment, not an effect.
  */
 export function useSeparateAndLoad({
-  separation,
   mixer,
   metronome
 }: SeparateAndLoadDeps): (
   audio: DecodedAudio | undefined
 ) => Promise<readonly SeparatedStem[] | undefined> {
+  // The separation bag is feature-owned now (ADR 0010): the hook reads the
+  // same session separation as the shell stack's instance, atoms included.
+  const separation = useSeparation()
   // The tempo grid is feature-owned now (ADR 0010): read it off the atom rather
   // than threading the whole tempo bag through the shell to reach it.
   const analysis = useAtomValue(tempoAnalysisAtom)

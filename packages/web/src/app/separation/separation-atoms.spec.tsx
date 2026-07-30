@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { DecodedAudio, StemSeparator } from '@app/core'
+import type { DecodedAudio, SeparatedStem, StemSeparator } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
 import { Provider, createStore, useAtomValue } from 'jotai'
 import type { ReactNode } from 'react'
@@ -40,6 +40,82 @@ function mountSeparationAndConsumer(
   })
   return { separation, consumer }
 }
+
+/**
+ * Two `useSeparation` consumers under ONE store — the shape the regions reach
+ * when they read the hook themselves (ADR 0010): the whole bag is session
+ * state, including the run token, so a cancel from one instance aborts a
+ * separation started by another.
+ */
+function mountTwoSeparations(separator: StemSeparator) {
+  const store = createStore()
+  const wrapper = ({ children }: { readonly children: ReactNode }) => (
+    <I18nTestingProvider>
+      <Provider store={store}>{children}</Provider>
+    </I18nTestingProvider>
+  )
+  const gate = async () => ({ ok: true }) as const
+  const a = renderHook(
+    () => useSeparation(() => undefined, separator, undefined, gate),
+    { wrapper }
+  )
+  const b = renderHook(
+    () => useSeparation(() => undefined, separator, undefined, gate),
+    { wrapper }
+  )
+  return { a, b }
+}
+
+describe('useSeparation across two consumers (one store)', () => {
+  it('shares the busy state: a run started by one is seen by the other', () => {
+    const pending: StemSeparator = { separate: () => new Promise(() => {}) }
+    const { a, b } = mountTwoSeparations(pending)
+
+    act(() => {
+      void a.result.current.separate(audio)
+    })
+
+    expect(b.result.current.state.status).toBe('analysing')
+  })
+
+  it('a cancel from another consumer aborts the in-flight run', async () => {
+    // The analyser row cancels through ITS instance the separation the shell
+    // started — the abort must reach the shared run, not a private ref.
+    let seenSignal: AbortSignal | undefined
+    const pending: StemSeparator = {
+      separate: (_audio, _onProgress, signal) => {
+        seenSignal = signal
+        return new Promise(() => {})
+      }
+    }
+    const { a, b } = mountTwoSeparations(pending)
+    act(() => {
+      void a.result.current.separate(audio)
+    })
+    // Let the gate microtask resolve so the separator holds the run's signal.
+    await act(async () => {})
+    expect(seenSignal?.aborted).toBe(false)
+
+    act(() => b.result.current.cancel())
+
+    expect(seenSignal?.aborted).toBe(true)
+    expect(a.result.current.state.status).toBe('idle')
+  })
+
+  it('shares the committed stems once a run resolves', async () => {
+    const stems: SeparatedStem[] = [{ id: 'voix', label: 'Voix', audio }]
+    const { a, b } = mountTwoSeparations({ separate: async () => stems })
+
+    await act(async () => {
+      await a.result.current.separate(audio)
+    })
+
+    expect(b.result.current.state.status).toBe('ready')
+    expect(b.result.current.state.stems.map((stem) => stem.id)).toEqual([
+      'voix'
+    ])
+  })
+})
 
 describe('separationGateReasonAtom', () => {
   it('tells a foreign consumer why a run was gate-blocked, no prop', async () => {

@@ -2,14 +2,13 @@ import { isAnalysisOffloaded } from '../../auth/analysis-token.ts'
 import { AnalyserRow } from '../analyser/analyser-row.tsx'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
-import type { useSeparation } from '../separation/use-separation.ts'
+import { useSeparation } from '../separation/use-separation.ts'
 import { useTempo } from '../tempo/use-tempo.ts'
 import { useOnline } from './use-online.ts'
 
 interface ShellAnalyserRowProps {
   /** Disables the manual actions until a track is loaded. */
   readonly disabled: boolean
-  readonly separation: ReturnType<typeof useSeparation>
   readonly canSeparate: boolean
   readonly onSeparate: () => void
   /** Relaunch a failed/cancelled tempo detection (the idle/error faces). */
@@ -31,7 +30,6 @@ interface ShellAnalyserRowProps {
  */
 export function ShellAnalyserRow({
   disabled,
-  separation,
   canSeparate,
   onSeparate,
   onRetryTempo,
@@ -42,9 +40,11 @@ export function ShellAnalyserRow({
 }: ShellAnalyserRowProps) {
   const offloaded = isAnalysisOffloaded()
   const online = useOnline()
-  // The row wears the tempo item's state itself (ADR 0010) — same session
-  // tempo as the shell's instance, cancel included (shared run token).
+  // The row wears the tempo and separation items' state itself (ADR 0010) —
+  // same session atoms as the shell's instances, cancel included (shared run
+  // tokens).
   const tempo = useTempo()
+  const separation = useSeparation()
   // The measures always need a downbeat-flagged grid to anchor the chords on.
   const hasDownbeat =
     tempo.analysis?.grid.some((beat) => beat.downbeat) ?? false

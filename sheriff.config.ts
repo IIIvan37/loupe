@@ -215,7 +215,16 @@ export const config: SheriffConfig = {
       'web:feature:audio-session',
       'web:feature:stems'
     ],
-    'web:feature:separation': [sameTag, ...WEB_KIT, 'web:audio', 'web:auth'],
+    // The separation reaches the session for its separator port and the ONE
+    // stem engine's PCM read-back (ADR 0011) — a region's bare `useSeparation()`
+    // must see the shell's run, never start a private one.
+    'web:feature:separation': [
+      sameTag,
+      ...WEB_KIT,
+      'web:feature:audio-session',
+      'web:audio',
+      'web:auth'
+    ],
     // The metronome and count-in are mixer CLIENTS: they seat stems in the mix
     // (ADR 0012, cycle 1) — the mix never looks up at them.
     'web:feature:tempo': [

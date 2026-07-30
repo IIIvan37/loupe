@@ -27,7 +27,7 @@ import { MarkerControls } from '../markers/marker-controls.tsx'
 import { markerSections } from '../markers/section-markers.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import { useMarkers } from '../markers/use-markers.ts'
-import type { useSeparation } from '../separation/use-separation.ts'
+import { useSeparation } from '../separation/use-separation.ts'
 import { countingInAtom } from '../tempo/tempo-atoms.ts'
 import { TempoPanel } from '../tempo/tempo-panel.tsx'
 import { useTempo } from '../tempo/use-tempo.ts'
@@ -49,7 +49,6 @@ interface ShellMainProps {
   readonly analysisFold: AnalysisFold
   readonly loops: ReturnType<typeof useLoops>
   readonly loopEditing: ReturnType<typeof useLoopEditing>
-  readonly separation: ReturnType<typeof useSeparation>
   /** Download one mixer lane as a WAV (synthetic lanes + separated stems). */
   readonly onDownloadStem: (id: string) => void
   /** The tempo corrections the panel drives (fold, BPM, meter, tap, phase) —
@@ -82,7 +81,6 @@ export function ShellMain({
   analysisFold,
   loops,
   loopEditing,
-  separation,
   onDownloadStem,
   tempoDetection,
   onReimport,
@@ -96,9 +94,11 @@ export function ShellMain({
   const { t } = useLingui()
   const player = usePlayerHandle()
   const markers = useMarkers()
-  // The region wears the session tempo itself (ADR 0010) — same atoms as the
-  // shell's instance; only the click re-seating stays wired upstairs.
+  // The region wears the session tempo and separation itself (ADR 0010) —
+  // same atoms as the shell's instances; only the click re-seating and the
+  // stems → mixer wiring stay upstairs.
   const tempo = useTempo()
+  const separation = useSeparation()
   const importState = useAtomValue(importStateAtom)
   const transport = useAtomValue(transportAtom)
   const loopRegion = useAtomValue(loopRegionAtom)
@@ -248,7 +248,6 @@ export function ShellMain({
           <AnalysisGateNotice />
           <ShellAnalyserRow
             disabled={!isLoaded}
-            separation={separation}
             canSeparate={canSeparate}
             onSeparate={onSeparate}
             onRetryTempo={tempoDetection.retry}
