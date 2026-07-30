@@ -28,6 +28,14 @@ Then run the quality gate and record the result:
   job and stays authoritative — never claim its score locally. Skip only when
   the step touched no mutated package (say so). One heavy run at a time (no
   Stryker concurrent with `gate` or a full suite — CPU starvation fails tests).
+- **SonarCloud results** — `pnpm sonar` (no token, no scanner: it reads the
+  analysis CI already ran, for this branch's PR, else `main`). Record the
+  quality-gate status and any issue the PR introduced. Sonar sees rules the
+  local detectors don't (cognitive complexity, a11y, Python), so a green `gate`
+  is not evidence of a clean Sonar report. Analysis lands ~5 min after the
+  push — if it says "no analysis yet", wait rather than skip. A false positive
+  is triaged in `sonar-project.properties` (config-as-code, travels with the
+  PR), never resolved in the web UI.
 - Don't fabricate a green check — report failures honestly.
 - **Module watch** (rule of three): does a prefix/concept now appear >= 3 times
   in the flat `core/src/domain`? does a use-case + port serve a single cluster?

@@ -28,7 +28,18 @@ pnpm gate
    `packages/core`), not by Sheriff.
 4. `pnpm check:design` / `pnpm check:react` — impeccable + react-doctor
    (blocking, `packages/web` only).
+4bis. `pnpm check:tokens` / `pnpm check:i18n` / `pnpm check:sonar` — CSS token,
+   Lingui catalog and Sonar-triage fitness functions. `check:sonar` fails when
+   a false-positive exemption in `sonar-project.properties` names a file that
+   moved — the exemption would stop applying in silence and a settled finding
+   would come back as new. `check:i18n` re-extracts the catalog and fails on a diff:
+   copy edited in a component but never extracted keeps shipping the OLD French
+   string, and nothing else in the gate reads the `.po`. On failure the catalog
+   has already been re-extracted for you — review and `git add` it.
 5. `pnpm test:coverage` — vitest with coverage thresholds on `packages/core`.
+   Locally the worker pool is capped to a third of the cores (`vitest.config.ts`):
+   at full width the run starves the box and specs fail on contention, not on a
+   defect. CI keeps the default.
 6. `pnpm check:dead` — knip (orphan exports / dead code). Caveat: `@app/core`'s
    `index.ts` is the package entry, so a **core public export with no consumer
    yet is NOT flagged** — the application README registry and review are the
@@ -41,6 +52,13 @@ pnpm gate
 Individual pieces if needed: `pnpm typecheck`, `pnpm check:fix` (biome auto-fix),
 `pnpm check:arch`, `pnpm test`, `pnpm check:dead`, `pnpm check:dup`.
 
+A green run **stamps the working tree it validated** (`scripts/gate-stamp.sh`).
+The pre-commit hook replays the checks only when the tree no longer hashes to
+that stamp — so `pnpm gate` then `git commit` on the same bytes costs the gate
+once instead of twice (measured: ~2 min, against 1.4 s on a stamp hit;
+`test:coverage` is ~99 s of it and dominates everything else). Any edit in
+between, including biome's own rewrite, misses the stamp and the full set runs.
+
 ## How to read / react
 
 - **typecheck**: zero tolerance. No `as any` to silence — fix the type.
@@ -50,6 +68,9 @@ Individual pieces if needed: `pnpm typecheck`, `pnpm check:fix` (biome auto-fix)
   boundary rule: `sheriff.config.ts` (tags + depRules).
 - **knip**: an orphan export = either wire it or delete it. No dead code "just in
   case".
+- **check:i18n**: never "fix" it by reverting the catalog — the diff IS the
+  change you made to the copy. Read it (a stray message, an id renamed by
+  accident, a component deleted), then stage it.
 - **jscpd**: a clone demands a DECISION, not automatically a merge — three
   exits: **factor** (same knowledge, changes together — often pure domain),
   **mark deliberate** (`// jscpd:ignore-start`/`-end` + a one-line reason —

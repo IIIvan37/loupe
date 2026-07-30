@@ -11,6 +11,11 @@
       "Bash(pnpm lint)",
       "Bash(pnpm lint:*)",
       "Bash(pnpm format:*)",
+      "Bash(pnpm sonar)",
+      "Bash(pnpm sonar:*)",
+      "Bash(pnpm modules:hint)",
+      "Bash(pnpm --filter @app/web i18n:extract)",
+      "Bash(git add:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
@@ -31,6 +36,10 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-commit-on-main.sh"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-overlapping-heavy-runs.sh"
           }
         ]
       }

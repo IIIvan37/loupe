@@ -15,9 +15,8 @@ shell **Tauri passe en sommeil** (canal signé réactivable, CI conservée).
 **Roadmap v7 soldée** ([archive](archive/roadmap-excellence-7.md)) ; **Lot TS
 clos** ([archive](archive/template-sync-plan.md)). Nursery à dessein :
 `detect-chords`, `bass-line` ; `timecode` attend un second consommateur.
-**D1–D6 clos** (PRs #275–#285, détail dans sessions/) ; **prochain
-distribution : 1re release taguée** (tap + `HOMEBREW_TAP_TOKEN`,
-cf. `docs/RELEASING.md` ; Ubuntu ARM64 natif différé). **Chantier parallèle —
+**D1–D6 clos** (PRs #275–#285) ; **prochain distribution : 1re release taguée**
+(tap + `HOMEBREW_TAP_TOKEN` ; Ubuntu ARM64 natif différé). **Chantier parallèle —
 état de vue** ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md), #286) :
 la feature possède son état, le shell compose. Feuilles : mixer (#287), tempo
 (#290), séparation (#292), footer en valeurs (#296) — cliquet `ReturnType`
@@ -31,10 +30,11 @@ mixer↔waveform, audio↔auth) ; le player en référence stable (0011, région
 ShellMain) attend une session fraîche, puis interface étroite de session
 (DIP). Chaque feuille descend ≥1 cliquet (`composition-invariants.spec.ts`),
 feuilles d'infrastructure exemptées. Checkpoint UI avant chaque slice.
+**Boucle outillée** (PR #NN) : `check:i18n` au gate, tampon de fraîcheur du
+gate, `pnpm sonar`, workers vitest bornés en local.
 
-**Garde-fous beta restants** (cf. [beta-checklist.md](beta-checklist.md)) :
-plafond Modal (mesuré ~3,67 $/mois), SMTP custom câblé (Resend), re-seed des
-codes legacy, PKCE en bundle à rejouer.
+**Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
+Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
@@ -57,8 +57,8 @@ codes legacy, PKCE en bundle à rejouer.
 - **Time-stretch** : SoundTouch (`@soundtouchjs/audio-worklet`, MPL-2.0) — Rubber Band écarté (wrapper web cassé, GPL).
 - **Séparation** : Demucs serveur (`server/`), moteurs WASM in-browser retirés ; **Phase 2 (2026-07-18)** : calcul offloadé sur **Modal**, le serveur local devient dev/CI.
 - **Web stack** : React + Jotai · Base UI · Every Layout · CSS Modules + tokens · smart/dumb.
-- **Extra gates** (blocking, `packages/web` only) : impeccable + react-doctor.
-- **Per-slice loop** : `/new-feature-hexa` → `/tdd-cycle` → `pnpm gate` → `pnpm test:mutation` → `/code-review` → `/session-report` → PR.
+- **Extra gates** (blocking) : impeccable + react-doctor (`packages/web`) ; `check:tokens`, `check:i18n` (dérive du catalogue Lingui).
+- **Per-slice loop** : `/new-feature-hexa` → `/tdd-cycle` → `pnpm gate` → `pnpm test:mutation:diff` → `pnpm sonar` → `/code-review` → `/session-report` → PR.
 
 ## Plans
 

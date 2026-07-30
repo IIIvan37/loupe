@@ -1,3 +1,4 @@
+import { availableParallelism } from 'node:os'
 import { type PluginItem, transformAsync } from '@babel/core'
 import linguiMacroPlugin from '@lingui/babel-plugin-lingui-macro'
 import { getConfig } from '@lingui/conf'
@@ -59,6 +60,17 @@ export default defineConfig({
     // 5 s default under full parallel load with coverage — load-flakes, not
     // hangs. 15 s keeps real hangs visible without failing on contention.
     testTimeout: 15_000,
+    // Vitest sizes its pool from the logical core count. Under WSL2 those cores
+    // are shared with the Windows host, so a full-width `test:coverage` run
+    // (v8 instrumentation on top) starves the box — measured at load ~50 on 14
+    // cores, with shell specs timing out on CONTENTION, not on a real hang. It
+    // reproduced on a clean tree, so it is the harness, not any one change.
+    // A third of the cores keeps the suite deterministic locally. CI runners
+    // are small and already green at full width, so they keep the default.
+    // (Spread, not `maxWorkers: undefined` — exactOptionalPropertyTypes.)
+    ...(process.env.CI
+      ? {}
+      : { maxWorkers: Math.max(2, Math.floor(availableParallelism() / 3)) }),
     // Node by default (the pure core). Web specs opt into jsdom per-file via a
     // `// @vitest-environment jsdom` docblock.
     environment: 'node',
