@@ -1,12 +1,14 @@
 import {
-  type BeatGrid,
   type LoopRegion,
   makeLoopRegion,
   type NamedLoop,
   snapLoopRegionToGrid
 } from '@app/core'
-import { useState } from 'react'
-import type { Loops } from './use-loops.ts'
+import { useAtom, useAtomValue } from 'jotai'
+import { usePlayerHandle } from '../audio-session/audio-session.ts'
+import { tempoAnalysisAtom } from '../tempo/tempo-atoms.ts'
+import { activeLoopIdAtom } from './loop-atoms.ts'
+import { useLoops } from './use-loops.ts'
 
 export interface LoopEditing {
   /** Whether the active region already belongs to a saved loop. */
@@ -18,14 +20,14 @@ export interface LoopEditing {
    * `snap` pulls the edges onto the beat grid when one exists.
    */
   readonly selectRegion: (
-    startRatio: number,
-    endRatio: number,
+    startSeconds: number,
+    endSeconds: number,
     snap?: boolean
   ) => void
   /** A handle/keyboard edge edit: adjust the region, persisting a saved loop. */
   readonly adjustRegion: (
-    startRatio: number,
-    endRatio: number,
+    startSeconds: number,
+    endSeconds: number,
     snap?: boolean
   ) => void
   /**
@@ -52,58 +54,47 @@ export interface LoopEditing {
 /**
  * Smart hook bridging the active A/B region and the saved-loop library: it
  * tracks which saved loop the region came from, so handle edits update that
- * loop in place rather than spawning a duplicate.
+ * loop in place rather than spawning a duplicate. The bridge is session state
+ * riding the feature's atoms (ADR 0010), and it drives the loupe through the
+ * session's player (ADR 0011) — the beat grid drags snap to is the tempo
+ * feature's own atom. Speed-trainer semantics: REPLACING the passage (a fresh
+ * drag, a recalled loop) stops the ramp — it belongs to the passage it was
+ * armed on; adjusting an edge keeps it running.
  */
-export function useLoopEditing(
-  loops: Loops,
-  transport: {
-    readonly durationSeconds: number
-    readonly setLoopRegion: (region: LoopRegion | undefined) => void
-    readonly seekToSeconds: (seconds: number) => void
-    /**
-     * The active region is being REPLACED by a different passage (a fresh
-     * surface drag, a recalled saved loop) — not adjusted in place. The speed
-     * trainer stops here: its ramp belongs to the passage it was armed on.
-     */
-    readonly onRegionReplaced?: () => void
-    /** The detected beat grid drag ends snap to; empty/absent = no snapping. */
-    readonly beatGrid?: BeatGrid
-  }
-): LoopEditing {
-  const beatGrid = transport.beatGrid ?? []
+export function useLoopEditing(): LoopEditing {
+  const loops = useLoops()
+  const player = usePlayerHandle()
+  const beatGrid = useAtomValue(tempoAnalysisAtom)?.grid ?? []
   // The saved loop the active region came from. Null for a fresh, unsaved
   // selection.
-  const [activeLoopId, setActiveLoopId] = useState<string | null>(null)
+  const [activeLoopId, setActiveLoopId] = useAtom(activeLoopIdAtom)
 
-  function regionFromRatios(
-    startRatio: number,
-    endRatio: number,
+  function regionFrom(
+    startSeconds: number,
+    endSeconds: number,
     snap: boolean
   ): LoopRegion {
-    const raw = makeLoopRegion(
-      startRatio * transport.durationSeconds,
-      endRatio * transport.durationSeconds
-    )
+    const raw = makeLoopRegion(startSeconds, endSeconds)
     return snap ? snapLoopRegionToGrid(raw, beatGrid, 'beat') : raw
   }
 
   function selectRegion(
-    startRatio: number,
-    endRatio: number,
+    startSeconds: number,
+    endSeconds: number,
     snap = false
   ): void {
     setActiveLoopId(null)
-    transport.onRegionReplaced?.()
-    transport.setLoopRegion(regionFromRatios(startRatio, endRatio, snap))
+    player.speedTrainer.stop()
+    player.setLoopRegion(regionFrom(startSeconds, endSeconds, snap))
   }
 
   function adjustRegion(
-    startRatio: number,
-    endRatio: number,
+    startSeconds: number,
+    endSeconds: number,
     snap = false
   ): void {
-    const region = regionFromRatios(startRatio, endRatio, snap)
-    transport.setLoopRegion(region)
+    const region = regionFrom(startSeconds, endSeconds, snap)
+    player.setLoopRegion(region)
     const active = loops.library.find((loop) => loop.id === activeLoopId)
     if (active) {
       loops.update({ ...active, region })
@@ -116,14 +107,14 @@ export function useLoopEditing(
 
   function clearRegion(): void {
     setActiveLoopId(null)
-    transport.setLoopRegion(undefined)
+    player.setLoopRegion(undefined)
   }
 
   /** Replace the loupe with a new passage and start it from its beginning. */
   function armSpan(region: LoopRegion): void {
-    transport.onRegionReplaced?.()
-    transport.setLoopRegion(region)
-    transport.seekToSeconds(region.startSeconds)
+    player.speedTrainer.stop()
+    player.setLoopRegion(region)
+    player.seekToSeconds(region.startSeconds)
   }
 
   function selectSpan(region: LoopRegion): void {

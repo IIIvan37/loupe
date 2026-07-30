@@ -9,7 +9,7 @@ import { UndetectedStems } from '../mixer/undetected-stems.tsx'
 import { useMixer } from '../mixer/use-mixer.ts'
 import { useMarkers } from '../markers/use-markers.ts'
 import { MarkerRail } from '../markers/marker-rail.tsx'
-import type { useLoopEditing } from '../loops/use-loop-editing.ts'
+import { useLoopEditing } from '../loops/use-loop-editing.ts'
 import { tempoAnalysisAtom } from '../tempo/tempo-atoms.ts'
 import {
   importStateAtom,
@@ -27,7 +27,6 @@ interface ShellStageProps {
   /** Stems the separation masked as near-silent — named in the gutter. */
   readonly undetectedStems: readonly { readonly id: string; readonly label: string }[]
   readonly onDownloadStem: (id: string) => void
-  readonly loopEditing: ReturnType<typeof useLoopEditing>
   /** Reopen the file picker — the error stage's way out of a failed import. */
   readonly onReimport: () => void
 }
@@ -36,15 +35,16 @@ interface ShellStageProps {
  * The zoomable stage: a fixed gutter (zoom controls + per-stem headers)
  * row-aligned with the scrollable lanes (marker rail, waveform, stem lanes).
  * A smart region (ADR 0011): the player state it renders — import lifecycle,
- * playhead, loupe, beat grid — is read here, not threaded by the shell.
+ * playhead, loupe, beat grid — is read here, not threaded by the shell; the
+ * A/B drags land on the loops feature's own hook (ADR 0010).
  */
 export function ShellStage({
   undetectedStems,
   onDownloadStem,
-  loopEditing,
   onReimport
 }: ShellStageProps) {
   const player = usePlayerHandle()
+  const loopEditing = useLoopEditing()
   // The region wears the session mix itself (ADR 0010): same atoms, same
   // engine (seated in the session, ADR 0011) as the shell's instance.
   const mixer = useMixer()
@@ -123,8 +123,23 @@ export function ShellStage({
           mixWaveform={mixWaveform}
           durationSeconds={durationSeconds}
           onSeek={player.seekToRatio}
-          onSelectRegion={loopEditing.selectRegion}
-          onAdjustRegion={loopEditing.adjustRegion}
+          // The surface speaks fractions of the timeline; the loops feature
+          // speaks seconds — this region owns the conversion (it renders the
+          // duration anyway).
+          onSelectRegion={(startRatio, endRatio, snap) =>
+            loopEditing.selectRegion(
+              startRatio * durationSeconds,
+              endRatio * durationSeconds,
+              snap
+            )
+          }
+          onAdjustRegion={(startRatio, endRatio, snap) =>
+            loopEditing.adjustRegion(
+              startRatio * durationSeconds,
+              endRatio * durationSeconds,
+              snap
+            )
+          }
           onReimport={onReimport}
         />
         <StemLanes

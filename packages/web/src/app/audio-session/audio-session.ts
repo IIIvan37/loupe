@@ -2,6 +2,7 @@ import type {
   AudioFileDecoder,
   ChordDetector,
   CountIn,
+  LoopRegion,
   PlaybackEngine,
   ProjectDeps,
   SpectrumFrame,
@@ -46,6 +47,10 @@ export interface PlayerHandle {
   readonly seekToRatio: (ratio: number) => void
   /** Whether the loupe wraps playback (vs playing through) — flips the atom. */
   readonly toggleLoop: () => void
+  /** Seat/adjust/clear the loupe (the player's seat-and-re-arm semantics —
+   * clearing also ends the practice ramp). The armed region itself is view
+   * state, read from the player's atoms. */
+  readonly setLoopRegion: (region: LoopRegion | undefined) => void
   /** Arm/stop the speed-trainer ramp (its state rides the trainer's atom). */
   readonly speedTrainer: {
     readonly start: (policy: SpeedTrainerPolicy) => void

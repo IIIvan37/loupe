@@ -21,8 +21,8 @@ import type { ChordChartState } from '../lead-sheet/use-chord-chart.ts'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import { LoopControls } from '../loops/loop-controls.tsx'
 import { speedTrainerStateAtom } from '../loops/speed-trainer-atoms.ts'
-import type { useLoopEditing } from '../loops/use-loop-editing.ts'
-import type { useLoops } from '../loops/use-loops.ts'
+import { useLoopEditing } from '../loops/use-loop-editing.ts'
+import { useLoops } from '../loops/use-loops.ts'
 import { MarkerControls } from '../markers/marker-controls.tsx'
 import { markerSections } from '../markers/section-markers.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
@@ -47,8 +47,6 @@ import styles from './workstation-shell.module.css'
 interface ShellMainProps {
   /** Whether the Analyse zone is unfolded — owned by the shell (Q.3). */
   readonly analysisFold: AnalysisFold
-  readonly loops: ReturnType<typeof useLoops>
-  readonly loopEditing: ReturnType<typeof useLoopEditing>
   /** Download one mixer lane as a WAV (synthetic lanes + separated stems). */
   readonly onDownloadStem: (id: string) => void
   /** The tempo corrections the panel drives (fold, BPM, meter, tap, phase) —
@@ -79,8 +77,6 @@ interface ShellMainProps {
  */
 export function ShellMain({
   analysisFold,
-  loops,
-  loopEditing,
   onDownloadStem,
   tempoDetection,
   onReimport,
@@ -94,11 +90,13 @@ export function ShellMain({
   const { t } = useLingui()
   const player = usePlayerHandle()
   const markers = useMarkers()
-  // The region wears the session tempo and separation itself (ADR 0010) —
-  // same atoms as the shell's instances; only the click re-seating and the
-  // stems → mixer wiring stay upstairs.
+  // The region wears the session tempo, separation and loops itself
+  // (ADR 0010) — same atoms as the shell's instances; only the click
+  // re-seating and the stems → mixer wiring stay upstairs.
   const tempo = useTempo()
   const separation = useSeparation()
+  const loops = useLoops()
+  const loopEditing = useLoopEditing()
   const importState = useAtomValue(importStateAtom)
   const transport = useAtomValue(transportAtom)
   const loopRegion = useAtomValue(loopRegionAtom)
@@ -218,7 +216,6 @@ export function ShellMain({
           <ShellStage
             undetectedStems={undetectedStems}
             onDownloadStem={onDownloadStem}
-            loopEditing={loopEditing}
             onReimport={onReimport}
           />
           <LoopControls

@@ -55,6 +55,7 @@ describe('usePlayerHandle', () => {
     seekToSeconds: () => {},
     seekToRatio: () => {},
     toggleLoop: () => {},
+    setLoopRegion: () => {},
     speedTrainer: { start: () => {}, stop: () => {} }
   }
 
@@ -86,6 +87,7 @@ describe('AudioSessionWithPlayer', () => {
     seekToSeconds: () => {},
     seekToRatio: () => {},
     toggleLoop: () => {},
+    setLoopRegion: () => {},
     speedTrainer: { start: () => {}, stop: () => {} }
   }
   const stemEngine: StemPlaybackEngine = {

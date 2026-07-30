@@ -370,6 +370,7 @@ export function usePlayer(
   const seekToSecondsRef = useLatest(seekToSeconds)
   const seekToRatioRef = useLatest(seekToRatio)
   const toggleLoopRef = useLatest(toggleLoop)
+  const setLoopRegionRef = useLatest(setLoopRegion)
   const readSpectrumRef = useLatest(readSpectrum)
   const { start: startTrainer, stop: stopTrainer } = speedTrainer
   const handle = useMemo<PlayerHandle>(
@@ -379,6 +380,7 @@ export function usePlayer(
       seekToSeconds: (seconds) => seekToSecondsRef.current(seconds),
       seekToRatio: (ratio) => seekToRatioRef.current(ratio),
       toggleLoop: () => toggleLoopRef.current(),
+      setLoopRegion: (region) => setLoopRegionRef.current(region),
       speedTrainer: { start: startTrainer, stop: stopTrainer }
     }),
     [position, startTrainer, stopTrainer]
