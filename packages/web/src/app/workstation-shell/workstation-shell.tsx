@@ -374,7 +374,6 @@ export function WorkstationShell({
       ) : (
         <ShellMain
           analysisFold={analysisFold}
-          viewport={viewport}
           loops={loops}
           loopEditing={loopEditing}
           separation={separation}

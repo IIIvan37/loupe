@@ -38,7 +38,6 @@ import {
   pitchSemitonesAtom,
   transportAtom
 } from '../waveform/player-atoms.ts'
-import type { useViewport } from '../waveform/use-viewport.ts'
 import { ShellAnalyserRow } from './shell-analyser-row.tsx'
 import { ShellSection } from './shell-section.tsx'
 import { ShellStage } from './shell-stage.tsx'
@@ -48,7 +47,6 @@ import styles from './workstation-shell.module.css'
 interface ShellMainProps {
   /** Whether the Analyse zone is unfolded — owned by the shell (Q.3). */
   readonly analysisFold: AnalysisFold
-  readonly viewport: ReturnType<typeof useViewport>
   readonly loops: ReturnType<typeof useLoops>
   readonly loopEditing: ReturnType<typeof useLoopEditing>
   readonly separation: ReturnType<typeof useSeparation>
@@ -82,7 +80,6 @@ interface ShellMainProps {
  */
 export function ShellMain({
   analysisFold,
-  viewport,
   loops,
   loopEditing,
   separation,
@@ -219,7 +216,6 @@ export function ShellMain({
             onAddSection={() => markers.addSectionAt(position.get())}
           />
           <ShellStage
-            viewport={viewport}
             undetectedStems={undetectedStems}
             onDownloadStem={onDownloadStem}
             loopEditing={loopEditing}
