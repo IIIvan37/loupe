@@ -3,8 +3,8 @@ import {
   type DecodedAudio,
   encodeWav,
   exportStems,
-  initialSeparation,
   type SeparatedStem,
+  type SeparationAction,
   type SeparationState,
   type StemSeparator,
   type StemSet,
@@ -13,8 +13,8 @@ import {
   stemExportFilename
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
-import { useAtom } from 'jotai'
-import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { useAtom, useAtomValue } from 'jotai'
+import { useEffect, useMemo, useRef } from 'react'
 import { createSeparator } from '../../audio/create-separator.ts'
 import { deliverFile } from '../../audio/deliver-file.ts'
 import { createZipArchiveWriter } from '../../audio/zip-archive-writer.ts'
@@ -24,7 +24,14 @@ import {
   isAnalysisOffloaded
 } from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
-import { separationGateReasonAtom } from './separation-atoms.ts'
+import { useAudioSession } from '../audio-session/audio-session.ts'
+import {
+  separationDescriptorsAtom,
+  separationExportErrorAtom,
+  separationGateReasonAtom,
+  separationRunAtom,
+  separationStateAtom
+} from './separation-atoms.ts'
 
 // Per-stem peak resolution. Matches the main view's, so the stems sum cleanly
 // into the audible-mix waveform shown there and the lanes stay crisp when zoomed.
@@ -86,21 +93,22 @@ export interface Separation {
   readonly gateReason: MintFailureReason | undefined
 }
 
-/** What the hook remembers of each separated stem — its identity, never its PCM. */
-type StemDescriptor = Pick<SeparatedStem, 'id' | 'label'>
-
 /**
- * Smart hook (= driving adapter logic): owns the separation state machine and
- * runs the `separateTrack` use-case, streaming the separator's progress into the
- * reducer. The separator defaults to the local-server engine (`createSeparator`)
- * and is injected (a stub) in tests, like the export's `ArchiveWriter` (zip).
- * The hook keeps only the stems' id/label: their PCM lives once, in the playback
- * engine's buffers, and `pcmOf` (the engine's `stemAudio`) reads it back
- * zero-copy for export and save — retaining it here too would double ~500 MB
- * on a six-stem track.
+ * Smart hook (= driving adapter logic): runs the `separateTrack` use-case,
+ * streaming the separator's progress into the core's `separationReducer`. The
+ * whole bag is owned by the feature (ADR 0010): every field lives in an atom,
+ * so any consumer instance sees the same session separation — run token
+ * included, since a superseded run must release the server-side work and the
+ * superseder may be another instance (the analyser row's cancel). The
+ * separator defaults to the session's port, else the real engine
+ * (`createSeparator`); the export's `ArchiveWriter` (zip) works the same. The
+ * feature keeps only the stems' id/label: their PCM lives once, in the
+ * playback engine's buffers, and `pcmOf` (defaulting to the session engine's
+ * `stemAudio`) reads it back zero-copy for export and save — retaining it here
+ * too would double ~500 MB on a six-stem track.
  */
 export function useSeparation(
-  pcmOf: (id: string) => DecodedAudio | undefined,
+  pcmOf?: (id: string) => DecodedAudio | undefined,
   separator?: StemSeparator,
   archive?: ArchiveWriter,
   /** Acquire the analyse token before a live run (offload gate, M1.3).
@@ -108,49 +116,66 @@ export function useSeparation(
   gate: () => Promise<EnsureTokenResult> = ensureAnalysisToken
 ): Separation {
   const { t } = useLingui()
-  const engine = useMemo(() => separator ?? createSeparator(), [separator])
-  const [state, dispatch] = useReducer(separationReducer, initialSeparation)
-  // A monotonic token per run: a slow separation that finishes after a new
-  // import or reset is stale, and its late progress/result must not land on the
-  // current track. Bumped by every `separate` and every `reset`.
-  const runIdRef = useRef(0)
-  // The in-flight run's abort controller: cancel and reset abort it so the
-  // server-side work is released, not just its result dropped.
-  const controllerRef = useRef<AbortController | undefined>(undefined)
-  // Which stems this separation produced — identities only, the PCM stays with
-  // the engine. Reactive so consumers re-render when a run commits.
-  const [descriptors, setDescriptors] = useState<readonly StemDescriptor[]>([])
-  const [exportError, setExportError] = useState<string>()
-  // Feature-owned view state (ADR 0010): the gated-analysis replay reads this
-  // off the atom, so the shell no longer threads the separation bag to it.
+  const session = useAudioSession()
+  const injected = separator ?? session.separator
+  const engine = useMemo(() => injected ?? createSeparator(), [injected])
+  // The state machine's transitions stay in the core reducer; the atom only
+  // carries its current state (ADR 0010's anti-erosion guard).
+  const [state, setState] = useAtom(separationStateAtom)
+  const [descriptors, setDescriptors] = useAtom(separationDescriptorsAtom)
+  const [exportError, setExportError] = useAtom(separationExportErrorAtom)
   const [gateReason, setGateReason] = useAtom(separationGateReasonAtom)
+  // The session's single run (token + in-flight abort controller), shared by
+  // every instance. The box is mutated in place — bookkeeping, never rendered.
+  const run = useAtomValue(separationRunAtom)
+  // The controllers THIS instance created, for the unmount cleanup only — a
+  // read-only consumer unmounting must not abort a run it never started.
+  const myControllerRef = useRef<AbortController | undefined>(undefined)
+
+  function dispatch(action: SeparationAction): void {
+    setState((prev) => separationReducer(prev, action))
+  }
+
+  /** Supersede any in-flight run: bump the token AND abort its transfer, so
+   * the server-side work is released, not just its result dropped. */
+  function supersede(): number {
+    run.controller?.abort()
+    return ++run.runId
+  }
 
   // Unmounting mid-run must release the transfer and the server-side work too
   // (cancel/reset already do) — same cleanup as useTempo's.
   useEffect(() => {
-    return () => controllerRef.current?.abort()
+    return () => myControllerRef.current?.abort()
   }, [])
 
   // The PCM-backed view of the separated stems, derived from the engine's
   // buffers (zero-copy channel views). Computed on demand — consumers are all
   // event handlers (save, export, attach), so rebuilding it per render would
-  // be pure waste, and reading at call time always sees the live engine.
+  // be pure waste, and reading at call time always sees the live engine. The
+  // injected reader is the shell stack's; a bare consumer reads the same
+  // engine through the audio session (ADR 0011).
+  function readPcm(id: string): DecodedAudio | undefined {
+    return (pcmOf ?? session.stemEngine?.stemAudio)?.(id)
+  }
+
   function deriveSources(): readonly SeparatedStem[] {
     return descriptors.flatMap((descriptor) => {
-      const audio = pcmOf(descriptor.id)
+      const audio = readPcm(descriptor.id)
       return audio ? [{ ...descriptor, audio }] : []
     })
   }
 
   // The whole pipeline behind both entry points: run `separateTrack` with the
   // given separator (the real engine, or the stored stems replayed) and commit.
-  async function run(
+  async function runSeparation(
     audio: DecodedAudio,
     separateWith: StemSeparator
   ): Promise<SeparationResult | undefined> {
-    const runId = ++runIdRef.current
+    const runId = supersede()
     const controller = new AbortController()
-    controllerRef.current = controller
+    run.controller = controller
+    myControllerRef.current = controller
     setDescriptors([])
     dispatch({ type: 'start' })
     const result = await separateTrack(
@@ -159,7 +184,7 @@ export function useSeparation(
         separator: separateWith,
         signal: controller.signal,
         onProgress: (progress) => {
-          if (runIdRef.current === runId) {
+          if (run.runId === runId) {
             dispatch({
               type: 'progress',
               phase: progress.phase,
@@ -172,7 +197,7 @@ export function useSeparation(
     // Commit only if this is still the latest run (a newer separate/reset since
     // the await would have bumped the token, making this result stale).
     let committed: SeparationResult | undefined
-    if (runIdRef.current === runId) {
+    if (run.runId === runId) {
       if (result.ok) {
         // Remember identities only; the result's PCM is returned to the caller
         // (who loads it into the engine) and then released — never retained.
@@ -197,12 +222,12 @@ export function useSeparation(
     // 42 MB upload never starts — and the shell opens the account menu on the
     // reason. The busy face goes up BEFORE the gate's mint round-trip (R.3).
     if (isAnalysisOffloaded()) {
-      const runId = ++runIdRef.current
+      const runId = supersede()
       dispatch({ type: 'start' })
       const gated = await gate()
       // A cancel (or a newer run) during the mint bumped the token — this
       // superseded run must not start the separator when the gate resolves.
-      if (runIdRef.current !== runId) {
+      if (run.runId !== runId) {
         return undefined
       }
       if (!gated.ok) {
@@ -211,7 +236,7 @@ export function useSeparation(
         return undefined
       }
     }
-    return run(audio, engine)
+    return runSeparation(audio, engine)
   }
 
   function restore(
@@ -220,7 +245,7 @@ export function useSeparation(
   ): Promise<SeparationResult | undefined> {
     // A separator that just replays the stored stems — waveforms and instrument
     // detection are recomputed, exactly as after a live separation.
-    return run(mix, { separate: async () => sources })
+    return runSeparation(mix, { separate: async () => sources })
   }
 
   // What the mixer shows, joined with its PCM: the present stems in display
@@ -252,14 +277,14 @@ export function useSeparation(
 
   async function exportAllStems(baseName: string): Promise<boolean> {
     setExportError(undefined)
-    const runId = runIdRef.current
+    const runId = run.runId
     const result = await exportStems(
       { stems: presentSources() },
       { archive: archive ?? createZipArchiveWriter() }
     )
     // A reset or a new import during the write supersedes this export: its
     // download and its error belong to the previous session — drop both.
-    if (runIdRef.current !== runId) {
+    if (run.runId !== runId) {
       return false
     }
     if (result.ok) {
@@ -269,7 +294,7 @@ export function useSeparation(
       )
       // The desktop save dialog can outlive a reset/new import: a superseded
       // session never confirms (the file, if saved, was still user-chosen).
-      return delivered && runIdRef.current === runId
+      return delivered && run.runId === runId
     }
     // The raw port error stays untranslated; only the frame is copy.
     const error = result.error
@@ -285,8 +310,7 @@ export function useSeparation(
   function cancel(): void {
     // Abort the transfer (releasing the server-side work) and supersede the
     // run: its rejection resolves as a stale result, never as an error.
-    controllerRef.current?.abort()
-    runIdRef.current++
+    supersede()
     setDescriptors([])
     dispatch({ type: 'reset' })
   }
@@ -294,8 +318,7 @@ export function useSeparation(
   function reset(): void {
     // Abandon any in-flight run so its late result can't repopulate the state —
     // and abort its transfer, since nothing will consume it.
-    controllerRef.current?.abort()
-    runIdRef.current++
+    supersede()
     setDescriptors([])
     setExportError(undefined)
     setGateReason(undefined)

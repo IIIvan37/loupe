@@ -18,20 +18,19 @@ sommeil**. **Roadmap v7 soldée** ; **Lot TS clos**. Nursery à dessein :
 gate, `pnpm sonar`, workers vitest bornés en local.
 **Chantier état de vue / shell**
 ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md),
-[0011](adr/0011-shell-layout-contexte-session-audio.md)) : feuilles
-#287→#303 livrées (player référence stable de session — 0011, PR #300 ;
-repères, tempo puis mixer/moteur de stems en session — 0010/0011, PRs
-#301–#303), graphe de modules web en DAG déclaré
-([ADR 0012](adr/0012-graphe-de-modules-web.md), PR #299). **Le zoom du
-viewport est un atome de la feature waveform** (0010, étape livrée par
-PR #304) : `useViewport()` multi-instances, `ShellStage` le lit lui-même,
-le prop `viewport` tombe de `ShellMain`/`ShellStage` — cliquet `ReturnType`
-**15 → 13** ; état de vue pur, ni session ADR 0011 ni arête Sheriff. **Prochaine étape :
-sac suivant en atomes** (candidat : `separation` — vérifier d'abord s'il
-pilote un adaptateur à état → session ADR 0011, sinon atomes seuls), puis
-interface étroite de session (DIP). Chaque feuille descend ≥1 cliquet
-(`composition-invariants.spec.ts`), feuilles d'infrastructure exemptées.
-Checkpoint UI avant chaque slice.
+[0011](adr/0011-shell-layout-contexte-session-audio.md),
+[0012](adr/0012-graphe-de-modules-web.md)) : feuilles #287→#304 livrées
+(player référence stable PR #300 ; repères, tempo, mixer/moteur de stems,
+zoom viewport PRs #301–#304 ; DAG web PR #299). **Le sac `separation` est
+en atomes de sa feature** (0010, étape livrée par la PR #305) : machine
+d'états, descripteurs, erreur d'export et jeton de run/abort dans
+`separation-atoms.ts` ; `ShellMain`, `ShellAnalyserRow` et
+`useSeparateAndLoad` appellent `useSeparation()` eux-mêmes — cliquet
+`ReturnType` **13 → 10** ; pas d'adaptateur à état derrière, donc atomes
+seuls + arête Sheriff `separation → audio-session`. **Prochaine étape :
+sac `loops`/`loopEditing` en atomes** (même question rituelle
+adaptateur-à-état d'abord), puis interface étroite de session (DIP).
+Chaque feuille descend ≥1 cliquet ; checkpoint UI avant chaque slice.
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
 Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
