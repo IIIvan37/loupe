@@ -3,8 +3,7 @@ import {
   makeLoopRegion,
   type Marker,
   measureIndexAt,
-  measureSeekTime,
-  type OctaveFactor
+  measureSeekTime
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useAtomValue } from 'jotai'
@@ -32,7 +31,7 @@ import type { useMixer } from '../mixer/use-mixer.ts'
 import type { useSeparation } from '../separation/use-separation.ts'
 import { countingInAtom } from '../tempo/tempo-atoms.ts'
 import { TempoPanel } from '../tempo/tempo-panel.tsx'
-import type { useTempo } from '../tempo/use-tempo.ts'
+import { useTempo } from '../tempo/use-tempo.ts'
 import {
   importStateAtom,
   loopEnabledAtom,
@@ -44,6 +43,7 @@ import type { useViewport } from '../waveform/use-viewport.ts'
 import { ShellAnalyserRow } from './shell-analyser-row.tsx'
 import { ShellSection } from './shell-section.tsx'
 import { ShellStage } from './shell-stage.tsx'
+import type { TempoDetection } from './use-tempo-detection.ts'
 import styles from './workstation-shell.module.css'
 
 interface ShellMainProps {
@@ -54,21 +54,11 @@ interface ShellMainProps {
   readonly loops: ReturnType<typeof useLoops>
   readonly loopEditing: ReturnType<typeof useLoopEditing>
   readonly separation: ReturnType<typeof useSeparation>
-  readonly tempo: ReturnType<typeof useTempo>
   /** Download one mixer lane as a WAV (synthetic lanes + separated stems). */
   readonly onDownloadStem: (id: string) => void
-  /** Fold the detected tempo an octave (×2 / ÷2) and re-seat the click. */
-  readonly onFoldTempo: (factor: OctaveFactor) => void
-  /** Relaunch a failed tempo detection (the panel's « Réessayer »). */
-  readonly onRetryTempo: () => void
-  /** Set the tempo by hand from the panel's BPM field. */
-  readonly onOverrideBpm: (bpm: number) => void
-  /** Correct the meter from the panel's beats-per-bar field. */
-  readonly onOverrideMeter: (beatsPerBar: number) => void
-  /** One tap of the panel's tap-tempo sequence. */
-  readonly onTapTempo: () => void
-  /** Anchor a downbeat on the playhead (the panel's « Caler »). */
-  readonly onAlignTempoPhase: (playheadSeconds: number) => void
+  /** The tempo corrections the panel drives (fold, BPM, meter, tap, phase) —
+   * each re-seats the metronome click, which is the shell's wiring. */
+  readonly tempoDetection: TempoDetection
   /** Reopen the file picker — the way out of a failed import. */
   readonly onReimport: () => void
   readonly canSeparate: boolean
@@ -99,14 +89,8 @@ export function ShellMain({
   loops,
   loopEditing,
   separation,
-  tempo,
   onDownloadStem,
-  onFoldTempo,
-  onRetryTempo,
-  onOverrideBpm,
-  onOverrideMeter,
-  onTapTempo,
-  onAlignTempoPhase,
+  tempoDetection,
   onReimport,
   canSeparate,
   onSeparate,
@@ -118,6 +102,9 @@ export function ShellMain({
   const { t } = useLingui()
   const player = usePlayerHandle()
   const markers = useMarkers()
+  // The region wears the session tempo itself (ADR 0010) — same atoms as the
+  // shell's instance; only the click re-seating stays wired upstairs.
+  const tempo = useTempo()
   const importState = useAtomValue(importStateAtom)
   const transport = useAtomValue(transportAtom)
   const loopRegion = useAtomValue(loopRegionAtom)
@@ -272,14 +259,12 @@ export function ShellMain({
             separation={separation}
             canSeparate={canSeparate}
             onSeparate={onSeparate}
-            tempo={tempo}
-            onRetryTempo={onRetryTempo}
+            onRetryTempo={tempoDetection.retry}
             structureDetection={structureDetection}
             hasStructureMarkers={markers.markers.some(
               (marker) => marker.kind === 'structure'
             )}
             hasChartSource={chordChart.source.trim().length > 0}
-            grid={grid}
             chordDetection={chordDetection}
           />
           {isLoaded && (
@@ -291,11 +276,11 @@ export function ShellMain({
               detecting={tempo.detecting}
               octaveShift={tempo.octaveShift}
               manual={tempo.manual !== undefined}
-              onFold={onFoldTempo}
-              onOverrideBpm={onOverrideBpm}
-              onOverrideMeter={onOverrideMeter}
-              onTap={onTapTempo}
-              onAlignPhase={onAlignTempoPhase}
+              onFold={tempoDetection.fold}
+              onOverrideBpm={tempoDetection.setBpm}
+              onOverrideMeter={tempoDetection.setMeter}
+              onTap={tempoDetection.tap}
+              onAlignPhase={tempoDetection.alignPhase}
             />
           )}
           </ShellSection>
