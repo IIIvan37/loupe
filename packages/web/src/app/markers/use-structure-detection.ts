@@ -7,12 +7,12 @@ import {
   type StructureDetector
 } from '@app/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createStructureDetector } from '../../audio/create-structure-detector.ts'
 import {
   type EnsureTokenResult,
   ensureAnalysisToken,
   isAnalysisOffloaded
-} from '../../audio/analysis-token.ts'
-import { createStructureDetector } from '../../audio/create-structure-detector.ts'
+} from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 

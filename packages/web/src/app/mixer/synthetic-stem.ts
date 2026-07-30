@@ -1,5 +1,9 @@
-import { METRONOME_ID } from '../tempo/metronome-stem.ts'
 import { TRACK_STEM_ID } from './track-stem.ts'
+
+/** The stem id/label the metronome click occupies in the mixer. The id lives
+ * here — the mixer owns the identity of its synthetic lanes (ADR 0012); the
+ * tempo feature builds the click stem around it. */
+export const METRONOME_ID = 'metronome'
 
 /**
  * The synthetic stems that ride the mixer without belonging to a saved

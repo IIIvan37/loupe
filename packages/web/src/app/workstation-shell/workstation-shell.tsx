@@ -1,7 +1,7 @@
 import { formatTimecode, type ProjectTuning } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
-import { isTauriShell } from '../../auth/tauri-env.ts'
+import { isTauriShell } from '../../lib/tauri-env.ts'
 import type { ExternalValue } from '../../lib/external-value.ts'
 import { isServerShell } from '../../lib/server-shell.ts'
 import { gateReasonsOf } from '../account/gate-reasons.ts'

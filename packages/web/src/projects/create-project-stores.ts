@@ -1,6 +1,6 @@
 import type { ProjectDeps } from '@app/core'
-import { isTauriShell } from '../auth/tauri-env.ts'
 import { isServerShell } from '../lib/server-shell.ts'
+import { isTauriShell } from '../lib/tauri-env.ts'
 import {
   collectFsGarbage,
   createFsProjectAudioStore,

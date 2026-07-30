@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { clearAnalysisToken, onAnalysisUsage } from '../audio/analysis-token.ts'
+import { clearAnalysisToken, onAnalysisUsage } from './analysis-token.ts'
 import type {
   AccountStatus,
   AuthPort,

@@ -5,12 +5,10 @@ import {
   UNITY_GAIN_DB
 } from '@app/core'
 import { useAtomValue } from 'jotai'
+import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
 import type { useMixer } from '../mixer/use-mixer.ts'
 import type { useSeparation } from '../separation/use-separation.ts'
-import {
-  DEFAULT_METRONOME_CHANNEL,
-  METRONOME_ID
-} from '../tempo/metronome-stem.ts'
+import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
 import { tempoAnalysisAtom } from '../tempo/tempo-atoms.ts'
 import type { useMetronome } from '../tempo/use-metronome.ts'
 

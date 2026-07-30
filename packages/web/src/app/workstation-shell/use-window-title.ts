@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { isTauriShell } from '../../auth/tauri-env.ts'
+import { isTauriShell } from '../../lib/tauri-env.ts'
 
 /** The idle title — index.html's, restored when no track is loaded. */
 const BASE_TITLE = 'Loupe — poste de travail de transcription'

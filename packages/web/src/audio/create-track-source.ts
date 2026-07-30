@@ -1,6 +1,6 @@
 import type { DownloadProgress, FetchedTrack, TrackSource } from '@app/core'
-import { isTauriShell } from '../auth/tauri-env.ts'
 import { isServerShell } from '../lib/server-shell.ts'
+import { isTauriShell } from '../lib/tauri-env.ts'
 import { createHttpTrackSource } from './http-track-source.ts'
 import { createTauriDownloadBridge } from './tauri-download-bridge.ts'
 import { createTauriTrackSource } from './tauri-track-source.ts'

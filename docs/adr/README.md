@@ -58,3 +58,4 @@ vrais fichiers.
 | [0009](0009-time-stretch-soundtouch.md) | Time-stretch via SoundTouch (MPL-2.0), pas Rubber Band (GPL) | accepté |
 | [0010](0010-etat-de-vue-atomes-par-feature.md) | L'état de vue appartient à sa feature ; le shell compose, il ne détient pas | accepté |
 | [0011](0011-shell-layout-contexte-session-audio.md) | Le shell est un layout ; moteur audio et ports vivent dans un contexte de session | accepté |
+| [0012](0012-graphe-de-modules-web.md) | Le web déclare son graphe de modules ; chaque arête est une décision | accepté |

@@ -15,12 +15,12 @@ import {
 } from '@app/core'
 import { useAtom } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createTempoDetector } from '../../audio/create-tempo-detector.ts'
 import {
   type EnsureTokenResult,
   ensureAnalysisToken,
   isAnalysisOffloaded
-} from '../../audio/analysis-token.ts'
-import { createTempoDetector } from '../../audio/create-tempo-detector.ts'
+} from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
 import { useAudioSession } from '../audio-session/audio-session.ts'
 import { tempoAnalysisAtom, tempoGateReasonAtom } from './tempo-atoms.ts'

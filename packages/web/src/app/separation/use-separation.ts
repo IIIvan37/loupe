@@ -15,14 +15,14 @@ import {
 import { useLingui } from '@lingui/react/macro'
 import { useAtom } from 'jotai'
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { createSeparator } from '../../audio/create-separator.ts'
+import { deliverFile } from '../../audio/deliver-file.ts'
+import { createZipArchiveWriter } from '../../audio/zip-archive-writer.ts'
 import {
   type EnsureTokenResult,
   ensureAnalysisToken,
   isAnalysisOffloaded
-} from '../../audio/analysis-token.ts'
-import { createSeparator } from '../../audio/create-separator.ts'
-import { deliverFile } from '../../audio/deliver-file.ts'
-import { createZipArchiveWriter } from '../../audio/zip-archive-writer.ts'
+} from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
 import { separationGateReasonAtom } from './separation-atoms.ts'
 

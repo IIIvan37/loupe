@@ -1,8 +1,8 @@
+import { isTauriShell } from '../lib/tauri-env.ts'
 import type { AuthPort } from './auth-port.ts'
 import { createAuth } from './create-auth.ts'
 import { installDeepLinkAuth } from './deep-link.ts'
 import { getSupabaseClient } from './supabase-client.ts'
-import { isTauriShell } from './tauri-env.ts'
 
 /**
  * The app-wide `AuthPort`, or `null` when Supabase isn't configured (local dev

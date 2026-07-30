@@ -1,4 +1,4 @@
-import { isTauriShell } from '../auth/tauri-env.ts'
+import { isTauriShell } from '../lib/tauri-env.ts'
 import { downloadBlob } from './download-blob.ts'
 
 /**

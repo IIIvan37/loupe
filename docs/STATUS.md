@@ -9,29 +9,28 @@
 ## Where we are
 
 **Cap distribution acté (2026-07-26)** : loupe se distribue en **serveur
-local + navigateur** ([distribution-plan.md](distribution-plan.md), lots
-D1–D6 ; motifs : multi-OS, yt-dlp local, zéro signature, un moteur web). Le
-shell **Tauri passe en sommeil** (canal signé réactivable, CI conservée).
-**Roadmap v7 soldée** ([archive](archive/roadmap-excellence-7.md)) ; **Lot TS
-clos** ([archive](archive/template-sync-plan.md)). Nursery à dessein :
+local + navigateur** ([distribution-plan.md](distribution-plan.md) ; D1–D6
+clos, PRs #275–#285) ; **prochain distribution : 1re release taguée** (tap +
+`HOMEBREW_TAP_TOKEN`, cf. `docs/RELEASING.md`). Le shell **Tauri passe en
+sommeil**. **Roadmap v7 soldée** ; **Lot TS clos**. Nursery à dessein :
 `detect-chords`, `bass-line` ; `timecode` attend un second consommateur.
-**D1–D6 clos** (PRs #275–#285) ; **prochain distribution : 1re release taguée**
-(tap + `HOMEBREW_TAP_TOKEN` ; Ubuntu ARM64 natif différé). **Chantier parallèle —
-état de vue** ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md), #286) :
-la feature possède son état, le shell compose. Feuilles : mixer (#287), tempo
-(#290), séparation (#292), footer en valeurs (#296) — cliquet `ReturnType`
-**26 → 21**. Revue d'architecture (2026-07-29) : cap validé, correctifs
-livrés (#293, #294). **Clé de voûte de
-l'[ADR 0011](adr/0011-shell-layout-contexte-session-audio.md) posée (PR #295)** :
-`AudioSessionProvider` (ports seuls), 7 hooks lisent `arg ?? session ?? réel`,
-`WorkstationShellProps` fond à `desktop` seul. **Prochaine étape : ADR graphe
-de modules web + tags Sheriff** (3 cycles à casser : mixer↔tempo,
-mixer↔waveform, audio↔auth) ; le player en référence stable (0011, régions
-ShellMain) attend une session fraîche, puis interface étroite de session
-(DIP). Chaque feuille descend ≥1 cliquet (`composition-invariants.spec.ts`),
-feuilles d'infrastructure exemptées. Checkpoint UI avant chaque slice.
-**Boucle outillée** (PR #NN) : `check:i18n` au gate, tampon de fraîcheur du
+**Boucle outillée** (PR #297) : `check:i18n` au gate, tampon de fraîcheur du
 gate, `pnpm sonar`, workers vitest bornés en local.
+**Chantier état de vue / shell**
+([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md),
+[0011](adr/0011-shell-layout-contexte-session-audio.md)) : feuilles livrées
+#287→#296 (cliquet `ReturnType` **26 → 21**), clé de voûte
+`AudioSessionProvider` posée (PR #295), revue d'architecture 2026-07-29
+soldée (#293, #294). **Le graphe de modules web est un DAG déclaré**
+([ADR 0012](adr/0012-graphe-de-modules-web.md), livré par PR #299) : tags
+Sheriff sur `packages/web` (placeholder dormant `app/<feature>`), les 3
+cycles de la revue cassés (`tempo→mixer`, `waveform→mixer`, `audio→auth`) ;
+toute nouvelle arête inter-features = une ligne de `depRules`, visible en
+revue. **Prochaine étape : le player en référence stable** (0011, régions
+ShellMain — fera descendre les 21 props `ReturnType` restantes), puis
+interface étroite de session (DIP). Chaque feuille descend ≥1 cliquet
+(`composition-invariants.spec.ts`), feuilles d'infrastructure exemptées.
+Checkpoint UI avant chaque slice.
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
 Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.

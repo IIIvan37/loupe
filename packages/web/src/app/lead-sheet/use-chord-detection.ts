@@ -11,12 +11,12 @@ import {
   type SeparatedStem
 } from '@app/core'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createChordDetector } from '../../audio/create-chord-detector.ts'
 import {
   type EnsureTokenResult,
   ensureAnalysisToken,
   isAnalysisOffloaded
-} from '../../audio/analysis-token.ts'
-import { createChordDetector } from '../../audio/create-chord-detector.ts'
+} from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
 import { nextPaint } from '../../lib/next-paint.ts'
 import { useLatest } from '../../lib/use-latest.ts'

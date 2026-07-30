@@ -1,4 +1,4 @@
-import { isTauriShell } from '../../auth/tauri-env.ts'
+import { isTauriShell } from '../../lib/tauri-env.ts'
 
 /**
  * `window.print()` has no delegate in the desktop webview (WKWebView): it

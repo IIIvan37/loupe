@@ -12,7 +12,7 @@ import {
   type CountInPlayer,
   useAudioSession
 } from '../audio-session/audio-session.ts'
-import { METRONOME_ID } from './metronome-stem.ts'
+import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
 
 export interface CountInParams {
   /** Whether the transport can start at all (a track is loaded). */

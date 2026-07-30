@@ -14,7 +14,7 @@ import {
   selectionPair,
   useWaveformGestures
 } from './use-waveform-gestures.ts'
-import { WaveformCanvas } from './waveform-canvas.tsx'
+import { WaveformCanvas } from '../ui/waveform-canvas.tsx'
 import styles from './waveform-view.module.css'
 
 interface WaveformViewProps {

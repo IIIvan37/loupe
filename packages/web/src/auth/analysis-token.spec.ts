@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { AuthPort, MintResult } from '../auth/auth-port.ts'
 import {
   cachedAnalysisToken,
   clearAnalysisToken,
@@ -7,6 +6,7 @@ import {
   isAnalysisOffloaded,
   onAnalysisUsage
 } from './analysis-token.ts'
+import type { AuthPort, MintResult } from './auth-port.ts'
 
 /** An AuthPort whose mint returns a scripted result and counts its calls. */
 function fakeAuth(result: MintResult): AuthPort & { mints: number } {

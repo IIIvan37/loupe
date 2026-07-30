@@ -15,11 +15,8 @@ import { nextPaint } from '../../lib/next-paint.ts'
 import { sessionSignature } from '../../projects/session-signature.ts'
 import { type Projects, useProjects } from '../../projects/use-projects.ts'
 import { useAudioSession } from '../audio-session/audio-session.ts'
-import { isSyntheticStem } from '../mixer/synthetic-stem.ts'
-import {
-  DEFAULT_METRONOME_CHANNEL,
-  METRONOME_ID
-} from '../tempo/metronome-stem.ts'
+import { isSyntheticStem, METRONOME_ID } from '../mixer/synthetic-stem.ts'
+import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
 import {
   restoreSession,
   type SessionRestoreDeps,
