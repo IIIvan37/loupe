@@ -56,8 +56,10 @@
 - tests : ✅ 2420/2420 (173 fichiers), couverture 96,8 % statements /
   92,3 % branches.
 - mutation : **sans objet** — aucune source core touchée (web uniquement).
-- sonar : à lire une fois l'analyse CI de la PR #302 posée (~5 min après le
-  push) — vérifier avant merge.
+- sonar : ✅ quality gate OK sur la PR #302 — 0 issue ouverte, 0 hotspot.
+- CI PR #302 : ✅ tous les checks verts (commit messages, dependency audit,
+  edge functions, quality gate, server, SonarCloud ; mutation core skippée —
+  aucune source core).
 
 ## State to resume from
 
