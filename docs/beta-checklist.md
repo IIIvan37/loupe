@@ -4,6 +4,21 @@
 > garde-fous sont soldés** — il ne reste que l'item optionnel D6 (allowlist
 > redirect `127.0.0.1:6173`, inutile pour l'OTP).
 
+## Actions opérateur restantes
+
+- [ ] **Code OTP absent du mail de SIGNUP** (constaté 2026-07-31) : Supabase
+  envoie le template **« Confirm signup »** à un *nouvel* utilisateur via
+  `signInWithOtp` — seul « Magic Link » (utilisateur existant) avait reçu le
+  code D6, d'où des tests OK sur nos comptes existants. Poser
+  `mailer_subjects_confirmation` + `mailer_templates_confirmation_content`
+  (mêmes contenus code-first que Magic Link) : script prêt
+  (`patch-confirmation-template.sh`, remis en séance — API Management via
+  **curl**, jamais Python-urllib) ou Dashboard → Auth → Email Templates →
+  « Confirm signup ». Tester avec une adresse **jamais inscrite**.
+- [ ] **PAT `HOMEBREW_TAP_TOKEN`** à réparer avant la v0.2 (couvrir
+  `homebrew-loupe`, Contents read/write — étape tap du workflow en 403 à la
+  v0.1.0, formule poussée à la main).
+
 ## Actions opérateur (soldées le 2026-07-31)
 
 - [x] **Redeploy Modal** — **FAIT ET VÉRIFIÉ (2026-07-31)** : défaut

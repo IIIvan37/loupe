@@ -91,6 +91,12 @@ supabase secrets set ANALYZE_JWT_SECRET="$(cat server/.analyze-jwt-secret.local)
 
 - **Auth**: enable Email (magic link) in the dashboard; add the app origin to the
   redirect allow-list.
+- **OTP code goes in TWO templates**: `signInWithOtp` sends « Magic Link »
+  to an existing user but **« Confirm signup » to a new one** — customise
+  both (`mailer_templates_magic_link_content` AND
+  `mailer_templates_confirmation_content`, plus their subjects) with
+  `{{ .Token }}`, or new users get a link-only email (bug hit 2026-07-31).
+  Management API is behind Cloudflare: use curl, never Python-urllib (403).
 - **Seed a beta code** (SQL editor, service role). Codes must carry ≥ 32 chars
   of real entropy (U.3 constraint `beta_codes_code_min_length` — guessable
   codes like `FRIENDS` are refused at insert):
