@@ -8,13 +8,20 @@ grille d'accords — pour le déchiffrer et le répéter.
 
 ## Installer et lancer
 
-- **macOS (Apple Silicon) / Linux x64** :
-  `brew tap iiivan37/loupe && brew install loupe`
-  (si brew refuse un tap tiers : `brew trust iiivan37/loupe` d'abord)
-- **Windows** : télécharger le `.zip` depuis la
-  [dernière release](https://github.com/IIIvan37/loupe/releases/latest),
-  extraire, lancer `loupe.exe` (SmartScreen : « Informations
-  complémentaires → Exécuter quand même »).
+Télécharger l'archive de son OS depuis la
+[dernière release](https://github.com/IIIvan37/loupe/releases/latest),
+extraire, lancer :
+
+- **macOS (Apple Silicon)** : `loupe-vX.Y.Z-aarch64-apple-darwin.tar.gz`.
+  Le binaire n'est pas signé : au premier lancement, clic droit → Ouvrir
+  (ou `xattr -d com.apple.quarantine loupe`).
+- **Linux (x64)** : `loupe-vX.Y.Z-x86_64-unknown-linux-gnu.tar.gz`, puis
+  `./loupe`.
+- **Windows (x64)** : le `.zip`, puis `loupe.exe` (SmartScreen :
+  « Informations complémentaires → Exécuter quand même »).
+
+Alternative Homebrew (macOS/Linux) : `brew trust iiivan37/loupe &&
+brew tap iiivan37/loupe && brew install loupe`.
 
 Lancer `loupe` : le navigateur s'ouvre sur `http://localhost:6173`.
 `loupe --port <n>` change le port, `--no-browser` n'ouvre rien. Les données

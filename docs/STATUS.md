@@ -8,10 +8,12 @@
 
 ## Where we are
 
-**Cap distribution acté (2026-07-26)** : loupe se distribue en **serveur
-local + navigateur** ([distribution-plan.md](distribution-plan.md) ; D1–D6
-clos, PRs #275–#285) ; **prochain distribution : 1re release taguée** (tap +
-`HOMEBREW_TAP_TOKEN`, cf. `docs/RELEASING.md`). Le shell **Tauri est
+**Cap distribution acté (2026-07-26), SOLDÉ** : loupe se distribue en
+**serveur local + navigateur** — **release v0.1.0 publiée (2026-07-31)** :
+3 binaires + tap `iiivan37/loupe`, `brew install` vérifié
+([archive/distribution-plan.md](archive/distribution-plan.md) ; D1–D6 #275–#285).
+À réparer avant la v0.2 : le PAT `HOMEBREW_TAP_TOKEN` (étape tap du workflow
+en 403 — formule poussée à la main). Le shell **Tauri est
 retiré** (PR #327) et le **serveur est unique** (étape « serveur unique »,
 livrée par PR #328) : le binaire `loupe` est le seul livrable, `server/` =
 la bibliothèque d'analyse Modal + son harnais dev/CI (`pnpm dev:analysis`),
@@ -23,7 +25,9 @@ Rappels vivants : filtre Base UI à retirer au prochain bump (PR #319) ;
 ne jamais dériver un hook à effet de montage, seul le seam `mixer: Mixer`
 reste en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–
 [0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
-**Prochaine étape : la 1re release taguée** (tag + tap, `docs/RELEASING.md`).
+**Prochaine étape : distribuer la beta** (release v0.1.0 +
+[guide utilisateur](guide-utilisateur.md) + code frais) ; réparer le PAT du
+tap avant la v0.2.
 
 **Garde-fous beta soldés (2026-07-31)** ([beta-checklist.md](beta-checklist.md)) :
 redeploys Modal + Edge vérifiés (préflight curl), codes legacy re-seedés.
@@ -55,7 +59,7 @@ redeploys Modal + Edge vérifiés (préflight curl), codes legacy re-seedés.
 
 ## Plans
 
-- **En cours** : [distribution-plan.md](distribution-plan.md) (reste la 1re release taguée + le tap).
+- **En cours** : aucun — tous les plans sont clos ([docs/archive/](archive/)).
 - **Complets** : dans [docs/archive/](archive/) (plans clos + vision produit du kickoff).
 
 ## Veille / différé
