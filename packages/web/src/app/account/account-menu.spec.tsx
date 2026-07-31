@@ -180,6 +180,11 @@ describe('AccountMenu', () => {
       const ready = screen.getByRole('button', { name: i18n._('account.resend') })
       expect(ready).toBeEnabled()
       fireEvent.click(ready)
+      // Flush the resend promise before asserting — its state lands on a
+      // microtask and must not outlive the test (act warning otherwise).
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0)
+      })
       expect(auth.sendMagicLink).toHaveBeenCalledTimes(2)
       expect(auth.sendMagicLink).toHaveBeenLastCalledWith('ivan@loupe.test')
     } finally {

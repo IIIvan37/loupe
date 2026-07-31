@@ -15,16 +15,16 @@ clos, PRs #275–#285) ; **prochain distribution : 1re release taguée** (tap +
 sommeil**. **Roadmap v7 soldée** ; **Lot TS clos**. Nursery à dessein :
 `detect-chords`, `bass-line` ; `timecode` attend un second consommateur.
 **Boucle outillée** (PR #297) : `check:i18n` au gate, tampon de fraîcheur du
-gate, `pnpm sonar`, workers vitest bornés en local.
+gate, `pnpm sonar`, workers vitest bornés. **Sortie de suite = signal** (PR
+#319) : 0 warning act/flushSync/console ; filtre Base UI à retirer au prochain bump.
 **Chantier état de vue / shell**
 ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md),
 [0011](adr/0011-shell-layout-contexte-session-audio.md),
 [0012](adr/0012-graphe-de-modules-web.md)) : sacs de feature en atomes
 soldés — #287→#306 (DAG web, player, repères/tempo/mixer/zoom, séparation, loops).
-**L'interface étroite de session (DIP) est soldée** : `StemPlaybackEngine`
-(13 membres) partitionné en 3 tranches nommées — `StemAudioSource` (#307, 1),
-`StemMixGraph` (#308, 5), `PlaybackTransport` (#309, 7) ; le port core ne reste
-nommé qu'au siège du singleton (`use-stem-stack`, provider, adaptateur).
+**Interface étroite de session (DIP) soldée** : `StemPlaybackEngine` (13 membres)
+partitionné en 3 tranches — `StemAudioSource` (#307), `StemMixGraph` (#308),
+`PlaybackTransport` (#309) ; le port core ne reste nommé qu'au siège du singleton.
 **Chantier `ReturnType` : cliquet 13 → 5** — `use-tempo-detection`
 dérive ses deps (`useTempo()`/`useMetronome()` internes, `enabled` en atome) et vit
 dans `app/tempo/`, livré par PR #318. **Prochaine étape : `use-separate-and-load`**

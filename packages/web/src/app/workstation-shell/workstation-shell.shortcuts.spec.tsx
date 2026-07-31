@@ -215,6 +215,9 @@ describe('WorkstationShell keyboard shortcuts', () => {
   })
 
   it('taps a tempo with the T key', async () => {
+    // The failed detection logs its raw detail (asserted in use-tempo.spec) —
+    // muted here so the suite output stays signal.
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const detector = {
       detect: async () => {
         throw new Error('server unreachable')
@@ -231,6 +234,7 @@ describe('WorkstationShell keyboard shortcuts', () => {
 
     await expectBpmReadout(120)
     expect(screen.getByText(i18n._('tempo.manual-badge'))).toBeInTheDocument()
+    muted.mockRestore()
   })
 
   it('moves a marker with an arrow key on its tag', async () => {

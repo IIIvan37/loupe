@@ -21,3 +21,19 @@ const element = (
 if (element && typeof element.prototype.scrollIntoView !== 'function') {
   element.prototype.scrollIntoView = () => {}
 }
+
+// Base UI's toast manager (1.0.0-rc.0, the latest release) calls flushSync
+// from a lifecycle method, and React 19 warns on every toast a spec pops —
+// dozens of identical lines drowning the suite output. The fix belongs to the
+// library; filter EXACTLY that message so any other console.error stays loud.
+// Drop this block once @base-ui-components/react ships without it.
+const consoleError = console.error.bind(console)
+console.error = (...args: unknown[]) => {
+  if (
+    typeof args[0] === 'string' &&
+    args[0].includes('flushSync was called from inside a lifecycle method')
+  ) {
+    return
+  }
+  consoleError(...args)
+}

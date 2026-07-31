@@ -113,6 +113,9 @@ describe('WorkstationShell stems & separation', () => {
   })
 
   it('surfaces a separation failure and offers a retry', async () => {
+    // The raw adapter detail goes to the console by contract — muted here so
+    // the suite output stays signal.
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const { user } = renderShell({ separator: failingSeparator })
     await importTrack(user)
 
@@ -125,6 +128,7 @@ describe('WorkstationShell stems & separation', () => {
     expect(
       screen.getByRole('button', { name: i18n._('separation.retry') })
     ).toBeInTheDocument()
+    muted.mockRestore()
   })
 
   it('enables the header export only once stems are ready', async () => {

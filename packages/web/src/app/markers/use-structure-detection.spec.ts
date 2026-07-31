@@ -82,6 +82,9 @@ describe('useStructureDetection', () => {
   })
 
   it('surfaces an empty detection as the no-structure code', async () => {
+    // The failure path logs its raw detail (asserted in its own test below) —
+    // muted here so the suite output stays signal.
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const { result } = renderHook(() =>
       useStructureDetection({
         loadedAudio: AUDIO,
@@ -92,9 +95,11 @@ describe('useStructureDetection', () => {
     )
     await act(() => result.current.detect())
     expect(result.current.error).toBe('no-structure')
+    muted.mockRestore()
   })
 
   it('surfaces a failed detection as an error code, clearing on the next run', async () => {
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const boom: StructureDetector = {
       detect: async () => {
         throw new Error('structure engine down')
@@ -123,9 +128,11 @@ describe('useStructureDetection', () => {
     await act(() => result.current.detect())
     expect(result.current.error).toBeUndefined()
     expect(onSections).toHaveBeenCalled()
+    muted.mockRestore()
   })
 
   it('surfaces the typed code a StructureDetectionError carries', async () => {
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const engineDown: StructureDetector = {
       detect: async () => {
         throw new StructureDetectionError('engine-unavailable', 'HTTP 503')
@@ -141,6 +148,7 @@ describe('useStructureDetection', () => {
     )
     await act(() => result.current.detect())
     expect(result.current.error).toBe('engine-unavailable')
+    muted.mockRestore()
   })
 
   it('logs the raw failure detail to the console for diagnosis', async () => {
@@ -211,7 +219,10 @@ describe('useStructureDetection', () => {
         }),
       { initialProps: { audio: AUDIO } }
     )
-    void result.current.detect()
+    // Imperative hook API with no user event — act wraps the sync state flip.
+    act(() => {
+      void result.current.detect()
+    })
     expect(seenSignal?.aborted).toBe(false)
     rerender({ audio: { sampleRate: 4, channels: [[0.5]] } })
     expect(seenSignal?.aborted).toBe(true)
@@ -235,8 +246,12 @@ describe('useStructureDetection', () => {
         detector: pending
       })
     )
-    void result.current.detect()
-    void result.current.detect()
+    act(() => {
+      void result.current.detect()
+    })
+    act(() => {
+      void result.current.detect()
+    })
     expect(signals[0]?.aborted).toBe(true)
     expect(signals[1]?.aborted).toBe(false)
   })

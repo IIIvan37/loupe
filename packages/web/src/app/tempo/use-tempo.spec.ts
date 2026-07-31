@@ -50,6 +50,9 @@ describe('useTempo', () => {
   })
 
   it('surfaces an untyped detector failure as the unknown code', async () => {
+    // The failure path logs its raw detail (asserted in its own test below) —
+    // muted here so the suite output stays signal.
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const boom: TempoDetector = {
       detect: async () => {
         throw new Error('server down')
@@ -60,9 +63,11 @@ describe('useTempo', () => {
       await result.current.detect(audio)
     })
     expect(result.current.error).toBe('unknown')
+    muted.mockRestore()
   })
 
   it('surfaces a typed detector failure as its code', async () => {
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const down: TempoDetector = {
       detect: async () => {
         throw new TempoDetectionError('network', 'fetch failed')
@@ -73,6 +78,30 @@ describe('useTempo', () => {
       await result.current.detect(audio)
     })
     expect(result.current.error).toBe('network')
+    muted.mockRestore()
+  })
+
+  it('logs the raw failure detail to the console for diagnosis', async () => {
+    // Same contract as the chord and structure detections (N.1): the
+    // translated copy speaks for the code, the raw detail goes to the console.
+    const logged = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined)
+    const down: TempoDetector = {
+      detect: async () => {
+        throw new TempoDetectionError('network', 'fetch failed')
+      }
+    }
+    const { result } = renderTempo(down)
+    await act(async () => {
+      await result.current.detect(audio)
+    })
+    expect(logged).toHaveBeenCalledWith(
+      'tempo detection failed:',
+      'network',
+      'fetch failed'
+    )
+    logged.mockRestore()
   })
 
   it('aborts the in-flight detection when reset supersedes it', async () => {
@@ -86,7 +115,10 @@ describe('useTempo', () => {
       }
     }
     const { result } = renderTempo(pending)
-    void result.current.detect(audio)
+    // Imperative hook API with no user event — act wraps the sync state flip.
+    act(() => {
+      void result.current.detect(audio)
+    })
     act(() => result.current.reset())
     expect(seenSignal?.aborted).toBe(true)
   })
@@ -102,8 +134,12 @@ describe('useTempo', () => {
       }
     }
     const { result } = renderTempo(pending)
-    void result.current.detect(audio)
-    void result.current.detect(audio)
+    act(() => {
+      void result.current.detect(audio)
+    })
+    act(() => {
+      void result.current.detect(audio)
+    })
     expect(signals[0]?.aborted).toBe(true)
     expect(signals[1]?.aborted).toBe(false)
   })
@@ -117,7 +153,9 @@ describe('useTempo', () => {
       }
     }
     const { result, unmount } = renderTempo(pending)
-    void result.current.detect(audio)
+    act(() => {
+      void result.current.detect(audio)
+    })
     unmount()
     expect(seenSignal?.aborted).toBe(true)
   })
@@ -131,7 +169,9 @@ describe('useTempo', () => {
       }
     }
     const { result } = renderTempo(pending)
-    void result.current.detect(audio)
+    act(() => {
+      void result.current.detect(audio)
+    })
     act(() => {
       result.current.overrideBpm(120, 10)
     })
@@ -143,7 +183,9 @@ describe('useTempo', () => {
     // end either — the mark lets the row keep an idle « Détecter » face.
     const pending: TempoDetector = { detect: () => new Promise(() => {}) }
     const { result } = renderTempo(pending)
-    void result.current.detect(audio)
+    act(() => {
+      void result.current.detect(audio)
+    })
     act(() => result.current.cancelDetection())
     expect(result.current.cancelled).toBe(true)
     expect(result.current.detecting).toBe(false)
@@ -481,6 +523,7 @@ describe('useTempo — meter correction', () => {
   })
 
   it('a meter correction clears a stale detection error', async () => {
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     let fail = false
     const flaky: TempoDetector = {
       detect: async () => {
@@ -507,6 +550,7 @@ describe('useTempo — meter correction', () => {
       result.current.overrideMeter(3)
     })
     expect(result.current.error).toBeUndefined()
+    muted.mockRestore()
   })
 
   it('rejects a degenerate or out-of-range meter', async () => {

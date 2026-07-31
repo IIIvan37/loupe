@@ -68,6 +68,9 @@ describe('WorkstationShell tempo & metronome', () => {
   })
 
   it('relaunches a failed tempo detection from the panel', async () => {
+    // The failure path logs its raw detail (asserted in use-tempo.spec) —
+    // muted here so the suite output stays signal.
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     // The first run fails (server unreachable), the retry succeeds.
     let runs = 0
     const detector = {
@@ -86,9 +89,11 @@ describe('WorkstationShell tempo & metronome', () => {
       await screen.findByRole('button', { name: i18n._('tempo.retry') })
     )
     await expectBpmReadout(128)
+    muted.mockRestore()
   })
 
   it('keeps the separated stems when a tempo retry succeeds after separation', async () => {
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     // Detection fails on import; the user separates; only then does a retry
     // land — the late result must not re-seat the mixer over the stems.
     let runs = 0
@@ -123,6 +128,7 @@ describe('WorkstationShell tempo & metronome', () => {
         name: i18n._('mixer.download-wav', { name: 'Voix' })
       })
     ).toBeInTheDocument()
+    muted.mockRestore()
   })
 
   it('sets the tempo by typing in the BPM field', async () => {
@@ -148,6 +154,7 @@ describe('WorkstationShell tempo & metronome', () => {
   })
 
   it('taps a tempo when the detection failed', async () => {
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const detector = {
       detect: async () => {
         throw new Error('server unreachable')
@@ -163,6 +170,7 @@ describe('WorkstationShell tempo & metronome', () => {
 
     await expectBpmReadout(120)
     expect(screen.getByText(i18n._('tempo.manual-badge'))).toBeInTheDocument()
+    muted.mockRestore()
   })
 
   it('re-anchors the beat grid on the playhead from the panel', async () => {
@@ -518,6 +526,7 @@ describe('WorkstationShell tempo & metronome', () => {
 
   it('surfaces a tempo detection failure as translated, actionable copy', async () => {
     // The raw engine text stays in the console — the alert speaks the code.
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const detector = {
       detect: async () => {
         throw new Error('serveur injoignable')
@@ -529,6 +538,7 @@ describe('WorkstationShell tempo & metronome', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       i18n._('tempo.error.unknown')
     )
+    muted.mockRestore()
   })
 
   it('resets the tempo to 100 % when a new file is imported', async () => {
