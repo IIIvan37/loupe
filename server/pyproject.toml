@@ -12,7 +12,7 @@ requires-python = ">=3.11"
 # dev/CI host — their modules are lazy imports whose endpoints the web app
 # never calls in distribution (analyses run on Modal).
 dependencies = [
-    "fastapi==0.139.1",
+    "fastapi==0.140.7",
     "uvicorn[standard]==0.51.0",
     "yt-dlp==2026.7.4",
 ]
