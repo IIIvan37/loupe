@@ -55,7 +55,8 @@
   92,3 % branches.
 - mutation : **sans objet** — `mutation:diff` confirme qu'aucune source core
   n'est touchée (web uniquement).
-- sonar : à relire sur la PR.
+- sonar : ✅ quality gate OK sur la PR #308 — 0 issue ouverte, 0 hotspot.
+- CI : ✅ toutes les vérifications vertes sur la PR #308.
 
 ## State to resume from
 

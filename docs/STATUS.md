@@ -27,8 +27,8 @@ seam, **un seul port gras** — `StemPlaybackEngine`, 15 membres, 3 tranches
 disjointes (mixer 5, transport 7, séparation 1) ; les 8 autres sont déjà des
 interfaces à 1–2 membres. **2 tranches sur 3 nommées au seam** :
 `StemAudioSource` (`useStemAudio()`, PR #307) et `StemMixGraph`
-(`useStemMixGraph()`, étape en cours) — ni `useSeparation` ni `useMixer` ne
-nomment plus le port core. **Prochaine étape : la tranche transport**,
+(`useStemMixGraph()`, livré par la PR #308) — ni `useSeparation` ni
+`useMixer` ne nomment plus le port core. **Prochaine étape : la tranche transport**,
 commune aux deux moteurs (d'où l'échange déjà possible dans
 `use-transport-engines`), puis les 7 `ReturnType` restants, deps
 d'orchestrateurs à dériver des atomes. Checkpoint UI par slice.
