@@ -51,8 +51,10 @@
 - tests : ✅ 2451/2451 (+1 : test dédié log tempo), couverture inchangée
   (96,8 % statements) ; **0 warning au reporter verbose** (vérifié avant/après).
 - mutation : **sans objet** — aucune source core touchée.
-- sonar : analyse PR #319 en cours au moment du rapport — à relire avant
-  merge (`pnpm sonar`).
+- sonar : ✅ quality gate OK sur la PR #319 ; 6 MINOR S8980 (« act redondant »)
+  = **faux positif vérifié** (retirer un wrap ré-instaure 7 warnings dans
+  use-structure-detection.spec seul) — triés en `fp15` dans
+  `sonar-project.properties`, raisonnement dans le fichier.
 
 ## State to resume from
 
