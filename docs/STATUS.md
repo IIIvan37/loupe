@@ -25,8 +25,8 @@ reste en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–
 [0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Prochaine étape : les garde-fous beta ou la 1re release taguée.**
 
-**Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
-Modal, SMTP Resend, re-seed codes legacy ; redeploy Modal+Edge (origins sans `tauri://`).
+**Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md), commandes
+prêtes) : redeploy Modal + Edge (origins sans `tauri://`), re-seed codes legacy.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 

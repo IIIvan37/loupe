@@ -1,8 +1,27 @@
 # Checklist beta — garde-fous et vérifications
 
-> État au **2026-07-18**, après la roadmap v6 (Lots AC→AI). Deux garde-fous
-> demandent une action **utilisateur** (comptes/facturation) ; le reste est
-> soit fait, soit une vérification à rejouer en bundle.
+> État au **2026-07-31**, après le serveur unique (PR #328). Les garde-fous
+> restants sont des **actions opérateur** (déploiements + données prod) —
+> commandes prêtes ci-dessous ; le reste est fait et tracé.
+
+## Actions opérateur restantes (commandes prêtes)
+
+- [ ] **Redeploy Modal** — prendre le défaut d'origins sans `tauri://`
+  (retiré en #327) et l'arbre `server/` rétréci (#328) :
+  `cd server && .venv/bin/modal deploy modal_app.py`
+  (rebuild d'image attendu : `requirements.txt` a perdu yt-dlp ; l'ancien
+  défaut reste inerte d'ici là).
+- [ ] **Redeploy Edge Function** — même motif :
+  `supabase functions deploy mint-analyze-token --use-api`
+- [ ] **Re-seed des codes beta legacy < 32 chars** en prod (runbook U.3 : le
+  CHECK d'entropie ne couvre que les nouveaux inserts). ⚠️ invalide les codes
+  courts déjà distribués — redistribuer les nouveaux. Dans le SQL editor :
+  ```sql
+  select code, uses_left from beta_codes where length(code) < 32;  -- inventaire
+  insert into beta_codes (code, uses_left)
+    values (gen_random_uuid()::text, <uses_left du legacy>);       -- par code
+  delete from beta_codes where code = '<legacy>';
+  ```
 
 ## À faire par l'utilisateur (non automatisable)
 
@@ -25,8 +44,6 @@
   la réputation Gmail peut demander quelques envois + « Non spam ». NB : le
   wrapper `netlify api createDnsRecord` renvoie 422 (payload mangé) — passer
   par l'API brute `POST /dns_zones/{id}/dns_records`.
-- [ ] **Re-seed des codes beta legacy < 32 chars** en prod (runbook U.3 :
-  `gen_random_uuid()`, le CHECK d'entropie ne couvre que les nouveaux).
 - [x] **Template email « Magic Link » avec le code OTP (D6)** — **FAIT ET
   VÉRIFIÉ (2026-07-28)** : l'auth du shell serveur/navigateur passe par un
   **code à 6 chiffres** tapé dans l'app (`verifyOtp`), pas par la redirection
@@ -70,8 +87,10 @@
 
 ## Fait (traçé)
 
-- [x] Origins Tauri (`tauri://localhost` + `http://tauri.localhost`) dans
-  les trois allowlists (T2.5, curl-vérifié).
+- [x] Origins Tauri : ajoutées aux trois allowlists (T2.5), puis **retirées
+  des défauts** avec le shell (#327) ; parité des trois copies verrouillée
+  par `docs/origins-parity.spec.ts` (#328) — le redeploy ci-dessus applique
+  le nouveau défaut.
 - [x] Quota unique séparation/détections (décision M1.2), gate JWT partout,
   brute-force codes throttlé (U.3), secrets planchers 32+ (U.3/U.5).
 - [x] Sécurité shell desktop (AC, PR #210) : yt-dlp pinné sha256, fs deny
