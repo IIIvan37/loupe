@@ -6,15 +6,17 @@ import {
 } from '@app/core'
 import { useAtomValue } from 'jotai'
 import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
-import type { useMixer } from '../mixer/use-mixer.ts'
+import type { Mixer } from '../mixer/use-mixer.ts'
 import { useSeparation } from '../separation/use-separation.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
 import { tempoAnalysisAtom } from '../tempo/tempo-atoms.ts'
-import type { useMetronome } from '../tempo/use-metronome.ts'
+import { useMetronome } from '../tempo/use-metronome.ts'
 
 interface SeparateAndLoadDeps {
-  readonly mixer: ReturnType<typeof useMixer>
-  readonly metronome: ReturnType<typeof useMetronome>
+  /** The mix the stems (and click) land in — the shell stack's instance (the
+   * engine seam, same idiom as `MetronomeDeps`); separation and metronome are
+   * the features' own, derived here, not passed. */
+  readonly mixer: Mixer
 }
 
 /**
@@ -24,14 +26,16 @@ interface SeparateAndLoadDeps {
  * reads as one call; the audio-engine sync belongs to this moment, not an effect.
  */
 export function useSeparateAndLoad({
-  mixer,
-  metronome
+  mixer
 }: SeparateAndLoadDeps): (
   audio: DecodedAudio | undefined
 ) => Promise<readonly SeparatedStem[] | undefined> {
   // The separation bag is feature-owned now (ADR 0010): the hook reads the
   // same session separation as the shell stack's instance, atoms included.
   const separation = useSeparation()
+  // The metronome derives too (ADR 0010): whether a click is seated is session
+  // state (`metronomeEnabledAtom`), so this instance and the shell's agree.
+  const metronome = useMetronome({ mixer })
   // The tempo grid is feature-owned now (ADR 0010): read it off the atom rather
   // than threading the whole tempo bag through the shell to reach it.
   const analysis = useAtomValue(tempoAnalysisAtom)

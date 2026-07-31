@@ -173,7 +173,8 @@ export function WorkstationShell({
   const tempo = useTempo()
   const metronome = useMetronome({ mixer })
   // Separate the loaded track and wire the stems (+ metronome) into the mixer.
-  const separateAndLoad = useSeparateAndLoad({ mixer, metronome })
+  // Separation and metronome are the features' own (ADR 0010) — seam only.
+  const separateAndLoad = useSeparateAndLoad({ mixer })
   useModalWarmup(loadedAudio) // warm the Modal container on import (no-op locally)
   // Chart session + « Détecter les accords » / « Détecter la structure » —
   // the chart↔structure pairing (S.3b) lives in its own hook.
