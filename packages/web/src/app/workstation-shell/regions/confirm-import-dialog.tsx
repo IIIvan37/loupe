@@ -1,7 +1,7 @@
 import { Dialog } from '@base-ui-components/react/dialog'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { cx } from '../../../lib/cx.ts'
-import dialogStyles from '../../ui/app-dialog.module.css'
+import dialogStyles from '../../ui/app-dialog/app-dialog.module.css'
 import styles from './confirm-import-dialog.module.css'
 
 interface ConfirmImportDialogProps {

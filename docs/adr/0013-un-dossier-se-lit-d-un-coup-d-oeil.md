@@ -51,6 +51,15 @@ Trois règles, une contrainte mécanique :
    relatifs** à dessein : typecheck, Sheriff et biome les gouvernent, et un
    déplacement se réécrit mécaniquement.
 
+5. **Un composant n'importe que SON `module.css`.** Piocher dans la feuille
+   d'un voisin (l'enfant stylé dans le CSS du parent) couple deux composants
+   par leurs classes et rend le dossier-composant mensonger. Le partage
+   descend d'un étage : une peau commune vit dans une feuille de kit
+   (`controls.module.css`) et se consomme par `composes` **dans le CSS du
+   composant**, jamais par un import TSX étranger. Cliquet
+   `MAX_FOREIGN_CSS_IMPORTS` dans `folder-shape.spec.ts` (14 mesurés, 10
+   après la première passe, cible 0).
+
 **Le cliquet** : `packages/web/src/folder-shape.spec.ts` borne les sources
 directes (`.ts`/`.tsx` hors `.spec.*`/`.d.ts`) par dossier —
 `MAX_FLAT_SOURCES`, démarré au présent mesuré post-rangement (16), ne monte

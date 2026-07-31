@@ -1,0 +1,211 @@
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-m);
+  /* Gutter for the head time signature (mockup: the stacked 4-over-4 sits
+   * left of the first system's opening barline). Reserved on every sheet so
+   * the grid never shifts when a meter is detected mid-session. */
+  padding-inline-start: var(--space-l);
+}
+
+/* ——— Sections: a boxed label chip over the measures. ——— */
+
+.label {
+  display: inline-block;
+  margin: 0 0 var(--space-2xs);
+  padding: 0 var(--space-2xs);
+  border: 1px solid var(--text);
+  color: var(--text);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/*
+ * Bars flow in rows of --bars-per-row columns (a render parameter set inline
+ * on the sheet, 4 when unset). Printed-chart look: only VERTICAL barlines —
+ * each measure closes with its right barline, the section's continuous left
+ * border opens every wrapped row, and the section boundaries read as double
+ * bars (the plan's « double aux frontières de section »).
+ */
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--bars-per-row, 4), minmax(0, 1fr));
+  border-inline-start: 3px double var(--text);
+}
+
+/* The whole-chart signature, in the gutter before the first system's opening
+ * barline — centered on the row's first line of bars (3rem min-height). The
+ * stacked stave notation itself is the TimeSignature component's own skin
+ * (time-signature.module.css); this class only seats it in the gutter. */
+.headSignature {
+  position: absolute;
+  inset-inline-end: 100%;
+  inset-block-start: 0;
+  height: 3rem;
+  justify-content: center;
+  padding-inline-end: var(--space-3xs);
+  font-size: var(--font-size-m);
+}
+
+.measure {
+  position: relative;
+  display: flex;
+  gap: var(--space-xs);
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xs) var(--space-xs);
+  /* The box renders as a <button> when the sheet is navigable (tap-to-seek):
+     strip the UA button skin so both faces wear the same bar. */
+  border: 0;
+  border-inline-end: 1px solid var(--text);
+  background: none;
+  font: inherit;
+  color: inherit;
+}
+
+button.measure {
+  cursor: pointer;
+}
+
+/* ——— Form notation: repeat bars, voltas, D.C. / Fine / coda, fermata. ——— */
+
+/* |: and :| — the double bar plus its two dots, drawn at the measure edge. */
+.measure[data-repeat-start] {
+  border-inline-start: 3px double var(--text);
+}
+
+/* True repeat dots — two bullets stacked by a hard line break, drawn as text
+ * so they survive print (backgrounds don't). The `/ ''` alternative empties
+ * the seek-button's accessible name (the bare declaration above it is the
+ * fallback for engines without the alt syntax). */
+.measure[data-repeat-start]::before,
+.measure[data-repeat-end]::after {
+  content: '•\A•';
+  content: '•\A•' / '';
+  position: absolute;
+  inset-block-start: 50%;
+  transform: translateY(-50%);
+  white-space: pre;
+  font-family: var(--font-chart);
+  font-size: var(--font-size-s);
+  line-height: 0.6;
+  color: var(--text);
+}
+
+.measure[data-repeat-start]::before {
+  inset-inline-start: var(--space-3xs);
+}
+
+.measure[data-repeat-end] {
+  border-inline-end: 3px double var(--text);
+}
+
+.measure[data-repeat-end]::after {
+  inset-inline-end: var(--space-3xs);
+}
+
+/* A volta measure carries the bracket line; the number prints once, where
+ * the group opens. */
+.volta {
+  border-block-start: 1px solid var(--text);
+}
+
+/* The chart-hand annotations share one recipe; each mark only picks its
+ * corner and size. */
+.annotation {
+  position: absolute;
+  inset-block-start: var(--space-3xs);
+  font-family: var(--font-chart);
+  color: var(--text);
+}
+
+/* The number sits inside the bracket; its left border is the bracket's
+ * opening descender — flush with the volta's top line, but stepped in from
+ * the measure edge so it never fuses with a |: double bar underneath. */
+.voltaLabel {
+  composes: annotation;
+  inset-block-start: 0;
+  inset-inline-start: var(--space-2xs);
+  border-inline-start: 1px solid var(--text);
+  padding-block-start: var(--space-3xs);
+  padding-inline-start: var(--space-3xs);
+  font-size: var(--font-size-xs);
+}
+
+/* The ×N pass count sits over the :| bar it counts, chart-hand small. */
+.passCount {
+  composes: annotation;
+  inset-inline-end: var(--space-3xs);
+  font-size: var(--font-size-xs);
+}
+
+/* D.C. / Fine sit over the bar closing their measure, chart-hand small. */
+.formMark {
+  composes: annotation;
+  inset-inline-end: var(--space-3xs);
+  font-size: var(--font-size-s);
+}
+
+/* The ⊕ sign opening the coda. */
+.codaSign {
+  composes: annotation;
+  inset-inline-start: var(--space-3xs);
+  font-size: var(--font-size-m);
+}
+
+/* A {time: N/M} signature change, printed stacked where the new meter takes
+ * over. Same stave notation as the head signature, annotation-small. */
+.meterSign {
+  position: absolute;
+  inset-block-start: var(--space-3xs);
+  inset-inline-start: var(--space-3xs);
+  font-size: var(--font-size-xs);
+}
+
+/* The fermata over its held measure. */
+.fermata {
+  composes: annotation;
+  inset-block-start: 0;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  font-size: var(--font-size-m);
+  line-height: 1;
+}
+
+.measure:last-child {
+  border-inline-end: 3px double var(--text);
+}
+
+/* The measure under the playhead — the amber « what plays » wash, readable in
+ * the flow without stealing the page (the sheet stays print-first). */
+/* The measures of the source line under the editor's caret (AN.1) — teal, the
+   « where the typing lands » locus. `:where` keeps the specificity at one
+   class so `.current` below still wins the ring: on a measure that is both,
+   the playhead outranks the locus. */
+.measure:where([data-active-line]) {
+  box-shadow: inset 0 0 0 1px var(--teal);
+}
+
+/* AN.2 editing diagnostics — screen affordances only: the panel withholds
+   the sets outside editing, and the print stylesheet (global.css) clears
+   both marks for a print taken while the editor is open. */
+
+/* A bar holding a token read as a chord that cannot be one: dashed amber —
+   « check this », the attention grammar, without claiming playback. */
+.measure:where([data-suspect]) {
+  outline: 1px dashed var(--amber);
+  outline-offset: -3px;
+}
+
+/* A bar the unrolled form never plays: faded — written, never heard. */
+.measure:where([data-unreachable]) {
+  opacity: 0.45;
+}
+
+.current {
+  background: var(--loupe-wash);
+  box-shadow: inset 0 0 0 1px var(--amber-deep);
+}

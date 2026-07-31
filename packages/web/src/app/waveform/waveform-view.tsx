@@ -6,7 +6,7 @@ import {
   type Waveform
 } from '@app/core'
 import { clamp01 } from '../../lib/clamp01.ts'
-import { OperationStatus } from '../ui/operation-status.tsx'
+import { OperationStatus } from '../ui/operation-status/operation-status.tsx'
 import type { ImportState } from './use-player.ts'
 import {
   draggingPair,
@@ -14,7 +14,7 @@ import {
   selectionPair,
   useWaveformGestures
 } from './use-waveform-gestures.ts'
-import { WaveformCanvas } from '../ui/waveform-canvas.tsx'
+import { WaveformCanvas } from '../ui/waveform-canvas/waveform-canvas.tsx'
 import styles from './waveform-view.module.css'
 
 interface WaveformViewProps {

@@ -26,9 +26,9 @@ DAG web, DIP session (3 tranches #307–#309), cliquet `ReturnType` 13 → 0
 Jotai frais). Ne jamais dériver un hook à effet de montage ; seul le seam
 `mixer: Mixer` reste en prop (voulu).
 **Forme des dossiers actée** ([ADR 0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md),
-PR #323) : rôles locaux (`workstation-shell/{regions,orchestration,lifecycle}`,
-`audio/{http,playback,encode,tauri}`), dossier-composant, `composes` via `@/`,
-cliquet `folder-shape` à 16 — `ui` et `lead-sheet` descendront en feuilles.
+PRs #323–#324) : rôles locaux (shell, audio), dossiers-composant
+(ui, lead-sheet), `composes` via `@/`, un composant n'importe que SON css ;
+cliquets `folder-shape` 16 → 11 et `foreign-css` 10 (cible 0, feuilles listées au rapport).
 **Prochaine étape : les garde-fous beta ou la 1re release taguée.**
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond

@@ -139,7 +139,7 @@ msgid "account.sign-out"
 msgstr "Se déconnecter"
 
 #. js-lingui-explicit-id
-#: src/app/ui/alert-banner.tsx
+#: src/app/ui/alert-banner/alert-banner.tsx
 msgid "alerts.close"
 msgstr "Fermer l'alerte"
 
@@ -240,32 +240,32 @@ msgid "analysis.tab-spectrum"
 msgstr "Spectre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chart-header.tsx
+#: src/app/lead-sheet/chart-header/chart-header.tsx
 msgid "chart.form-rollout"
 msgstr "Jouer {count} fois"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chart-header.tsx
+#: src/app/lead-sheet/chart-header/chart-header.tsx
 msgid "chart.key-of"
 msgstr "Tonalité : {key}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/lead-sheet.tsx
+#: src/app/lead-sheet/lead-sheet/lead-sheet.tsx
 msgid "chart.measure-locate"
 msgstr "Placer le curseur sur la mesure {number}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/lead-sheet.tsx
+#: src/app/lead-sheet/lead-sheet/lead-sheet.tsx
 msgid "chart.measure-seek"
 msgstr "Aller à la mesure {number}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/bars-per-row-field.tsx
+#: src/app/lead-sheet/bars-per-row-field/bars-per-row-field.tsx
 msgid "chords.bars-per-row"
 msgstr "Mesures par ligne"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/bars-per-row-field.tsx
+#: src/app/lead-sheet/bars-per-row-field/bars-per-row-field.tsx
 msgid "chords.bars-per-row-unit"
 msgstr "mes. / ligne"
 
@@ -300,13 +300,13 @@ msgid "chords.detecting"
 msgstr "Détection des accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 #: src/app/workstation-shell/shell-test-kit.tsx
 msgid "chords.edit"
 msgstr "Modifier"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.empty-hint"
 msgstr "Aucune grille — saisir les accords ou lancer la détection."
 
@@ -336,170 +336,170 @@ msgid "chords.error.unknown"
 msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.follow-pitch"
 msgstr "Transposer la grille pour suivre"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.follow-pitch-confirm"
 msgstr "Réécrire la grille ?"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.followed"
 msgstr "Grille transposée"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.format-help"
 msgstr "Aide du format"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.format-help-intro"
 msgstr "La grille se tape en texte : une ligne par rangée de mesures."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-directives"
 msgstr "Surcharger l'en-tête de la grille"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-fermata"
 msgstr "Point d'orgue"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-form"
 msgstr "Marques de forme (da capo, coda, fin)"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-measures"
 msgstr "Une mesure entre deux barres"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-repeat"
 msgstr "Reprise"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-repeat-count"
 msgstr "Reprise jouée N fois"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-rollout"
 msgstr "Jouer toute la grille N fois"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-section"
 msgstr "Nommer une section"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-silence"
 msgstr "Mesure sans accord"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-split"
 msgstr "Un accord par moitié de mesure"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-time"
 msgstr "Signature rythmique (en tête ou en cours de grille)"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/format-help-dialog.tsx
+#: src/app/lead-sheet/format-help-dialog/format-help-dialog.tsx
 msgid "chords.help-voltas"
 msgstr "Fins alternatives (voltas)"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 #: src/app/workstation-shell/shell-test-kit.tsx
 msgid "chords.input-label"
 msgstr "Saisir la grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.key-reset"
 msgstr "Revenir à la tonalité écrite"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.key-shift"
 msgstr "Tonalité : {written} → {current} ({offset})"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.key-shift-offset"
 msgstr "Grille transposée de {offset}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.parse-count"
 msgstr "Mesures lues : {measures}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.parse-count-line"
 msgstr "Mesures lues : {measures} · sur cette ligne : {onLine}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.parse-suspects"
 msgstr "{count, plural, one {# accord douteux : {examples}} other {# accords douteux : {examples}}}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.parse-unreachable"
 msgstr "{count, plural, one {# mesure jamais jouée par la forme} other {# mesures jamais jouées par la forme}}"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.pitch-mismatch"
 msgstr "Audio transposé de {pitch} demi-tons, grille de {grid} — la grille ne suit pas."
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.placeholder"
 msgstr "[Couplet]\n"
 "| C | Am | F | G |"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.print"
 msgstr "Imprimer"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.print-desktop-soon"
 msgstr "Impression bientôt disponible sur l'app de bureau"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.respell-flat"
 msgstr "Épeler en bémols"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.respell-sharp"
 msgstr "Épeler en dièses"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.roman-needs-key"
 msgstr "Nommer la tonalité de la grille pour lire en degrés"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.roman-toggle"
 msgstr "Chiffrage romain"
 
@@ -509,31 +509,31 @@ msgid "chords.separating"
 msgstr "Séparation des pistes avant les accords…"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.title"
 msgstr "Grille d'accords"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.transpose-down"
 msgstr "Transposer un demi-ton vers le bas"
 
 #. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel.tsx
+#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.transpose-up"
 msgstr "Transposer un demi-ton vers le haut"
 
 #. js-lingui-explicit-id
 #: src/app/header/import-menu.tsx
-#: src/app/ui/operation-status.tsx
-#: src/app/ui/popover-form.tsx
+#: src/app/ui/operation-status/operation-status.tsx
+#: src/app/ui/popover-form/popover-form.tsx
 #: src/app/workstation-shell/regions/confirm-import-dialog.tsx
 #: src/app/workstation-shell/regions/confirm-quit-dialog.tsx
 msgid "common.cancel"
 msgstr "Annuler"
 
 #. js-lingui-explicit-id
-#: src/app/ui/app-dialog.tsx
+#: src/app/ui/app-dialog/app-dialog.tsx
 msgid "common.close"
 msgstr "Fermer"
 
@@ -550,7 +550,7 @@ msgid "common.delete"
 msgstr "Supprimer"
 
 #. js-lingui-explicit-id
-#: src/app/ui/name-editor.tsx
+#: src/app/ui/name-editor/name-editor.tsx
 #: src/app/workstation-shell/shell-test-kit.tsx
 msgid "common.name"
 msgstr "Nom"
@@ -775,22 +775,22 @@ msgid "header.unsaved"
 msgstr "● Non enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/ui/url-import-field.tsx
+#: src/app/ui/url-import-field/url-import-field.tsx
 msgid "import.url-field"
 msgstr "Lien du morceau"
 
 #. js-lingui-explicit-id
-#: src/app/ui/url-import-field.tsx
+#: src/app/ui/url-import-field/url-import-field.tsx
 msgid "import.url-hint"
 msgstr "YouTube · SoundCloud"
 
 #. js-lingui-explicit-id
-#: src/app/ui/url-import-field.tsx
+#: src/app/ui/url-import-field/url-import-field.tsx
 msgid "import.url-submit"
 msgstr "Importer le lien"
 
 #. js-lingui-explicit-id
-#: src/app/ui/url-import-field.tsx
+#: src/app/ui/url-import-field/url-import-field.tsx
 msgid "import.url-unsupported"
 msgstr "Hôte non supporté — YouTube ou SoundCloud uniquement"
 
@@ -1595,7 +1595,7 @@ msgid "tempo.unit"
 msgstr "BPM"
 
 #. js-lingui-explicit-id
-#: src/app/ui/toast-region.tsx
+#: src/app/ui/toast-region/toast-region.tsx
 msgid "toast.dismiss"
 msgstr "Fermer"
 
@@ -1610,7 +1610,7 @@ msgid "toast.project-saved"
 msgstr "« {name} » enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/ui/toast-region.tsx
+#: src/app/ui/toast-region/toast-region.tsx
 msgid "toast.region"
 msgstr "Notifications"
 

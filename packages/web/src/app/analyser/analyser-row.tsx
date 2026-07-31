@@ -9,9 +9,9 @@ import { msg } from '@lingui/core/macro'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { i18n } from '../../i18n/i18n.ts'
 import { Cluster } from '../../layout/cluster/cluster.tsx'
-import { DetectionAction } from '../ui/detection-action.tsx'
-import { OperationStatus } from '../ui/operation-status.tsx'
-import { LiveStatus } from '../ui/live-status.tsx'
+import { DetectionAction } from '../ui/detection-action/detection-action.tsx'
+import { OperationStatus } from '../ui/operation-status/operation-status.tsx'
+import { LiveStatus } from '../ui/live-status/live-status.tsx'
 import {
   ANALYSIS_OFFLINE,
   CHORDS_ERROR_COPY,

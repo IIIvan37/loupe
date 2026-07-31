@@ -1,4 +1,4 @@
-import type { ChartHeaderData } from './chart-header.tsx'
+import type { ChartHeaderData } from './chart-header/chart-header.tsx'
 
 /**
  * Derive the chart head from the session — the same identity fallbacks as the

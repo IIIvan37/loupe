@@ -1,0 +1,16 @@
+/* The PopoverForm shell wears the shared skin; only the width is ours. */
+.popup {
+  width: min(18rem, calc(100vw - var(--space-l)));
+}
+
+.field {
+  composes: field from '@/app/ui/popover-form/popover-form.module.css';
+}
+
+.label {
+  composes: label from '@/app/ui/popover-form/popover-form.module.css';
+}
+
+.input {
+  composes: input from '@/app/ui/popover-form/popover-form.module.css';
+}

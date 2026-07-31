@@ -1,0 +1,10 @@
+/* ——— Time signature as stave notation: numerator over denominator. ——— */
+
+.timeSignature {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-chart);
+  color: var(--text);
+  line-height: 0.95;
+}

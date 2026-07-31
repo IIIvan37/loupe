@@ -3,7 +3,7 @@ import { msg } from '@lingui/core/macro'
 import { useLingui } from '@lingui/react/macro'
 import { cx } from '../../lib/cx.ts'
 import { i18n } from '../../i18n/i18n.ts'
-import { AppDialog } from '../ui/app-dialog.tsx'
+import { AppDialog } from '../ui/app-dialog/app-dialog.tsx'
 import type { ShortcutHint } from './shortcut-hints.ts'
 import styles from './shortcuts-dialog.module.css'
 

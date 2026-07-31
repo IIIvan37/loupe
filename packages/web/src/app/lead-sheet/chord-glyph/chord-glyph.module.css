@@ -1,0 +1,28 @@
+/* ——— Chart typography: root large, quality superscript, bass stacked. ——— */
+
+.glyph {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-family: var(--font-chart);
+  font-size: var(--font-size-chart-glyph);
+  line-height: 1;
+  color: var(--text);
+}
+
+/* Root + minor read as one word — the sup must not wrap away from them. */
+.glyphHead {
+  white-space: nowrap;
+}
+
+.glyphQuality {
+  font-size: 0.55em;
+  line-height: 0;
+}
+
+/* The slash bass tucks under the head, shifted right — the mockup's stack. */
+.glyphBass {
+  align-self: flex-end;
+  margin-block-start: -0.15em;
+  font-size: 0.65em;
+}
