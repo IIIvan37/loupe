@@ -3,7 +3,6 @@ import {
   type DecodedAudio,
   type LoopRegion,
   type PlaybackEngine,
-  type StemPlaybackEngine,
   type TransportAction,
   type TransportState,
   transportReducer,
@@ -16,11 +15,13 @@ import {
   type ExternalValue
 } from '../../lib/external-value.ts'
 import { useLatest } from '../../lib/use-latest.ts'
+import type { PlaybackTransport } from '../audio-session/audio-session.ts'
 import { transportAtom } from './player-atoms.ts'
 
-/** The transport surface both engines share — what the active one is driven by. */
+/** The commands a caller sends the active engine — the transport minus what
+ * only this hook uses (the position stream, the spectrum tap). */
 export type TransportControls = Pick<
-  PlaybackEngine,
+  PlaybackTransport,
   'play' | 'pause' | 'seekTo' | 'setTimeRatio' | 'setPitchSemitones'
 >
 
@@ -38,8 +39,13 @@ export interface TransportEngines {
 }
 
 export interface TransportEnginesParams {
+  /** The single-track engine — a WHOLE `PlaybackEngine`, not just a transport:
+   * the hand-off also drives its track lifecycle (`unload` on the way out, a
+   * lazy `load` on the way back). That surface is the track engine's alone. */
   readonly playback: PlaybackEngine
-  readonly stemPlayback: StemPlaybackEngine
+  /** The stem mix as a transport ONLY: this hook never loads a stem, never
+   * touches a gain, never reads a stem's PCM (see {@link PlaybackTransport}). */
+  readonly stemPlayback: PlaybackTransport
   /** Whether the multitrack mix drives the transport (vs the single track). */
   readonly stemsActive: boolean
   /**

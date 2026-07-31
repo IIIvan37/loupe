@@ -1,13 +1,9 @@
 // @vitest-environment jsdom
-import type {
-  DecodedAudio,
-  LoopRegion,
-  PlaybackEngine,
-  StemPlaybackEngine
-} from '@app/core'
+import type { DecodedAudio, LoopRegion, PlaybackEngine } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
 import { Provider } from 'jotai'
 import { describe, expect, it, vi } from 'vitest'
+import type { PlaybackTransport } from '../audio-session/audio-session.ts'
 import {
   type TransportEnginesParams,
   useTransportEngines
@@ -42,19 +38,23 @@ function fakePlayback() {
   return { engine, emit }
 }
 
-function fakeStemPlayback() {
+/**
+ * The stem side AS THE TRANSPORT SEES IT: the seven shared members, nothing
+ * else — no `load`, no `addStem`, no `stemAudio`. The hook reaching for the mix
+ * graph or the PCM custody would throw here instead of coupling in silence
+ * (the type alone only guards the injected path).
+ */
+function fakeStemTransport() {
   const base = fakePlayback()
-  const engine: StemPlaybackEngine = {
-    ...base.engine,
-    // The stem engine's `load` takes stems, not a single track — override the
-    // spread `PlaybackEngine.load` so the literal matches `StemPlaybackEngine`.
-    load: vi.fn(async () => {}),
-    addStem: vi.fn(async () => {}),
-    removeStem: vi.fn(),
-    setGain: vi.fn(),
-    stemAudio: () => undefined
+  const transport: PlaybackTransport = {
+    play: base.engine.play,
+    pause: base.engine.pause,
+    seekTo: base.engine.seekTo,
+    setTimeRatio: base.engine.setTimeRatio,
+    setPitchSemitones: base.engine.setPitchSemitones,
+    onPositionChange: base.engine.onPositionChange
   }
-  return { engine, emit: base.emit }
+  return { transport, emit: base.emit }
 }
 
 type Props = Omit<
@@ -64,7 +64,7 @@ type Props = Omit<
 
 function mount(
   playback: PlaybackEngine,
-  stemPlayback: StemPlaybackEngine,
+  stemPlayback: PlaybackTransport,
   initial: Props
 ) {
   return renderHook(
@@ -83,8 +83,8 @@ function mount(
 describe('useTransportEngines', () => {
   it('wraps playback to the loop start when the position passes the loop end', () => {
     const pb = fakePlayback()
-    const stem = fakeStemPlayback()
-    const { result } = mount(pb.engine, stem.engine, {
+    const stem = fakeStemTransport()
+    const { result } = mount(pb.engine, stem.transport, {
       stemsActive: false,
       loopRegion: region(2, 6),
       loopEnabled: true
@@ -102,8 +102,8 @@ describe('useTransportEngines', () => {
     // rate; routing it through React state re-rendered the whole workstation
     // 60-120 times a second. Ticks land in the position store only.
     const pb = fakePlayback()
-    const stem = fakeStemPlayback()
-    const { result } = mount(pb.engine, stem.engine, {
+    const stem = fakeStemTransport()
+    const { result } = mount(pb.engine, stem.transport, {
       stemsActive: false,
       loopRegion: undefined,
       loopEnabled: true
@@ -118,8 +118,8 @@ describe('useTransportEngines', () => {
 
   it('streams the ticked position through the store', () => {
     const pb = fakePlayback()
-    const stem = fakeStemPlayback()
-    const { result } = mount(pb.engine, stem.engine, {
+    const stem = fakeStemTransport()
+    const { result } = mount(pb.engine, stem.transport, {
       stemsActive: false,
       loopRegion: undefined,
       loopEnabled: true
@@ -133,8 +133,8 @@ describe('useTransportEngines', () => {
 
   it('stops playback when the position reaches the end of the timeline', () => {
     const pb = fakePlayback()
-    const stem = fakeStemPlayback()
-    const { result } = mount(pb.engine, stem.engine, {
+    const stem = fakeStemTransport()
+    const { result } = mount(pb.engine, stem.transport, {
       stemsActive: false,
       loopRegion: undefined,
       loopEnabled: true
@@ -151,8 +151,8 @@ describe('useTransportEngines', () => {
 
   it('plays straight through when looping is disarmed', () => {
     const pb = fakePlayback()
-    const stem = fakeStemPlayback()
-    const { result } = mount(pb.engine, stem.engine, {
+    const stem = fakeStemTransport()
+    const { result } = mount(pb.engine, stem.transport, {
       stemsActive: false,
       loopRegion: region(2, 6),
       loopEnabled: false
@@ -167,8 +167,8 @@ describe('useTransportEngines', () => {
 
   it('wraps on the stem engine once the mix drives the transport', () => {
     const pb = fakePlayback()
-    const stem = fakeStemPlayback()
-    const { result, rerender } = mount(pb.engine, stem.engine, {
+    const stem = fakeStemTransport()
+    const { result, rerender } = mount(pb.engine, stem.transport, {
       stemsActive: false,
       loopRegion: region(2, 6),
       loopEnabled: true
@@ -178,15 +178,15 @@ describe('useTransportEngines', () => {
 
     act(() => stem.emit(6.5))
 
-    expect(stem.engine.seekTo).toHaveBeenCalledWith(2)
+    expect(stem.transport.seekTo).toHaveBeenCalledWith(2)
     expect(pb.engine.seekTo).not.toHaveBeenCalled()
   })
 
   it('notifies each completed loop pass, and only those', () => {
     const pb = fakePlayback()
-    const stem = fakeStemPlayback()
+    const stem = fakeStemTransport()
     const onLoopWrap = vi.fn()
-    const { result } = mount(pb.engine, stem.engine, {
+    const { result } = mount(pb.engine, stem.transport, {
       stemsActive: false,
       loopRegion: region(2, 6),
       loopEnabled: true,
@@ -207,9 +207,9 @@ describe('useTransportEngines', () => {
 
   it('pulls a playhead left outside the loop up to its start, earning nothing', () => {
     const pb = fakePlayback()
-    const stem = fakeStemPlayback()
+    const stem = fakeStemTransport()
     const onLoopWrap = vi.fn()
-    const { result } = mount(pb.engine, stem.engine, {
+    const { result } = mount(pb.engine, stem.transport, {
       stemsActive: false,
       loopRegion: region(2, 6),
       loopEnabled: true,
@@ -228,9 +228,9 @@ describe('useTransportEngines', () => {
 
   it('wraps a seek far past the loop end without counting a pass', () => {
     const pb = fakePlayback()
-    const stem = fakeStemPlayback()
+    const stem = fakeStemTransport()
     const onLoopWrap = vi.fn()
-    const { result } = mount(pb.engine, stem.engine, {
+    const { result } = mount(pb.engine, stem.transport, {
       stemsActive: false,
       loopRegion: region(2, 6),
       loopEnabled: true,
@@ -247,9 +247,9 @@ describe('useTransportEngines', () => {
 
   it('does not notify a pass when looping is disarmed', () => {
     const pb = fakePlayback()
-    const stem = fakeStemPlayback()
+    const stem = fakeStemTransport()
     const onLoopWrap = vi.fn()
-    const { result } = mount(pb.engine, stem.engine, {
+    const { result } = mount(pb.engine, stem.transport, {
       stemsActive: false,
       loopRegion: region(2, 6),
       loopEnabled: false,
@@ -264,8 +264,8 @@ describe('useTransportEngines', () => {
 
   it('hands the playhead to the stem mix on a real switch, not on mount', () => {
     const pb = fakePlayback()
-    const stem = fakeStemPlayback()
-    const { result, rerender } = mount(pb.engine, stem.engine, {
+    const stem = fakeStemTransport()
+    const { result, rerender } = mount(pb.engine, stem.transport, {
       stemsActive: false,
       loopRegion: undefined,
       loopEnabled: true
@@ -284,8 +284,8 @@ describe('useTransportEngines', () => {
     rerender({ stemsActive: true, loopRegion: undefined, loopEnabled: true })
 
     expect(pb.engine.pause).toHaveBeenCalled()
-    expect(stem.engine.pause).toHaveBeenCalled()
-    expect(stem.engine.seekTo).toHaveBeenCalledWith(5)
+    expect(stem.transport.pause).toHaveBeenCalled()
+    expect(stem.transport.seekTo).toHaveBeenCalledWith(5)
     expect(result.current.transport.isPlaying).toBe(false)
   })
 })
@@ -302,10 +302,10 @@ describe('useTransportEngines — track engine unload across the hand-off (V.2)'
   /** Mount at the track, move the playhead to 5 s, then hand off to the mix. */
   function handOff(
     pb: ReturnType<typeof fakePlayback>,
-    stem: ReturnType<typeof fakeStemPlayback>,
+    stem: ReturnType<typeof fakeStemTransport>,
     trackAudio?: DecodedAudio
   ) {
-    const view = mount(pb.engine, stem.engine, props(false, trackAudio))
+    const view = mount(pb.engine, stem.transport, props(false, trackAudio))
     act(() => {
       view.result.current.dispatch({ type: 'load', durationSeconds: 10 })
       view.result.current.dispatch({ type: 'seek', toSeconds: 5 })
@@ -325,21 +325,21 @@ describe('useTransportEngines — track engine unload across the hand-off (V.2)'
 
   it('releases the track engine audio when the mix takes over', () => {
     const pb = fakePlayback()
-    handOff(pb, fakeStemPlayback(), audio)
+    handOff(pb, fakeStemTransport(), audio)
 
     expect(pb.engine.unload).toHaveBeenCalledTimes(1)
   })
 
   it('does not release anything on mount', () => {
     const pb = fakePlayback()
-    mount(pb.engine, fakeStemPlayback().engine, props(true, audio))
+    mount(pb.engine, fakeStemTransport().transport, props(true, audio))
 
     expect(pb.engine.unload).not.toHaveBeenCalled()
   })
 
   it('reloads the kept track audio when the transport hands back', () => {
     const pb = fakePlayback()
-    const view = handOff(pb, fakeStemPlayback(), audio)
+    const view = handOff(pb, fakeStemTransport(), audio)
 
     view.rerender(props(false, audio))
 
@@ -348,7 +348,7 @@ describe('useTransportEngines — track engine unload across the hand-off (V.2)'
 
   it('restores the playhead on the track engine once the reload resolves', async () => {
     const pb = fakePlayback()
-    const view = handOff(pb, fakeStemPlayback(), audio)
+    const view = handOff(pb, fakeStemTransport(), audio)
 
     view.rerender(props(false, audio))
     await act(async () => {})
@@ -359,7 +359,7 @@ describe('useTransportEngines — track engine unload across the hand-off (V.2)'
   it('does not seek the track engine before the reload resolves', () => {
     const pb = fakePlayback()
     pendingLoad(pb)
-    const view = handOff(pb, fakeStemPlayback(), audio)
+    const view = handOff(pb, fakeStemTransport(), audio)
 
     view.rerender(props(false, audio))
 
@@ -369,7 +369,7 @@ describe('useTransportEngines — track engine unload across the hand-off (V.2)'
   it('restores the live playhead, not the hand-back snapshot, when a seek lands during the reload', async () => {
     const pb = fakePlayback()
     const resolve = pendingLoad(pb)
-    const view = handOff(pb, fakeStemPlayback(), audio)
+    const view = handOff(pb, fakeStemTransport(), audio)
 
     view.rerender(props(false, audio))
     // The engine cannot honour a seek while buffer-less — the store carries it.
@@ -382,7 +382,7 @@ describe('useTransportEngines — track engine unload across the hand-off (V.2)'
   it('resumes playback after the reload when play was pressed during it', async () => {
     const pb = fakePlayback()
     const resolve = pendingLoad(pb)
-    const view = handOff(pb, fakeStemPlayback(), audio)
+    const view = handOff(pb, fakeStemTransport(), audio)
 
     view.rerender(props(false, audio))
     // Play pressed while the engine is still buffer-less: the transport state
@@ -395,7 +395,7 @@ describe('useTransportEngines — track engine unload across the hand-off (V.2)'
 
   it('does not start playback after the reload when the transport is paused', async () => {
     const pb = fakePlayback()
-    const view = handOff(pb, fakeStemPlayback(), audio)
+    const view = handOff(pb, fakeStemTransport(), audio)
 
     view.rerender(props(false, audio))
     await act(async () => {})
@@ -406,7 +406,7 @@ describe('useTransportEngines — track engine unload across the hand-off (V.2)'
   it('skips the playhead restore when a new track took over during the reload', async () => {
     const pb = fakePlayback()
     const resolve = pendingLoad(pb)
-    const view = handOff(pb, fakeStemPlayback(), audio)
+    const view = handOff(pb, fakeStemTransport(), audio)
 
     view.rerender(props(false, audio))
     // A fresh import replaces the kept PCM while the reload is in flight.
@@ -419,7 +419,7 @@ describe('useTransportEngines — track engine unload across the hand-off (V.2)'
   it('skips the playhead restore when the mix re-took the transport during the reload', async () => {
     const pb = fakePlayback()
     const resolve = pendingLoad(pb)
-    const view = handOff(pb, fakeStemPlayback(), audio)
+    const view = handOff(pb, fakeStemTransport(), audio)
 
     view.rerender(props(false, audio))
     view.rerender(props(true, audio))
@@ -430,7 +430,7 @@ describe('useTransportEngines — track engine unload across the hand-off (V.2)'
 
   it('does not reload when no track audio is kept', () => {
     const pb = fakePlayback()
-    const view = handOff(pb, fakeStemPlayback(), undefined)
+    const view = handOff(pb, fakeStemTransport(), undefined)
 
     view.rerender(props(false))
 

@@ -10,7 +10,6 @@ import {
   type PlaybackEngine,
   type ProjectTuning,
   type SpectrumFrame,
-  type StemPlaybackEngine,
   type TrackMetadata,
   type TrackMetadataReader,
   type TransportState
@@ -24,8 +23,10 @@ import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.
 import type { ExternalValue } from '../../lib/external-value.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 import {
+  type PlaybackTransport,
   type PlayerHandle,
-  useAudioSession
+  useAudioSession,
+  useStemTransport
 } from '../audio-session/audio-session.ts'
 import {
   type SpeedTrainer,
@@ -109,15 +110,18 @@ export interface Player {
  * and engines default to the real Web Audio adapters and are injected in tests.
  *
  * Unified transport: once the mixer holds stems, the same play/pause/seek/
- * tempo/pitch controls drive the multitrack `StemPlaybackEngine` instead of the
- * single-track one — one playhead, one loop, for the whole mix. That fact is
- * read from the mixer's own atom (ADR 0010), not handed down by the shell.
+ * tempo/pitch controls drive the multitrack mix instead of the single track —
+ * one playhead, one loop, for the whole mix. That fact is read from the mixer's
+ * own atom (ADR 0010), not handed down by the shell. The mix is seen as a
+ * {@link PlaybackTransport} only: this hook never loads a stem nor moves a
+ * fader, so the single-track engine (which it does load and unload) is the one
+ * port it still names whole.
  */
 export function usePlayer(
   decoder?: AudioFileDecoder,
   engine?: PlaybackEngine,
   metadataReader?: TrackMetadataReader,
-  stemEngine?: StemPlaybackEngine
+  stemEngine?: PlaybackTransport
 ): Player {
   const session = useAudioSession()
   const stemsActive = useAtomValue(stemsActiveAtom)
@@ -131,7 +135,11 @@ export function usePlayer(
     () => injectedEngine ?? createWebAudioPlayback(),
     [injectedEngine]
   )
-  const injectedStemEngine = stemEngine ?? session.stemEngine
+  // The mix is reached as a transport: the player drives play/seek/tempo/pitch
+  // and reads its spectrum — loading stems and moving faders belong to the
+  // mixer, through its own slice of the same engine.
+  const seatedStemTransport = useStemTransport()
+  const injectedStemEngine = stemEngine ?? seatedStemTransport
   const stemPlayback = useMemo(
     () => injectedStemEngine ?? createWebAudioStemPlayback(),
     [injectedStemEngine]
