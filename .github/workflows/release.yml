@@ -101,6 +101,11 @@ jobs:
         run: |
           mkdir -p dist
           v="$GITHUB_REF_NAME"
+          # download-artifact strips file modes: without this chmod the tars
+          # ship a non-executable binary (v0.1.0 shipped that way — assets
+          # were repaired by hand, see the 2026-07-31 release session report).
+          chmod +x staged/loupe-x86_64-unknown-linux-gnu/loupe \
+            staged/loupe-aarch64-apple-darwin/loupe
           tar -czf "dist/loupe-$v-x86_64-unknown-linux-gnu.tar.gz" \
             -C staged/loupe-x86_64-unknown-linux-gnu loupe
           tar -czf "dist/loupe-$v-aarch64-apple-darwin.tar.gz" \
