@@ -6,13 +6,13 @@
 
 ## Actions opérateur restantes (commandes prêtes)
 
-- [ ] **Redeploy Modal** — prendre le défaut d'origins sans `tauri://`
-  (retiré en #327) et l'arbre `server/` rétréci (#328) :
-  `cd server && .venv/bin/modal deploy modal_app.py`
-  (rebuild d'image attendu : `requirements.txt` a perdu yt-dlp ; l'ancien
-  défaut reste inerte d'ici là).
-- [ ] **Redeploy Edge Function** — même motif :
-  `supabase functions deploy mint-analyze-token --use-api`
+- [x] **Redeploy Modal** — **FAIT ET VÉRIFIÉ (2026-07-31)** : défaut
+  d'origins sans `tauri://` (#327) + arbre `server/` rétréci (#328) en ligne.
+  Préflight curl : `Origin: http://localhost:5173` → écho allow-origin,
+  `Origin: tauri://localhost` → 400 sans écho.
+- [x] **Redeploy Edge Function** — **FAIT ET VÉRIFIÉ (2026-07-31)** : même
+  contrôle préflight (5173 échoïsé, `tauri://` 204 sans écho — le navigateur
+  bloque).
 - [ ] **Re-seed des codes beta legacy < 32 chars** en prod (runbook U.3 : le
   CHECK d'entropie ne couvre que les nouveaux inserts). ⚠️ invalide les codes
   courts déjà distribués — redistribuer les nouveaux. Dans le SQL editor :
