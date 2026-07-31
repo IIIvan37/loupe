@@ -51,6 +51,13 @@ export function BarsPerRowField({ value, onChange }: BarsPerRowFieldProps) {
         onChange={(event) => {
           setBarsDraft(event.target.value)
           setBarsBadInput(event.target.validity?.badInput ?? false)
+          // react-doctor flags the bare `Number(…)`, but the parse IS guarded —
+          // just not inline: `isValidBarsPerRow` requires an integer within
+          // [MIN, MAX], so the two values the rule warns about, `Number('') === 0`
+          // and `Number('abc') === NaN`, are both rejected before `onChange`.
+          // Exempted here rather than repo-wide: the rule catches real bugs
+          // elsewhere, and the reasoning belongs next to the guard.
+          // oxlint-disable-next-line react-doctor/no-unguarded-numeric-input-parse
           const bars = Number(event.target.value)
           // A live preview only — the choice settles (and persists) on
           // blur, so a rejected edit's prefix never sticks.

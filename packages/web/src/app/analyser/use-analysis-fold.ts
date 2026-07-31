@@ -52,11 +52,12 @@ export function useAnalysisFold(): AnalysisFold {
   const [open, setOpen] = useState(() => readStoredOpen() ?? true)
 
   function toggle(): void {
-    setOpen((current) => {
-      const next = !current
-      storeOpen(next)
-      return next
-    })
+    // The write stays OUTSIDE the setter: React may replay a state updater, and
+    // persistence inside one would run more than once. The rendered `open` is
+    // the right source here — a toggle comes from a click, one per render.
+    const next = !open
+    setOpen(next)
+    storeOpen(next)
   }
 
   function seatForFreshImport(): void {

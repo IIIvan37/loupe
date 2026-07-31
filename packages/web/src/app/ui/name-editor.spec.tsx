@@ -51,6 +51,25 @@ describe('NameEditor', () => {
     expect(onSubmit).toHaveBeenCalledWith('Après')
   })
 
+  it('ignores the Enter that validates an IME candidate', async () => {
+    // A CJK keyboard confirms a candidate with Enter: that keystroke belongs to
+    // the composition, not to the form. Submitting on it would rename the thing
+    // to a half-composed name the user never finished typing.
+    const user = userEvent.setup()
+    const { onSubmit } = renderEditor()
+    await user.click(screen.getByRole('button', { name: 'Renommer la chose' }))
+    const input = screen.getByLabelText(i18n._('common.name'))
+    await user.clear(input)
+    await user.type(input, 'にほんご')
+
+    fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+    expect(onSubmit).not.toHaveBeenCalled()
+
+    // The Enter that follows the composition is the user's own — it submits.
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(onSubmit).toHaveBeenCalledWith('にほんご')
+  })
+
   it('refuses an empty name', async () => {
     const user = userEvent.setup()
     const { onSubmit } = renderEditor({ initialName: '' })

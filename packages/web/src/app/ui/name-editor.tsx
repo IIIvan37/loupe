@@ -50,7 +50,10 @@ export function NameEditor({
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>): void {
-    if (event.key === 'Enter') {
+    // An IME (CJK input) confirms its candidate with Enter: that keystroke
+    // belongs to the composition, not to the form. Submitting on it would
+    // commit a half-composed name the user never finished typing.
+    if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
       event.preventDefault()
       submit()
     }
