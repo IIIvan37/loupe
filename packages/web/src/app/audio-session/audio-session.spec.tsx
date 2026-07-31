@@ -16,7 +16,8 @@ import {
   type PlayerHandle,
   useAudioSession,
   usePlayerHandle,
-  useStemAudio
+  useStemAudio,
+  useStemMixGraph
 } from './audio-session.ts'
 
 const decoder: AudioFileDecoder = {
@@ -109,6 +110,45 @@ describe('useStemAudio', () => {
 
   it('is undefined while no engine is seated — no stems, no PCM to read', () => {
     const { result } = renderHook(() => useStemAudio())
+
+    expect(result.current).toBeUndefined()
+  })
+})
+
+describe('useStemMixGraph', () => {
+  const gains: [string, number][] = []
+  /** A stem engine of which the mixer must see only the gain-graph slice. */
+  const engine = {
+    load: async () => {},
+    addStem: async () => {},
+    removeStem: () => {},
+    play: () => {},
+    pause: () => {},
+    seekTo: () => {},
+    setTimeRatio: () => {},
+    setPitchSemitones: () => {},
+    setGain: (id: string, gain: number) => {
+      gains.push([id, gain])
+    },
+    stemAudio: () => undefined,
+    onPositionChange: () => () => {}
+  } satisfies StemPlaybackEngine
+
+  it('drives the seated gain graph through the narrow interface', () => {
+    const wrapper = ({ children }: { readonly children: ReactNode }) => (
+      <AudioSessionProvider value={{ stemEngine: engine }}>
+        {children}
+      </AudioSessionProvider>
+    )
+
+    const { result } = renderHook(() => useStemMixGraph(), { wrapper })
+    result.current?.setGain('bass', 0.5)
+
+    expect(gains).toEqual([['bass', 0.5]])
+  })
+
+  it('is undefined while no engine is seated — the mixer requires one itself', () => {
+    const { result } = renderHook(() => useStemMixGraph())
 
     expect(result.current).toBeUndefined()
   })

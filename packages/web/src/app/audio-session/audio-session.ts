@@ -8,8 +8,10 @@ import type {
   ProjectDeps,
   SpectrumFrame,
   SpeedTrainerPolicy,
+  StemFilter,
   StemPlaybackEngine,
   StemSeparator,
+  StemSource,
   StructureDetector,
   TempoDetector,
   TrackMetadataReader,
@@ -74,6 +76,28 @@ export interface StemAudioSource {
 }
 
 /**
+ * The live gain graph — the second disjoint slice of the stem engine's surface
+ * (five members of fifteen): what the mixer drives when a fader, a mute, a solo
+ * or a fresh separation changes what is heard. It knows nothing of the transport
+ * (the mixer never starts playback) nor of PCM custody (that is
+ * {@link StemAudioSource}). Declared HERE, shaped by `useMixer`, so the mixer
+ * stops naming the core's fifteen-member `StemPlaybackEngine` (DIP — the seam
+ * declares, the adapter satisfies it structurally, like {@link CountInPlayer}).
+ */
+export interface StemMixGraph {
+  /** Load these stems' PCM as the current mix (every channel back at unity). */
+  readonly load: (stems: readonly StemSource[]) => Promise<void>
+  /** Add one stem to the running mix, joining in sync at the current position. */
+  readonly addStem: (stem: StemSource) => Promise<void>
+  /** Drop one stem from the mix, leaving the rest playing. */
+  readonly removeStem: (id: string) => void
+  /** Set one channel's linear output gain (0 = silent) — an `effectiveGains` value. */
+  readonly setGain: (id: string, gain: number) => void
+  /** Shape one stem's tone, when the adapter supports it (browser). */
+  readonly setStemFilter?: (id: string, filter: StemFilter) => void
+}
+
+/**
  * The audio session's injectable ports (ADR 0011) — stable references, set
  * once at mount, never rewritten. A consumer hook reads the session to REACH
  * a port, never to create one: an absent entry means « use the real adapter »,
@@ -114,6 +138,18 @@ export function useAudioSession(): AudioSession {
  * whose reader closes over `this` keeps working.
  */
 export function useStemAudio(): StemAudioSource | undefined {
+  return useAudioSession().stemEngine
+}
+
+/**
+ * Reach the live gain graph without seeing the transport that shares the same
+ * engine — undefined until the shell seats one. The mixer decides what an
+ * absent graph means (it throws: the mix has ONE graph, never a private one),
+ * so the seam stays a reader. Like {@link useStemAudio}, the engine object is
+ * returned narrowed — no member is extracted, so an adapter whose methods close
+ * over `this` keeps working.
+ */
+export function useStemMixGraph(): StemMixGraph | undefined {
   return useAudioSession().stemEngine
 }
 

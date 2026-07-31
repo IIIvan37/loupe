@@ -6,13 +6,15 @@ import {
   mixerReducer,
   type SeparatedStem,
   type StemFilter,
-  type StemPlaybackEngine,
   type StemSet,
   type StemTrack
 } from '@app/core'
 import { useAtom } from 'jotai'
 import { useMemo } from 'react'
-import { useAudioSession } from '../audio-session/audio-session.ts'
+import {
+  type StemMixGraph,
+  useStemMixGraph
+} from '../audio-session/audio-session.ts'
 import { mixableAtom, mixerStateAtom, stemFiltersAtom } from './mixer-atoms.ts'
 
 /** One mixer strip: the stem to display + its live controls and fading level. */
@@ -74,15 +76,13 @@ export interface Mixer {
 /** The session's engine is seated by the shell; its absence is a programming
  * error, not a fallback case — the mix has ONE gain graph, so a bare consumer
  * must never create a private engine of its own (unlike stateless ports). */
-function requireStemEngine(
-  engine: StemPlaybackEngine | undefined
-): StemPlaybackEngine {
-  if (engine === undefined) {
+function requireMixGraph(graph: StemMixGraph | undefined): StemMixGraph {
+  if (graph === undefined) {
     throw new Error(
       'useMixer: no stem engine in the audio session — render under the workstation shell'
     )
   }
-  return engine
+  return graph
 }
 
 /**
@@ -94,12 +94,14 @@ function requireStemEngine(
  * so solo/mute/volume are always reflected in what is heard. The same effective
  * gain (clamped) is each lane's opacity.
  *
- * Callable by any consumer (ADR 0010): the engine argument is the shell stack's
- * (it creates the singleton); a region calls it bare and reaches the same
- * engine through the audio session (ADR 0011).
+ * Callable by any consumer (ADR 0010): the graph argument is the shell stack's
+ * engine (it creates the singleton); a region calls it bare and reaches the same
+ * gain graph through the audio session (ADR 0011), seen through the narrow
+ * {@link StemMixGraph} — the transport and the PCM custody are none of its
+ * business.
  */
-export function useMixer(injected?: StemPlaybackEngine): Mixer {
-  const session = useAudioSession()
+export function useMixer(injected?: StemMixGraph): Mixer {
+  const seated = useStemMixGraph()
   // The state itself lives in the feature's atoms (ADR 0010); the hook keeps
   // what only it can do — driving the playback engine alongside each change.
   const [state, dispatch] = useAtom(mixerStateAtom)
@@ -131,7 +133,7 @@ export function useMixer(injected?: StemPlaybackEngine): Mixer {
     })
   }, [state, mixable, filters])
 
-  const engine = requireStemEngine(injected ?? session.stemEngine)
+  const engine = requireMixGraph(injected ?? seated)
 
   // Pair each present stem with its PCM, hand the pairs to the gain graph and
   // adopt the display tracks. Both `load` and `restore` start here; only the
