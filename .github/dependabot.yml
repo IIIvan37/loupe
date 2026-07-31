@@ -11,7 +11,28 @@ updates:
     commit-message:
       prefix: chore
       include: scope
+    # A dependency joins the FIRST group it matches, so the version-locked
+    # families are declared before the catch-all `dev-dependencies` — otherwise
+    # their dev half (@lingui/cli, @types/react) would land in the generic group
+    # and split the family across two PRs, which is the very failure below.
     groups:
+      # React and its renderer must move in ONE PR: react-dom refuses to run
+      # against a different react version ("Incompatible React versions"), so a
+      # solo bump reds the whole suite — 72 failed files on PR #273. The types
+      # follow the runtime, same reason.
+      react:
+        patterns:
+          - react
+          - react-dom
+          - "@types/react"
+          - "@types/react-dom"
+      # Same lock, different symptom: the @lingui/* packages exchange types
+      # across their boundary (`I18n`), so a solo bump leaves two copies of that
+      # type in the store and typecheck fails on an « I18n is not assignable to
+      # I18n » — PR #274.
+      lingui:
+        patterns:
+          - "@lingui/*"
       dev-dependencies:
         dependency-type: development
         update-types:

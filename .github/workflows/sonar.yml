@@ -17,6 +17,18 @@ jobs:
   analyze:
     name: SonarCloud analysis
     runs-on: ubuntu-latest
+    # Dependabot PRs run with the Dependabot secret store, NOT the Actions one,
+    # so `secrets.SONAR_TOKEN` is empty there and the scan fails on every single
+    # one of them — a red check that says nothing about the bump. Skipping is the
+    # right answer rather than mirroring the token into Dependabot secrets: a
+    # lockfile bump adds no code to analyse, and a token reachable from a
+    # bot-authored branch is exactly the exposure to avoid. Analysis on `main`
+    # (after the merge) still covers whatever the bump changed.
+    # The job is SKIPPED, not absent: the workflow still triggers, so the
+    # required check reports and the PR is not left waiting on it.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.user.login != 'dependabot[bot]'
     timeout-minutes: 20
     steps:
       # Full history: SonarCloud needs it to compute new-code periods and blame.
