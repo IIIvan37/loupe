@@ -20,8 +20,7 @@ import os
 # wholesale (see docs/j2-supabase-runbook.md).
 # 5173 = Vite dev ; 6173 = the distributed local server (`loupe`, D3).
 DEFAULT_ALLOWED_ORIGINS = (
-    "http://localhost:5173,http://127.0.0.1:5173"
-    ",http://localhost:6173,http://127.0.0.1:6173"
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:6173,http://127.0.0.1:6173"
 )
 
 
