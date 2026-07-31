@@ -26,9 +26,9 @@ DAG web, DIP session (3 tranches #307–#309), cliquet `ReturnType` 13 → 0
 Jotai frais). Ne jamais dériver un hook à effet de montage ; seul le seam
 `mixer: Mixer` reste en prop (voulu).
 **Forme des dossiers actée** ([ADR 0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md),
-PRs #323–#325) : rôles locaux, dossiers-composant, `composes` via `@/`,
-un composant n'importe que SON css (`foreign-css` **à 0**, #325) ;
-cliquet `folder-shape` 16 → 11, balayage des dossiers restants en cours.
+PRs #323–#326, **soldé**) : rôles locaux, dossiers-composant partout,
+`composes` via `@/`, un composant n'importe que SON css (`foreign-css` à 0) ;
+cliquets `folder-shape` (11) et `foreign-css` (0) en garde.
 **Prochaine étape : les garde-fous beta ou la 1re release taguée.**
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
