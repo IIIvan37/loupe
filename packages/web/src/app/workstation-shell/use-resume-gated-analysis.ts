@@ -3,18 +3,23 @@ import { useAtomValue } from 'jotai'
 import { useCallback } from 'react'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
+import type { Mixer } from '../mixer/use-mixer.ts'
 import { separationGateReasonAtom } from '../separation/separation-atoms.ts'
 import { tempoGateReasonAtom } from '../tempo/tempo-atoms.ts'
-import type { useTempoDetection } from '../tempo/use-tempo-detection.ts'
+import { useRunTempoDetection } from '../tempo/use-run-tempo-detection.ts'
 
 interface ResumeFlows {
   readonly structureDetection: StructureDetection
   readonly chordDetection: ChordDetection
-  readonly tempoDetection: ReturnType<typeof useTempoDetection>
   readonly separateAndLoad: (
     audio: DecodedAudio | undefined
   ) => Promise<readonly SeparatedStem[] | undefined>
   readonly loadedAudio: DecodedAudio | undefined
+  /** The mix a replayed detection seats its click into — the shell stack's
+   * instance (the engine seam, same idiom as `MetronomeDeps`). */
+  readonly mixer: Mixer
+  /** A separation holds the mixer — the replayed click must not clobber it. */
+  readonly separationOwnsMix: boolean
 }
 
 /**
@@ -26,14 +31,18 @@ export function useResumeGatedAnalysis(flows: ResumeFlows): () => void {
   const {
     structureDetection,
     chordDetection,
-    tempoDetection,
     separateAndLoad,
-    loadedAudio
+    loadedAudio,
+    mixer,
+    separationOwnsMix
   } = flows
   // The tempo's and separation's gate reasons are feature-owned now (ADR
   // 0010): read them off their atoms instead of receiving whole hook bags.
   const tempoGateReason = useAtomValue(tempoGateReasonAtom)
   const separationGateReason = useAtomValue(separationGateReasonAtom)
+  // The replayed detection is the feature's own flow (ADR 0010), derived
+  // here — the same detect → seat-the-click run the panel's retry fires.
+  const runTempoDetection = useRunTempoDetection({ mixer, separationOwnsMix })
   return useCallback(() => {
     if (structureDetection.gateReason !== undefined) {
       void structureDetection.detect()
@@ -41,8 +50,8 @@ export function useResumeGatedAnalysis(flows: ResumeFlows): () => void {
     if (chordDetection.gateReason !== undefined) {
       void chordDetection.detect()
     }
-    if (tempoGateReason !== undefined) {
-      tempoDetection.retry()
+    if (tempoGateReason !== undefined && loadedAudio) {
+      runTempoDetection(loadedAudio)
     }
     if (separationGateReason !== undefined) {
       void separateAndLoad(loadedAudio)
@@ -51,7 +60,7 @@ export function useResumeGatedAnalysis(flows: ResumeFlows): () => void {
     structureDetection,
     chordDetection,
     tempoGateReason,
-    tempoDetection,
+    runTempoDetection,
     separationGateReason,
     separateAndLoad,
     loadedAudio
