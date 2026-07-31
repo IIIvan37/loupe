@@ -11,6 +11,9 @@ click-to-seek, transport, time-stretch and pitch (SoundTouch), markers, A/B loop
 voice/drums/bass/other). Built as a **pnpm monorepo** with a **pure hexagonal
 core**, **strict TDD**, and a **blocking quality gate**.
 
+**User guide (features, install, shortcuts — in French):**
+[docs/guide-utilisateur.md](docs/guide-utilisateur.md)
+
 ## Architecture
 
 - **`@app/core`** — the pure hexagon. `src/domain` (model) + `src/application`

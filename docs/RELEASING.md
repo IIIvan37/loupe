@@ -23,7 +23,9 @@ et pousse la formule au tap quand le secret est configuré.
 ## Canaux d'installation
 
 - **brew (macOS arm64 / Linux x64)** — une fois le tap en place :
-  `brew tap iiivan37/loupe && brew install loupe`.
+  `brew tap iiivan37/loupe && brew install loupe`. Brew récent exige de
+  faire confiance au tap tiers d'abord : `brew trust iiivan37/loupe`
+  (vérifié à la v0.1.0).
 - **Archive brute** (Windows d'abord) : télécharger depuis la Release,
   extraire, lancer `loupe`. SmartScreen : « Informations complémentaires →
   Exécuter quand même » (documenté pour la beta ; winget si demande).
