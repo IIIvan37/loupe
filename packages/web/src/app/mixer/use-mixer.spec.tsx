@@ -2,7 +2,6 @@
 import {
   type StemFilter,
   type MixerState,
-  type StemPlaybackEngine,
   type SeparatedStem,
   type StemSet,
   type StemSource
@@ -12,12 +11,13 @@ import { Provider, createStore } from 'jotai'
 import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { AudioSessionProvider } from '../audio-session/audio-session-provider.tsx'
+import type { StemMixGraph } from '../audio-session/audio-session.ts'
 import { type Mixer, useMixer } from './use-mixer.ts'
 
 /** The mixer state lives in module-level atoms, so it is shared by construction:
  * mount under a Provider (it creates a store per mount) or the previous test's
  * mix is still loaded in the next one. */
-const mountMixer = (engine: StemPlaybackEngine) =>
+const mountMixer = (engine: StemMixGraph) =>
   renderHook(() => useMixer(engine), { wrapper: Provider })
 
 // Local oracle for the dB→amplitude law (10^(db/20)); the core keeps
@@ -71,6 +71,27 @@ function mountLoaded(
 }
 
 describe('useMixer', () => {
+  it('drives a graph that offers ONLY the mix slice — no transport, no PCM', () => {
+    // The narrow interface the seam declares, with nothing else on it: if the
+    // mixer ever reached for `play` or `stemAudio` again, this would throw.
+    const graph: StemMixGraph = {
+      load: async () => {},
+      addStem: async () => {},
+      removeStem: () => {},
+      setGain: () => {}
+    }
+    const { result } = renderHook(() => useMixer(graph), { wrapper: Provider })
+
+    act(() => {
+      result.current.load(stems, sources)
+    })
+    act(() => {
+      result.current.toggleMute('voix')
+    })
+
+    expect(result.current.channels.map((c) => c.muted)).toEqual([true, false])
+  })
+
   it('loads the stem PCM into the engine and exposes a channel per stem', () => {
     const engine = fakeEngine()
     const { result } = mountLoaded(engine)
