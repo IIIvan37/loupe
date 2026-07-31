@@ -11,8 +11,8 @@
 **Cap distribution acté (2026-07-26)** : loupe se distribue en **serveur
 local + navigateur** ([distribution-plan.md](distribution-plan.md) ; D1–D6
 clos, PRs #275–#285) ; **prochain distribution : 1re release taguée** (tap +
-`HOMEBREW_TAP_TOKEN`, cf. `docs/RELEASING.md`). Le shell **Tauri passe en
-sommeil**. **Roadmap v7 soldée** ; **Lot TS clos**. Nursery à dessein :
+`HOMEBREW_TAP_TOKEN`, cf. `docs/RELEASING.md`). Le shell **Tauri est
+retiré** (PR #327 — le binaire `loupe` est le seul livrable). **Roadmap v7 soldée** ; **Lot TS clos**. Nursery à dessein :
 `detect-chords`, `bass-line` ; `timecode` attend un second consommateur.
 **Boucle outillée** (PR #297) : `check:i18n` au gate, tampon de fraîcheur du
 gate, `pnpm sonar`, workers vitest bornés. **Sortie de suite = signal** (PR
@@ -32,7 +32,7 @@ cliquets `folder-shape` (11) et `foreign-css` (0) en garde.
 **Prochaine étape : les garde-fous beta ou la 1re release taguée.**
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
-Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
+Modal, SMTP Resend, re-seed codes legacy ; redeploy Modal+Edge (origins sans `tauri://`).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
