@@ -1,6 +1,5 @@
-# Cargo workspace (distribution D4.a): the shared download engine and its
-# consumers — the dormant Tauri shell today, the `loupe` server binary (D4.b)
-# tomorrow. One lockfile, one target dir, one fmt/clippy/test sweep.
+# Cargo workspace (distribution D4.a): the shared download engine and the
+# `loupe` server binary (D4.b). One lockfile, one target dir, one sweep.
 [workspace]
 resolver = "2"
-members = ["crates/loupe-download", "crates/loupe-server", "packages/desktop/src-tauri"]
+members = ["crates/loupe-download", "crates/loupe-server"]

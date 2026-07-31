@@ -16,7 +16,7 @@ import { useLingui } from '@lingui/react/macro'
 import { useAtom, useAtomValue } from 'jotai'
 import { useEffect, useMemo, useRef } from 'react'
 import { createSeparator } from '../../audio/create-separator.ts'
-import { deliverFile } from '../../audio/deliver-file.ts'
+import { downloadBlob } from '../../audio/download-blob.ts'
 import { createZipArchiveWriter } from '../../audio/encode/zip-archive-writer.ts'
 import {
   type EnsureTokenResult,
@@ -74,8 +74,7 @@ export interface Separation {
   /**
    * Download one separated stem as a 16-bit WAV. Numbered by its position among
    * the PRESENT stems — the same number the zip export gives it. Resolves with
-   * whether a file was actually delivered (false if the stem's PCM is gone, or
-   * if the desktop save dialog was cancelled).
+   * whether a file was actually delivered (false if the stem's PCM is gone).
    */
   readonly downloadStem: (id: string) => Promise<boolean>
   /**
@@ -276,10 +275,11 @@ export function useSeparation(
       return Promise.resolve(false)
     }
     const wav = encodeWav(stem.audio.channels, stem.audio.sampleRate)
-    return deliverFile(
+    downloadBlob(
       stemExportFilename(index, stem.label),
       new Blob([wav], { type: 'audio/wav' })
     )
+    return Promise.resolve(true)
   }
 
   async function exportAllStems(baseName: string): Promise<boolean> {
@@ -295,13 +295,11 @@ export function useSeparation(
       return false
     }
     if (result.ok) {
-      const delivered = await deliverFile(
+      downloadBlob(
         `${baseName}_stems.zip`,
         new Blob([result.archive], { type: 'application/zip' })
       )
-      // The desktop save dialog can outlive a reset/new import: a superseded
-      // session never confirms (the file, if saved, was still user-chosen).
-      return delivered && run.runId === runId
+      return true
     }
     // The raw port error stays untranslated; only the frame is copy.
     const error = result.error

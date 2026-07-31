@@ -32,7 +32,7 @@ jobs:
 
   gate-windows:
     name: Quality gate (windows)
-    # Deep tier, like mutation: the app ships a Windows desktop target (Tauri),
+    # Deep tier, like mutation: the `loupe` binary ships a Windows build,
     # but the per-PR loop is not where that check earns its keep — Windows
     # runners are billed at 2× and are slow, and portability regressions are
     # rare. Runs post-merge on main, and on demand (workflow_dispatch) to

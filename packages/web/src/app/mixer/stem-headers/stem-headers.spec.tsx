@@ -52,25 +52,6 @@ describe('StemHeaders', () => {
     expect(screen.getByText('Basse')).toBeInTheDocument()
   })
 
-  it('keeps the WAV download live under the desktop shell (native save path)', async () => {
-    // The AH.1 disable is lifted: delivery now routes through the Rust
-    // export_file command, so the desktop button works like the browser one.
-    ;(window as { __TAURI_INTERNALS__?: object }).__TAURI_INTERNALS__ = {}
-    try {
-      const user = userEvent.setup()
-      const onDownloadStem = vi.fn()
-      renderHeaders([channel('voix', 'Voix')], { onDownloadStem })
-      const button = screen.getByRole('button', {
-        name: i18n._('mixer.download-wav', { name: 'Voix' })
-      })
-      expect(button).toBeEnabled()
-      await user.click(button)
-      expect(onDownloadStem).toHaveBeenCalledWith('voix')
-    } finally {
-      delete (window as { __TAURI_INTERNALS__?: object }).__TAURI_INTERNALS__
-    }
-  })
-
   it('carries the machine confidence as the label tooltip', () => {
     renderHeaders([channel('voix', 'Voix')])
     expect(screen.getByText('Voix')).toHaveAccessibleDescription(

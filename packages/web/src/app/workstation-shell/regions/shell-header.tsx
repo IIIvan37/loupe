@@ -17,9 +17,9 @@ interface ShellHeaderProps {
     readonly artist: string | undefined
   }
   readonly session: ProjectSession
-  /** Whether the desktop shell hosts the app (Tauri). Offload-only (Lot AJ):
-   * saved projects and URL import are desktop-only — the browser hides them. */
-  readonly desktop: boolean
+  /** Whether the local loupe server hosts the app (D1): saved projects and
+   * URL import need it — the plain browser hides them. */
+  readonly localBackend: boolean
   /** The URL-import lifecycle: progress narrated in the state chip, errors below. */
   readonly urlImport: UrlImport
   readonly isLoaded: boolean
@@ -51,7 +51,7 @@ interface ShellHeaderProps {
 export function ShellHeader({
   metadata,
   session,
-  desktop,
+  localBackend,
   urlImport,
   isLoaded,
   stemsReady,
@@ -134,15 +134,15 @@ export function ShellHeader({
               }))
         }
         onImport={onImport}
-        // Saved projects + URL import are desktop-only (offload-only, Lot AJ):
+        // Saved projects + URL import are localBackend-only (offload-only, Lot AJ):
         // in the browser the callbacks are absent, so the entries hide.
-        onImportUrl={desktop ? urlImport.submit : undefined}
+        onImportUrl={localBackend ? urlImport.submit : undefined}
         urlImportBusy={urlImport.running}
         importNeedsConfirm={session.unsavedWork}
         onExportStems={onExportStems}
         canExport={stemsReady}
         onShowShortcuts={onShowShortcuts}
-        onSaveProject={desktop ? session.handleSave : undefined}
+        onSaveProject={localBackend ? session.handleSave : undefined}
         saveName={currentProject?.name ?? trackName ?? ''}
         canSave={isLoaded}
         hasProject={currentProject !== undefined}
@@ -153,7 +153,7 @@ export function ShellHeader({
         onCancelBusy={
           downloadBusy !== undefined ? urlImport.cancel : undefined
         }
-        onShowProjects={desktop ? onShowProjects : undefined}
+        onShowProjects={localBackend ? onShowProjects : undefined}
         accountSlot={
           resolvedAuth && (
             <AccountMenuSlot

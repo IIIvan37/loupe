@@ -53,7 +53,7 @@ describe('EmptyState', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('imports a pasted supported link at the file level (desktop)', async () => {
+  it('imports a pasted supported link at the file level (local backend)', async () => {
     const onImportUrl = vi.fn()
     const { user } = renderEmptyState({ onImportUrl })
     const field = screen.getByLabelText(i18n._('import.url-field'))

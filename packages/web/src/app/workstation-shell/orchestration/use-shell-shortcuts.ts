@@ -11,7 +11,6 @@ import type { CountInTransport } from '../../tempo/use-count-in.ts'
 import type { Metronome } from '../../tempo/use-metronome.ts'
 import type { TempoDetection } from '../../tempo/use-tempo-detection.ts'
 import type { ViewportControl } from '../../waveform/use-viewport.ts'
-import { useNativeMenu } from '../lifecycle/use-native-menu.ts'
 import type { ProjectSession } from './use-project-session.ts'
 
 /** The session slice the Cmd/Ctrl+S save reads and drives. */
@@ -29,10 +28,6 @@ export type SaveSession = Pick<
 interface ShellShortcutsDeps {
   /** When false the listener is detached (e.g. no track loaded). */
   readonly enabled: boolean
-  /** Open the file picker — the native menu's Fichier → Importer routes here. */
-  readonly openImport: () => void
-  /** Reveal the shortcuts dialog — the native menu's Aide item routes here. */
-  readonly openShortcuts: () => void
   readonly countIn: Pick<CountInTransport, 'togglePlayback'>
   readonly position: Pick<ExternalValue<number>, 'get'>
   readonly seekToSeconds: (seconds: number) => void
@@ -63,8 +58,6 @@ interface ShellShortcutsDeps {
  */
 export function useShellShortcuts({
   enabled,
-  openImport,
-  openShortcuts,
   countIn,
   position,
   seekToSeconds,
@@ -79,12 +72,6 @@ export function useShellShortcuts({
   session
 }: ShellShortcutsDeps): void {
   const saveProject = () => guardedProjectSave(session)
-  // The native macOS menu bar (desktop shell) routes onto the same handlers.
-  useNativeMenu({
-    import: openImport,
-    save: saveProject,
-    shortcuts: openShortcuts
-  })
   useKeyboardShortcuts(
     {
       togglePlayback: countIn.togglePlayback,

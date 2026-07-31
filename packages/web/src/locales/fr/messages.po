@@ -480,11 +480,6 @@ msgstr "Imprimer"
 
 #. js-lingui-explicit-id
 #: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
-msgid "chords.print-desktop-soon"
-msgstr "Impression bientôt disponible sur l'app de bureau"
-
-#. js-lingui-explicit-id
-#: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
 msgid "chords.respell-flat"
 msgstr "Épeler en bémols"
 
@@ -528,7 +523,6 @@ msgstr "Transposer un demi-ton vers le haut"
 #: src/app/ui/operation-status/operation-status.tsx
 #: src/app/ui/popover-form/popover-form.tsx
 #: src/app/workstation-shell/regions/confirm-import-dialog/confirm-import-dialog.tsx
-#: src/app/workstation-shell/regions/confirm-quit-dialog/confirm-quit-dialog.tsx
 msgid "common.cancel"
 msgstr "Annuler"
 
@@ -1143,21 +1137,6 @@ msgstr "Projets"
 #: src/app/workstation-shell/regions/shell-dialogs.tsx
 msgid "projects.unreachable"
 msgstr "Impossible de lister les projets — réessayer."
-
-#. js-lingui-explicit-id
-#: src/app/workstation-shell/regions/confirm-quit-dialog/confirm-quit-dialog.tsx
-msgid "quit.confirm-body"
-msgstr "Le travail non enregistré sera perdu."
-
-#. js-lingui-explicit-id
-#: src/app/workstation-shell/regions/confirm-quit-dialog/confirm-quit-dialog.tsx
-msgid "quit.confirm-quit"
-msgstr "Quitter"
-
-#. js-lingui-explicit-id
-#: src/app/workstation-shell/regions/confirm-quit-dialog/confirm-quit-dialog.tsx
-msgid "quit.confirm-title"
-msgstr "Quitter sans enregistrer ?"
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row/analyser-row.tsx

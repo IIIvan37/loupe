@@ -45,7 +45,7 @@
   l'allowlist de redirection (Auth → URL Configuration). **Pas nécessaire
   pour l'OTP** (aucune redirection).
 
-## Vérifications à rejouer (bundle desktop)
+## Vérifications desktop (clos — le shell Tauri est retiré, plus rien à rejouer)
 
 - [x] **PKCE bout-en-bout en bundle Tauri — FAIT ET VÉRIFIÉ (2026-07-24)** :
   bundle debug installé, magic link réel, session au menu compte. Recette :

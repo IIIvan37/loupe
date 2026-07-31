@@ -2,7 +2,6 @@ import { formatTimecode, type ProjectTuning } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
-import { isTauriShell } from '../../lib/tauri-env.ts'
 import type { ExternalValue } from '../../lib/external-value.ts'
 import { isServerShell } from '../../lib/server-shell.ts'
 import { gateReasonsOf } from '../account/gate-reasons.ts'
@@ -11,6 +10,7 @@ import { AudioSessionWithPlayer } from '../audio-session/audio-session-provider.
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
 import { activeLoopIdAtom } from '../loops/loop-atoms.ts'
+import { UnloadGuard } from './lifecycle/use-unload-guard.ts'
 import { useLoops } from '../loops/use-loops.ts'
 import { useMarkers } from '../markers/use-markers.ts'
 import { useCountIn } from '../tempo/use-count-in.ts'
@@ -38,7 +38,6 @@ import { useShellDrop } from './lifecycle/use-shell-drop.ts'
 import { useShellShortcuts } from './orchestration/use-shell-shortcuts.ts'
 import { useStemExport } from './orchestration/use-stem-export.ts'
 import { useChartWithStructure } from './orchestration/use-chart-with-structure.ts'
-import { QuitGuard } from './lifecycle/quit-guard.tsx'
 import styles from './workstation-shell.module.css'
 
 /** The live tuning as a manifest persists it — an untouched fine-tune stays
@@ -127,10 +126,10 @@ function playbackSteppers(player: ReturnType<typeof usePlayer>): {
 }
 
 interface WorkstationShellProps {
-  /** Whether a local backend hosts the app (Tauri shell or the loupe server,
-   * D1) — gates Save / Projects / URL import. Injected in tests to exercise
-   * the plain-browser entry-point gating. */
-  readonly desktop?: boolean
+  /** Whether the local loupe server hosts the app (D1) — gates Save /
+   * Projects / URL import. Injected in tests to exercise the plain-browser
+   * entry-point gating. */
+  readonly localBackend?: boolean
 }
 
 /**
@@ -142,7 +141,7 @@ interface WorkstationShellProps {
  * each consumer hook reaches them through the audio session (ADR 0011).
  */
 export function WorkstationShell({
-  desktop = isTauriShell() || isServerShell()
+  localBackend = isServerShell()
 }: WorkstationShellProps) {
   const { t } = useLingui()
   const { toaster, notifySuccess } = useToaster()
@@ -269,8 +268,6 @@ export function WorkstationShell({
   // Global command surfaces (keyboard + native menu) — only live once loaded.
   useShellShortcuts({
     enabled: isLoaded,
-    openImport: openFilePicker,
-    openShortcuts: () => setShortcutsOpen(true),
     countIn,
     position,
     seekToSeconds,
@@ -317,13 +314,13 @@ export function WorkstationShell({
         onConfirm={drop.confirm}
         onCancel={drop.cancel}
       />
-      {/* Leaving must never silently drop unsaved work — browser AND
-          desktop paths, one self-contained guard (AP.2). */}
-      <QuitGuard unsavedWork={session.unsavedWork} />
+      {/* Leaving must never silently drop unsaved work — the browser's
+          native beforeunload prompt (reload, tab close). */}
+      <UnloadGuard unsavedWork={session.unsavedWork} />
       <ShellHeader
         metadata={metadata}
         session={session}
-        desktop={desktop}
+        localBackend={localBackend}
         urlImport={urlImport}
         isLoaded={isLoaded}
         stemsReady={stemsReady}
@@ -365,7 +362,7 @@ export function WorkstationShell({
       {importState.status === 'idle' ? (
         <EmptyState
           onImport={openFilePicker}
-          onImportUrl={desktop ? urlImport.submit : undefined}
+          onImportUrl={localBackend ? urlImport.submit : undefined}
           urlBusy={urlImport.running}
         />
       ) : (
