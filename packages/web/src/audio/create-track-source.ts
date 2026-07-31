@@ -1,9 +1,9 @@
 import type { DownloadProgress, FetchedTrack, TrackSource } from '@app/core'
 import { isServerShell } from '../lib/server-shell.ts'
 import { isTauriShell } from '../lib/tauri-env.ts'
-import { createHttpTrackSource } from './http-track-source.ts'
-import { createTauriDownloadBridge } from './tauri-download-bridge.ts'
-import { createTauriTrackSource } from './tauri-track-source.ts'
+import { createHttpTrackSource } from './http/http-track-source.ts'
+import { createTauriDownloadBridge } from './tauri/tauri-download-bridge.ts'
+import { createTauriTrackSource } from './tauri/tauri-track-source.ts'
 
 /**
  * Build the `TrackSource` adapter. Downloading a track from a media URL

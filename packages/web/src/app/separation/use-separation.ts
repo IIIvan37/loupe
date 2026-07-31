@@ -17,7 +17,7 @@ import { useAtom, useAtomValue } from 'jotai'
 import { useEffect, useMemo, useRef } from 'react'
 import { createSeparator } from '../../audio/create-separator.ts'
 import { deliverFile } from '../../audio/deliver-file.ts'
-import { createZipArchiveWriter } from '../../audio/zip-archive-writer.ts'
+import { createZipArchiveWriter } from '../../audio/encode/zip-archive-writer.ts'
 import {
   type EnsureTokenResult,
   ensureAnalysisToken,

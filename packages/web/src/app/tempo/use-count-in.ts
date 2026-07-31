@@ -7,7 +7,7 @@ import {
 } from '@app/core'
 import { useAtom } from 'jotai'
 import { useEffect, useMemo, useRef } from 'react'
-import { createCountInPlayer } from '../../audio/count-in-player.ts'
+import { createCountInPlayer } from '../../audio/playback/count-in-player.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 import {
   type CountInPlayer,

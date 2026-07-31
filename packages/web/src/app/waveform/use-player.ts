@@ -17,9 +17,9 @@ import {
 import { useAtom, useAtomValue } from 'jotai'
 import { useMemo, useRef, useState } from 'react'
 import { createMusicMetadataReader } from '../../audio/music-metadata-reader.ts'
-import { createWebAudioDecoder } from '../../audio/web-audio-decoder.ts'
-import { createWebAudioPlayback } from '../../audio/web-audio-playback.ts'
-import { createWebAudioStemPlayback } from '../../audio/web-audio-stem-playback.ts'
+import { createWebAudioDecoder } from '../../audio/playback/web-audio-decoder.ts'
+import { createWebAudioPlayback } from '../../audio/playback/web-audio-playback.ts'
+import { createWebAudioStemPlayback } from '../../audio/playback/web-audio-stem-playback.ts'
 import type { ExternalValue } from '../../lib/external-value.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 import {

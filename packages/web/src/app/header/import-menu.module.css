@@ -1,9 +1,9 @@
 .positioner {
-  composes: positioner from '../ui/popover-form.module.css';
+  composes: positioner from '@/app/ui/popover-form.module.css';
 }
 
 .menu {
-  composes: motion from '../ui/popover-form.module.css';
+  composes: motion from '@/app/ui/popover-form.module.css';
   display: flex;
   flex-direction: column;
   min-width: 12rem;
@@ -37,14 +37,14 @@
 }
 
 .popup {
-  composes: popup from '../ui/popover-form.module.css';
+  composes: popup from '@/app/ui/popover-form.module.css';
   width: min(22rem, calc(100vw - var(--space-l)));
 }
 
 .title {
-  composes: title from '../ui/popover-form.module.css';
+  composes: title from '@/app/ui/popover-form.module.css';
 }
 
 .ghost {
-  composes: ghost from '../ui/popover-form.module.css';
+  composes: ghost from '@/app/ui/popover-form.module.css';
 }

@@ -6,7 +6,7 @@
 }
 
 .label {
-  composes: sectionLabel from '../ui/controls.module.css';
+  composes: sectionLabel from '@/app/ui/controls.module.css';
 }
 
 .readout {
@@ -17,13 +17,13 @@
 
 /* The editable BPM field, dressed as the read-out it replaces. */
 .bpmField {
-  composes: numberField from '../ui/controls.module.css';
+  composes: numberField from '@/app/ui/controls.module.css';
   color: inherit;
 }
 
 /* The tempo is a user override, not the detection. */
 .manualBadge {
-  composes: sectionLabel from '../ui/controls.module.css';
+  composes: sectionLabel from '@/app/ui/controls.module.css';
 }
 
 .meter {
@@ -34,7 +34,7 @@
 
 /* The editable beats-per-bar, dressed like the BPM field it sits beside. */
 .meterField {
-  composes: numberField from '../ui/controls.module.css';
+  composes: numberField from '@/app/ui/controls.module.css';
   width: 3ch;
   color: inherit;
 }
@@ -61,10 +61,10 @@
 }
 
 .octave {
-  composes: chipRow from '../ui/controls.module.css';
+  composes: chipRow from '@/app/ui/controls.module.css';
 }
 
 .octaveButton {
-  composes: chipButton from '../ui/controls.module.css';
+  composes: chipButton from '@/app/ui/controls.module.css';
 }
 

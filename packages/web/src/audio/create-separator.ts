@@ -1,7 +1,7 @@
 import type { StemSeparator } from '@app/core'
 import { cachedAnalysisToken } from '../auth/analysis-token.ts'
-import { analysisUrl } from './analysis-endpoint.ts'
-import { createHttpSeparator } from './http-separator.ts'
+import { analysisUrl } from './http/analysis-endpoint.ts'
+import { createHttpSeparator } from './http/http-separator.ts'
 
 /**
  * Build the `StemSeparator` adapter. Separation runs on the Modal analysis

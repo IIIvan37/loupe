@@ -39,5 +39,5 @@
 /* One hover cursor line following the pointer across all lanes — the shared
    timeline cursor, so it matches the main waveform's exactly. */
 .hover {
-  composes: line from '../waveform/hover-cursor.module.css';
+  composes: line from '@/app/waveform/hover-cursor.module.css';
 }

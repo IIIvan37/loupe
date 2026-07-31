@@ -1,7 +1,7 @@
 .label {
-  composes: sectionLabel from '../ui/controls.module.css';
+  composes: sectionLabel from '@/app/ui/controls.module.css';
 }
 
 .add {
-  composes: quietButton from '../ui/controls.module.css';
+  composes: quietButton from '@/app/ui/controls.module.css';
 }

@@ -84,7 +84,7 @@
 
 /* The second step of a destructive/replacing action — the shared armed face. */
 .confirmAction {
-  composes: confirmFace from '../app/ui/controls.module.css';
+  composes: confirmFace from '@/app/ui/controls.module.css';
   padding: var(--space-3xs) var(--space-xs);
   font-size: var(--font-size-s);
 }
