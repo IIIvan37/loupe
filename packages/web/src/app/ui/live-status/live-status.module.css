@@ -1,0 +1,4 @@
+/* The live region is invisible by design — only assistive tech reads it. */
+.srOnly {
+  composes: srOnly from '@/app/ui/controls.module.css';
+}

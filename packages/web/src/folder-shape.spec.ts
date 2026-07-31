@@ -19,7 +19,7 @@ const MAX_FLAT_SOURCES = 11
 /** Components still importing ANOTHER component's `.module.css` — a component
  * owns its stylesheet; shared skins travel through `composes`, never through
  * a neighbour's import. Target: 0. */
-const MAX_FOREIGN_CSS_IMPORTS = 10
+const MAX_FOREIGN_CSS_IMPORTS = 0
 
 const WEB_SRC = fileURLToPath(new URL('.', import.meta.url))
 

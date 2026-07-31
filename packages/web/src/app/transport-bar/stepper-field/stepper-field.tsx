@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { CommitNumberField } from '../ui/commit-number-field.tsx'
-import styles from './transport-bar.module.css'
+import { CommitNumberField } from '../../ui/commit-number-field.tsx'
+import styles from './stepper-field.module.css'
 
 interface StepperFieldProps {
   /** The visible caption (« Vitesse », « Hauteur »). */

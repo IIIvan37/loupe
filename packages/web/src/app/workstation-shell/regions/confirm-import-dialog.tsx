@@ -1,7 +1,6 @@
 import { Dialog } from '@base-ui-components/react/dialog'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { cx } from '../../../lib/cx.ts'
-import dialogStyles from '../../ui/app-dialog/app-dialog.module.css'
 import styles from './confirm-import-dialog.module.css'
 
 interface ConfirmImportDialogProps {
@@ -35,12 +34,12 @@ export function ConfirmImportDialog({
       }}
     >
       <Dialog.Portal>
-        <Dialog.Backdrop className={cx(dialogStyles.backdrop)} />
-        <Dialog.Popup className={cx(dialogStyles.popup)}>
-          <Dialog.Title className={cx(dialogStyles.title)}>
+        <Dialog.Backdrop className={cx(styles.backdrop)} />
+        <Dialog.Popup className={cx(styles.popup)}>
+          <Dialog.Title className={cx(styles.title)}>
             <Trans id="drop.confirm-title">Remplacer la session ?</Trans>
           </Dialog.Title>
-          <Dialog.Description className={cx(dialogStyles.description)}>
+          <Dialog.Description className={cx(styles.description)}>
             {t({
               id: 'drop.confirm-body',
               message: `« ${fileName ?? ''} » remplacera le travail non enregistré.`

@@ -48,3 +48,13 @@
 .ghost {
   composes: ghost from '@/app/ui/popover-form/popover-form.module.css';
 }
+
+/* The trigger wears the header's action skin (amber primary, armed confirm)
+   — composed from the header's stylesheet, the menu owns no other copy. */
+.primaryAction {
+  composes: primaryAction from '@/app/header/header.module.css';
+}
+
+.confirmAction {
+  composes: confirmAction from '@/app/header/header.module.css';
+}

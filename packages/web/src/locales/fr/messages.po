@@ -1049,17 +1049,17 @@ msgid "mixer.undetected"
 msgstr "Non détectés"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/gain-fader.tsx
+#: src/app/mixer/gain-fader/gain-fader.tsx
 msgid "mixer.volume"
 msgstr "Volume {name}"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/gain-fader.tsx
+#: src/app/mixer/gain-fader/gain-fader.tsx
 msgid "mixer.volume-db"
 msgstr "Niveau de {name} en décibels"
 
 #. js-lingui-explicit-id
-#: src/app/mixer/gain-fader.tsx
+#: src/app/mixer/gain-fader/gain-fader.tsx
 msgid "mixer.volume-reset"
 msgstr "Double-clic pour revenir à 0 dB"
 

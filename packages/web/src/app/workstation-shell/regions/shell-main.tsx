@@ -42,7 +42,7 @@ import { ShellAnalyserRow } from './shell-analyser-row.tsx'
 import { ShellSection } from './shell-section.tsx'
 import { ShellStage } from './shell-stage.tsx'
 import type { TempoDetection } from '../../tempo/use-tempo-detection.ts'
-import styles from '../workstation-shell.module.css'
+import styles from './shell-main.module.css'
 
 interface ShellMainProps {
   /** Whether the Analyse zone is unfolded — owned by the shell (Q.3). */
