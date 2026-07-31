@@ -23,10 +23,10 @@ Rappels vivants : filtre Base UI à retirer au prochain bump (PR #319) ;
 ne jamais dériver un hook à effet de montage, seul le seam `mixer: Mixer`
 reste en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–
 [0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
-**Prochaine étape : les garde-fous beta ou la 1re release taguée.**
+**Prochaine étape : la 1re release taguée** (tag + tap, `docs/RELEASING.md`).
 
-**Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md), commandes
-prêtes) : redeploy Modal + Edge (origins sans `tauri://`), re-seed codes legacy.
+**Garde-fous beta soldés (2026-07-31)** ([beta-checklist.md](beta-checklist.md)) :
+redeploys Modal + Edge vérifiés (préflight curl), codes legacy re-seedés.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 

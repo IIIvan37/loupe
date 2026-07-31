@@ -96,6 +96,11 @@ supabase secrets set ANALYZE_JWT_SECRET="$(cat server/.analyze-jwt-secret.local)
   codes like `FRIENDS` are refused at insert):
   `insert into beta_codes (code, uses_left) values (gen_random_uuid()::text, 25);`
   then read the generated code back to hand it out.
+- **Retire/replace a redeemed code**: `beta_members.code` references
+  `beta_codes` WITHOUT cascade, so a plain delete fails (23503). Sequence
+  (one transaction): insert the fresh code, `update beta_members set code =
+  <fresh> where code = <legacy>`, then delete the legacy. Done for `FRIENDS`
+  on 2026-07-31 (re-seed U.3).
 - **Brute-force friction (U.3)**: 5 consecutive failed redeems lock the caller
   out for 15 minutes (`public.redeem_attempts`, invisible to the Data API).
   A locked-out user gets the same `false` as a bad code — nothing to support,

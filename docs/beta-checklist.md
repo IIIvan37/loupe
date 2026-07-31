@@ -1,10 +1,10 @@
 # Checklist beta — garde-fous et vérifications
 
-> État au **2026-07-31**, après le serveur unique (PR #328). Les garde-fous
-> restants sont des **actions opérateur** (déploiements + données prod) —
-> commandes prêtes ci-dessous ; le reste est fait et tracé.
+> État au **2026-07-31**, après le serveur unique (PR #328). **Tous les
+> garde-fous sont soldés** — il ne reste que l'item optionnel D6 (allowlist
+> redirect `127.0.0.1:6173`, inutile pour l'OTP).
 
-## Actions opérateur restantes (commandes prêtes)
+## Actions opérateur (soldées le 2026-07-31)
 
 - [x] **Redeploy Modal** — **FAIT ET VÉRIFIÉ (2026-07-31)** : défaut
   d'origins sans `tauri://` (#327) + arbre `server/` rétréci (#328) en ligne.
@@ -13,18 +13,13 @@
 - [x] **Redeploy Edge Function** — **FAIT ET VÉRIFIÉ (2026-07-31)** : même
   contrôle préflight (5173 échoïsé, `tauri://` 204 sans écho — le navigateur
   bloque).
-- [ ] **Re-seed des codes beta legacy < 32 chars** en prod (runbook U.3 : le
-  CHECK d'entropie ne couvre que les nouveaux inserts). Décision 2026-07-31 :
-  l'opérateur était le **seul utilisateur** → purge sans redistribution.
-  Dans le SQL editor :
-  ```sql
-  select code, uses_left, created_at
-  from public.beta_codes where char_length(code) < 32;             -- inventaire
-  delete from public.beta_codes where char_length(code) < 32;      -- purge
-  insert into public.beta_codes (code, uses_left, note)
-  values (gen_random_uuid()::text, 25, 're-seed U.3 2026-07-31')
-  returning code;                                                  -- code frais à noter
-  ```
+- [x] **Re-seed des codes beta legacy < 32 chars** — **FAIT (2026-07-31)** :
+  inventaire = un seul legacy (`FRIENDS`, 24 restants) ; opérateur seul
+  utilisateur → purge sans redistribution. Gotcha : la FK
+  `beta_members_code_fkey` (sans cascade) bloque le delete d'un code déjà
+  utilisé — insérer le code frais, **re-pointer `beta_members`**, puis
+  supprimer le legacy (séquence dans le runbook U.3). Le code frais
+  (`gen_random_uuid()`, note `re-seed U.3 2026-07-31`) est noté côté opérateur.
 
 ## À faire par l'utilisateur (non automatisable)
 
