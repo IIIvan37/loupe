@@ -4,7 +4,7 @@ import { useLingui } from '@lingui/react/macro'
 import { cx } from '../../lib/cx.ts'
 import { stemColor } from '../stems/stem-color.ts'
 import { Icon } from '../ui/icon.tsx'
-import { GainFader } from './gain-fader.tsx'
+import { GainFader } from './gain-fader/gain-fader.tsx'
 import type { MixerChannelView } from './use-mixer.ts'
 import styles from './stem-headers.module.css'
 

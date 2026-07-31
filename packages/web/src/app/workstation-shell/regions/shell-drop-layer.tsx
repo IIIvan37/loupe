@@ -1,7 +1,7 @@
 import { Trans } from '@lingui/react/macro'
 import type { ChangeEvent, RefObject } from 'react'
 import { ConfirmImportDialog } from './confirm-import-dialog.tsx'
-import styles from '../workstation-shell.module.css'
+import styles from './shell-drop-layer.module.css'
 
 interface ShellDropLayerProps {
   /** The shared hidden file input — the header and empty-state click it. */

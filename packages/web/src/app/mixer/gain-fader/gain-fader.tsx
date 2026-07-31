@@ -1,9 +1,9 @@
 import { MAX_GAIN_DB, MIN_GAIN_DB, stepGainDb, UNITY_GAIN_DB } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { type KeyboardEvent, useEffect, useRef } from 'react'
-import { useLatest } from '../../lib/use-latest.ts'
-import { CommitNumberField } from '../ui/commit-number-field.tsx'
-import styles from './stem-headers.module.css'
+import { useLatest } from '../../../lib/use-latest.ts'
+import { CommitNumberField } from '../../ui/commit-number-field.tsx'
+import styles from './gain-fader.module.css'
 
 /** Which way each arrow key nudges the fader (louder up/right, quieter down/left). */
 const ARROW_DIRECTION: Record<string, -1 | 1 | undefined> = {

@@ -18,7 +18,7 @@ import {
   useExternalValue
 } from '../../lib/external-value.ts'
 import { Icon } from '../ui/icon.tsx'
-import { StepperField } from './stepper-field.tsx'
+import { StepperField } from './stepper-field/stepper-field.tsx'
 import styles from './transport-bar.module.css'
 // signedSemitones dropped here: the pitch read-out is now an editable field.
 

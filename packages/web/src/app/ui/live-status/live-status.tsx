@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import controls from '../controls.module.css'
+import styles from './live-status.module.css'
 
 interface LiveStatusProps {
   /** What the screen reader should say next — undefined announces nothing. */
@@ -26,5 +26,5 @@ export function LiveStatus({ message }: LiveStatusProps) {
     }
   }, [message])
   // <output> carries the status role natively (implicit aria-live polite).
-  return <output ref={region} className={controls.srOnly} />
+  return <output ref={region} className={styles.srOnly} />
 }

@@ -85,3 +85,23 @@
 .helpRow:last-child {
   border-block-end: none;
 }
+
+/* The confirm dialogs' shared action row — cancel stays quiet, the confirm
+   wears the armed face (same destructive second step as the header's import
+   confirm, decision W.2). Composed by each dialog's own stylesheet. */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-s);
+  margin-block-start: var(--space-l);
+}
+
+.cancel {
+  composes: ghostButton from '@/app/ui/controls.module.css';
+  padding: var(--space-2xs) var(--space-m);
+}
+
+.confirm {
+  composes: confirmFace from '@/app/ui/controls.module.css';
+  padding: var(--space-2xs) var(--space-m);
+}

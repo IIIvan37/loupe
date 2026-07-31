@@ -4,7 +4,6 @@ import { useRef, useState } from 'react'
 import { cx } from '../../lib/cx.ts'
 import { UrlImportField } from '../ui/url-import-field/url-import-field.tsx'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
-import headerStyles from './header.module.css'
 import styles from './import-menu.module.css'
 
 interface ImportMenuProps {
@@ -82,7 +81,7 @@ export function ImportMenu({
         <Popover.Trigger
           ref={triggerRef}
           className={cx(
-            armed ? headerStyles.confirmAction : headerStyles.primaryAction
+            armed ? styles.confirmAction : styles.primaryAction
           )}
           data-on-amber={armed ? undefined : ''}
           aria-label={

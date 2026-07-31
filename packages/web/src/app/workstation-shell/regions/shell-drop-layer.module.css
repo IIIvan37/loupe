@@ -1,0 +1,28 @@
+/* Full-viewport cue while a file is dragged over the app. Sits above the shell
+   content; portalled dialogs (rendered at <body>) still layer above it. */
+.dropOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background: var(--scrim);
+  pointer-events: none;
+}
+
+.dropOverlayInner {
+  padding: var(--space-2xl);
+  border: 2px dashed var(--amber);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  font-size: var(--font-size-l);
+  font-weight: 600;
+}
+
+/* The single import control lives in the header; this input is its hidden target. */
+.fileInput {
+  composes: srOnly from '@/app/ui/controls.module.css';
+}

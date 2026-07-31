@@ -21,7 +21,7 @@ import { useViewport } from '../../waveform/use-viewport.ts'
 import { ViewportControls } from '../../waveform/viewport-controls.tsx'
 import { WaveformView } from '../../waveform/waveform-view.tsx'
 import { ZoomStage } from '../../waveform/zoom-stage.tsx'
-import styles from '../workstation-shell.module.css'
+import styles from './shell-stage.module.css'
 
 interface ShellStageProps {
   /** Stems the separation masked as near-silent — named in the gutter. */
