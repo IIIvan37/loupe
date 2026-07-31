@@ -94,7 +94,7 @@ jobs:
       # No merge-multiple: keep each target's binary in its own dir
       # (staged/loupe-<target>/loupe[.exe]) so the same `loupe` name from
       # Linux and macOS does not collide.
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           path: staged
       - name: Package distributable archives
