@@ -25,11 +25,11 @@ soldés — #287→#306 (DAG web, player, repères/tempo/mixer/zoom, séparation
 **Interface étroite de session (DIP) soldée** : `StemPlaybackEngine` (13 membres)
 partitionné en 3 tranches — `StemAudioSource` (#307), `StemMixGraph` (#308),
 `PlaybackTransport` (#309) ; le port core ne reste nommé qu'au siège du singleton.
-**Chantier `ReturnType` : cliquet 13 → 5** — `use-tempo-detection`
-dérive ses deps (`useTempo()`/`useMetronome()` internes, `enabled` en atome) et vit
-dans `app/tempo/`, livré par PR #318. **Prochaine étape : `use-separate-and-load`**
-(2 des 5 : `mixer`, `metronome`), même idiome — dériver, seam `mixer` seul en prop.
-Checkpoint UI par slice.
+**Chantier `ReturnType` : cliquet 13 → 3** — `use-tempo-detection` (PR #318)
+puis `use-separate-and-load` (PR #320) dérivent leurs deps ; seul le seam
+`mixer: Mixer` reste en prop, l'orchestrateur multi-features reste au shell
+(pas d'arête `separation → tempo/mixer` au DAG 0012). **Prochaine étape :
+`use-resume-gated-analysis`** (`tempoDetection`). Checkpoint UI par slice.
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
 Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
