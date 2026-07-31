@@ -63,7 +63,7 @@
 - tests : ✅ suite complète verte (+2 specs seam), couverture 96,83 %
   statements / 92,33 % branches.
 - mutation : **sans objet** — aucune source core touchée (web uniquement).
-- sonar : à relever sur la PR (analyse CI ~5 min après le push).
+- sonar : ✅ quality gate OK sur la PR #307 — 0 issue ouverte, 0 hotspot.
 
 ## State to resume from
 
