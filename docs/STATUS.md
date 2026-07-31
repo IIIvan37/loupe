@@ -22,16 +22,15 @@ gate, `pnpm sonar`, workers vitest bornés en local.
 [0012](adr/0012-graphe-de-modules-web.md)) : sacs de feature en atomes
 soldés — #287→#306 livrées (DAG web #299, player #300, repères/tempo/mixer/
 zoom #301–#304, séparation #305, loops #306 ; cliquet `ReturnType` 13 → 7).
-**L'interface étroite de session (DIP) est en cours** : sur les 12 entrées du
-seam, **un seul port gras** — `StemPlaybackEngine`, 15 membres, 3 tranches
-disjointes (mixer 5, transport 7, séparation 1) ; les 8 autres sont déjà des
-interfaces à 1–2 membres. **2 tranches sur 3 nommées au seam** :
-`StemAudioSource` (`useStemAudio()`, PR #307) et `StemMixGraph`
-(`useStemMixGraph()`, livré par la PR #308) — ni `useSeparation` ni
-`useMixer` ne nomment plus le port core. **Prochaine étape : la tranche transport**,
-commune aux deux moteurs (d'où l'échange déjà possible dans
-`use-transport-engines`), puis les 7 `ReturnType` restants, deps
-d'orchestrateurs à dériver des atomes. Checkpoint UI par slice.
+**L'interface étroite de session (DIP) est soldée** : le seul port gras du seam,
+`StemPlaybackEngine` (13 membres), est **partitionné en 3 tranches nommées** —
+`StemAudioSource` (PR #307, 1), `StemMixGraph` (#308, 5), `PlaybackTransport`
+(#309, 7) ; 1 + 5 + 7 = 13, chaque membre revendiqué une seule fois. Séparation,
+mixer, player et transport ne nomment plus le port core : il ne reste nommé qu'au
+siège du singleton (`use-stem-stack`, provider, adaptateur). `session.engine`
+n'était pas gras — le moteur de piste porte `load`/`unload` en plus du transport
+et reste entier. **Prochaine étape : les 7 `ReturnType`**, deps d'orchestrateurs à
+dériver des atomes (commencer par `use-tempo-detection`). Checkpoint UI par slice.
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
 Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
