@@ -16,6 +16,7 @@ import { useMarkers } from '../markers/use-markers.ts'
 import { useCountIn } from '../tempo/use-count-in.ts'
 import { useMetronome } from '../tempo/use-metronome.ts'
 import { useTempo } from '../tempo/use-tempo.ts'
+import { useTempoDetection } from '../tempo/use-tempo-detection.ts'
 import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
 import { useViewport } from '../waveform/use-viewport.ts'
@@ -37,7 +38,6 @@ import { useShellDrop } from './use-shell-drop.ts'
 import { useShellShortcuts } from './use-shell-shortcuts.ts'
 import { useStemExport } from './use-stem-export.ts'
 import { useChartWithStructure } from './use-chart-with-structure.ts'
-import { useTempoDetection } from './use-tempo-detection.ts'
 import { QuitGuard } from './quit-guard.tsx'
 import styles from './workstation-shell.module.css'
 
@@ -195,10 +195,11 @@ export function WorkstationShell({
   const [projectsOpen, setProjectsOpen] = useState(false)
   // Whether the Analyse zone is unfolded (Q.3) — practice mode folds it.
   const analysisFold = useAnalysisFold()
-  // Auto-detect on a fresh PCM + the panel's retry + the octave fold.
+  // Auto-detect on a fresh PCM + the panel's retry + the octave fold. Tempo
+  // and metronome are the feature's own (ADR 0010) — only the mixer seam and
+  // values go in.
   const tempoDetection = useTempoDetection({
-    tempo,
-    metronome,
+    mixer,
     loadedAudio,
     separationOwnsMix: stemsReady
   })

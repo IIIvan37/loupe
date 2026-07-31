@@ -5,10 +5,11 @@ import {
   isAnalysisOffloaded
 } from '../../auth/analysis-token.ts'
 import { useLatest } from '../../lib/use-latest.ts'
-import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
-import type { useMetronome } from '../tempo/use-metronome.ts'
-import { useTapTempo } from '../tempo/use-tap-tempo.ts'
-import type { useTempo } from '../tempo/use-tempo.ts'
+import type { Mixer } from '../mixer/use-mixer.ts'
+import { DEFAULT_METRONOME_CHANNEL } from './metronome-stem.ts'
+import { useMetronome } from './use-metronome.ts'
+import { useTapTempo } from './use-tap-tempo.ts'
+import { useTempo } from './use-tempo.ts'
 
 export interface TempoDetection {
   /**
@@ -36,11 +37,11 @@ function durationOf(audio: DecodedAudio): number {
 }
 
 /**
- * The detect → seat-the-metronome flow, off the shell: the tempo is detected
- * automatically the moment a track's PCM lands (import or project open) and the
- * always-on metronome is seated from the result — no button. The panel's
- * « Réessayer » re-runs the exact same flow after a failure, and an octave fold
- * re-renders the click for the folded grid.
+ * The detect → seat-the-metronome flow, owned by the tempo feature (ADR 0010):
+ * the tempo is detected automatically the moment a track's PCM lands (import or
+ * project open) and the always-on metronome is seated from the result — no
+ * button. The panel's « Réessayer » re-runs the exact same flow after a
+ * failure, and an octave fold re-renders the click for the folded grid.
  */
 /** Whether the auto-run costs the user nothing (AG.1): always true on the
  * local engine; on the offload only a still-fresh cached token is free — a
@@ -51,20 +52,25 @@ function defaultAutoDetectSpendsNothing(): boolean {
 }
 
 export function useTempoDetection({
-  tempo,
-  metronome,
+  mixer,
   loadedAudio,
   separationOwnsMix,
   autoDetectSpendsNothing = defaultAutoDetectSpendsNothing
 }: {
-  readonly tempo: ReturnType<typeof useTempo>
-  readonly metronome: ReturnType<typeof useMetronome>
+  /** The mix the click seats into — the shell stack's instance (the engine
+   * seam, same idiom as `MetronomeDeps`); tempo and metronome are the
+   * feature's own, derived here, not passed. */
+  readonly mixer: Mixer
   readonly loadedAudio: DecodedAudio | undefined
   /** A separation holds the mixer — `enable` would clobber its stems. */
   readonly separationOwnsMix: boolean
   /** Injected in specs; see `defaultAutoDetectSpendsNothing`. */
   readonly autoDetectSpendsNothing?: () => boolean
 }): TempoDetection {
+  // The whole tempo bag is session state in the feature's atoms (ADR 0010):
+  // this instance sees the exact tempo the shell and the regions see.
+  const tempo = useTempo()
+  const metronome = useMetronome({ mixer })
   const suppressAutoDetectRef = useRef(false)
   // Read at RESOLVE time (a separation can finish while a detection is in
   // flight — its stems must win over the late result's track+click seating).

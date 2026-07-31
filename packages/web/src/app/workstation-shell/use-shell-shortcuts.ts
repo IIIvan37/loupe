@@ -9,10 +9,10 @@ import { useKeyboardShortcuts } from '../keyboard/use-keyboard-shortcuts.ts'
 import type { Markers } from '../markers/use-markers.ts'
 import type { CountInTransport } from '../tempo/use-count-in.ts'
 import type { Metronome } from '../tempo/use-metronome.ts'
+import type { TempoDetection } from '../tempo/use-tempo-detection.ts'
 import type { ViewportControl } from '../waveform/use-viewport.ts'
 import { useNativeMenu } from './use-native-menu.ts'
 import type { ProjectSession } from './use-project-session.ts'
-import type { TempoDetection } from './use-tempo-detection.ts'
 
 /** The session slice the Cmd/Ctrl+S save reads and drives. */
 export type SaveSession = Pick<

@@ -7,12 +7,13 @@ import type {
   StemTrack
 } from '@app/core'
 import { UNITY_GAIN_DB } from '@app/core'
-import { useState } from 'react'
+import { useAtom } from 'jotai'
 import { useLatest } from '../../lib/use-latest.ts'
 import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
 import { buildTrackStem, TRACK_STEM_ID } from '../mixer/track-stem.ts'
 import type { Mixer } from '../mixer/use-mixer.ts'
 import { buildMetronomeStem } from './metronome-stem.ts'
+import { metronomeEnabledAtom } from './tempo-atoms.ts'
 
 export interface MetronomeDeps {
   readonly mixer: Mixer
@@ -82,7 +83,8 @@ function unityChannel(id: string): MixerChannel {
  */
 export function useMetronome(deps: MetronomeDeps): Metronome {
   const mixerRef = useLatest(deps.mixer)
-  const [enabled, setEnabled] = useState(false)
+  // Session state (ADR 0010): every instance agrees on whether a click is seated.
+  const [enabled, setEnabled] = useAtom(metronomeEnabledAtom)
 
   function enable(
     grid: BeatGrid,
