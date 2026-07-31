@@ -19,7 +19,7 @@
 - **Le seul port gras est `StemPlaybackEngine`** : huit entrées sur douze sont
   des interfaces à un ou deux membres — les segréguer serait du bruit.
 - **Première tranche livrée** (branche `refactor/session-narrow-stem-audio`,
-  PR à ouvrir) : `StemAudioSource` — *un* membre sur quinze — est déclaré au
+  PR #307 ouverte) : `StemAudioSource` — *un* membre sur quinze — est déclaré au
   seam, façonné par son consommateur, et `useStemAudio()` le sert.
   `useSeparation` ne nomme plus `StemPlaybackEngine` : il lit les PCM par
   l'interface étroite, l'adaptateur la satisfait structurellement (le même
