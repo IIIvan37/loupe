@@ -41,7 +41,7 @@ import {
 import { ShellAnalyserRow } from './shell-analyser-row.tsx'
 import { ShellSection } from './shell-section.tsx'
 import { ShellStage } from './shell-stage.tsx'
-import type { TempoDetection } from './use-tempo-detection.ts'
+import type { TempoDetection } from '../tempo/use-tempo-detection.ts'
 import styles from './workstation-shell.module.css'
 
 interface ShellMainProps {

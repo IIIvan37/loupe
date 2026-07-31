@@ -7,6 +7,8 @@ import type {
   StemTrack
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { Provider, createStore } from 'jotai'
+import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 import type { Mixer } from '../mixer/use-mixer.ts'
 import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
@@ -95,5 +97,44 @@ describe('useMetronome', () => {
     const [stem] = (mixer.replaceStem as ReturnType<typeof vi.fn>).mock
       .calls[0] as [StemTrack, SeparatedStem]
     expect(stem.id).toBe(METRONOME_ID)
+  })
+})
+
+/**
+ * Two metronome instances in separate trees sharing ONE store — the shape the
+ * app reaches once a coordination hook builds its own instance (ADR 0010):
+ * whether a click is seated is session state, not the instance's.
+ */
+function mountTwoInstances() {
+  const store = createStore()
+  const wrapper = ({ children }: { readonly children: ReactNode }) => (
+    <Provider store={store}>{children}</Provider>
+  )
+  const mixer = fakeMixer()
+  const seater = renderHook(() => useMetronome({ mixer }), { wrapper })
+  const reader = renderHook(() => useMetronome({ mixer }), { wrapper })
+  return { seater, reader }
+}
+
+describe('useMetronome — enabled is session state (ADR 0010)', () => {
+  it('tells a second instance the click was seated by the first', () => {
+    const { seater, reader } = mountTwoInstances()
+
+    act(() => {
+      seater.result.current.enable(grid, audio, DEFAULT_METRONOME_CHANNEL)
+    })
+
+    expect(reader.result.current.enabled).toBe(true)
+  })
+
+  it('a reset by one instance clears enabled for the other', () => {
+    const { seater, reader } = mountTwoInstances()
+    act(() => {
+      seater.result.current.enable(grid, audio, DEFAULT_METRONOME_CHANNEL)
+    })
+
+    act(() => reader.result.current.reset())
+
+    expect(seater.result.current.enabled).toBe(false)
   })
 })

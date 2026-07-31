@@ -63,3 +63,10 @@ export const tempoGateReasonAtom = atom<MintFailureReason | undefined>(
  * regions render « playing » during the count; only `useCountIn` writes it.
  */
 export const countingInAtom = atom(false)
+
+/**
+ * Whether a metronome click is seated in the mix — session state, not an
+ * instance's (ADR 0010): the shell's metronome and a coordination hook's own
+ * instance must agree on it, whichever one seated the click.
+ */
+export const metronomeEnabledAtom = atom(false)

@@ -5,7 +5,7 @@ import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../markers/use-structure-detection.ts'
 import { separationGateReasonAtom } from '../separation/separation-atoms.ts'
 import { tempoGateReasonAtom } from '../tempo/tempo-atoms.ts'
-import type { useTempoDetection } from './use-tempo-detection.ts'
+import type { useTempoDetection } from '../tempo/use-tempo-detection.ts'
 
 interface ResumeFlows {
   readonly structureDetection: StructureDetection
