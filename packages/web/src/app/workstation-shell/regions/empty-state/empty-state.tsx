@@ -2,7 +2,7 @@ import { isSupportedSourceUrl } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { type ClipboardEvent, type ReactNode, useRef, useState } from 'react'
 import { cx } from '../../../../lib/cx.ts'
-import { UrlImportField } from '../../../ui/url-import-field.tsx'
+import { UrlImportField } from '../../../ui/url-import-field/url-import-field.tsx'
 import styles from './empty-state.module.css'
 
 interface EmptyStateProps {

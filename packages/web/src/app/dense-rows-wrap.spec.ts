@@ -11,7 +11,10 @@ const here = dirname(fileURLToPath(import.meta.url))
 
 const DENSE_ROWS = [
   { file: 'tempo/tempo-panel.module.css', selector: '.panel' },
-  { file: 'lead-sheet/chord-chart-panel.module.css', selector: '.header' }
+  {
+    file: 'lead-sheet/chord-chart-panel/chord-chart-panel.module.css',
+    selector: '.header'
+  }
 ]
 
 function ruleBlock(css: string, selector: string): string {

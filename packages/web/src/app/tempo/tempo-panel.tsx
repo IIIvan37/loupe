@@ -14,7 +14,7 @@ import {
   useExternalValue
 } from '../../lib/external-value.ts'
 import { CommitNumberField } from '../ui/commit-number-field.tsx'
-import { LiveStatus } from '../ui/live-status.tsx'
+import { LiveStatus } from '../ui/live-status/live-status.tsx'
 import styles from './tempo-panel.module.css'
 
 /** The furthest the tempo may be folded from the detection, either way. */

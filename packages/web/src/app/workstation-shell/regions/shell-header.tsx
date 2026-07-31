@@ -5,7 +5,7 @@ import type { AuthPort, MintFailureReason } from '../../../auth/auth-port.ts'
 import { AccountMenuSlot } from '../../account/account-menu-slot.tsx'
 import { Header } from '../../header/header.tsx'
 import type { UrlImport } from '../../header/use-import-from-url.ts'
-import { AlertBanner } from '../../ui/alert-banner.tsx'
+import { AlertBanner } from '../../ui/alert-banner/alert-banner.tsx'
 import type { ProjectSession } from '../orchestration/use-project-session.ts'
 
 /** Stable empty default — a `[]` default would defeat prop comparison. */

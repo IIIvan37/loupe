@@ -1,5 +1,5 @@
-import { readdirSync } from 'node:fs'
-import { join } from 'node:path'
+import { readdirSync, readFileSync } from 'node:fs'
+import { basename, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
@@ -13,9 +13,13 @@ import { describe, expect, it } from 'vitest'
  */
 
 // ── Ratchet — LOWER as leaves land, NEVER raise. ────────────────────────────
-/** Direct non-spec sources a single folder may hold (today `app/ui` and
- * `app/lead-sheet`). */
-const MAX_FLAT_SOURCES = 16
+/** Direct non-spec sources a single folder may hold (today `lib`,
+ * `app/waveform` and the `app/lead-sheet` root). */
+const MAX_FLAT_SOURCES = 11
+/** Components still importing ANOTHER component's `.module.css` — a component
+ * owns its stylesheet; shared skins travel through `composes`, never through
+ * a neighbour's import. Target: 0. */
+const MAX_FOREIGN_CSS_IMPORTS = 10
 
 const WEB_SRC = fileURLToPath(new URL('.', import.meta.url))
 
@@ -35,7 +39,18 @@ function walk(dir: string): { dir: string; count: number }[] {
   return [{ dir, count }, ...nested]
 }
 
-describe('ADR 0013 — folder shape ratchet', () => {
+function* sourceFiles(dir: string): Generator<string> {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = join(dir, entry.name)
+    if (entry.isDirectory()) {
+      yield* sourceFiles(path)
+    } else if (/\.tsx$/.test(entry.name)) {
+      yield path
+    }
+  }
+}
+
+describe('ADR 0013 — folder shape ratchets', () => {
   it(`keeps every folder at most ${MAX_FLAT_SOURCES} direct sources`, () => {
     const offenders = walk(WEB_SRC)
       .filter((folder) => folder.count > MAX_FLAT_SOURCES)
@@ -44,5 +59,24 @@ describe('ADR 0013 — folder shape ratchet', () => {
       offenders.length,
       `folders past reading at a glance:\n${offenders.join('\n')}`
     ).toBe(0)
+  })
+
+  it(`has at most ${MAX_FOREIGN_CSS_IMPORTS} foreign module.css imports (target 0)`, () => {
+    const offenders: string[] = []
+    for (const file of sourceFiles(WEB_SRC)) {
+      const own = basename(file).replace(/\.tsx$/, '')
+      for (const match of readFileSync(file, 'utf8').matchAll(
+        /from\s+['"]([^'"]+\.module\.css)['"]/g
+      )) {
+        const imported = basename(match[1] ?? '').replace(/\.module\.css$/, '')
+        if (imported !== own) {
+          offenders.push(`${file} -> ${match[1]}`)
+        }
+      }
+    }
+    expect(
+      offenders.length,
+      `components leaning on a neighbour's stylesheet:\n${offenders.join('\n')}`
+    ).toBeLessThanOrEqual(MAX_FOREIGN_CSS_IMPORTS)
   })
 })

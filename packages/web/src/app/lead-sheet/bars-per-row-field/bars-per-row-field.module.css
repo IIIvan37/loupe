@@ -1,0 +1,25 @@
+/* The layout knob rides the right edge with the transpose chips; the title
+ * keeps the left. */
+.layout {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  margin-inline-start: auto;
+  color: var(--dim);
+  font-size: var(--font-size-xs);
+}
+
+.barsField {
+  composes: numberField from '@/app/ui/controls.module.css';
+  color: var(--text);
+}
+
+/* An out-of-range draft is flagged, not silently ignored — the border echoes
+ * the aria-invalid state assistive tech announces. The :hover/:focus-visible
+ * variants outrank the composed numberField state rules (same specificity,
+ * order-dependent otherwise) — and the flag only exists while focused. */
+.barsField[aria-invalid='true'],
+.barsField[aria-invalid='true']:hover,
+.barsField[aria-invalid='true']:focus-visible {
+  border-color: var(--danger);
+}

@@ -1,14 +1,14 @@
 /* Two columns when the (wide) panel has room, collapsing to one when it does
    not — intrinsic, no media query. Each helpRow is a grid cell. */
 .list {
-  composes: rowList from '@/app/ui/app-dialog.module.css';
+  composes: rowList from '@/app/ui/app-dialog/app-dialog.module.css';
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
   column-gap: var(--space-xl);
 }
 
 .row {
-  composes: helpRow from '@/app/ui/app-dialog.module.css';
+  composes: helpRow from '@/app/ui/app-dialog/app-dialog.module.css';
 }
 
 .keys {

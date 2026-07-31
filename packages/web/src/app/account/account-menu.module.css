@@ -26,11 +26,11 @@
 }
 
 .positioner {
-  composes: positioner from '@/app/ui/popover-form.module.css';
+  composes: positioner from '@/app/ui/popover-form/popover-form.module.css';
 }
 
 .popup {
-  composes: popup from '@/app/ui/popover-form.module.css';
+  composes: popup from '@/app/ui/popover-form/popover-form.module.css';
   width: 20rem;
 }
 
@@ -49,7 +49,7 @@
 }
 
 .title {
-  composes: title from '@/app/ui/popover-form.module.css';
+  composes: title from '@/app/ui/popover-form/popover-form.module.css';
 }
 
 .notice {
@@ -93,11 +93,11 @@
 }
 
 .label {
-  composes: label from '@/app/ui/popover-form.module.css';
+  composes: label from '@/app/ui/popover-form/popover-form.module.css';
 }
 
 .input {
-  composes: input from '@/app/ui/popover-form.module.css';
+  composes: input from '@/app/ui/popover-form/popover-form.module.css';
 }
 
 .error {
@@ -106,11 +106,11 @@
 }
 
 .submit {
-  composes: submit from '@/app/ui/popover-form.module.css';
+  composes: submit from '@/app/ui/popover-form/popover-form.module.css';
   align-self: flex-start;
 }
 
 .ghost {
-  composes: ghost from '@/app/ui/popover-form.module.css';
+  composes: ghost from '@/app/ui/popover-form/popover-form.module.css';
   align-self: flex-start;
 }

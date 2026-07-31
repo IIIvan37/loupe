@@ -6,8 +6,8 @@ import {
 import { Trans, useLingui } from '@lingui/react/macro'
 import { type KeyboardEvent, memo, useState } from 'react'
 import { cx } from '../../lib/cx.ts'
-import { LiveStatus } from '../ui/live-status.tsx'
-import { PopoverForm } from '../ui/popover-form.tsx'
+import { LiveStatus } from '../ui/live-status/live-status.tsx'
+import { PopoverForm } from '../ui/popover-form/popover-form.tsx'
 import styles from './speed-trainer-controls.module.css'
 import type { SpeedTrainer } from './use-speed-trainer.ts'
 

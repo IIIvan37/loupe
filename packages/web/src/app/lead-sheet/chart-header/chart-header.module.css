@@ -1,0 +1,53 @@
+/* ——— The chart head: key/tempo line, title + artist, meta line. ——— */
+
+.chartHeader {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  row-gap: var(--space-3xs);
+  font-family: var(--font-chart);
+  color: var(--text);
+}
+
+.chartTopLine {
+  grid-column: 1 / -1;
+  display: flex;
+  font-size: var(--font-size-m);
+}
+
+/* The tempo sits top-right even when no key line shares the row. */
+.chartTempo {
+  margin-inline-start: auto;
+}
+
+.chartTitle {
+  margin: 0;
+  font-size: var(--font-size-chart-title);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.chartArtist {
+  justify-self: end;
+  font-size: var(--font-size-l);
+}
+
+.chartMeta {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: var(--space-m);
+  align-items: baseline;
+}
+
+/* The style tag prints in the mockup's small bold sans, not in script. */
+.chartStyle {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+/* The rollout note ("jouer 3 fois") — same small sans, lighter weight. */
+.chartForm {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-xs);
+}
