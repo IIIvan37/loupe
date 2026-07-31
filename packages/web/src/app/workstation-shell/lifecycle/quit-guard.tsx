@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { isTauriShell } from '../../../lib/tauri-env.ts'
-import { ConfirmQuitDialog } from '../regions/confirm-quit-dialog.tsx'
+import { ConfirmQuitDialog } from '../regions/confirm-quit-dialog/confirm-quit-dialog.tsx'
 import { confirmClose, useCloseGuard } from './use-close-guard.ts'
 import { useUnloadGuard } from './use-unload-guard.ts'
 

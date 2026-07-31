@@ -13,7 +13,7 @@ import type { ExternalValue } from '../../lib/external-value.ts'
 import { Icon } from '../ui/icon.tsx'
 import { NameEditor } from '../ui/name-editor/name-editor.tsx'
 import { useTwoStepConfirm } from '../ui/use-two-step-confirm.ts'
-import { ChromaView } from './chroma-view.tsx'
+import { ChromaView } from './chroma-view/chroma-view.tsx'
 import styles from './analysis-panel.module.css'
 
 interface AnalysisPanelProps {
