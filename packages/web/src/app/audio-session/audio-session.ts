@@ -2,6 +2,7 @@ import type {
   AudioFileDecoder,
   ChordDetector,
   CountIn,
+  DecodedAudio,
   LoopRegion,
   PlaybackEngine,
   ProjectDeps,
@@ -59,6 +60,20 @@ export interface PlayerHandle {
 }
 
 /**
+ * The stems' PCM custodian — the ONE member of the stem engine's surface the
+ * separation needs: it reads samples back zero-copy for export and save, and
+ * retains none. Declared HERE, shaped by its consumer, instead of that
+ * consumer importing the core's fifteen-member `StemPlaybackEngine` (DIP —
+ * the seam declares, the adapter satisfies it structurally, like
+ * {@link CountInPlayer}). The engine keeps its identity: what narrows is who
+ * sees what, never the object handed over.
+ */
+export interface StemAudioSource {
+  /** One loaded stem's PCM, or undefined when it is not loaded. */
+  readonly stemAudio: (id: string) => DecodedAudio | undefined
+}
+
+/**
  * The audio session's injectable ports (ADR 0011) — stable references, set
  * once at mount, never rewritten. A consumer hook reads the session to REACH
  * a port, never to create one: an absent entry means « use the real adapter »,
@@ -90,6 +105,16 @@ export const AudioSessionContext = createContext<AudioSession>({})
 /** Read the session's ports (a stable reference — never re-renders anyone). */
 export function useAudioSession(): AudioSession {
   return useContext(AudioSessionContext)
+}
+
+/**
+ * Reach the stems' PCM without seeing the engine that owns it — undefined
+ * until the shell seats one (no stems, nothing to read back). The engine
+ * object itself is returned, narrowed: no member is extracted, so an adapter
+ * whose reader closes over `this` keeps working.
+ */
+export function useStemAudio(): StemAudioSource | undefined {
+  return useAudioSession().stemEngine
 }
 
 /**

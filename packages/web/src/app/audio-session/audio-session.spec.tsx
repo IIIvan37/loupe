@@ -15,7 +15,8 @@ import {
 import {
   type PlayerHandle,
   useAudioSession,
-  usePlayerHandle
+  usePlayerHandle,
+  useStemAudio
 } from './audio-session.ts'
 
 const decoder: AudioFileDecoder = {
@@ -73,6 +74,43 @@ describe('usePlayerHandle', () => {
     expect(() => renderHook(() => usePlayerHandle())).toThrow(
       /no player in the audio session/
     )
+  })
+})
+
+describe('useStemAudio', () => {
+  const audio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
+  /** A stem engine of which the separation must see exactly ONE member. */
+  const engine = {
+    load: async () => {},
+    addStem: async () => {},
+    removeStem: () => {},
+    play: () => {},
+    pause: () => {},
+    seekTo: () => {},
+    setTimeRatio: () => {},
+    setPitchSemitones: () => {},
+    setGain: () => {},
+    stemAudio: (id: string) => (id === 'bass' ? audio : undefined),
+    onPositionChange: () => () => {}
+  } satisfies StemPlaybackEngine
+
+  it('reads a loaded stem back through the narrow custody interface', () => {
+    const wrapper = ({ children }: { readonly children: ReactNode }) => (
+      <AudioSessionProvider value={{ stemEngine: engine }}>
+        {children}
+      </AudioSessionProvider>
+    )
+
+    const { result } = renderHook(() => useStemAudio(), { wrapper })
+
+    expect(result.current?.stemAudio('bass')).toBe(audio)
+    expect(result.current?.stemAudio('vocals')).toBeUndefined()
+  })
+
+  it('is undefined while no engine is seated — no stems, no PCM to read', () => {
+    const { result } = renderHook(() => useStemAudio())
+
+    expect(result.current).toBeUndefined()
   })
 })
 
