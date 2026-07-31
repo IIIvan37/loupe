@@ -1,9 +1,9 @@
-//! Shared yt-dlp download engine (distribution D4.a), extracted verbatim from
-//! the desktop shell's T2.3 adapter so the Tauri command and the `loupe`
-//! server binary (D4.b) drive ONE implementation.
+//! Shared yt-dlp download engine (distribution D4.a) behind the `loupe`
+//! server binary (D4.b) — the only URL-download implementation since the
+//! Python local server and the Tauri shell were retired.
 //!
-//! Drives a managed yt-dlp binary as a subprocess, at guard parity with
-//! `server/app/download.py` (host allowlist, total wall-clock budget, size
+//! Drives a managed yt-dlp binary as a subprocess, guarded end to end (host
+//! allowlist, total wall-clock budget, size
 //! cap, socket timeout — callers enforce one-at-a-time). The binary is NOT
 //! bundled: yt-dlp goes stale in weeks, so it is fetched into the caller's
 //! data dir on first use (yt-dlp itself is Unlicense — invoking it imposes
@@ -25,8 +25,9 @@ use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 use tokio::sync::Notify;
 
-/// Mirror of `server/app/download.py` guards. Keep the host list in sync with
-/// that file and the core allowlist (`packages/core/src/application/supported-source.ts`).
+/// Mirror of the core allowlist
+/// (`packages/core/src/application/supported-source.ts`) — the product source
+/// of truth. Keep the two lists in sync.
 const SUPPORTED_HOSTS: [&str; 3] = ["youtube.com", "youtu.be", "soundcloud.com"];
 const DOWNLOAD_TIMEOUT_SECONDS: u64 = 900;
 const MAX_FILESIZE: &str = "500m";
@@ -351,11 +352,10 @@ fn collect_result(out_dir: &Path, out_rel: &str) -> Result<DownloadedTrack, Stri
   })
 }
 
-/// Only *stale* temp dirs are swept: several loupe processes (the dormant
-/// Tauri shell, two `loupe` servers on different ports) may share one data
+/// Only *stale* temp dirs are swept: several loupe processes (two `loupe`
+/// servers on different ports) may share one data
 /// dir, so an unconditional sweep would delete a concurrent instance's live
-/// download. The margin is far beyond any real extraction time — same policy
-/// as the Python server's D2 sweep (`server/app/temp_sweep.py`).
+/// download. The margin is far beyond any real extraction time.
 const STALE_AFTER: Duration = Duration::from_secs(60 * 60);
 
 /// Remove leftover per-download temp dirs older than the stale threshold

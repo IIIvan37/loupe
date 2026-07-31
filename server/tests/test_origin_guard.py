@@ -2,8 +2,8 @@
 
 CORS stops a foreign page from *reading* our responses, but not from *sending*:
 a third-party page can POST `text/plain` to 127.0.0.1:8000 (TrustedHost passes,
-the body readers ignore Content-Type) and trigger `/download`, `/audio`, the
-inference endpoints or `/gc`. The guard refuses (403) any request that carries
+the body readers ignore Content-Type) and trigger the inference endpoints. The
+guard refuses (403) any request that carries
 an `Origin` header outside the allowlist; requests without an Origin header
 (curl, native clients) pass — they are not browser-mediated CSRF.
 
@@ -57,7 +57,7 @@ def _drive(headers, scheme="http"):
         "type": "http",
         "headers": headers,
         "method": "POST",
-        "path": "/gc",
+        "path": "/tempo",
         "scheme": scheme,
     }
     middleware = OriginGuardMiddleware(downstream, allowed_origins=ALLOWED)
@@ -105,16 +105,16 @@ client = TestClient(app, base_url="http://localhost")
 EVIL_ORIGIN = "https://evil.example"
 
 
-def test_post_gc_with_foreign_origin_is_403():
-    res = client.post("/gc", headers={"origin": EVIL_ORIGIN})
+def test_post_tempo_with_foreign_origin_is_403():
+    res = client.post("/tempo", headers={"origin": EVIL_ORIGIN}, content=b"")
     assert res.status_code == 403
 
 
-def test_post_download_with_foreign_origin_is_403():
-    res = client.post("/download", headers={"origin": EVIL_ORIGIN}, content=b"{}")
+def test_post_separate_with_foreign_origin_is_403():
+    res = client.post("/separate", headers={"origin": EVIL_ORIGIN}, content=b"")
     assert res.status_code == 403
 
 
-def test_post_gc_with_dev_origin_is_not_blocked():
-    res = client.post("/gc", headers={"origin": "http://localhost:5173"})
+def test_post_tempo_with_dev_origin_is_not_blocked():
+    res = client.post("/tempo", headers={"origin": "http://localhost:5173"}, content=b"")
     assert res.status_code != 403

@@ -18,11 +18,12 @@ core**, **strict TDD**, and a **blocking quality gate**.
   file, zero runtime), and `loupe-download`, its yt-dlp engine. The `loupe`
   binary is the **nominal way to run loupe**; heavy analysis is offloaded to
   **Modal**.
-- **`server/`** — a standalone **FastAPI** backend (PyTorch, GPU-capable),
-  deliberately outside the monorepo/hexagon. **Not on the nominal path**: it
-  stays as the dev/CI target and, above all, as the **shared library the Modal
-  deployment imports** — `server/app/` holds the pure inference/guard logic
-  the pytest suite locks and Modal runs in production.
+- **`server/`** — the **analysis library the Modal deployment imports**, plus
+  its local dev/CI harness (FastAPI, PyTorch, GPU-capable), deliberately
+  outside the monorepo/hexagon. **Analysis only** (`/separate`, `/tempo`,
+  `/chords`, `/structure`) — project storage, URL download and web serving
+  live in the `loupe` binary. `server/app/` holds the pure inference/guard
+  logic the pytest suite locks and Modal runs in production.
   See [server/README.md](server/README.md).
 
 Layering is enforced three ways: the package graph (`@app/core` pure ← `web`
@@ -40,8 +41,8 @@ pnpm gate                        # the blocking quality gate (run before any com
 ```
 
 The distributed `loupe` binary (see `docs/RELEASING.md`) is the nominal way to
-run loupe; the local FastAPI server is optional (dev/CI + the library Modal
-deploys — see Architecture).
+run loupe; the Python analysis server is optional (`pnpm dev:analysis` — the
+dev/CI harness of the library Modal deploys, see Architecture).
 
 - **`pnpm gate`** — TypeScript strict, Biome lint+format, Sheriff, vitest with
   coverage thresholds (core), knip (dead code), jscpd (duplication), plus
@@ -72,7 +73,7 @@ packages/core/src/application   use-cases + ports (the registry README lives her
 packages/core/src/index.ts      the only public surface adapters import
 packages/web/src                the React adapter + workstation UI
 crates                          the `loupe` binary (local server + embedded web) and its yt-dlp engine
-server                          FastAPI backend — dev/CI + the library Modal deploys (off the nominal path)
+server                          the analysis library Modal deploys + its dev/CI harness (off the nominal path)
 .claude/skills                  the method, as Claude Code skills
 docs/STATUS.md, docs/sessions   resumable project state
 ```

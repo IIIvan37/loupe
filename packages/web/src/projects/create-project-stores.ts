@@ -9,7 +9,7 @@ import {
  * Build the project persistence adapters (`ProjectStore` + `ProjectAudioStore`).
  * In the server shell (distribution D1) the page is served by the local loupe
  * server and the HTTP stores talk to their own origin
- * (`server/app/projects.py`). In the plain browser there is no backend: the
+ * (`crates/loupe-server`). In the plain browser there is no backend: the
  * project UI is hidden and these stores are an empty null-object so the hooks
  * stay inert (list is empty, nothing persists).
  */

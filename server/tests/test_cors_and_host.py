@@ -50,7 +50,7 @@ def test_cors_does_not_echo_a_foreign_origin():
 def test_cors_preflight_rejects_foreign_origin():
     """A foreign preflight dies at the OriginGuard; either way, never echoed."""
     res = client.options(
-        "/projects",
+        "/tempo",
         headers={
             "origin": EVIL_ORIGIN,
             "access-control-request-method": "GET",

@@ -56,33 +56,8 @@ def test_rejects_streamed_oversize_without_length_header():
     assert excinfo.value.status_code == 413
 
 
-def test_default_caps_are_sane():
+def test_default_cap_is_sane():
     assert limits.MAX_UPLOAD_BYTES == 500 * 1024 * 1024
-    assert limits.MAX_MANIFEST_BYTES == 16 * 1024 * 1024
-
-
-def test_read_capped_json_returns_bytes_and_parsed_value():
-    req = FakeRequest([b'{"url": "x"}'])
-    data, body = asyncio.run(limits.read_capped_json(req, 100))
-    assert data == b'{"url": "x"}'
-    assert body == {"url": "x"}
-
-
-def test_read_capped_json_rejects_non_json_as_400():
-    req = FakeRequest([b"not json"])
-    reading = limits.read_capped_json(req, 100, "manifest is not JSON")
-    with pytest.raises(HTTPException) as excinfo:
-        asyncio.run(reading)
-    assert excinfo.value.status_code == 400
-    assert excinfo.value.detail == "manifest is not JSON"
-
-
-def test_read_capped_json_keeps_the_413_cap():
-    req = FakeRequest([b"x" * 50])
-    reading = limits.read_capped_json(req, 10)
-    with pytest.raises(HTTPException) as excinfo:
-        asyncio.run(reading)
-    assert excinfo.value.status_code == 413
 
 
 def test_concurrency_slots_defaults_to_one_without_env(monkeypatch):

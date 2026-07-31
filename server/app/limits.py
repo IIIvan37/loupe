@@ -6,15 +6,13 @@ memory-exhaustion / disk-fill DoS. `read_capped_body` refuses a body over the ca
 both up front (declared `Content-Length`) and while streaming (a lying or chunked
 length), so nothing oversized is ever fully buffered.
 
-Caps are env-overridable (audio uploads are legitimately large — a full-track WAV
-runs to hundreds of MB — while manifests are tiny JSON).
+The cap is env-overridable (audio uploads are legitimately large — a full-track
+WAV runs to hundreds of MB).
 """
 
 from __future__ import annotations
 
-import json
 import os
-from typing import Any
 
 from fastapi import HTTPException, Request
 
@@ -26,10 +24,6 @@ def _mb_env(name: str, default_mb: int) -> int:
 
 
 MAX_UPLOAD_BYTES = _mb_env("LOUPE_MAX_UPLOAD_MB", 500)
-MAX_MANIFEST_BYTES = _mb_env("LOUPE_MAX_MANIFEST_MB", 16)
-# Total size of the content-addressed audio store. The GC only reclaims
-# orphans, so without a ceiling saved projects can fill the disk unbounded.
-MAX_AUDIO_STORE_BYTES = _mb_env("LOUPE_MAX_AUDIO_STORE_MB", 10240)
 
 
 def seconds_env(name: str, default_seconds: int) -> float:
@@ -54,20 +48,6 @@ def concurrency_slots(env_name: str) -> int:
     """
     raw = os.environ.get(env_name, "1")
     return max(1, int(raw)) if raw.isdigit() else 1
-
-
-async def read_capped_json(
-    request: Request, max_bytes: int, detail: str = "body is not JSON"
-) -> tuple[bytes, Any]:
-    """Read a capped request body that must be JSON — 413 over the cap, 400 if
-    it doesn't parse. Returns both the raw bytes (for callers that persist the
-    body verbatim) and the parsed value.
-    """
-    data = await read_capped_body(request, max_bytes)
-    try:
-        return data, json.loads(data)
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=detail) from exc
 
 
 async def read_capped_body(request: Request, max_bytes: int) -> bytes:

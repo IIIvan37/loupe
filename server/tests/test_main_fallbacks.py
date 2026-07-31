@@ -1,6 +1,6 @@
-"""The app still serves when the optional ML/download stacks are absent.
+"""The app still serves when the optional ML stacks are absent.
 
-`main` imports separation / tempo / download lazily and, on failure, registers a
+`main` imports separation / tempo / chords / structure lazily and, on failure, registers a
 contract-honouring fallback (NDJSON error / 503) instead of the real router. We
 prove that invariant by importing a fresh `app.main` with those submodules forced
 missing — which also keeps the test torch-free and fast (the heavy imports never
@@ -16,7 +16,7 @@ import sys
 import pytest
 from fastapi.testclient import TestClient
 
-_OPTIONAL = ("app.separation", "app.tempo", "app.chords", "app.structure", "app.download")
+_OPTIONAL = ("app.separation", "app.tempo", "app.chords", "app.structure")
 
 
 @pytest.fixture
@@ -65,13 +65,6 @@ def test_structure_fallback_is_503(app_without_ml):
     assert "structure detection unavailable" in res.json()["detail"]
 
 
-def test_download_fallback_is_ndjson_error(app_without_ml):
-    client = TestClient(app_without_ml.app, base_url="http://localhost")
-    res = client.post("/download", json={"url": "https://youtube.com/x"})
-    assert res.status_code == 200
-    assert "track download unavailable" in res.text
-
-
 def test_health_reports_no_model_without_the_ml_stack(app_without_ml):
     client = TestClient(app_without_ml.app, base_url="http://localhost")
     assert client.get("/health").json() == {"status": "ok", "model": None, "device": None}
@@ -88,14 +81,3 @@ def test_startup_hands_the_collected_warm_hooks_to_the_warmup(app_without_ml, mo
     with TestClient(app_without_ml.app, base_url="http://localhost") as client:
         assert client.get("/health").status_code == 200
     assert handed == [[]]
-
-
-def test_startup_runs_the_boot_gc(app_without_ml, monkeypatch):
-    """Entering the client context fires the lifespan → the boot-time GC sweep."""
-    from app import main as main_mod
-
-    swept = {"called": False}
-    monkeypatch.setattr(main_mod, "collect_garbage", lambda: swept.__setitem__("called", True))
-    with TestClient(app_without_ml.app, base_url="http://localhost") as client:
-        assert client.get("/health").status_code == 200
-    assert swept["called"] is True

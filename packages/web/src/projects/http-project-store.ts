@@ -10,7 +10,7 @@ import { readableProjects, unreadableManifestError } from './manifest-decode.ts'
 
 /**
  * HTTP adapters for the core's `ProjectStore` / `ProjectAudioStore` ports,
- * against the local loupe server (`server/app/projects.py`).
+ * against the local loupe server (`crates/loupe-server/src/project_store.rs`).
  * Manifests travel as JSON; audio blobs as raw bytes with server-minted,
  * content-addressed refs (same bytes → same ref). A non-OK response throws —
  * the project use-cases turn that into an error `Result`.

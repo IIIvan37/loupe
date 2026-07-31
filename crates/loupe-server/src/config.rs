@@ -1,5 +1,5 @@
-//! Runtime configuration — the env contract shared with the Python server
-//! (`server/app/origins.py`, `limits.py`, `projects.py`, `download.py`): same
+//! Runtime configuration — the env contract shared with the Python analysis
+//! harness (`server/app/origins.py`, `limits.py`): same
 //! variable names, same defaults, same parsing quirks (fallback only when the
 //! var is UNSET, garbage falls back to the default). The parsers are pure
 //! (they take the raw value) so tests never mutate process-global env.
@@ -7,15 +7,15 @@
 use std::path::PathBuf;
 use std::time::Duration;
 
-/// Parity with `server/app/origins.py` — 5173 = Vite dev, 6173 = the
+/// Parity with `server/app/origins.py` (locked by
+/// `docs/origins-parity.spec.ts`) — 5173 = Vite dev, 6173 = the
 /// distributed local server.
 pub const DEFAULT_ALLOWED_ORIGINS: &str = "http://localhost:5173,http://127.0.0.1:5173\
 ,http://localhost:6173,http://127.0.0.1:6173";
 
 pub const DEFAULT_ALLOWED_HOSTS: &str = "localhost,127.0.0.1";
 
-/// 5173 belongs to Vite dev; 6173 keeps the mnemonic and the two can coexist
-/// (same choice as `server/app/cli.py`, D3).
+/// 5173 belongs to Vite dev; 6173 keeps the mnemonic and the two can coexist.
 pub const DEFAULT_PORT: u16 = 6173;
 
 #[derive(Clone, Debug)]

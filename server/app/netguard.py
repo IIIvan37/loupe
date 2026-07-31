@@ -11,8 +11,8 @@ Two independent guards, both pure predicates behind tiny ASGI middlewares
   non-loopback hit is refused regardless of the Host header or the bind host.
 - Origin guard (M.1): CORS stops a foreign page from *reading* us, not from
   *sending* — a "simple request" POST (`text/plain`) needs no preflight, so a
-  third-party page could still trigger `/download`, `/audio`, the inference
-  endpoints or `/gc`. Any request carrying an `Origin` header outside the
+  third-party page could still trigger the inference
+  endpoints. Any request carrying an `Origin` header outside the
   allowlist is refused; requests without one (curl, native clients) are not
   browser-mediated CSRF and pass.
 """

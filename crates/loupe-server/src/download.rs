@@ -1,6 +1,5 @@
-//! `POST /download` — the NDJSON contract of `server/app/download.py`, backed
-//! by the shared `loupe-download` engine (D4.a) instead of an in-process
-//! yt-dlp:
+//! `POST /download` — the NDJSON contract the web `http-track-source`
+//! adapter speaks, backed by the shared `loupe-download` engine (D4.a):
 //!
 //! ```text
 //! POST /download        body = {"url": "..."} (application/json)
