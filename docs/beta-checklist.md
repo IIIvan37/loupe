@@ -14,13 +14,16 @@
   contrôle préflight (5173 échoïsé, `tauri://` 204 sans écho — le navigateur
   bloque).
 - [ ] **Re-seed des codes beta legacy < 32 chars** en prod (runbook U.3 : le
-  CHECK d'entropie ne couvre que les nouveaux inserts). ⚠️ invalide les codes
-  courts déjà distribués — redistribuer les nouveaux. Dans le SQL editor :
+  CHECK d'entropie ne couvre que les nouveaux inserts). Décision 2026-07-31 :
+  l'opérateur était le **seul utilisateur** → purge sans redistribution.
+  Dans le SQL editor :
   ```sql
-  select code, uses_left from beta_codes where length(code) < 32;  -- inventaire
-  insert into beta_codes (code, uses_left)
-    values (gen_random_uuid()::text, <uses_left du legacy>);       -- par code
-  delete from beta_codes where code = '<legacy>';
+  select code, uses_left, created_at
+  from public.beta_codes where char_length(code) < 32;             -- inventaire
+  delete from public.beta_codes where char_length(code) < 32;      -- purge
+  insert into public.beta_codes (code, uses_left, note)
+  values (gen_random_uuid()::text, 25, 're-seed U.3 2026-07-31')
+  returning code;                                                  -- code frais à noter
   ```
 
 ## À faire par l'utilisateur (non automatisable)
