@@ -1,8 +1,8 @@
 import { defaultKeyBindings } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
-import { ProjectsDialog } from '../../../projects/projects-dialog.tsx'
+import { ProjectsDialog } from '../../../projects/projects-dialog/projects-dialog.tsx'
 import { describeKeyBindings } from '../../keyboard/shortcut-hints.ts'
-import { ShortcutsDialog } from '../../keyboard/shortcuts-dialog.tsx'
+import { ShortcutsDialog } from '../../keyboard/shortcuts-dialog/shortcuts-dialog.tsx'
 import type { ProjectSession } from '../orchestration/use-project-session.ts'
 
 /** Help rows derived once from the shipped layout — never drift from the keys. */

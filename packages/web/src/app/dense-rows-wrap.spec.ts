@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 const here = dirname(fileURLToPath(import.meta.url))
 
 const DENSE_ROWS = [
-  { file: 'tempo/tempo-panel.module.css', selector: '.panel' },
+  { file: 'tempo/tempo-panel/tempo-panel.module.css', selector: '.panel' },
   {
     file: 'lead-sheet/chord-chart-panel/chord-chart-panel.module.css',
     selector: '.header'

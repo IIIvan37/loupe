@@ -1,5 +1,5 @@
 import { isAnalysisOffloaded } from '../../../auth/analysis-token.ts'
-import { AnalyserRow } from '../../analyser/analyser-row.tsx'
+import { AnalyserRow } from '../../analyser/analyser-row/analyser-row.tsx'
 import type { ChordDetection } from '../../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../../markers/use-structure-detection.ts'
 import { useSeparation } from '../../separation/use-separation.ts'

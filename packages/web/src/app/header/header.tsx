@@ -6,7 +6,7 @@ import { Icon } from '../ui/icon.tsx'
 import { NameEditor } from '../ui/name-editor/name-editor.tsx'
 import { OperationStatus } from '../ui/operation-status/operation-status.tsx'
 import styles from './header.module.css'
-import { ImportMenu } from './import-menu.tsx'
+import { ImportMenu } from './import-menu/import-menu.tsx'
 
 interface HeaderProps {
   readonly title: string
