@@ -1,13 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createTrackSource } from './create-track-source.ts'
-import { createTauriTrackSource } from './tauri/tauri-track-source.ts'
-
-vi.mock('./tauri/tauri-download-bridge.ts', () => ({
-  createTauriDownloadBridge: vi.fn(() => ({}))
-}))
-vi.mock('./tauri/tauri-track-source.ts', () => ({
-  createTauriTrackSource: vi.fn(() => ({ fetch: vi.fn() }))
-}))
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -19,15 +11,8 @@ describe('createTrackSource', () => {
   it('rejects URL import in the plain browser (no yt-dlp anywhere)', async () => {
     const source = createTrackSource()
     await expect(source.fetch('https://youtu.be/x', () => {})).rejects.toThrow(
-      /desktop|serveur|server/i
+      /serveur|server/i
     )
-    expect(createTauriTrackSource).not.toHaveBeenCalled()
-  })
-
-  it('drives the Tauri download bridge inside the desktop shell', () => {
-    vi.stubGlobal('window', { __TAURI_INTERNALS__: {} })
-    createTrackSource()
-    expect(createTauriTrackSource).toHaveBeenCalled()
   })
 
   it('POSTs /download to its own origin in the server shell (D1)', async () => {
@@ -46,6 +31,5 @@ describe('createTrackSource', () => {
       'http://localhost:5173/download',
       expect.objectContaining({ method: 'POST' })
     )
-    expect(createTauriTrackSource).not.toHaveBeenCalled()
   })
 })

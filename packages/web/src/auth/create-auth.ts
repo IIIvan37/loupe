@@ -1,5 +1,4 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { isTauriShell } from '../lib/tauri-env.ts'
 import type {
   AccountStatus,
   AuthPort,
@@ -8,16 +7,8 @@ import type {
   RedeemResult
 } from './auth-port.ts'
 
-/**
- * Where the magic link returns the user — the running app origin, or the
- * desktop deep link under the Tauri shell (a browser redirect can never reach
- * the webview's storage; the shell installs the session by exchanging the
- * PKCE code from the deep link).
- */
+/** Where the magic link returns the user — the running app origin. */
 function redirectTo(): string | undefined {
-  if (isTauriShell()) {
-    return 'loupe://auth-callback'
-  }
   try {
     return window.location.origin
   } catch {

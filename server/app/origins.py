@@ -15,19 +15,12 @@ from __future__ import annotations
 
 import os
 
-# The dev browser origins plus the desktop shell's own origins (T2.5). The
-# Tauri bundle serves the web app from a custom scheme — `tauri://localhost`
-# on macOS/Linux (WebKit), `http://tauri.localhost` on Windows (WebView2) —
-# so those ARE the nominal client's origins, not a per-deployment secret, and
-# belong in the default like `localhost:5173` does. A deployment that SETS
-# `LOUPE_ALLOWED_ORIGINS` overrides this wholesale, so Modal/Supabase must
-# list the Tauri origins in their env too (see docs/j2-supabase-runbook.md).
-# 5173 = Vite dev ; 6173 = the distributed local server (`loupe`, D3) — both
-# are nominal client origins, like the Tauri schemes (dormant shell, kept).
+# The nominal client origins — not a per-deployment secret, so they belong in
+# the default. A deployment that SETS `LOUPE_ALLOWED_ORIGINS` overrides this
+# wholesale (see docs/j2-supabase-runbook.md).
+# 5173 = Vite dev ; 6173 = the distributed local server (`loupe`, D3).
 DEFAULT_ALLOWED_ORIGINS = (
-    "http://localhost:5173,http://127.0.0.1:5173"
-    ",http://localhost:6173,http://127.0.0.1:6173"
-    ",tauri://localhost,http://tauri.localhost"
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:6173,http://127.0.0.1:6173"
 )
 
 

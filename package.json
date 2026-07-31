@@ -11,8 +11,6 @@
     "dev": "pnpm dev:web",
     "dev:server": "cd server && .venv/bin/uvicorn app.main:app --port 8000",
     "dev:web": "pnpm --filter @app/web dev",
-    "desktop": "pnpm --filter @app/desktop dev",
-    "desktop:build": "pnpm --filter @app/desktop build",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p packages/web/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",

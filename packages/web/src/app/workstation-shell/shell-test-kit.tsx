@@ -199,15 +199,15 @@ export function pointerGesture(
 
 /** Render the shell with the default fakes; override any port per test. */
 export function renderShell(
-  overrides: Partial<AudioSession> & { readonly desktop?: boolean } = {}
+  overrides: Partial<AudioSession> & { readonly localBackend?: boolean } = {}
 ) {
   const user = userEvent.setup()
   const engine = fakeEngine()
   const stemEngine = fakeStemEngine()
-  // The nominal client is the desktop shell, so specs render in desktop mode
+  // The nominal client is the localBackend shell, so specs render in localBackend mode
   // by default — saved projects + URL import are available. A browser gating
-  // spec overrides `desktop: false`.
-  const { desktop = true, ...ports } = overrides
+  // spec overrides `localBackend: false`.
+  const { localBackend = true, ...ports } = overrides
   // The ONE injection point (ADR 0011): the ports ride the session context,
   // not props. Analysis ports are inert by default (offload-only: the real
   // factories require VITE_ANALYSIS_URL and would throw) — a never-resolving
@@ -224,7 +224,7 @@ export function renderShell(
     trackSource: { fetch: () => new Promise(() => {}) },
     ...ports
   }
-  const utils = render(<WorkstationShell desktop={desktop} />, {
+  const utils = render(<WorkstationShell localBackend={localBackend} />, {
     // Its own atom store per render (Jotai's Provider creates one per mount)
     // — the features' atoms are module-level, so without it the previous
     // test's mix is still loaded in the next one.

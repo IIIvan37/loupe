@@ -1,7 +1,5 @@
-import { isTauriShell } from '../lib/tauri-env.ts'
 import type { AuthPort } from './auth-port.ts'
 import { createAuth } from './create-auth.ts'
-import { installDeepLinkAuth } from './deep-link.ts'
 import { getSupabaseClient } from './supabase-client.ts'
 
 /**
@@ -20,15 +18,6 @@ export function appAuth(): AuthPort | null {
       client && url && anonKey
         ? createAuth(client, `${url}/functions/v1`, anonKey)
         : null
-    if (client && instance && isTauriShell()) {
-      // Desktop shell: the magic link comes back as a `loupe://` deep link —
-      // as a runtime event while the app runs, as the LAUNCH URL when the
-      // link starts it (getCurrent; onOpenUrl never replays that one).
-      void import('@tauri-apps/plugin-deep-link').then(
-        ({ getCurrent, onOpenUrl }) =>
-          installDeepLinkAuth(client, onOpenUrl, getCurrent)
-      )
-    }
   }
   return instance
 }

@@ -49,10 +49,10 @@ the swaps to keep it to seconds plus the ≤5 min tail of already-minted tokens
 
 The browser-origin allowlist exists on three surfaces, each reading the SAME
 `LOUPE_ALLOWED_ORIGINS` env var (comma-separated) from its own environment. The
-default (when the var is UNSET) is the 5173 dev app **plus the desktop shell's
-Tauri origins** (`tauri://localhost` on macOS/Linux, `http://tauri.localhost`
-on Windows) — T2.5, kept identical in `server/app/origins.py` and the Deno
-mirror.
+default (when the var is UNSET) is the dev app (5173) and the distributed
+local server (6173) — kept identical in `server/app/origins.py` and the Deno
+mirror. (The Tauri origins left the default with the shell's removal; a
+redeploy of Modal + the Edge Function picks the new default up.)
 
 | Surface | Reader | Where to set it |
 | --- | --- | --- |
@@ -60,27 +60,17 @@ mirror.
 | Modal endpoint (CORS) | `server/app/origins.py` (used by `modal_app.py`) | the `loupe-analyze-jwt` Modal secret (add the key, redeploy) |
 | Edge Function (CORS) | `supabase/functions/mint-analyze-token/index.ts` (mirrors the Python parsing) | `supabase secrets set LOUPE_ALLOWED_ORIGINS=…` |
 
-**Status (2026-07-18, T2.5 deploy DONE, curl-verified in prod):** neither the
-Modal secret nor the Supabase env had `LOUPE_ALLOWED_ORIGINS` set, so both were
-running on the default. A code redeploy of each (`modal deploy` + `supabase
-functions deploy`) picked up the new default — **no secret was touched** — and
-an OPTIONS preflight from `tauri://localhost` / `http://tauri.localhost` now
-gets its `Access-Control-Allow-Origin` echoed on both surfaces, while
-`https://random.example` still gets none (fail-closed intact). The packaged
-desktop app's CORS blocker is cleared.
-
 **Only when you SET `LOUPE_ALLOWED_ORIGINS`** (e.g. to add a real deployed web
-origin) it **overrides the default wholesale** — you must then also list the
-Tauri origins in that value, or the packaged app loses analysis. In that case:
+origin) it **overrides the default wholesale**:
 
 ```sh
-# Modal — append the Tauri origins to the existing allowlist, then redeploy
+# Modal — set the allowlist, then redeploy
 modal secret create loupe-analyze-jwt \
-  LOUPE_ALLOWED_ORIGINS='https://…prod-origins…,tauri://localhost,http://tauri.localhost' …
+  LOUPE_ALLOWED_ORIGINS='https://…prod-origins…' …
 cd server && .venv/bin/modal deploy modal_app.py
 
 # Supabase — same value
-supabase secrets set LOUPE_ALLOWED_ORIGINS='https://…prod-origins…,tauri://localhost,http://tauri.localhost'
+supabase secrets set LOUPE_ALLOWED_ORIGINS='https://…prod-origins…'
 ```
 
 Shipping a per-deployment origin is an env change on each surface — never a

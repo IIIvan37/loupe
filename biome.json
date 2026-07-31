@@ -49,10 +49,8 @@
       "!**/reports",
       "!**/.stryker-tmp",
       "!**/public",
-      "!packages/desktop/src-tauri/target",
       "!target",
       "!crates/loupe-server/web_dist",
-      "!packages/desktop/src-tauri/gen",
       "!server",
       "!supabase"
     ],

@@ -145,20 +145,20 @@ Deno.test('a disallowed origin gets no allow-origin echoed back', async () => {
   await res.body?.cancel()
 })
 
-Deno.test('the desktop shell origin is allowed by default (T2.5)', async () => {
-  // Parity with server/app/origins.py: the Tauri bundle origin is in the
-  // default allowlist, so the packaged desktop app reaches the mint function
-  // without a per-deployment env entry.
+Deno.test('the distributed local server origin is allowed by default (D1)', async () => {
+  // Parity with server/app/origins.py: the `loupe` binary serves on 6173, so
+  // the packaged app reaches the mint function without a per-deployment env
+  // entry.
   const res = await handler(
     new Request(`${API}/functions/v1/mint-analyze-token`, {
       method: 'OPTIONS',
-      headers: { origin: 'tauri://localhost' },
+      headers: { origin: 'http://localhost:6173' },
     }),
   )
   assertEquals(res.status, 204)
   assertEquals(
     res.headers.get('Access-Control-Allow-Origin'),
-    'tauri://localhost',
+    'http://localhost:6173',
   )
   await res.body?.cancel()
 })

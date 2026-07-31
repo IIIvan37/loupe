@@ -7,13 +7,13 @@ import { installShellHooks, renderShell } from './shell-test-kit.tsx'
 installShellHooks()
 
 /**
- * Offload-only (Lot AJ): saved projects and URL import need the desktop shell
+ * Offload-only (Lot AJ): saved projects and URL import need the localBackend shell
  * (local filesystem, yt-dlp). The browser is an analysis-only playground, so
  * those entry points hide entirely there — no broken or disabled affordances.
  */
-describe('WorkstationShell desktop-only entry points', () => {
+describe('WorkstationShell localBackend-only entry points', () => {
   it('hides Save / Projects / URL import in the browser', async () => {
-    const { user } = renderShell({ desktop: false })
+    const { user } = renderShell({ localBackend: false })
 
     expect(
       screen.queryByRole('button', { name: i18n._('header.projects') })
@@ -34,8 +34,8 @@ describe('WorkstationShell desktop-only entry points', () => {
     ).toBeNull()
   })
 
-  it('shows them in the desktop shell', async () => {
-    const { user } = renderShell() // desktop: true by default in the kit
+  it('shows them in the localBackend shell', async () => {
+    const { user } = renderShell() // localBackend: true by default in the kit
 
     expect(
       screen.getByRole('button', { name: i18n._('header.projects') })

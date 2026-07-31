@@ -1,7 +1,7 @@
 import { type DecodedAudio, encodeWav, synthesizeClickTrack } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
-import { deliverFile } from '../../../audio/deliver-file.ts'
+import { downloadBlob } from '../../../audio/download-blob.ts'
 import { encodeWavMemo } from '../../../audio/encode/encode-wav-memo.ts'
 import { exportBaseName } from '../../../lib/export-base-name.ts'
 import { nextPaint } from '../../../lib/next-paint.ts'
@@ -88,24 +88,17 @@ export function useStemExport({
         sampleRate: loadedAudio.sampleRate
       })
       const wav = encodeWav([samples], loadedAudio.sampleRate)
-      const delivered = await deliverFile(
+      downloadBlob(
         `${base}_metronome.wav`,
         new Blob([wav], { type: 'audio/wav' })
       )
-      if (delivered) {
-        notifySuccess(fileExportedMessage)
-      }
+      notifySuccess(fileExportedMessage)
       return
     }
     if (id === TRACK_STEM_ID && loadedAudio) {
       const wav = encodeWavMemo(loadedAudio)
-      const delivered = await deliverFile(
-        `${base}_piste.wav`,
-        new Blob([wav], { type: 'audio/wav' })
-      )
-      if (delivered) {
-        notifySuccess(fileExportedMessage)
-      }
+      downloadBlob(`${base}_piste.wav`, new Blob([wav], { type: 'audio/wav' }))
+      notifySuccess(fileExportedMessage)
       return
     }
     if (await separation.downloadStem(id)) {

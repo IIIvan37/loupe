@@ -1,25 +1,10 @@
 // @vitest-environment jsdom
 import { renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { useWindowTitle } from './use-window-title.ts'
-
-const setTitle = vi.fn(async (_title: string) => undefined)
-vi.mock('@tauri-apps/api/window', () => ({
-  getCurrentWindow: () => ({ setTitle })
-}))
-
-function stubTauriShell(): () => void {
-  ;(window as { __TAURI_INTERNALS__?: object }).__TAURI_INTERNALS__ = {}
-  return () => {
-    delete (window as { __TAURI_INTERNALS__?: object }).__TAURI_INTERNALS__
-  }
-}
-
-const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 describe('useWindowTitle', () => {
   beforeEach(() => {
-    setTitle.mockClear()
     // A sentinel, NOT the expected fallback: the fallback test must prove
     // the hook writes the base title, not inherit it from the environment.
     document.title = 'stale title from a previous state'
@@ -38,22 +23,5 @@ describe('useWindowTitle', () => {
   it('falls back to the app title with no track', () => {
     renderHook(() => useWindowTitle(undefined, false))
     expect(document.title).toBe('Loupe — poste de travail de transcription')
-  })
-
-  it('mirrors the title onto the native window under the Tauri shell', async () => {
-    const restore = stubTauriShell()
-    try {
-      renderHook(() => useWindowTitle('So What', true))
-      await flush()
-      expect(setTitle).toHaveBeenCalledWith('● So What — Loupe')
-    } finally {
-      restore()
-    }
-  })
-
-  it('leaves the native window alone outside the shell', async () => {
-    renderHook(() => useWindowTitle('So What', false))
-    await flush()
-    expect(setTitle).not.toHaveBeenCalled()
   })
 })

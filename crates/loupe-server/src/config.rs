@@ -8,10 +8,9 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 /// Parity with `server/app/origins.py` — 5173 = Vite dev, 6173 = the
-/// distributed local server, plus the dormant Tauri shell's own origins.
+/// distributed local server.
 pub const DEFAULT_ALLOWED_ORIGINS: &str = "http://localhost:5173,http://127.0.0.1:5173\
-,http://localhost:6173,http://127.0.0.1:6173\
-,tauri://localhost,http://tauri.localhost";
+,http://localhost:6173,http://127.0.0.1:6173";
 
 pub const DEFAULT_ALLOWED_HOSTS: &str = "localhost,127.0.0.1";
 
@@ -139,7 +138,7 @@ mod tests {
   #[test]
   fn allowed_origins_drop_the_wildcard_and_keep_the_dev_defaults() {
     assert!(allowed_origins(None).contains(&"http://localhost:6173".to_owned()));
-    assert!(allowed_origins(None).contains(&"tauri://localhost".to_owned()));
+    assert!(allowed_origins(None).contains(&"http://localhost:5173".to_owned()));
     assert_eq!(allowed_origins(Some("*")), Vec::<String>::new());
     assert_eq!(allowed_origins(Some("http://a,*")), vec!["http://a"]);
   }

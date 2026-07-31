@@ -187,11 +187,10 @@ export const config: SheriffConfig = {
       'web:feature:audio-session',
       'web:audio'
     ],
-    // The lead sheet detects chords (gated analysis) and exports (desktop).
+    // The lead sheet detects chords (gated analysis).
     'web:feature:lead-sheet': [
       sameTag,
       ...WEB_KIT,
-      'web:feature:desktop',
       'web:feature:stems',
       'web:audio',
       'web:auth'

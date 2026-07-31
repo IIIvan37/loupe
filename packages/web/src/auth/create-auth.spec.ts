@@ -67,14 +67,6 @@ describe('createAuth', () => {
     expect(await out.currentState()).toEqual({ status: 'signed-out' })
   })
 
-  it('redirects the magic link to the deep link under the Tauri shell', async () => {
-    const seen: Array<{ options?: { emailRedirectTo?: string } }> = []
-    const client = fakeClient({ onOtp: (args) => seen.push(args) })
-    vi.stubGlobal('window', { __TAURI_INTERNALS__: {} })
-    await createAuth(client, FUNCTIONS_URL, ANON).sendMagicLink('a@b.co')
-    expect(seen[0]?.options?.emailRedirectTo).toBe('loupe://auth-callback')
-  })
-
   it('verifies the OTP code in place (type "email", no redirect) — true on success, false on error', async () => {
     const seen: Array<{ email: string; token: string; type: string }> = []
     const ok = createAuth(
