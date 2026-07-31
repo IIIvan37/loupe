@@ -1,5 +1,6 @@
 import { formatTimecode, type ProjectTuning } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
+import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { isTauriShell } from '../../lib/tauri-env.ts'
 import type { ExternalValue } from '../../lib/external-value.ts'
@@ -9,7 +10,7 @@ import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { AudioSessionWithPlayer } from '../audio-session/audio-session-provider.tsx'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
 import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
-import { useLoopEditing } from '../loops/use-loop-editing.ts'
+import { activeLoopIdAtom } from '../loops/loop-atoms.ts'
 import { useLoops } from '../loops/use-loops.ts'
 import { useMarkers } from '../markers/use-markers.ts'
 import { useCountIn } from '../tempo/use-count-in.ts'
@@ -164,11 +165,9 @@ export function WorkstationShell({
     togglePlayback,
     seekToSeconds,
     restoreTuning,
-    setLoopRegion,
     loopEnabled,
     toggleLoop,
-    restoreLoop,
-    speedTrainer
+    restoreLoop
   } = player
   const markers = useMarkers()
   const tempo = useTempo()
@@ -187,13 +186,10 @@ export function WorkstationShell({
       separateAndLoad
     })
   const loops = useLoops()
-  const loopEditing = useLoopEditing(loops, {
-    durationSeconds: transport.durationSeconds,
-    setLoopRegion,
-    seekToSeconds,
-    onRegionReplaced: speedTrainer.stop,
-    beatGrid: tempo.analysis?.grid ?? []
-  })
+  // Relinking a restored region to its saved loop is a plain seat of the
+  // loops feature's atom — the editing bridge itself lives in the regions
+  // (ADR 0010), the shell only wires the project open.
+  const restoreActiveLoopId = useSetAtom(activeLoopIdAtom)
   const viewport = useViewport()
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [projectsOpen, setProjectsOpen] = useState(false)
@@ -221,7 +217,7 @@ export function WorkstationShell({
     loops,
     restoreActiveLoop: (active, savedLoopId) => {
       restoreLoop(active.region, active.enabled)
-      loopEditing.restore(savedLoopId)
+      restoreActiveLoopId(savedLoopId)
     },
     restoreTuning: (tuning) => {
       restoreTuning(tuning)
@@ -374,8 +370,6 @@ export function WorkstationShell({
       ) : (
         <ShellMain
           analysisFold={analysisFold}
-          loops={loops}
-          loopEditing={loopEditing}
           onDownloadStem={stemExport.downloadStem}
           tempoDetection={tempoDetection}
           onReimport={openFilePicker}

@@ -6,7 +6,8 @@ import {
   type NamedLoop,
   removeLoop
 } from '@app/core'
-import { useState } from 'react'
+import { useAtom } from 'jotai'
+import { loopLibraryAtom } from './loop-atoms.ts'
 
 export interface Loops {
   readonly library: LoopLibrary
@@ -22,12 +23,13 @@ export interface Loops {
 }
 
 /**
- * Smart hook for the saved-loop library. Loops are session state, scoped to
- * the loaded track: they persist only through the project manifest (saved on
- * « Enregistrer », restored on open) and a new import starts empty.
+ * Smart hook for the saved-loop library, riding the feature's atom (ADR 0010)
+ * — every consumer sees the same session library. Loops are session state,
+ * scoped to the loaded track: they persist only through the project manifest
+ * (saved on « Enregistrer », restored on open) and a new import starts empty.
  */
 export function useLoops(): Loops {
-  const [library, setLibrary] = useState<LoopLibrary>(emptyLoopLibrary)
+  const [library, setLibrary] = useAtom(loopLibraryAtom)
 
   function save(name: string, region: LoopRegion): NamedLoop {
     const loop: NamedLoop = { id: crypto.randomUUID(), name, region }

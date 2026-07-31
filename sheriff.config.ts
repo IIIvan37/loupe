@@ -196,6 +196,15 @@ export const config: SheriffConfig = {
       'web:audio',
       'web:auth'
     ],
+    // The loops bridge drives the loupe through the ONE player the shell
+    // seated (ADR 0011) and snaps drags onto the tempo feature's beat-grid
+    // atom (the ADR 0010 read) — neither ever looks up at loops.
+    'web:feature:loops': [
+      sameTag,
+      ...WEB_KIT,
+      'web:feature:audio-session',
+      'web:feature:tempo'
+    ],
     // Structure markers ride the lead-sheet's chart and gate their detection.
     'web:feature:markers': [
       sameTag,
