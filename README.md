@@ -1,5 +1,10 @@
 # loupe
 
+[![Quality gate](https://sonarcloud.io/api/project_badges/measure?project=IIIvan37_loupe&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=IIIvan37_loupe)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=IIIvan37_loupe&metric=coverage)](https://sonarcloud.io/summary/new_code?id=IIIvan37_loupe)
+[![Maintainability](https://sonarcloud.io/api/project_badges/measure?project=IIIvan37_loupe&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=IIIvan37_loupe)
+[![Duplications](https://sonarcloud.io/api/project_badges/measure?project=IIIvan37_loupe&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=IIIvan37_loupe)
+
 A browser audio practice tool — import a track and work it: waveform with
 click-to-seek, transport, time-stretch and pitch (SoundTouch), markers, A/B loops
 (the « loupe »), zoom, keyboard shortcuts, and **AI stem separation** (isolate
