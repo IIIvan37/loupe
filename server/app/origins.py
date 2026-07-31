@@ -1,12 +1,14 @@
 """Browser-origin allowlist, shared by every shell that fronts a browser.
 
-ONE allowlist gates three surfaces in three languages: the local FastAPI
-server (`app/main.py` — CORS + OriginGuard), the deployed Modal endpoint
-(`modal_app.py` — CORS), and the Supabase Edge Function
+ONE allowlist gates the surfaces that front a browser: the local analysis
+harness (`app/main.py` — CORS + OriginGuard), the deployed Modal endpoint
+(`modal_app.py` — CORS), the `loupe` binary
+(`crates/loupe-server/src/config.rs`) and the Supabase Edge Function
 (`supabase/functions/mint-analyze-token/index.ts`, which mirrors this parsing
 in Deno). Each reads the SAME `LOUPE_ALLOWED_ORIGINS` env var (comma-separated)
 from its own environment — the local shell, the `loupe-analyze-jwt` Modal
-secret, `supabase secrets set` — and falls back to the dev origins below.
+secret, `supabase secrets set` — and falls back to the dev origins below;
+default parity across the copies is locked by docs/origins-parity.spec.ts.
 Adding an origin is an env change everywhere, never a code edit; the
 cross-surface checklist lives in docs/j2-supabase-runbook.md.
 """

@@ -12,23 +12,17 @@
 local + navigateur** ([distribution-plan.md](distribution-plan.md) ; D1–D6
 clos, PRs #275–#285) ; **prochain distribution : 1re release taguée** (tap +
 `HOMEBREW_TAP_TOKEN`, cf. `docs/RELEASING.md`). Le shell **Tauri est
-retiré** (PR #327 — le binaire `loupe` est le seul livrable). **Roadmap v7 soldée** ; **Lot TS clos**. Nursery à dessein :
+retiré** (PR #327) et le **serveur est unique** (étape « serveur unique »,
+livrée par PR #328) : le binaire `loupe` est le seul livrable, `server/` =
+la bibliothèque d'analyse Modal + son harnais dev/CI (`pnpm dev:analysis`),
+parité des origins verrouillée par `docs/origins-parity.spec.ts`
+(plan soldé : [archive/serveur-unique-plan.md](archive/serveur-unique-plan.md)).
+**Roadmap v7 soldée** ; **Lot TS clos**. Nursery à dessein :
 `detect-chords`, `bass-line` ; `timecode` attend un second consommateur.
-**Boucle outillée** (PR #297) : `check:i18n` au gate, tampon de fraîcheur du
-gate, `pnpm sonar`, workers vitest bornés. **Sortie de suite = signal** (PR
-#319) : 0 warning act/flushSync/console ; filtre Base UI à retirer au prochain bump.
-**Chantier état de vue / shell soldé**
-([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md),
-[0011](adr/0011-shell-layout-contexte-session-audio.md),
-[0012](adr/0012-graphe-de-modules-web.md), #287→#322) : atomes par feature,
-DAG web, DIP session (3 tranches #307–#309), cliquet `ReturnType` 13 → 0
-(#322 clôt : le chart, dernier sac `useState`, en atome — specs sous Provider
-Jotai frais). Ne jamais dériver un hook à effet de montage ; seul le seam
-`mixer: Mixer` reste en prop (voulu).
-**Forme des dossiers actée** ([ADR 0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md),
-PRs #323–#326, **soldé**) : rôles locaux, dossiers-composant partout,
-`composes` via `@/`, un composant n'importe que SON css (`foreign-css` à 0) ;
-cliquets `folder-shape` (11) et `foreign-css` (0) en garde.
+Rappels vivants : filtre Base UI à retirer au prochain bump (PR #319) ;
+ne jamais dériver un hook à effet de montage, seul le seam `mixer: Mixer`
+reste en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–
+[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Prochaine étape : les garde-fous beta ou la 1re release taguée.**
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
@@ -36,6 +30,7 @@ Modal, SMTP Resend, re-seed codes legacy ; redeploy Modal+Edge (origins sans `ta
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
+- 2026-07-27 → 07-31 · **État de vue + forme des dossiers** (ADR 0010–0013, #287→#326) : atomes par feature, DAG web, DIP session, cliquet `ReturnType` 13 → 0, dossiers-composant partout, cliquets `folder-shape`/`foreign-css`. Boucle outillée (#297) + sortie de suite = signal (#319).
 - 2026-07-25 → 07-26 · **Resync template (Lot TS)** : configs/CI, fitness functions, pratique ADR, subpath testing, 8 modules émergents (rhythm → project), link-checker des living docs.
 - 2026-07-19 → 07-24 · **Roadmap excellence 7** (UX exceptionnelle) : Lots AJ (offload-only), AK (funnel), AL (boucles/vitesse), AM (mixer), AN (grammaire/gravure/romain), AO (waveform/vie/signature), AP (nativité desktop + revue) + fix auth desktop PKCE.
 - 2026-07-18 → 07-19 · **Phase 2 desktop + solde v6** : sécurité desktop (PKCE, CSP, yt-dlp épinglé), export natif, menus natifs, SMTP beta, mutants form-encoder.
@@ -60,7 +55,7 @@ Modal, SMTP Resend, re-seed codes legacy ; redeploy Modal+Edge (origins sans `ta
 
 ## Plans
 
-- **En cours** : [serveur-unique-plan.md](serveur-unique-plan.md) (S0 enquête → S1–S3) · [distribution-plan.md](distribution-plan.md) (reste la 1re release taguée + le tap).
+- **En cours** : [distribution-plan.md](distribution-plan.md) (reste la 1re release taguée + le tap).
 - **Complets** : dans [docs/archive/](archive/) (plans clos + vision produit du kickoff).
 
 ## Veille / différé

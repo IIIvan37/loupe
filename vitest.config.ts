@@ -111,11 +111,7 @@ export default defineConfig({
         '**/audio/create-structure-detector.ts',
         '**/audio/create-tempo-detector.ts',
         '**/audio/create-track-source.ts',
-        '**/audio/music-metadata-reader.ts',
-        // Humble Tauri bindings: forward calls to the shell's plugins and
-        // commands; only reachable inside the shell, verified there for real.
-        '**/projects/tauri-fs.ts',
-        '**/audio/tauri-download-bridge.ts'
+        '**/audio/music-metadata-reader.ts'
       ],
       // TDD strict: the pure core stays fully covered; the web adapters/UI are
       // exercised through component/integration tests. Both are gated (the

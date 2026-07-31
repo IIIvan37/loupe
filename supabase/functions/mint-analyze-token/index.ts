@@ -26,12 +26,13 @@ const AUDIENCE = 'loupe-analyze'
 const ISSUER = 'loupe-supabase'
 
 // Origins allowed to call this function from a browser. The SAME allowlist
-// gates the local server and the Modal endpoint (server/app/origins.py, whose
-// parsing this mirrors): every surface reads LOUPE_ALLOWED_ORIGINS from its
-// own environment (`supabase secrets set` here) and falls back to the dev app
-// plus the desktop shell's Tauri origins (T2.5 — the nominal client's own
-// origins, kept in sync with the Python default). Adding a per-deployment
-// origin is still an env change everywhere (see docs/j2-supabase-runbook.md).
+// gates the `loupe` binary, the Modal endpoint (server/app/origins.py, whose
+// parsing this mirrors) and this function: every surface reads
+// LOUPE_ALLOWED_ORIGINS from its own environment (`supabase secrets set`
+// here) and falls back to the nominal client origins below — default parity
+// across the three copies is locked by docs/origins-parity.spec.ts. Adding a
+// per-deployment origin is still an env change everywhere (see
+// docs/j2-supabase-runbook.md).
 const DEFAULT_ALLOWED_ORIGINS =
   'http://localhost:5173,http://127.0.0.1:5173,http://localhost:6173,http://127.0.0.1:6173'
 

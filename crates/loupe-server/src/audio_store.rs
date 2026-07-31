@@ -1,6 +1,6 @@
-//! Content-addressed audio blob store — the Rust side of the `/audio`
-//! contract in `server/app/projects.py` (same directory, same format: blobs
-//! under `<data_dir>/audio/<sha256>`), so switching route 1 → route 2 needs
+//! Content-addressed audio blob store — the `/audio` contract (blobs under
+//! `<data_dir>/audio/<sha256>`). Directory and format are inherited unchanged
+//! from the retired Python local server, so existing data needed
 //! zero migration.
 
 use crate::fs_atomic::write_atomic;

@@ -5,10 +5,9 @@
  * domain. Spotify/Deezer are deliberately excluded: their streams are DRM'd and
  * only resolvable via a metadata → YouTube-search detour we chose not to take.
  *
- * Two adapters re-check this list at their own trust boundary — the server
- * (`server/app/download.py` `_SUPPORTED_HOSTS`) and the desktop shell's Rust
- * download command (`packages/desktop/src-tauri/src/download.rs`
- * `SUPPORTED_HOSTS`). Add a host in all three, or the desktop/server build
+ * One adapter re-checks this list at its own trust boundary — the download
+ * engine of the `loupe` binary (`crates/loupe-download/src/lib.rs`
+ * `SUPPORTED_HOSTS`). Add a host in both places, or the server build
  * will reject a URL the browser accepts.
  */
 const SUPPORTED_HOSTS: readonly string[] = [

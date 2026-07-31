@@ -6,7 +6,8 @@ import { createHttpTrackSource } from './http/http-track-source.ts'
  * Build the `TrackSource` adapter. Downloading a track from a media URL
  * (YouTube / SoundCloud) needs **yt-dlp**, which the browser cannot run:
  * in the server shell (distribution D1) the local loupe server drives it
- * (`server/app/download.py`) and streams NDJSON progress from its own origin.
+ * (`crates/loupe-server/src/download.rs`) and streams NDJSON progress from its
+ * own origin.
  * In the plain browser URL import is impossible — the UI never exposes it,
  * and this guard makes the impossibility explicit if something ever calls it.
  */

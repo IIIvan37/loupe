@@ -1,25 +1,23 @@
-"""Local server for loupe: project storage + Demucs separation.
+"""Dev/CI harness for the loupe analysis library.
 
-Four independent capability groups behind one process:
+This FastAPI app exists to exercise the analysis endpoints locally — the same
+routers `modal_app.py` deploys on Modal, where they actually serve the web app
+(ADR 0007, offload-only). Project storage, URL download and static web serving
+live in the Rust `loupe` binary (`crates/loupe-server`), the only deliverable.
 
-- `projects` (always on): project manifests + content-addressed audio blobs —
-  the server side of the core's `ProjectStore` / `ProjectAudioStore` ports.
+Capability groups, all optional on a torch-free host:
+
 - `separation` (when PyTorch/Demucs are installed): the `/separate` NDJSON
   contract. Imported lazily so a host without the ML stack (or its weights)
-  still serves project storage; `/separate` then answers with an NDJSON error
-  line and `/health` reports `"device": null`.
+  still boots; `/separate` then answers with an NDJSON error line and
+  `/health` reports `"device": null`.
 - `tempo` (when torch/beat_this is installed): the `/tempo` beat + downbeat
-  contract. Also imported lazily — a host without the ML stack still serves the
-  rest, and `/tempo` answers with a 503 the client surfaces as an error.
+  contract. Also imported lazily — `/tempo` answers 503 without the stack.
 - `chords` (when torch is installed): the `/chords` timestamped chord-span
   contract (vendored BTC model). Same lazy-import + 503 pattern as `tempo`.
 - `structure` (when torch + the SongFormer stack are installed): the
   `/structure` functional-segment contract (vendored SongFormer, chunked
   inference). Same lazy-import + 503 pattern as `chords`.
-- `download` (when yt-dlp is installed): the `/download` NDJSON contract that
-  fetches a track from a media URL (YouTube / SoundCloud). Imported lazily — a
-  host without yt-dlp still serves the rest, and `/download` answers with an
-  NDJSON error line.
 
 Single-user, localhost — no auth. Run with `uvicorn app.main:app --port 8000`.
 
@@ -42,29 +40,19 @@ from __future__ import annotations
 
 import contextlib
 import json
-import os
 from collections.abc import AsyncIterator
-from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from fastapi.staticfiles import StaticFiles
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .api_docs import error_responses
 from .netguard import LoopbackOnlyMiddleware, OriginGuardMiddleware
 from .origins import allowed_origins, env_list
-from .projects import collect_garbage
-from .projects import router as projects_router
-from .temp_sweep import sweep_stale_downloads
 from .warm import Loader, start_model_warmup
-from .web_dist import resolve_web_dist
 
 _DEFAULT_HOSTS = "localhost,127.0.0.1"
-
-# The monorepo's built web app — the default dist the server offers to serve.
-_REPO_WEB_DIST = Path(__file__).resolve().parents[2] / "packages" / "web" / "dist"
 
 # The `warm()` hooks of whichever detection modules imported successfully —
 # filled by the capability blocks below, consumed by the lifespan warm-up.
@@ -73,23 +61,14 @@ _warm_loaders: list[Loader] = []
 
 @contextlib.asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-    """Reclaim orphaned audio blobs on boot — the one moment nothing is in
-    flight, so a manifest-scan GC can never race an upload. Best-effort: a
-    failed sweep must not stop the server from serving. Then pre-build the
-    detection models on a daemon thread (V.3): tempo detection fires
-    automatically at import, so the first detection of a session would
+    """Pre-build the detection models on a daemon thread (V.3): tempo detection
+    fires automatically at import, so the first detection of a session would
     otherwise pay the model load. Opt-out: LOUPE_WARM_MODELS=0."""
-    with contextlib.suppress(Exception):
-        collect_garbage()
-    # Same boot moment, same best-effort stance, for the download temp dirs a
-    # hard kill left behind (D2 — parity with the Rust sidecar's T2.3 sweep).
-    with contextlib.suppress(Exception):
-        sweep_stale_downloads()
     start_model_warmup(_warm_loaders)
     yield
 
 
-app = FastAPI(title="loupe server", lifespan=lifespan)
+app = FastAPI(title="loupe analysis server", lifespan=lifespan)
 # Middleware onion, innermost first (add_middleware: last added = outermost):
 # CORS < OriginGuard < TrustedHost < LoopbackOnly — so a request is vetted
 # network-first (loopback, then Host, then Origin) before CORS ever sees it.
@@ -101,8 +80,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 # CORS only stops a foreign page from READING us; a "simple request" POST
-# (text/plain, no preflight) could still fire /download, /audio, inference or
-# /gc. Refuse any request whose Origin is present and not the loupe app's.
+# (text/plain, no preflight) could still fire the inference endpoints. Refuse
+# any request whose Origin is present and not the loupe app's.
 app.add_middleware(OriginGuardMiddleware, allowed_origins=_allowed_origins)
 app.add_middleware(
     TrustedHostMiddleware,
@@ -112,7 +91,6 @@ app.add_middleware(
 # so a `--host 0.0.0.0` mistake can't expose the server to the LAN even if the
 # Host header is forged.
 app.add_middleware(LoopbackOnlyMiddleware)
-app.include_router(projects_router)
 
 try:
     from .separation import MODEL_NAME, device
@@ -172,34 +150,7 @@ else:
     app.include_router(structure_router)
     _warm_loaders.append(structure_warm)
 
-try:
-    from .download import router as download_router
-except Exception as exc:  # noqa: BLE001  # yt-dlp missing on this host
-    _download_unavailable = f"track download unavailable on this host: {exc}"
-
-    @app.post("/download")
-    async def download() -> StreamingResponse:
-        """Honour the NDJSON contract so the web client shows a clean error."""
-        line = json.dumps({"type": "error", "message": _download_unavailable}) + "\n"
-        return StreamingResponse(iter([line.encode("utf-8")]), media_type="application/x-ndjson")
-else:
-    app.include_router(download_router)
-
 
 @app.get("/health")
 async def health() -> dict:
     return {"status": "ok", "model": MODEL_NAME, "device": device}
-
-
-# Distribution D1: when a built web dist is present, the server is the app's
-# own origin — it serves the UI and the HTTP adapters talk same-origin. The
-# mount comes last so every API route above wins; without a dist (dev, CI)
-# nothing is mounted and the API serves unchanged. Env-overridable for the
-# packaged layouts of D3/D4.
-_web_dist = resolve_web_dist(
-    os.environ.get("LOUPE_WEB_DIST"),
-    packaged=Path(__file__).resolve().parent / "web_dist",
-    repo=_REPO_WEB_DIST,
-)
-if (_web_dist / "index.html").is_file():
-    app.mount("/", StaticFiles(directory=_web_dist, html=True), name="web")

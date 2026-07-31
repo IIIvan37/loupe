@@ -1,7 +1,7 @@
-//! Project manifest store + manifest-scan GC — the Rust side of the
-//! `/projects` and `/gc` contract in `server/app/projects.py` (same
-//! directory, same format: manifests under `<data_dir>/projects/<id>.json`),
-//! so switching route 1 → route 2 needs zero migration. Manifests are opaque
+//! Project manifest store + manifest-scan GC — the `/projects` and `/gc`
+//! contract (manifests under `<data_dir>/projects/<id>.json`). Directory and
+//! format are inherited unchanged from the retired Python local server, so
+//! existing data needed zero migration. Manifests are opaque
 //! JSON: the core owns the `Project` shape, this server only files it.
 
 use crate::audio_store::{is_valid_ref, AudioStore};

@@ -1,5 +1,5 @@
-//! `loupe` — the distributable entry point, route 2 (parity with
-//! `server/app/cli.py`): pick the port, refuse a busy one with an actionable
+//! `loupe` — the distributable entry point: pick the port, refuse a busy one
+//! with an actionable
 //! message, open the browser once `/health` answers, serve until Ctrl-C.
 
 use loupe_server::config::{Config, DEFAULT_PORT};
