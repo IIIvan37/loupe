@@ -301,9 +301,10 @@ export function WorkstationShell({
   const resumeGatedAnalysis = useResumeGatedAnalysis({
     structureDetection,
     chordDetection,
-    tempoDetection,
     separateAndLoad,
-    loadedAudio
+    loadedAudio,
+    mixer,
+    separationOwnsMix: stemsReady
   })
 
   return (

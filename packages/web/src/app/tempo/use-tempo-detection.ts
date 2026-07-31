@@ -8,6 +8,7 @@ import { useLatest } from '../../lib/use-latest.ts'
 import type { Mixer } from '../mixer/use-mixer.ts'
 import { DEFAULT_METRONOME_CHANNEL } from './metronome-stem.ts'
 import { useMetronome } from './use-metronome.ts'
+import { useRunTempoDetection } from './use-run-tempo-detection.ts'
 import { useTapTempo } from './use-tap-tempo.ts'
 import { useTempo } from './use-tempo.ts'
 
@@ -76,19 +77,9 @@ export function useTempoDetection({
   // flight — its stems must win over the late result's track+click seating).
   const separationOwnsMixRef = useLatest(separationOwnsMix)
 
-  // One detection flow for the auto-run and the panel's « Réessayer »: run the
-  // detector and seat the always-on metronome from the result. `enable` is the
-  // UN-SEPARATED seating only (it restores the mixer to track + click, exactly
-  // like the restore path's seatMetronome) — once a separation owns the mixer
-  // the analysis still lands (BPM, grid, tempo map) but the mix stays intact.
-  function runDetect(audio: DecodedAudio): void {
-    void tempo.detect(audio).then((analysis) => {
-      if (analysis && !separationOwnsMixRef.current) {
-        // A freshly detected click joins the un-separated track muted by default.
-        metronome.enable(analysis.grid, audio, DEFAULT_METRONOME_CHANNEL)
-      }
-    })
-  }
+  // One detection flow for the auto-run, the panel's « Réessayer » and the
+  // gated-analysis replay — shared with every derived instance (ADR 0010).
+  const runDetect = useRunTempoDetection({ mixer, separationOwnsMix })
 
   // Held in a latest-ref so the effect keys on `loadedAudio` alone yet always
   // calls the live detect/enable (both read fresh state internally).
