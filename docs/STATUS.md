@@ -22,14 +22,14 @@ gate, `pnpm sonar`, workers vitest bornés. **Sortie de suite = signal** (PR
 [0011](adr/0011-shell-layout-contexte-session-audio.md),
 [0012](adr/0012-graphe-de-modules-web.md)) : sacs de feature en atomes
 soldés — #287→#306 (DAG web, player, repères/tempo/mixer/zoom, séparation, loops).
-**Interface étroite de session (DIP) soldée** : `StemPlaybackEngine` (13 membres)
-partitionné en 3 tranches — `StemAudioSource` (#307), `StemMixGraph` (#308),
-`PlaybackTransport` (#309) ; le port core ne reste nommé qu'au siège du singleton.
-**Chantier `ReturnType` : cliquet 13 → 3** — `use-tempo-detection` (PR #318)
-puis `use-separate-and-load` (PR #320) dérivent leurs deps ; seul le seam
-`mixer: Mixer` reste en prop, l'orchestrateur multi-features reste au shell
-(pas d'arête `separation → tempo/mixer` au DAG 0012). **Prochaine étape :
-`use-resume-gated-analysis`** (`tempoDetection`). Checkpoint UI par slice.
+**Interface étroite de session (DIP) soldée** : `StemPlaybackEngine` partitionné
+en 3 tranches (#307–#309) ; le port core ne reste nommé qu'au siège du singleton.
+**Chantier `ReturnType` : cliquet 13 → 2** — PRs #318, #320, #321 : les hooks
+dérivent leurs deps (#321 extrait le flow detect→seat-click **sans effet** dans
+`use-run-tempo-detection` — ne jamais dériver un hook à effet de montage) ;
+seul le seam `mixer: Mixer` reste en prop. **Prochaine étape : le cluster
+chart** — `use-chord-chart-session` puis `use-chart-with-structure`, chaînés.
+Checkpoint UI par slice.
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
 Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
