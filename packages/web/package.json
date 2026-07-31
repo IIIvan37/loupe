@@ -25,8 +25,8 @@
     "fflate": "^0.8.3",
     "jotai": "^2.20.2",
     "music-metadata": "^11.14.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@lingui/babel-plugin-lingui-macro": "^6.6.0",
