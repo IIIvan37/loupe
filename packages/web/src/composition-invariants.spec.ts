@@ -20,7 +20,7 @@ import { describe, expect, it } from 'vitest'
 // ── Ratchets — LOWER as leaves land, NEVER raise. ───────────────────────────
 /** Props typed `ReturnType<typeof useX>` — passing a hook's whole return bag
  * instead of the values needed. Target: 0. */
-const MAX_RETURN_TYPE_PROPS = 2
+const MAX_RETURN_TYPE_PROPS = 0
 /** Fields on the widest `*Props` type (today `HeaderProps`). */
 const MAX_PROPS_FIELDS = 20
 /** Hooks called in the busiest component (today the workstation shell). */

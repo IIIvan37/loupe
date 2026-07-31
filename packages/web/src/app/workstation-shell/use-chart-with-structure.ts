@@ -7,6 +7,7 @@ import type {
 } from '@app/core'
 import { useMemo } from 'react'
 import { useAudioSession } from '../audio-session/audio-session.ts'
+import type { ChordChartState } from '../lead-sheet/use-chord-chart.ts'
 import { useChordChartSession } from '../lead-sheet/use-chord-chart-session.ts'
 import type { ChordDetection } from '../lead-sheet/use-chord-detection.ts'
 import { syncStructureMarkersFromChart } from '../markers/chart-marker-sync.ts'
@@ -49,7 +50,7 @@ export function useChartWithStructure({
   readonly chordDetector?: ChordDetector | undefined
   readonly structureDetector?: StructureDetector | undefined
 }): {
-  readonly chordChart: ReturnType<typeof useChordChartSession>['chart']
+  readonly chordChart: ChordChartState
   readonly chordDetection: ChordDetection
   readonly structureDetection: StructureDetection
 } {

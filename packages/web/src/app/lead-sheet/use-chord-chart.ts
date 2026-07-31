@@ -3,7 +3,8 @@ import {
   type ProjectChordChart,
   transposeChart
 } from '@app/core'
-import { useState } from 'react'
+import { useAtom } from 'jotai'
+import { chordChartAtom } from './chord-chart-atoms.ts'
 
 /**
  * The chord chart's session state: the source text as the user's edit (the
@@ -32,7 +33,7 @@ export interface ChordChartState {
 }
 
 export function useChordChart(): ChordChartState {
-  const [chart, setChart] = useState({ source: '', transposedBy: 0 })
+  const [chart, setChart] = useAtom(chordChartAtom)
   function seat(source: string, transposedBy: number): void {
     setChart({ source, transposedBy })
   }

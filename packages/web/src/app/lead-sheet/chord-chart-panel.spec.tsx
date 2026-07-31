@@ -2,6 +2,8 @@
 import '@testing-library/jest-dom/vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { Provider as JotaiProvider } from 'jotai'
+import type { ReactNode } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
@@ -9,6 +11,14 @@ import {
   ChordChartPanel,
 } from './chord-chart-panel.tsx'
 import { useChordChart } from './use-chord-chart.ts'
+
+/** The chart is a feature atom (ADR 0010): a fresh Jotai Provider per mount
+ * keeps one test's grid from leaking into the next. */
+const wrapper = ({ children }: { readonly children: ReactNode }) => (
+  <JotaiProvider>
+    <I18nTestingProvider>{children}</I18nTestingProvider>
+  </JotaiProvider>
+)
 
 /** The panel as the shell hosts it: controlled by lifted session state. */
 function Host({
@@ -51,7 +61,7 @@ async function typeGrid(user: ReturnType<typeof userEvent.setup>, text: string) 
 describe('ChordChartPanel format help', () => {
   it('opens the format guide from the header', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await user.click(
       screen.getByRole('button', { name: i18n._('chords.format-help') })
     )
@@ -62,7 +72,7 @@ describe('ChordChartPanel format help', () => {
 
   it('teaches the repeat grammar with a concrete example', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await user.click(
       screen.getByRole('button', { name: i18n._('chords.format-help') })
     )
@@ -72,20 +82,20 @@ describe('ChordChartPanel format help', () => {
 
 describe('ChordChartPanel collapsed editing', () => {
   it('folds the source editor away by default — the chart is the view', () => {
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
   })
 
   it('« Modifier » unfolds the editor and hands it the focus', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await openEditor(user)
     expect(screen.getByRole('textbox')).toHaveFocus()
   })
 
   it('the toggle says whether the editor is open', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     const toggle = screen.getByRole('button', { name: i18n._('chords.edit') })
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     await user.click(toggle)
@@ -94,7 +104,7 @@ describe('ChordChartPanel collapsed editing', () => {
 
   it('the toggle names the editor it controls', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await openEditor(user)
     const toggle = screen.getByRole('button', { name: i18n._('chords.edit') })
     expect(toggle).toHaveAttribute(
@@ -104,7 +114,7 @@ describe('ChordChartPanel collapsed editing', () => {
   })
 
   it('an empty folded grid invites the user to type or detect', () => {
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     expect(
       screen.getByText(i18n._('chords.empty-hint'))
     ).toBeInTheDocument()
@@ -112,7 +122,7 @@ describe('ChordChartPanel collapsed editing', () => {
 
   it('the invitation yields to the editor and to a typed grid', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await typeGrid(user, '| C |')
     expect(
       screen.queryByText(i18n._('chords.empty-hint'))
@@ -121,7 +131,7 @@ describe('ChordChartPanel collapsed editing', () => {
 
   it('the same toggle folds the editor back — the text survives', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await openEditor(user)
     await typeGrid(user,'| Am |')
     await user.click(screen.getByRole('button', { name: i18n._('chords.edit') }))
@@ -134,23 +144,21 @@ describe('ChordChartPanel collapsed editing', () => {
 describe('ChordChartPanel', () => {
   it('renders the lead-sheet live from the typed grid', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await typeGrid(user,'| Am |')
     expect(screen.getByText('Am')).toBeInTheDocument()
   })
 
   it('prints the session-derived chart head over the sheet', async () => {
     const user = userEvent.setup()
-    render(<Host header={{ title: 'Your Song', bpm: 128 }} />, {
-      wrapper: I18nTestingProvider
-    })
+    render(<Host header={{ title: 'Your Song', bpm: 128 }} />, { wrapper })
     await typeGrid(user,'| C |')
     expect(screen.getByText('♩ = 128')).toBeInTheDocument()
   })
 
   it('transposes the whole grid up a semitone', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await typeGrid(user,'| C | Am |')
     await user.click(
       screen.getByRole('button', { name: i18n._('chords.transpose-up') })
@@ -160,7 +168,7 @@ describe('ChordChartPanel', () => {
 
   it('lays the sheet out with the chosen bars per row', async () => {
     const user = userEvent.setup()
-    const { container } = render(<Host />, { wrapper: I18nTestingProvider })
+    const { container } = render(<Host />, { wrapper })
     await typeGrid(user,'| C | Am |')
     const field = screen.getByRole('spinbutton', {
       name: i18n._('chords.bars-per-row')
@@ -175,7 +183,7 @@ describe('ChordChartPanel', () => {
 
   it('an emptied bars-per-row field keeps the previous layout', async () => {
     const user = userEvent.setup()
-    const { container } = render(<Host />, { wrapper: I18nTestingProvider })
+    const { container } = render(<Host />, { wrapper })
     await typeGrid(user,'| C | Am |')
     const field = screen.getByRole('spinbutton', {
       name: i18n._('chords.bars-per-row')
@@ -191,7 +199,7 @@ describe('ChordChartPanel', () => {
 
   it('flags an out-of-range bars-per-row draft instead of ignoring it', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     const field = screen.getByRole('spinbutton', {
       name: i18n._('chords.bars-per-row')
     })
@@ -202,7 +210,7 @@ describe('ChordChartPanel', () => {
 
   it('an in-range bars-per-row draft carries no invalid flag', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     const field = screen.getByRole('spinbutton', {
       name: i18n._('chords.bars-per-row')
     })
@@ -213,7 +221,7 @@ describe('ChordChartPanel', () => {
 
   it('an emptied draft is transient, not invalid', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     const field = screen.getByRole('spinbutton', {
       name: i18n._('chords.bars-per-row')
     })
@@ -223,7 +231,7 @@ describe('ChordChartPanel', () => {
 
   it('leaving the field clears the rejected draft and the flag', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     const field = screen.getByRole('spinbutton', {
       name: i18n._('chords.bars-per-row')
     })
@@ -238,7 +246,7 @@ describe('ChordChartPanel', () => {
 
   it('transposes the whole grid down a semitone', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await typeGrid(user,'| C | Am |')
     await user.click(
       screen.getByRole('button', { name: i18n._('chords.transpose-down') })
@@ -252,7 +260,7 @@ describe('ChordChartPanel bars-per-row preference', () => {
   // chosen layout survives reloads without touching the project manifest.
   it('remembers the chosen layout across panel lifetimes', async () => {
     const user = userEvent.setup()
-    const { unmount } = render(<Host />, { wrapper: I18nTestingProvider })
+    const { unmount } = render(<Host />, { wrapper })
     const field = screen.getByRole('spinbutton', {
       name: i18n._('chords.bars-per-row')
     })
@@ -260,7 +268,7 @@ describe('ChordChartPanel bars-per-row preference', () => {
     await user.type(field, '6')
     await user.tab()
     unmount()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     expect(
       screen.getByRole('spinbutton', { name: i18n._('chords.bars-per-row') })
     ).toHaveValue(6)
@@ -268,7 +276,7 @@ describe('ChordChartPanel bars-per-row preference', () => {
 
   it('ignores a stored value the layout cannot use', () => {
     localStorage.setItem('loupe.chords.bars-per-row', '99')
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     expect(
       screen.getByRole('spinbutton', { name: i18n._('chords.bars-per-row') })
     ).toHaveValue(4)
@@ -277,7 +285,7 @@ describe('ChordChartPanel bars-per-row preference', () => {
   it('a rejected edit never clobbers the stored preference', async () => {
     const user = userEvent.setup()
     localStorage.setItem('loupe.chords.bars-per-row', '6')
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     const field = screen.getByRole('spinbutton', {
       name: i18n._('chords.bars-per-row')
     })
@@ -308,7 +316,7 @@ describe('ChordChartPanel long grids', () => {
         pitchSemitones={0}
         transposedBy={0}
       />,
-      { wrapper: I18nTestingProvider }
+      { wrapper }
     )
     const viewport = container.querySelector('[class*="sheetViewport"]')
     expect(viewport?.querySelectorAll('[class*="measure"]')).toHaveLength(120)
@@ -324,7 +332,7 @@ describe('ChordChartPanel long grids', () => {
         transposedBy={0}
         currentMeasureIndex={0}
       />,
-      { wrapper: I18nTestingProvider }
+      { wrapper }
     )
     // jsdom has no layout: fake a 100px scrollport over the sheet, and put
     // the next playing measure below its bottom edge (240–280).
@@ -374,7 +382,7 @@ describe('ChordChartPanel long grids', () => {
         transposedBy={0}
         currentMeasureIndex={42}
       />,
-      { wrapper: I18nTestingProvider }
+      { wrapper }
     )
     expect(document.querySelectorAll('[aria-current="true"]')).toHaveLength(1)
   })
@@ -393,7 +401,7 @@ describe('ChordChartPanel pitch divergence', () => {
 
   it('flags the grid when the audio pitch shift leaves it behind', async () => {
     const user = userEvent.setup()
-    render(<Host pitchSemitones={2} />, { wrapper: I18nTestingProvider })
+    render(<Host pitchSemitones={2} />, { wrapper })
     await typeGrid(user,'| C | Am |')
     expect(
       screen.getByText(i18n._('chords.pitch-mismatch', { pitch: '+2', grid: '0' }))
@@ -405,7 +413,7 @@ describe('ChordChartPanel pitch divergence', () => {
 
   it('following transposes the grid by the gap and clears the flag', async () => {
     const user = userEvent.setup()
-    render(<Host pitchSemitones={2} />, { wrapper: I18nTestingProvider })
+    render(<Host pitchSemitones={2} />, { wrapper })
     await typeGrid(user,'| C | Am |')
     await follow(user)
     expect(screen.getByRole('textbox')).toHaveValue('| D | Bm |')
@@ -418,7 +426,7 @@ describe('ChordChartPanel pitch divergence', () => {
 
   it('rewriting the whole grid asks to confirm first', async () => {
     const user = userEvent.setup()
-    render(<Host pitchSemitones={2} />, { wrapper: I18nTestingProvider })
+    render(<Host pitchSemitones={2} />, { wrapper })
     await typeGrid(user,'| C |')
     await user.click(screen.getByRole('button', { name: followName() }))
     // First activation only arms — the grid is untouched.
@@ -427,7 +435,7 @@ describe('ChordChartPanel pitch divergence', () => {
 
   it('a manual transpose counts toward the same offset', async () => {
     const user = userEvent.setup()
-    render(<Host pitchSemitones={1} />, { wrapper: I18nTestingProvider })
+    render(<Host pitchSemitones={1} />, { wrapper })
     await typeGrid(user,'| C |')
     await user.click(
       screen.getByRole('button', { name: i18n._('chords.transpose-up') })
@@ -440,7 +448,7 @@ describe('ChordChartPanel pitch divergence', () => {
 
   it('a transposed grid over an untouched pitch diverges too', async () => {
     const user = userEvent.setup()
-    render(<Host pitchSemitones={0} />, { wrapper: I18nTestingProvider })
+    render(<Host pitchSemitones={0} />, { wrapper })
     await typeGrid(user,'| C |')
     await user.click(
       screen.getByRole('button', { name: i18n._('chords.transpose-down') })
@@ -454,7 +462,7 @@ describe('ChordChartPanel pitch divergence', () => {
   })
 
   it('stays quiet while the grid is empty — nothing to transpose', () => {
-    render(<Host pitchSemitones={2} />, { wrapper: I18nTestingProvider })
+    render(<Host pitchSemitones={2} />, { wrapper })
     expect(
       screen.queryByRole('button', { name: followName() })
     ).not.toBeInTheDocument()
@@ -462,7 +470,7 @@ describe('ChordChartPanel pitch divergence', () => {
 
   it('stays quiet while grid and audio agree', async () => {
     const user = userEvent.setup()
-    render(<Host pitchSemitones={0} />, { wrapper: I18nTestingProvider })
+    render(<Host pitchSemitones={0} />, { wrapper })
     await typeGrid(user,'| C |')
     expect(
       screen.queryByRole('button', { name: followName() })
@@ -471,7 +479,7 @@ describe('ChordChartPanel pitch divergence', () => {
 
   it('an octave apart names the same chords — no false flag at ±12', async () => {
     const user = userEvent.setup()
-    render(<Host pitchSemitones={12} />, { wrapper: I18nTestingProvider })
+    render(<Host pitchSemitones={12} />, { wrapper })
     await typeGrid(user,'| C |')
     expect(
       screen.queryByRole('button', { name: followName() })
@@ -480,7 +488,7 @@ describe('ChordChartPanel pitch divergence', () => {
 
   it('transposing an empty grid leaves no invisible offset behind', async () => {
     const user = userEvent.setup()
-    render(<Host pitchSemitones={0} />, { wrapper: I18nTestingProvider })
+    render(<Host pitchSemitones={0} />, { wrapper })
     await user.click(
       screen.getByRole('button', { name: i18n._('chords.transpose-up') })
     )
@@ -498,7 +506,7 @@ describe('ChordChartPanel printing (P.4)', () => {
   }
 
   it('offers nothing to print while the grid is empty', () => {
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     expect(
       screen.getByRole('button', { name: printName() })
     ).toBeDisabled()
@@ -507,7 +515,7 @@ describe('ChordChartPanel printing (P.4)', () => {
   it('hands a non-empty grid to the browser print dialog', async () => {
     const print = vi.spyOn(window, 'print').mockImplementation(() => {})
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await typeGrid(user, '| C | Am |')
     await user.click(screen.getByRole('button', { name: printName() }))
     expect(print).toHaveBeenCalledTimes(1)
@@ -515,7 +523,7 @@ describe('ChordChartPanel printing (P.4)', () => {
 
   it('a whitespace-only grid stays unprintable', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await typeGrid(user, '   ')
     expect(
       screen.getByRole('button', { name: printName() })
@@ -526,7 +534,7 @@ describe('ChordChartPanel printing (P.4)', () => {
     // '{fine}' parses to a form mark only — no sections, no directives, so
     // the sheet renders nothing and printing would output a blank page.
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await typeGrid(user, '{{fine}')
     expect(
       screen.getByRole('button', { name: printName() })
@@ -535,7 +543,7 @@ describe('ChordChartPanel printing (P.4)', () => {
 
   it('directives alone print — the chart head is page content', async () => {
     const user = userEvent.setup()
-    render(<Host />, { wrapper: I18nTestingProvider })
+    render(<Host />, { wrapper })
     await typeGrid(user, '{{title: Your Song}')
     expect(
       screen.getByRole('button', { name: printName() })
@@ -556,7 +564,7 @@ describe('ChordChartPanel measure locus (AN.1)', () => {
         transposedBy={0}
         onSelectMeasure={onSelectMeasure}
       />,
-      { wrapper: I18nTestingProvider }
+      { wrapper }
     )
     return onSelectMeasure
   }
@@ -601,7 +609,7 @@ describe('ChordChartPanel measure locus (AN.1)', () => {
         pitchSemitones={0}
         transposedBy={0}
       />,
-      { wrapper: I18nTestingProvider }
+      { wrapper }
     )
     await openEditor(user)
     await user.click(
@@ -660,7 +668,7 @@ describe('ChordChartPanel parse feedback (AN.2)', () => {
         pitchSemitones={0}
         transposedBy={0}
       />,
-      { wrapper: I18nTestingProvider }
+      { wrapper }
     )
   }
 
@@ -784,7 +792,7 @@ describe('ChordChartPanel key read-out (AN.3)', () => {
         pitchSemitones={transposedBy}
         transposedBy={transposedBy}
       />,
-      { wrapper: I18nTestingProvider }
+      { wrapper }
     )
     return { onTranspose, onSourceChange }
   }
@@ -864,7 +872,7 @@ describe('ChordChartPanel roman numerals (AN.5)', () => {
         pitchSemitones={0}
         transposedBy={0}
       />,
-      { wrapper: I18nTestingProvider }
+      { wrapper }
     )
   }
 

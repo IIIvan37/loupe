@@ -24,12 +24,12 @@ gate, `pnpm sonar`, workers vitest bornés. **Sortie de suite = signal** (PR
 soldés — #287→#306 (DAG web, player, repères/tempo/mixer/zoom, séparation, loops).
 **Interface étroite de session (DIP) soldée** : `StemPlaybackEngine` partitionné
 en 3 tranches (#307–#309) ; le port core ne reste nommé qu'au siège du singleton.
-**Chantier `ReturnType` : cliquet 13 → 2** — PRs #318, #320, #321 : les hooks
-dérivent leurs deps (#321 extrait le flow detect→seat-click **sans effet** dans
-`use-run-tempo-detection` — ne jamais dériver un hook à effet de montage) ;
-seul le seam `mixer: Mixer` reste en prop. **Prochaine étape : le cluster
-chart** — `use-chord-chart-session` puis `use-chart-with-structure`, chaînés.
-Checkpoint UI par slice.
+**Chantier `ReturnType` soldé : cliquet 13 → 0** — PRs #318, #320, #321, #322 :
+les hooks dérivent leurs deps ; #322 clôt l'ADR 0010 (le chart, dernier sac
+`useState`, devient atome de feature — tout spec montant `useChordChart` passe
+sous un Provider Jotai frais). Ne jamais dériver un hook à effet de montage ;
+seul le seam `mixer: Mixer` reste en prop (voulu). **Prochaine étape : les
+garde-fous beta ou la 1re release taguée.**
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
 Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
