@@ -20,17 +20,16 @@ gate, `pnpm sonar`, workers vitest bornés en local.
 ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md),
 [0011](adr/0011-shell-layout-contexte-session-audio.md),
 [0012](adr/0012-graphe-de-modules-web.md)) : sacs de feature en atomes
-soldés — #287→#306 livrées (DAG web #299, player #300, repères/tempo/mixer/
-zoom #301–#304, séparation #305, loops #306 ; cliquet `ReturnType` 13 → 7).
-**L'interface étroite de session (DIP) est soldée** : le seul port gras du seam,
-`StemPlaybackEngine` (13 membres), est **partitionné en 3 tranches nommées** —
-`StemAudioSource` (PR #307, 1), `StemMixGraph` (#308, 5), `PlaybackTransport`
-(#309, 7) ; 1 + 5 + 7 = 13, chaque membre revendiqué une seule fois. Séparation,
-mixer, player et transport ne nomment plus le port core : il ne reste nommé qu'au
-siège du singleton (`use-stem-stack`, provider, adaptateur). `session.engine`
-n'était pas gras — le moteur de piste porte `load`/`unload` en plus du transport
-et reste entier. **Prochaine étape : les 7 `ReturnType`**, deps d'orchestrateurs à
-dériver des atomes (commencer par `use-tempo-detection`). Checkpoint UI par slice.
+soldés — #287→#306 (DAG web, player, repères/tempo/mixer/zoom, séparation, loops).
+**L'interface étroite de session (DIP) est soldée** : `StemPlaybackEngine`
+(13 membres) partitionné en 3 tranches nommées — `StemAudioSource` (#307, 1),
+`StemMixGraph` (#308, 5), `PlaybackTransport` (#309, 7) ; le port core ne reste
+nommé qu'au siège du singleton (`use-stem-stack`, provider, adaptateur).
+**Chantier `ReturnType` : cliquet 13 → 5** — `use-tempo-detection`
+dérive ses deps (`useTempo()`/`useMetronome()` internes, `enabled` en atome) et vit
+dans `app/tempo/`, livré par PR #318. **Prochaine étape : `use-separate-and-load`**
+(2 des 5 : `mixer`, `metronome`), même idiome — dériver, seam `mixer` seul en prop.
+Checkpoint UI par slice.
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
 Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
@@ -68,5 +67,6 @@ Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
 
 - Boucle échantillon-exacte / crossfade au wrap · locale EN · boucle A/B au clavier · thème clair · undo/redo (écarté produit) · off-thread zip/encode · export MIDI par stem (Jalon 4).
 - Dependabot #180 (TS 6→7) + #53 (`@vitejs/plugin-react` v6) — session outillage dédiée ;
-  file débloquée (#310 config, #316 triage react-doctor 0.9.2), merges = action opérateur.
+  file débloquée (#310 config, #316 triage react-doctor 0.9.2 ; #315 supersédée par
+  #317), merges = action opérateur.
 - Races connues « si ça mord » : re-`attach` sur detect fire-and-forget (vieux manifests) · `addStem`/`play` sur bus stretch froid · worker DSP accords (774 ms).
