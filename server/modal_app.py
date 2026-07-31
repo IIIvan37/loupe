@@ -1,6 +1,6 @@
 """Deployed Modal endpoint for loupe's GPU inference — detections + separation.
 
-The production counterpart of `modal_structure_spike.py`: an HTTP endpoint that
+An HTTP endpoint that
 mounts the structure, tempo, chords and separation routers (the lazy-router
 pattern of `app.main`), gated by a SHORT-LIVED bearer token the Supabase Edge
 Function mints per analysis (J2). The endpoint verifies it with the shared
