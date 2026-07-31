@@ -24,7 +24,10 @@ import {
   isAnalysisOffloaded
 } from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
-import { useAudioSession } from '../audio-session/audio-session.ts'
+import {
+  useAudioSession,
+  useStemAudio
+} from '../audio-session/audio-session.ts'
 import {
   separationDescriptorsAtom,
   separationExportErrorAtom,
@@ -103,9 +106,9 @@ export interface Separation {
  * separator defaults to the session's port, else the real engine
  * (`createSeparator`); the export's `ArchiveWriter` (zip) works the same. The
  * feature keeps only the stems' id/label: their PCM lives once, in the
- * playback engine's buffers, and `pcmOf` (defaulting to the session engine's
- * `stemAudio`) reads it back zero-copy for export and save — retaining it here
- * too would double ~500 MB on a six-stem track.
+ * playback engine's buffers, and `pcmOf` — defaulting to the seam's narrow
+ * custody interface, `StemAudioSource` — reads it back zero-copy for export
+ * and save; retaining it here too would double ~500 MB on a six-stem track.
  */
 export function useSeparation(
   pcmOf?: (id: string) => DecodedAudio | undefined,
@@ -117,6 +120,10 @@ export function useSeparation(
 ): Separation {
   const { t } = useLingui()
   const session = useAudioSession()
+  // The stems' PCM, reached through the seam's narrow custody interface: this
+  // feature reads samples back, it has no business with the engine's fourteen
+  // other members (DIP).
+  const stems = useStemAudio()
   const injected = separator ?? session.separator
   const engine = useMemo(() => injected ?? createSeparator(), [injected])
   // The state machine's transitions stay in the core reducer; the atom only
@@ -156,7 +163,7 @@ export function useSeparation(
   // injected reader is the shell stack's; a bare consumer reads the same
   // engine through the audio session (ADR 0011).
   function readPcm(id: string): DecodedAudio | undefined {
-    return (pcmOf ?? session.stemEngine?.stemAudio)?.(id)
+    return pcmOf ? pcmOf(id) : stems?.stemAudio(id)
   }
 
   function deriveSources(): readonly SeparatedStem[] {

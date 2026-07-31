@@ -19,19 +19,18 @@ gate, `pnpm sonar`, workers vitest bornés en local.
 **Chantier état de vue / shell**
 ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md),
 [0011](adr/0011-shell-layout-contexte-session-audio.md),
-[0012](adr/0012-graphe-de-modules-web.md)) : feuilles #287→#305 livrées
-(player référence stable PR #300 ; repères, tempo, mixer/moteur de stems,
-zoom viewport, separation PRs #301–#305 ; DAG web PR #299). **Le sac
-`loops`/`loopEditing` est en atomes de sa feature** (0010, étape livrée par
-la PR #306) : bibliothèque et loop actif dans `loop-atoms.ts` ; pas
-d'adaptateur à état derrière, mais le bridge PILOTE le player — via le
-`PlayerHandle` de session (ADR 0011), qui gagne `setLoopRegion` ; l'API du
-bridge parle en secondes (conversion dans `ShellStage`) — cliquet
-`ReturnType` **10 → 7** ; arêtes Sheriff `loops → audio-session/tempo`.
-**Prochaine étape : l'interface étroite de session (DIP)** — généraliser le
-motif `CountInPlayer`/`PlayerHandle` (le seam déclare, l'adaptateur
-implémente) ; les 7 `ReturnType` restants = deps d'orchestrateurs (dériver
-des atomes). Chaque feuille descend ≥1 cliquet ; checkpoint UI par slice.
+[0012](adr/0012-graphe-de-modules-web.md)) : sacs de feature en atomes
+soldés — #287→#306 livrées (DAG web #299, player #300, repères/tempo/mixer/
+zoom #301–#304, séparation #305, loops #306 ; cliquet `ReturnType` 13 → 7).
+**L'interface étroite de session (DIP) est entamée** (étape livrée par la
+PR #307) : l'inventaire des 12 entrées du seam montre **un seul port gras**
+— `StemPlaybackEngine`, 15 membres, 3 tranches disjointes (mixer 5,
+transport 7, séparation 1) ; les 8 autres entrées sont déjà des interfaces
+à 1–2 membres. Première tranche nommée au seam : `StemAudioSource`
+(`useStemAudio()`), et `useSeparation` ne voit plus le moteur. **Prochaine
+étape : les deux autres tranches du même port** (graphe de mix, puis
+transport — commun aux deux moteurs), puis les 7 `ReturnType` restants,
+deps d'orchestrateurs à dériver des atomes. Checkpoint UI par slice.
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
 Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
