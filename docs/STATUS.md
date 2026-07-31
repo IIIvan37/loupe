@@ -17,19 +17,19 @@ sommeil**. **Roadmap v7 soldée** ; **Lot TS clos**. Nursery à dessein :
 **Boucle outillée** (PR #297) : `check:i18n` au gate, tampon de fraîcheur du
 gate, `pnpm sonar`, workers vitest bornés. **Sortie de suite = signal** (PR
 #319) : 0 warning act/flushSync/console ; filtre Base UI à retirer au prochain bump.
-**Chantier état de vue / shell**
+**Chantier état de vue / shell soldé**
 ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md),
 [0011](adr/0011-shell-layout-contexte-session-audio.md),
-[0012](adr/0012-graphe-de-modules-web.md)) : sacs de feature en atomes
-soldés — #287→#306 (DAG web, player, repères/tempo/mixer/zoom, séparation, loops).
-**Interface étroite de session (DIP) soldée** : `StemPlaybackEngine` partitionné
-en 3 tranches (#307–#309) ; le port core ne reste nommé qu'au siège du singleton.
-**Chantier `ReturnType` soldé : cliquet 13 → 0** — PRs #318, #320, #321, #322 :
-les hooks dérivent leurs deps ; #322 clôt l'ADR 0010 (le chart, dernier sac
-`useState`, devient atome de feature — tout spec montant `useChordChart` passe
-sous un Provider Jotai frais). Ne jamais dériver un hook à effet de montage ;
-seul le seam `mixer: Mixer` reste en prop (voulu). **Prochaine étape : les
-garde-fous beta ou la 1re release taguée.**
+[0012](adr/0012-graphe-de-modules-web.md), #287→#322) : atomes par feature,
+DAG web, DIP session (3 tranches #307–#309), cliquet `ReturnType` 13 → 0
+(#322 clôt : le chart, dernier sac `useState`, en atome — specs sous Provider
+Jotai frais). Ne jamais dériver un hook à effet de montage ; seul le seam
+`mixer: Mixer` reste en prop (voulu).
+**Forme des dossiers actée** ([ADR 0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md),
+PR #323) : rôles locaux (`workstation-shell/{regions,orchestration,lifecycle}`,
+`audio/{http,playback,encode,tauri}`), dossier-composant, `composes` via `@/`,
+cliquet `folder-shape` à 16 — `ui` et `lead-sheet` descendront en feuilles.
+**Prochaine étape : les garde-fous beta ou la 1re release taguée.**
 
 **Garde-fous beta restants** ([beta-checklist.md](beta-checklist.md)) : plafond
 Modal (~3,67 $/mois), SMTP Resend, re-seed codes legacy, PKCE bundle à rejouer.
