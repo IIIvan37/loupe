@@ -38,7 +38,7 @@ seule implémentation yt-dlp partagée avec un éventuel retour Tauri).
   (`VITE_ANALYSIS_URL`, Supabase) injectée au build.
 - Ressusciter les adaptateurs HTTP supprimés par AJ.3b (#227, dans l'historique
   git) : `packages/web/src/projects/http-project-store.ts` et
-  `packages/web/src/audio/http-track-source.ts` (+ specs), re-brancher
+  `packages/web/src/audio/http/http-track-source.ts` (+ specs), re-brancher
   `createProjectStores`/`createTrackSource` sur un mode « serveur » ; le
   gating capability d'AJ.3c (test-injectable) expose Enregistrer / Projets /
   Import URL quand le serveur répond.

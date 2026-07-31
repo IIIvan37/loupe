@@ -1,5 +1,5 @@
 .bar {
-  composes: chromeBar from '../ui/controls.module.css';
+  composes: chromeBar from '@/app/ui/controls.module.css';
   border-block-start: 1px solid var(--line);
   /* Tighter block padding than the header (AE.2): the three-storey
      tempo/pitch fields already give the bar its height — the workshop's
@@ -15,7 +15,7 @@
 }
 
 .control {
-  composes: touchTarget from '../ui/controls.module.css';
+  composes: touchTarget from '@/app/ui/controls.module.css';
   width: 2.25rem;
   height: 2.25rem;
   display: inline-flex;
@@ -116,7 +116,7 @@
 }
 
 .step {
-  composes: stepButton from '../ui/controls.module.css';
+  composes: stepButton from '@/app/ui/controls.module.css';
 }
 
 /* Compact in the footer — the pill idiom keeps the ± reachable beside it. */
@@ -128,7 +128,7 @@
    Sized `s` like the read-outs — at the inherited 1rem its box towered the
    footer (AE.2). */
 .fineTuneField {
-  composes: numberField from '../ui/controls.module.css';
+  composes: numberField from '@/app/ui/controls.module.css';
   color: inherit;
   font-size: var(--font-size-s);
 }

@@ -15,7 +15,7 @@
 }
 
 .tick {
-  composes: stepButton from '../ui/controls.module.css';
+  composes: stepButton from '@/app/ui/controls.module.css';
 }
 
 .slider {

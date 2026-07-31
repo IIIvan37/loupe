@@ -1,7 +1,7 @@
 import type { TempoDetector } from '@app/core'
 import { cachedAnalysisToken } from '../auth/analysis-token.ts'
-import { analysisUrl } from './analysis-endpoint.ts'
-import { createHttpTempoDetector } from './http-tempo-detector.ts'
+import { analysisUrl } from './http/analysis-endpoint.ts'
+import { createHttpTempoDetector } from './http/http-tempo-detector.ts'
 
 /**
  * Build the `TempoDetector` adapter. Beat tracking runs on the Modal analysis

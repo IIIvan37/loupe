@@ -1,7 +1,7 @@
 import type { ChordDetector } from '@app/core'
 import { cachedAnalysisToken } from '../auth/analysis-token.ts'
-import { analysisUrl } from './analysis-endpoint.ts'
-import { createHttpChordDetector } from './http-chord-detector.ts'
+import { analysisUrl } from './http/analysis-endpoint.ts'
+import { createHttpChordDetector } from './http/http-chord-detector.ts'
 
 /**
  * Build the `ChordDetector` adapter. Chord estimation runs on the Modal

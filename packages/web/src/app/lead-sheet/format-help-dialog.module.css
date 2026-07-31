@@ -1,11 +1,11 @@
 /* The grid-format reference card: source snippet + meaning per row, on the
    shared help-dialog list grammar. */
 .list {
-  composes: rowList from '../ui/app-dialog.module.css';
+  composes: rowList from '@/app/ui/app-dialog.module.css';
 }
 
 .row {
-  composes: helpRow from '../ui/app-dialog.module.css';
+  composes: helpRow from '@/app/ui/app-dialog.module.css';
 }
 
 /* The literal source snippet — mono, wide enough that the meanings align. */

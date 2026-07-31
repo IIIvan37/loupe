@@ -4,7 +4,7 @@
 
 /* The shared neutral outlined face, plus the account chip's inline layout. */
 .trigger {
-  composes: secondaryAction touchTarget from '../ui/controls.module.css';
+  composes: secondaryAction touchTarget from '@/app/ui/controls.module.css';
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -26,11 +26,11 @@
 }
 
 .positioner {
-  composes: positioner from '../ui/popover-form.module.css';
+  composes: positioner from '@/app/ui/popover-form.module.css';
 }
 
 .popup {
-  composes: popup from '../ui/popover-form.module.css';
+  composes: popup from '@/app/ui/popover-form.module.css';
   width: 20rem;
 }
 
@@ -49,7 +49,7 @@
 }
 
 .title {
-  composes: title from '../ui/popover-form.module.css';
+  composes: title from '@/app/ui/popover-form.module.css';
 }
 
 .notice {
@@ -93,11 +93,11 @@
 }
 
 .label {
-  composes: label from '../ui/popover-form.module.css';
+  composes: label from '@/app/ui/popover-form.module.css';
 }
 
 .input {
-  composes: input from '../ui/popover-form.module.css';
+  composes: input from '@/app/ui/popover-form.module.css';
 }
 
 .error {
@@ -106,11 +106,11 @@
 }
 
 .submit {
-  composes: submit from '../ui/popover-form.module.css';
+  composes: submit from '@/app/ui/popover-form.module.css';
   align-self: flex-start;
 }
 
 .ghost {
-  composes: ghost from '../ui/popover-form.module.css';
+  composes: ghost from '@/app/ui/popover-form.module.css';
   align-self: flex-start;
 }

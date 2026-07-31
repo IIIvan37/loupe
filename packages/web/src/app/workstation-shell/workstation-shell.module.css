@@ -106,6 +106,6 @@
 
 /* The single import control lives in the header; this input is its hidden target. */
 .fileInput {
-  composes: srOnly from '../ui/controls.module.css';
+  composes: srOnly from '@/app/ui/controls.module.css';
 }
 

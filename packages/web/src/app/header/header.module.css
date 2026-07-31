@@ -1,5 +1,5 @@
 .header {
-  composes: chromeBar from '../ui/controls.module.css';
+  composes: chromeBar from '@/app/ui/controls.module.css';
   /* Block padding one step tighter than the gutters (AE.2): the two-line
      track identity already gives the bar its height. */
   padding: var(--space-xs) var(--space-l);
@@ -42,12 +42,12 @@
    ring is the global :focus-visible / [data-on-amber] baseline (no per-button
    re-declare). */
 .secondaryAction {
-  composes: secondaryAction touchTarget from '../ui/controls.module.css';
+  composes: secondaryAction touchTarget from '@/app/ui/controls.module.css';
   padding: var(--space-2xs) var(--space-m);
 }
 
 .primaryAction {
-  composes: amberButton touchTarget from '../ui/controls.module.css';
+  composes: amberButton touchTarget from '@/app/ui/controls.module.css';
   padding: var(--space-2xs) var(--space-m);
   font-weight: 600;
 }
@@ -55,12 +55,12 @@
 /* The import button's second step — replacing an unsaved session is
    destructive, so it wears the shared armed face. */
 .confirmAction {
-  composes: confirmFace touchTarget from '../ui/controls.module.css';
+  composes: confirmFace touchTarget from '@/app/ui/controls.module.css';
   padding: var(--space-2xs) var(--space-m);
 }
 
 .iconAction {
-  composes: ghostButton touchTarget from '../ui/controls.module.css';
+  composes: ghostButton touchTarget from '@/app/ui/controls.module.css';
   display: inline-flex;
   align-items: center;
   justify-content: center;

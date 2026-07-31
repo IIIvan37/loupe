@@ -9,6 +9,12 @@ export default defineConfig({
     react({ babel: { plugins: ['@lingui/babel-plugin-lingui-macro'] } }),
     lingui()
   ],
+  resolve: {
+    // Root alias for cross-folder CSS `composes` paths (ADR 0013): a module's
+    // depth must not encode into its neighbours' stylesheets — CSS breakage
+    // has no typecheck to catch it. TS imports stay relative on purpose.
+    alias: { '@': new URL('./src', import.meta.url).pathname }
+  },
   server: {
     port: 5173
   }

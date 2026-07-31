@@ -527,8 +527,8 @@ msgstr "Transposer un demi-ton vers le haut"
 #: src/app/header/import-menu.tsx
 #: src/app/ui/operation-status.tsx
 #: src/app/ui/popover-form.tsx
-#: src/app/workstation-shell/confirm-import-dialog.tsx
-#: src/app/workstation-shell/confirm-quit-dialog.tsx
+#: src/app/workstation-shell/regions/confirm-import-dialog.tsx
+#: src/app/workstation-shell/regions/confirm-quit-dialog.tsx
 msgid "common.cancel"
 msgstr "Annuler"
 
@@ -570,22 +570,22 @@ msgstr "Enregistrer"
 
 #. js-lingui-explicit-id
 #. placeholder {0}: fileName ?? ''
-#: src/app/workstation-shell/confirm-import-dialog.tsx
+#: src/app/workstation-shell/regions/confirm-import-dialog.tsx
 msgid "drop.confirm-body"
 msgstr "« {0} » remplacera le travail non enregistré."
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/confirm-import-dialog.tsx
+#: src/app/workstation-shell/regions/confirm-import-dialog.tsx
 msgid "drop.confirm-import"
 msgstr "Importer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/confirm-import-dialog.tsx
+#: src/app/workstation-shell/regions/confirm-import-dialog.tsx
 msgid "drop.confirm-title"
 msgstr "Remplacer la session ?"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-drop-layer.tsx
+#: src/app/workstation-shell/regions/shell-drop-layer.tsx
 msgid "drop.overlay"
 msgstr "Déposer le fichier audio pour l'importer"
 
@@ -595,57 +595,57 @@ msgid "drop.unsupported"
 msgstr "Format non supporté — déposer un fichier audio."
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx
+#: src/app/workstation-shell/regions/empty-state/empty-state.tsx
 msgid "empty.headline"
 msgstr "Glisser un fichier audio ici"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx
+#: src/app/workstation-shell/regions/empty-state/empty-state.tsx
 msgid "empty.hook-detect-desc"
 msgstr "Grille d'accords et BPM automatiques"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx
+#: src/app/workstation-shell/regions/empty-state/empty-state.tsx
 msgid "empty.hook-detect-title"
 msgstr "Détecter accords & tempo"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx
+#: src/app/workstation-shell/regions/empty-state/empty-state.tsx
 msgid "empty.hook-loop-desc"
 msgstr "Répéter un passage, ralentir sans changer la hauteur"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx
+#: src/app/workstation-shell/regions/empty-state/empty-state.tsx
 msgid "empty.hook-loop-title"
 msgstr "Boucler & ralentir"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx
+#: src/app/workstation-shell/regions/empty-state/empty-state.tsx
 msgid "empty.hook-separate-desc"
 msgstr "Isoler voix, basse, batterie…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx
+#: src/app/workstation-shell/regions/empty-state/empty-state.tsx
 msgid "empty.hook-separate-title"
 msgstr "Séparer les pistes"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx
+#: src/app/workstation-shell/regions/empty-state/empty-state.tsx
 msgid "empty.import"
 msgstr "Importer un fichier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx
+#: src/app/workstation-shell/regions/empty-state/empty-state.tsx
 msgid "empty.or"
 msgstr "ou coller un lien"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/empty-state.tsx
+#: src/app/workstation-shell/regions/empty-state/empty-state.tsx
 msgid "empty.sub"
 msgstr "WAV, MP3, FLAC, M4A…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx
+#: src/app/workstation-shell/regions/shell-header.tsx
 msgid "header.downloading"
 msgstr "Téléchargement…"
 
@@ -665,7 +665,7 @@ msgid "header.export-ready"
 msgstr "Télécharger les pistes en ZIP"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx
+#: src/app/workstation-shell/regions/shell-header.tsx
 msgid "header.exporting"
 msgstr "Export des pistes…"
 
@@ -680,9 +680,9 @@ msgid "header.import-confirm"
 msgstr "Confirmer l'import — la session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx
+#: src/app/workstation-shell/lifecycle/use-file-picker.ts
+#: src/app/workstation-shell/regions/shell-header.tsx
 #: src/app/workstation-shell/shell-test-kit.tsx
-#: src/app/workstation-shell/use-file-picker.ts
 msgid "header.import-file"
 msgstr "Importer un fichier audio"
 
@@ -702,12 +702,12 @@ msgid "header.import-url-title"
 msgstr "Importer depuis une URL"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx
+#: src/app/workstation-shell/regions/shell-header.tsx
 msgid "header.no-track"
 msgstr "Aucun morceau"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx
+#: src/app/workstation-shell/regions/shell-header.tsx
 msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
@@ -745,7 +745,7 @@ msgid "header.saved"
 msgstr "Enregistré"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx
+#: src/app/workstation-shell/regions/shell-header.tsx
 msgid "header.saving"
 msgstr "Enregistrement du projet…"
 
@@ -760,12 +760,12 @@ msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx
+#: src/app/workstation-shell/regions/shell-header.tsx
 msgid "header.transcoding"
 msgstr "Extraction de l'audio…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-header.tsx
+#: src/app/workstation-shell/regions/shell-header.tsx
 msgid "header.unknown-artist"
 msgstr "Artiste inconnu"
 
@@ -1024,7 +1024,7 @@ msgid "mixer.low-cut-hint"
 msgstr "Couper les graves sous cette fréquence"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-stage.tsx
+#: src/app/workstation-shell/regions/shell-stage.tsx
 msgid "mixer.mix-label"
 msgstr "Mix"
 
@@ -1140,22 +1140,22 @@ msgid "projects.title"
 msgstr "Projets"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-dialogs.tsx
+#: src/app/workstation-shell/regions/shell-dialogs.tsx
 msgid "projects.unreachable"
 msgstr "Impossible de lister les projets — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/confirm-quit-dialog.tsx
+#: src/app/workstation-shell/regions/confirm-quit-dialog.tsx
 msgid "quit.confirm-body"
 msgstr "Le travail non enregistré sera perdu."
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/confirm-quit-dialog.tsx
+#: src/app/workstation-shell/regions/confirm-quit-dialog.tsx
 msgid "quit.confirm-quit"
 msgstr "Quitter"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/confirm-quit-dialog.tsx
+#: src/app/workstation-shell/regions/confirm-quit-dialog.tsx
 msgid "quit.confirm-title"
 msgstr "Quitter sans enregistrer ?"
 
@@ -1222,17 +1222,17 @@ msgid "session.replaced"
 msgstr "La session actuelle sera remplacée"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx
+#: src/app/workstation-shell/regions/shell-main.tsx
 msgid "shell.zone.analysis"
 msgstr "Analyse"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx
+#: src/app/workstation-shell/regions/shell-main.tsx
 msgid "shell.zone.chart"
 msgstr "Partition"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/shell-main.tsx
+#: src/app/workstation-shell/regions/shell-main.tsx
 msgid "shell.zone.timeline"
 msgstr "Timeline"
 
@@ -1600,7 +1600,7 @@ msgid "toast.dismiss"
 msgstr "Fermer"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/use-stem-export.ts
+#: src/app/workstation-shell/orchestration/use-stem-export.ts
 msgid "toast.file-exported"
 msgstr "Fichier exporté"
 
@@ -1615,7 +1615,7 @@ msgid "toast.region"
 msgstr "Notifications"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/use-stem-export.ts
+#: src/app/workstation-shell/orchestration/use-stem-export.ts
 msgid "toast.stems-exported"
 msgstr "Pistes exportées"
 

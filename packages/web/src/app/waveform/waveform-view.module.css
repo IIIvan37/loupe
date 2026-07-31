@@ -34,7 +34,7 @@
 }
 
 .reimport {
-  composes: ghostButton from '../ui/controls.module.css';
+  composes: ghostButton from '@/app/ui/controls.module.css';
   margin-inline-start: var(--space-m);
   padding: var(--space-2xs) var(--space-xs);
   font-size: var(--font-size-s);

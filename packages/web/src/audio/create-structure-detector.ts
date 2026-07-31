@@ -1,7 +1,7 @@
 import type { StructureDetector } from '@app/core'
 import { cachedAnalysisToken } from '../auth/analysis-token.ts'
-import { analysisUrl } from './analysis-endpoint.ts'
-import { createHttpStructureDetector } from './http-structure-detector.ts'
+import { analysisUrl } from './http/analysis-endpoint.ts'
+import { createHttpStructureDetector } from './http/http-structure-detector.ts'
 
 /**
  * Build the `StructureDetector` adapter. Structure estimation runs on the Modal

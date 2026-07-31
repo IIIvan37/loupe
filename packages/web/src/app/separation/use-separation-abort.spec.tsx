@@ -6,7 +6,7 @@ import { act, renderHook } from '@testing-library/react'
 import { Provider } from 'jotai'
 import type { ReactNode } from 'react'
 import { vi } from 'vitest'
-import { createHttpSeparator } from '../../audio/http-separator.ts'
+import { createHttpSeparator } from '../../audio/http/http-separator.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
 import { useSeparation } from './use-separation.ts'
 

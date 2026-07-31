@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createTrackSource } from './create-track-source.ts'
-import { createTauriTrackSource } from './tauri-track-source.ts'
+import { createTauriTrackSource } from './tauri/tauri-track-source.ts'
 
-vi.mock('./tauri-download-bridge.ts', () => ({
+vi.mock('./tauri/tauri-download-bridge.ts', () => ({
   createTauriDownloadBridge: vi.fn(() => ({}))
 }))
-vi.mock('./tauri-track-source.ts', () => ({
+vi.mock('./tauri/tauri-track-source.ts', () => ({
   createTauriTrackSource: vi.fn(() => ({ fetch: vi.fn() }))
 }))
 

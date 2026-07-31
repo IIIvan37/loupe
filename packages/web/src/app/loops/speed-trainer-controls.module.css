@@ -4,20 +4,20 @@
 }
 
 .field {
-  composes: field from '../ui/popover-form.module.css';
+  composes: field from '@/app/ui/popover-form.module.css';
 }
 
 .label {
-  composes: label from '../ui/popover-form.module.css';
+  composes: label from '@/app/ui/popover-form.module.css';
 }
 
 .input {
-  composes: input from '../ui/popover-form.module.css';
+  composes: input from '@/app/ui/popover-form.module.css';
 }
 
 /* Trigger and « Arrêter » share the shared skin's ghost button. */
 .ghost {
-  composes: ghost from '../ui/popover-form.module.css';
+  composes: ghost from '@/app/ui/popover-form.module.css';
 }
 
 /* The running read-out sits inline with the loop controls, amber like the

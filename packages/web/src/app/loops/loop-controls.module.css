@@ -1,5 +1,5 @@
 .label {
-  composes: sectionLabel from '../ui/controls.module.css';
+  composes: sectionLabel from '@/app/ui/controls.module.css';
 }
 
 /* Live start → end · length read-out; tabular so the figures don't jitter. */
@@ -10,20 +10,20 @@
 }
 
 .action {
-  composes: amberButton from '../ui/controls.module.css';
+  composes: amberButton from '@/app/ui/controls.module.css';
   padding: var(--space-2xs) var(--space-s);
   font-size: var(--font-size-s);
 }
 
 .ghost {
-  composes: ghostButton from '../ui/controls.module.css';
+  composes: ghostButton from '@/app/ui/controls.module.css';
   padding: var(--space-2xs) var(--space-s);
   font-size: var(--font-size-s);
 }
 
 /* Loop on/off: outlined when inactive, amber-filled when looping. */
 .toggle {
-  composes: ghostButton from '../ui/controls.module.css';
+  composes: ghostButton from '@/app/ui/controls.module.css';
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
