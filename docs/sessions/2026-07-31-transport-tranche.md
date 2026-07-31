@@ -64,8 +64,10 @@
   92,33 % branches.
 - mutation : **sans objet** — `mutation:diff` confirme qu'aucune source core
   n'est touchée (web uniquement).
-- sonar : à relever sur la PR une fois l'analyse CI arrivée (~5 min après le push).
-- CI : à vérifier sur la PR.
+- sonar : ✅ quality gate OK — aucune issue introduite par l'étape (les 13 issues
+  ouvertes de `main` sont préexistantes, aucune dans les fichiers touchés),
+  0 hotspot.
+- CI : ✅ toutes les vérifications vertes sur la PR #309, mergée.
 
 ## State to resume from
 
