@@ -65,7 +65,7 @@ export interface PlayerHandle {
  * The stems' PCM custodian — the ONE member of the stem engine's surface the
  * separation needs: it reads samples back zero-copy for export and save, and
  * retains none. Declared HERE, shaped by its consumer, instead of that
- * consumer importing the core's fifteen-member `StemPlaybackEngine` (DIP —
+ * consumer importing the core's thirteen-member `StemPlaybackEngine` (DIP —
  * the seam declares, the adapter satisfies it structurally, like
  * {@link CountInPlayer}). The engine keeps its identity: what narrows is who
  * sees what, never the object handed over.
@@ -77,11 +77,11 @@ export interface StemAudioSource {
 
 /**
  * The live gain graph — the second disjoint slice of the stem engine's surface
- * (five members of fifteen): what the mixer drives when a fader, a mute, a solo
+ * (five members of thirteen): what the mixer drives when a fader, a mute, a solo
  * or a fresh separation changes what is heard. It knows nothing of the transport
  * (the mixer never starts playback) nor of PCM custody (that is
  * {@link StemAudioSource}). Declared HERE, shaped by `useMixer`, so the mixer
- * stops naming the core's fifteen-member `StemPlaybackEngine` (DIP — the seam
+ * stops naming the core's thirteen-member `StemPlaybackEngine` (DIP — the seam
  * declares, the adapter satisfies it structurally, like {@link CountInPlayer}).
  */
 export interface StemMixGraph {
@@ -95,6 +95,36 @@ export interface StemMixGraph {
   readonly setGain: (id: string, gain: number) => void
   /** Shape one stem's tone, when the adapter supports it (browser). */
   readonly setStemFilter?: (id: string, filter: StemFilter) => void
+}
+
+/**
+ * The transport — the third disjoint slice, and the only one that is NOT
+ * stem-specific: these seven members are exactly the surface `PlaybackEngine`
+ * and `StemPlaybackEngine` share, which is why the unified transport can swap
+ * one for the other mid-session. The track engine carries `load`/`unload` ON
+ * TOP of it (the single-track lifecycle the hand-off drives), so it stays a
+ * whole `PlaybackEngine` — only the stem side narrows. Declared HERE, shaped by
+ * its consumers (`useTransportEngines`, `usePlayer`), so they stop naming the
+ * core's thirteen-member `StemPlaybackEngine` (DIP — the seam declares, the
+ * adapter satisfies it structurally, like {@link CountInPlayer}).
+ *
+ * With this one the three slices PARTITION that port: 1 ({@link StemAudioSource})
+ * + 5 ({@link StemMixGraph}) + 7 = 13, every member claimed exactly once, none
+ * shared between two consumers. The fat port was three roles in one interface.
+ */
+export interface PlaybackTransport {
+  readonly play: () => void
+  readonly pause: () => void
+  /** Jump the playhead to an absolute time in seconds. */
+  readonly seekTo: (seconds: number) => void
+  /** Set the tempo as a ratio of normal speed, without changing pitch. */
+  readonly setTimeRatio: (ratio: number) => void
+  /** Transpose by semitones (fractional = the fine tune), without changing tempo. */
+  readonly setPitchSemitones: (semitones: number) => void
+  /** Subscribe to position updates (seconds). Returns an unsubscribe function. */
+  readonly onPositionChange: (listener: (seconds: number) => void) => () => void
+  /** The current output spectrum, when the adapter can tap it (browser). */
+  readonly spectrum?: () => SpectrumFrame | undefined
 }
 
 /**
@@ -150,6 +180,17 @@ export function useStemAudio(): StemAudioSource | undefined {
  * over `this` keeps working.
  */
 export function useStemMixGraph(): StemMixGraph | undefined {
+  return useAudioSession().stemEngine
+}
+
+/**
+ * Reach the stem mix as a transport, without seeing the gain graph or the PCM
+ * custody that share the same engine — undefined until the shell seats one, and
+ * the player then drives its own adapter. Like {@link useStemAudio}, the engine
+ * object is returned narrowed — no member is extracted, so an adapter whose
+ * methods close over `this` keeps working.
+ */
+export function useStemTransport(): PlaybackTransport | undefined {
   return useAudioSession().stemEngine
 }
 

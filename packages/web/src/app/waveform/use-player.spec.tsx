@@ -2,12 +2,12 @@
 import type {
   AudioFileDecoder,
   PlaybackEngine,
-  StemPlaybackEngine,
   TrackMetadataReader
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
 import { Provider } from 'jotai'
 import { describe, expect, it, vi } from 'vitest'
+import type { PlaybackTransport } from '../audio-session/audio-session.ts'
 import { usePlayer } from './use-player.ts'
 
 /** An inert engine — the handle contract needs identities, not sound. */
@@ -24,14 +24,20 @@ function fakeEngine(): PlaybackEngine {
   }
 }
 
-function fakeStemEngine(): StemPlaybackEngine {
+/**
+ * The mix as the player sees it: the shared transport, nothing else. A hook
+ * reaching for `load`/`addStem`/`stemAudio` would throw here — those belong to
+ * the mixer and the separation, through their own slices of the same engine.
+ */
+function fakeStemTransport(): PlaybackTransport {
+  const { play, pause, seekTo, setTimeRatio, setPitchSemitones } = fakeEngine()
   return {
-    ...fakeEngine(),
-    load: vi.fn(async () => {}),
-    addStem: vi.fn(async () => {}),
-    removeStem: vi.fn(),
-    setGain: vi.fn(),
-    stemAudio: () => undefined
+    play,
+    pause,
+    seekTo,
+    setTimeRatio,
+    setPitchSemitones,
+    onPositionChange: () => () => {}
   }
 }
 
@@ -44,7 +50,7 @@ const reader: TrackMetadataReader = {
 
 function mountPlayer() {
   return renderHook(
-    () => usePlayer(decoder, fakeEngine(), reader, fakeStemEngine()),
+    () => usePlayer(decoder, fakeEngine(), reader, fakeStemTransport()),
     { wrapper: Provider }
   )
 }

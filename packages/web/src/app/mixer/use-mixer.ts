@@ -87,7 +87,7 @@ function requireMixGraph(graph: StemMixGraph | undefined): StemMixGraph {
 
 /**
  * Smart hook (= driving adapter logic): owns the pure `MixerState` for the
- * present stems and keeps the `StemPlaybackEngine` in step with it. `load` (from
+ * present stems and keeps the `StemMixGraph` in step with it. `load` (from
  * the separation handler) loads their PCM into the gain graph and seeds a unity
  * mixer — the engine defaults every channel to unity, so no gains need pushing
  * then; every later control change pushes `effectiveGains` from its own handler,

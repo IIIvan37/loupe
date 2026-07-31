@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import type {
   AudioFileDecoder,
+  PlaybackEngine,
   StemPlaybackEngine,
   TempoDetector
 } from '@app/core'
@@ -13,11 +14,13 @@ import {
   AudioSessionWithPlayer
 } from './audio-session-provider.tsx'
 import {
+  type PlaybackTransport,
   type PlayerHandle,
   useAudioSession,
   usePlayerHandle,
   useStemAudio,
-  useStemMixGraph
+  useStemMixGraph,
+  useStemTransport
 } from './audio-session.ts'
 
 const decoder: AudioFileDecoder = {
@@ -151,6 +154,69 @@ describe('useStemMixGraph', () => {
     const { result } = renderHook(() => useStemMixGraph())
 
     expect(result.current).toBeUndefined()
+  })
+})
+
+describe('useStemTransport', () => {
+  const driven: string[] = []
+  /** A stem engine of which the transport must see only the shared slice. */
+  const engine = {
+    load: async () => {},
+    addStem: async () => {},
+    removeStem: () => {},
+    play: () => driven.push('play'),
+    pause: () => driven.push('pause'),
+    seekTo: (seconds: number) => driven.push(`seekTo ${seconds}`),
+    setTimeRatio: () => {},
+    setPitchSemitones: () => {},
+    setGain: () => {},
+    stemAudio: () => undefined,
+    onPositionChange: () => () => {}
+  } satisfies StemPlaybackEngine
+
+  it('drives the seated transport through the narrow interface', () => {
+    const wrapper = ({ children }: { readonly children: ReactNode }) => (
+      <AudioSessionProvider value={{ stemEngine: engine }}>
+        {children}
+      </AudioSessionProvider>
+    )
+
+    const { result } = renderHook(() => useStemTransport(), { wrapper })
+    result.current?.play()
+    result.current?.seekTo(12)
+
+    expect(driven).toEqual(['play', 'seekTo 12'])
+  })
+
+  it('is undefined while no engine is seated — nothing to drive yet', () => {
+    const { result } = renderHook(() => useStemTransport())
+
+    expect(result.current).toBeUndefined()
+  })
+
+  it('covers the single-track engine too — one transport, two engines', () => {
+    // The reason the hand-off can swap them: the slice is not stem-specific,
+    // it is the surface `PlaybackEngine` and `StemPlaybackEngine` share. The
+    // track engine carries `load`/`unload` ON TOP of it — the track lifecycle
+    // the hand-off drives, which is why it stays a whole `PlaybackEngine`.
+    const played: string[] = []
+    const track: PlaybackEngine = {
+      load: async () => {},
+      play: () => played.push('track'),
+      pause: () => {},
+      seekTo: () => {},
+      setTimeRatio: () => {},
+      setPitchSemitones: () => {},
+      unload: () => {},
+      onPositionChange: () => () => {}
+    }
+    const stem: StemPlaybackEngine = { ...engine, play: () => played.push('mix') }
+
+    for (const transport of [track, stem] satisfies PlaybackTransport[]) {
+      transport.play()
+    }
+
+    expect(played).toEqual(['track', 'mix'])
   })
 })
 
