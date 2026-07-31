@@ -15,6 +15,7 @@ import { nextPaint } from '../../lib/next-paint.ts'
 import { sessionSignature } from '../../projects/session-signature.ts'
 import { type Projects, useProjects } from '../../projects/use-projects.ts'
 import { useAudioSession } from '../audio-session/audio-session.ts'
+import { useChordChart } from '../lead-sheet/use-chord-chart.ts'
 import { isSyntheticStem, METRONOME_ID } from '../mixer/synthetic-stem.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../tempo/metronome-stem.ts'
 import {
@@ -29,7 +30,8 @@ function trackTitle(fileName: string): string {
   return dot > 0 ? fileName.slice(0, dot) : fileName
 }
 
-export interface ProjectSessionDeps extends SessionRestoreDeps {
+export interface ProjectSessionDeps
+  extends Omit<SessionRestoreDeps, 'restoreChordChart'> {
   readonly stores?: ProjectDeps | undefined
   /** The imported file's original bytes — what a save persists as the source. */
   readonly loadedBytes: ArrayBuffer | undefined
@@ -43,13 +45,6 @@ export interface ProjectSessionDeps extends SessionRestoreDeps {
   readonly loopEnabled: boolean
   /** The live playback tuning (tempo/pitch/zoom) — saved and fingerprinted. */
   readonly tuning: ProjectTuning
-  /** The chord chart's session state — saved, fingerprinted, reset on import. */
-  readonly chordChart: {
-    readonly source: string
-    /** How far the grid's key has been transposed from its written key. */
-    readonly transposedBy: number
-    readonly reset: () => void
-  }
   readonly viewport: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
@@ -108,6 +103,9 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
   // then the session's injection, then the real stores inside useProjects.
   const session = useAudioSession()
   const projects = useProjects(deps.stores ?? session.projectStores)
+  // The chart is the feature's own session atom (ADR 0010) — derived here for
+  // the save/fingerprint/reset lifecycle instead of threaded through the shell.
+  const chordChart = useChordChart()
   const [trackName, setTrackName] = useState<string | null>(null)
   const [openingId, setOpeningId] = useState<string | undefined>(undefined)
   // Encoding the stems for a save freezes the thread — the header narrates it.
@@ -134,7 +132,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     deps.mixer.reset()
     deps.tempo.reset()
     deps.metronome.reset()
-    deps.chordChart.reset()
+    chordChart.reset()
     setTrackName(name)
   }
 
@@ -180,10 +178,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
   function liveChordChart(): ProjectChordChart | undefined {
     // The core builder owns the manifest shape (absent ⇔ empty, absent ⇔ 0),
     // mirroring `chartTransposedBy` on the read side.
-    return projectChordChart(
-      deps.chordChart.source,
-      deps.chordChart.transposedBy
-    )
+    return projectChordChart(chordChart.source, chordChart.transposedBy)
   }
 
   /** The live session's persisted-state fingerprint (heavy audio excluded). */
@@ -275,7 +270,12 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       deps.onRestoreStarted()
       // Same clean slate as a fresh import, then re-import the stored bytes.
       startFreshTrack(result.project.name)
-      await restoreSession(result, deps)
+      // Restores stay silent by design — the unwrapped `restore` seats the
+      // persisted chart without firing the user-edit marker sync.
+      await restoreSession(result, {
+        ...deps,
+        restoreChordChart: chordChart.restore
+      })
       // Re-check the epoch: a fresh import that landed DURING the restore
       // superseded it (restoreSession bailed) — signing the old project or
       // seating its fold would mislabel the track the user now looks at.

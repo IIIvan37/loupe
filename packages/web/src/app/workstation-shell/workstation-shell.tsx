@@ -213,8 +213,6 @@ export function WorkstationShell({
     loopRegion,
     loopEnabled,
     tuning: tuningSnapshot(timeRatio, pitchSemitones, viewport.zoom, fineTuneCents),
-    chordChart,
-    restoreChordChart: chordChart.restore,
     markers,
     loops,
     restoreActiveLoop: (active, savedLoopId) => {

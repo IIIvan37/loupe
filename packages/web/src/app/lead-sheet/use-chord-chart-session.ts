@@ -5,7 +5,7 @@ import type {
   DetectedSection,
   SeparatedStem
 } from '@app/core'
-import { useChordChart } from './use-chord-chart.ts'
+import { type ChordChartState, useChordChart } from './use-chord-chart.ts'
 import {
   type ChordDetection,
   useChordDetection
@@ -52,7 +52,7 @@ export function useChordChartSession({
    */
   readonly onSourceEdited?: ((source: string) => void) | undefined
 }): {
-  readonly chart: ReturnType<typeof useChordChart>
+  readonly chart: ChordChartState
   readonly detection: ChordDetection
 } {
   const edited = useChordChart()
