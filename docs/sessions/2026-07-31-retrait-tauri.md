@@ -31,8 +31,9 @@
 - **Action opérateur** : un redeploy Modal + Edge Function pour prendre le
   défaut d'origins sans `tauri://` (aucun secret à toucher ; l'ancien défaut
   reste inerte d'ici là).
-- Question ouverte (utilisateur, en séance) : **doublons backend Python
-  (`server/`) vs Rust (`crates/`)** — inventaire au prochain pas.
+- Doublons backend Python vs Rust : inventoriés et planifiés —
+  [serveur-unique-plan.md](../serveur-unique-plan.md) (option « le Python
+  devient la bibliothèque Modal, rien d'autre », actée en séance).
 
 ## Decisions
 
@@ -53,9 +54,10 @@
 
 ## State to resume from
 
-- **Single next action** : inventaire des doublons Python/Rust (origins,
-  politique yt-dlp, endpoints projects/download) — puis garde-fous beta ou
-  1re release taguée.
+- **Single next action** : le plan « serveur unique »
+  ([serveur-unique-plan.md](../serveur-unique-plan.md)) — commencer par S0
+  (enquête flux dev), TOUT le contexte est dans le plan (écrit pour une
+  reprise sur une autre machine). Ensuite : garde-fous beta / 1re release.
 - Gotchas :
   - `git rm` d'un paquet ne vide pas ses artefacts gitignorés — biome scanne
     ce qui reste sur disque une fois l'ignore retiré (`rm -rf` ensuite).

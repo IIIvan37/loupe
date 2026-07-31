@@ -60,7 +60,7 @@ Modal, SMTP Resend, re-seed codes legacy ; redeploy Modal+Edge (origins sans `ta
 
 ## Plans
 
-- **En cours** : [distribution-plan.md](distribution-plan.md) (D1–D6 clos ; reste la 1re release taguée + le tap).
+- **En cours** : [serveur-unique-plan.md](serveur-unique-plan.md) (S0 enquête → S1–S3) · [distribution-plan.md](distribution-plan.md) (reste la 1re release taguée + le tap).
 - **Complets** : dans [docs/archive/](archive/) (plans clos + vision produit du kickoff).
 
 ## Veille / différé
