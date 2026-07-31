@@ -1,6 +1,6 @@
 import type { Project } from '@app/core'
 import { projectStoreContract } from '@app/core/testing'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { sha256Hex } from './content-hash.ts'
 import {
   collectFsGarbage,
@@ -80,6 +80,9 @@ describe('createFsProjectStore', () => {
   })
 
   it('lists every readable manifest and skips corrupt or invalid ones', async () => {
+    // Hiding an unreadable manifest logs a warning by contract — muted here
+    // so the suite output stays signal.
+    const muted = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const { fs, files } = memoryFs()
     files.set('projects/p1.json', JSON.stringify(project))
     files.set('projects/bad.json', '{ not json')
@@ -87,9 +90,11 @@ describe('createFsProjectStore', () => {
     files.set('projects/stray.txt', 'not a manifest')
 
     expect(await createFsProjectStore(fs).list()).toEqual([project])
+    muted.mockRestore()
   })
 
   it('keeps listing when one manifest read fails (deleted mid-listing)', async () => {
+    const muted = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     const { fs, files } = memoryFs()
     files.set('projects/p1.json', JSON.stringify(project))
     files.set('projects/gone.json', JSON.stringify(project))
@@ -102,6 +107,7 @@ describe('createFsProjectStore', () => {
     }
 
     expect(await createFsProjectStore(flaky).list()).toEqual([project])
+    muted.mockRestore()
   })
 
   it('deletes a manifest and treats an unknown id as a no-op', async () => {

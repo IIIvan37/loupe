@@ -168,6 +168,9 @@ describe('WorkstationShell structure detection', () => {
   })
 
   it('announces when no structure is found, placing no markers', async () => {
+    // The failure path logs its raw detail (asserted in
+    // use-structure-detection.spec) — muted so the suite output stays signal.
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const { user } = renderShell({
       structureDetector: detectorOf([])
     })
@@ -183,6 +186,7 @@ describe('WorkstationShell structure detection', () => {
         )
       ).length
     ).toBeGreaterThan(0)
+    muted.mockRestore()
   })
 })
 
@@ -255,6 +259,8 @@ describe('WorkstationShell chart → marker sync', () => {
     // The order the bug report names: structure FIRST, chords SECOND. The
     // chord draft must be cut by the structure already on the timeline — not
     // deduce its own neutral blocks and erase the markers through the sync.
+    // The deliberately failing separator below logs its detail — muted.
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const chordDetector: ChordDetector = {
       // One chord per one-second measure over the dense grid's 8 bars — the
       // same four-bar phrase twice, which alone would deduce into a single
@@ -303,6 +309,7 @@ describe('WorkstationShell chart → marker sync', () => {
         screen.getByRole('button', { name: i18n._('markers.go-to', { name }) })
       ).toBeInTheDocument()
     }
+    muted.mockRestore()
   })
 
   it('a hand-dropped cue survives structure detection and chart edits', async () => {

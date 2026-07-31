@@ -67,11 +67,13 @@ function mountTwoSeparations(separator: StemSeparator) {
 }
 
 describe('useSeparation across two consumers (one store)', () => {
-  it('shares the busy state: a run started by one is seen by the other', () => {
+  it('shares the busy state: a run started by one is seen by the other', async () => {
     const pending: StemSeparator = { separate: () => new Promise(() => {}) }
     const { a, b } = mountTwoSeparations(pending)
 
-    act(() => {
+    // Async act: the busy dispatch lands on a microtask (separate awaits the
+    // gate first) — the async form flushes it before the assertion.
+    await act(async () => {
       void a.result.current.separate(audio)
     })
 

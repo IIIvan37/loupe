@@ -79,6 +79,9 @@ describe('deliverFile', () => {
   })
 
   it('reports a failed write as not delivered instead of throwing', async () => {
+    // The failed write logs its raw detail by contract — muted here so the
+    // suite output stays signal.
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const restore = stubTauriShell()
     try {
       invoke
@@ -91,6 +94,7 @@ describe('deliverFile', () => {
       expect(delivered).toBe(false)
     } finally {
       restore()
+      muted.mockRestore()
     }
   })
 })

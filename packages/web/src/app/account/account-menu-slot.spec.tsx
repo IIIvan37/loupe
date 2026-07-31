@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type {
@@ -47,11 +47,14 @@ function renderSlot(gateReasons: Reasons) {
 afterEach(cleanup)
 
 describe('AccountMenuSlot', () => {
-  it('stays closed while no analysis is blocked', () => {
+  it('stays closed while no analysis is blocked', async () => {
     renderSlot([undefined, undefined, undefined])
     expect(
       screen.queryByText(i18n._('account.gate-sign-in'))
     ).not.toBeInTheDocument()
+    // Flush the mount's session read — its state lands on a microtask and
+    // must not outlive the test (act warning otherwise).
+    await act(async () => {})
   })
 
   it('opens with the prompt when an analysis is blocked at the gate', async () => {

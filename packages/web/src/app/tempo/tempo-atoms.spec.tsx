@@ -154,6 +154,9 @@ describe('useTempo across two consumers (one store)', () => {
   })
 
   it('shares the error and its clearing across consumers', async () => {
+    // The failure path logs its raw detail (asserted in use-tempo.spec) —
+    // muted here so the suite output stays signal.
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const boom: TempoDetector = {
       detect: async () => {
         throw new Error('server down')
@@ -168,6 +171,7 @@ describe('useTempo across two consumers (one store)', () => {
     act(() => b.result.current.reset())
 
     expect(a.result.current.error).toBeUndefined()
+    muted.mockRestore()
   })
 })
 

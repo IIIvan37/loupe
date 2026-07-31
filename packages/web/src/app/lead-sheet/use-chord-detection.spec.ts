@@ -136,6 +136,9 @@ describe('useChordDetection', () => {
   })
 
   it('surfaces a failed detection as an error code, clearing on the next run', async () => {
+    // The failure path logs its raw detail (asserted in its own test below) —
+    // muted here so the suite output stays signal.
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const boom: ChordDetector = {
       detect: async () => {
         throw new Error('chord engine down')
@@ -160,9 +163,11 @@ describe('useChordDetection', () => {
     await act(() => result.current.detect(4))
     expect(result.current.error).toBeUndefined()
     expect(onDraft).toHaveBeenCalledWith(expect.stringContaining('| C |'))
+    muted.mockRestore()
   })
 
   it('surfaces the typed code a ChordDetectionError carries', async () => {
+    const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const engineDown: ChordDetector = {
       detect: async () => {
         throw new ChordDetectionError('engine-unavailable', 'HTTP 503')
@@ -178,6 +183,7 @@ describe('useChordDetection', () => {
     )
     await act(() => result.current.detect(4))
     expect(result.current.error).toBe('engine-unavailable')
+    muted.mockRestore()
   })
 
   it('logs the raw failure detail to the console for diagnosis', async () => {
@@ -251,7 +257,10 @@ describe('useChordDetection', () => {
         }),
       { initialProps: { audio: AUDIO } }
     )
-    void result.current.detect(4)
+    // Imperative hook API with no user event — act wraps the sync state flip.
+    act(() => {
+      void result.current.detect(4)
+    })
     expect(seenSignal?.aborted).toBe(false)
     rerender({ audio: { sampleRate: 4, channels: [[0.5]] } })
     expect(seenSignal?.aborted).toBe(true)
@@ -275,8 +284,12 @@ describe('useChordDetection', () => {
         detector: pending
       })
     )
-    void result.current.detect(4)
-    void result.current.detect(4)
+    act(() => {
+      void result.current.detect(4)
+    })
+    act(() => {
+      void result.current.detect(4)
+    })
     expect(signals[0]?.aborted).toBe(true)
     expect(signals[1]?.aborted).toBe(false)
   })

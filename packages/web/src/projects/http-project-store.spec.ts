@@ -75,9 +75,13 @@ describe('createHttpProjectStore', () => {
   })
 
   it('skips invalid manifests in the list — the server persists verbatim', async () => {
+    // Hiding an unreadable manifest logs a warning by contract — muted here
+    // so the suite output stays signal.
+    const muted = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
     stubFetch(Response.json([project, { id: 'hollow' }]))
 
     expect(await createHttpProjectStore(BASE).list()).toEqual([project])
+    muted.mockRestore()
   })
 
   it('throws when the list endpoint answers JSON that is not a list', async () => {
