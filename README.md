@@ -52,6 +52,16 @@ dev/CI harness of the library Modal deploys, see Architecture).
 - **`pnpm test:mutation`** — Stryker, scoped to `@app/core`; run locally before a
   PR (also runs in CI post-merge).
 
+## AI disclosure
+
+This project is developed with AI assistance (Claude Code, Anthropic) under
+human direction: the product decisions, the architecture invariants and the
+merge button stay human. Every change goes through the same discipline
+regardless of who typed it — strict TDD, the blocking quality gate below,
+mutation testing on the core, SonarCloud, and human review of every PR. The
+repo doubles as a lab for that working method; the skills under
+`.claude/skills` are part of the experiment.
+
 ## Method
 
 - **TDD strict** (`/tdd-cycle`): red → green → refactor; the core is never written
