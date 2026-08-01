@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AudioSessionProvider } from '../audio-session/audio-session-provider.tsx'
 import type { Mixer } from '../mixer/use-mixer.ts'
+import { DEFAULT_METRONOME_CHANNEL } from './metronome-stem.ts'
 import { tempoCancelledAtom } from './tempo-atoms.ts'
 import { useTempoDetection } from './use-tempo-detection.ts'
 
@@ -38,7 +39,13 @@ function fakeMixer(): Mixer {
  * nothing reaches it but the mixer seam and values. The detector is the
  * session's (ADR 0011), faked here at the port boundary.
  */
-function mountDetection({ spendsNothing }: { spendsNothing: boolean }) {
+function mountDetection({
+  spendsNothing,
+  separationOwnsMix = false
+}: {
+  spendsNothing: boolean
+  separationOwnsMix?: boolean
+}) {
   const store = createStore()
   const detector = {
     detect: vi.fn(async () => ({
@@ -59,7 +66,7 @@ function mountDetection({ spendsNothing }: { spendsNothing: boolean }) {
       useTempoDetection({
         mixer,
         loadedAudio: AUDIO,
-        separationOwnsMix: false,
+        separationOwnsMix,
         autoDetectSpendsNothing: () => spendsNothing
       }),
     { wrapper }
@@ -98,5 +105,33 @@ describe('useTempoDetection — the deps are derived, not passed (ADR 0010)', ()
     act(() => detection.result.current.retry())
 
     await waitFor(() => expect(detector.detect).toHaveBeenCalledTimes(1))
+  })
+})
+
+describe('useTempoDetection — the tempo lands after the stems (AU.1)', () => {
+  it('a detection over a separated mix joins the click to it, muted', async () => {
+    const { mixer } = mountDetection({
+      spendsNothing: true,
+      separationOwnsMix: true
+    })
+
+    await waitFor(() => expect(mixer.addStem).toHaveBeenCalledOnce())
+    const channel = (mixer.addStem as ReturnType<typeof vi.fn>).mock
+      .calls[0]?.[2]
+    expect(channel).toEqual(DEFAULT_METRONOME_CHANNEL)
+    // The playing stems stay untouched — no track+click restore over them.
+    expect(mixer.restore).not.toHaveBeenCalled()
+  })
+
+  it('a typed BPM over a separated mix seats the click too — no skip', () => {
+    const { detection, mixer } = mountDetection({
+      spendsNothing: false,
+      separationOwnsMix: true
+    })
+
+    act(() => detection.result.current.setBpm(100))
+
+    expect(mixer.addStem).toHaveBeenCalledOnce()
+    expect(mixer.restore).not.toHaveBeenCalled()
   })
 })

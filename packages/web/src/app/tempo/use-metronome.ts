@@ -47,6 +47,18 @@ export interface Metronome {
     metronome: MixerChannel
   ) => void
   /**
+   * Seat the click INTO the running mix without touching it: the click joins as
+   * one more channel while the playing stems stay as they are. The late-tempo
+   * path (AU.1) — the stems landed first (separate-then-detect) and a full
+   * `restore` here would cut the playback. When a click is already mixed its
+   * PCM is swapped instead, keeping the channel the user set.
+   */
+  readonly join: (
+    grid: BeatGrid,
+    audio: DecodedAudio,
+    metronome: MixerChannel
+  ) => void
+  /**
    * Re-render the click for a folded beat grid (an octave ×2/÷2) and swap it into
    * the running mix, leaving its channel — and every other stem — untouched.
    */
@@ -122,6 +134,23 @@ export function useMetronome(deps: MetronomeDeps): Metronome {
     setEnabled(true)
   }
 
+  function join(
+    grid: BeatGrid,
+    audio: DecodedAudio,
+    metronome: MixerChannel
+  ): void {
+    const metro = buildMetronomeStem(grid, durationOf(audio), audio.sampleRate)
+    const mixer = mixerRef.current
+    // Already mixed (a re-detection over a seated click): swap the PCM and keep
+    // the channel — adding again would double the click in the engine.
+    if (mixer.state.some((channel) => channel.id === METRONOME_ID)) {
+      mixer.replaceStem(metro.stem, metro.source)
+    } else {
+      mixer.addStem(metro.stem, metro.source, metronome)
+    }
+    setEnabled(true)
+  }
+
   function reseat(grid: BeatGrid, audio: DecodedAudio): void {
     const metro = buildMetronomeStem(grid, durationOf(audio), audio.sampleRate)
     mixerRef.current.replaceStem(metro.stem, metro.source)
@@ -138,6 +167,7 @@ export function useMetronome(deps: MetronomeDeps): Metronome {
     enabled,
     enable,
     attach,
+    join,
     reseat,
     toggle,
     reset: () => setEnabled(false)

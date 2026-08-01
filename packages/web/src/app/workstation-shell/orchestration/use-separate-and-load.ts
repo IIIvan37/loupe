@@ -5,6 +5,7 @@ import {
   UNITY_GAIN_DB
 } from '@app/core'
 import { useAtomValue } from 'jotai'
+import { useLatest } from '../../../lib/use-latest.ts'
 import { METRONOME_ID } from '../../mixer/synthetic-stem.ts'
 import type { Mixer } from '../../mixer/use-mixer.ts'
 import { useSeparation } from '../../separation/use-separation.ts'
@@ -37,8 +38,12 @@ export function useSeparateAndLoad({
   // state (`metronomeEnabledAtom`), so this instance and the shell's agree.
   const metronome = useMetronome({ mixer })
   // The tempo grid is feature-owned now (ADR 0010): read it off the atom rather
-  // than threading the whole tempo bag through the shell to reach it.
-  const analysis = useAtomValue(tempoAnalysisAtom)
+  // than threading the whole tempo bag through the shell to reach it. Both refs
+  // are read at RESOLVE time (AU.1): a tempo can land during the ~70 s the
+  // separation runs, and the click must seat for it — a render-time snapshot
+  // would lose it (and read a stale metronome channel off the old mixer).
+  const analysisRef = useLatest(useAtomValue(tempoAnalysisAtom))
+  const mixerRef = useLatest(mixer)
   // Resolves with the isolated sources once the mixer is wired — the chord
   // flow's implicit separation (4a) awaits them; undefined on failure/cancel
   // (the caller falls back, separation's own UI already told the story).
@@ -50,6 +55,7 @@ export function useSeparateAndLoad({
       if (!result) {
         return undefined
       }
+      const analysis = analysisRef.current
       if (analysis) {
         // Fresh stems start at unity; carry the metronome's current settings
         // (muted by default, or whatever the user set). Only PRESENT stems get a
@@ -68,8 +74,9 @@ export function useSeparateAndLoad({
             : []
         )
         const metronomeChannel =
-          mixer.state.find((channel) => channel.id === METRONOME_ID) ??
-          DEFAULT_METRONOME_CHANNEL
+          mixerRef.current.state.find(
+            (channel) => channel.id === METRONOME_ID
+          ) ?? DEFAULT_METRONOME_CHANNEL
         metronome.attach(
           analysis.grid,
           result.stems,
@@ -79,7 +86,7 @@ export function useSeparateAndLoad({
           metronomeChannel
         )
       } else {
-        mixer.load(result.stems, result.sources)
+        mixerRef.current.load(result.stems, result.sources)
       }
       return result.sources
     })

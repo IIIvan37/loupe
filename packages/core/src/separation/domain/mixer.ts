@@ -31,8 +31,9 @@ export type MixerAction =
   | { readonly type: 'reset' }
   /** Adopt a persisted state wholesale (opening a saved project). */
   | { readonly type: 'restore'; readonly channels: MixerState }
-  /** Append a new unity channel (a stem joining the mix, e.g. the metronome). */
-  | { readonly type: 'addChannel'; readonly id: string }
+  /** Append a channel with its own settings (a stem joining the running mix,
+   * e.g. the metronome — born muted, unlike every other voice). */
+  | { readonly type: 'addChannel'; readonly channel: MixerChannel }
   /** Drop a channel whose stem left the mix, keeping the rest untouched. */
   | { readonly type: 'removeChannel'; readonly id: string }
 
@@ -121,16 +122,15 @@ export function mixerReducer(
         gainDb: clampGainDb(channel.gainDb)
       }))
     case 'addChannel':
-      // A no-op if the id is already mixed, so a re-add never duplicates a strip.
-      return state.some((channel) => channel.id === action.id)
+      // A no-op if the id is already mixed, so a re-add never duplicates a
+      // strip. Re-clamp like `restore`: the settings come from outside.
+      return state.some((channel) => channel.id === action.channel.id)
         ? state
         : [
             ...state,
             {
-              id: action.id,
-              gainDb: UNITY_GAIN_DB,
-              muted: false,
-              soloed: false
+              ...action.channel,
+              gainDb: clampGainDb(action.channel.gainDb)
             }
           ]
     case 'removeChannel':

@@ -123,12 +123,15 @@ export function useTempoDetection({
 
   // Seat the click for a manually set grid: swap it when one is already in the
   // mix, seat it from scratch when the manual tempo is the FIRST tempo (the
-  // tap/type fallback after a failed detection) — unless a separation owns the
-  // mixer, where `enable` would clobber the stems (same rule as `runDetect`).
+  // tap/type fallback after a failed detection). When a separation owns the
+  // mixer, `enable` would clobber the stems — the click JOINS them instead
+  // (AU.1, same rule as `runDetect`).
   function seatManualClick(grid: BeatGrid, audio: DecodedAudio): void {
     if (metronome.enabled) {
       metronome.reseat(grid, audio)
-    } else if (!separationOwnsMixRef.current) {
+    } else if (separationOwnsMixRef.current) {
+      metronome.join(grid, audio, DEFAULT_METRONOME_CHANNEL)
+    } else {
       metronome.enable(grid, audio, DEFAULT_METRONOME_CHANNEL)
     }
   }
