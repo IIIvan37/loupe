@@ -149,7 +149,6 @@ Un bug, un blocage, une question — chaque retour compte pendant la beta :
 
 - **[Ouvrir une issue GitHub](https://github.com/IIIvan37/loupe/issues/new)**
   (ou « Signaler un problème » dans le menu compte de l'app, qui pré-remplit
-  la version), ou par mail :
-  [ivan.duchauffour@gmail.com](mailto:ivan.duchauffour@gmail.com).
+  la version).
 - Préciser l'OS, la version (`loupe --version`) et ce qui était en cours
   (import, analyse, lecture…).
