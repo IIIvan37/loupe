@@ -1,4 +1,3 @@
-import type { ProjectErrorCode } from '@app/core'
 import {
   deleteProject,
   listProjects,
@@ -6,6 +5,7 @@ import {
   openProject,
   type Project,
   type ProjectDeps,
+  type ProjectErrorCode,
   renameProject,
   type SaveProjectInput,
   saveProject
