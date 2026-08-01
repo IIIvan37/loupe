@@ -17,25 +17,15 @@ import {
   CHORDS_ERROR_COPY,
   CHORDS_NEEDS_GRID,
   SEPARATION_ERROR_COPY,
+  SEPARATION_PROGRESS_LABELS,
   STRUCTURE_ERROR_COPY,
   TEMPO_ERROR_COPY
 } from '../detection-copy.ts'
 import styles from './analyser-row.module.css'
 
 // Module-level map: lazy descriptors, resolved at render time via i18n._.
-const PROGRESS_LABELS: Readonly<
-  Record<'analysing' | 'separating' | 'retrieving', MessageDescriptor>
-> = {
-  analysing: msg({ id: 'separation.analysing', message: 'Analyse du mix…' }),
-  separating: msg({
-    id: 'separation.separating',
-    message: 'Séparation des pistes…'
-  }),
-  retrieving: msg({
-    id: 'separation.retrieving',
-    message: 'Récupération des pistes…'
-  })
-}
+// Shared with the folded zone's live segment (AS.5) via detection-copy.
+const PROGRESS_LABELS = SEPARATION_PROGRESS_LABELS
 
 /** Spoken AND shown once the run lands: the row keeps a stable « done » face. */
 const DONE_LABEL = msg({ id: 'separation.done', message: 'Pistes séparées' })

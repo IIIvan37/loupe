@@ -42,3 +42,17 @@
   color: var(--teal);
   font-size: var(--font-size-s);
 }
+
+/* The live operation the fold must not swallow (AS.5): same quiet voice as
+   the summary, but interactive — clicking reopens the zone on the real bar. */
+.operation {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--teal);
+  font: inherit;
+  font-size: var(--font-size-s);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}

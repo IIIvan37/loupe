@@ -1149,7 +1149,7 @@ msgid "projects.unreachable"
 msgstr "Impossible de lister les projets — réessayer."
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row/analyser-row.tsx
+#: src/app/analyser/detection-copy.ts
 msgid "separation.analysing"
 msgstr "Analyse du mix…"
 
@@ -1190,7 +1190,7 @@ msgid "separation.export-failed"
 msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row/analyser-row.tsx
+#: src/app/analyser/detection-copy.ts
 msgid "separation.retrieving"
 msgstr "Récupération des pistes…"
 
@@ -1205,7 +1205,7 @@ msgid "separation.separate"
 msgstr "Séparer les pistes"
 
 #. js-lingui-explicit-id
-#: src/app/analyser/analyser-row/analyser-row.tsx
+#: src/app/analyser/detection-copy.ts
 msgid "separation.separating"
 msgstr "Séparation des pistes…"
 

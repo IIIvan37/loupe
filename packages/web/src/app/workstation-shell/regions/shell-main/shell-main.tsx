@@ -11,7 +11,10 @@ import { useMemo } from 'react'
 import { useExternalValue } from '../../../../lib/external-value.ts'
 import { Stack } from '../../../../layout/stack/stack.tsx'
 import { AnalysisGateNotice } from '../../../account/analysis-gate-notice/analysis-gate-notice.tsx'
-import { analysisSummary } from '../../../analyser/analysis-summary.ts'
+import {
+  analysisSummary,
+  separationOperationSummary
+} from '../../../analyser/analysis-summary.ts'
 import type { AnalysisFold } from '../../../analyser/use-analysis-fold.ts'
 import { AnalysisPanel } from '../../../analysis-panel/analysis-panel.tsx'
 import { usePlayerHandle } from '../../../audio-session/audio-session.ts'
@@ -233,7 +236,12 @@ export function ShellMain({
             fold={{
               open: analysisFold.open,
               onToggle: analysisFold.toggle,
-              summary
+              summary,
+              // The fold must not swallow a running separation (AS.5): the
+              // folded header keeps a live, clickable segment on the same state.
+              operation: folded
+                ? separationOperationSummary(separation.state)
+                : undefined
             }}
           >
           {/* Q.2 — the four analysis actions in one row, each wearing its own

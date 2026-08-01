@@ -1,6 +1,7 @@
-import { parseChart } from '@app/core'
+import { parseChart, type SeparationState } from '@app/core'
 import { msg } from '@lingui/core/macro'
 import { i18n } from '../../i18n/i18n.ts'
+import { SEPARATION_PROGRESS_LABELS } from './detection-copy.ts'
 
 // The folded header's read-out reuses the flows' own words where they exist
 // (tempo.bpm, separation.done) — one catalog entry per fact.
@@ -12,6 +13,25 @@ const SECTIONS = msg({
   message: '{0, plural, one {# section} other {# sections}}'
 })
 const GRID = msg({ id: 'analyser.summary-grid', message: 'grille {0} mes.' })
+
+/**
+ * The running separation as one folded-header segment (AS.5): the same phase
+ * label the busy face wears, plus the real percentage once one exists —
+ * « Séparation des pistes… 43 % ». Undefined when nothing runs, so the fold
+ * only ever narrates a live operation.
+ */
+export function separationOperationSummary(
+  state: SeparationState
+): string | undefined {
+  const status = state.status
+  if (status === 'idle' || status === 'ready' || status === 'error') {
+    return undefined
+  }
+  const label = i18n._(SEPARATION_PROGRESS_LABELS[status])
+  return state.progress === undefined
+    ? label
+    : `${label} ${Math.round(state.progress * 100)} %`
+}
 
 export interface AnalysisSummaryInput {
   readonly separated: boolean
