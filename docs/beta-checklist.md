@@ -14,9 +14,12 @@
   choix OTP), code reçu au 2e envoi (l'utilisateur existe alors). Templates
   confirmation (sujet + corps code-first) posés par l'opérateur ; parcours
   nouvel utilisateur re-testé OK. Piège des deux templates au runbook.
-- [ ] **PAT `HOMEBREW_TAP_TOKEN`** à réparer avant la v0.2 (couvrir
-  `homebrew-loupe`, Contents read/write — étape tap du workflow en 403 à la
-  v0.1.0, formule poussée à la main).
+- [x] **PAT `HOMEBREW_TAP_TOKEN`** — **RÉPARÉ (2026-08-01)** : le token de
+  la v0.1.0 ne couvrait que `IIIvan37/loupe`, pas le tap → 403 (formule
+  poussée à la main). Nouveau fine-grained PAT « homebrew-loupe » : accès au
+  seul `IIIvan37/homebrew-loupe`, Contents read/write, secret re-posé
+  (06:57Z). ⚠️ **Expire le 2026-08-31** — à renouveler, sinon l'étape tap
+  re-403era en silence.
 
 ## Actions opérateur (soldées le 2026-07-31)
 
