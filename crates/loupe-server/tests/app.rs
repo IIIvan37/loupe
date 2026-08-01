@@ -27,6 +27,7 @@ fn test_config(data_dir: &Path) -> Config {
     max_audio_store_bytes: 1024,
     download_timeout: Duration::from_secs(5),
     download_slots: 1,
+    auto_exit_grace: Duration::from_secs(180),
   }
 }
 
@@ -694,4 +695,77 @@ async fn boot_gc_sweeps_orphans_with_the_same_summary_shape() {
     summary,
     serde_json::json!({"deleted": 1, "reclaimedBytes": 12, "kept": 0})
   );
+}
+
+// --- Auto-exit presence (the workshop leaves with its last tab) ---
+
+#[tokio::test(start_paused = true)]
+async fn heartbeat_answers_204_and_counts_as_presence() {
+  let dir = tempfile::tempdir().unwrap();
+  let (app, state) =
+    loupe_server::build_app_with_state(test_config(dir.path()), Arc::new(InertEngine));
+  tokio::time::advance(Duration::from_secs(100)).await;
+  assert!(state.presence.idle_for() >= Duration::from_secs(100));
+
+  let response = app
+    .oneshot(local_request("POST", "/heartbeat", Body::empty()))
+    .await
+    .unwrap();
+
+  assert_eq!(response.status(), StatusCode::NO_CONTENT);
+  assert!(state.presence.idle_for() < Duration::from_secs(1));
+}
+
+#[tokio::test(start_paused = true)]
+async fn a_rejected_request_never_counts_as_presence() {
+  // A LAN scan must not keep the workshop alive: presence sits inside the
+  // netguards, so only a vetted request stamps it.
+  let dir = tempfile::tempdir().unwrap();
+  let (app, state) =
+    loupe_server::build_app_with_state(test_config(dir.path()), Arc::new(InertEngine));
+  tokio::time::advance(Duration::from_secs(100)).await;
+
+  let request = Request::builder()
+    .method("POST")
+    .uri("/heartbeat")
+    .header("host", "localhost")
+    .extension(ConnectInfo(SocketAddr::from(([192, 168, 1, 7], 40000))))
+    .body(Body::empty())
+    .unwrap();
+  let response = app.oneshot(request).await.unwrap();
+
+  assert_eq!(response.status(), StatusCode::FORBIDDEN);
+  assert!(state.presence.idle_for() >= Duration::from_secs(100));
+}
+
+#[tokio::test(start_paused = true)]
+async fn auto_exit_fires_only_after_the_grace() {
+  let dir = tempfile::tempdir().unwrap();
+  let (_app, state) =
+    loupe_server::build_app_with_state(test_config(dir.path()), Arc::new(InertEngine));
+  let grace = state.config.auto_exit_grace;
+
+  let started = tokio::time::Instant::now();
+  loupe_server::presence::auto_exit(state, grace).await;
+
+  assert!(started.elapsed() >= grace);
+}
+
+#[tokio::test(start_paused = true)]
+async fn a_download_in_flight_holds_auto_exit_open() {
+  // A closed tab must never kill the yt-dlp stream it just started: the
+  // watchdog waits for the slot to free, then exits on the next poll.
+  let dir = tempfile::tempdir().unwrap();
+  let (_app, state) =
+    loupe_server::build_app_with_state(test_config(dir.path()), Arc::new(InertEngine));
+  let grace = state.config.auto_exit_grace;
+  let permit = state.download_slots.acquire().await.unwrap();
+
+  let watchdog = tokio::spawn(loupe_server::presence::auto_exit(state.clone(), grace));
+  tokio::time::advance(grace * 3).await;
+  tokio::task::yield_now().await;
+  assert!(!watchdog.is_finished());
+
+  drop(permit);
+  watchdog.await.unwrap();
 }

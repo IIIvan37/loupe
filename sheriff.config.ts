@@ -272,11 +272,14 @@ export const config: SheriffConfig = {
       'web:lib'
     ],
 
-    // The entry point composes the session seam, the shell and i18n.
+    // The entry point composes the session seam, the shell and i18n — plus
+    // the kit for page-lifetime wiring (the presence heartbeat lives at the
+    // root: the shell may not carry mount effects).
     web: [
       'web:feature:audio-session',
       'web:feature:workstation-shell',
       'web:i18n',
+      'web:lib',
       'core:api'
     ]
   }

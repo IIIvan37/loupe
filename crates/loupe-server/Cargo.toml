@@ -29,4 +29,7 @@ webbrowser = "1"
 [dev-dependencies]
 http-body-util = "0.1"
 tempfile = "3"
+# `test-util` unlocks the paused clock (`start_paused`) the auto-exit tests
+# fast-forward through.
+tokio = { version = "1", features = ["test-util"] }
 tower = { version = "0.5", features = ["util"] }

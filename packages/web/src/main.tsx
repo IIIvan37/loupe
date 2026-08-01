@@ -14,10 +14,19 @@ import './styles/global.css'
 import { AudioSessionProvider } from './app/audio-session/audio-session-provider.tsx'
 import { WorkstationShell } from './app/workstation-shell/workstation-shell.tsx'
 import { i18n } from './i18n/i18n.ts'
+import { startPresenceHeartbeat } from './lib/presence-heartbeat.ts'
+import { isServerShell } from './lib/server-shell.ts'
 
 const container = document.getElementById('root')
 if (!container) {
   throw new Error('Root container #root is missing from index.html')
+}
+
+// Served by the local binary, the page keeps it alive; when every tab is
+// gone the beats stop and the server exits after its grace (never in dev —
+// Vite's shell must not pin a backend). Lives for the whole page: no stop.
+if (isServerShell()) {
+  startPresenceHeartbeat(window.location.origin)
 }
 
 createRoot(container).render(

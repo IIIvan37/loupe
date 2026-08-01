@@ -29,6 +29,9 @@ pub struct Config {
   /// Whole-request budget for one `/download` stream, queue wait included.
   pub download_timeout: Duration,
   pub download_slots: usize,
+  /// How long the binary outlives its last client before exiting on its own
+  /// (auto-exit; `--no-auto-exit` disables the watchdog entirely).
+  pub auto_exit_grace: Duration,
 }
 
 impl Config {
@@ -43,6 +46,7 @@ impl Config {
       max_audio_store_bytes: mb_env(var("LOUPE_MAX_AUDIO_STORE_MB").as_deref(), 10240),
       download_timeout: seconds_env(var("LOUPE_DOWNLOAD_TIMEOUT_SECONDS").as_deref(), 900),
       download_slots: concurrency_slots(var("LOUPE_MAX_CONCURRENT_DOWNLOADS").as_deref()),
+      auto_exit_grace: seconds_env(var("LOUPE_AUTO_EXIT_GRACE_SECONDS").as_deref(), 180),
     }
   }
 }
