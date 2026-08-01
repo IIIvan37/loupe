@@ -157,6 +157,40 @@ jobs:
           path: reports/mutation
           retention-days: 14
 
+  # AT.2: the authoritative tier (Windows gate, mutation) runs post-merge,
+  # where nobody is watching a PR page — v0.1.0 was tagged on a main whose
+  # last concluded run was a failure and no one had seen the red. A failure
+  # on main now opens (or comments) an issue, so the red has an inbox.
+  notify-red-main:
+    name: Signal a red main
+    needs: [gate, gate-windows, server, edge-functions, mutation, audit]
+    if: failure() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open or update the red-main issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create ci-main-rouge --repo "$GITHUB_REPOSITORY" \
+            --description "CI en échec sur main" --color B60205 --force
+          existing="$(gh issue list --repo "$GITHUB_REPOSITORY" --label ci-main-rouge \
+            --state open --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" \
+              --body "Nouveau run rouge sur main : $RUN_URL (commit ${GITHUB_SHA})"
+          else
+            body="$(printf '%s\n\n%s' \
+              "Un run du tier autoritaire a échoué sur main : $RUN_URL (commit ${GITHUB_SHA})." \
+              "La release exige un main vert (release.yml, job verify) : tant que main reste rouge, aucun tag ne passera. Fermer après remise au vert.")"
+            gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "CI rouge sur main" --label ci-main-rouge \
+              --body "$body"
+          fi
+
   audit:
     name: Dependency audit
     runs-on: ubuntu-latest

@@ -1,0 +1,56 @@
+name: PAT reminder
+
+# AT.3: the Homebrew tap push authenticates with a fine-grained PAT that
+# expires — and an expired PAT surfaces as a 403 in the MIDDLE of a release
+# (already lived through at v0.1.0, with a manual repair). This weekly check
+# opens an issue ahead of the expiry so the renewal happens before a release
+# needs it. After renewing: update HOMEBREW_TAP_TOKEN in the repo secrets,
+# bump TAP_TOKEN_EXPIRES below, close the issue (docs/RELEASING.md).
+on:
+  schedule:
+    - cron: '0 8 * * 1' # Mondays 08:00 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+env:
+  TAP_TOKEN_EXPIRES: '2026-08-31'
+  LEAD_DAYS: '21'
+
+jobs:
+  remind:
+    name: Warn ahead of the tap PAT expiry
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Open the renewal issue when inside the lead window
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          today_s="$(date -u +%s)"
+          expiry_s="$(date -u -d "$TAP_TOKEN_EXPIRES" +%s)"
+          days_left=$(( (expiry_s - today_s) / 86400 ))
+          echo "PAT du tap : expiration $TAP_TOKEN_EXPIRES, J-$days_left"
+          if [ "$days_left" -gt "$LEAD_DAYS" ]; then
+            echo "Hors fenêtre d'alerte (> $LEAD_DAYS jours) — rien à faire."
+            exit 0
+          fi
+          gh label create pat-renouvellement --repo "$GITHUB_REPOSITORY" \
+            --description "Renouvellement du PAT du tap Homebrew" --color D93F0B --force
+          existing="$(gh issue list --repo "$GITHUB_REPOSITORY" --label pat-renouvellement \
+            --state open --json number --jq '.[0].number // empty')"
+          if [ "$days_left" -ge 0 ]; then
+            headline="Le PAT du tap Homebrew expire le $TAP_TOKEN_EXPIRES (J-$days_left)."
+          else
+            headline="Le PAT du tap Homebrew a EXPIRÉ le $TAP_TOKEN_EXPIRES — le push de formule échouera en 403 à la prochaine release."
+          fi
+          body="$(printf '%s\n\n%s' "$headline" \
+            "Renouveler le fine-grained PAT (contents: write sur IIIvan37/homebrew-loupe), mettre à jour le secret HOMEBREW_TAP_TOKEN, puis bump TAP_TOKEN_EXPIRES dans .github/workflows/pat-reminder.yml et fermer cette issue. Procédure : docs/RELEASING.md.")"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "Renouveler le PAT du tap Homebrew (expire $TAP_TOKEN_EXPIRES)" \
+              --label pat-renouvellement --body "$body"
+          fi
