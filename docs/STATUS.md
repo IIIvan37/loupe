@@ -27,15 +27,14 @@ reste en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–
 **Beta distribuée le 2026-08-01** (release v0.1.0 +
 [guide utilisateur](guide-utilisateur.md) + code beta). Pipeline release
 réparé de bout en bout (bit exécutable #330, PAT du tap re-scopé — expire
-2026-08-31). **Prochaine étape : accompagner les retours des testeurs** ;
-v0.2 quand la matière s'accumule (bump `Cargo.toml` + tag suffisent).
-
-**Garde-fous beta soldés (2026-07-31)** ([beta-checklist.md](beta-checklist.md)) :
-redeploys Modal + Edge vérifiés (préflight curl), codes legacy re-seedés.
+2026-08-31). **Revue excellence 8 (2026-08-01, ~17,1/20)** :
+[roadmap-excellence-8.md](roadmap-excellence-8.md), Lots AR→AX — **AR
+d'abord** (bloquant beta). En parallèle : accompagner les retours des
+testeurs ; v0.2 = bump `Cargo.toml` + tag.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
-- 2026-07-27 → 07-31 · **État de vue + forme des dossiers** (ADR 0010–0013, #287→#326) : atomes par feature, DAG web, DIP session, cliquet `ReturnType` 13 → 0, dossiers-composant partout, cliquets `folder-shape`/`foreign-css`. Boucle outillée (#297) + sortie de suite = signal (#319).
+- 2026-07-27 → 07-31 · **État de vue + forme des dossiers** (ADR 0010–0013, #287→#326) : atomes par feature, DAG web, DIP session, cliquet `ReturnType` 13 → 0, dossiers-composant partout, cliquets `folder-shape`/`foreign-css`. Boucle outillée (#297) + sortie de suite = signal (#319). Garde-fous beta soldés ([beta-checklist.md](beta-checklist.md)).
 - 2026-07-25 → 07-26 · **Resync template (Lot TS)** : configs/CI, fitness functions, pratique ADR, subpath testing, 8 modules émergents (rhythm → project), link-checker des living docs.
 - 2026-07-19 → 07-24 · **Roadmap excellence 7** (UX exceptionnelle) : Lots AJ (offload-only), AK (funnel), AL (boucles/vitesse), AM (mixer), AN (grammaire/gravure/romain), AO (waveform/vie/signature), AP (nativité desktop + revue) + fix auth desktop PKCE.
 - 2026-07-18 → 07-19 · **Phase 2 desktop + solde v6** : sécurité desktop (PKCE, CSP, yt-dlp épinglé), export natif, menus natifs, SMTP beta, mutants form-encoder.
@@ -60,7 +59,7 @@ redeploys Modal + Edge vérifiés (préflight curl), codes legacy re-seedés.
 
 ## Plans
 
-- **En cours** : aucun — tous les plans sont clos ([docs/archive/](archive/)).
+- **En cours** : [roadmap-excellence-8.md](roadmap-excellence-8.md) (Lots AR→AX, revue du 2026-08-01).
 - **Complets** : dans [docs/archive/](archive/) (plans clos + vision produit du kickoff).
 
 ## Veille / différé
