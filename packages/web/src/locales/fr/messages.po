@@ -110,6 +110,11 @@ msgstr "Valider le code"
 
 #. js-lingui-explicit-id
 #: src/app/account/account-menu/account-menu.tsx
+msgid "account.report-issue"
+msgstr "Signaler un problème"
+
+#. js-lingui-explicit-id
+#: src/app/account/account-menu/account-menu.tsx
 msgid "account.resend"
 msgstr "Renvoyer"
 
