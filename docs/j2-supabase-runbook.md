@@ -54,6 +54,13 @@ local server (6173) — kept identical in `server/app/origins.py` and the Deno
 mirror. (The Tauri origins left the default with the shell's removal; a
 redeploy of Modal + the Edge Function picks the new default up.)
 
+Since AU.2, a **loopback origin on ANY port** (`http://localhost:<port>` /
+`http://127.0.0.1:<port>`) passes by pattern on every surface — the env list
+only matters for non-loopback (deployed) origins. So `loupe --port 7000`
+works end to end without touching any secret. The pattern lives in
+`origins.py` (`LOCAL_ORIGIN_PATTERN`), the Deno mirror and (hand-rolled) the
+Rust `netguard.rs`; parity is locked by `docs/origins-parity.spec.ts`.
+
 | Surface | Reader | Where to set it |
 | --- | --- | --- |
 | Local server (CORS + OriginGuard) | `server/app/origins.py` (used by `app/main.py`) | shell env |

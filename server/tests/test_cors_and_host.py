@@ -38,6 +38,15 @@ def test_cors_allows_the_dev_origin():
     assert res.headers.get("access-control-allow-origin") == DEV_ORIGIN
 
 
+def test_cors_allows_a_loopback_origin_on_any_port():
+    """`loupe --port 7000` (AU.2): CORS reflects any loopback origin, so the
+    app on a non-default port can read the analysis responses."""
+    origin = "http://localhost:7000"
+    res = client.get("/health", headers={"origin": origin})
+    assert res.status_code == 200
+    assert res.headers.get("access-control-allow-origin") == origin
+
+
 def test_cors_does_not_echo_a_foreign_origin():
     """A cross-origin page gets no allow-origin header, so it can't read us.
     Since M.1 the OriginGuard refuses the request outright (403) before CORS."""

@@ -16,6 +16,7 @@ cross-surface checklist lives in docs/j2-supabase-runbook.md.
 from __future__ import annotations
 
 import os
+import re
 
 # The nominal client origins — not a per-deployment secret, so they belong in
 # the default. A deployment that SETS `LOUPE_ALLOWED_ORIGINS` overrides this
@@ -24,6 +25,21 @@ import os
 DEFAULT_ALLOWED_ORIGINS = (
     "http://localhost:5173,http://127.0.0.1:5173,http://localhost:6173,http://127.0.0.1:6173"
 )
+
+
+# Any loopback page is the user's own machine: `http://localhost:<port>` and
+# `http://127.0.0.1:<port>` pass by PATTERN (AU.2), so `loupe --port 7000`
+# reaches every analysis surface without an env change. The explicit list keeps
+# gating everything else (deployed origins, bare `http://localhost`). The SAME
+# pattern guards the Deno mirror and (hand-rolled) the Rust binary — parity is
+# locked by docs/origins-parity.spec.ts.
+LOCAL_ORIGIN_PATTERN = r"^http://(localhost|127\.0\.0\.1):\d{1,5}$"
+
+
+def is_local_origin(origin: str) -> bool:
+    """True iff the Origin is a loopback page on some port (see pattern)."""
+    # fullmatch: `$` alone would tolerate a trailing newline in the value.
+    return re.fullmatch(LOCAL_ORIGIN_PATTERN, origin) is not None
 
 
 def env_list(name: str, default: str) -> list[str]:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.origins import allowed_origins, env_list
+from app.origins import allowed_origins, env_list, is_local_origin
 
 
 class TestAllowedOrigins:
@@ -43,6 +43,39 @@ class TestAllowedOrigins:
         # origin (CORSMiddleware would treat it as a real value).
         monkeypatch.setenv("LOUPE_ALLOWED_ORIGINS", " https://loupe.example , ,")
         assert allowed_origins() == ["https://loupe.example"]
+
+
+class TestIsLocalOrigin:
+    """`loupe --port <n>` (AU.2): a loopback page is the user's own machine —
+    any `http://localhost:<port>` / `http://127.0.0.1:<port>` passes by
+    PATTERN, so a non-default port needs no env change anywhere."""
+
+    @pytest.mark.parametrize(
+        "origin",
+        [
+            "http://localhost:7000",
+            "http://127.0.0.1:65535",
+            "http://localhost:5173",
+        ],
+    )
+    def test_accepts_any_loopback_port(self, origin: str) -> None:
+        assert is_local_origin(origin) is True
+
+    @pytest.mark.parametrize(
+        "origin",
+        [
+            "https://localhost:7000",  # wrong scheme
+            "http://localhost.evil.example:7000",  # lookalike host
+            "http://192.168.1.10:7000",  # LAN, not loopback
+            "http://localhost:7000/path",  # an Origin never has a path
+            "http://localhost:",  # no port digits
+            "http://localhost",  # bare (port 80) stays list-only
+            "null",
+            "",
+        ],
+    )
+    def test_refuses_non_loopback_and_lookalikes(self, origin: str) -> None:
+        assert is_local_origin(origin) is False
 
 
 class TestEnvList:

@@ -39,6 +39,13 @@ def test_foreign_origins_are_rejected(origin):
     assert is_allowed_origin(origin, ALLOWED) is False
 
 
+def test_loopback_origin_on_any_port_passes():
+    """`loupe --port 7000` (AU.2): the app served on a non-default loopback
+    port must reach the analysis surfaces without an env change."""
+    assert is_allowed_origin("http://localhost:7000", ALLOWED) is True
+    assert is_allowed_origin("http://127.0.0.1:7000", ALLOWED) is True
+
+
 def _drive(headers, scheme="http"):
     """Run the middleware over a fabricated http scope; return (app_called, status)."""
     calls = {"app": False, "status": None}

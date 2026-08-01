@@ -185,7 +185,7 @@ class Api:
 
         from app.analyze_gate import install_analyze_gate
         from app.chords import router as chords_router
-        from app.origins import allowed_origins
+        from app.origins import LOCAL_ORIGIN_PATTERN, allowed_origins
         from app.separation import router as separation_router
         from app.structure import router as structure_router
         from app.tempo import router as tempo_router
@@ -207,6 +207,9 @@ class Api:
         web_app.add_middleware(
             CORSMiddleware,
             allow_origins=allowed_origins(),
+            # A loopback page on ANY port can call the analyses (`loupe
+            # --port`, AU.2) — the JWT gate still authenticates every request.
+            allow_origin_regex=LOCAL_ORIGIN_PATTERN,
             allow_methods=["GET", "POST", "OPTIONS"],
             allow_headers=["*"],
         )

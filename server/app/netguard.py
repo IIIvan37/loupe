@@ -25,6 +25,8 @@ from collections.abc import Collection
 from starlette.responses import PlainTextResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
+from .origins import is_local_origin
+
 _LOOPBACK_NAMES = {"localhost"}
 
 
@@ -59,10 +61,11 @@ class LoopbackOnlyMiddleware:
 
 def is_allowed_origin(origin: str | None, allowed: Collection[str]) -> bool:
     """True iff the request is not browser-mediated (no Origin) or the Origin
-    is allowlisted. `null` (sandboxed iframe, file://) and `""` are foreign."""
+    is allowlisted — a loopback page on ANY port counts (`loupe --port`,
+    AU.2). `null` (sandboxed iframe, file://) and `""` are foreign."""
     if origin is None:
         return True
-    return origin in allowed
+    return origin in allowed or is_local_origin(origin)
 
 
 class OriginGuardMiddleware:

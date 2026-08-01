@@ -46,12 +46,32 @@ pub fn is_allowed_host(host: Option<&str>, allowed: &[String]) -> bool {
   allowed.iter().any(|entry| entry == "*" || entry == name)
 }
 
+/// True iff the Origin is a loopback page on some port —
+/// `http://localhost:<port>` / `http://127.0.0.1:<port>`. The hand-rolled
+/// twin of `origins.py`'s LOCAL_ORIGIN_PATTERN (AU.2): `loupe --port 7000`
+/// must reach every surface without an env change.
+fn is_local_origin(origin: &str) -> bool {
+  let Some(rest) = origin.strip_prefix("http://") else {
+    return false;
+  };
+  let port = rest
+    .strip_prefix("localhost:")
+    .or_else(|| rest.strip_prefix("127.0.0.1:"));
+  match port {
+    Some(digits) => {
+      !digits.is_empty() && digits.len() <= 5 && digits.bytes().all(|b| b.is_ascii_digit())
+    }
+    None => false,
+  }
+}
+
 /// True iff the request is not browser-mediated (no Origin) or the Origin is
-/// allowlisted. `null` (sandboxed iframe, file://) and `""` are foreign.
+/// allowlisted — a loopback page on ANY port counts (`loupe --port`, AU.2).
+/// `null` (sandboxed iframe, file://) and `""` are foreign.
 pub fn is_allowed_origin(origin: Option<&str>, allowed: &[String]) -> bool {
   match origin {
     None => true,
-    Some(origin) => allowed.iter().any(|entry| entry == origin),
+    Some(origin) => allowed.iter().any(|entry| entry == origin) || is_local_origin(origin),
   }
 }
 
@@ -131,6 +151,26 @@ mod tests {
     assert!(!is_allowed_host(Some("evil.example"), &allowed));
     assert!(!is_allowed_host(None, &allowed));
     assert!(is_allowed_host(Some("evil.example"), &owned(&["*"])));
+  }
+
+  #[test]
+  fn accepts_a_loopback_origin_on_any_port() {
+    // `loupe --port 7000` (AU.2): the user's own machine passes by pattern —
+    // same acceptance as `origins.py` / the Deno mirror.
+    let allowed = owned(&["http://localhost:5173"]);
+    assert!(is_allowed_origin(Some("http://localhost:7000"), &allowed));
+    assert!(is_allowed_origin(Some("http://127.0.0.1:65535"), &allowed));
+    assert!(!is_allowed_origin(Some("https://localhost:7000"), &allowed));
+    assert!(!is_allowed_origin(
+      Some("http://localhost.evil.example:7000"),
+      &allowed
+    ));
+    assert!(!is_allowed_origin(
+      Some("http://localhost:7000/path"),
+      &allowed
+    ));
+    assert!(!is_allowed_origin(Some("http://localhost:"), &allowed));
+    assert!(!is_allowed_origin(Some("http://localhost"), &allowed));
   }
 
   #[test]
