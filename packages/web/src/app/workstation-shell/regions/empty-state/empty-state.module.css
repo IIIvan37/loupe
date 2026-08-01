@@ -21,9 +21,12 @@
   background: var(--panel);
 }
 
+/* The hero wears the brand mark (AX.2 — no more text glyph): the loop ring,
+   sized on the hero step of the type scale, in the loop's amber. */
 .badge {
   font-size: var(--font-size-2xl);
-  line-height: 1;
+  inline-size: 1em;
+  block-size: 1em;
   color: var(--amber);
 }
 

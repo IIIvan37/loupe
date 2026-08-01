@@ -10,6 +10,7 @@ import { Trans, useLingui } from '@lingui/react/macro'
 import { i18n } from '../../../i18n/i18n.ts'
 import { Cluster } from '../../../layout/cluster/cluster.tsx'
 import { DetectionAction } from '../../ui/detection-action/detection-action.tsx'
+import { Icon } from '../../ui/icon.tsx'
 import { OperationStatus } from '../../ui/operation-status/operation-status.tsx'
 import { LiveStatus } from '../../ui/live-status/live-status.tsx'
 import {
@@ -198,6 +199,7 @@ function SeparationItem({
     <div className={styles.item}>
       {sep.status === 'ready' ? (
         <p className={styles.done}>
+          <Icon name="check" className={styles.doneIcon} />
           <Trans id="separation.done">Pistes séparées</Trans>
         </p>
       ) : (
@@ -288,6 +290,7 @@ function TempoItem({
     return (
       <div className={styles.item}>
         <p className={styles.done}>
+          <Icon name="check" className={styles.doneIcon} />
           <Trans id="analyser.tempo-done">Tempo détecté</Trans>
         </p>
       </div>
