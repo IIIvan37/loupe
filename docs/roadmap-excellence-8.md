@@ -221,7 +221,7 @@ de `undefined`, alors qu'`OperationStatus` sait déjà rendre l'indéterminé.*
 
 ## Suivi
 
-- [ ] AR.1 · [ ] AR.2 · [ ] AR.3
+- [x] AR.1 · [x] AR.2 · [x] AR.3 — livré par PR #332
 - [ ] AS.1 · [ ] AS.2 · [ ] AS.3 · [ ] AS.4 · [ ] AS.5
 - [ ] AT.1 · [ ] AT.2 · [ ] AT.3 · [ ] AT.4 (+ 🟢 shell/vitest/formule/Sonar)
 - [ ] AU.1 · [ ] AU.2 · [ ] AU.3
