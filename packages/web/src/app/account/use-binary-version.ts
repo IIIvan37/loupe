@@ -12,15 +12,19 @@ export function useBinaryVersion(): string | undefined {
       return
     }
     const controller = new AbortController()
-    void fetch('/version', { signal: controller.signal })
-      .then(async (response) => {
+    const read = async () => {
+      try {
+        const response = await fetch('/version', { signal: controller.signal })
         const body: unknown = response.ok ? await response.json() : undefined
         const candidate = (body as { version?: unknown } | undefined)?.version
         if (typeof candidate === 'string') {
           setVersion(candidate)
         }
-      })
-      .catch(() => undefined)
+      } catch {
+        // Unreachable or aborted: keep undefined, the link asks for it.
+      }
+    }
+    void read()
     return () => controller.abort()
   }, [])
   return version
