@@ -5,6 +5,7 @@ import type { AuthPort } from '../../../auth/auth-port.ts'
 import { useAuth } from '../../../auth/use-auth.ts'
 import { cx } from '../../../lib/cx.ts'
 import { useCountdown } from '../../ui/use-countdown.ts'
+import { reportIssueUrl } from '../report-issue-url.ts'
 import styles from './account-menu.module.css'
 
 /** How long « Renvoyer » stays on cooldown (Supabase itself rate-limits the
@@ -26,6 +27,9 @@ interface AccountMenuProps {
   /** Fired once when the identity transitions to signed-in — the slot resumes
    * the gated analysis the user was trying to run (AK.1). */
   readonly onSignedIn?: (() => void) | undefined
+  /** The serving binary's version, pre-filled in the bug-report link (AR.2) —
+   * absent in the plain browser or while the answer is in flight. */
+  readonly version?: string | undefined
 }
 
 /**
@@ -59,7 +63,8 @@ export function AccountMenu({
   open,
   onOpenChange,
   notice,
-  onSignedIn
+  onSignedIn,
+  version
 }: AccountMenuProps) {
   const { t } = useLingui()
   const {
@@ -321,6 +326,15 @@ export function AccountMenu({
                 </button>
               </div>
             )}
+
+            <a
+              className={styles.reportIssue}
+              href={reportIssueUrl(version)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Trans id="account.report-issue">Signaler un problème</Trans>
+            </a>
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>

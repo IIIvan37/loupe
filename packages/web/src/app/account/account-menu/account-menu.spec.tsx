@@ -54,7 +54,12 @@ function fakeAuth(
 }
 
 /** Render the menu open, controlled — mirrors how the slot always drives it. */
-function renderMenu(auth: AuthPort, notice?: string, onSignedIn?: () => void) {
+function renderMenu(
+  auth: AuthPort,
+  notice?: string,
+  onSignedIn?: () => void,
+  version?: string
+) {
   function Harness() {
     const [open, setOpen] = useState(true)
     return (
@@ -64,6 +69,7 @@ function renderMenu(auth: AuthPort, notice?: string, onSignedIn?: () => void) {
         onOpenChange={setOpen}
         notice={notice}
         onSignedIn={onSignedIn}
+        version={version}
       />
     )
   }
@@ -333,5 +339,31 @@ describe('AccountMenu', () => {
     expect(
       await screen.findByText('Se connecter pour analyser.')
     ).toBeInTheDocument()
+  })
+
+  it('offers the report-issue link even signed out, in a new tab (AR.2)', async () => {
+    renderMenu(fakeAuth())
+
+    const link = await screen.findByRole('link', {
+      name: i18n._('account.report-issue')
+    })
+    expect(link).toHaveAttribute(
+      'href',
+      expect.stringContaining('github.com/IIIvan37/loupe/issues/new')
+    )
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('pre-fills the binary version in the report when the shell knows it', async () => {
+    renderMenu(fakeAuth({ state: SIGNED_IN }), undefined, undefined, '0.1.0')
+
+    const link = await screen.findByRole('link', {
+      name: i18n._('account.report-issue')
+    })
+    expect(link).toHaveAttribute(
+      'href',
+      expect.stringContaining(encodeURIComponent('loupe 0.1.0'))
+    )
   })
 })

@@ -78,6 +78,13 @@
   color: var(--text);
 }
 
+/* The beta feedback escape (AR.2): a quiet footer link, offered signed in or
+   not — a stuck tester must always see a way to report. */
+.reportIssue {
+  composes: requestAccess;
+  margin-block-start: var(--space-2xs);
+}
+
 /* The « link sent » confirmation: the two hint lines + the resend / change-email
    actions stacked, then laid side by side. */
 .sent {
