@@ -225,6 +225,15 @@ async fn run_gc(State(state): State<Arc<AppState>>) -> Result<Response, Response
   Ok(Json(summary).into_response())
 }
 
+/// Make the storage root private to the user (AW.2, the Python stems store's
+/// 0700 brought to `~/.loupe`): created 0700 on a fresh install, tightened on
+/// an existing one — every blob and manifest inside stops being world-listable
+/// in one chmod, whatever mode the wheel era left files in.
+pub fn ensure_private_data_dir(config: &Config) -> std::io::Result<()> {
+  fs_atomic::create_private_dir_all(&config.data_dir)?;
+  fs_atomic::make_private_dir(&config.data_dir)
+}
+
 /// Boot-time GC, parity with the Python lifespan hook: the one moment nothing
 /// is in flight, so a blob uploaded but not yet named by a saved manifest can
 /// never be mistaken for an orphan — which is why no HTTP client calls `/gc`

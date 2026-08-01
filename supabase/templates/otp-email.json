@@ -1,0 +1,6 @@
+{
+  "mailer_subjects_magic_link": "loupe — code de connexion",
+  "mailer_templates_magic_link_content": "<h2>Connexion à loupe</h2><p>Saisir ce code dans l'application :</p><p style=\"font-size: 28px; font-weight: bold; letter-spacing: 4px;\">{{ .Token }}</p><p>Le code expire après une heure. Si cette connexion n'a pas été demandée, ignorer ce message.</p>",
+  "mailer_subjects_confirmation": "loupe — code de confirmation",
+  "mailer_templates_confirmation_content": "<h2>Inscription à loupe</h2><p>Saisir ce code dans l'application pour confirmer l'adresse email :</p><p style=\"font-size: 28px; font-weight: bold; letter-spacing: 4px;\">{{ .Token }}</p><p>Le code expire après une heure. Si cette inscription n'a pas été demandée, ignorer ce message.</p>"
+}

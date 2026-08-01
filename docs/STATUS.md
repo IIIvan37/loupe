@@ -22,14 +22,14 @@ le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-featu
 [guide utilisateur](guide-utilisateur.md) + code beta). **Revue
 excellence 8 (2026-08-01, ~17,1/20)** :
 [roadmap-excellence-8.md](roadmap-excellence-8.md), Lots AR→AX —
-AR/AS/AT/AU soldés (PRs #332/#333/#335/#337 ; AU : rappel **déployer
-Modal + Edge** pour l'effet distant des origins par motif). **Lot AV soldé
-(livré par PR #338)** — les erreurs parlent français : ligne NDJSON de
-l'import URL codée (`DownloadError` Rust) et mappée sur une table Lingui ;
-use-cases projet en `{ code, detail }` (`ProjectError`, export aligné),
-détail brut en console ; hors-ligne le champ URL se verrouille avec hint.
-Prochain : **Lot AW** (blindage : en-têtes CSP/nosniff/cache, permissions
-store 0700/0600, templates OTP versionnés) ; v0.2 = bump + tag.
+AR/AS/AT/AU/AV soldés (PRs #332/#333/#335/#337/#338 ; AU : rappel
+**déployer Modal + Edge** pour l'effet distant des origins par motif).
+**Lot AW soldé (livré par PR #339)** — la nouvelle surface se blinde :
+CSP réelle (connect-src bornée) + nosniff + cache scindé, pinnés dans
+`tests/app.rs` ; store local 0700/0600 (`~/.loupe` resserré au boot) ;
+templates OTP versionnés (**pose = action opérateur** :
+`scripts/apply-otp-templates.sh`, PAT requis). Prochain : **Lot AX**
+(la marque dans l'onglet : favicon, glyphes → icon.tsx) ; v0.2 = bump + tag.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
