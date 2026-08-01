@@ -221,6 +221,24 @@ describe('AnalyserRow separation', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('keeps the busy face through the retrieval phase, under its own label', () => {
+    // After the engine's last tick the stems still download + decode: the row
+    // must narrate that (« Récupération… »), not drop back to the idle button
+    // nor freeze at « Séparation… 100 % » (AS.2).
+    renderRow({
+      separation: {
+        state: separationState({ status: 'retrieving', progress: 0.5 })
+      }
+    })
+    expect(
+      screen.getByText(i18n._('separation.retrieving'), visibleOnly)
+    ).toBeInTheDocument()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('value', '50')
+    expect(
+      screen.queryByRole('button', { name: i18n._('separation.separate') })
+    ).not.toBeInTheDocument()
+  })
+
   it('cancels the running separation on demand', async () => {
     const user = userEvent.setup()
     const { props } = renderRow({

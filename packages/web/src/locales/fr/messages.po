@@ -1186,6 +1186,11 @@ msgstr "L'export a échoué : {error}"
 
 #. js-lingui-explicit-id
 #: src/app/analyser/analyser-row/analyser-row.tsx
+msgid "separation.retrieving"
+msgstr "Récupération des pistes…"
+
+#. js-lingui-explicit-id
+#: src/app/analyser/analyser-row/analyser-row.tsx
 msgid "separation.retry"
 msgstr "Réessayer"
 

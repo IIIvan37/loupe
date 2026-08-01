@@ -6,6 +6,7 @@ import type {
   StemSeparator
 } from '@app/core'
 import { decodeWav, SeparationError } from '@app/core'
+import { nextPaint } from '../../lib/next-paint.ts'
 import { encodeWavMemo } from '../encode/encode-wav-memo.ts'
 import { transportFailureOfStatus } from './post-wav-json.ts'
 import { streamNdjson } from './read-ndjson.ts'
@@ -69,7 +70,12 @@ async function fetchStem(
     { headers: authHeaders(token), signal: signal ?? null },
     `stem ${stem.id}`
   )
-  const audio: DecodedAudio = decodeWav(await response.arrayBuffer())
+  const bytes = await response.arrayBuffer()
+  // Let the just-ticked bar paint before the synchronous per-stem decode
+  // blocks the main thread (R.4) — six back-to-back decodes with no paint
+  // in between read as a hang.
+  await nextPaint()
+  const audio: DecodedAudio = decodeWav(bytes)
   return { id: stem.id, label: stem.label, audio }
 }
 
@@ -115,8 +121,22 @@ export function createHttpSeparator(
         onProgress({ phase: event.phase, fraction: event.fraction })
       )
 
+      // The engine is done but nothing is home yet: the stems (~250 MB on a
+      // full track) still download and decode. Narrate that as its own phase,
+      // one fraction step per stem landed, so the bar never freezes at
+      // « Séparation… 100 % » (AS.2).
+      let landed = 0
+      onProgress({ phase: 'retrieving', fraction: 0 })
       return Promise.all(
-        done.stems.map((stem) => fetchStem(baseUrl, stem, token, signal))
+        done.stems.map(async (stem) => {
+          const fetched = await fetchStem(baseUrl, stem, token, signal)
+          landed += 1
+          onProgress({
+            phase: 'retrieving',
+            fraction: landed / done.stems.length
+          })
+          return fetched
+        })
       )
     }
   }

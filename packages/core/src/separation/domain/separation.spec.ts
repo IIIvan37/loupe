@@ -59,6 +59,17 @@ describe('separationReducer', () => {
     expect(separating).toMatchObject({ status: 'separating', progress: 0.7 })
   })
 
+  it('narrates the retrieval after the engine finishes — no more frozen 100 %', () => {
+    // After the last engine tick the stems still have to download and decode
+    // (~250 MB): the adapter reports that as its own phase with a real
+    // stems-landed fraction (AS.2).
+    const retrieving = separationReducer(
+      { status: 'separating', progress: 1, stems: [], error: undefined },
+      { type: 'progress', phase: 'retrieving', fraction: 0.5 }
+    )
+    expect(retrieving).toMatchObject({ status: 'retrieving', progress: 0.5 })
+  })
+
   it('confines progress to [0, 1]', () => {
     expect(
       separationReducer(initialSeparation, {

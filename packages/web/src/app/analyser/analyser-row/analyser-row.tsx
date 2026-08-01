@@ -24,12 +24,16 @@ import styles from './analyser-row.module.css'
 
 // Module-level map: lazy descriptors, resolved at render time via i18n._.
 const PROGRESS_LABELS: Readonly<
-  Record<'analysing' | 'separating', MessageDescriptor>
+  Record<'analysing' | 'separating' | 'retrieving', MessageDescriptor>
 > = {
   analysing: msg({ id: 'separation.analysing', message: 'Analyse du mix…' }),
   separating: msg({
     id: 'separation.separating',
     message: 'Séparation des pistes…'
+  }),
+  retrieving: msg({
+    id: 'separation.retrieving',
+    message: 'Récupération des pistes…'
   })
 }
 
@@ -176,7 +180,10 @@ function SeparationItem({
 }) {
   const { t } = useLingui()
   const sep = separation.state
-  const running = sep.status === 'analysing' || sep.status === 'separating'
+  const running =
+    sep.status === 'analysing' ||
+    sep.status === 'separating' ||
+    sep.status === 'retrieving'
   // The analysis runs on the remote service: only being offline blocks it.
   const block: MessageDescriptor | undefined = offlineBlocks(
     separation.offloaded,

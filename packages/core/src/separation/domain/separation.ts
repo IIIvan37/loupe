@@ -1,11 +1,12 @@
 import type { StemSet } from './stem-set.ts'
 
 /**
- * The two long-running phases a separation reports: first it analyses the mix
- * (which sources are present), then it separates them. The pure state machine
- * and the `StemSeparator` port both speak in these terms.
+ * The long-running phases a separation reports: it analyses the mix (which
+ * sources are present), separates them, then retrieves the produced stems —
+ * a real wait of its own when they come back over the network (AS.2). The
+ * pure state machine and the `StemSeparator` port both speak in these terms.
  */
-export type SeparationPhase = 'analysing' | 'separating'
+export type SeparationPhase = 'analysing' | 'separating' | 'retrieving'
 
 export type SeparationStatus = 'idle' | SeparationPhase | 'ready' | 'error'
 
