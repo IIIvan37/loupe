@@ -13,6 +13,7 @@ pnpm monorepo with a **pure hexagonal core** + a React (`web`) adapter,
 
 - `pnpm gate` — **the blocking quality gate**: typecheck → biome → `check:arch`
   (Sheriff) → `check:design`/`check:react` → `check:tokens`/`check:i18n`/`check:sonar`
+  → `check:shell` (system shellcheck + actionlint on scripts/hooks/workflows)
   → tests with coverage → knip → jscpd. Run before declaring anything done. A green run
   stamps the tree it validated, so the pre-commit hook doesn't replay it on the
   same bytes (`scripts/gate-stamp.sh`).

@@ -10,5 +10,6 @@
       "entry": ["index.html", "lingui.config.ts"],
       "project": ["src/**/*.{ts,tsx}"]
     }
-  }
+  },
+  "ignoreBinaries": ["shellcheck"]
 }

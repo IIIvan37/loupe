@@ -10,11 +10,19 @@ et pousse la formule au tap quand le secret est configuré.
    version : le workflow refuse un tag qui ne lui correspond pas, et
    `loupe --version` l'affiche). Passer par une PR normale.
 2. **Tagger le main mergé et vert** (la release ne rejoue pas les tests —
-   c'est la CI de main qui fait foi) :
+   c'est la CI de main qui fait foi, et le job `verify` **l'exige** : il
+   interroge les runs du commit tagué et échoue tant que tout n'est pas
+   conclu vert, y compris le run mutation post-merge — tagger juste après
+   un merge, c'est attendre ce run) :
 
    ```sh
    git tag v0.1.0 && git push origin v0.1.0
    ```
+
+   Le job release est **rejouable** : re-run après un échec à mi-chemin
+   (create-if-absent + `upload --clobber` + push tap sans-op si identique).
+   Les archives portent une attestation de provenance
+   (`gh attestation verify <archive> --repo IIIvan37/loupe`).
 
 3. Le workflow produit : `loupe-vX.Y.Z-aarch64-apple-darwin.tar.gz`,
    `…-x86_64-unknown-linux-gnu.tar.gz` (buildé sur ubuntu-22.04 pour une
@@ -38,6 +46,15 @@ et pousse la formule au tap quand le secret est configuré.
    loupe. Sans le secret, l'étape tap est sautée et la formule reste
    disponible en asset de Release (installable via
    `brew install --formula <fichier>`)
+
+## Renouvellement du PAT du tap
+
+Le PAT expire (actuellement le **2026-08-31**) et un PAT expiré casse la
+release en 403 à l'étape tap. `pat-reminder.yml` (cron hebdomadaire) ouvre
+une issue `pat-renouvellement` à J-21. À réception : recréer le PAT
+(mêmes permissions), remplacer le secret `HOMEBREW_TAP_TOKEN`, bump
+`TAP_TOKEN_EXPIRES` dans `.github/workflows/pat-reminder.yml`, fermer
+l'issue.
 
 ## Notification de version
 

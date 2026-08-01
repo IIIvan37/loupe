@@ -5,6 +5,8 @@ name: Release
 # everywhere: the tag must equal the crate version, which `--version` prints.
 # D6: `workflow_dispatch` builds the same binaries WITHOUT publishing — the
 # artifacts are attached to the run, for platform validation in a VM.
+# AT.4: every action is pinned by commit SHA (the release chain signs what it
+# ships; a moving tag or branch must not be able to change what runs here).
 on:
   push:
     tags: ['v*']
@@ -15,11 +17,11 @@ permissions:
 
 jobs:
   verify:
-    name: Tag matches crate version
+    name: Tag on a green main, matching the crate version
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Compare tag and loupe-server version
         # Only a tag push carries a version to check; a manual dispatch
         # (D6 test build) has no tag, so this is a no-op there.
@@ -29,6 +31,36 @@ jobs:
           crate="$(sed -n 's/^version = "\(.*\)"/\1/p' crates/loupe-server/Cargo.toml | head -1)"
           if [ "$tag" != "$crate" ]; then
             echo "::error::tag v$tag ≠ crates/loupe-server version $crate — bump Cargo.toml first (docs/RELEASING.md)"
+            exit 1
+          fi
+      # AT.2: v0.1.0 was tagged while main's authoritative tier (Windows gate,
+      # mutation) had been red for days without anyone seeing it. The release
+      # now refuses to build unless every workflow run on the tagged commit
+      # has concluded green — including the >1 h post-merge mutation run, so
+      # tagging right after a merge means waiting for that run to finish.
+      - name: Require green CI on the tagged commit
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha="$(git rev-parse HEAD)"
+          # Latest run per workflow on this commit, excluding this very
+          # workflow (its own in-progress run would deadlock the check).
+          runs="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs?head_sha=$sha&per_page=100" \
+            --jq '[.workflow_runs[] | select(.name != "Release")]
+                  | group_by(.name) | map(max_by(.id)
+                  | {name, status, conclusion, html_url})')"
+          echo "$runs" | jq -r '.[] | "\(.name): \(.status) / \(.conclusion // "pending") — \(.html_url)"'
+          if [ "$(echo "$runs" | jq 'length')" -eq 0 ]; then
+            echo "::error::no CI run found for $sha — push the commit to main and let CI conclude before tagging"
+            exit 1
+          fi
+          if ! echo "$runs" | jq -e 'any(.name == "CI")' >/dev/null; then
+            echo "::error::the CI workflow has not run on $sha — the authoritative tier is missing"
+            exit 1
+          fi
+          if ! echo "$runs" | jq -e 'all(.status == "completed" and (.conclusion == "success" or .conclusion == "skipped"))' >/dev/null; then
+            echo "::error::main is not green on $sha (see the runs above) — wait for green or fix main before releasing"
             exit 1
           fi
 
@@ -50,14 +82,14 @@ jobs:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
       - run: pnpm install --frozen-lockfile
       # Web dist (server shell, prod config from packages/web/.env.production)
       # embedded into the release binary — same script as a local build.
@@ -69,7 +101,7 @@ jobs:
       # confusing zip-in-zip. The distributable .tar.gz/.zip are built once,
       # on Linux, in the release job — where `tar`/`zip` behave consistently
       # (git-bash's `tar` is GNU tar and cannot write a real zip).
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: loupe-${{ matrix.target }}
           path: |
@@ -87,14 +119,20 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: write
+      # Provenance attestation on the shipped archives (AT.4).
+      id-token: write
+      attestations: write
     env:
-      TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+      # Presence flag only — the token itself stays scoped to the single step
+      # that pushes the formula (AT.4: a job-level secret is visible to every
+      # step, including third-party actions).
+      HAS_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN != '' }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       # No merge-multiple: keep each target's binary in its own dir
       # (staged/loupe-<target>/loupe[.exe]) so the same `loupe` name from
       # Linux and macOS does not collide.
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: staged
       - name: Package distributable archives
@@ -118,26 +156,49 @@ jobs:
           cd dist
           sha256sum -- * > SHA256SUMS
           cat SHA256SUMS
+      # Verifiable link between these exact bytes and this run
+      # (`gh attestation verify <archive> --repo IIIvan37/loupe`).
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: dist/*
       - name: Generate Homebrew formula
+        # The template's documentation header mentions its own placeholders,
+        # so substituting on the whole file used to mangle it into a nonsense
+        # first line on the published formula — keep only the formula class
+        # and prepend a generated-file header instead.
         run: |
           version="${GITHUB_REF_NAME#v}"
           sha_of() { sha256sum "dist/$1" | cut -d' ' -f1; }
-          sed -e "s/{{VERSION}}/${version}/g" \
+          {
+            echo "# Generated by release.yml from packaging/homebrew/loupe.rb.tmpl — do not edit."
+            sed -n '/^class Loupe/,$p' packaging/homebrew/loupe.rb.tmpl
+          } | sed -e "s/{{VERSION}}/${version}/g" \
               -e "s/{{SHA_DARWIN_ARM64}}/$(sha_of "loupe-${GITHUB_REF_NAME}-aarch64-apple-darwin.tar.gz")/" \
               -e "s/{{SHA_LINUX_X64}}/$(sha_of "loupe-${GITHUB_REF_NAME}-x86_64-unknown-linux-gnu.tar.gz")/" \
-              packaging/homebrew/loupe.rb.tmpl > dist/loupe.rb
-      - name: Create release
+              > dist/loupe.rb
+      # AT.3: rerunnable. v0.1.0 died between `gh release create` (which is
+      # not idempotent) and the tap push (403 on an expired PAT would strand
+      # the release the same way) — create only if absent, then upload with
+      # --clobber so a rerun converges instead of failing.
+      - name: Create or update the release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/* \
-            --title "loupe $GITHUB_REF_NAME" \
-            --generate-notes
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" \
+              --title "loupe $GITHUB_REF_NAME" \
+              --generate-notes
+          fi
+          gh release upload "$GITHUB_REF_NAME" dist/* --clobber
       # Only when the tap secret is configured (fine-grained PAT, contents
-      # write on IIIvan37/homebrew-loupe) — otherwise the formula simply
-      # ships as a release asset. See docs/RELEASING.md.
+      # write on IIIvan37/homebrew-loupe, expires 2026-08-31 — see
+      # pat-reminder.yml) — otherwise the formula simply ships as a release
+      # asset. See docs/RELEASING.md.
       - name: Push formula to the Homebrew tap
-        if: env.TAP_TOKEN != ''
+        if: env.HAS_TAP_TOKEN == 'true'
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
           git clone "https://x-access-token:${TAP_TOKEN}@github.com/IIIvan37/homebrew-loupe.git" tap
           mkdir -p tap/Formula
@@ -146,5 +207,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/loupe.rb
-          git commit -m "loupe ${GITHUB_REF_NAME}"
-          git push
+          # Idempotent too: a rerun after a successful push has nothing to
+          # commit, and that must not fail the job.
+          git diff --cached --quiet || {
+            git commit -m "loupe ${GITHUB_REF_NAME}"
+            git push
+          }

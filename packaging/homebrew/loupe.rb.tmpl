@@ -2,7 +2,9 @@
 # The release workflow substitutes {{VERSION}}, {{SHA_DARWIN_ARM64}} and
 # {{SHA_LINUX_X64}} from the built archives, attaches the result to the
 # GitHub Release, and pushes it to the tap repo when HOMEBREW_TAP_TOKEN is
-# configured (see docs/RELEASING.md).
+# configured (see docs/RELEASING.md). This header is stripped at generation
+# (everything above `class Loupe`): substituting on it used to publish a
+# mangled first line.
 class Loupe < Formula
   desc "Atelier de pratique musicale — serveur local + navigateur"
   homepage "https://github.com/IIIvan37/loupe"

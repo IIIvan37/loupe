@@ -1,0 +1,62 @@
+name: Rust
+
+# AT.1: the Rust side of the shipped binary (download.rs is a trust boundary —
+# host allowlist, subprocess driving, executable bootstrap) must not live
+# outside every gate. desktop.yml left with Tauri (#327) without a successor;
+# this is the same sweep scoped to the two crates the `loupe` binary is built
+# from. Path-filtered so the web/server pipelines stay fast.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rustfmt.toml'
+      - '.github/workflows/rust.yml'
+  pull_request:
+    paths:
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'rustfmt.toml'
+      - '.github/workflows/rust.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rust-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Third-party actions pinned by commit SHA (AT.4): dtolnay/rust-toolchain's
+# `stable` ref is a moving branch, not a tag.
+jobs:
+  rust:
+    name: Rust (fmt · clippy · tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+
+  # D6: the distributed binary ships on Windows too, so its crates are tested
+  # there — path separators, filesystem semantics, the `.exe` yt-dlp name.
+  windows:
+    name: Rust Windows (clippy · tests)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@4cda84d5c5c54efe2404f9d843567869ab1699d4 # stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace

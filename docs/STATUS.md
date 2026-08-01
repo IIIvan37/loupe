@@ -9,28 +9,27 @@
 ## Where we are
 
 **Cap distribution SOLDÉ (2026-07-26 → 07-31)** : loupe se distribue en
-**serveur local + navigateur** — release v0.1.0, 3 binaires + tap
-`iiivan37/loupe`, `brew install` vérifié
-([archive/distribution-plan.md](archive/distribution-plan.md)). Tauri retiré
-(#327), serveur unique (#328) : le binaire `loupe` est le seul livrable,
-`server/` = la bibliothèque d'analyse Modal + harnais dev/CI, parité des
-origins verrouillée (`docs/origins-parity.spec.ts` ;
+**serveur local + navigateur** — release v0.1.0, tap `iiivan37/loupe`, le
+binaire `loupe` seul livrable (Tauri retiré #327, serveur unique #328),
+`server/` = bibliothèque Modal + harnais dev/CI, parité des origins
+verrouillée ([archive/distribution-plan.md](archive/distribution-plan.md),
 [archive/serveur-unique-plan.md](archive/serveur-unique-plan.md)).
-**Roadmap v7 soldée** ; **Lot TS clos**. Nursery à dessein :
-`detect-chords`, `bass-line` ; `timecode` attend un second consommateur.
-Rappels vivants : filtre Base UI à retirer au prochain bump (#319) ; jamais
-de hook à effet de montage, seul le seam `mixer: Mixer` reste en prop
-([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
+**Roadmap v7 soldée** ; **Lot TS clos**. Nursery : `detect-chords`,
+`bass-line` ; `timecode` attend un 2e consommateur. Rappels : filtre Base UI
+à retirer au prochain bump (#319) ; jamais de hook à effet de montage, seul
+le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (release v0.1.0 +
-[guide utilisateur](guide-utilisateur.md) + code beta ; pipeline release
-réparé, PAT du tap expire 2026-08-31). **Revue excellence 8 (2026-08-01,
-~17,1/20)** : [roadmap-excellence-8.md](roadmap-excellence-8.md), Lots
-AR→AX. **Lot AR soldé** (PR #332) ; **Lot AS soldé** (livré par PR #333) :
-la progression dit vrai — `progress` indéterminé avant le premier tick réel,
-phase `retrieving` (plus de 100 % figé), ouverture peinte entre décodages
-(« piste n/total »), zone repliée + overlay de prise en charge sur les mêmes
-états (`shell-busy.ts`). Prochain : **Lot AT** (filets : `rust.yml`, release
-sous CI vert — PAT expire 2026-08-31) ; v0.2 = bump `Cargo.toml` + tag.
+[guide utilisateur](guide-utilisateur.md) + code beta). **Revue
+excellence 8 (2026-08-01, ~17,1/20)** :
+[roadmap-excellence-8.md](roadmap-excellence-8.md), Lots AR→AX — AR soldé
+(PR #332), AS soldé (PR #333). **Lot AT soldé (livré par PR #335)** — les
+filets reviennent : `rust.yml` recréé (fmt·clippy·tests + leg Windows,
+path-filtré `crates/**`) ; la release exige un main vert (`verify` lit les
+runs du commit tagué + issue auto « CI rouge sur main ») ; release rejouable
++ rappel PAT hebdo (expire 2026-08-31, `pat-reminder.yml`) ; chaîne durcie
+(secret au step, actions SHA, attestation) ; `check:shell`
+(shellcheck + actionlint) au gate. Prochain : **Lot AU** (le tempo et la
+séparation se parlent) ; v0.2 = bump `Cargo.toml` + tag.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
@@ -69,3 +68,4 @@ sous CI vert — PAT expire 2026-08-31) ; v0.2 = bump `Cargo.toml` + tag.
   file débloquée (#310 config, #316 triage react-doctor 0.9.2 ; #315 supersédée par
   #317), merges = action opérateur.
 - Races connues « si ça mord » : re-`attach` sur detect fire-and-forget (vieux manifests) · `addStem`/`play` sur bus stretch froid · worker DSP accords (774 ms).
+- 8 issues Sonar assumées (inventaire 2026-08-01, quality gate OK) : S3776 complexité 16/15 `use-chord-detection.ts:172` (le vrai morceau) · S6825 aria-hidden focusable `waveform-canvas.tsx:52` · S8997 monkeypatch ×2 `test_limits.py` · mineures S5906 ×2 `spectrum.spec.ts`, S6582 `use-chord-detection.ts:301`, S7786 `http-project-store.ts:32`. Reprise à la prochaine passe qualité sur ces fichiers.

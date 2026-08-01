@@ -96,16 +96,11 @@ export default defineConfig({
         // Audio (AudioContext / AudioWorklet / decodeAudioData) or trigger a
         // browser download — none of which jsdom can drive. Verified in a real
         // browser, not by unit tests, so they are kept out of the coverage metric
-        // rather than dragging it down with unreachable lines.
-        '**/audio/count-in-player.ts',
-        '**/audio/web-audio-playback.ts',
-        '**/audio/web-audio-stem-playback.ts',
-        '**/audio/web-audio-shared.ts',
-        '**/audio/web-audio-decoder.ts',
-        '**/audio/resample-mono.ts',
+        // rather than dragging it down with unreachable lines. (8 stale globs
+        // purged 2026-08-01: #323 moved the files under audio/playback|http|
+        // encode, the entries matched nothing and the thresholds pass with
+        // those files counted — an exclusion that excludes nothing only lies.)
         '**/audio/download-blob.ts',
-        '**/audio/analysis-endpoint.ts',
-        '**/audio/warm-up-analysis.ts',
         '**/audio/create-chord-detector.ts',
         '**/audio/create-separator.ts',
         '**/audio/create-structure-detector.ts',

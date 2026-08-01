@@ -5,6 +5,8 @@ if [ -z "$NVM_DIR" ]; then
   export NVM_DIR="$HOME/.nvm"
 fi
 if [ -s "$NVM_DIR/nvm.sh" ]; then
+  # Runtime-only path, nothing for shellcheck to follow statically.
+  # shellcheck source=/dev/null
   . "$NVM_DIR/nvm.sh"
   nvm use >/dev/null 2>&1 || true
 fi
@@ -50,7 +52,11 @@ if [ -n "$staged" ]; then
 
   if [ -n "$fully_staged" ]; then
     echo "🔍 biome --write (fully staged files)"
+    # $fully_staged is a space-separated list; the split is the point.
+    # shellcheck disable=SC2086
     printf '%s\n' $fully_staged | xargs pnpm -s exec biome check --write --no-errors-on-unmatched
+    # Same list, same intentional split.
+    # shellcheck disable=SC2086
     printf '%s\n' $fully_staged | xargs git add --
   fi
 
@@ -84,8 +90,8 @@ fi
 # whole parallel set ~106 s, the same set one after another ~108 s. Everything
 # hides behind coverage either way. What actually removes the cost is the
 # stamp above.
-echo "🔍 gate (typecheck + arch + design + react + tokens + i18n + coverage + knip + jscpd)"
-pnpm run "/^(typecheck|check:arch|check:design|check:react|check:tokens|check:i18n|check:sonar|test:coverage|check:dead|check:dup)$/"
+echo "🔍 gate (typecheck + arch + design + react + tokens + i18n + shell + coverage + knip + jscpd)"
+pnpm run "/^(typecheck|check:arch|check:design|check:react|check:tokens|check:i18n|check:sonar|check:shell|test:coverage|check:dead|check:dup)$/"
 
 # Everything the gate covers just passed on this tree — stamp it so an amend or
 # a quick follow-up commit on the same bytes doesn't pay for it again.
