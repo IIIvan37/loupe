@@ -2,7 +2,6 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "ignoreExportsUsedInFile": true,
   "ignore": ["supabase/**", "server/**", "crates/**"],
-  "ignoreDependencies": ["shellcheck", "github-actionlint"],
   "workspaces": {
     ".": {
       "entry": ["sheriff.config.ts"]
@@ -11,5 +10,6 @@
       "entry": ["index.html", "lingui.config.ts"],
       "project": ["src/**/*.{ts,tsx}"]
     }
-  }
+  },
+  "ignoreBinaries": ["shellcheck"]
 }

@@ -28,7 +28,7 @@ path-filtré `crates/**`) ; la release exige un main vert (`verify` lit les
 runs du commit tagué + issue auto « CI rouge sur main ») ; release rejouable
 + rappel PAT hebdo (expire 2026-08-31, `pat-reminder.yml`) ; chaîne durcie
 (secret au step, actions SHA, attestation) ; `check:shell`
-(shellcheck + actionlint npm) au gate. Prochain : **Lot AU** (le tempo et la
+(shellcheck + actionlint) au gate. Prochain : **Lot AU** (le tempo et la
 séparation se parlent) ; v0.2 = bump `Cargo.toml` + tag.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)

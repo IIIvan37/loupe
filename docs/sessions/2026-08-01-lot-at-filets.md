@@ -25,12 +25,13 @@
   `rust.yml` épinglées par SHA (rust-toolchain vit sur une branche mouvante) ;
   attestation de provenance (`actions/attest-build-provenance`) sur `dist/*`.
 - **🟢 check:shell dans le gate** : `scripts/check-shell.ts` — shellcheck
-  (paquet npm, binaire plateforme) sur les 10 scripts shell trackés
-  (scripts/, .claude/hooks/, .husky/) + actionlint officiel
-  (`github-actionlint`) sur les 5 workflows, shellcheck intégré aux `run:`
-  via le PATH pnpm. Câblé dans `gate`, le hook pre-commit et donc CI.
-  4 findings shellcheck initiaux traités par directives ciblées justifiées
-  (source nvm dynamique ×2, split volontaire ×2).
+  **système** (préinstallé sur tous les runners GitHub ; message
+  d'installation clair sinon) sur les 10 scripts shell trackés (scripts/,
+  .claude/hooks/, .husky/) + actionlint officiel (`github-actionlint`,
+  `adm-zip` forcé ≥0.6.0 via `pnpm.overrides`) sur les 5 workflows. Câblé
+  dans `gate`, le hook pre-commit et donc CI. 4 findings shellcheck initiaux
+  traités par directives ciblées justifiées (source nvm dynamique ×2, split
+  volontaire ×2).
 - **🟢 Purge vitest.config.ts** : les 8 exclusions de couverture mortes
   (globs `**/audio/*.ts` cassés par le déplacement #323 vers
   `audio/playback|http|encode`) supprimées — elles n'excluaient plus rien et
@@ -49,13 +50,19 @@
 - Le wasm npm `actionlint` (2.0.6) a été essayé puis écarté : périmé (ne
   connaît ni `macos-14` ni la permission `attestations`) —
   `github-actionlint` (1.7.12, binaire officiel) retenu à la place.
+- Le wrapper npm `shellcheck` a lui aussi été essayé puis écarté : il a fait
+  tomber le Dependency audit de la PR (decompress, critique GHSA-mp2f-45pm-3cg9,
+  **sans version corrigée** + 3 moderates) — remplacé par le shellcheck
+  système ; `adm-zip` (high via github-actionlint) corrigé par
+  `pnpm.overrides` ≥0.6.0.
 
 ## Decisions
 
 - **Le gate s'étend à la couche shell** : shellcheck + actionlint deviennent
-  des détecteurs bloquants, outillés en npm (hermétique, aucun outil
-  système). Faux positifs traités par directive au site, jamais par baisse de
-  sévérité globale.
+  des détecteurs bloquants. L'hermétique-npm a cédé devant l'audit (le
+  wrapper `shellcheck` embarque un critique non corrigé) : shellcheck est un
+  outil système assumé, actionlint reste npm. Faux positifs traités par
+  directive au site, jamais par baisse de sévérité globale.
 - **La release refuse un main non vert** — le design D5 « le tag fait foi »
   reste, mais verify vérifie désormais ce que le tagueur affirmait sur
   l'honneur (leçon v0.1.0 : tier autoritaire rouge du 26/07 au 01/08 sans

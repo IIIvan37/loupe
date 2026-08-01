@@ -57,8 +57,12 @@
     "jscpd": "^5.0.14",
     "knip": "^6.29.0",
     "react-doctor": "^0.9.2",
-    "shellcheck": "^4.1.0",
     "typescript": "^6.0.3",
     "vitest": "^4.0.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "adm-zip@<0.6.0": ">=0.6.0"
+    }
   }
 }

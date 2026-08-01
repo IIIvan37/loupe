@@ -1,14 +1,16 @@
 // check:shell — the shell layer gets a linter like every other language here.
 // ~430 lines of bash carry the gate stamp, the blocking hooks and the release
 // packaging; the only real delivery breakage so far came from that layer, and
-// none of it was linted. Two sweeps, both hermetic (npm-managed tools, no
-// system dependency):
+// none of it was linted. Two sweeps:
 //   - shellcheck on every tracked shell script (scripts/, .claude/hooks/,
-//     .husky/ — the husky hooks carry a #!/bin/sh shebang);
+//     .husky/ — the husky hooks carry a #!/bin/sh shebang). SYSTEM tool on
+//     purpose: it is preinstalled on every GitHub runner image, and the npm
+//     wrapper was dropped for shipping a criticial unpatched advisory
+//     (decompress, GHSA-mp2f-45pm-3cg9) into the blocking audit;
 //   - actionlint on the GitHub workflows (github-actionlint wraps the
-//     official binary) — expressions, contexts, permissions, runner labels,
-//     and the embedded `run:` snippets via the shellcheck integration
-//     (node_modules/.bin is on PATH under pnpm, so actionlint finds it).
+//     official binary; adm-zip pinned >=0.6.0 via pnpm.overrides) —
+//     expressions, contexts, permissions, runner labels, and the embedded
+//     `run:` snippets via its shellcheck integration when found on PATH.
 //
 // Run: pnpm check:shell (part of `pnpm gate`).
 
@@ -27,31 +29,37 @@ const trackedFiles = (pattern: string): string[] => {
   return result.stdout.split('\n').filter((line) => line !== '')
 }
 
-// Both tools ship as node shims around a platform binary — spawning the shim
-// through process.execPath works identically on macOS, Linux and Windows.
-const runShim = (shim: string, args: string[]): number => {
-  const result = spawnSync(process.execPath, [require.resolve(shim), ...args], {
-    stdio: 'inherit'
-  })
-  return result.status ?? 1
-}
-
 const shellScripts = [
   ...trackedFiles('*.sh'),
   ...trackedFiles('.husky/pre-commit'),
   ...trackedFiles('.husky/commit-msg')
 ]
-const shellcheckStatus = runShim('shellcheck/bin/shellcheck.js', [
-  '--',
-  ...shellScripts
-])
-
-// No file arguments: actionlint discovers .github/workflows on its own.
-const actionlintStatus = runShim('github-actionlint/dist/bin/actionlint.js', [])
-
-if (shellcheckStatus !== 0 || actionlintStatus !== 0) {
+const shellcheck = spawnSync('shellcheck', ['--', ...shellScripts], {
+  stdio: 'inherit'
+})
+if (shellcheck.error !== undefined) {
   console.error(
-    `\ncheck:shell — échec (shellcheck: ${shellcheckStatus === 0 ? 'ok' : 'findings'}, actionlint: ${actionlintStatus === 0 ? 'ok' : 'findings'})`
+    'check:shell — shellcheck introuvable sur le PATH. Installer :\n' +
+      '  macOS   brew install shellcheck\n' +
+      '  Linux   apt-get install shellcheck\n' +
+      '  Windows choco install shellcheck\n' +
+      '(préinstallé sur les runners GitHub)'
+  )
+  process.exit(1)
+}
+
+// The wrapped official binary, spawned through its node shim (works the same
+// on macOS, Linux and Windows). No file arguments: actionlint discovers
+// .github/workflows on its own.
+const actionlint = spawnSync(
+  process.execPath,
+  [require.resolve('github-actionlint/dist/bin/actionlint.js')],
+  { stdio: 'inherit' }
+)
+
+if (shellcheck.status !== 0 || actionlint.status !== 0) {
+  console.error(
+    `\ncheck:shell — échec (shellcheck: ${shellcheck.status === 0 ? 'ok' : 'findings'}, actionlint: ${actionlint.status === 0 ? 'ok' : 'findings'})`
   )
   process.exit(1)
 }
