@@ -21,15 +21,15 @@ le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-featu
 **Beta distribuée le 2026-08-01** (release v0.1.0 +
 [guide utilisateur](guide-utilisateur.md) + code beta). **Revue
 excellence 8 (2026-08-01, ~17,1/20)** :
-[roadmap-excellence-8.md](roadmap-excellence-8.md), Lots AR→AX — AR/AS/AT
-soldés (PRs #332/#333/#335). **Lot AU soldé (livré par PR #337)** — le
-tempo et la séparation se parlent : le click tardif REJOINT le mix séparé
-qui joue (`metronome.join` → `mixer.addStem`, click né muet) sur les trois
-chemins de seating, `use-separate-and-load` lit tempo/mixeur à la
-résolution (`useLatest`) ; les origins loopback passent par MOTIF partout
-(`--port` ne piège plus ; parité Python↔Deno gate-ée, **déployer
-Modal + Edge pour l'effet distant**) ; cold-start narré sur le TempoItem.
-Prochain : **Lot AV** (erreurs en français) ; v0.2 = bump `Cargo.toml` + tag.
+[roadmap-excellence-8.md](roadmap-excellence-8.md), Lots AR→AX —
+AR/AS/AT/AU soldés (PRs #332/#333/#335/#337 ; AU : rappel **déployer
+Modal + Edge** pour l'effet distant des origins par motif). **Lot AV soldé
+(livré par PR #338)** — les erreurs parlent français : ligne NDJSON de
+l'import URL codée (`DownloadError` Rust) et mappée sur une table Lingui ;
+use-cases projet en `{ code, detail }` (`ProjectError`, export aligné),
+détail brut en console ; hors-ligne le champ URL se verrouille avec hint.
+Prochain : **Lot AW** (blindage : en-têtes CSP/nosniff/cache, permissions
+store 0700/0600, templates OTP versionnés) ; v0.2 = bump + tag.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
