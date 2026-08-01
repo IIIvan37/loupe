@@ -21,15 +21,15 @@ le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-featu
 **Beta distribuée le 2026-08-01** (release v0.1.0 +
 [guide utilisateur](guide-utilisateur.md) + code beta). **Revue
 excellence 8 (2026-08-01, ~17,1/20)** :
-[roadmap-excellence-8.md](roadmap-excellence-8.md), Lots AR→AX — AR soldé
-(PR #332), AS soldé (PR #333). **Lot AT soldé (livré par PR #335)** — les
-filets reviennent : `rust.yml` recréé (fmt·clippy·tests + leg Windows,
-path-filtré `crates/**`) ; la release exige un main vert (`verify` lit les
-runs du commit tagué + issue auto « CI rouge sur main ») ; release rejouable
-+ rappel PAT hebdo (expire 2026-08-31, `pat-reminder.yml`) ; chaîne durcie
-(secret au step, actions SHA, attestation) ; `check:shell`
-(shellcheck + actionlint) au gate. Prochain : **Lot AU** (le tempo et la
-séparation se parlent) ; v0.2 = bump `Cargo.toml` + tag.
+[roadmap-excellence-8.md](roadmap-excellence-8.md), Lots AR→AX — AR/AS/AT
+soldés (PRs #332/#333/#335). **Lot AU soldé (livré par PR #337)** — le
+tempo et la séparation se parlent : le click tardif REJOINT le mix séparé
+qui joue (`metronome.join` → `mixer.addStem`, click né muet) sur les trois
+chemins de seating, `use-separate-and-load` lit tempo/mixeur à la
+résolution (`useLatest`) ; les origins loopback passent par MOTIF partout
+(`--port` ne piège plus ; parité Python↔Deno gate-ée, **déployer
+Modal + Edge pour l'effet distant**) ; cold-start narré sur le TempoItem.
+Prochain : **Lot AV** (erreurs en français) ; v0.2 = bump `Cargo.toml` + tag.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
