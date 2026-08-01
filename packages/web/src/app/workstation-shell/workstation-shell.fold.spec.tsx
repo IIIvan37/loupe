@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
+import type { StemSeparator } from '@app/core'
 import { screen, waitFor, within } from '@testing-library/react'
 import { i18n } from '../../i18n/i18n.ts'
 import {
@@ -69,6 +70,45 @@ describe('WorkstationShell analysis fold', () => {
       .getAllByText(new RegExp(i18n._('tempo.bpm', { 0: 120 })))
       .find((element) => element.closest('[hidden]') === null)
     expect(summary).toBeVisible()
+  })
+
+  it('keeps a running separation visible — and clickable — while folded (AS.5)', async () => {
+    // Folding used to swallow the operation whole: bar, %, cancel all inside
+    // the hidden subtree, mute to AT. The folded header now carries a live
+    // « Séparation… n % » segment derived from the same state; clicking it
+    // reopens the zone on the operation.
+    const parked: StemSeparator = {
+      separate: (_audio, onProgress) =>
+        new Promise(() => {
+          onProgress({ phase: 'separating', fraction: 0.4 })
+        })
+    }
+    const { user } = renderShell({ separator: parked })
+    await importTrack(user)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    )
+
+    await user.click(
+      screen.getByRole('button', { name: i18n._('shell.zone.analysis') })
+    )
+    const running = await screen.findByRole('button', {
+      name: `${i18n._('separation.separating')} 40 %`
+    })
+    expect(running).toBeVisible()
+
+    await user.click(running)
+    expect(
+      screen.getByRole('button', {
+        name: i18n._('shell.zone.analysis'),
+        expanded: true
+      })
+    ).toBeInTheDocument()
+    // The real busy face (its 40 % bar) is back in view.
+    const separationBar = screen
+      .getAllByRole('progressbar')
+      .find((bar) => bar.getAttribute('value') === '40')
+    expect(separationBar).toBeVisible()
   })
 
   it('reopens the zone from the stored preference', async () => {

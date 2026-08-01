@@ -10,6 +10,7 @@ import {
   brokenProjectStores,
   chartEditor,
   fakeProjectStores,
+  fakeSeparator,
   importTrack,
   installShellHooks,
   openLoops,
@@ -452,18 +453,88 @@ describe('WorkstationShell projects & persistence', () => {
     await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
+    // Twice on purpose: the header's busy line AND the take-charge overlay
+    // (AS.3) both narrate the rebuild from the same state.
     expect(
-      await screen.findByText(i18n._('header.opening', { name: 'Projet lent' }))
-    ).toBeInTheDocument()
+      await screen.findAllByText(
+        i18n._('header.opening', { name: 'Projet lent' })
+      )
+    ).not.toHaveLength(0)
 
     await act(async () => {
       release?.()
     })
     await waitFor(() => {
       expect(
-        screen.queryByText(i18n._('header.opening', { name: 'Projet lent' }))
-      ).not.toBeInTheDocument()
+        screen.queryAllByText(i18n._('header.opening', { name: 'Projet lent' }))
+      ).toHaveLength(0)
     })
+  })
+
+  it('narrates the stem rebuild (« piste n/total ») while a stems project reopens', async () => {
+    // AS.4: reopening a project with stems used to freeze under a generic
+    // « Ouverture… » line while every stored WAV decoded back-to-back. The
+    // restore now paints between stems and the chip says where it stands.
+    const { user } = renderShell({
+      separator: fakeSeparator(),
+      projectStores: fakeProjectStores()
+    })
+    await importTrack(user)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    )
+    await screen.findByRole('slider', {
+      name: i18n._('mixer.volume', { name: 'Voix' })
+    })
+    await saveProjectAs(user, 'Avec pistes')
+
+    await openProjectsDialog(user)
+    const openButton = await screen.findByRole('button', {
+      name: i18n._('projects.open')
+    })
+
+    // Freeze paints AFTER the dialog is up (Base UI needs frames to open it):
+    // `nextPaint` then parks between stem decodes, so each narration step can
+    // be asserted deterministically, then released.
+    const frames: FrameRequestCallback[] = []
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) =>
+      frames.push(cb)
+    )
+    const pumpFrames = () =>
+      act(async () => {
+        while (frames.length) {
+          frames.shift()?.(0)
+        }
+      })
+
+    try {
+      await user.click(openButton)
+
+      // Twice on purpose: the header's chip AND the take-charge overlay
+      // (AS.3) both narrate the step from the same state.
+      expect(
+        await screen.findAllByText(
+          i18n._('header.opening-stem', { name: 'Avec pistes', stem: 1, total: 2 })
+        )
+      ).not.toHaveLength(0)
+
+      await pumpFrames()
+      expect(
+        await screen.findAllByText(
+          i18n._('header.opening-stem', { name: 'Avec pistes', stem: 2, total: 2 })
+        )
+      ).not.toHaveLength(0)
+
+      // Release the remaining paints: the restore completes and the chip goes.
+      await waitFor(async () => {
+        await pumpFrames()
+        expect(
+          screen.queryAllByText(/Ouverture de « Avec pistes »/)
+        ).toHaveLength(0)
+      })
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('highlights the chip of the saved loop the region came from', async () => {

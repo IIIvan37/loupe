@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import {
   type DecodedAudio,
   encodeWav,
@@ -237,6 +238,49 @@ describe('restoreSession', () => {
       restored.sources,
       savedMixer
     )
+  })
+
+  it('narrates each stored stem before its synchronous decode (AS.4)', async () => {
+    // Six back-to-back `decodeWav` used to freeze the open with no narration:
+    // the restore now reports « piste n/total » ahead of each decode, behind a
+    // paint, so the chip both updates and actually shows.
+    const twoStemProject: Project = {
+      ...baseProject,
+      separation: {
+        stems: [
+          { id: 'voix', label: 'Voix', audioRef: 'a1' },
+          { id: 'basse', label: 'Basse', audioRef: 'a2' }
+        ],
+        mixer: savedMixer
+      }
+    }
+    const deps = fakeDeps({ stems: [], sources: [voix, basse] })
+    const steps: Array<{ stem: number; total: number }> = []
+    const wav = encodeWav(audio.channels, audio.sampleRate)
+      .buffer as ArrayBuffer
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: twoStemProject,
+      sourceBytes: new ArrayBuffer(4),
+      stems: [
+        { id: 'voix', bytes: wav },
+        { id: 'basse', bytes: wav }
+      ]
+    }
+
+    await restoreSession(opened, {
+      ...deps,
+      onRestoreStep: (step) => steps.push(step)
+    })
+
+    expect(steps).toEqual([
+      { stem: 1, total: 2 },
+      { stem: 2, total: 2 }
+    ])
+    // Both stems still reach the separation pipeline, in stored order.
+    expect(
+      deps.separation.restore.mock.calls[0]?.[1].map((stem) => stem.id)
+    ).toEqual(['voix', 'basse'])
   })
 
   it('re-adopts the structure kind on a pre-kinds save (no duplicate labels)', async () => {

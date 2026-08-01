@@ -25,12 +25,12 @@ de hook à effet de montage, seul le seam `mixer: Mixer` reste en prop
 [guide utilisateur](guide-utilisateur.md) + code beta ; pipeline release
 réparé, PAT du tap expire 2026-08-31). **Revue excellence 8 (2026-08-01,
 ~17,1/20)** : [roadmap-excellence-8.md](roadmap-excellence-8.md), Lots
-AR→AX. **Lot AR soldé** (livré par PR #332) : Gatekeeper re-validé
-(`xattr -d` en voie primaire, brew canal principal macOS), canal de retour
-ouvert (docs + « Signaler un problème » au menu compte, version via
-`GET /version`), guide aligné (`127.0.0.1:6173`, `SHA256SUMS`). Prochain :
-**Lot AS** (signal terrain). En parallèle : retours testeurs ; v0.2 = bump
-`Cargo.toml` + tag (sert `/version` au lien de signalement).
+AR→AX. **Lot AR soldé** (PR #332) ; **Lot AS soldé** (livré par PR #333) :
+la progression dit vrai — `progress` indéterminé avant le premier tick réel,
+phase `retrieving` (plus de 100 % figé), ouverture peinte entre décodages
+(« piste n/total »), zone repliée + overlay de prise en charge sur les mêmes
+états (`shell-busy.ts`). Prochain : **Lot AT** (filets : `rust.yml`, release
+sous CI vert — PAT expire 2026-08-31) ; v0.2 = bump `Cargo.toml` + tag.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 

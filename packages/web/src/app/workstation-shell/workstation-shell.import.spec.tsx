@@ -3,6 +3,8 @@ import '@testing-library/jest-dom/vitest'
 import type {
   AudioFileDecoder,
   DecodedAudio,
+  DownloadProgress,
+  ProjectDeps,
   TrackMetadataReader,
   TrackSource
 } from '@app/core'
@@ -17,6 +19,7 @@ import {
   fakeTrackSource,
   importTrack,
   installShellHooks,
+  openProjectsDialog,
   renderShell,
   saveProjectAs
 } from './shell-test-kit.tsx'
@@ -249,6 +252,111 @@ describe('WorkstationShell imports', () => {
   function fileTransfer(files: File[]) {
     return { dataTransfer: { files, types: ['Files'] } }
   }
+
+  it('covers the app with a take-charge overlay while a URL import runs (AS.3)', async () => {
+    // Between the gesture and the ready workshop the only cue used to be a
+    // small header line: the drop-overlay pattern is promoted to a busy
+    // overlay, driven by the SAME states (no new machine).
+    let tick: ((progress: DownloadProgress) => void) | undefined
+    const trackSource: TrackSource = {
+      fetch: (_url, onProgress) =>
+        new Promise(() => {
+          tick = onProgress
+        })
+    }
+    const { user } = renderShell({ trackSource })
+    const popover = await fillImportUrl(user, 'https://youtu.be/abc')
+    await user.click(
+      within(popover).getByRole('button', { name: i18n._('import.url-submit') })
+    )
+
+    const overlay = await screen.findByTestId('take-charge-overlay')
+    expect(
+      within(overlay).getByText(i18n._('header.downloading'))
+    ).toBeInTheDocument()
+    // Indeterminate until the first real tick (AS.1)…
+    expect(
+      within(overlay).getByRole('progressbar', { hidden: true })
+    ).not.toHaveAttribute('value')
+
+    // …then the real fraction rides the overlay's bar too.
+    await act(async () => tick?.({ phase: 'downloading', fraction: 0.31 }))
+    expect(
+      within(overlay).getByRole('progressbar', { hidden: true })
+    ).toHaveAttribute('value', '31')
+  })
+
+  it('covers the app while a picked file decodes, and clears once ready (AS.3)', async () => {
+    const pending: Array<(audio: DecodedAudio) => void> = []
+    const decoder: AudioFileDecoder = {
+      decode: () =>
+        new Promise((resolve) => {
+          pending.push(resolve)
+        })
+    }
+    const { user } = renderShell({ decoder })
+    await user.upload(
+      screen.getByLabelText(i18n._('header.import-file')),
+      audioFile()
+    )
+
+    const overlay = await screen.findByTestId('take-charge-overlay')
+    expect(
+      within(overlay).getByText(i18n._('waveform.decoding'))
+    ).toBeInTheDocument()
+
+    await act(async () => {
+      pending[0]?.(decoded)
+    })
+    expect(
+      screen.queryByTestId('take-charge-overlay')
+    ).not.toBeInTheDocument()
+  })
+
+  it('covers the app while a project reopens (AS.3)', async () => {
+    const working = fakeProjectStores()
+    let release: (() => void) | undefined
+    let gateNext = false
+    const gated: ProjectDeps = {
+      store: working.store,
+      audio: {
+        ...working.audio,
+        get: (ref) => {
+          if (!gateNext) {
+            return working.audio.get(ref)
+          }
+          return new Promise((resolve) => {
+            release = () => resolve(working.audio.get(ref))
+          })
+        }
+      }
+    }
+    const { user } = renderShell({ projectStores: gated })
+    await importTrack(user)
+    await saveProjectAs(user, 'Mon projet')
+
+    gateNext = true
+    await openProjectsDialog(user)
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('projects.open') })
+    )
+
+    const overlay = await screen.findByTestId('take-charge-overlay')
+    expect(
+      within(overlay).getByText(
+        i18n._('header.opening', { name: 'Mon projet' })
+      )
+    ).toBeInTheDocument()
+
+    await act(async () => {
+      release?.()
+    })
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('take-charge-overlay')
+      ).not.toBeInTheDocument()
+    })
+  })
 
   it('shows a drop overlay while a file is dragged over the app', () => {
     renderShell()

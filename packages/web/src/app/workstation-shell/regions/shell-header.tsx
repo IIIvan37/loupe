@@ -7,6 +7,7 @@ import { Header } from '../../header/header.tsx'
 import type { UrlImport } from '../../header/use-import-from-url.ts'
 import { AlertBanner } from '../../ui/alert-banner/alert-banner.tsx'
 import type { ProjectSession } from '../orchestration/use-project-session.ts'
+import { type BusyLine, openingBusy, urlImportBusy } from './shell-busy.ts'
 
 /** Stable empty default — a `[]` default would defeat prop comparison. */
 const NO_GATE_REASONS: readonly (MintFailureReason | undefined)[] = []
@@ -77,30 +78,14 @@ export function ShellHeader({
   useWindowTitle(metadata.title, session.unsavedWork)
 
   // A running URL download narrates itself in the busy line, phase by phase
-  // — the percentage rides the progress bar, not the copy (R.4).
-  let downloadBusy: { label: string; progress?: number } | undefined
-  if (urlImport.progress !== undefined) {
-    downloadBusy =
-      urlImport.progress.phase === 'downloading'
-        ? {
-            label: t({ id: 'header.downloading', message: 'Téléchargement…' }),
-            progress: urlImport.progress.fraction
-          }
-        : {
-            label: t({
-              id: 'header.transcoding',
-              message: "Extraction de l'audio…"
-            })
-          }
-  }
+  // — the percentage rides the progress bar, not the copy (R.4). Shared with
+  // the take-charge overlay (AS.3) so the two faces never drift.
+  const downloadBusy = urlImportBusy(urlImport)
 
   // The long operations get one visible status strip (the dialog may be
-  // closed while an open is still rebuilding the session).
-  const openingProject = projects.projects.find(
-    (p) => p.id === session.openingId
-  )
-  const name = openingProject?.name
-  let pendingBusy: { label: string; progress?: number } | undefined
+  // closed while an open is still rebuilding the session; the open narrates
+  // its stem decode as « piste n/total », AS.4).
+  let pendingBusy: BusyLine | undefined
   if (projects.busy === 'save' || session.preparingSave) {
     pendingBusy = {
       label: t({ id: 'header.saving', message: 'Enregistrement du projet…' })
@@ -109,10 +94,8 @@ export function ShellHeader({
     pendingBusy = {
       label: t({ id: 'header.exporting', message: 'Export des pistes…' })
     }
-  } else if (name !== undefined) {
-    pendingBusy = {
-      label: t({ id: 'header.opening', message: `Ouverture de « ${name} »…` })
-    }
+  } else {
+    pendingBusy = openingBusy(session)
   }
   const busy = downloadBusy ?? pendingBusy
 

@@ -18,6 +18,7 @@ import {
   type TrackMetadata,
   tuningOrDefault
 } from '@app/core'
+import { nextPaint } from '../../../lib/next-paint.ts'
 import type { Loops } from '../../loops/use-loops.ts'
 import { adoptStructureKinds } from '../../markers/section-markers.ts'
 import type { Markers } from '../../markers/use-markers.ts'
@@ -145,6 +146,15 @@ export interface SessionRestoreDeps {
    * fresh user import (which must detect). See the shell's auto-detect effect.
    */
   readonly setSuppressAutoDetect: (suppress: boolean) => void
+  /**
+   * Narrate the restore's stem-decode steps (« Piste n/total ») — called
+   * before each stored stem's synchronous WAV decode, so the opening chip can
+   * say where the rebuild stands instead of freezing silent (AS.4).
+   */
+  readonly onRestoreStep?: (step: {
+    readonly stem: number
+    readonly total: number
+  }) => void
 }
 
 /**
@@ -201,11 +211,21 @@ export async function restoreSession(
   let restored: SeparationResult | undefined
   if (separated) {
     const labelById = new Map(saved.stems.map((stem) => [stem.id, stem.label]))
-    const sources: readonly SeparatedStem[] = opened.stems.map((stem) => ({
-      id: stem.id,
-      label: labelById.get(stem.id) ?? stem.id,
-      audio: decodeWav(stem.bytes)
-    }))
+    // Deliberately sequential: each stored stem's WAV decode is a synchronous
+    // main-thread block, so narrate the step and let it PAINT (R.4) before
+    // decoding — six back-to-back decodes with no frame in between read as a
+    // hang under a silent chip (AS.4).
+    const sources: SeparatedStem[] = []
+    for (const [index, stem] of opened.stems.entries()) {
+      deps.onRestoreStep?.({ stem: index + 1, total: opened.stems.length })
+      // react-doctor-disable-next-line react-doctor/async-await-in-loop
+      await nextPaint()
+      sources.push({
+        id: stem.id,
+        label: labelById.get(stem.id) ?? stem.id,
+        audio: decodeWav(stem.bytes)
+      })
+    }
     restored = await deps.separation.restore(audio, sources)
   }
 

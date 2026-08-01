@@ -20,13 +20,15 @@ describe('separationReducer', () => {
   it('is idle, empty and unprogressed before any separation', () => {
     expect(initialSeparation).toEqual({
       status: 'idle',
-      progress: 0,
+      progress: undefined,
       stems: [],
       error: undefined
     })
   })
 
-  it('starts in the analysing phase, cleared of any prior result', () => {
+  it('starts with progress unknown, cleared of any prior result', () => {
+    // No fraction until the engine reports one: the bar must stay indeterminate
+    // through mint, cold start and upload — `0%` there is a lie.
     const prior: SeparationState = {
       status: 'error',
       progress: 0.4,
@@ -35,7 +37,7 @@ describe('separationReducer', () => {
     }
     expect(separationReducer(prior, { type: 'start' })).toEqual({
       status: 'analysing',
-      progress: 0,
+      progress: undefined,
       stems: [],
       error: undefined
     })
@@ -55,6 +57,17 @@ describe('separationReducer', () => {
       fraction: 0.7
     })
     expect(separating).toMatchObject({ status: 'separating', progress: 0.7 })
+  })
+
+  it('narrates the retrieval after the engine finishes — no more frozen 100 %', () => {
+    // After the last engine tick the stems still have to download and decode
+    // (~250 MB): the adapter reports that as its own phase with a real
+    // stems-landed fraction (AS.2).
+    const retrieving = separationReducer(
+      { status: 'separating', progress: 1, stems: [], error: undefined },
+      { type: 'progress', phase: 'retrieving', fraction: 0.5 }
+    )
+    expect(retrieving).toMatchObject({ status: 'retrieving', progress: 0.5 })
   })
 
   it('confines progress to [0, 1]', () => {

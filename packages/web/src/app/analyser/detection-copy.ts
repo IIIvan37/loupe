@@ -23,6 +23,22 @@ export const ANALYSIS_OFFLOAD_UNREACHABLE = msg({
   message: "Service d'analyse injoignable — réessayer."
 })
 
+/** The separation's running-phase labels — worn by the analyser row's busy
+ * face AND the folded zone's live segment (AS.5): one catalog entry per phase. */
+export const SEPARATION_PROGRESS_LABELS: Readonly<
+  Record<'analysing' | 'separating' | 'retrieving', MessageDescriptor>
+> = {
+  analysing: msg({ id: 'separation.analysing', message: 'Analyse du mix…' }),
+  separating: msg({
+    id: 'separation.separating',
+    message: 'Séparation des pistes…'
+  }),
+  retrieving: msg({
+    id: 'separation.retrieving',
+    message: 'Récupération des pistes…'
+  })
+}
+
 /** `network` reuses the unreachable copy; `engine-unavailable` = the service
  * cannot answer right now (503, weights not loaded). */
 export const STRUCTURE_ERROR_COPY: Readonly<

@@ -39,6 +39,32 @@ describe('useImportFromUrl', () => {
     expect(result.current.progress).toBeUndefined()
   })
 
+  it('reports no fraction before the first real tick — the bar stays indeterminate', async () => {
+    // The first-use yt-dlp bootstrap can run minutes before any byte moves:
+    // a `0%` posed at submit would dress that wait as measured progress (AS.1).
+    let tick: ((fraction: number) => void) | undefined
+    const source: TrackSource = {
+      fetch: (_url, onProgress) =>
+        new Promise(() => {
+          tick = (fraction) => onProgress({ phase: 'downloading', fraction })
+        })
+    }
+    const { result } = renderHook(() => useImportFromUrl(vi.fn(), source))
+
+    act(() => result.current.submit(YT))
+    expect(result.current.progress).toEqual({
+      phase: 'downloading',
+      fraction: undefined
+    })
+
+    await waitFor(() => expect(tick).toBeDefined())
+    act(() => tick?.(0.4))
+    expect(result.current.progress).toEqual({
+      phase: 'downloading',
+      fraction: 0.4
+    })
+  })
+
   it('cancels an in-flight download: aborts the fetch and clears the progress', async () => {
     let seen: AbortSignal | undefined
     const source: TrackSource = {

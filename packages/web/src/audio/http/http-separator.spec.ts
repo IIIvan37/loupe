@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import type { DecodedAudio, SeparationProgress } from '@app/core'
 import { encodeWav } from '@app/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -72,8 +73,38 @@ describe('createHttpSeparator', () => {
 
     expect(progress).toEqual([
       { phase: 'analysing', fraction: 0 },
-      { phase: 'separating', fraction: 0.5 }
+      { phase: 'separating', fraction: 0.5 },
+      { phase: 'retrieving', fraction: 0 },
+      { phase: 'retrieving', fraction: 1 }
     ])
+  })
+
+  it('narrates the stem retrieval: one tick per stem landed (AS.2)', async () => {
+    // After the engine's `done`, ~250 MB of stems still download + decode under
+    // what used to be a bar frozen at « Séparation… 100 % »: the adapter now
+    // reports its own client-side phase, one fraction step per stem landed.
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        ndjsonResponse([
+          '{"type":"done","stems":[{"id":"voix","label":"Voix","url":"/stems/1/voix.wav"},{"id":"basse","label":"Basse","url":"/stems/1/basse.wav"}]}'
+        ])
+      )
+      .mockImplementation(async () => wavResponse())
+    vi.stubGlobal('fetch', fetchMock)
+
+    const progress: SeparationProgress[] = []
+    await createHttpSeparator('http://localhost:8000').separate(MIX, (p) => {
+      progress.push(p)
+    })
+
+    expect(progress[0]).toEqual({ phase: 'retrieving', fraction: 0 })
+    const fractions = progress.map((p) => p.fraction)
+    expect(fractions).toHaveLength(3)
+    expect(fractions).toContain(0.5)
+    expect(fractions.at(-1)).toBe(1)
+    // The fractions only ever grow — a stems-landed counter, not a re-order.
+    expect([...fractions].sort((a, b) => a - b)).toEqual(fractions)
   })
 
   it('fetches each stem URL and decodes it into a SeparatedStem', async () => {

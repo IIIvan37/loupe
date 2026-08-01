@@ -8,6 +8,12 @@ interface ShellSectionFold {
   readonly onToggle: () => void
   /** What the zone acquired — shown in the header while folded. */
   readonly summary?: string | undefined
+  /**
+   * A live operation the fold must not swallow (AS.5): shown in the folded
+   * header as a button — visible, spoken by AT, and one click from the real
+   * bar/cancel it stands in for (it reopens the zone).
+   */
+  readonly operation?: string | undefined
 }
 
 interface ShellSectionProps {
@@ -49,6 +55,15 @@ export function ShellSection({ label, fold, children }: ShellSectionProps) {
                 <Icon name="chevron" className={styles.chevron} />
               </button>
             </h2>
+            {!fold.open && fold.operation !== undefined && (
+              <button
+                type="button"
+                className={styles.operation}
+                onClick={fold.onToggle}
+              >
+                {fold.operation}
+              </button>
+            )}
             {!fold.open && fold.summary !== undefined && (
               <span className={styles.summary}>{fold.summary}</span>
             )}

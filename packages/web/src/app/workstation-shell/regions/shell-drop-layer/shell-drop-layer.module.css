@@ -22,6 +22,23 @@
   font-weight: 600;
 }
 
+/* The take-charge overlay (AS.3): the drop cue's frame, worn by a loading
+   state — same scrim, same centring, still click-through (pointer-events
+   none rides .dropOverlay) so the header's cancel stays reachable. */
+.busyOverlay {
+  composes: dropOverlay;
+}
+
+/* A quiet card, not the drop cue's dashed invitation: the shell has taken
+   charge, the bar does the talking. Wide enough for the bar to read. */
+.busyOverlayInner {
+  min-inline-size: min(20rem, 80vw);
+  padding: var(--space-l);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+}
+
 /* The single import control lives in the header; this input is its hidden target. */
 .fileInput {
   composes: srOnly from '@/app/ui/controls.module.css';
