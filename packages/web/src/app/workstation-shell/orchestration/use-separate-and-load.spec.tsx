@@ -63,16 +63,17 @@ function fakeMixer(state: MixerState = []): Mixer {
  */
 function mountSeparateAndLoad({
   analysis,
-  mixer = fakeMixer()
+  mixer = fakeMixer(),
+  separator = { separate: async () => SEPARATED }
 }: {
   analysis?: TempoAnalysis
   mixer?: Mixer
+  separator?: StemSeparator
 } = {}) {
   const store = createStore()
   if (analysis) {
     store.set(tempoAnalysisAtom, analysis)
   }
-  const separator: StemSeparator = { separate: async () => SEPARATED }
   const wrapper = ({ children }: { readonly children: ReactNode }) => (
     <I18nTestingProvider>
       <Provider store={store}>
@@ -147,6 +148,36 @@ describe('useSeparateAndLoad — the deps are derived, not passed (ADR 0010)', (
     const [, , channels] = (mixer.restore as ReturnType<typeof vi.fn>).mock
       .calls[0] as [unknown, unknown, MixerState]
     expect(channels).toContainEqual(seated)
+  })
+
+  it('a tempo landing DURING the separation still seats the click (AU.1)', async () => {
+    let resolveStems: (stems: SeparatedStem[]) => void = () => {}
+    const separator: StemSeparator = {
+      separate: () =>
+        new Promise((resolve) => {
+          resolveStems = resolve
+        })
+    }
+    const { hook, mixer, store } = mountSeparateAndLoad({ separator })
+
+    let pending: Promise<readonly SeparatedStem[] | undefined> | undefined
+    act(() => {
+      pending = hook.result.current(AUDIO)
+    })
+    // The analysis lands while the stems are still separating (~70 s) — the
+    // handler's render-time snapshot predates it.
+    act(() => {
+      store.set(tempoAnalysisAtom, ANALYSIS)
+    })
+    await act(async () => {
+      resolveStems(SEPARATED)
+      await pending
+    })
+
+    // Stems and click seat together — not the tempo-less plain load.
+    expect(mixer.restore).toHaveBeenCalledOnce()
+    expect(mixer.load).not.toHaveBeenCalled()
+    expect(store.get(metronomeEnabledAtom)).toBe(true)
   })
 
   it('resolves undefined and touches nothing when no audio is loaded', async () => {

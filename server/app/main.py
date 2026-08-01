@@ -49,7 +49,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .api_docs import error_responses
 from .netguard import LoopbackOnlyMiddleware, OriginGuardMiddleware
-from .origins import allowed_origins, env_list
+from .origins import LOCAL_ORIGIN_PATTERN, allowed_origins, env_list
 from .warm import Loader, start_model_warmup
 
 _DEFAULT_HOSTS = "localhost,127.0.0.1"
@@ -76,6 +76,9 @@ _allowed_origins = allowed_origins()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_allowed_origins,
+    # A loopback page on ANY port can read us (`loupe --port`, AU.2) — the
+    # OriginGuard below applies the same pattern, so the two layers agree.
+    allow_origin_regex=LOCAL_ORIGIN_PATTERN,
     allow_methods=["*"],
     allow_headers=["*"],
 )

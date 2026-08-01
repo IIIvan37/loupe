@@ -370,6 +370,40 @@ describe('AnalyserRow tempo', () => {
     ).toBeInTheDocument()
   })
 
+  it('explains a suspicious offloaded tempo wait after a beat (cold start, AU.3)', () => {
+    // The tempo is the journey's FIRST analysis — no warmup ran before it, so
+    // the indeterminate bar could sit silent for ~50 s without this line.
+    vi.useFakeTimers()
+    try {
+      renderRow({ tempo: { detecting: true, offloaded: true } })
+      expect(
+        screen.queryByText(i18n._('analysis.cold-start'))
+      ).not.toBeInTheDocument()
+      act(() => vi.advanceTimersByTime(4000))
+      expect(
+        screen.getByText(i18n._('analysis.cold-start'))
+      ).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('narrates the cold start on the retry face too (AU.3)', () => {
+    // Same wait, other busy face: a relaunch after a failure.
+    vi.useFakeTimers()
+    try {
+      renderRow({
+        tempo: { detecting: true, error: 'network', offloaded: true }
+      })
+      act(() => vi.advanceTimersByTime(4000))
+      expect(
+        screen.getByText(i18n._('analysis.cold-start'))
+      ).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('wears a done face once the tempo is seated', () => {
     renderRow({ tempo: { bpm: 120 } })
     expect(

@@ -185,17 +185,42 @@ describe('mixerReducer', () => {
     ).toEqual(start)
   })
 
-  it('appends a new unity channel with addChannel', () => {
+  it('appends the given channel with addChannel — a click joins muted', () => {
     const start = mixerReducer(emptyMixer, { type: 'init', ids: ['a'] })
-    expect(mixerReducer(start, { type: 'addChannel', id: 'metro' })).toEqual([
+    expect(
+      mixerReducer(start, {
+        type: 'addChannel',
+        channel: {
+          id: 'metro',
+          gainDb: UNITY_GAIN_DB,
+          muted: true,
+          soloed: false
+        }
+      })
+    ).toEqual([
       { id: 'a', gainDb: UNITY_GAIN_DB, muted: false, soloed: false },
-      { id: 'metro', gainDb: UNITY_GAIN_DB, muted: false, soloed: false }
+      { id: 'metro', gainDb: UNITY_GAIN_DB, muted: true, soloed: false }
+    ])
+  })
+
+  it('clamps an out-of-range gain on the joining channel', () => {
+    const joined = mixerReducer(emptyMixer, {
+      type: 'addChannel',
+      channel: { id: 'metro', gainDb: 99, muted: false, soloed: false }
+    })
+    expect(joined).toEqual([
+      { id: 'metro', gainDb: MAX_GAIN_DB, muted: false, soloed: false }
     ])
   })
 
   it('leaves the state unchanged when addChannel targets an existing id', () => {
     const start = mixerReducer(emptyMixer, { type: 'init', ids: ['a'] })
-    expect(mixerReducer(start, { type: 'addChannel', id: 'a' })).toEqual(start)
+    expect(
+      mixerReducer(start, {
+        type: 'addChannel',
+        channel: { id: 'a', gainDb: UNITY_GAIN_DB, muted: true, soloed: false }
+      })
+    ).toEqual(start)
   })
 
   it('drops the named channel with removeChannel', () => {

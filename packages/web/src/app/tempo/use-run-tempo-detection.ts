@@ -30,12 +30,17 @@ export function useRunTempoDetection({
   const separationOwnsMixRef = useLatest(separationOwnsMix)
   // `enable` is the UN-SEPARATED seating only (it restores the mixer to
   // track + click, exactly like the restore path's seatMetronome) — once a
-  // separation owns the mixer the analysis still lands (BPM, grid, tempo map)
-  // but the mix stays intact.
+  // separation owns the mixer the click JOINS the running stems instead
+  // (AU.1): the analysis lands and the mix plays on, one channel richer.
   return (audio) => {
     void tempo.detect(audio).then((analysis) => {
-      if (analysis && !separationOwnsMixRef.current) {
-        // A freshly detected click joins the un-separated track muted by default.
+      if (!analysis) {
+        return
+      }
+      // A freshly detected click seats muted by default, whichever the shape.
+      if (separationOwnsMixRef.current) {
+        metronome.join(analysis.grid, audio, DEFAULT_METRONOME_CHANNEL)
+      } else {
         metronome.enable(analysis.grid, audio, DEFAULT_METRONOME_CHANNEL)
       }
     })

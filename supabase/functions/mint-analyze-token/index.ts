@@ -52,8 +52,18 @@ const ALLOWED_ORIGINS = parseAllowedOrigins(
   Deno.env.get('LOUPE_ALLOWED_ORIGINS') ?? DEFAULT_ALLOWED_ORIGINS,
 )
 
+// A loopback page on ANY port is the user's own machine (`loupe --port`,
+// AU.2): it passes by PATTERN, so a non-default port needs no env change.
+// Mirrors LOCAL_ORIGIN_PATTERN in server/app/origins.py — parity locked by
+// docs/origins-parity.spec.ts.
+const LOCAL_ORIGIN_PATTERN = /^http:\/\/(localhost|127\.0\.0\.1):\d{1,5}$/
+
+export function isAllowedOrigin(origin: string): boolean {
+  return ALLOWED_ORIGINS.has(origin) || LOCAL_ORIGIN_PATTERN.test(origin)
+}
+
 function corsHeaders(origin: string | null): Record<string, string> {
-  const allow = origin && ALLOWED_ORIGINS.has(origin) ? origin : ''
+  const allow = origin && isAllowedOrigin(origin) ? origin : ''
   return {
     'Access-Control-Allow-Origin': allow,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',

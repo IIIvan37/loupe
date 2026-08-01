@@ -54,6 +54,32 @@ const deno = () =>
     /DEFAULT_ALLOWED_ORIGINS =\s*'([^']+)'/
   )
 
+// The loopback-any-port acceptance (AU.2) has the same drift risk as the
+// list: Python and Deno carry the pattern as a literal (extracted below);
+// the Rust twin is hand-rolled string parsing, locked by its own unit tests
+// (`netguard::tests::accepts_a_loopback_origin_on_any_port`).
+const pythonLocalPattern = () => {
+  const source = readFileSync(join(ROOT, 'server/app/origins.py'), 'utf8')
+  const match = source.match(/LOCAL_ORIGIN_PATTERN = r"([^"]+)"/)
+  if (!match?.[1]) {
+    throw new Error('LOCAL_ORIGIN_PATTERN not found in server/app/origins.py')
+  }
+  return match[1]
+}
+
+const denoLocalPattern = () => {
+  const source = readFileSync(
+    join(ROOT, 'supabase/functions/mint-analyze-token/index.ts'),
+    'utf8'
+  )
+  const match = source.match(/LOCAL_ORIGIN_PATTERN = \/(.+)\//)
+  if (!match?.[1]) {
+    throw new Error('LOCAL_ORIGIN_PATTERN not found in the Edge Function')
+  }
+  // A JS regex literal escapes its slashes; the Python raw string does not.
+  return match[1].replaceAll('\\/', '/')
+}
+
 describe('default allowed-origins parity (Python ↔ Rust ↔ Deno)', () => {
   it('keeps the Rust binary default identical to the Python default', () => {
     expect(rust()).toEqual(python())
@@ -66,5 +92,9 @@ describe('default allowed-origins parity (Python ↔ Rust ↔ Deno)', () => {
   it('covers both client ports (5173 Vite dev, 6173 loupe binary)', () => {
     expect(python()).toContain('http://localhost:5173')
     expect(python()).toContain('http://localhost:6173')
+  })
+
+  it('keeps the loopback-origin pattern identical (Python ↔ Deno)', () => {
+    expect(denoLocalPattern()).toEqual(pythonLocalPattern())
   })
 })

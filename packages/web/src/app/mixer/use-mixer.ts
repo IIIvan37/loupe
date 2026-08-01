@@ -2,12 +2,14 @@ import {
   type ChannelGain,
   effectiveGains,
   type MixerAction,
+  type MixerChannel,
   type MixerState,
   mixerReducer,
   type SeparatedStem,
   type StemFilter,
   type StemSet,
-  type StemTrack
+  type StemTrack,
+  UNITY_GAIN_DB
 } from '@app/core'
 import { useAtom } from 'jotai'
 import { useMemo } from 'react'
@@ -51,10 +53,16 @@ export interface Mixer {
     saved: MixerState
   ) => void
   /**
-   * Add one stem to the running mix (e.g. the metronome): a new unity channel
-   * plus its PCM in the gain graph, leaving the other channels untouched.
+   * Add one stem to the running mix (e.g. the metronome): a new channel plus
+   * its PCM in the gain graph, leaving the other channels untouched. The
+   * channel defaults to unity; pass explicit settings for a voice that joins
+   * differently (the click is born muted).
    */
-  readonly addStem: (stem: StemTrack, source: SeparatedStem) => void
+  readonly addStem: (
+    stem: StemTrack,
+    source: SeparatedStem,
+    channel?: MixerChannel
+  ) => void
   /** Drop one stem from the mix by id, leaving the rest playing. */
   readonly removeStem: (id: string) => void
   /**
@@ -177,12 +185,26 @@ export function useMixer(injected?: StemMixGraph): Mixer {
     }
   }
 
-  function addStem(stem: StemTrack, source: SeparatedStem): void {
+  function addStem(
+    stem: StemTrack,
+    source: SeparatedStem,
+    channel?: MixerChannel
+  ): void {
     setMixable((prev) =>
       prev.some((entry) => entry.id === stem.id) ? prev : [...prev, stem]
     )
     void engine.addStem({ id: source.id, audio: source.audio })
-    dispatch({ type: 'addChannel', id: stem.id })
+    // Through `apply`, not a bare dispatch: the engine defaults a fresh stem to
+    // unity, so a channel joining muted must have its silence pushed too.
+    apply({
+      type: 'addChannel',
+      channel: channel ?? {
+        id: stem.id,
+        gainDb: UNITY_GAIN_DB,
+        muted: false,
+        soloed: false
+      }
+    })
   }
 
   function removeStem(id: string): void {

@@ -18,10 +18,10 @@ import { useMetronome } from './use-metronome.ts'
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 const grid: BeatGrid = [{ timeSeconds: 0, downbeat: true }]
 
-function fakeMixer(): Mixer {
+function fakeMixer(state: MixerState = []): Mixer {
   return {
     channels: [],
-    state: [],
+    state,
     load: vi.fn(),
     restore: vi.fn(),
     addStem: vi.fn(),
@@ -79,6 +79,43 @@ describe('useMetronome', () => {
       .calls[0] as [readonly StemTrack[], unknown, MixerState]
     expect(stems.map((s) => s.id)).toEqual(['voix', METRONOME_ID])
     expect(channels).toEqual([...baseMixer, saved])
+  })
+
+  it('join adds the click to the running mix without touching it (AU.1)', () => {
+    const mixer = fakeMixer()
+    const { result } = renderHook(() => useMetronome({ mixer }), {
+      wrapper: Provider
+    })
+
+    act(() => {
+      result.current.join(grid, audio, DEFAULT_METRONOME_CHANNEL)
+    })
+
+    expect(mixer.addStem).toHaveBeenCalledOnce()
+    const [stem, , channel] = (mixer.addStem as ReturnType<typeof vi.fn>).mock
+      .calls[0] as [StemTrack, SeparatedStem, MixerState[number]]
+    expect(stem.id).toBe(METRONOME_ID)
+    expect(channel).toEqual(DEFAULT_METRONOME_CHANNEL)
+    // The playing stems stay untouched — a restore would cut the playback.
+    expect(mixer.restore).not.toHaveBeenCalled()
+    expect(mixer.load).not.toHaveBeenCalled()
+    expect(result.current.enabled).toBe(true)
+  })
+
+  it('join swaps the click already mixed, keeping its channel settings', () => {
+    const mixer = fakeMixer([
+      { id: METRONOME_ID, gainDb: -3, muted: false, soloed: false }
+    ])
+    const { result } = renderHook(() => useMetronome({ mixer }), {
+      wrapper: Provider
+    })
+
+    act(() => {
+      result.current.join(grid, audio, DEFAULT_METRONOME_CHANNEL)
+    })
+
+    expect(mixer.replaceStem).toHaveBeenCalledOnce()
+    expect(mixer.addStem).not.toHaveBeenCalled()
   })
 
   it('reseat swaps the click stem for the folded grid, keeping its channel', () => {

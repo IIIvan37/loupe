@@ -138,6 +138,29 @@ describe('useMixer', () => {
     expect(engine.addStem).toHaveBeenCalledWith({ id: 'metronome', audio })
   })
 
+  it('adds a stem with explicit settings — a muted click is born silent', () => {
+    const engine = fakeEngine()
+    const { result } = mountLoaded(engine)
+
+    const metro = { id: 'metronome', label: 'Métronome', audio }
+    act(() => {
+      result.current.addStem(stem('metronome', 'Métronome'), metro, {
+        id: 'metronome',
+        gainDb: 0,
+        muted: true,
+        soloed: false
+      })
+    })
+
+    const channel = result.current.channels.find(
+      (c) => c.stem.id === 'metronome'
+    )
+    expect(channel?.muted).toBe(true)
+    expect(channel?.level).toBe(0)
+    // The engine defaults a fresh stem to unity — the mute must be pushed.
+    expect(engine.setGain).toHaveBeenCalledWith('metronome', 0)
+  })
+
   it('removes a stem channel and drops it from the engine', () => {
     const engine = fakeEngine()
     const { result } = mountLoaded(engine)
