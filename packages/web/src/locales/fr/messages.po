@@ -644,7 +644,7 @@ msgid "empty.sub"
 msgstr "WAV, MP3, FLAC, M4A…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/regions/shell-header.tsx
+#: src/app/workstation-shell/regions/shell-busy.ts
 msgid "header.downloading"
 msgstr "Téléchargement…"
 
@@ -706,12 +706,12 @@ msgid "header.no-track"
 msgstr "Aucun morceau"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/regions/shell-header.tsx
+#: src/app/workstation-shell/regions/shell-busy.ts
 msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/regions/shell-header.tsx
+#: src/app/workstation-shell/regions/shell-busy.ts
 msgid "header.opening-stem"
 msgstr "Ouverture de « {name} »… — piste {stem}/{total}"
 
@@ -764,7 +764,7 @@ msgid "header.show-shortcuts"
 msgstr "Afficher les raccourcis clavier"
 
 #. js-lingui-explicit-id
-#: src/app/workstation-shell/regions/shell-header.tsx
+#: src/app/workstation-shell/regions/shell-busy.ts
 msgid "header.transcoding"
 msgstr "Extraction de l'audio…"
 
@@ -1710,6 +1710,7 @@ msgstr "Accélérer la lecture"
 
 #. js-lingui-explicit-id
 #: src/app/waveform/waveform-view/waveform-view.tsx
+#: src/app/workstation-shell/regions/shell-busy.ts
 msgid "waveform.decoding"
 msgstr "Décodage…"
 

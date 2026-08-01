@@ -453,17 +453,21 @@ describe('WorkstationShell projects & persistence', () => {
     await openProjectsDialog(user)
     await user.click(await screen.findByRole('button', { name: i18n._('projects.open') }))
 
+    // Twice on purpose: the header's busy line AND the take-charge overlay
+    // (AS.3) both narrate the rebuild from the same state.
     expect(
-      await screen.findByText(i18n._('header.opening', { name: 'Projet lent' }))
-    ).toBeInTheDocument()
+      await screen.findAllByText(
+        i18n._('header.opening', { name: 'Projet lent' })
+      )
+    ).not.toHaveLength(0)
 
     await act(async () => {
       release?.()
     })
     await waitFor(() => {
       expect(
-        screen.queryByText(i18n._('header.opening', { name: 'Projet lent' }))
-      ).not.toBeInTheDocument()
+        screen.queryAllByText(i18n._('header.opening', { name: 'Projet lent' }))
+      ).toHaveLength(0)
     })
   })
 
@@ -506,25 +510,27 @@ describe('WorkstationShell projects & persistence', () => {
     try {
       await user.click(openButton)
 
+      // Twice on purpose: the header's chip AND the take-charge overlay
+      // (AS.3) both narrate the step from the same state.
       expect(
-        await screen.findByText(
+        await screen.findAllByText(
           i18n._('header.opening-stem', { name: 'Avec pistes', stem: 1, total: 2 })
         )
-      ).toBeInTheDocument()
+      ).not.toHaveLength(0)
 
       await pumpFrames()
       expect(
-        await screen.findByText(
+        await screen.findAllByText(
           i18n._('header.opening-stem', { name: 'Avec pistes', stem: 2, total: 2 })
         )
-      ).toBeInTheDocument()
+      ).not.toHaveLength(0)
 
       // Release the remaining paints: the restore completes and the chip goes.
       await waitFor(async () => {
         await pumpFrames()
         expect(
-          screen.queryByText(/Ouverture de « Avec pistes »/)
-        ).not.toBeInTheDocument()
+          screen.queryAllByText(/Ouverture de « Avec pistes »/)
+        ).toHaveLength(0)
       })
     } finally {
       vi.unstubAllGlobals()

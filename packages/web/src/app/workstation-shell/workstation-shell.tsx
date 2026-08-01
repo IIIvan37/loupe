@@ -25,6 +25,7 @@ import { ToastRegion } from '../ui/toast-region/toast-region.tsx'
 import { useToaster } from '../ui/use-toaster.ts'
 import { EmptyState } from './regions/empty-state/empty-state.tsx'
 import { ShellDialogs } from './regions/shell-dialogs.tsx'
+import { takeChargeBusy } from './regions/shell-busy.ts'
 import { ShellDropLayer } from './regions/shell-drop-layer/shell-drop-layer.tsx'
 import { ShellHeader } from './regions/shell-header.tsx'
 import { ShellMain } from './regions/shell-main/shell-main.tsx'
@@ -310,6 +311,7 @@ export function WorkstationShell({
         onFilePicked={session.onFilePicked}
         importLabel={importLabel}
         isDraggingFile={drop.isDraggingFile}
+        busy={takeChargeBusy(session, urlImport, importState.status)}
         pendingName={drop.pendingName}
         onConfirm={drop.confirm}
         onCancel={drop.cancel}
