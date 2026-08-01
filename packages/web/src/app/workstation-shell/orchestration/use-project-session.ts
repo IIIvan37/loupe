@@ -31,7 +31,7 @@ function trackTitle(fileName: string): string {
 }
 
 export interface ProjectSessionDeps
-  extends Omit<SessionRestoreDeps, 'restoreChordChart'> {
+  extends Omit<SessionRestoreDeps, 'restoreChordChart' | 'onRestoreStep'> {
   readonly stores?: ProjectDeps | undefined
   /** The imported file's original bytes — what a save persists as the source. */
   readonly loadedBytes: ArrayBuffer | undefined
@@ -62,6 +62,9 @@ export interface ProjectSession {
   readonly trackName: string | null
   /** The project an open is rebuilding right now, driving the busy row. */
   readonly openingId: string | undefined
+  /** Where the open's stem rebuild stands (« Piste n/total »), while the
+   * stored WAVs decode — undefined outside that stretch (AS.4). */
+  readonly openingStem: { stem: number; total: number } | undefined
   /** The saved project the session maps to — what a re-save overwrites. */
   readonly currentProject: Project | undefined
   /** Whether the session holds changes its saved project does not. */
@@ -108,6 +111,10 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
   const chordChart = useChordChart()
   const [trackName, setTrackName] = useState<string | null>(null)
   const [openingId, setOpeningId] = useState<string | undefined>(undefined)
+  // The restore's stem-decode narration (« Piste n/total »), for the chip.
+  const [openingStem, setOpeningStem] = useState<
+    { stem: number; total: number } | undefined
+  >(undefined)
   // Encoding the stems for a save freezes the thread — the header narrates it.
   const [preparingSave, setPreparingSave] = useState(false)
   // The fingerprint of what the current project last saved/loaded — comparing
@@ -274,7 +281,8 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       // persisted chart without firing the user-edit marker sync.
       await restoreSession(result, {
         ...deps,
-        restoreChordChart: chordChart.restore
+        restoreChordChart: chordChart.restore,
+        onRestoreStep: setOpeningStem
       })
       // Re-check the epoch: a fresh import that landed DURING the restore
       // superseded it (restoreSession bailed) — signing the old project or
@@ -287,6 +295,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       deps.onRestored?.(result.project)
     } finally {
       setOpeningId(undefined)
+      setOpeningStem(undefined)
     }
   }
 
@@ -351,6 +360,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     projects,
     trackName,
     openingId,
+    openingStem,
     currentProject,
     dirty,
     // With a saved project, drift is what a discard would lose; without one,

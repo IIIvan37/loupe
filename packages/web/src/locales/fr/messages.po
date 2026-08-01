@@ -711,6 +711,11 @@ msgid "header.opening"
 msgstr "Ouverture de « {name} »…"
 
 #. js-lingui-explicit-id
+#: src/app/workstation-shell/regions/shell-header.tsx
+msgid "header.opening-stem"
+msgstr "Ouverture de « {name} »… — piste {stem}/{total}"
+
+#. js-lingui-explicit-id
 #: src/app/header/header.tsx
 #: src/app/workstation-shell/shell-test-kit.tsx
 msgid "header.projects"

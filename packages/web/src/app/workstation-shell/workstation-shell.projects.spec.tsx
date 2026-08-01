@@ -10,6 +10,7 @@ import {
   brokenProjectStores,
   chartEditor,
   fakeProjectStores,
+  fakeSeparator,
   importTrack,
   installShellHooks,
   openLoops,
@@ -464,6 +465,70 @@ describe('WorkstationShell projects & persistence', () => {
         screen.queryByText(i18n._('header.opening', { name: 'Projet lent' }))
       ).not.toBeInTheDocument()
     })
+  })
+
+  it('narrates the stem rebuild (« piste n/total ») while a stems project reopens', async () => {
+    // AS.4: reopening a project with stems used to freeze under a generic
+    // « Ouverture… » line while every stored WAV decoded back-to-back. The
+    // restore now paints between stems and the chip says where it stands.
+    const { user } = renderShell({
+      separator: fakeSeparator(),
+      projectStores: fakeProjectStores()
+    })
+    await importTrack(user)
+    await user.click(
+      screen.getByRole('button', { name: i18n._('separation.separate') })
+    )
+    await screen.findByRole('slider', {
+      name: i18n._('mixer.volume', { name: 'Voix' })
+    })
+    await saveProjectAs(user, 'Avec pistes')
+
+    await openProjectsDialog(user)
+    const openButton = await screen.findByRole('button', {
+      name: i18n._('projects.open')
+    })
+
+    // Freeze paints AFTER the dialog is up (Base UI needs frames to open it):
+    // `nextPaint` then parks between stem decodes, so each narration step can
+    // be asserted deterministically, then released.
+    const frames: FrameRequestCallback[] = []
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) =>
+      frames.push(cb)
+    )
+    const pumpFrames = () =>
+      act(async () => {
+        while (frames.length) {
+          frames.shift()?.(0)
+        }
+      })
+
+    try {
+      await user.click(openButton)
+
+      expect(
+        await screen.findByText(
+          i18n._('header.opening-stem', { name: 'Avec pistes', stem: 1, total: 2 })
+        )
+      ).toBeInTheDocument()
+
+      await pumpFrames()
+      expect(
+        await screen.findByText(
+          i18n._('header.opening-stem', { name: 'Avec pistes', stem: 2, total: 2 })
+        )
+      ).toBeInTheDocument()
+
+      // Release the remaining paints: the restore completes and the chip goes.
+      await waitFor(async () => {
+        await pumpFrames()
+        expect(
+          screen.queryByText(/Ouverture de « Avec pistes »/)
+        ).not.toBeInTheDocument()
+      })
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('highlights the chip of the saved loop the region came from', async () => {

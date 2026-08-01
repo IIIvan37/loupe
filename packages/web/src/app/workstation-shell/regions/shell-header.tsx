@@ -110,8 +110,20 @@ export function ShellHeader({
       label: t({ id: 'header.exporting', message: 'Export des pistes…' })
     }
   } else if (name !== undefined) {
-    pendingBusy = {
-      label: t({ id: 'header.opening', message: `Ouverture de « ${name} »…` })
+    // While the stored stems decode, the chip says where the rebuild stands
+    // (« piste n/total ») instead of a silent generic line (AS.4).
+    if (session.openingStem) {
+      const { stem, total } = session.openingStem
+      pendingBusy = {
+        label: t({
+          id: 'header.opening-stem',
+          message: `Ouverture de « ${name} »… — piste ${stem}/${total}`
+        })
+      }
+    } else {
+      pendingBusy = {
+        label: t({ id: 'header.opening', message: `Ouverture de « ${name} »…` })
+      }
     }
   }
   const busy = downloadBusy ?? pendingBusy
