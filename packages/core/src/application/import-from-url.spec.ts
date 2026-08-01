@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { importFromUrl } from './import-from-url.ts'
+import { ImportUrlError, importFromUrl } from './import-from-url.ts'
 import type { DownloadProgress, FetchedTrack, TrackSource } from './ports.ts'
 
 const YOUTUBE_URL = 'https://www.youtube.com/watch?v=abc123'
@@ -65,26 +65,48 @@ describe('importFromUrl — when the URL is a supported source', () => {
 })
 
 describe('importFromUrl — when the URL is not a supported source', () => {
-  it('rejects it as an error without ever calling the source', async () => {
+  it('rejects it with the unsupported code without ever calling the source', async () => {
     const source = fakeSource()
     const result = await importFromUrl(
       { url: 'https://open.spotify.com/track/xyz' },
       { source }
     )
     if (result.ok) throw new Error('expected error')
-    expect(result.error).toContain('unsupported')
+    expect(result.code).toBe('unsupported')
+    expect(result.detail).toContain('unsupported source URL')
     expect(source.calls).toEqual([])
   })
 })
 
 describe('importFromUrl — when the source fails', () => {
-  it('maps the thrown error into a Result', async () => {
+  it('keeps the typed code the port raised — the copy switches on it', async () => {
+    const source: TrackSource = {
+      async fetch() {
+        throw new ImportUrlError(
+          'store-quota',
+          'audio store quota exceeded — raise LOUPE_MAX_AUDIO_STORE_MB'
+        )
+      }
+    }
+    const result = await importFromUrl({ url: YOUTUBE_URL }, { source })
+    expect(result).toEqual({
+      ok: false,
+      code: 'store-quota',
+      detail: 'audio store quota exceeded — raise LOUPE_MAX_AUDIO_STORE_MB'
+    })
+  })
+
+  it('folds an untyped throw into the unknown code, detail preserved', async () => {
     const source: TrackSource = {
       async fetch() {
         throw new Error('network down')
       }
     }
     const result = await importFromUrl({ url: YOUTUBE_URL }, { source })
-    expect(result).toEqual({ ok: false, error: 'network down' })
+    expect(result).toEqual({
+      ok: false,
+      code: 'unknown',
+      detail: 'network down'
+    })
   })
 })

@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
-import type { Project, ProjectDeps, SaveProjectInput } from '@app/core'
+import {
+  type Project,
+  type ProjectDeps,
+  ProjectError,
+  type SaveProjectInput
+} from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { vi } from 'vitest'
 import { i18n } from '../i18n/i18n.ts'
 import { I18nTestingProvider } from '../i18n/i18n-testing-provider.tsx'
 import { useProjects } from './use-projects.ts'
@@ -222,15 +228,26 @@ describe('useProjects', () => {
     expect(result.current.error).toBeUndefined()
   })
 
-  it('words a rename failure for the user', async () => {
+  it('words a rename failure for the user and logs the raw detail', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
     const { result } = renderHook(() => useProjects(brokenStores()), { wrapper: I18nTestingProvider })
 
     await act(async () => {
       await result.current.rename('missing', 'X')
     })
+    // The visible message is French end to end: prefix + copy mapped from the
+    // code — the raw English detail goes to the console only (AV.2).
     expect(result.current.error).toBe(
-      i18n._('projects.rename-failed', { error: 'server down' })
+      i18n._('projects.rename-failed', {
+        reason: i18n._('projects.error.unknown')
+      })
     )
+    expect(log).toHaveBeenCalledWith(
+      'project rename failed:',
+      'unknown',
+      'server down'
+    )
+    log.mockRestore()
   })
 
   it('flags a failing listing so the dialog can say the server is unreachable', async () => {
@@ -274,35 +291,76 @@ describe('useProjects', () => {
   })
 
   it('words a save failure for the user, dismissible from the banner', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
     const { result } = renderHook(() => useProjects(brokenStores()), { wrapper: I18nTestingProvider })
 
     await act(async () => {
       await result.current.save('Mon projet', input)
     })
     expect(result.current.error).toBe(
-      i18n._('projects.save-failed', { error: 'server down' })
+      i18n._('projects.save-failed', {
+        reason: i18n._('projects.error.unknown')
+      })
     )
 
     act(() => result.current.dismissError())
     expect(result.current.error).toBeUndefined()
+    log.mockRestore()
+  })
+
+  it('maps a typed server failure onto its own copy', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const working = fakeStores()
+    const stores: ProjectDeps = {
+      store: {
+        ...working.store,
+        save: async () => {
+          throw new ProjectError('server', 'project server answered 500')
+        }
+      },
+      audio: working.audio
+    }
+    const { result } = renderHook(() => useProjects(stores), { wrapper: I18nTestingProvider })
+
+    await act(async () => {
+      await result.current.save('Mon projet', input)
+    })
+
+    expect(result.current.error).toBe(
+      i18n._('projects.save-failed', {
+        reason: i18n._('projects.error.server')
+      })
+    )
+    expect(log).toHaveBeenCalledWith(
+      'project save failed:',
+      'server',
+      'project server answered 500'
+    )
+    log.mockRestore()
   })
 
   it('words an open failure and a delete failure for the user', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
     const { result } = renderHook(() => useProjects(brokenStores()), { wrapper: I18nTestingProvider })
 
     await act(async () => {
       await result.current.open('missing')
     })
     expect(result.current.error).toBe(
-      i18n._('projects.open-failed', { error: 'server down' })
+      i18n._('projects.open-failed', {
+        reason: i18n._('projects.error.unknown')
+      })
     )
 
     await act(async () => {
       await result.current.remove('missing')
     })
     expect(result.current.error).toBe(
-      i18n._('projects.delete-failed', { error: 'server down' })
+      i18n._('projects.delete-failed', {
+        reason: i18n._('projects.error.unknown')
+      })
     )
+    log.mockRestore()
   })
 
   it('reports a save in flight as busy, then idle again', async () => {

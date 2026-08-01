@@ -13,6 +13,8 @@ interface EmptyStateProps {
   readonly onImportUrl?: ((url: string) => void) | undefined
   /** A download is already running — the field locks. */
   readonly urlBusy?: boolean
+  /** Offline gate for the URL entry (AV.3) — file import stays available. */
+  readonly urlOffline?: boolean
 }
 
 /** A value hook that sells what loupe does — an icon, a title, and a one-line
@@ -70,7 +72,8 @@ const HOOKS: readonly ValueHook[] = [
 export function EmptyState({
   onImport,
   onImportUrl,
-  urlBusy = false
+  urlBusy = false,
+  urlOffline = false
 }: EmptyStateProps) {
   const { t } = useLingui()
   const [url, setUrl] = useState('')
@@ -81,7 +84,7 @@ export function EmptyState({
   // the clipboard without aiming at the input first. An unsupported paste is
   // left alone (it may be meant for something else).
   function onHeroPaste(event: ClipboardEvent<HTMLDivElement>): void {
-    if (onImportUrl === undefined || urlBusy) {
+    if (onImportUrl === undefined || urlBusy || urlOffline) {
       return
     }
     const pasted = event.clipboardData.getData('text').trim()
@@ -121,6 +124,7 @@ export function EmptyState({
               onValueChange={setUrl}
               onSubmit={onImportUrl}
               busy={urlBusy}
+              offline={urlOffline}
               inputRef={urlFieldRef}
             />
           </div>

@@ -14,6 +14,8 @@ interface ImportMenuProps {
   readonly onImportUrl?: ((url: string) => void) | undefined
   /** A download is already running — the URL submit locks. */
   readonly urlBusy: boolean
+  /** Offline gate for the URL entry (AV.3) — file import stays available. */
+  readonly urlOffline?: boolean
   /** Ask before importing: the session holds work a new track would discard. */
   readonly needsConfirm: boolean
 }
@@ -30,6 +32,7 @@ export function ImportMenu({
   onImportFile,
   onImportUrl,
   urlBusy,
+  urlOffline = false,
   needsConfirm
 }: ImportMenuProps) {
   const { t } = useLingui()
@@ -147,6 +150,7 @@ export function ImportMenu({
                 onValueChange={setUrl}
                 onSubmit={submitUrl}
                 busy={urlBusy}
+                offline={urlOffline}
                 secondaryAction={
                   <Popover.Close className={cx(styles.ghost)}>
                     <Trans id="common.cancel">Annuler</Trans>

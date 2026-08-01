@@ -1,4 +1,4 @@
-import { type Project, parseProject } from '@app/core'
+import { type Project, ProjectError, parseProject } from '@app/core'
 
 /**
  * The shared decode edge for persisted manifests (AA.2): both project store
@@ -10,7 +10,7 @@ import { type Project, parseProject } from '@app/core'
  */
 
 export function unreadableManifestError(id: string): Error {
-  return new Error(`Unreadable project manifest "${id}"`)
+  return new ProjectError('unreadable', `Unreadable project manifest "${id}"`)
 }
 
 /** Decode a list of raw manifests, dropping (and tracing) the broken ones. */

@@ -301,12 +301,13 @@ export function useSeparation(
       )
       return true
     }
-    // The raw port error stays untranslated; only the frame is copy.
-    const error = result.error
+    // The translated copy speaks alone; the raw port error is console
+    // material (AV.2) — an export failure is not user-actionable anyway.
+    console.error('stem export failed:', result.error)
     setExportError(
       t({
         id: 'separation.export-failed',
-        message: `L'export a échoué : ${error}`
+        message: "L'export a échoué — réessayer."
       })
     )
     return false

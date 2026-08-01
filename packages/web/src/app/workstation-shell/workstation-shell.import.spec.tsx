@@ -216,13 +216,24 @@ describe('WorkstationShell imports', () => {
         throw new Error('vidéo introuvable')
       }
     }
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
     const { user } = renderShell({ trackSource })
     const popover = await fillImportUrl(user, 'https://youtu.be/abc')
     await user.click(
       within(popover).getByRole('button', { name: i18n._('import.url-submit') })
     )
 
-    expect(await screen.findByText('vidéo introuvable')).toBeInTheDocument()
+    // French end to end (AV.1): the banner words the code, the raw message
+    // stays in the console.
+    expect(
+      await screen.findByText(i18n._('import.url-error.unknown'))
+    ).toBeInTheDocument()
+    expect(log).toHaveBeenCalledWith(
+      'url import failed:',
+      'unknown',
+      'vidéo introuvable'
+    )
+    log.mockRestore()
   })
 
   it('blocks an unsupported URL at the field, before any download', async () => {

@@ -1,4 +1,4 @@
-import type { DownloadProgress } from '@app/core'
+import { type DownloadProgress, ImportUrlError } from '@app/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createHttpTrackSource } from './http-track-source.ts'
 
@@ -130,6 +130,51 @@ describe('createHttpTrackSource', () => {
         () => {}
       )
     ).rejects.toThrow(/unsupported url/)
+  })
+
+  it('throws the typed error when the error line names a known code', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        ndjsonResponse([
+          '{"type":"error","code":"store-quota","message":"audio store quota exceeded"}'
+        ])
+      )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const failure = await createHttpTrackSource('http://localhost:8000')
+      .fetch('https://youtu.be/x', () => {})
+      .then(
+        () => undefined,
+        (e: unknown) => e
+      )
+
+    expect(failure).toBeInstanceOf(ImportUrlError)
+    expect((failure as ImportUrlError).code).toBe('store-quota')
+    expect((failure as ImportUrlError).message).toBe(
+      'audio store quota exceeded'
+    )
+  })
+
+  it('falls back to a plain error on an unknown or missing code', async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        ndjsonResponse([
+          '{"type":"error","code":"brand-new-code","message":"???"}'
+        ])
+      )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const failure = await createHttpTrackSource('http://localhost:8000')
+      .fetch('https://youtu.be/x', () => {})
+      .then(
+        () => undefined,
+        (e: unknown) => e
+      )
+
+    expect(failure).toBeInstanceOf(Error)
+    expect(failure).not.toBeInstanceOf(ImportUrlError)
   })
 
   it('rejects when the download request itself fails', async () => {

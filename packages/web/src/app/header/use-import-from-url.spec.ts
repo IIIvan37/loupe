@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { TrackSource } from '@app/core'
+import { ImportUrlError, type TrackSource } from '@app/core'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useImportFromUrl } from './use-import-from-url.ts'
@@ -99,24 +99,55 @@ describe('useImportFromUrl', () => {
 
     act(() => result.current.submit('https://example.com/x'))
 
-    await waitFor(() => expect(result.current.error).toMatch(/example\.com/))
+    await waitFor(() => expect(result.current.error).toBe('unsupported'))
     expect(fetch).not.toHaveBeenCalled()
     expect(onImported).not.toHaveBeenCalled()
   })
 
-  it('surfaces a download failure and clears it on dismiss', async () => {
+  it('surfaces a failure as its code, logs the raw detail, clears on dismiss', async () => {
+    const source: TrackSource = {
+      fetch: async () => {
+        throw new ImportUrlError('store-quota', 'audio store quota exceeded')
+      }
+    }
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const { result } = renderHook(() => useImportFromUrl(vi.fn(), source))
+
+    act(() => result.current.submit(YT))
+    await waitFor(() => expect(result.current.error).toBe('store-quota'))
+    // The raw English detail is console material — never part of the state.
+    expect(log).toHaveBeenCalledWith(
+      'url import failed:',
+      'store-quota',
+      'audio store quota exceeded'
+    )
+
+    act(() => result.current.dismissError())
+    expect(result.current.error).toBeUndefined()
+    log.mockRestore()
+  })
+
+  it('folds an untyped failure into the unknown code', async () => {
     const source: TrackSource = {
       fetch: async () => {
         throw new Error('réseau coupé')
       }
     }
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
     const { result } = renderHook(() => useImportFromUrl(vi.fn(), source))
 
     act(() => result.current.submit(YT))
-    await waitFor(() => expect(result.current.error).toBe('réseau coupé'))
+    await waitFor(() => expect(result.current.error).toBe('unknown'))
+    log.mockRestore()
+  })
 
-    act(() => result.current.dismissError())
-    expect(result.current.error).toBeUndefined()
+  it('exposes the offline gate the entry surfaces lock on (AV.3)', () => {
+    const gauge = vi.spyOn(window.navigator, 'onLine', 'get')
+    gauge.mockReturnValue(false)
+    const { result } = renderHook(() => useImportFromUrl(vi.fn(), okSource()))
+
+    expect(result.current.offline).toBe(true)
+    gauge.mockRestore()
   })
 
   it('ignores a second submit while one is already running', async () => {

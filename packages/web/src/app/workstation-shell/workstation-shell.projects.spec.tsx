@@ -37,8 +37,12 @@ describe('WorkstationShell projects & persistence', () => {
     await user.click(screen.getByRole('button', { name: i18n._('common.save') }))
 
     const alert = await screen.findByRole('alert')
+    // The banner speaks French end to end (AV.2): the broken store's raw
+    // « server down » is console material, the copy maps the code.
     expect(alert).toHaveTextContent(
-      "Impossible d'enregistrer le projet : server down"
+      i18n._('projects.save-failed', {
+        reason: i18n._('projects.error.unknown')
+      })
     )
 
     await user.click(screen.getByRole('button', { name: i18n._('alerts.close') }))

@@ -451,21 +451,24 @@ describe('useSeparation — exportStems (the aligned stem folder)', () => {
     expect(ok).toBe(false)
   })
 
-  it('surfaces a failed export as an error message', async () => {
+  it('surfaces a failed export as translated copy, raw detail in the console', async () => {
     const archive: ArchiveWriter = {
       write: async () => {
         throw new Error('zip failed')
       }
     }
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
     const result = await readyHook(archive, stems)
     let ok: boolean | undefined
     await act(async () => {
       ok = await result.current.exportStems('Mon morceau')
     })
     expect(ok).toBe(false)
-    expect(result.current.exportError).toBe(
-      i18n._('separation.export-failed', { error: 'zip failed' })
-    )
+    // French end to end (AV.2): the port's raw English error never reaches
+    // the banner — it goes to the console.
+    expect(result.current.exportError).toBe(i18n._('separation.export-failed'))
+    expect(log).toHaveBeenCalledWith('stem export failed:', 'zip failed')
+    log.mockRestore()
   })
 
   it('dismisses the export error on demand', async () => {

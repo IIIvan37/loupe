@@ -366,6 +366,7 @@ export function WorkstationShell({
           onImport={openFilePicker}
           onImportUrl={localBackend ? urlImport.submit : undefined}
           urlBusy={urlImport.running}
+          urlOffline={urlImport.offline}
         />
       ) : (
         <ShellMain

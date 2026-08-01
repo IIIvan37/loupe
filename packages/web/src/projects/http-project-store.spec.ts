@@ -1,4 +1,4 @@
-import type { Project } from '@app/core'
+import { type Project, ProjectError } from '@app/core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   createHttpProjectAudioStore,
@@ -68,10 +68,35 @@ describe('createHttpProjectStore', () => {
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe('DELETE')
   })
 
-  it('throws on a failing response so use-cases surface an error result', async () => {
+  it('throws the typed « server » error on a failing response', async () => {
     stubFetch(new Response(null, { status: 500 }))
 
-    await expect(createHttpProjectStore(BASE).list()).rejects.toThrow('500')
+    const failure = await createHttpProjectStore(BASE)
+      .list()
+      .then(
+        () => undefined,
+        (e: unknown) => e
+      )
+
+    expect(failure).toBeInstanceOf(ProjectError)
+    expect((failure as ProjectError).code).toBe('server')
+    expect((failure as ProjectError).message).toContain('500')
+  })
+
+  it('throws the typed « network » error when fetch itself fails', async () => {
+    const fetchMock = vi.fn<typeof fetch>()
+    fetchMock.mockRejectedValueOnce(new TypeError('fetch failed'))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const failure = await createHttpProjectStore(BASE)
+      .save(project)
+      .then(
+        () => undefined,
+        (e: unknown) => e
+      )
+
+    expect(failure).toBeInstanceOf(ProjectError)
+    expect((failure as ProjectError).code).toBe('network')
   })
 
   it('skips invalid manifests in the list — the server persists verbatim', async () => {
@@ -84,20 +109,34 @@ describe('createHttpProjectStore', () => {
     muted.mockRestore()
   })
 
-  it('throws when the list endpoint answers JSON that is not a list', async () => {
+  it('throws the typed « unreadable » error on JSON that is not a list', async () => {
     stubFetch(Response.json({ projects: [] }))
 
-    await expect(createHttpProjectStore(BASE).list()).rejects.toThrow(
-      /non-list/
-    )
+    const failure = await createHttpProjectStore(BASE)
+      .list()
+      .then(
+        () => undefined,
+        (e: unknown) => e
+      )
+
+    expect(failure).toBeInstanceOf(ProjectError)
+    expect((failure as ProjectError).code).toBe('unreadable')
+    expect((failure as ProjectError).message).toContain('non-list')
   })
 
-  it('throws « unreadable » when a loaded manifest fails validation', async () => {
+  it('throws the typed « unreadable » error when a loaded manifest fails validation', async () => {
     stubFetch(Response.json({ id: 'p1', name: 42 }))
 
-    await expect(createHttpProjectStore(BASE).load('p1')).rejects.toThrow(
-      /unreadable/i
-    )
+    const failure = await createHttpProjectStore(BASE)
+      .load('p1')
+      .then(
+        () => undefined,
+        (e: unknown) => e
+      )
+
+    expect(failure).toBeInstanceOf(ProjectError)
+    expect((failure as ProjectError).code).toBe('unreadable')
+    expect((failure as ProjectError).message).toMatch(/unreadable/i)
   })
 })
 

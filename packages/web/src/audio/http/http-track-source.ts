@@ -1,4 +1,10 @@
-import type { DownloadProgress, FetchedTrack, TrackSource } from '@app/core'
+import {
+  type DownloadProgress,
+  type FetchedTrack,
+  ImportUrlError,
+  type ImportUrlErrorCode,
+  type TrackSource
+} from '@app/core'
 import { toTrackMetadata } from '../track-metadata.ts'
 import { streamNdjson } from './read-ndjson.ts'
 
@@ -19,7 +25,30 @@ type DownloadEvent =
       /** The uploading artist/channel, when the source reports it. */
       readonly uploader?: string
     }
-  | { readonly type: 'error'; readonly message: string }
+  | {
+      readonly type: 'error'
+      /** The failure named by the server (AV.1) — absent on older servers. */
+      readonly code?: string
+      readonly message: string
+    }
+
+/** The codes this client knows how to word; anything else stays a plain
+ * `Error` and folds into the use-case's `unknown` path, detail preserved. */
+const KNOWN_CODES: readonly Exclude<ImportUrlErrorCode, 'unknown'>[] = [
+  'unsupported',
+  'timeout',
+  'extractor-stale',
+  'store-quota'
+]
+
+function downloadError(
+  event: Extract<DownloadEvent, { type: 'error' }>
+): Error {
+  const code = KNOWN_CODES.find((known) => known === event.code)
+  return code === undefined
+    ? new Error(event.message)
+    : new ImportUrlError(code, event.message)
+}
 
 /**
  * Driven adapter for `TrackSource`: offloads the download to the local server
@@ -49,8 +78,10 @@ export function createHttpTrackSource(baseUrl: string): TrackSource {
         throw new Error(`download request failed: HTTP ${response.status}`)
       }
 
-      const done = await streamNdjson<DownloadEvent>(response.body, (event) =>
-        onProgress({ phase: event.phase, fraction: event.fraction })
+      const done = await streamNdjson<DownloadEvent>(
+        response.body,
+        (event) => onProgress({ phase: event.phase, fraction: event.fraction }),
+        downloadError
       )
 
       const audioResponse = await fetch(
