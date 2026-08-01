@@ -19,17 +19,15 @@ verrouillée ([archive/distribution-plan.md](archive/distribution-plan.md),
 à retirer au prochain bump (#319) ; jamais de hook à effet de montage, seul
 le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (release v0.1.0 +
-[guide utilisateur](guide-utilisateur.md) + code beta). **Revue
-excellence 8 (2026-08-01, ~17,1/20)** :
-[roadmap-excellence-8.md](roadmap-excellence-8.md), Lots AR→AX —
-AR/AS/AT/AU/AV soldés (PRs #332/#333/#335/#337/#338 ; AU : rappel
-**déployer Modal + Edge** pour l'effet distant des origins par motif).
-**Lot AW soldé (livré par PR #339)** — la nouvelle surface se blinde :
-CSP réelle (connect-src bornée) + nosniff + cache scindé, pinnés dans
-`tests/app.rs` ; store local 0700/0600 (`~/.loupe` resserré au boot) ;
-templates OTP versionnés (**pose = action opérateur** :
-`scripts/apply-otp-templates.sh`, PAT requis). Prochain : **Lot AX**
-(la marque dans l'onglet : favicon, glyphes → icon.tsx) ; v0.2 = bump + tag.
+[guide utilisateur](guide-utilisateur.md) + code beta).
+**[Roadmap excellence 8](roadmap-excellence-8.md) COMPLÈTE** — AR→AW soldés
+(PRs #332→#339) ; **lot AX soldé (livré par PR #340)** : la marque = la
+boucle A→B ambre (jeu de mots loupe/loop ; l'ambre = « la boucle active »,
+tokens.css) — wordmark o-anneau (`LogoWordmark` + `ui/loop-mark.tsx`),
+premier `favicon.svg`, plus aucun glyphe texte (AO.3), `check:tokens` sur
+les 4 classes. Rappels vivants : déployer Modal + Edge (origins par motif,
+AU.2) ; templates OTP = action opérateur (`scripts/apply-otp-templates.sh`).
+Prochain : **v0.2 = bump + tag** (la marque part dans la release).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
@@ -63,6 +61,7 @@ templates OTP versionnés (**pose = action opérateur** :
 
 ## Veille / différé
 
+- **Onglet fermé, serveur orphelin** (signal 2026-08-01) : arrêt auto sur heartbeat + délai de grâce, jamais pendant un job — candidat prioritaire post-v0.2.
 - Boucle échantillon-exacte / crossfade au wrap · locale EN · boucle A/B au clavier · thème clair · undo/redo (écarté produit) · off-thread zip/encode · export MIDI par stem (Jalon 4).
 - Dependabot #180 (TS 6→7) + #53 (`@vitejs/plugin-react` v6) — session outillage dédiée ;
   file débloquée (#310 config, #316 triage react-doctor 0.9.2 ; #315 supersédée par
