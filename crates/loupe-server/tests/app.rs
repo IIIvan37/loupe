@@ -81,6 +81,21 @@ async fn health_answers_the_python_shape() {
 }
 
 #[tokio::test]
+async fn version_answers_the_binary_version() {
+  let dir = tempfile::tempdir().unwrap();
+  let response = app(test_config(dir.path()))
+    .oneshot(local_request("GET", "/version", Body::empty()))
+    .await
+    .unwrap();
+  assert_eq!(response.status(), StatusCode::OK);
+  let value: serde_json::Value = serde_json::from_slice(&body_bytes(response).await).unwrap();
+  assert_eq!(
+    value,
+    serde_json::json!({"version": env!("CARGO_PKG_VERSION")})
+  );
+}
+
+#[tokio::test]
 async fn refuses_a_non_loopback_peer_regardless_of_headers() {
   let dir = tempfile::tempdir().unwrap();
   let request = Request::builder()
