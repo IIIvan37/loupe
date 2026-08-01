@@ -13,9 +13,10 @@ export {
 export type {
   ImportFromUrlDeps,
   ImportFromUrlInput,
-  ImportFromUrlResult
+  ImportFromUrlResult,
+  ImportUrlErrorCode
 } from './application/import-from-url.ts'
-export { importFromUrl } from './application/import-from-url.ts'
+export { ImportUrlError, importFromUrl } from './application/import-from-url.ts'
 export type {
   LoadTrackDeps,
   LoadTrackInput,
@@ -160,8 +161,10 @@ export {
 } from './markers/domain/marker-list.ts'
 export type {
   ProjectAudioStore,
+  ProjectErrorCode,
   ProjectStore
 } from './project/application/ports.ts'
+export { ProjectError } from './project/application/ports.ts'
 export type {
   DeleteProjectResult,
   ListProjectsResult,

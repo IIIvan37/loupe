@@ -4,6 +4,7 @@ import { useWindowTitle } from '../lifecycle/use-window-title.ts'
 import type { AuthPort, MintFailureReason } from '../../../auth/auth-port.ts'
 import { AccountMenuSlot } from '../../account/account-menu-slot/account-menu-slot.tsx'
 import { Header } from '../../header/header.tsx'
+import { IMPORT_URL_ERROR_COPY } from '../../header/import-url-copy.ts'
 import type { UrlImport } from '../../header/use-import-from-url.ts'
 import { AlertBanner } from '../../ui/alert-banner/alert-banner.tsx'
 import type { ProjectSession } from '../orchestration/use-project-session.ts'
@@ -119,8 +120,15 @@ export function ShellHeader({
         onImport={onImport}
         // Saved projects + URL import are localBackend-only (offload-only, Lot AJ):
         // in the browser the callbacks are absent, so the entries hide.
-        onImportUrl={localBackend ? urlImport.submit : undefined}
-        urlImportBusy={urlImport.running}
+        urlImport={
+          localBackend
+            ? {
+                submit: urlImport.submit,
+                busy: urlImport.running,
+                offline: urlImport.offline
+              }
+            : undefined
+        }
         importNeedsConfirm={session.unsavedWork}
         onExportStems={onExportStems}
         canExport={stemsReady}
@@ -149,7 +157,7 @@ export function ShellHeader({
       />
       {urlImport.error !== undefined && (
         <AlertBanner
-          message={urlImport.error}
+          message={t(IMPORT_URL_ERROR_COPY[urlImport.error])}
           onDismiss={urlImport.dismissError}
         />
       )}

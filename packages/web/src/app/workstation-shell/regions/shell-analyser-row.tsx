@@ -4,7 +4,7 @@ import type { ChordDetection } from '../../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../../markers/use-structure-detection.ts'
 import { useSeparation } from '../../separation/use-separation.ts'
 import { useTempo } from '../../tempo/use-tempo.ts'
-import { useOnline } from '../lifecycle/use-online.ts'
+import { useOnline } from '../../ui/use-online.ts'
 
 interface ShellAnalyserRowProps {
   /** Disables the manual actions until a track is loaded. */

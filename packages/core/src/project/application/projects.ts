@@ -13,7 +13,27 @@ import {
   type ProjectTuning,
   projectFromSession
 } from '../domain/project.ts'
-import type { ProjectAudioStore, ProjectStore } from './ports.ts'
+import {
+  type ProjectAudioStore,
+  ProjectError,
+  type ProjectErrorCode,
+  type ProjectStore
+} from './ports.ts'
+
+/** The shared failure shape (AV.2): the `code` drives the UI copy, the raw
+ * `detail` is console material. A typed `ProjectError` keeps its code;
+ * anything else folds into `unknown`. */
+interface ProjectFailure {
+  readonly ok: false
+  readonly code: ProjectErrorCode
+  /** The raw adapter/engine message — for the console, never the UI. */
+  readonly detail: string
+}
+
+function failureOf(e: unknown): ProjectFailure {
+  const code = e instanceof ProjectError ? e.code : 'unknown'
+  return { ok: false, code, detail: errorMessage(e) }
+}
 
 export interface ProjectDeps {
   readonly store: ProjectStore
@@ -57,7 +77,7 @@ export interface SaveProjectInput {
 
 export type SaveProjectResult =
   | { readonly ok: true; readonly project: Project }
-  | { readonly ok: false; readonly error: string }
+  | ProjectFailure
 
 /**
  * Persist the current session as a project: store the heavy audio (source +
@@ -79,7 +99,11 @@ export async function saveProject(
       separation.mixer
     )
   ) {
-    return { ok: false, error: 'Mixer channels do not match the stems' }
+    return {
+      ok: false,
+      code: 'mixer-mismatch',
+      detail: 'Mixer channels do not match the stems'
+    }
   }
   try {
     const [sourceRef, stems, existing] = await Promise.all([
@@ -117,13 +141,13 @@ export async function saveProject(
     await deps.store.save(project)
     return { ok: true, project }
   } catch (e) {
-    return { ok: false, error: errorMessage(e) }
+    return failureOf(e)
   }
 }
 
 export type ListProjectsResult =
   | { readonly ok: true; readonly projects: readonly Project[] }
-  | { readonly ok: false; readonly error: string }
+  | ProjectFailure
 
 /** List the saved projects, most recently updated first. */
 export async function listProjects(deps: {
@@ -135,7 +159,7 @@ export async function listProjects(deps: {
     )
     return { ok: true, projects }
   } catch (e) {
-    return { ok: false, error: errorMessage(e) }
+    return failureOf(e)
   }
 }
 
@@ -152,7 +176,7 @@ export type OpenProjectResult =
       readonly sourceBytes: ArrayBuffer
       readonly stems: readonly OpenedStem[]
     }
-  | { readonly ok: false; readonly error: string }
+  | ProjectFailure
 
 /**
  * Load a project manifest and resolve every `AudioRef` back to bytes — the
@@ -166,7 +190,11 @@ export async function openProject(
   try {
     const project = await deps.store.load(input.id)
     if (project === undefined) {
-      return { ok: false, error: `Unknown project "${input.id}"` }
+      return {
+        ok: false,
+        code: 'not-found',
+        detail: `Unknown project "${input.id}"`
+      }
     }
     const [sourceBytes, stems] = await Promise.all([
       fetchAudio(project.source.audioRef, deps.audio),
@@ -179,13 +207,13 @@ export async function openProject(
     ])
     return { ok: true, project, sourceBytes, stems }
   } catch (e) {
-    return { ok: false, error: errorMessage(e) }
+    return failureOf(e)
   }
 }
 
 export type RenameProjectResult =
   | { readonly ok: true; readonly project: Project }
-  | { readonly ok: false; readonly error: string }
+  | ProjectFailure
 
 /**
  * Rename a stored project. Loads its manifest, gives it the trimmed name and
@@ -199,24 +227,30 @@ export async function renameProject(
 ): Promise<RenameProjectResult> {
   const name = input.name.trim()
   if (name === '') {
-    return { ok: false, error: 'A project name cannot be empty' }
+    return {
+      ok: false,
+      code: 'empty-name',
+      detail: 'A project name cannot be empty'
+    }
   }
   try {
     const existing = await deps.store.load(input.id)
     if (existing === undefined) {
-      return { ok: false, error: `Unknown project "${input.id}"` }
+      return {
+        ok: false,
+        code: 'not-found',
+        detail: `Unknown project "${input.id}"`
+      }
     }
     const project = { ...existing, name, updatedAt: input.now }
     await deps.store.save(project)
     return { ok: true, project }
   } catch (e) {
-    return { ok: false, error: errorMessage(e) }
+    return failureOf(e)
   }
 }
 
-export type DeleteProjectResult =
-  | { readonly ok: true }
-  | { readonly ok: false; readonly error: string }
+export type DeleteProjectResult = { readonly ok: true } | ProjectFailure
 
 /**
  * Remove a project's manifest. Its audio blobs become unreachable; reclaiming
@@ -230,7 +264,7 @@ export async function deleteProject(
     await deps.store.delete(input.id)
     return { ok: true }
   } catch (e) {
-    return { ok: false, error: errorMessage(e) }
+    return failureOf(e)
   }
 }
 
@@ -253,7 +287,7 @@ async function fetchAudio(
 ): Promise<ArrayBuffer> {
   const bytes = await audio.get(ref)
   if (bytes === undefined) {
-    throw new Error(`Missing audio for ref "${ref}"`)
+    throw new ProjectError('missing-audio', `Missing audio for ref "${ref}"`)
   }
   return bytes
 }

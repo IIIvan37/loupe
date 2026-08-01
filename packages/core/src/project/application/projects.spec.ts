@@ -4,7 +4,11 @@ import type { AudioRef } from '../domain/project.ts'
 // Relative on purpose: inside the core the subpath alias would be a
 // self-import; adapters go through '@app/core/testing'.
 import { createInMemoryProjectStore as fakeProjectStore } from '../testing/in-memory-project-store.ts'
-import type { ProjectAudioStore, ProjectStore } from './ports.ts'
+import {
+  type ProjectAudioStore,
+  ProjectError,
+  type ProjectStore
+} from './ports.ts'
 import {
   deleteProject,
   listProjects,
@@ -193,7 +197,25 @@ describe('saveProject', () => {
       store: failingStore,
       audio: fakeAudioStore()
     })
-    expect(result).toEqual({ ok: false, error: 'disk full' })
+    expect(result).toEqual({ ok: false, code: 'unknown', detail: 'disk full' })
+  })
+
+  it('keeps the typed code an adapter raised — the copy switches on it', async () => {
+    const store: ProjectStore = {
+      ...fakeProjectStore(),
+      async save() {
+        throw new ProjectError('server', 'project server answered 500')
+      }
+    }
+    const result = await saveProject(saveInput, {
+      store,
+      audio: fakeAudioStore()
+    })
+    expect(result).toEqual({
+      ok: false,
+      code: 'server',
+      detail: 'project server answered 500'
+    })
   })
 
   it('still saves when loading the existing manifest fails (repair by overwrite)', async () => {
@@ -239,7 +261,8 @@ describe('saveProject', () => {
 
     expect(result).toEqual({
       ok: false,
-      error: 'Mixer channels do not match the stems'
+      code: 'mixer-mismatch',
+      detail: 'Mixer channels do not match the stems'
     })
     expect(audio.blobs.size).toBe(0)
     expect(store.saved.size).toBe(0)
@@ -265,7 +288,7 @@ describe('listProjects', () => {
 
   it('reports a failing store as an error result', async () => {
     const result = await listProjects({ store: failingStore })
-    expect(result).toEqual({ ok: false, error: 'disk full' })
+    expect(result).toEqual({ ok: false, code: 'unknown', detail: 'disk full' })
   })
 })
 
@@ -303,7 +326,11 @@ describe('openProject', () => {
       { id: 'nope' },
       { store: fakeProjectStore(), audio: fakeAudioStore() }
     )
-    expect(result).toEqual({ ok: false, error: 'Unknown project "nope"' })
+    expect(result).toEqual({
+      ok: false,
+      code: 'not-found',
+      detail: 'Unknown project "nope"'
+    })
   })
 
   it('reports missing audio bytes as an error result', async () => {
@@ -316,7 +343,8 @@ describe('openProject', () => {
 
     expect(result).toEqual({
       ok: false,
-      error: 'Missing audio for ref "audio-1"'
+      code: 'missing-audio',
+      detail: 'Missing audio for ref "audio-1"'
     })
   })
 })
@@ -335,7 +363,7 @@ describe('deleteProject', () => {
 
   it('reports a failing store as an error result', async () => {
     const result = await deleteProject({ id: 'p1' }, { store: failingStore })
-    expect(result).toEqual({ ok: false, error: 'disk full' })
+    expect(result).toEqual({ ok: false, code: 'unknown', detail: 'disk full' })
   })
 })
 
@@ -387,7 +415,8 @@ describe('renameProject', () => {
 
     expect(result).toEqual({
       ok: false,
-      error: 'A project name cannot be empty'
+      code: 'empty-name',
+      detail: 'A project name cannot be empty'
     })
     expect(store.saved.get('p1')?.name).toBe('My song')
   })
@@ -397,7 +426,11 @@ describe('renameProject', () => {
       { id: 'nope', name: 'X', now: 4000 },
       { store: fakeProjectStore() }
     )
-    expect(result).toEqual({ ok: false, error: 'Unknown project "nope"' })
+    expect(result).toEqual({
+      ok: false,
+      code: 'not-found',
+      detail: 'Unknown project "nope"'
+    })
   })
 
   it('reports a failing store as an error result', async () => {
@@ -405,6 +438,6 @@ describe('renameProject', () => {
       { id: 'p1', name: 'X', now: 4000 },
       { store: failingStore }
     )
-    expect(result).toEqual({ ok: false, error: 'disk full' })
+    expect(result).toEqual({ ok: false, code: 'unknown', detail: 'disk full' })
   })
 })

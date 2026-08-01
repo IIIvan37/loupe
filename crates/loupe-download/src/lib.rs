@@ -60,6 +60,58 @@ fn release_asset_sha256() -> &'static str {
 /// server's NDJSON contract (`downloading`, then a final `transcoding`).
 pub type ProgressFn = dyn Fn(&'static str, f64) + Send + Sync;
 
+/// What went wrong, machine-readable: the web client maps each code to its
+/// own translated copy (AV.1), so the code — not the English message — is the
+/// UI contract. `Unknown` covers everything the user cannot act on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DownloadErrorCode {
+  Unsupported,
+  Timeout,
+  ExtractorStale,
+  Unknown,
+}
+
+impl DownloadErrorCode {
+  /// The kebab-case wire form the server's NDJSON error line carries.
+  pub fn as_str(self) -> &'static str {
+    match self {
+      DownloadErrorCode::Unsupported => "unsupported",
+      DownloadErrorCode::Timeout => "timeout",
+      DownloadErrorCode::ExtractorStale => "extractor-stale",
+      DownloadErrorCode::Unknown => "unknown",
+    }
+  }
+}
+
+/// A failed download: the `code` drives the client-side copy, the `message`
+/// stays raw English for logs/console — it never reaches the UI.
+#[derive(Debug)]
+pub struct DownloadError {
+  pub code: DownloadErrorCode,
+  pub message: String,
+}
+
+impl DownloadError {
+  pub fn new(code: DownloadErrorCode, message: impl Into<String>) -> Self {
+    DownloadError {
+      code,
+      message: message.into(),
+    }
+  }
+
+  pub fn unknown(message: impl Into<String>) -> Self {
+    DownloadError::new(DownloadErrorCode::Unknown, message)
+  }
+}
+
+impl std::fmt::Display for DownloadError {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{}", self.message)
+  }
+}
+
+impl std::error::Error for DownloadError {}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DownloadedTrack {
@@ -221,15 +273,20 @@ pub async fn download_track(
   url: &str,
   on_progress: Arc<ProgressFn>,
   cancel: Arc<Notify>,
-) -> Result<DownloadedTrack, String> {
+) -> Result<DownloadedTrack, DownloadError> {
   if !is_supported_url(url) {
-    return Err(format!("unsupported source URL: {url}"));
+    return Err(DownloadError::new(
+      DownloadErrorCode::Unsupported,
+      format!("unsupported source URL: {url}"),
+    ));
   }
   // Emit before the (possibly slow, first-run) binary bootstrap so the UI
   // shows a live bar immediately instead of an indistinguishable-from-hung
   // zero state.
   on_progress("downloading", 0.0);
-  let binary = ensure_binary(data_dir).await?;
+  let binary = ensure_binary(data_dir)
+    .await
+    .map_err(DownloadError::unknown)?;
   // Backstop cleanup: a temp dir lives for exactly one download (removed on
   // success by the caller, on failure below), and only one runs at a time,
   // so anything lingering here is an orphan from a crash, power loss or a
@@ -238,7 +295,7 @@ pub async fn download_track(
   sweep_stale_downloads(&data_dir.join("downloads"));
   let out_rel = format!("downloads/{}", download_dir_name());
   let out_dir = data_dir.join(&out_rel);
-  std::fs::create_dir_all(&out_dir).map_err(|e| e.to_string())?;
+  std::fs::create_dir_all(&out_dir).map_err(|e| DownloadError::unknown(e.to_string()))?;
 
   let mut child = Command::new(&binary)
     .args([
@@ -264,7 +321,7 @@ pub async fn download_track(
     .stderr(Stdio::piped())
     .kill_on_drop(true)
     .spawn()
-    .map_err(|e| format!("cannot start yt-dlp: {e}"))?;
+    .map_err(|e| DownloadError::unknown(format!("cannot start yt-dlp: {e}")))?;
 
   let stdout = child.stdout.take();
   let progress = on_progress.clone();
@@ -284,26 +341,30 @@ pub async fn download_track(
       match status {
         Err(_) => {
           let _ = child.kill().await;
-          Err("download timed out".into())
+          Err(DownloadError::new(DownloadErrorCode::Timeout, "download timed out"))
         }
-        Ok(Err(e)) => Err(format!("download failed: {e}")),
+        Ok(Err(e)) => Err(DownloadError::unknown(format!("download failed: {e}"))),
         Ok(Ok(status)) if !status.success() => {
           // The dominant real-world cause is a stale extractor — same hint as
           // the server, minus the pip incantation (the binary self-updates).
-          Err("download failed — the extractor may be out of date; retry later".into())
+          Err(DownloadError::new(
+            DownloadErrorCode::ExtractorStale,
+            "download failed — the extractor may be out of date; retry later",
+          ))
         }
         Ok(Ok(_)) => {
           // A completed bar while the file is finalised, like the server's
           // synthetic transcoding event.
           on_progress("transcoding", 1.0);
-          collect_result(&out_dir, &out_rel)
+          collect_result(&out_dir, &out_rel).map_err(DownloadError::unknown)
         }
       }
     }
     _ = cancel.notified() => {
       let _ = child.start_kill();
       let _ = child.wait().await;
-      Err("download cancelled".into())
+      // Never shown: the cancelling client has already dropped the stream.
+      Err(DownloadError::unknown("download cancelled"))
     }
   };
   reader.abort();
@@ -467,6 +528,18 @@ mod tests {
     )
     .await
     .unwrap_err();
-    assert!(err.contains("unsupported source URL"));
+    assert_eq!(err.code, DownloadErrorCode::Unsupported);
+    assert!(err.message.contains("unsupported source URL"));
+  }
+
+  #[test]
+  fn error_codes_serialise_to_the_ndjson_wire_form() {
+    assert_eq!(DownloadErrorCode::Unsupported.as_str(), "unsupported");
+    assert_eq!(DownloadErrorCode::Timeout.as_str(), "timeout");
+    assert_eq!(
+      DownloadErrorCode::ExtractorStale.as_str(),
+      "extractor-stale"
+    );
+    assert_eq!(DownloadErrorCode::Unknown.as_str(), "unknown");
   }
 }

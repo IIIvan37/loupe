@@ -5,6 +5,7 @@ import {
   openProject,
   type Project,
   type ProjectDeps,
+  type ProjectErrorCode,
   renameProject,
   type SaveProjectInput,
   saveProject
@@ -12,6 +13,7 @@ import {
 import { useLingui } from '@lingui/react/macro'
 import { useMemo, useRef, useState } from 'react'
 import { createProjectStores } from './create-project-stores.ts'
+import { PROJECT_ERROR_COPY } from './project-error-copy.ts'
 
 /** The operation currently in flight, driving the busy affordances. */
 export type ProjectsBusy = 'save' | 'open' | null
@@ -74,6 +76,18 @@ export function useProjects(stores?: ProjectDeps): Projects {
     setCurrentId(undefined)
   }
 
+  /** The AV.2 standard: the translated copy speaks for the code (prefix +
+   * mapped reason), the raw English detail goes to the console only. */
+  function logAndWord(
+    operation: 'save' | 'open' | 'rename' | 'delete',
+    code: ProjectErrorCode,
+    detail: string,
+    word: (reason: string) => string
+  ): void {
+    console.error(`project ${operation} failed:`, code, detail)
+    setError(word(t(PROJECT_ERROR_COPY[code])))
+  }
+
   async function refresh(): Promise<void> {
     const result = await listProjects({ store: deps.store })
     if (result.ok) {
@@ -105,11 +119,10 @@ export function useProjects(stores?: ProjectDeps): Projects {
         await refresh()
         return result.project
       }
-      const error = result.error
-      setError(
+      logAndWord('save', result.code, result.detail, (reason) =>
         t({
           id: 'projects.save-failed',
-          message: `Impossible d'enregistrer le projet : ${error}`
+          message: `Impossible d'enregistrer le projet : ${reason}`
         })
       )
       return undefined
@@ -129,11 +142,10 @@ export function useProjects(stores?: ProjectDeps): Projects {
         }
         setError(undefined)
       } else {
-        const error = result.error
-        setError(
+        logAndWord('open', result.code, result.detail, (reason) =>
           t({
             id: 'projects.open-failed',
-            message: `Impossible d'ouvrir le projet : ${error}`
+            message: `Impossible d'ouvrir le projet : ${reason}`
           })
         )
       }
@@ -154,11 +166,10 @@ export function useProjects(stores?: ProjectDeps): Projects {
       setError(undefined)
       await refresh()
     } else {
-      const error = result.error
-      setError(
+      logAndWord('rename', result.code, result.detail, (reason) =>
         t({
           id: 'projects.rename-failed',
-          message: `Impossible de renommer le projet : ${error}`
+          message: `Impossible de renommer le projet : ${reason}`
         })
       )
     }
@@ -175,11 +186,10 @@ export function useProjects(stores?: ProjectDeps): Projects {
       setError(undefined)
       await refresh()
     } else {
-      const error = result.error
-      setError(
+      logAndWord('delete', result.code, result.detail, (reason) =>
         t({
           id: 'projects.delete-failed',
-          message: `Impossible de supprimer le projet : ${error}`
+          message: `Impossible de supprimer le projet : ${reason}`
         })
       )
     }

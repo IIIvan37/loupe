@@ -1,6 +1,34 @@
 import type { AudioRef, Project } from '../domain/project.ts'
 
 /**
+ * Why a project operation failed (AV.2, the detections' standard): the code
+ * drives the translated copy, the raw detail goes to the console. Transport
+ * codes (`network`, `server`, `unreadable`) come from the store adapters via
+ * `ProjectError`; the rest name the use-cases' own refusals.
+ */
+export type ProjectErrorCode =
+  | 'network'
+  | 'server'
+  | 'unreadable'
+  | 'not-found'
+  | 'empty-name'
+  | 'mixer-mismatch'
+  | 'missing-audio'
+  | 'unknown'
+
+/** The typed failure a store adapter (or the use-case itself) raises when it
+ * can name the cause; anything untyped folds into `unknown`, detail intact. */
+export class ProjectError extends Error {
+  readonly code: Exclude<ProjectErrorCode, 'unknown'>
+
+  constructor(code: Exclude<ProjectErrorCode, 'unknown'>, detail: string) {
+    super(detail)
+    this.code = code
+    this.name = 'ProjectError'
+  }
+}
+
+/**
  * Driven port: persist the light project manifests (`Project` — refs, loops,
  * markers, mixer; never audio bytes). Implemented by an adapter (Tauri FS or
  * HTTP server — decided at J3.3); the pure core never knows which. `load`

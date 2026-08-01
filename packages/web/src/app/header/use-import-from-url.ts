@@ -1,5 +1,6 @@
 import {
   type DownloadProgress,
+  type ImportUrlErrorCode,
   importFromUrl,
   type TrackSource,
   type TrackSourceMetadata
@@ -7,6 +8,7 @@ import {
 import { useMemo, useRef, useState } from 'react'
 import { createTrackSource } from '../../audio/create-track-source.ts'
 import { useAudioSession } from '../audio-session/audio-session.ts'
+import { useOnline } from '../ui/use-online.ts'
 
 /**
  * Download progress as the header renders it: the phase is known from the
@@ -23,10 +25,14 @@ export interface UrlImportProgress {
 export interface UrlImport {
   /** Live download progress while a fetch runs, else undefined. */
   readonly progress: UrlImportProgress | undefined
-  /** The last failure, until dismissed or a new run starts. */
-  readonly error: string | undefined
+  /** The last failure's code, until dismissed or a new run starts — the copy
+   * table words it (AV.1); the raw detail went to the console. */
+  readonly error: ImportUrlErrorCode | undefined
   /** Whether a download is in flight — the field and submit lock. */
   readonly running: boolean
+  /** Offline gate (AV.3): the download needs the network, so the entry
+   * fields lock with a hint instead of failing after the fact. */
+  readonly offline: boolean
   /** Start importing the given URL; a no-op while one is already running. */
   readonly submit: (url: string) => void
   /** Abort the in-flight download and clear the progress; a no-op when idle. */
@@ -52,10 +58,11 @@ export function useImportFromUrl(
   const [progress, setProgress] = useState<UrlImportProgress | undefined>(
     undefined
   )
-  const [error, setError] = useState<string | undefined>(undefined)
+  const [error, setError] = useState<ImportUrlErrorCode | undefined>(undefined)
   const [running, setRunning] = useState(false)
   const runIdRef = useRef(0)
   const controllerRef = useRef<AbortController | undefined>(undefined)
+  const online = useOnline()
 
   function submit(url: string): void {
     if (running) {
@@ -90,7 +97,10 @@ export function useImportFromUrl(
       if (result.ok) {
         onImported(result.bytes, result.metadata)
       } else {
-        setError(result.error)
+        // The translated copy speaks for the code; the raw detail is for the
+        // console (the AV.1 standard, same as the separation).
+        console.error('url import failed:', result.code, result.detail)
+        setError(result.code)
       }
     })
   }
@@ -111,6 +121,7 @@ export function useImportFromUrl(
     progress,
     error,
     running,
+    offline: !online,
     submit,
     cancel,
     dismissError: () => setError(undefined)

@@ -13,6 +13,10 @@ interface UrlImportFieldProps {
   readonly onSubmit: (url: string) => void
   /** A download is already running — the field and submit lock. */
   readonly busy: boolean
+  /** Offline gate (AV.3): the download needs the network, so the field locks
+   * with a hint — same grammar as the gated analyses — instead of failing
+   * after the fact. File import stays untouched by design. */
+  readonly offline?: boolean
   /** Rendered left of the submit button (e.g. a popover Cancel). */
   readonly secondaryAction?: ReactNode
   /** Focus target for a seed-then-focus paste flow. */
@@ -31,21 +35,31 @@ export function UrlImportField({
   onValueChange,
   onSubmit,
   busy,
+  offline = false,
   secondaryAction,
   inputRef
 }: UrlImportFieldProps) {
   const { t } = useLingui()
   const warningId = useId()
+  const offlineId = useId()
 
   const trimmed = value.trim()
   const unsupported = trimmed !== '' && !isSupportedSourceUrl(trimmed)
-  const canSubmit = trimmed !== '' && !busy && !unsupported
+  const canSubmit = trimmed !== '' && !busy && !unsupported && !offline
 
   function submit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault()
     if (canSubmit) {
       onSubmit(trimmed)
     }
+  }
+
+  // One description at a time: a bad host is worth flagging even offline.
+  let describedBy: string | undefined
+  if (unsupported) {
+    describedBy = warningId
+  } else if (offline) {
+    describedBy = offlineId
   }
 
   return (
@@ -61,8 +75,8 @@ export function UrlImportField({
         placeholder="https://…"
         aria-label={t({ id: 'import.url-field', message: 'Lien du morceau' })}
         aria-invalid={unsupported || undefined}
-        aria-describedby={unsupported ? warningId : undefined}
-        disabled={busy}
+        aria-describedby={describedBy}
+        disabled={busy || offline}
         value={value}
         onChange={(event) => onValueChange(event.target.value)}
       />
@@ -70,6 +84,13 @@ export function UrlImportField({
         <p id={warningId} className={cx(styles.warning)} role="alert">
           <Trans id="import.url-unsupported">
             Hôte non supporté — YouTube ou SoundCloud uniquement
+          </Trans>
+        </p>
+      )}
+      {offline && (
+        <p id={offlineId} className={cx(styles.warning)}>
+          <Trans id="import.url-offline">
+            Hors ligne — l'import par lien nécessite le réseau.
           </Trans>
         </p>
       )}

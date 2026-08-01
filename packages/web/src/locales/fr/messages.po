@@ -779,6 +779,31 @@ msgid "header.unsaved"
 msgstr "● Non enregistré"
 
 #. js-lingui-explicit-id
+#: src/app/header/import-url-copy.ts
+msgid "import.url-error.extractor-stale"
+msgstr "Téléchargement impossible — l'outil de téléchargement se met à jour, réessayer plus tard."
+
+#. js-lingui-explicit-id
+#: src/app/header/import-url-copy.ts
+msgid "import.url-error.store-quota"
+msgstr "Stockage audio plein — supprimer des projets pour libérer de la place."
+
+#. js-lingui-explicit-id
+#: src/app/header/import-url-copy.ts
+msgid "import.url-error.timeout"
+msgstr "Le téléchargement a expiré — réessayer."
+
+#. js-lingui-explicit-id
+#: src/app/header/import-url-copy.ts
+msgid "import.url-error.unknown"
+msgstr "L'import du lien a échoué — réessayer."
+
+#. js-lingui-explicit-id
+#: src/app/header/import-url-copy.ts
+msgid "import.url-error.unsupported"
+msgstr "Source non prise en charge — YouTube ou SoundCloud uniquement."
+
+#. js-lingui-explicit-id
 #: src/app/ui/url-import-field/url-import-field.tsx
 msgid "import.url-field"
 msgstr "Lien du morceau"
@@ -787,6 +812,11 @@ msgstr "Lien du morceau"
 #: src/app/ui/url-import-field/url-import-field.tsx
 msgid "import.url-hint"
 msgstr "YouTube · SoundCloud"
+
+#. js-lingui-explicit-id
+#: src/app/ui/url-import-field/url-import-field.tsx
+msgid "import.url-offline"
+msgstr "Hors ligne — l'import par lien nécessite le réseau."
 
 #. js-lingui-explicit-id
 #: src/app/ui/url-import-field/url-import-field.tsx
@@ -1080,7 +1110,7 @@ msgstr "Confirmer l'ouverture de {name}"
 #. js-lingui-explicit-id
 #: src/projects/use-projects.ts
 msgid "projects.delete-failed"
-msgstr "Impossible de supprimer le projet : {error}"
+msgstr "Impossible de supprimer le projet : {reason}"
 
 #. js-lingui-explicit-id
 #: src/projects/projects-dialog/projects-dialog.tsx
@@ -1098,6 +1128,46 @@ msgid "projects.empty"
 msgstr "Aucun projet enregistré"
 
 #. js-lingui-explicit-id
+#: src/projects/project-error-copy.ts
+msgid "projects.error.empty-name"
+msgstr "le nom ne peut pas rester vide"
+
+#. js-lingui-explicit-id
+#: src/projects/project-error-copy.ts
+msgid "projects.error.missing-audio"
+msgstr "audio du projet introuvable"
+
+#. js-lingui-explicit-id
+#: src/projects/project-error-copy.ts
+msgid "projects.error.mixer-mismatch"
+msgstr "données de session incohérentes — réessayer"
+
+#. js-lingui-explicit-id
+#: src/projects/project-error-copy.ts
+msgid "projects.error.network"
+msgstr "serveur de projets injoignable — réessayer"
+
+#. js-lingui-explicit-id
+#: src/projects/project-error-copy.ts
+msgid "projects.error.not-found"
+msgstr "projet introuvable"
+
+#. js-lingui-explicit-id
+#: src/projects/project-error-copy.ts
+msgid "projects.error.server"
+msgstr "le serveur de projets a répondu une erreur — réessayer"
+
+#. js-lingui-explicit-id
+#: src/projects/project-error-copy.ts
+msgid "projects.error.unknown"
+msgstr "erreur inattendue — réessayer"
+
+#. js-lingui-explicit-id
+#: src/projects/project-error-copy.ts
+msgid "projects.error.unreadable"
+msgstr "données du projet illisibles"
+
+#. js-lingui-explicit-id
 #: src/projects/projects-dialog/projects-dialog.tsx
 msgid "projects.open"
 msgstr "Ouvrir"
@@ -1105,7 +1175,7 @@ msgstr "Ouvrir"
 #. js-lingui-explicit-id
 #: src/projects/use-projects.ts
 msgid "projects.open-failed"
-msgstr "Impossible d'ouvrir le projet : {error}"
+msgstr "Impossible d'ouvrir le projet : {reason}"
 
 #. js-lingui-explicit-id
 #: src/projects/projects-dialog/projects-dialog.tsx
@@ -1120,7 +1190,7 @@ msgstr "Renommer"
 #. js-lingui-explicit-id
 #: src/projects/use-projects.ts
 msgid "projects.rename-failed"
-msgstr "Impossible de renommer le projet : {error}"
+msgstr "Impossible de renommer le projet : {reason}"
 
 #. js-lingui-explicit-id
 #: src/projects/projects-dialog/projects-dialog.tsx
@@ -1135,7 +1205,7 @@ msgstr "Renommer le projet"
 #. js-lingui-explicit-id
 #: src/projects/use-projects.ts
 msgid "projects.save-failed"
-msgstr "Impossible d'enregistrer le projet : {error}"
+msgstr "Impossible d'enregistrer le projet : {reason}"
 
 #. js-lingui-explicit-id
 #: src/app/workstation-shell/shell-test-kit.tsx
@@ -1187,7 +1257,7 @@ msgstr "Erreur inattendue — réessayer."
 #. js-lingui-explicit-id
 #: src/app/separation/use-separation.ts
 msgid "separation.export-failed"
-msgstr "L'export a échoué : {error}"
+msgstr "L'export a échoué — réessayer."
 
 #. js-lingui-explicit-id
 #: src/app/analyser/detection-copy.ts

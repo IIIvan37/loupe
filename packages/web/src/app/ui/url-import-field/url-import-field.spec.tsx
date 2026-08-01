@@ -11,10 +11,12 @@ import { UrlImportField } from './url-import-field.tsx'
 /** A thin controlled host so the field behaves as it does in a real consumer. */
 function Host({
   onSubmit,
-  busy = false
+  busy = false,
+  offline = false
 }: {
   onSubmit: (url: string) => void
   busy?: boolean
+  offline?: boolean
 }) {
   const [value, setValue] = useState('')
   return (
@@ -23,16 +25,22 @@ function Host({
       onValueChange={setValue}
       onSubmit={onSubmit}
       busy={busy}
+      offline={offline}
     />
   )
 }
 
-function renderField(overrides: { busy?: boolean } = {}) {
+function renderField(overrides: { busy?: boolean; offline?: boolean } = {}) {
   const onSubmit = vi.fn()
   const user = userEvent.setup()
-  render(<Host onSubmit={onSubmit} busy={overrides.busy ?? false} />, {
-    wrapper: I18nTestingProvider
-  })
+  render(
+    <Host
+      onSubmit={onSubmit}
+      busy={overrides.busy ?? false}
+      offline={overrides.offline ?? false}
+    />,
+    { wrapper: I18nTestingProvider }
+  )
   const field = screen.getByLabelText(i18n._('import.url-field'))
   const submit = screen.getByRole('button', { name: i18n._('import.url-submit') })
   return { onSubmit, user, field, submit }
@@ -72,5 +80,16 @@ describe('UrlImportField', () => {
     const { field, submit } = renderField({ busy: true })
     expect(field).toBeDisabled()
     expect(submit).toBeDisabled()
+  })
+
+  it('gates the field offline with the shared grammar: disabled + hint', () => {
+    // AV.3 — same grammar as the gated analyses: the entry locks and says
+    // why, instead of failing after the fact with a raw server error.
+    const { field, submit } = renderField({ offline: true })
+    expect(field).toBeDisabled()
+    expect(submit).toBeDisabled()
+    const hint = screen.getByText(i18n._('import.url-offline'))
+    expect(hint).toBeInTheDocument()
+    expect(field).toHaveAccessibleDescription(i18n._('import.url-offline'))
   })
 })

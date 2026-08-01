@@ -13,11 +13,15 @@ interface HeaderProps {
   readonly artist: string
   /** Open the file picker. The smart shell owns the actual import. */
   readonly onImport: () => void
-  /** Start importing a track from a media URL. The shell owns the download.
-   * Absent in the browser — URL import is desktop-only. */
-  readonly onImportUrl?: ((url: string) => void) | undefined
-  /** Whether a URL download is in flight — the URL submit locks. */
-  readonly urlImportBusy?: boolean | undefined
+  /** The URL-import entry, as one surface: submit + its busy and offline
+   * gates (AV.3). Absent in the browser — URL import is desktop-only. */
+  readonly urlImport?:
+    | {
+        readonly submit: (url: string) => void
+        readonly busy: boolean
+        readonly offline: boolean
+      }
+    | undefined
   /** Ask before importing: the session holds work a new track would discard. */
   readonly importNeedsConfirm?: boolean | undefined
   /** Download the separated stems as one zip. The shell owns the export. */
@@ -153,8 +157,7 @@ export function Header({
   title,
   artist,
   onImport,
-  onImportUrl,
-  urlImportBusy,
+  urlImport,
   importNeedsConfirm,
   onExportStems,
   canExport,
@@ -225,8 +228,9 @@ export function Header({
         <Cluster gap="var(--space-2xs)" align="center">
           <ImportMenu
             onImportFile={onImport}
-            onImportUrl={onImportUrl}
-            urlBusy={urlImportBusy === true}
+            onImportUrl={urlImport?.submit}
+            urlBusy={urlImport?.busy === true}
+            urlOffline={urlImport?.offline === true}
             needsConfirm={importNeedsConfirm === true}
           />
           <button

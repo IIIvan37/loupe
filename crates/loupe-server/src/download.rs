@@ -6,7 +6,11 @@
 //!   -> 200 application/x-ndjson, streamed line by line:
 //!        {"type":"progress","phase":"downloading"|"transcoding","fraction":0..1}
 //!        {"type":"done","ref","title","duration"?,"uploader"?}   (last line)
-//!        {"type":"error","message"}                              (on failure)
+//!        {"type":"error","code","message"}                       (on failure)
+//!
+//! The error `code` (`unsupported` | `timeout` | `extractor-stale` |
+//! `store-quota` | `unknown`) is the UI contract (AV.1): the client maps it to
+//! translated copy and keeps `message` for the console.
 //! ```
 //!
 //! The engine is a seam (`DownloadEngine`) so tests drive the route with a
@@ -21,7 +25,7 @@ use axum::body::{Body, Bytes};
 use axum::extract::State;
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
-use loupe_download::{DownloadedTrack, ProgressFn};
+use loupe_download::{DownloadError, DownloadedTrack, ProgressFn};
 use std::future::Future;
 use std::path::PathBuf;
 use std::pin::Pin;
@@ -31,7 +35,7 @@ use tokio::sync::Notify;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tokio_stream::StreamExt;
 
-pub type TrackFuture = Pin<Box<dyn Future<Output = Result<DownloadedTrack, String>> + Send>>;
+pub type TrackFuture = Pin<Box<dyn Future<Output = Result<DownloadedTrack, DownloadError>> + Send>>;
 
 /// The download seam: same signature as `loupe_download::download_track`,
 /// object-safe so the route can be exercised with a fake engine.
@@ -75,6 +79,12 @@ impl Drop for CancelOnDrop {
 
 fn line(payload: serde_json::Value) -> String {
   format!("{payload}\n")
+}
+
+/// The NDJSON error line: the `code` is what the client's copy switches on,
+/// the raw English `message` is console-only material.
+fn error_line(code: &str, message: &str) -> serde_json::Value {
+  serde_json::json!({"type": "error", "code": code, "message": message})
 }
 
 fn send(events: &UnboundedSender<String>, payload: serde_json::Value) {
@@ -144,41 +154,36 @@ async fn run_download(
     )
   };
   match tokio::time::timeout(state.config.download_timeout, work).await {
-    Err(_) => send(
-      &events,
-      serde_json::json!({"type": "error", "message": "download timed out"}),
-    ),
+    Err(_) => send(&events, error_line("timeout", "download timed out")),
     Ok(None) => {}
-    Ok(Some(Err(message))) => send(
-      &events,
-      serde_json::json!({"type": "error", "message": message}),
-    ),
+    Ok(Some(Err(error))) => send(&events, error_line(error.code.as_str(), &error.message)),
     Ok(Some(Ok(track))) => match park(&state, &track).await {
       Ok(done) => send(&events, done),
-      Err(message) => send(
-        &events,
-        serde_json::json!({"type": "error", "message": message}),
-      ),
+      Err((code, message)) => send(&events, error_line(code, &message)),
     },
   }
 }
 
 /// Move the fetched file into the content-addressed store and build the
-/// `done` event; the per-download temp dir goes away either way.
-async fn park(state: &Arc<AppState>, track: &DownloadedTrack) -> Result<serde_json::Value, String> {
+/// `done` event; the per-download temp dir goes away either way. A failure is
+/// `(code, message)` — the store quota is the one case the user can act on.
+async fn park(
+  state: &Arc<AppState>,
+  track: &DownloadedTrack,
+) -> Result<serde_json::Value, (&'static str, String)> {
   let audio_path = state.config.data_dir.join(&track.relative_path);
   let temp_dir = audio_path.parent().map(PathBuf::from);
   let store = state.store.clone();
   let stored = tokio::task::spawn_blocking(move || {
-    let bytes =
-      std::fs::read(&audio_path).map_err(|e| format!("downloaded file unreadable: {e}"))?;
+    let bytes = std::fs::read(&audio_path)
+      .map_err(|e| ("unknown", format!("downloaded file unreadable: {e}")))?;
     store.store(&bytes).map_err(|error| match error {
-      StoreError::QuotaExceeded => QUOTA_MESSAGE.to_owned(),
-      StoreError::Io(message) => format!("audio store error: {message}"),
+      StoreError::QuotaExceeded => ("store-quota", QUOTA_MESSAGE.to_owned()),
+      StoreError::Io(message) => ("unknown", format!("audio store error: {message}")),
     })
   })
   .await
-  .map_err(|e| format!("audio store task failed: {e}"));
+  .map_err(|e| ("unknown", format!("audio store task failed: {e}")));
   if let Some(dir) = temp_dir {
     let _ = tokio::fs::remove_dir_all(dir).await;
   }

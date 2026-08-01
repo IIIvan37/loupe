@@ -39,7 +39,9 @@ async function* readNdjson<T>(
  * Consume a server's streamed NDJSON progress contract: forward each `progress`
  * event to `onProgress`, throw on an `error` event, and return the terminal
  * `done` event. Shared by the HTTP adapters (separation, download) whose streams
- * differ only in the payloads carried on those three event tags.
+ * differ only in the payloads carried on those three event tags. An adapter
+ * whose error line carries more than a message (the download's `code`, AV.1)
+ * passes `toError` to raise its port's typed error instead of a plain one.
  */
 export async function streamNdjson<
   E extends
@@ -48,14 +50,16 @@ export async function streamNdjson<
     | { readonly type: 'done' }
 >(
   body: ReadableStream<Uint8Array>,
-  onProgress: (event: Extract<E, { type: 'progress' }>) => void
+  onProgress: (event: Extract<E, { type: 'progress' }>) => void,
+  toError: (event: Extract<E, { type: 'error' }>) => Error = (event) =>
+    new Error(event.message)
 ): Promise<Extract<E, { type: 'done' }>> {
   let done: Extract<E, { type: 'done' }> | undefined
   for await (const event of readNdjson<E>(body)) {
     if (event.type === 'progress') {
       onProgress(event as Extract<E, { type: 'progress' }>)
     } else if (event.type === 'error') {
-      throw new Error((event as Extract<E, { type: 'error' }>).message)
+      throw toError(event as Extract<E, { type: 'error' }>)
     } else {
       done = event as Extract<E, { type: 'done' }>
     }

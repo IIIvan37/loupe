@@ -7,7 +7,7 @@ use axum::body::Body;
 use axum::extract::ConnectInfo;
 use axum::http::{Request, StatusCode};
 use http_body_util::BodyExt;
-use loupe_download::{DownloadedTrack, ProgressFn};
+use loupe_download::{DownloadError, DownloadErrorCode, DownloadedTrack, ProgressFn};
 use loupe_server::config::Config;
 use loupe_server::download::{DownloadEngine, TrackFuture};
 use std::net::SocketAddr;
@@ -35,7 +35,7 @@ struct InertEngine;
 
 impl DownloadEngine for InertEngine {
   fn download(&self, _: PathBuf, _: String, _: Arc<ProgressFn>, _: Arc<Notify>) -> TrackFuture {
-    Box::pin(async { Err("inert".to_owned()) })
+    Box::pin(async { Err(DownloadError::unknown("inert")) })
   }
 }
 
@@ -280,8 +280,9 @@ impl DownloadEngine for HappyEngine {
       on_progress("downloading", 0.5);
       let relative = "downloads/dl-test";
       let out_dir = data_dir.join(relative);
-      std::fs::create_dir_all(&out_dir).map_err(|e| e.to_string())?;
-      std::fs::write(out_dir.join("track.m4a"), b"fake-audio").map_err(|e| e.to_string())?;
+      std::fs::create_dir_all(&out_dir).map_err(|e| DownloadError::unknown(e.to_string()))?;
+      std::fs::write(out_dir.join("track.m4a"), b"fake-audio")
+        .map_err(|e| DownloadError::unknown(e.to_string()))?;
       on_progress("transcoding", 1.0);
       Ok(DownloadedTrack {
         relative_path: format!("{relative}/track.m4a"),
@@ -297,7 +298,12 @@ struct FailingEngine;
 
 impl DownloadEngine for FailingEngine {
   fn download(&self, _: PathBuf, url: String, _: Arc<ProgressFn>, _: Arc<Notify>) -> TrackFuture {
-    Box::pin(async move { Err(format!("unsupported source URL: {url}")) })
+    Box::pin(async move {
+      Err(DownloadError::new(
+        DownloadErrorCode::Unsupported,
+        format!("unsupported source URL: {url}"),
+      ))
+    })
   }
 }
 
@@ -307,7 +313,7 @@ impl DownloadEngine for StuckEngine {
   fn download(&self, _: PathBuf, _: String, _: Arc<ProgressFn>, _: Arc<Notify>) -> TrackFuture {
     Box::pin(async {
       tokio::time::sleep(Duration::from_secs(3600)).await;
-      Err("unreachable".to_owned())
+      Err(DownloadError::unknown("unreachable"))
     })
   }
 }
@@ -382,6 +388,8 @@ async fn download_surfaces_engine_failures_as_an_ndjson_error_line() {
   let lines = ndjson_lines(response).await;
   assert_eq!(lines.len(), 1);
   assert_eq!(lines[0]["type"], "error");
+  // The code is the UI contract (AV.1); the raw message stays console-bound.
+  assert_eq!(lines[0]["code"], "unsupported");
   assert!(lines[0]["message"]
     .as_str()
     .unwrap()
@@ -401,8 +409,27 @@ async fn download_times_out_on_a_wedged_engine() {
   let lines = ndjson_lines(response).await;
   assert_eq!(
     lines[0],
-    serde_json::json!({"type": "error", "message": "download timed out"})
+    serde_json::json!({"type": "error", "code": "timeout", "message": "download timed out"})
   );
+}
+
+#[tokio::test]
+async fn download_reports_a_full_audio_store_as_the_store_quota_code() {
+  let dir = tempfile::tempdir().unwrap();
+  let mut config = test_config(dir.path());
+  // Smaller than the fake track's bytes: parking the download must trip the
+  // store quota, and the client copy switches on the code, not the message.
+  config.max_audio_store_bytes = 4;
+  let application = loupe_server::build_app(config, Arc::new(HappyEngine));
+  let response = application
+    .oneshot(download_request("https://youtube.com/watch?v=x"))
+    .await
+    .unwrap();
+  let lines = ndjson_lines(response).await;
+  let error = lines.last().unwrap();
+  assert_eq!(error["type"], "error");
+  assert_eq!(error["code"], "store-quota");
+  assert!(error["message"].as_str().unwrap().contains("quota"));
 }
 
 #[tokio::test]
