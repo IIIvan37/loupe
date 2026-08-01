@@ -44,6 +44,11 @@ Lancer `loupe` : le navigateur s'ouvre sur `http://127.0.0.1:6173`.
 version plus récente si elle existe (pas d'auto-update ; opt-out :
 `LOUPE_NO_VERSION_CHECK=1`).
 
+Fermer le dernier onglet suffit : quelques minutes après, `loupe` s'arrête
+tout seul (jamais pendant un téléchargement en cours). `Ctrl-C` dans le
+terminal l'arrête immédiatement ; `--no-auto-exit` le laisse tourner sans
+onglet.
+
 ## Importer un morceau
 
 - **Fichier** : glisser un fichier audio sur la fenêtre, ou « Importer →
