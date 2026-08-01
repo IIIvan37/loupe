@@ -78,7 +78,7 @@ export function ShellHeader({
 
   // A running URL download narrates itself in the busy line, phase by phase
   // — the percentage rides the progress bar, not the copy (R.4).
-  let downloadBusy: { label: string; progress?: number } | undefined
+  let downloadBusy: { label: string; progress?: number | undefined } | undefined
   if (urlImport.progress !== undefined) {
     downloadBusy =
       urlImport.progress.phase === 'downloading'

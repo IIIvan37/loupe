@@ -35,8 +35,13 @@ export interface SeparationFailure {
  */
 export interface SeparationState {
   readonly status: SeparationStatus
-  /** Completion of the running phase in [0, 1]; 1 once ready. */
-  readonly progress: number
+  /**
+   * Completion of the running phase in [0, 1]; 1 once ready. Absent until the
+   * engine reports a first real tick — a run spends long stretches (token
+   * mint, cold start, the mix upload) before any fraction exists, and `0`
+   * there would dress dead waiting as measured progress (AS.1).
+   */
+  readonly progress: number | undefined
   readonly stems: StemSet
   readonly error: SeparationFailure | undefined
 }
@@ -58,7 +63,7 @@ export type SeparationAction =
 
 export const initialSeparation: SeparationState = {
   status: 'idle',
-  progress: 0,
+  progress: undefined,
   stems: [],
   error: undefined
 }
@@ -81,7 +86,13 @@ export function separationReducer(
   switch (action.type) {
     case 'start':
       // A fresh run drops any prior result so a re-separation starts clean.
-      return { status: 'analysing', progress: 0, stems: [], error: undefined }
+      // Progress stays unknown until the engine's first tick (indeterminate bar).
+      return {
+        status: 'analysing',
+        progress: undefined,
+        stems: [],
+        error: undefined
+      }
     case 'progress':
       return {
         ...state,

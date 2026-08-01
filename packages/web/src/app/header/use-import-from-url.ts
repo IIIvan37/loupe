@@ -8,10 +8,21 @@ import { useMemo, useRef, useState } from 'react'
 import { createTrackSource } from '../../audio/create-track-source.ts'
 import { useAudioSession } from '../audio-session/audio-session.ts'
 
+/**
+ * Download progress as the header renders it: the phase is known from the
+ * submit on, the fraction only once the source streams a real tick — the
+ * first-use yt-dlp bootstrap can run minutes before any byte moves, and a
+ * `0%` posed at submit would dress that wait as measured progress (AS.1).
+ */
+export interface UrlImportProgress {
+  readonly phase: DownloadProgress['phase']
+  readonly fraction: number | undefined
+}
+
 /** What the header needs to drive the URL-import surface. */
 export interface UrlImport {
   /** Live download progress while a fetch runs, else undefined. */
-  readonly progress: DownloadProgress | undefined
+  readonly progress: UrlImportProgress | undefined
   /** The last failure, until dismissed or a new run starts. */
   readonly error: string | undefined
   /** Whether a download is in flight — the field and submit lock. */
@@ -38,7 +49,7 @@ export function useImportFromUrl(
   const session = useAudioSession()
   const injected = source ?? session.trackSource
   const trackSource = useMemo(() => injected ?? createTrackSource(), [injected])
-  const [progress, setProgress] = useState<DownloadProgress | undefined>(
+  const [progress, setProgress] = useState<UrlImportProgress | undefined>(
     undefined
   )
   const [error, setError] = useState<string | undefined>(undefined)
@@ -55,7 +66,8 @@ export function useImportFromUrl(
     controllerRef.current = controller
     setRunning(true)
     setError(undefined)
-    setProgress({ phase: 'downloading', fraction: 0 })
+    // Phase known, fraction not: the bar stays indeterminate until a real tick.
+    setProgress({ phase: 'downloading', fraction: undefined })
     void importFromUrl(
       { url },
       {

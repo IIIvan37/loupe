@@ -20,13 +20,15 @@ describe('separationReducer', () => {
   it('is idle, empty and unprogressed before any separation', () => {
     expect(initialSeparation).toEqual({
       status: 'idle',
-      progress: 0,
+      progress: undefined,
       stems: [],
       error: undefined
     })
   })
 
-  it('starts in the analysing phase, cleared of any prior result', () => {
+  it('starts with progress unknown, cleared of any prior result', () => {
+    // No fraction until the engine reports one: the bar must stay indeterminate
+    // through mint, cold start and upload — `0%` there is a lie.
     const prior: SeparationState = {
       status: 'error',
       progress: 0.4,
@@ -35,7 +37,7 @@ describe('separationReducer', () => {
     }
     expect(separationReducer(prior, { type: 'start' })).toEqual({
       status: 'analysing',
-      progress: 0,
+      progress: undefined,
       stems: [],
       error: undefined
     })
