@@ -64,6 +64,7 @@ pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
 
   Router::new()
     .route("/health", get(health))
+    .route("/version", get(version))
     .route(
       "/audio",
       post(upload_audio).layer(DefaultBodyLimit::max(
@@ -108,6 +109,12 @@ pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
 /// stack, so the separation fields are always null (analyses run on Modal).
 async fn health() -> Json<serde_json::Value> {
   Json(serde_json::json!({"status": "ok", "model": null, "device": null}))
+}
+
+/// The binary's own version, so the web app can put it in bug reports —
+/// kept out of `/health`, whose shape is frozen by the Python parity.
+async fn version() -> Json<serde_json::Value> {
+  Json(serde_json::json!({"version": env!("CARGO_PKG_VERSION")}))
 }
 
 async fn upload_audio(

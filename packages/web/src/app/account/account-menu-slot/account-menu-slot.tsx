@@ -4,6 +4,7 @@ import { useLingui } from '@lingui/react/macro'
 import { useState } from 'react'
 import type { AuthPort, MintFailureReason } from '../../../auth/auth-port.ts'
 import { AccountMenu } from '../account-menu/account-menu.tsx'
+import { useBinaryVersion } from '../use-binary-version.ts'
 
 /** Each blocked-analysis reason mapped to its account-menu prompt — a
  * module-level `msg` map so the extractor sees the ids (a `t` passed as a
@@ -52,6 +53,7 @@ export function AccountMenuSlot({
 }) {
   const { t } = useLingui()
   const [open, setOpen] = useState(false)
+  const version = useBinaryVersion()
   // What the open notice speaks for — the flow whose fresh reason opened the
   // menu last. It only shows while that reason is still current (the owning
   // hook clears it on the next run), mirroring the pre-M1.1 behaviour.
@@ -82,6 +84,7 @@ export function AccountMenuSlot({
       onOpenChange={setOpen}
       notice={notice}
       onSignedIn={onResumeAfterSignIn}
+      version={version}
     />
   )
 }

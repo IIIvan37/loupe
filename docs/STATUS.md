@@ -8,29 +8,29 @@
 
 ## Where we are
 
-**Cap distribution acté (2026-07-26), SOLDÉ** : loupe se distribue en
-**serveur local + navigateur** — **release v0.1.0 publiée (2026-07-31)** :
-3 binaires + tap `iiivan37/loupe`, `brew install` vérifié
-([archive/distribution-plan.md](archive/distribution-plan.md) ; D1–D6 #275–#285).
-Le shell **Tauri est
-retiré** (PR #327) et le **serveur est unique** (étape « serveur unique »,
-livrée par PR #328) : le binaire `loupe` est le seul livrable, `server/` =
-la bibliothèque d'analyse Modal + son harnais dev/CI (`pnpm dev:analysis`),
-parité des origins verrouillée par `docs/origins-parity.spec.ts`
-(plan soldé : [archive/serveur-unique-plan.md](archive/serveur-unique-plan.md)).
+**Cap distribution SOLDÉ (2026-07-26 → 07-31)** : loupe se distribue en
+**serveur local + navigateur** — release v0.1.0, 3 binaires + tap
+`iiivan37/loupe`, `brew install` vérifié
+([archive/distribution-plan.md](archive/distribution-plan.md)). Tauri retiré
+(#327), serveur unique (#328) : le binaire `loupe` est le seul livrable,
+`server/` = la bibliothèque d'analyse Modal + harnais dev/CI, parité des
+origins verrouillée (`docs/origins-parity.spec.ts` ;
+[archive/serveur-unique-plan.md](archive/serveur-unique-plan.md)).
 **Roadmap v7 soldée** ; **Lot TS clos**. Nursery à dessein :
 `detect-chords`, `bass-line` ; `timecode` attend un second consommateur.
-Rappels vivants : filtre Base UI à retirer au prochain bump (PR #319) ;
-ne jamais dériver un hook à effet de montage, seul le seam `mixer: Mixer`
-reste en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–
-[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
+Rappels vivants : filtre Base UI à retirer au prochain bump (#319) ; jamais
+de hook à effet de montage, seul le seam `mixer: Mixer` reste en prop
+([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (release v0.1.0 +
-[guide utilisateur](guide-utilisateur.md) + code beta). Pipeline release
-réparé de bout en bout (bit exécutable #330, PAT du tap re-scopé — expire
-2026-08-31). **Revue excellence 8 (2026-08-01, ~17,1/20)** :
-[roadmap-excellence-8.md](roadmap-excellence-8.md), Lots AR→AX — **AR
-d'abord** (bloquant beta). En parallèle : accompagner les retours des
-testeurs ; v0.2 = bump `Cargo.toml` + tag.
+[guide utilisateur](guide-utilisateur.md) + code beta ; pipeline release
+réparé, PAT du tap expire 2026-08-31). **Revue excellence 8 (2026-08-01,
+~17,1/20)** : [roadmap-excellence-8.md](roadmap-excellence-8.md), Lots
+AR→AX. **Lot AR soldé** (livré par PR #332) : Gatekeeper re-validé
+(`xattr -d` en voie primaire, brew canal principal macOS), canal de retour
+ouvert (docs + « Signaler un problème » au menu compte, version via
+`GET /version`), guide aligné (`127.0.0.1:6173`, `SHA256SUMS`). Prochain :
+**Lot AS** (signal terrain). En parallèle : retours testeurs ; v0.2 = bump
+`Cargo.toml` + tag (sert `/version` au lien de signalement).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 

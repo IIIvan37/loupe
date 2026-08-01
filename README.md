@@ -14,6 +14,10 @@ core**, **strict TDD**, and a **blocking quality gate**.
 **User guide (features, install, shortcuts — in French):**
 [docs/guide-utilisateur.md](docs/guide-utilisateur.md)
 
+**Found a bug during the beta?**
+[Open an issue](https://github.com/IIIvan37/loupe/issues/new) with your OS,
+the version (`loupe --version`) and what you were doing.
+
 ## Architecture
 
 - **`@app/core`** — the pure hexagon. `src/domain` (model) + `src/application`

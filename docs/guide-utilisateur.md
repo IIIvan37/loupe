@@ -8,22 +8,37 @@ grille d'accords — pour le déchiffrer et le répéter.
 
 ## Installer et lancer
 
-Télécharger l'archive de son OS depuis la
+**macOS/Linux — Homebrew (recommandé)** : aucun déblocage nécessaire,
+Homebrew ne pose pas de quarantaine.
+
+```sh
+brew trust iiivan37/loupe
+brew tap iiivan37/loupe && brew install loupe
+```
+
+**Téléchargement direct** : télécharger l'archive de son OS depuis la
 [dernière release](https://github.com/IIIvan37/loupe/releases/latest),
-extraire, lancer :
+vérifier son intégrité (le fichier `SHA256SUMS` est publié avec chaque
+release) :
+
+```sh
+shasum -a 256 -c SHA256SUMS --ignore-missing
+```
+
+puis extraire et lancer :
 
 - **macOS (Apple Silicon)** : `loupe-vX.Y.Z-aarch64-apple-darwin.tar.gz`.
-  Le binaire n'est pas signé : au premier lancement, clic droit → Ouvrir
-  (ou `xattr -d com.apple.quarantine loupe`).
+  Le binaire n'est pas signé : macOS le bloque au premier lancement, sans
+  message quand il est lancé du terminal (« clic droit → Ouvrir » ne suffit
+  plus depuis macOS 15). Lever la quarantaine avant de lancer :
+  `xattr -d com.apple.quarantine loupe` — ou, après un premier blocage,
+  Réglages Système → Confidentialité et sécurité → « Ouvrir quand même ».
 - **Linux (x64)** : `loupe-vX.Y.Z-x86_64-unknown-linux-gnu.tar.gz`, puis
   `./loupe`.
 - **Windows (x64)** : le `.zip`, puis `loupe.exe` (SmartScreen :
   « Informations complémentaires → Exécuter quand même »).
 
-Alternative Homebrew (macOS/Linux) : `brew trust iiivan37/loupe &&
-brew tap iiivan37/loupe && brew install loupe`.
-
-Lancer `loupe` : le navigateur s'ouvre sur `http://localhost:6173`.
+Lancer `loupe` : le navigateur s'ouvre sur `http://127.0.0.1:6173`.
 `loupe --port <n>` change le port, `--no-browser` n'ouvre rien. Les données
 (projets, audio) vivent dans `~/.loupe`. Au démarrage, une ligne signale une
 version plus récente si elle existe (pas d'auto-update ; opt-out :
@@ -127,3 +142,14 @@ L'essentiel :
 | T | Tap tempo |
 | M / Shift+M | Repère / repère de section |
 | Cmd/Ctrl+S | Enregistrer le projet |
+
+## Un problème ?
+
+Un bug, un blocage, une question — chaque retour compte pendant la beta :
+
+- **[Ouvrir une issue GitHub](https://github.com/IIIvan37/loupe/issues/new)**
+  (ou « Signaler un problème » dans le menu compte de l'app, qui pré-remplit
+  la version), ou par mail :
+  [ivan.duchauffour@gmail.com](mailto:ivan.duchauffour@gmail.com).
+- Préciser l'OS, la version (`loupe --version`) et ce qui était en cours
+  (import, analyse, lecture…).
