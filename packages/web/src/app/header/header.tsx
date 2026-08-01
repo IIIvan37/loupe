@@ -7,6 +7,7 @@ import { NameEditor } from '../ui/name-editor/name-editor.tsx'
 import { OperationStatus } from '../ui/operation-status/operation-status.tsx'
 import styles from './header.module.css'
 import { ImportMenu } from './import-menu/import-menu.tsx'
+import { LogoWordmark } from './logo-wordmark.tsx'
 
 interface HeaderProps {
   readonly title: string
@@ -185,7 +186,7 @@ export function Header({
   return (
     <header className={styles.header}>
       <Cluster gap="var(--space-l)" align="center">
-        <span className={styles.logo}>Loupe</span>
+        <LogoWordmark />
         <div className={styles.track}>
           <p className={styles.title}>{title}</p>
           <p className={styles.artist}>{artist}</p>

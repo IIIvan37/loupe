@@ -1,0 +1,20 @@
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-logo);
+  font-weight: 700;
+  font-size: var(--font-size-l);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+/* The ring stands in for the « o »: sized to the lowercase body, nudged onto
+   the text baseline. The amber is the app's own semantic — the active loop. */
+.ring {
+  block-size: 0.82em;
+  inline-size: auto;
+  margin-inline: 0.05em;
+  position: relative;
+  inset-block-start: 0.05em;
+  color: var(--amber);
+}

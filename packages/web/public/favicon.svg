@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- The A→B loop ring — Loupe's mark. Amber for dark browser chrome; the
+       deeper amber takes over when the tab strip is light. -->
+  <style>
+    .mark { stroke: #e5a53d; fill: none; }
+    .tip { fill: #e5a53d; }
+    @media (prefers-color-scheme: light) {
+      .mark { stroke: #b07d23; }
+      .tip { fill: #b07d23; }
+    }
+  </style>
+  <path class="mark" d="M 43.47 15.62 A 20 20 0 1 1 20.53 15.62" stroke-width="9" stroke-linecap="round"/>
+  <polygon class="tip" points="27.9,10.2 23.4,21.6 15.9,10.9"/>
+</svg>

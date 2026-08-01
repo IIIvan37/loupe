@@ -2,6 +2,7 @@ import { isSupportedSourceUrl } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
 import { type ClipboardEvent, type ReactNode, useRef, useState } from 'react'
 import { cx } from '../../../../lib/cx.ts'
+import { LoopMark } from '../../../ui/loop-mark.tsx'
 import { UrlImportField } from '../../../ui/url-import-field/url-import-field.tsx'
 import styles from './empty-state.module.css'
 
@@ -101,9 +102,7 @@ export function EmptyState({
           keyboard-driven convenience layered over the always-available field
           below — not the primary, accessible import path. */}
       <div className={cx(styles.hero)} onPaste={onHeroPaste}>
-        <p className={cx(styles.badge)} aria-hidden="true">
-          ⬓
-        </p>
+        <LoopMark className={cx(styles.badge)} />
         <h2 id="empty-headline" className={cx(styles.headline)}>
           <Trans id="empty.headline">Glisser un fichier audio ici</Trans>
         </h2>

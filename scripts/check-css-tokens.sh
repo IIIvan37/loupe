@@ -29,6 +29,36 @@ if [ -n "$drift" ]; then
   printf '%s\n' "$drift" >&2
   exit 1
 fi
+# AX.3 — the other three token classes, same rule as font-size: a literal in a
+# module is drift off the scale in tokens.css. Exemptions are named here, as
+# code, so the reasoning travels with the repo.
+# 1) Colors: every hex / rgb()/rgba() belongs to the palette in tokens.css.
+color_drift=$(grep -rnE '(#[0-9a-fA-F]{3,8}\b|rgba?\()' --include='*.css' "$src" | grep -v 'styles/tokens.css' || true)
+if [ -n "$color_drift" ]; then
+  echo "color literals outside tokens.css (use a palette token):" >&2
+  printf '%s\n' "$color_drift" >&2
+  exit 1
+fi
+# 2) Stacking: a numeric z-index outside the --z-* scale fights by accident.
+z_drift=$(grep -rnE 'z-index:[[:space:]]*-?[0-9]' --include='*.css' "$src" | grep -v 'styles/tokens.css' || true)
+if [ -n "$z_drift" ]; then
+  echo "numeric z-index outside tokens.css (use a --z-* token):" >&2
+  printf '%s\n' "$z_drift" >&2
+  exit 1
+fi
+# 3) Motion: durations belong to the --motion-* scale. Exempt: the ambient
+# `play-breathe` halo (2.2s loop) and the one-shot `snap-flash` (450ms) sit
+# off the micro-transition scale on purpose; global.css only neutralises
+# motion under prefers-reduced-motion (0.01ms).
+motion_drift=$(grep -rnE '(transition|animation)[^;]*[0-9]+m?s' --include='*.css' "$src" \
+  | grep -v 'styles/tokens.css' | grep -v 'styles/global.css' \
+  | grep -vE 'play-breathe|snap-flash' || true)
+if [ -n "$motion_drift" ]; then
+  echo "duration literals outside tokens.css (use a --motion-* token):" >&2
+  printf '%s\n' "$motion_drift" >&2
+  exit 1
+fi
+
 # CSS-module classes referenced from TS/TSX must exist in the imported file —
 # `styles.missing` silently renders className={undefined} (no error anywhere).
 # Import lines are excluded from the usage scan: `from './x.module.css'` would
@@ -54,4 +84,4 @@ if [ -n "$missing_classes" ]; then
   exit 1
 fi
 
-echo "check:tokens ok — every var(--…) defined, no font-size drift, no ghost class"
+echo "check:tokens ok — every var(--…) defined, no font-size/color/z-index/duration drift, no ghost class"

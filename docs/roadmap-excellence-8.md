@@ -227,7 +227,7 @@ de `undefined`, alors qu'`OperationStatus` sait déjà rendre l'indéterminé.*
 - [x] AU.1 · [x] AU.2 · [x] AU.3 — livré par PR #337
 - [x] AV.1 · [x] AV.2 · [x] AV.3 — livré par PR #338
 - [x] AW.1 · [x] AW.2 · [x] AW.3 — livré par PR #339
-- [ ] AX.1 · [ ] AX.2 · [ ] AX.3
+- [x] AX.1 · [x] AX.2 · [x] AX.3 — livré par PR #340
 
 ## Déjà-tranchés (10, écartés)
 

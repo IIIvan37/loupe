@@ -8,14 +8,20 @@
 }
 
 /* A landed analysis keeps a face instead of vanishing — the row's footprint
-   stays stable (teal = what the machine produced). The check mark is
-   presentation, so it lives here, out of the accessible text. */
+   stays stable (teal = what the machine produced). The check is the drawn
+   Icon vocabulary (AX.2 — no text glyph), decorative beside the text. */
 .done {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
   margin: 0;
   color: var(--teal);
   font-size: var(--font-size-s);
 }
 
-.done::before {
-  content: '✓ ';
+/* Sized to the text it confirms, not the Icon default (1.5em is the button
+   scale). */
+.doneIcon {
+  inline-size: 1em;
+  block-size: 1em;
 }

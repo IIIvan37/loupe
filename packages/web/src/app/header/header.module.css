@@ -6,13 +6,6 @@
   border-block-end: 1px solid var(--line);
 }
 
-.logo {
-  font-family: var(--font-logo);
-  font-weight: 500;
-  font-size: var(--font-size-l);
-  letter-spacing: 0.02em;
-}
-
 .track {
   display: flex;
   flex-direction: column;
