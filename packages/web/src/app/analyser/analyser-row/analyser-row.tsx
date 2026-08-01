@@ -246,6 +246,10 @@ function TempoItem({
     id: 'analyser.tempo-detecting',
     message: 'Analyse du tempo…'
   })
+  // The R.3 narration on the tempo too (AU.3): the tempo is the journey's
+  // FIRST analysis — no warmup preceded it, so its indeterminate bar can sit
+  // ~50 s on a cold engine. After ~4 s the wait reads as a start-up, not a hang.
+  const coldStart = tempo.offloaded ? t(ANALYSIS_COLD_START) : undefined
   if (tempo.error !== undefined) {
     const errorCopy = errorCopyFor(
       tempo.error,
@@ -257,7 +261,11 @@ function TempoItem({
           label={t({ id: 'tempo.retry', message: 'Réessayer' })}
           runningLabel={runningLabel}
           running={tempo.detecting}
-          progress={{ onCancel: tempo.onCancel }}
+          progress={{
+            onCancel: tempo.onCancel,
+            detail: coldStart,
+            detailAfterMs: 4000
+          }}
           errorLine={t(errorCopy)}
           onRun={tempo.onRetry}
         />
@@ -267,7 +275,12 @@ function TempoItem({
   if (tempo.detecting) {
     return (
       <div className={styles.item}>
-        <OperationStatus label={runningLabel} onCancel={tempo.onCancel} />
+        <OperationStatus
+          label={runningLabel}
+          onCancel={tempo.onCancel}
+          detail={coldStart}
+          detailAfterMs={4000}
+        />
       </div>
     )
   }
