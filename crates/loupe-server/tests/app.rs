@@ -261,6 +261,71 @@ async fn unknown_paths_fall_through_to_a_web_404() {
     .await
     .unwrap();
   assert_eq!(response.status(), StatusCode::NOT_FOUND);
+  // Even the 404 refuses sniffing — no static response is ever a guess.
+  assert_eq!(response.headers()["x-content-type-options"], "nosniff");
+}
+
+/// The AC.2 CSP reborn as a real header (it died with Tauri): every source
+/// locked to 'self', connect-src bounded to the backends the app actually
+/// calls — its own origin, loopback harnesses, Modal (analyses), Supabase
+/// (auth). Pinned verbatim: a loosened directive must show up in review.
+const PINNED_CSP: &str = "default-src 'self'; script-src 'self'; \
+connect-src 'self' http://localhost:* http://127.0.0.1:* \
+https://*.modal.run https://*.supabase.co; \
+img-src 'self' blob: data:; media-src 'self' blob:; \
+style-src 'self' 'unsafe-inline'; font-src 'self' data:; \
+worker-src 'self' blob:; object-src 'none'; base-uri 'self'; \
+frame-src 'none'; frame-ancestors 'none'";
+
+#[test]
+fn static_index_pins_csp_nosniff_and_no_cache() {
+  // web_dist/ is empty in dev/CI, so the header contract is pinned on the
+  // response builder the fallback uses for every embedded file.
+  let response = loupe_server::static_web::respond("index.html", Body::from("<!doctype html>"));
+  assert_eq!(response.headers()["content-type"], "text/html");
+  assert_eq!(response.headers()["content-security-policy"], PINNED_CSP);
+  assert_eq!(response.headers()["x-content-type-options"], "nosniff");
+  // A stale index.html would keep naming asset hashes a binary update
+  // removed — the document itself is always revalidated.
+  assert_eq!(response.headers()["cache-control"], "no-cache");
+}
+
+#[test]
+fn static_hashed_assets_are_immutable_and_the_rest_revalidates() {
+  // Vite fingerprints everything under assets/ — the name changes when the
+  // bytes do, so a year of immutable is safe.
+  let response = loupe_server::static_web::respond("assets/index-B3aPq7.js", Body::empty());
+  assert_eq!(
+    response.headers()["cache-control"],
+    "public, max-age=31536000, immutable"
+  );
+  assert_eq!(response.headers()["content-security-policy"], PINNED_CSP);
+  assert_eq!(response.headers()["x-content-type-options"], "nosniff");
+
+  // A root-level file (favicon, manifest) is not fingerprinted: revalidate.
+  let response = loupe_server::static_web::respond("icon.svg", Body::empty());
+  assert_eq!(response.headers()["cache-control"], "no-cache");
+}
+
+#[cfg(unix)]
+#[test]
+fn data_dir_is_made_private_at_boot() {
+  use std::os::unix::fs::PermissionsExt;
+  let mode = |path: &Path| std::fs::metadata(path).unwrap().permissions().mode() & 0o777;
+  let dir = tempfile::tempdir().unwrap();
+
+  // Fresh install: the storage root is born private.
+  let mut config = test_config(&dir.path().join("fresh"));
+  loupe_server::ensure_private_data_dir(&config).unwrap();
+  assert_eq!(mode(&config.data_dir), 0o700);
+
+  // Wheel-era install: an existing default-umask data dir is tightened.
+  let legacy = dir.path().join("legacy");
+  std::fs::create_dir_all(&legacy).unwrap();
+  std::fs::set_permissions(&legacy, std::fs::Permissions::from_mode(0o755)).unwrap();
+  config.data_dir = legacy.clone();
+  loupe_server::ensure_private_data_dir(&config).unwrap();
+  assert_eq!(mode(&legacy), 0o700);
 }
 
 /// The happy-path engine: streams progress, writes the file where the real

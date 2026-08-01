@@ -124,6 +124,12 @@ async fn main() -> ExitCode {
   };
 
   let config = Config::from_env();
+  // Privacy before first write (AW.2): the storage root and everything under
+  // it belong to this user alone. Non-fatal — an exotic filesystem without
+  // chmod must not keep the workshop from serving.
+  if let Err(error) = loupe_server::ensure_private_data_dir(&config) {
+    eprintln!("loupe : permissions du dossier de données non resserrées ({error})");
+  }
   spawn_version_check();
   // Boot backstop for temp dirs a hard kill left behind (D2 parity) — the
   // engine also sweeps before each download.
