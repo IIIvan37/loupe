@@ -327,14 +327,19 @@ export function AccountMenu({
               </div>
             )}
 
-            <a
-              className={styles.reportIssue}
-              href={reportIssueUrl(version)}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Trans id="account.report-issue">Signaler un problème</Trans>
-            </a>
+            <div className={styles.footer}>
+              <a
+                className={styles.reportIssue}
+                href={reportIssueUrl(version)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Trans id="account.report-issue">Signaler un problème</Trans>
+              </a>
+              {version !== undefined && (
+                <span className={styles.version}>loupe {version}</span>
+              )}
+            </div>
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>

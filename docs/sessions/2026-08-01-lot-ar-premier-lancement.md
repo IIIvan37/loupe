@@ -22,7 +22,10 @@
   par la parité Python) → hook `useBinaryVersion` (fetch same-origin en shell
   serveur uniquement, silencieusement absent en dev navigateur ou face à un
   vieux binaire) → helper pur `reportIssueUrl` (repli : le corps pré-rempli
-  demande la sortie de `loupe --version`).
+  demande la sortie de `loupe --version`). Sur suggestion opérateur en cours
+  de lot : la version est aussi **affichée** dans le pied du popup
+  (« loupe 0.1.0 », mono/dim comme le chip quota) — lisible même quand le
+  retour part par mail.
 - **AR.3 — Le guide dit ce que le binaire fait.** `http://127.0.0.1:6173`
   (IPv4-only, `localhost` → ::1 refusé sur Windows) dans guide + notes ;
   étape « vérifier l'archive » (`shasum -a 256 -c SHA256SUMS

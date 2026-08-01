@@ -366,4 +366,15 @@ describe('AccountMenu', () => {
       expect.stringContaining(encodeURIComponent('loupe 0.1.0'))
     )
   })
+
+  it('shows the binary version in the popup footer when known', async () => {
+    renderMenu(fakeAuth(), undefined, undefined, '0.1.0')
+    expect(await screen.findByText('loupe 0.1.0')).toBeInTheDocument()
+  })
+
+  it('shows no version line when the shell does not know it', async () => {
+    renderMenu(fakeAuth())
+    await screen.findByRole('link', { name: i18n._('account.report-issue') })
+    expect(screen.queryByText(/^loupe /)).not.toBeInTheDocument()
+  })
 })

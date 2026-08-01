@@ -78,11 +78,26 @@
   color: var(--text);
 }
 
-/* The beta feedback escape (AR.2): a quiet footer link, offered signed in or
-   not — a stuck tester must always see a way to report. */
+/* The beta feedback footer (AR.2): the report link — offered signed in or
+   not, a stuck tester must always see a way to report — and the binary
+   version, readable even when the report goes out by mail. */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-s);
+  margin-block-start: var(--space-2xs);
+}
+
 .reportIssue {
   composes: requestAccess;
-  margin-block-start: var(--space-2xs);
+}
+
+/* Mono like the quota chip — the "what the machine counted" semantic. */
+.version {
+  color: var(--dim);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
 }
 
 /* The « link sent » confirmation: the two hint lines + the resend / change-email
