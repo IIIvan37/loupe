@@ -13,9 +13,10 @@ import styles from './account-menu.module.css'
 const RESEND_COOLDOWN_SECONDS = 30
 
 /** Where a code-less user asks for beta access (AK.4): a pre-filled mail rather
- * than a dead end when the redeem form can't be used. */
+ * than a dead end when the redeem form can't be used. Dedicated alias — the
+ * maintainer's personal address never ships in the app. */
 const BETA_ACCESS_MAILTO =
-  'mailto:ivan.duchauffour@gmail.com?subject=Demande%20d%27acc%C3%A8s%20beta%20loupe'
+  'mailto:loupe.beta@icloud.com?subject=Demande%20d%27acc%C3%A8s%20beta%20loupe'
 
 interface AccountMenuProps {
   readonly auth: AuthPort
