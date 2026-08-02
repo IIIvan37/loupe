@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@babel/core": "^8.0.1",
-    "@biomejs/biome": "^2.5.5",
+    "@biomejs/biome": "^2.5.6",
     "@commitlint/cli": "^21.1.0",
     "@commitlint/config-conventional": "^21.1.0",
     "@lingui/babel-plugin-lingui-macro": "^6.6.0",
@@ -53,7 +53,7 @@
     "fast-check": "^4.8.0",
     "github-actionlint": "^1.7.12",
     "husky": "^9.1.7",
-    "impeccable": "^3.4.0",
+    "impeccable": "^3.5.0",
     "jscpd": "^5.0.14",
     "knip": "^6.29.0",
     "react-doctor": "^0.9.2",
