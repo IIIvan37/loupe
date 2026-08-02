@@ -20,19 +20,19 @@ verrouillée ([archive/distribution-plan.md](archive/distribution-plan.md),
 le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (release v0.1.0 +
 [guide utilisateur](guide-utilisateur.md) + code beta).
-**[Roadmap excellence 8](roadmap-excellence-8.md) COMPLÈTE** — AR→AW soldés
-(PRs #332→#339) ; **lot AX soldé (livré par PR #340)** : la marque = la
-boucle A→B ambre (jeu de mots loupe/loop ; l'ambre = « la boucle active »,
-tokens.css) — wordmark o-anneau (`LogoWordmark` + `ui/loop-mark.tsx`),
-premier `favicon.svg`, plus aucun glyphe texte (AO.3), `check:tokens` sur
-les 4 classes. Rappels vivants : déployer Modal + Edge (origins par motif,
-AU.2) ; templates OTP = action opérateur (`scripts/apply-otp-templates.sh`).
-**Arrêt auto (livré par PR #341)** : l'atelier part avec son dernier onglet
-— heartbeat 20 s (server shell), watchdog binaire (grâce 180 s, jamais
-pendant un téléchargement ; opt-out `--no-auto-exit`). Prochain : **v0.2**.
+**Release v0.2 : bump 0.1.0 → 0.2.0 livré par PR #342** (roadmap v8 + arrêt
+auto dans la release) ; le filtre `flushSync` Base UI reste — aucune version
+après `1.0.0-rc.0` au 2026-08-02, rappel #319 maintenu. Modal + Edge à
+jour (AU.2 distant vérifié 2026-08-02 : `loupe-structure` v10 +
+`mint-analyze-token` v9, préflight loopback OK). Rappel vivant : templates
+OTP = action opérateur (`scripts/apply-otp-templates.sh`). Prochain :
+**tag `v0.2.0`**
+une fois la CI post-merge verte (mutation comprise — `verify` l'exige),
+puis vérifier la Release (archives, tap, `brew upgrade loupe`).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
+- 2026-08-01 · **Roadmap excellence 8 + arrêt auto** (AR→AX #332→#340, #341) : premier contact, erreurs en français, blindage binaire, marque loupe/loop (wordmark, favicon), heartbeat 20 s + watchdog (grâce 180 s, `--no-auto-exit`).
 - 2026-07-27 → 07-31 · **État de vue + forme des dossiers** (ADR 0010–0013, #287→#326) : atomes par feature, DAG web, DIP session, cliquet `ReturnType` 13 → 0, dossiers-composant partout, cliquets `folder-shape`/`foreign-css`. Boucle outillée (#297) + sortie de suite = signal (#319). Garde-fous beta soldés ([beta-checklist.md](beta-checklist.md)).
 - 2026-07-25 → 07-26 · **Resync template (Lot TS)** : configs/CI, fitness functions, pratique ADR, subpath testing, 8 modules émergents (rhythm → project), link-checker des living docs.
 - 2026-07-19 → 07-24 · **Roadmap excellence 7** (UX exceptionnelle) : Lots AJ (offload-only), AK (funnel), AL (boucles/vitesse), AM (mixer), AN (grammaire/gravure/romain), AO (waveform/vie/signature), AP (nativité desktop + revue) + fix auth desktop PKCE.
