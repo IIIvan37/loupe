@@ -18,15 +18,15 @@ verrouillée ([archive/distribution-plan.md](archive/distribution-plan.md),
 `bass-line` ; `timecode` attend un 2e consommateur. Jamais de hook à effet
 de montage, seul le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
-**Release v0.2.1 : bump livré par PR #356** — embarque le fix « métronome
-muet » (PR #355 : gains gelés du mixer sur toggles same-tick, lecture du
-store committé) et version visible + notification de mise à jour (PR
-#354 : `/version` → `{version, latest?}`, menu compte, point ambre).
-Reste : slice découvrabilité du click (naît muet, rien ne le dit).
-Rappels : filtre Base UI (#319) ; templates OTP = opérateur ; session
-outillage (TS 6→7 #180, plugin-react v6 #353). Prochain : **tag `v0.2.1`**
-sur le commit de #356 une fois sa CI post-merge verte, vérifier la
-Release, puis lot « retour au labo » starter.
+**Release v0.2.1 LIVRÉE le 2026-08-02** (PR #356 + tag sur `e98dadc`,
+main vert, mutation sur cache chaud) — fix « métronome muet » (PR #355 :
+gains gelés du mixer sur toggles same-tick) + version visible &
+notification de mise à jour (PR #354). Release vérifiée (bit exécutable,
+checksums, attestation, tap 0.2.1, corps via alias). Reste : slice
+découvrabilité du click (naît muet, rien ne le dit). Rappels : filtre
+Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
+#180, plugin-react v6 #353). Prochain : **lot « retour au labo »**
+starter (plan du 2026-08-02, détail au rapport release v0.2).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
