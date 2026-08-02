@@ -54,12 +54,15 @@
   `-D warnings` : ✅.
 - mutation (Stryker local) : **skippé — aucun module core touché** (web =
   adaptateur lib + Rust).
-- Sonar (PR #NNN) : à lire après le push (`pnpm sonar NNN`).
+- Sonar (PR #341) : ✅ « all conditions met » — 0 issue, 0 hotspot, après
+  ajout du miroir `sonar.coverage.exclusions=**/main.ts*` (la porte
+  new_coverage comptait les lignes de câblage de la racine de composition,
+  déjà exclues de la couverture vitest).
 
 ## State to resume from
 
-- **Single next action** : merger la PR #NNN sur CI vert, puis **v0.2 =
-  bump + tag** (marque AX + arrêt auto dans la release).
+- **Single next action** : **v0.2 = bump + tag** (marque AX + arrêt auto
+  dans la release) — la PR #341 est mergée.
 - Gotchas : la grâce vit dans `Config` (env partagée façon limits.py mais
   propre au binaire) ; le middleware presence doit RESTER la couche la plus
   interne (l'ordre des `.layer()` est inversé — dernier ajouté = plus
