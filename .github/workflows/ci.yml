@@ -55,6 +55,11 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # check:shell needs the system shellcheck; ubuntu/macos images ship it
+      # but windows-latest (2025 image) does not — every post-merge windows
+      # gate was red from check:shell's first run (lot AT) until this step.
+      - name: Install shellcheck (absent from the windows-latest image)
+        run: choco install shellcheck --no-progress -y
       - run: pnpm gate
 
   server:

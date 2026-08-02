@@ -20,15 +20,15 @@ verrouillée ([archive/distribution-plan.md](archive/distribution-plan.md),
 le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (release v0.1.0 +
 [guide utilisateur](guide-utilisateur.md) + code beta).
-**Release v0.2 : bump 0.1.0 → 0.2.0 livré par PR #342** (roadmap v8 + arrêt
-auto dans la release) ; le filtre `flushSync` Base UI reste — aucune version
-après `1.0.0-rc.0` au 2026-08-02, rappel #319 maintenu. Modal + Edge à
-jour (AU.2 distant vérifié 2026-08-02 : `loupe-structure` v10 +
-`mint-analyze-token` v9, préflight loopback OK). Rappel vivant : templates
-OTP = action opérateur (`scripts/apply-otp-templates.sh`). Prochain :
-**tag `v0.2.0`**
-une fois la CI post-merge verte (mutation comprise — `verify` l'exige),
-puis vérifier la Release (archives, tap, `brew upgrade loupe`).
+**Release v0.2 : bump livré par PR #342** ; filtre `flushSync` Base UI
+maintenu (rien après `1.0.0-rc.0` au 2026-08-02, rappel #319). Modal +
+Edge à jour (AU.2 distant vérifié : v10/v9, préflight loopback OK).
+Rappel vivant : templates OTP = action opérateur
+(`scripts/apply-otp-templates.sh`). Porte windows rouge sur main depuis le
+lot AT (`shellcheck` absent de windows-latest, issue #336) — réparée par
+PR #343. Prochain : **tag `v0.2.0`** sur le commit de #343 une fois sa CI
+post-merge verte (mutation comprise — `verify` l'exige), puis vérifier la
+Release (archives, tap, `brew upgrade loupe`).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 

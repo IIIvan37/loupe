@@ -4,9 +4,10 @@
 // none of it was linted. Two sweeps:
 //   - shellcheck on every tracked shell script (scripts/, .claude/hooks/,
 //     .husky/ — the husky hooks carry a #!/bin/sh shebang). SYSTEM tool on
-//     purpose: it is preinstalled on every GitHub runner image, and the npm
-//     wrapper was dropped for shipping a criticial unpatched advisory
-//     (decompress, GHSA-mp2f-45pm-3cg9) into the blocking audit;
+//     purpose: the npm wrapper was dropped for shipping a critical unpatched
+//     advisory (decompress, GHSA-mp2f-45pm-3cg9) into the blocking audit.
+//     Preinstalled on the ubuntu/macos runner images but NOT on
+//     windows-latest (2025 image) — ci.yml installs it there via choco;
 //   - actionlint on the GitHub workflows (github-actionlint wraps the
 //     official binary; adm-zip pinned >=0.6.0 via pnpm.overrides) —
 //     expressions, contexts, permissions, runner labels, and the embedded
@@ -43,7 +44,8 @@ if (shellcheck.error !== undefined) {
       '  macOS   brew install shellcheck\n' +
       '  Linux   apt-get install shellcheck\n' +
       '  Windows choco install shellcheck\n' +
-      '(préinstallé sur les runners GitHub)'
+      '(préinstallé sur les runners GitHub ubuntu/macos ; sur windows-latest,\n' +
+      'ci.yml l’installe via choco)'
   )
   process.exit(1)
 }
