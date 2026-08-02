@@ -22,9 +22,11 @@ le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-featu
 [guide utilisateur](guide-utilisateur.md) + code beta).
 **Release v0.2 : bump 0.1.0 → 0.2.0 livré par PR #342** (roadmap v8 + arrêt
 auto dans la release) ; le filtre `flushSync` Base UI reste — aucune version
-après `1.0.0-rc.0` au 2026-08-02, rappel #319 maintenu. Rappels vivants :
-déployer Modal + Edge (origins par motif, AU.2) ; templates OTP = action
-opérateur (`scripts/apply-otp-templates.sh`). Prochain : **tag `v0.2.0`**
+après `1.0.0-rc.0` au 2026-08-02, rappel #319 maintenu. Modal + Edge à
+jour (AU.2 distant vérifié 2026-08-02 : `loupe-structure` v10 +
+`mint-analyze-token` v9, préflight loopback OK). Rappel vivant : templates
+OTP = action opérateur (`scripts/apply-otp-templates.sh`). Prochain :
+**tag `v0.2.0`**
 une fois la CI post-merge verte (mutation comprise — `verify` l'exige),
 puis vérifier la Release (archives, tap, `brew upgrade loupe`).
 
