@@ -13,6 +13,7 @@ use std::time::Duration;
 struct Args {
   port: u16,
   no_browser: bool,
+  no_auto_exit: bool,
 }
 
 /// What the invocation asks for: serve, or print something and exit.
@@ -23,17 +24,20 @@ enum Command {
   Version,
 }
 
-const USAGE: &str = "usage: loupe [--port <numéro>] [--no-browser] [--version]\n\n\
+const USAGE: &str =
+  "usage: loupe [--port <numéro>] [--no-browser] [--no-auto-exit] [--version]\n\n\
 Démarre l'atelier loupe et ouvre le navigateur.\n\n\
 options:\n  \
 --port <numéro>   port d'écoute local (défaut : 6173)\n  \
 --no-browser      ne pas ouvrir le navigateur au démarrage\n  \
+--no-auto-exit    ne pas s'arrêter quand le dernier onglet se ferme\n  \
 --version         afficher la version et quitter";
 
 fn parse_args(argv: &[String]) -> Result<Command, String> {
   let mut args = Args {
     port: DEFAULT_PORT,
     no_browser: false,
+    no_auto_exit: false,
   };
   let mut iter = argv.iter();
   while let Some(arg) = iter.next() {
@@ -41,6 +45,7 @@ fn parse_args(argv: &[String]) -> Result<Command, String> {
       "-h" | "--help" => return Ok(Command::Help),
       "-V" | "--version" => return Ok(Command::Version),
       "--no-browser" => args.no_browser = true,
+      "--no-auto-exit" => args.no_auto_exit = true,
       "--port" => {
         let value = iter.next().ok_or("--port attend un numéro")?;
         args.port = value
@@ -99,6 +104,16 @@ fn spawn_browser_opener(url: String) {
       std::thread::sleep(Duration::from_millis(200));
     }
   });
+}
+
+/// « 3 min » for round minutes, « 90 s » otherwise — for the exit line.
+fn human_duration(duration: Duration) -> String {
+  let seconds = duration.as_secs();
+  if seconds >= 60 && seconds % 60 == 0 {
+    format!("{} min", seconds / 60)
+  } else {
+    format!("{seconds} s")
+  }
 }
 
 #[tokio::main]
@@ -164,13 +179,33 @@ async fn main() -> ExitCode {
     spawn_browser_opener(url);
   }
 
-  let app = loupe_server::build_app(config, Arc::new(YtDlpEngine));
+  let (app, state) = loupe_server::build_app_with_state(config, Arc::new(YtDlpEngine));
+  // The workshop leaves with its last tab (auto-exit): the served app beats
+  // /heartbeat, and once the beats stop past the grace — no download in
+  // flight — the server shuts down instead of running orphaned forever.
+  let no_auto_exit = args.no_auto_exit;
   let serve = axum::serve(
     listener,
     app.into_make_service_with_connect_info::<SocketAddr>(),
   )
-  .with_graceful_shutdown(async {
-    let _ = tokio::signal::ctrl_c().await;
+  .with_graceful_shutdown(async move {
+    let ctrl_c = async {
+      let _ = tokio::signal::ctrl_c().await;
+    };
+    if no_auto_exit {
+      ctrl_c.await;
+      return;
+    }
+    let grace = state.config.auto_exit_grace;
+    tokio::select! {
+      () = ctrl_c => {}
+      () = loupe_server::presence::auto_exit(state.clone(), grace) => {
+        println!(
+          "loupe : plus aucun onglet depuis {} — arrêt de l'atelier (--no-auto-exit pour le laisser tourner).",
+          human_duration(grace)
+        );
+      }
+    }
   });
   match serve.await {
     Ok(()) => ExitCode::SUCCESS,
@@ -197,26 +232,35 @@ mod tests {
   }
 
   #[test]
-  fn defaults_to_port_6173_with_the_browser_on() {
+  fn defaults_to_port_6173_with_the_browser_on_and_auto_exit_armed() {
     assert_eq!(
       run_args(&[]),
       Args {
         port: 6173,
-        no_browser: false
+        no_browser: false,
+        no_auto_exit: false
       }
     );
   }
 
   #[test]
-  fn accepts_both_port_forms_and_no_browser() {
+  fn accepts_both_port_forms_no_browser_and_no_auto_exit() {
     assert_eq!(
-      run_args(&["--port", "7000", "--no-browser"]),
+      run_args(&["--port", "7000", "--no-browser", "--no-auto-exit"]),
       Args {
         port: 7000,
-        no_browser: true
+        no_browser: true,
+        no_auto_exit: true
       }
     );
     assert_eq!(run_args(&["--port=7001"]).port, 7001);
+  }
+
+  #[test]
+  fn human_duration_prefers_round_minutes() {
+    assert_eq!(human_duration(Duration::from_secs(180)), "3 min");
+    assert_eq!(human_duration(Duration::from_secs(90)), "90 s");
+    assert_eq!(human_duration(Duration::from_secs(45)), "45 s");
   }
 
   #[test]

@@ -13,6 +13,7 @@ pub mod config;
 pub mod download;
 mod fs_atomic;
 pub mod netguard;
+pub mod presence;
 pub mod project_store;
 pub mod static_web;
 pub mod version_check;
@@ -38,9 +39,19 @@ pub struct AppState {
   pub projects: ProjectStore,
   pub engine: Arc<dyn DownloadEngine>,
   pub download_slots: Semaphore,
+  pub presence: presence::Presence,
 }
 
 pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
+  build_app_with_state(config, engine).0
+}
+
+/// `build_app`, also handing back the state — `main` needs it to run the
+/// auto-exit watchdog beside the server.
+pub fn build_app_with_state(
+  config: Config,
+  engine: Arc<dyn DownloadEngine>,
+) -> (Router, Arc<AppState>) {
   let store = AudioStore::new(&config.data_dir, config.max_audio_store_bytes);
   let projects = ProjectStore::new(&config.data_dir);
   let guard_config = Arc::new(config.clone());
@@ -60,10 +71,12 @@ pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
     engine,
     download_slots: Semaphore::new(config.download_slots),
     config,
+    presence: presence::Presence::default(),
   });
 
-  Router::new()
+  let app = Router::new()
     .route("/health", get(health))
+    .route("/heartbeat", post(presence::heartbeat))
     .route("/version", get(version))
     .route(
       "/audio",
@@ -90,9 +103,15 @@ pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
       )),
     )
     .fallback(static_web::serve)
-    .with_state(state)
+    .with_state(state.clone())
     // Middleware onion, innermost first — last layer added = outermost, so a
     // request is vetted loopback → Host → Origin → CORS, like the Python app.
+    // Presence sits INSIDE every guard: only a vetted request counts as a
+    // client (a LAN scan must not keep the workshop alive).
+    .layer(axum::middleware::from_fn_with_state(
+      state.clone(),
+      presence::touch_on_request,
+    ))
     .layer(cors)
     .layer(axum::middleware::from_fn_with_state(
       guard_config.clone(),
@@ -102,7 +121,8 @@ pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
       guard_config,
       netguard::trusted_host,
     ))
-    .layer(axum::middleware::from_fn(netguard::loopback_only))
+    .layer(axum::middleware::from_fn(netguard::loopback_only));
+  (app, state)
 }
 
 /// Parity shape with the Python `/health`: this binary never carries the ML

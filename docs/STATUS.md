@@ -27,7 +27,9 @@ tokens.css) — wordmark o-anneau (`LogoWordmark` + `ui/loop-mark.tsx`),
 premier `favicon.svg`, plus aucun glyphe texte (AO.3), `check:tokens` sur
 les 4 classes. Rappels vivants : déployer Modal + Edge (origins par motif,
 AU.2) ; templates OTP = action opérateur (`scripts/apply-otp-templates.sh`).
-Prochain : **v0.2 = bump + tag** (la marque part dans la release).
+**Arrêt auto (livré par PR #341)** : l'atelier part avec son dernier onglet
+— heartbeat 20 s (server shell), watchdog binaire (grâce 180 s, jamais
+pendant un téléchargement ; opt-out `--no-auto-exit`). Prochain : **v0.2**.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
@@ -61,7 +63,6 @@ Prochain : **v0.2 = bump + tag** (la marque part dans la release).
 
 ## Veille / différé
 
-- **Onglet fermé, serveur orphelin** (signal 2026-08-01) : arrêt auto sur heartbeat + délai de grâce, jamais pendant un job — candidat prioritaire post-v0.2.
 - Boucle échantillon-exacte / crossfade au wrap · locale EN · boucle A/B au clavier · thème clair · undo/redo (écarté produit) · off-thread zip/encode · export MIDI par stem (Jalon 4).
 - Dependabot #180 (TS 6→7) + #53 (`@vitejs/plugin-react` v6) — session outillage dédiée ;
   file débloquée (#310 config, #316 triage react-doctor 0.9.2 ; #315 supersédée par
