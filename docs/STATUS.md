@@ -19,16 +19,16 @@ verrouillée ([archive/distribution-plan.md](archive/distribution-plan.md),
 à retirer au prochain bump (#319) ; jamais de hook à effet de montage, seul
 le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
-**Release v0.2 : bump livré par PR #342** ; filtre `flushSync` Base UI
-maintenu (rien après `1.0.0-rc.0` au 2026-08-02, rappel #319). Modal +
-Edge à jour (AU.2 distant vérifié : v10/v9, préflight loopback OK).
-Rappel vivant : templates OTP = action opérateur
-(`scripts/apply-otp-templates.sh`). CI réparée en deux temps : shellcheck
-absent de windows-latest (issue #336, PR #343) ; mutation jamais conclue
-sur main (timeout 20 min < run à froid 79 min) — timeout 120 min par PR
-#344, premier score complet : **93,10** (break 90). Prochain : **tag `v0.2.0`** sur le commit de #344 une fois sa CI
-post-merge verte (mutation comprise — `verify` l'exige), puis vérifier la
-Release (archives, tap, `brew upgrade loupe`).
+**Release v0.2.0 LIVRÉE le 2026-08-02** (PRs #342–#344, tag sur `9964aa5`
+— premier tag sur un main intégralement vert) : CI réparée (shellcheck
+windows #343, timeout mutation 120 min #344 — premier score complet
+**93,10**), release vérifiée (bit exécutable, checksums, attestation, tap,
+alias beta). Filtre Base UI maintenu (rappel #319) ; Modal + Edge à jour.
+Rappels : templates OTP = opérateur ; session outillage (TS 6→7 #180,
+plugin-react v6 #353 — Babel retiré, migration `@rolldown/plugin-babel`).
+Prochain : **lot « retour au labo »** sur hexagonal-tdd-starter (plan du
+2026-08-02 : filets CI, ignoreStatic, gate-stamp, heavy-runs, Sonar
+opt-in ; détail au rapport).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
