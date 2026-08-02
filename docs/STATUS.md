@@ -22,10 +22,15 @@ le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-featu
 **Slice version visible (livrée par PR #354)** : `/version` →
 `{version, latest?}`, menu compte « loupe X — vY disponible » + point
 ambre (arrêt auto hors de cause — vérifié binaire v0.2.0 en main).
-Rappels : filtre Base UI (#319) ; templates OTP = opérateur ; session
-outillage (TS 6→7 #180, plugin-react v6 #353 — Babel retiré, migration
-`@rolldown/plugin-babel`). Prochain : **lot « retour au labo »** starter
-(plan du 2026-08-02, détail au rapport release v0.2).
+**Fix « métronome muet » (livré par PR #355)** : `apply()` du mixer lisait
+le snapshot de rendu — deux toggles même tick gelaient des gains faux dans
+le moteur (UI juste, silence gelé) ; lecture du store committé + spec
+same-tick. Reste : slice découvrabilité du click (naît muet, rien ne le
+dit) ; v0.2.1 candidate (#354 + #355). Rappels : filtre Base UI (#319) ;
+templates OTP = opérateur ; session outillage (TS 6→7 #180, plugin-react
+v6 #353 — Babel retiré, migration `@rolldown/plugin-babel`). Prochain :
+**lot « retour au labo »** starter (plan du 2026-08-02, détail au rapport
+release v0.2).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 

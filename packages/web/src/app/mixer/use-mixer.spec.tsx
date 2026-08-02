@@ -161,6 +161,34 @@ describe('useMixer', () => {
     expect(engine.setGain).toHaveBeenCalledWith('metronome', 0)
   })
 
+  it('lands two same-tick toggles on the committed gains, never a stale snapshot', () => {
+    const engine = fakeEngine()
+    const { result } = mountLoaded(engine)
+    act(() => {
+      result.current.addStem(
+        stem('metronome', 'Métronome'),
+        { id: 'metronome', label: 'Métronome', audio },
+        { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+      )
+    })
+
+    // The field gesture behind the v0.2.0 « silent metronome »: unmute then
+    // solo before React re-renders (K twice, mute-then-solo in one tick). The
+    // second action must see the first one committed — computed from the
+    // render snapshot it reads the click as still muted, pushes 0 into the
+    // engine, and nothing ever reconciles it with the (correct) UI state.
+    act(() => {
+      result.current.toggleMute('metronome')
+      result.current.toggleSolo('metronome')
+    })
+
+    const lastGainFor = (id: string) =>
+      engine.setGain.mock.calls.filter((call) => call[0] === id).at(-1)?.[1]
+    expect(lastGainFor('metronome')).toBe(1)
+    expect(lastGainFor('voix')).toBe(0)
+    expect(lastGainFor('basse')).toBe(0)
+  })
+
   it('removes a stem channel and drops it from the engine', () => {
     const engine = fakeEngine()
     const { result } = mountLoaded(engine)

@@ -4,14 +4,13 @@ import {
   type MixerAction,
   type MixerChannel,
   type MixerState,
-  mixerReducer,
   type SeparatedStem,
   type StemFilter,
   type StemSet,
   type StemTrack,
   UNITY_GAIN_DB
 } from '@app/core'
-import { useAtom } from 'jotai'
+import { useAtom, useStore } from 'jotai'
 import { useMemo } from 'react'
 import {
   type StemMixGraph,
@@ -115,6 +114,8 @@ export function useMixer(injected?: StemMixGraph): Mixer {
   const [state, dispatch] = useAtom(mixerStateAtom)
   const [mixable, setMixable] = useAtom(mixableAtom)
   const [filters, setFilters] = useAtom(stemFiltersAtom)
+  // The app store itself — `apply` reads the committed mixer back from it.
+  const store = useStore()
 
   const channels = useMemo<readonly MixerChannelView[]>(() => {
     const gainById = new Map<string, ChannelGain>(
@@ -234,10 +235,14 @@ export function useMixer(injected?: StemMixGraph): Mixer {
 
   // Apply a control change to the mixer AND the live gain graph in the same
   // handler that triggered it — solo/mute shift every channel's effective gain.
+  // The gains are read back from the STORE (committed synchronously by the
+  // reducer atom), never re-derived from the render-scope `state`: two actions
+  // landing in one render window (mute then solo, K auto-repeat) would hand
+  // the second a stale mixer, freeze wrong gains into the engine, and nothing
+  // reconciles them afterwards — the v0.2.0 « silent metronome » in the field.
   function apply(action: MixerAction): void {
-    const next = mixerReducer(state, action)
     dispatch(action)
-    for (const { id, gain } of effectiveGains(next)) {
+    for (const { id, gain } of effectiveGains(store.get(mixerStateAtom))) {
       engine.setGain(id, gain)
     }
   }
