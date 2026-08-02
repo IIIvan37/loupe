@@ -25,8 +25,8 @@ Edge à jour (AU.2 distant vérifié : v10/v9, préflight loopback OK).
 Rappel vivant : templates OTP = action opérateur
 (`scripts/apply-otp-templates.sh`). CI réparée en deux temps : shellcheck
 absent de windows-latest (issue #336, PR #343) ; mutation jamais conclue
-sur main (timeout 20 min < run à froid ~65 min) — timeout 90 min par PR
-#344. Prochain : **tag `v0.2.0`** sur le commit de #344 une fois sa CI
+sur main (timeout 20 min < run à froid 79 min) — timeout 120 min par PR
+#344, premier score complet : **93,10** (break 90). Prochain : **tag `v0.2.0`** sur le commit de #344 une fois sa CI
 post-merge verte (mutation comprise — `verify` l'exige), puis vérifier la
 Release (archives, tap, `brew upgrade loupe`).
 
