@@ -58,7 +58,8 @@ function renderMenu(
   auth: AuthPort,
   notice?: string,
   onSignedIn?: () => void,
-  version?: string
+  version?: string,
+  update?: string
 ) {
   function Harness() {
     const [open, setOpen] = useState(true)
@@ -70,6 +71,7 @@ function renderMenu(
         notice={notice}
         onSignedIn={onSignedIn}
         version={version}
+        update={update}
       />
     )
   }
@@ -370,6 +372,31 @@ describe('AccountMenu', () => {
   it('shows the binary version in the popup footer when known', async () => {
     renderMenu(fakeAuth(), undefined, undefined, '0.1.0')
     expect(await screen.findByText('loupe 0.1.0')).toBeInTheDocument()
+  })
+
+  it('announces the newer release as a link when the binary knows one', async () => {
+    renderMenu(fakeAuth(), undefined, undefined, '0.2.0', '0.3.0')
+
+    const link = await screen.findByRole('link', {
+      name: i18n._('account.update-available', { update: '0.3.0' })
+    })
+    expect(link).toHaveAttribute(
+      'href',
+      'https://github.com/IIIvan37/loupe/releases/latest'
+    )
+    expect(screen.getByTestId('update-badge')).toBeInTheDocument()
+  })
+
+  it('stays silent about updates when none is known', async () => {
+    renderMenu(fakeAuth(), undefined, undefined, '0.2.0')
+
+    expect(await screen.findByText('loupe 0.2.0')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', {
+        name: i18n._('account.update-available', { update: '0.3.0' })
+      })
+    ).not.toBeInTheDocument()
+    expect(screen.queryByTestId('update-badge')).not.toBeInTheDocument()
   })
 
   it('shows no version line when the shell does not know it', async () => {

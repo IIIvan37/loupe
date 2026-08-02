@@ -28,7 +28,7 @@ use axum::Router;
 use config::Config;
 use download::DownloadEngine;
 use project_store::{ProjectError, ProjectStore};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tokio::sync::Semaphore;
 use tokio_util::io::ReaderStream;
 use tower_http::cors::{Any, CorsLayer};
@@ -40,6 +40,10 @@ pub struct AppState {
   pub engine: Arc<dyn DownloadEngine>,
   pub download_slots: Semaphore,
   pub presence: presence::Presence,
+  /// A strictly newer published release, stamped by the startup version
+  /// check (main) so `/version` can hand it to the web app — the terminal
+  /// line alone is invisible to someone living in the browser.
+  pub latest_version: Mutex<Option<String>>,
 }
 
 pub fn build_app(config: Config, engine: Arc<dyn DownloadEngine>) -> Router {
@@ -72,6 +76,7 @@ pub fn build_app_with_state(
     download_slots: Semaphore::new(config.download_slots),
     config,
     presence: presence::Presence::default(),
+    latest_version: Mutex::new(None),
   });
 
   let app = Router::new()
@@ -132,9 +137,22 @@ async fn health() -> Json<serde_json::Value> {
 }
 
 /// The binary's own version, so the web app can put it in bug reports —
-/// kept out of `/health`, whose shape is frozen by the Python parity.
-async fn version() -> Json<serde_json::Value> {
-  Json(serde_json::json!({"version": env!("CARGO_PKG_VERSION")}))
+/// kept out of `/health`, whose shape is frozen by the Python parity. Also
+/// carries `latest` once the startup check has found a newer release, so
+/// the page can announce the update where the terminal line can't be seen.
+async fn version(State(state): State<Arc<AppState>>) -> Json<serde_json::Value> {
+  let latest = state
+    .latest_version
+    .lock()
+    .expect("latest_version lock poisoned")
+    .clone();
+  match latest {
+    Some(latest) => Json(serde_json::json!({
+      "version": env!("CARGO_PKG_VERSION"),
+      "latest": latest
+    })),
+    None => Json(serde_json::json!({"version": env!("CARGO_PKG_VERSION")})),
+  }
 }
 
 async fn upload_audio(

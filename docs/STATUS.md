@@ -19,19 +19,17 @@ verrouillée ([archive/distribution-plan.md](archive/distribution-plan.md),
 à retirer au prochain bump (#319) ; jamais de hook à effet de montage, seul
 le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
-**Release v0.2.0 LIVRÉE le 2026-08-02** (PRs #342–#344, tag sur `9964aa5`
-— premier tag sur un main intégralement vert) : CI réparée (shellcheck
-windows #343, timeout mutation 120 min #344 — premier score complet
-**93,10**), release vérifiée (bit exécutable, checksums, attestation, tap,
-alias beta). Filtre Base UI maintenu (rappel #319) ; Modal + Edge à jour.
-Rappels : templates OTP = opérateur ; session outillage (TS 6→7 #180,
-plugin-react v6 #353 — Babel retiré, migration `@rolldown/plugin-babel`).
-Prochain : **lot « retour au labo »** sur hexagonal-tdd-starter (plan du
-2026-08-02 : filets CI, ignoreStatic, gate-stamp, heavy-runs, Sonar
-opt-in ; détail au rapport).
+**Slice version visible (livrée par PR #354)** : `/version` →
+`{version, latest?}`, menu compte « loupe X — vY disponible » + point
+ambre (arrêt auto hors de cause — vérifié binaire v0.2.0 en main).
+Rappels : filtre Base UI (#319) ; templates OTP = opérateur ; session
+outillage (TS 6→7 #180, plugin-react v6 #353 — Babel retiré, migration
+`@rolldown/plugin-babel`). Prochain : **lot « retour au labo »** starter
+(plan du 2026-08-02, détail au rapport release v0.2).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
+- 2026-08-02 · **Release v0.2.0** (#342–#344, tag `9964aa5` — premier tag sur un main intégralement vert) : CI réparée (shellcheck windows, timeout mutation 120 min, premier score complet 93,10), release vérifiée (bit exécutable, attestation, tap, alias beta).
 - 2026-08-01 · **Roadmap excellence 8 + arrêt auto** (AR→AX #332→#340, #341) : premier contact, erreurs en français, blindage binaire, marque loupe/loop (wordmark, favicon), heartbeat 20 s + watchdog (grâce 180 s, `--no-auto-exit`).
 - 2026-07-27 → 07-31 · **État de vue + forme des dossiers** (ADR 0010–0013, #287→#326) : atomes par feature, DAG web, DIP session, cliquet `ReturnType` 13 → 0, dossiers-composant partout, cliquets `folder-shape`/`foreign-css`. Boucle outillée (#297) + sortie de suite = signal (#319). Garde-fous beta soldés ([beta-checklist.md](beta-checklist.md)).
 - 2026-07-25 → 07-26 · **Resync template (Lot TS)** : configs/CI, fitness functions, pratique ADR, subpath testing, 8 modules émergents (rhythm → project), link-checker des living docs.

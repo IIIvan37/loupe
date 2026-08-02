@@ -100,6 +100,19 @@
   font-size: var(--font-size-xs);
 }
 
+/* Amber = « something is active » — here, a release waiting to be taken. */
+.updateLink {
+  color: var(--amber);
+}
+
+/* The trigger's discreet « an update exists » dot, same amber semantic. */
+.updateBadge {
+  inline-size: 0.5em;
+  block-size: 0.5em;
+  border-radius: 50%;
+  background: var(--amber);
+}
+
 /* The « link sent » confirmation: the two hint lines + the resend / change-email
    actions stacked, then laid side by side. */
 .sent {

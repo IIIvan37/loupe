@@ -66,17 +66,22 @@ fn parse_args(argv: &[String]) -> Result<Command, String> {
 }
 
 /// Tell the user when a newer release exists (D5) — one line, best-effort,
-/// on its own thread so it never delays serving. Opt-out:
-/// LOUPE_NO_VERSION_CHECK=1.
-fn spawn_version_check() {
+/// on its own thread so it never delays serving, plus a stamp on the app
+/// state so `/version` relays it to the web page (the terminal line is
+/// invisible from the browser). Opt-out: LOUPE_NO_VERSION_CHECK=1.
+fn spawn_version_check(state: Arc<loupe_server::AppState>) {
   if std::env::var_os("LOUPE_NO_VERSION_CHECK").is_some() {
     return;
   }
-  std::thread::spawn(|| {
+  std::thread::spawn(move || {
     use loupe_server::version_check::{latest_release_tag, newer_version, RELEASES_REPO};
     let newer = latest_release_tag(RELEASES_REPO)
       .and_then(|tag| newer_version(env!("CARGO_PKG_VERSION"), &tag));
     if let Some(version) = newer {
+      *state
+        .latest_version
+        .lock()
+        .expect("latest_version lock poisoned") = Some(version.clone());
       println!(
         "loupe : version {version} disponible — https://github.com/{RELEASES_REPO}/releases/latest"
       );
@@ -145,7 +150,6 @@ async fn main() -> ExitCode {
   if let Err(error) = loupe_server::ensure_private_data_dir(&config) {
     eprintln!("loupe : permissions du dossier de données non resserrées ({error})");
   }
-  spawn_version_check();
   // Boot backstop for temp dirs a hard kill left behind (D2 parity) — the
   // engine also sweeps before each download.
   loupe_download::sweep_stale_downloads(&config.data_dir.join("downloads"));
@@ -180,6 +184,7 @@ async fn main() -> ExitCode {
   }
 
   let (app, state) = loupe_server::build_app_with_state(config, Arc::new(YtDlpEngine));
+  spawn_version_check(state.clone());
   // The workshop leaves with its last tab (auto-exit): the served app beats
   // /heartbeat, and once the beats stop past the grace — no download in
   // flight — the server shuts down instead of running orphaned forever.
