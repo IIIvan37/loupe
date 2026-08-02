@@ -129,9 +129,14 @@ jobs:
     name: Mutation testing (core)
     # Deep check — post-merge on main and on demand, to keep PRs to the fast
     # gate. (You also run it locally at each close-step, before opening the PR.)
+    # 90 min, not 20: a cold full run takes ~65 min (measured 2026-08-02 —
+    # 29% at 18 min, Stryker projecting ~60 min of mutation alone). The old
+    # 20-min timeout killed the job on every main push since 2026-07-09, so
+    # the incremental cache below never got saved and every run started cold:
+    # the authoritative mutation score had never actually concluded on main.
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
