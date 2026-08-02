@@ -15,17 +15,19 @@ binaire `loupe` seul livrable (Tauri retiré #327, serveur unique #328),
 verrouillée ([archive/distribution-plan.md](archive/distribution-plan.md),
 [archive/serveur-unique-plan.md](archive/serveur-unique-plan.md)).
 **Roadmap v7 soldée** ; **Lot TS clos**. Nursery : `detect-chords`,
-`bass-line` ; `timecode` attend un 2e consommateur. Rappels : filtre Base UI
-à retirer au prochain bump (#319) ; jamais de hook à effet de montage, seul
-le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
+`bass-line` ; `timecode` attend un 2e consommateur. Jamais de hook à effet
+de montage, seul le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
-**Slice version visible (livrée par PR #354)** : `/version` →
-`{version, latest?}`, menu compte « loupe X — vY disponible » + point
-ambre (arrêt auto hors de cause — vérifié binaire v0.2.0 en main).
-Rappels : filtre Base UI (#319) ; templates OTP = opérateur ; session
-outillage (TS 6→7 #180, plugin-react v6 #353 — Babel retiré, migration
-`@rolldown/plugin-babel`). Prochain : **lot « retour au labo »** starter
-(plan du 2026-08-02, détail au rapport release v0.2).
+**Slice version visible (PR #354)** : `/version` → `{version, latest?}`,
+menu compte « loupe X — vY disponible » + point ambre. **Fix « métronome
+muet » (PR #355)** : `apply()` du mixer lisait le snapshot de rendu — deux
+toggles même tick gelaient des gains faux dans le moteur (UI juste,
+silence gelé) ; lecture du store committé + spec same-tick. Reste : slice
+découvrabilité du click (naît muet, rien ne le dit) ; v0.2.1 candidate
+(#354 + #355). Rappels : filtre Base UI (#319) ; templates OTP =
+opérateur ; session outillage (TS 6→7 #180, plugin-react v6 #353).
+Prochain : **lot « retour au labo »** starter (plan du 2026-08-02, détail
+au rapport release v0.2).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
