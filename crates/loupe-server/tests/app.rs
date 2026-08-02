@@ -97,6 +97,24 @@ async fn version_answers_the_binary_version() {
 }
 
 #[tokio::test]
+async fn version_announces_the_newer_release_the_startup_check_stamped() {
+  let dir = tempfile::tempdir().unwrap();
+  let (app, state) =
+    loupe_server::build_app_with_state(test_config(dir.path()), Arc::new(InertEngine));
+  *state.latest_version.lock().unwrap() = Some("9.9.9".to_owned());
+  let response = app
+    .oneshot(local_request("GET", "/version", Body::empty()))
+    .await
+    .unwrap();
+  assert_eq!(response.status(), StatusCode::OK);
+  let value: serde_json::Value = serde_json::from_slice(&body_bytes(response).await).unwrap();
+  assert_eq!(
+    value,
+    serde_json::json!({"version": env!("CARGO_PKG_VERSION"), "latest": "9.9.9"})
+  );
+}
+
+#[tokio::test]
 async fn refuses_a_non_loopback_peer_regardless_of_headers() {
   let dir = tempfile::tempdir().unwrap();
   let request = Request::builder()

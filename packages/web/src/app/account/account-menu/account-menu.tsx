@@ -31,7 +31,13 @@ interface AccountMenuProps {
   /** The serving binary's version, pre-filled in the bug-report link (AR.2) —
    * absent in the plain browser or while the answer is in flight. */
   readonly version?: string | undefined
+  /** A strictly newer published release the binary announced via `/version` —
+   * shown as an update link next to the version, plus a dot on the trigger. */
+  readonly update?: string | undefined
 }
+
+/** Where the update link lands — the same page the terminal line prints. */
+const RELEASES_URL = 'https://github.com/IIIvan37/loupe/releases/latest'
 
 /**
  * The header account control (J2). Signed out it invites sign-in; signed in it
@@ -65,7 +71,8 @@ export function AccountMenu({
   onOpenChange,
   notice,
   onSignedIn,
-  version
+  version,
+  update
 }: AccountMenuProps) {
   const { t } = useLingui()
   const {
@@ -131,6 +138,15 @@ export function AccountMenu({
         aria-label={t({ id: 'account.menu', message: 'Compte' })}
       >
         {trigger}
+        {/* Decorative dot — the accessible update notice is the link in the
+            popover, one click away behind this very trigger. */}
+        {update !== undefined && (
+          <span
+            className={styles.updateBadge}
+            aria-hidden="true"
+            data-testid="update-badge"
+          />
+        )}
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner className={cx(styles.positioner)} sideOffset={6}>
@@ -328,22 +344,53 @@ export function AccountMenu({
               </div>
             )}
 
-            <div className={styles.footer}>
-              <a
-                className={styles.reportIssue}
-                href={reportIssueUrl(version)}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Trans id="account.report-issue">Signaler un problème</Trans>
-              </a>
-              {version !== undefined && (
-                <span className={styles.version}>loupe {version}</span>
-              )}
-            </div>
+            <MenuFooter version={version} update={update} />
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>
     </Popover.Root>
+  )
+}
+
+/** The popup's constant last line: report link, version, and — when the
+ * binary announced one — the update link the terminal alone can't surface. */
+function MenuFooter({
+  version,
+  update
+}: {
+  readonly version?: string | undefined
+  readonly update?: string | undefined
+}) {
+  return (
+    <div className={styles.footer}>
+      <a
+        className={styles.reportIssue}
+        href={reportIssueUrl(version)}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <Trans id="account.report-issue">Signaler un problème</Trans>
+      </a>
+      {version !== undefined && (
+        <span className={styles.version}>
+          loupe {version}
+          {update !== undefined && (
+            <>
+              {' — '}
+              <a
+                className={styles.updateLink}
+                href={RELEASES_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Trans id="account.update-available">
+                  v{update} disponible
+                </Trans>
+              </a>
+            </>
+          )}
+        </span>
+      )}
+    </div>
   )
 }

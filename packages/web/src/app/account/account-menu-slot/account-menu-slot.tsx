@@ -53,7 +53,7 @@ export function AccountMenuSlot({
 }) {
   const { t } = useLingui()
   const [open, setOpen] = useState(false)
-  const version = useBinaryVersion()
+  const { version, latest } = useBinaryVersion()
   // What the open notice speaks for — the flow whose fresh reason opened the
   // menu last. It only shows while that reason is still current (the owning
   // hook clears it on the next run), mirroring the pre-M1.1 behaviour.
@@ -85,6 +85,7 @@ export function AccountMenuSlot({
       notice={notice}
       onSignedIn={onResumeAfterSignIn}
       version={version}
+      update={latest}
     />
   )
 }

@@ -144,6 +144,11 @@ msgid "account.sign-out"
 msgstr "Se déconnecter"
 
 #. js-lingui-explicit-id
+#: src/app/account/account-menu/account-menu.tsx
+msgid "account.update-available"
+msgstr "v{update} disponible"
+
+#. js-lingui-explicit-id
 #: src/app/ui/alert-banner/alert-banner.tsx
 msgid "alerts.close"
 msgstr "Fermer l'alerte"
