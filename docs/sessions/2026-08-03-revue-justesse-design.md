@@ -496,6 +496,70 @@ précisément le test qui verrait une identité cassée). Adoption en deux
 temps : activer, puis nettoyer les 78 sites manuels en follow-up (le
 compiler les tolère, ils deviennent du bruit).
 
+## Discussion — perf des analyses et du rechargement : le GPU n'est pas le poste
+
+Question de départ : « toute action d'analyse est lente — pas d'autre choix
+que de scaler côté Modal ? ». Réponse mesurée : **non — le GPU représente
+~6 % du temps vécu ; scaler serait optimiser le mauvais poste.**
+
+Déjà optimisé (ne pas re-payer) : upload de détection en mono 24 kHz
+mémoïsé (3,7× — `encode-analysis-wav-memo.ts`) ; cold start Modal traité
+aux trois endroits classiques (poids bakés dans l'image, `@modal.enter()`,
+`scaledown_window=300`, GPU L4).
+
+**Camembert mesuré** (log Modal du 2026-08-02, piste de ~7 min,
+séparation 6 stems — expérience totale ~2 min 18 s) :
+
+| Poste | Preuve | Durée | Part |
+|---|---|---|---|
+| Cold start | `OPTIONS /separate → duration 46.8 s, execution 10.4 ms` (le preflight a fait la queue derrière le boot) | ~47 s | ~34 % |
+| POST /separate | 27 s dont **~8 s de Demucs** (tqdm : 52× temps réel) — le reste : réception WAV ~73 Mo + encodage stems | ~27 s | ~19 % |
+| Téléchargement stems | 6 GET parallèles ~62-64 s chacun — **~440 Mo de WAV** | ~64 s | ~46 % |
+| Calcul GPU effectif | la seule part que « scaler » accélérerait | ~8 s | **~6 %** |
+
+Détections (chaudes, séquentielles au rythme des clics) : tempo 9 s,
+structure 13,4 s, accords 5,1 s — inférence pure, coût irréductible actuel.
+
+**Plan priorisé par les chiffres** :
+
+1. **Stems en FLAC au retour (~−30 s)** — le poste n° 1 ; décodage client
+   via `decodeAudioData` natif, off main thread (sert aussi le
+   rechargement).
+2. **Cold start perçu (~−47 s)** — ping de pré-chauffage à l'import (le
+   conteneur boote pendant que l'utilisateur regarde sa waveform) +
+   memory snapshots Modal.
+3. **Upload en FLAC (~−10 s)** — Demucs n'y verra rien.
+4. **Endpoint combiné de détection** — trois uploads deviennent un aller ;
+   résout mécaniquement l'écart de quota (« un flux = un débit »).
+5. **GPU : rien** — 52× temps réel sur L4. Seule variante utile, produit :
+   le mode deux stems (moitié moins d'octets — attaque le poste n° 1, pas
+   le calcul).
+6. Option à arbitrer : `TempoDetector` local WASM (le mur WASM documenté
+   concernait Demucs, pas le beat tracking) — élimine réseau + cold start
+   pour l'analyse la plus fréquente, un adapter derrière le port existant.
+
+Réaliste après lots 1-3 : **~45-60 s ressenties** au lieu de ~2 min 20,
+sans toucher au GPU. UX complémentaire : les 6 GET partent déjà en
+parallèle mais l'UI attend le dernier — l'activation progressive des
+canaux (~12 s avant le premier stem jouable) réutilise l'UX que la
+séparation a déjà.
+
+**Rechargement de projet avec stems — tout est local, visible dans le
+code** :
+
+- Décodage **séquentiel et sur le main thread** : la boucle de restore
+  fait `decodeWav(stem.bytes)` stem par stem (`project-session.ts`) ; le
+  commentaire R.4 de `http-separator.ts` (« six back-to-back decodes with
+  no paint ») est un aveu documenté. **Aucun worker dans toute l'app** —
+  un pool pour `decodeWav` (fonction pure, buffers transférables) est le
+  cas d'école.
+- Stems stockés en **WAV non compressé** (`encodeWav` à la sauvegarde) —
+  FLAC divise par ~2 lecture disque et transfert local.
+- **Waveforms recalculées à chaque ouverture** alors que les peaks sont
+  minuscules et persistables dans le manifeste.
+- Levier UX le moins cher : chargement progressif (mix jouable tout de
+  suite, stems qui s'activent un à un — même UX que la séparation).
+
 ## Decisions
 
 - Rien d'appliqué : revue en lecture seule, ce rapport est le livrable.
