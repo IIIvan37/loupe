@@ -304,6 +304,63 @@ cinq principes, traduits pour un core fonctionnel :
   (LCOM, couplage) lisent mal un core fonctionnel, et un chiffre gamable
   devient un objectif au lieu d'un signal.
 
+## Discussion — la méthode fait-elle émerger un design ?
+
+Conclusion méthodologique des quatre lectures : **oui, et loupe en est la
+preuve — mais l'émergence a une physique**, quatre lois toutes visibles dans
+le code.
+
+Ce qui a réellement émergé : la structure en modules elle-même (l'ADR
+« modules émergents » — extraits quand ils sont apparus, seams réels,
+acycliques) ; les modèles raffinés par le rouge-vert (`effectiveGains`
+dérivé, `TempoMap` aux ruptures confirmées — des designs qui portent la
+trace de cas limites découverts un test à la fois) ; une surface 100 %
+tirée par la consommation (zéro code mort, zéro concept spéculatif).
+
+Les quatre lois :
+
+1. **Le design émerge là où est la pression des tests.** `restoreSession`
+   est un use-case *bien conçu* (sans React, deps injectées) qui a émergé
+   dans l'adapter : l'émergence a eu lieu, la forme est bonne, seule la
+   couche est fausse — le design suit le gradient de feedback, et le
+   gradient était dans les tests jsdom.
+2. **L'émergence est dépendante du chemin — les asymétries se
+   fossilisent.** `parseChart` sans inverse n'est pas une décision : le
+   premier besoin était de lire ; les trois implémentations de la grammaire
+   sont la sédimentation de l'ordre d'arrivée des besoins. Ne se rembourse
+   que par refactor volontaire.
+3. **Ce qui ne produit jamais de rouge n'émerge jamais.** 855 commits, pas
+   un scalaire brandé : l'obsession du primitif ne fait échouer aucun test.
+   Les types sont des hypothèses qu'on pose, pas des conséquences des
+   tests. Même loi pour les contrats de port (rien ne rougit quand
+   l'adapter invente `barPosition`).
+4. **L'émergence ne dépasse pas les questions posées.** Pas de segno, pas
+   d'anacrouse : le principe « jamais spéculatif » — celui-là même qui donne
+   le zéro code mort — garantit aussi que le modèle est exactement
+   l'intégrale des besoins passés. La fidélité au domaine ne s'émerge pas,
+   elle s'injecte (glossaire, expert sur les types, maquette) — la règle
+   CLAUDE.md « confirmer l'approche avant une slice UI » l'avait déjà
+   appris d'un rework.
+
+**Formulation retenue** : la méthode ne fait pas émerger le design — elle le
+rend *émergeable* (le filet de tests garde le design plastique au lieu de
+figer). L'émergence se joue dans le troisième temps du cycle, le refactor,
+et le refactor conceptuel (nommer la politique, remonter l'altitude, poser
+le VO) exige un œil que ni le rouge ni le vert ne fournissent — TDD donne
+l'*occasion* de designer, il ne designe pas à ta place.
+
+D'où la lecture finale des gardes-fous de ce rapport : ce ne sont pas des
+contrôles *sur* l'émergence, ce sont des **pressions sélectives ajoutées à
+l'environnement**. La mutation sur les hooks crée le signal rouge que la
+loi n° 3 réclame pour les politiques ; les contrats par port le créent pour
+LSP ; « premier test rouge core-only » déplace le gradient de la loi n° 1
+vers le core ; la revue périodique est la pression globale qui corrige ce
+que les pressions locales optimisent trop localement. Le design émerge
+toujours ; il émerge dans la direction des pressions installées. Choisir
+ses fitness functions, c'est choisir la forme vers laquelle le système
+évolue — une définition assez exacte du travail d'architecte dans une
+méthode émergente.
+
 ## Decisions
 
 - Rien d'appliqué : revue en lecture seule, ce rapport est le livrable.
