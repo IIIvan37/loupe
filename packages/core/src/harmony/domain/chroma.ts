@@ -7,6 +7,8 @@
  * (a silent spectrum stays all-zero).
  */
 
+import { pitchClassOfHz } from '../../shared/units.ts'
+
 /** Musically useful band: below ~C1 the bins are wider than a semitone, above
  * ~C7 the harmonics of every note blur the classes together. Exported so
  * in-app synthesized sounds (the metronome click) can PROVE they stay out of
@@ -25,17 +27,11 @@ export function chromaFromSpectrum(
     if (hz < CHROMA_MIN_HZ || hz > CHROMA_MAX_HZ) {
       continue
     }
-    classes[pitchClassOf(hz)] =
-      (classes[pitchClassOf(hz)] ?? 0) + (magnitudes[i] ?? 0)
+    classes[pitchClassOfHz(hz)] =
+      (classes[pitchClassOfHz(hz)] ?? 0) + (magnitudes[i] ?? 0)
   }
   const loudest = Math.max(...classes)
   return loudest > 0 ? classes.map((v) => v / loudest) : classes
-}
-
-/** MIDI pitch class of a frequency; midi % 12 puts C at 0 (A440 = midi 69). */
-function pitchClassOf(hz: number): number {
-  const midi = Math.round(12 * Math.log2(hz / 440) + 69)
-  return ((midi % 12) + 12) % 12
 }
 
 /** A local maximum below this fraction of the loudest peak is window skirt /
@@ -100,11 +96,11 @@ export function chromaWithHarmonics(
       return Math.abs(peak.hz - target) <= Math.max(binHz, centsWindow)
     })
     const bucket = explained ? harmonic : played
-    const pitchClass = pitchClassOf(peak.hz)
-    bucket[pitchClass] = (bucket[pitchClass] ?? 0) + peak.magnitude
+    const pc = pitchClassOfHz(peak.hz)
+    bucket[pc] = (bucket[pc] ?? 0) + peak.magnitude
   }
-  const harmonicShare = harmonic.map((h, pitchClass) => {
-    const total = h + (played[pitchClass] ?? 0)
+  const harmonicShare = harmonic.map((h, pc) => {
+    const total = h + (played[pc] ?? 0)
     return total > 0 ? h / total : 0
   })
   return { chroma, harmonicShare }

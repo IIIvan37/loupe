@@ -9,6 +9,7 @@ import {
   type SeparatedStem,
   type TempoAnalysis
 } from '@app/core'
+import { decibels } from '@app/core/testing'
 import { describe, expect, it, vi } from 'vitest'
 import { i18n } from '../../../i18n/i18n.ts'
 import type { Loops } from '../../loops/use-loops.ts'
@@ -203,7 +204,9 @@ describe('restoreSession (adapter mapping)', () => {
   })
 
   it('narrates each stored stem behind a paint (AS.4)', async () => {
-    const savedMixer = [{ id: 'voix', gainDb: -6, muted: false, soloed: false }]
+    const savedMixer = [
+      { id: 'voix', gainDb: decibels(-6), muted: false, soloed: false }
+    ]
     const twoStemProject: Project = {
       ...baseProject,
       separation: {

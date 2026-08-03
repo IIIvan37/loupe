@@ -1,3 +1,4 @@
+import { percent } from '@app/core'
 // @vitest-environment jsdom
 import { act, renderHook } from '@testing-library/react'
 import { Provider } from 'jotai'
@@ -5,18 +6,21 @@ import { describe, expect, it, vi } from 'vitest'
 import { useSpeedTrainer } from './use-speed-trainer.ts'
 
 const policy = {
-  startPercent: 70,
-  incrementPercent: 5,
+  startPercent: percent(70),
+  incrementPercent: percent(5),
   passesPerStep: 2,
-  targetPercent: 100
+  targetPercent: percent(100)
 }
 
 describe('useSpeedTrainer', () => {
   it('is off until started, and arming seats the start tempo', () => {
     const apply = vi.fn()
-    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100), {
-      wrapper: Provider
-    })
+    const { result } = renderHook(
+      () => useSpeedTrainer(apply, () => percent(100)),
+      {
+        wrapper: Provider
+      }
+    )
     expect(result.current.state).toBeUndefined()
 
     act(() => result.current.start(policy))
@@ -27,9 +31,12 @@ describe('useSpeedTrainer', () => {
 
   it('applies the stepped tempo once the cadence is earned, not before', () => {
     const apply = vi.fn()
-    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100), {
-      wrapper: Provider
-    })
+    const { result } = renderHook(
+      () => useSpeedTrainer(apply, () => percent(100)),
+      {
+        wrapper: Provider
+      }
+    )
     act(() => result.current.start(policy))
     apply.mockClear()
 
@@ -45,9 +52,12 @@ describe('useSpeedTrainer', () => {
   it('stop restores the tempo memorised at arming, and later passes are inert', () => {
     const apply = vi.fn()
     // The player was at 100 % when the ramp armed.
-    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100), {
-      wrapper: Provider
-    })
+    const { result } = renderHook(
+      () => useSpeedTrainer(apply, () => percent(100)),
+      {
+        wrapper: Provider
+      }
+    )
     act(() => result.current.start(policy))
     act(() => result.current.recordPass())
     act(() => result.current.recordPass())
@@ -65,9 +75,12 @@ describe('useSpeedTrainer', () => {
 
   it('stopping an already-off trainer applies nothing', () => {
     const apply = vi.fn()
-    const { result } = renderHook(() => useSpeedTrainer(apply, () => 100), {
-      wrapper: Provider
-    })
+    const { result } = renderHook(
+      () => useSpeedTrainer(apply, () => percent(100)),
+      {
+        wrapper: Provider
+      }
+    )
     act(() => result.current.stop())
     expect(apply).not.toHaveBeenCalled()
   })
@@ -77,7 +90,7 @@ describe('useSpeedTrainer', () => {
       () =>
         useSpeedTrainer(
           () => {},
-          () => 100
+          () => percent(100)
         ),
       { wrapper: Provider }
     )

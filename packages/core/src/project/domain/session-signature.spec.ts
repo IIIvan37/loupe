@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { decibels } from '../../shared/units.ts'
 import { type SignedSession, sessionSignature } from './session-signature.ts'
 
 const base: SignedSession = {
@@ -11,7 +12,7 @@ const base: SignedSession = {
     enabled: true
   },
   separation: {
-    mixer: [{ id: 'voix', gainDb: -6, muted: false, soloed: false }]
+    mixer: [{ id: 'voix', gainDb: decibels(-6), muted: false, soloed: false }]
   }
 }
 
@@ -75,7 +76,9 @@ describe('sessionSignature', () => {
     const edited: SignedSession = {
       ...base,
       separation: {
-        mixer: [{ id: 'voix', gainDb: 0, muted: false, soloed: false }]
+        mixer: [
+          { id: 'voix', gainDb: decibels(0), muted: false, soloed: false }
+        ]
       }
     }
     expect(sessionSignature(edited)).not.toBe(sessionSignature(base))
@@ -106,13 +109,23 @@ describe('sessionSignature', () => {
     const muted: SignedSession = {
       ...base,
       tempo: {
-        metronome: { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+        metronome: {
+          id: 'metronome',
+          gainDb: decibels(0),
+          muted: true,
+          soloed: false
+        }
       }
     }
     const heard: SignedSession = {
       ...base,
       tempo: {
-        metronome: { id: 'metronome', gainDb: 0, muted: false, soloed: false }
+        metronome: {
+          id: 'metronome',
+          gainDb: decibels(0),
+          muted: false,
+          soloed: false
+        }
       }
     }
     expect(sessionSignature(muted)).not.toBe(sessionSignature(heard))
@@ -124,14 +137,24 @@ describe('sessionSignature', () => {
     const defaulted: SignedSession = {
       ...base,
       tempo: {
-        metronome: { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+        metronome: {
+          id: 'metronome',
+          gainDb: decibels(0),
+          muted: true,
+          soloed: false
+        }
       }
     }
     expect(sessionSignature(defaulted)).toBe(sessionSignature(base))
   })
 
   it('changes when the octave correction changes', () => {
-    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const metronome = {
+      id: 'metronome',
+      gainDb: decibels(0),
+      muted: true,
+      soloed: false
+    }
     const detected: SignedSession = { ...base, tempo: { metronome } }
     const folded: SignedSession = {
       ...base,
@@ -141,7 +164,12 @@ describe('sessionSignature', () => {
   })
 
   it('signs an absent octave correction like an explicit zero', () => {
-    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const metronome = {
+      id: 'metronome',
+      gainDb: decibels(0),
+      muted: true,
+      soloed: false
+    }
     const implicit: SignedSession = { ...base, tempo: { metronome } }
     const explicit: SignedSession = {
       ...base,
@@ -151,7 +179,12 @@ describe('sessionSignature', () => {
   })
 
   it('changes when the meter correction changes', () => {
-    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const metronome = {
+      id: 'metronome',
+      gainDb: decibels(0),
+      muted: true,
+      soloed: false
+    }
     const detected: SignedSession = {
       ...base,
       tempo: { metronome, beatsPerBar: 6 }
@@ -164,7 +197,12 @@ describe('sessionSignature', () => {
   })
 
   it('signs an absent meter like the explicit common time', () => {
-    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const metronome = {
+      id: 'metronome',
+      gainDb: decibels(0),
+      muted: true,
+      soloed: false
+    }
     const implicit: SignedSession = { ...base, tempo: { metronome } }
     const explicit: SignedSession = {
       ...base,
@@ -176,7 +214,12 @@ describe('sessionSignature', () => {
   it('changes when the downbeat pattern changes under the same meter', () => {
     // A meter correction re-flags the grid uniformly: even landing back on
     // the same beatsPerBar, a lost irregular bar must read as an unsaved edit.
-    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const metronome = {
+      id: 'metronome',
+      gainDb: decibels(0),
+      muted: true,
+      soloed: false
+    }
     const beats = (downbeatEvery: (index: number) => boolean) =>
       Array.from({ length: 8 }, (_, index) => ({
         timeSeconds: index * 0.5,
@@ -204,7 +247,12 @@ describe('sessionSignature', () => {
   it('changes when the same number of downbeats lands on other beats', () => {
     // The signed pattern is WHICH beats are downbeats, not how many: a bar
     // phase shift keeps the count and must still read as an unsaved edit.
-    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const metronome = {
+      id: 'metronome',
+      gainDb: decibels(0),
+      muted: true,
+      soloed: false
+    }
     const beats = (downbeatAt: readonly number[]) =>
       Array.from({ length: 8 }, (_, index) => ({
         timeSeconds: index * 0.5,
@@ -225,7 +273,12 @@ describe('sessionSignature', () => {
     // The grid itself is derived (detection + fold + override) and stays out
     // of the signature: two grids with the same downbeat indices sign equal
     // even when their plain-beat tails differ.
-    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const metronome = {
+      id: 'metronome',
+      gainDb: decibels(0),
+      muted: true,
+      soloed: false
+    }
     const beats = (length: number) =>
       Array.from({ length }, (_, index) => ({
         timeSeconds: index * 0.5,
@@ -245,7 +298,12 @@ describe('sessionSignature', () => {
   it('changes when a manual tempo override is set', () => {
     // The override is a user edit (typed/tapped/aligned), unlike the derived
     // detection — setting one must read « Non enregistré ».
-    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const metronome = {
+      id: 'metronome',
+      gainDb: decibels(0),
+      muted: true,
+      soloed: false
+    }
     const detected: SignedSession = { ...base, tempo: { metronome } }
     const overridden: SignedSession = {
       ...base,
@@ -255,7 +313,12 @@ describe('sessionSignature', () => {
   })
 
   it('changes when the override phase moves', () => {
-    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const metronome = {
+      id: 'metronome',
+      gainDb: decibels(0),
+      muted: true,
+      soloed: false
+    }
     const anchored: SignedSession = {
       ...base,
       tempo: { metronome, manual: { bpm: 96, phaseSeconds: 0 } }
@@ -268,7 +331,12 @@ describe('sessionSignature', () => {
   })
 
   it('signs an absent override like a manifest that predates it', () => {
-    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const metronome = {
+      id: 'metronome',
+      gainDb: decibels(0),
+      muted: true,
+      soloed: false
+    }
     const old: SignedSession = { ...base, tempo: { metronome } }
     const explicit: SignedSession = {
       ...base,

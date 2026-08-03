@@ -1,4 +1,6 @@
 import {
+  type Percent,
+  percent,
   recordLoopPass,
   type SpeedTrainerPolicy,
   type SpeedTrainerSeam,
@@ -42,16 +44,19 @@ export interface SpeedTrainer {
  * animation frame during playback, and an unstable return would defeat the
  * memoised controls.
  */
+/** The tempo restored when a practice ends with nothing memorised. */
+const FULL_SPEED = percent(100)
+
 export function useSpeedTrainer(
-  applyTempoPercent: (percent: number) => void,
-  currentTempoPercent: () => number
+  applyTempoPercent: (value: Percent) => void,
+  currentTempoPercent: () => Percent
 ): SpeedTrainer {
   const [state, setState] = useAtom(speedTrainerStateAtom)
   const stateRef = useRef<SpeedTrainerState | undefined>(undefined)
   const applyRef = useLatest(applyTempoPercent)
   const currentRef = useLatest(currentTempoPercent)
   // The tempo to give back when the practice ends, memorised at arming.
-  const resumePercentRef = useRef(100)
+  const resumePercentRef = useRef(FULL_SPEED)
 
   const start = useCallback(
     (policy: SpeedTrainerPolicy) => {

@@ -1,3 +1,5 @@
+import { type PitchClass, pitchClass } from '../../shared/units.ts'
+
 /**
  * A single chord as it appears in a lead-sheet cell — `C`, `Am7`, `F#m7b5`,
  * `Cmaj7/E`. The root and slash bass are parsed as pitch names (so they can be
@@ -63,14 +65,13 @@ const FLAT_NAMES = [
 /** Which accidental a spelling favours — the key's convention, not a note's. */
 export type Accidental = 'sharp' | 'flat'
 
-/** Spell a pitch class (0–11, wrapped) with the key's chosen accidental. */
+/** Spell a pitch class with the key's chosen accidental. */
 export function spellPitchClass(
-  pitchClass: number,
+  pc: PitchClass,
   accidental: Accidental
 ): string {
-  const index = ((pitchClass % 12) + 12) % 12
   const table = accidental === 'flat' ? FLAT_NAMES : PITCH_NAMES
-  return table[index] as string
+  return table[pc] as string
 }
 
 const PITCH_CLASS: Readonly<Record<string, number>> = {
@@ -110,16 +111,16 @@ const PITCH_CLASS: Readonly<Record<string, number>> = {
  * through unchanged.
  */
 function transposeNote(note: string, semitones: number): string {
-  if (semitones % 12 === 0) return note
-  const pitchClass = PITCH_CLASS[note]
-  if (pitchClass === undefined) return note
-  const index = (((pitchClass + semitones) % 12) + 12) % 12
-  return PITCH_NAMES[index] as string
+  if (pitchClass(semitones) === 0) return note
+  const pc = PITCH_CLASS[note]
+  if (pc === undefined) return note
+  return PITCH_NAMES[pitchClass(pc + semitones)] as string
 }
 
-/** The pitch class (0–11) a note names, or undefined for an unknown name. */
-export function pitchClassOf(note: string): number | undefined {
-  return PITCH_CLASS[note]
+/** The pitch class a note names, or undefined for an unknown name. */
+export function pitchClassOf(note: string): PitchClass | undefined {
+  const pc = PITCH_CLASS[note]
+  return pc === undefined ? undefined : pitchClass(pc)
 }
 
 /**
@@ -129,10 +130,8 @@ export function pitchClassOf(note: string): number | undefined {
  * pass through unchanged.
  */
 export function respellNote(note: string, accidental: Accidental): string {
-  const pitchClass = PITCH_CLASS[note]
-  return pitchClass === undefined
-    ? note
-    : spellPitchClass(pitchClass, accidental)
+  const pc = pitchClassOf(note)
+  return pc === undefined ? note : spellPitchClass(pc, accidental)
 }
 
 /** Apply a note transform to the chord's root and optional slash bass. */

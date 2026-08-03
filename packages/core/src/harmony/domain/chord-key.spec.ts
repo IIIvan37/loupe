@@ -1,5 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import { pitchClass } from '../../shared/units.ts'
 import type { DetectedChordSpan } from './chord-detection.ts'
 import {
   detectKey,
@@ -23,32 +24,46 @@ function progression(
 
 describe('keyAccidental', () => {
   it('spells flat keys with flats', () => {
-    expect(keyAccidental({ tonicPc: 5, mode: 'major' })).toBe('flat') // F
-    expect(keyAccidental({ tonicPc: 10, mode: 'major' })).toBe('flat') // Bb
-    expect(keyAccidental({ tonicPc: 2, mode: 'minor' })).toBe('flat') // Dm
+    expect(keyAccidental({ tonicPc: pitchClass(5), mode: 'major' })).toBe(
+      'flat'
+    ) // F
+    expect(keyAccidental({ tonicPc: pitchClass(10), mode: 'major' })).toBe(
+      'flat'
+    ) // Bb
+    expect(keyAccidental({ tonicPc: pitchClass(2), mode: 'minor' })).toBe(
+      'flat'
+    ) // Dm
   })
 
   it('spells sharp keys with sharps', () => {
-    expect(keyAccidental({ tonicPc: 7, mode: 'major' })).toBe('sharp') // G
-    expect(keyAccidental({ tonicPc: 9, mode: 'minor' })).toBe('sharp') // Am
+    expect(keyAccidental({ tonicPc: pitchClass(7), mode: 'major' })).toBe(
+      'sharp'
+    ) // G
+    expect(keyAccidental({ tonicPc: pitchClass(9), mode: 'minor' })).toBe(
+      'sharp'
+    ) // Am
   })
 
   it('defaults C major / A minor to sharps (no accidentals either way)', () => {
-    expect(keyAccidental({ tonicPc: 0, mode: 'major' })).toBe('sharp')
-    expect(keyAccidental({ tonicPc: 9, mode: 'minor' })).toBe('sharp')
+    expect(keyAccidental({ tonicPc: pitchClass(0), mode: 'major' })).toBe(
+      'sharp'
+    )
+    expect(keyAccidental({ tonicPc: pitchClass(9), mode: 'minor' })).toBe(
+      'sharp'
+    )
   })
 })
 
 describe('keyName', () => {
   it('names a major key by its (spelled) tonic', () => {
-    expect(keyName({ tonicPc: 5, mode: 'major' })).toBe('F')
-    expect(keyName({ tonicPc: 10, mode: 'major' })).toBe('Bb') // not A#
-    expect(keyName({ tonicPc: 7, mode: 'major' })).toBe('G')
+    expect(keyName({ tonicPc: pitchClass(5), mode: 'major' })).toBe('F')
+    expect(keyName({ tonicPc: pitchClass(10), mode: 'major' })).toBe('Bb') // not A#
+    expect(keyName({ tonicPc: pitchClass(7), mode: 'major' })).toBe('G')
   })
 
   it('suffixes a minor key with m', () => {
-    expect(keyName({ tonicPc: 2, mode: 'minor' })).toBe('Dm')
-    expect(keyName({ tonicPc: 10, mode: 'minor' })).toBe('Bbm')
+    expect(keyName({ tonicPc: pitchClass(2), mode: 'minor' })).toBe('Dm')
+    expect(keyName({ tonicPc: pitchClass(10), mode: 'minor' })).toBe('Bbm')
   })
 })
 
@@ -77,11 +92,11 @@ describe('detectKey', () => {
   it('reads the mode from the chords thirds — same roots, flipped quality', () => {
     // The roots C, F, G alone don't fix the mode; the chords' thirds do.
     expect(detectKey(progression(['C', 'F', 'G', 'C']))).toEqual({
-      tonicPc: 0,
+      tonicPc: pitchClass(0),
       mode: 'major'
     })
     expect(detectKey(progression(['Cm', 'Fm', 'Gm', 'Cm']))).toEqual({
-      tonicPc: 0,
+      tonicPc: pitchClass(0),
       mode: 'minor'
     })
   })
@@ -95,7 +110,7 @@ describe('detectKey', () => {
       bar('C', 10),
       bar('Dm', 12)
     ]
-    expect(detectKey(spans)).toEqual({ tonicPc: 5, mode: 'major' })
+    expect(detectKey(spans)).toEqual({ tonicPc: pitchClass(5), mode: 'major' })
   })
 
   it('ignores silence and unknown roots', () => {
@@ -105,7 +120,7 @@ describe('detectKey', () => {
       detectKey(
         progression(['G', 'C', 'D', 'Em', 'G', undefined, 'C', 'H', 'D', 'G'])
       )
-    ).toEqual({ tonicPc: 7, mode: 'major' })
+    ).toEqual({ tonicPc: pitchClass(7), mode: 'major' })
   })
 
   it('ignores a zero- or negative-length span', () => {
@@ -116,32 +131,47 @@ describe('detectKey', () => {
       { startSeconds: 4, endSeconds: 2, label: 'F#' },
       bar('C', 0)
     ]
-    expect(detectKey(spans)).toEqual({ tonicPc: 0, mode: 'major' })
+    expect(detectKey(spans)).toEqual({ tonicPc: pitchClass(0), mode: 'major' })
   })
 
   it('falls back to C major on no usable chords', () => {
     expect(detectKey(progression([undefined, undefined]))).toEqual({
-      tonicPc: 0,
+      tonicPc: pitchClass(0),
       mode: 'major'
     })
-    expect(detectKey([])).toEqual({ tonicPc: 0, mode: 'major' })
+    expect(detectKey([])).toEqual({ tonicPc: pitchClass(0), mode: 'major' })
   })
 })
 
 describe('parseKeyName', () => {
   it('reads a major key name back into its Key (inverse of keyName)', () => {
-    expect(parseKeyName('Bb')).toEqual({ tonicPc: 10, mode: 'major' })
-    expect(parseKeyName('F#')).toEqual({ tonicPc: 6, mode: 'major' })
-    expect(parseKeyName('C')).toEqual({ tonicPc: 0, mode: 'major' })
+    expect(parseKeyName('Bb')).toEqual({
+      tonicPc: pitchClass(10),
+      mode: 'major'
+    })
+    expect(parseKeyName('F#')).toEqual({
+      tonicPc: pitchClass(6),
+      mode: 'major'
+    })
+    expect(parseKeyName('C')).toEqual({ tonicPc: pitchClass(0), mode: 'major' })
   })
 
   it('reads the m suffix as minor', () => {
-    expect(parseKeyName('Ebm')).toEqual({ tonicPc: 3, mode: 'minor' })
-    expect(parseKeyName('Am')).toEqual({ tonicPc: 9, mode: 'minor' })
+    expect(parseKeyName('Ebm')).toEqual({
+      tonicPc: pitchClass(3),
+      mode: 'minor'
+    })
+    expect(parseKeyName('Am')).toEqual({
+      tonicPc: pitchClass(9),
+      mode: 'minor'
+    })
   })
 
   it('tolerates surrounding spaces and unicode accidentals', () => {
-    expect(parseKeyName(' B♭m ')).toEqual({ tonicPc: 10, mode: 'minor' })
+    expect(parseKeyName(' B♭m ')).toEqual({
+      tonicPc: pitchClass(10),
+      mode: 'minor'
+    })
   })
 
   it('rejects text that names no key', () => {
@@ -153,7 +183,7 @@ describe('parseKeyName', () => {
   it('property — round-trips every key through its own name', () => {
     fc.assert(
       fc.property(
-        fc.integer({ min: 0, max: 11 }),
+        fc.integer({ min: 0, max: 11 }).map(pitchClass),
         fc.constantFrom('major', 'minor'),
         (tonicPc, mode) => {
           const key = { tonicPc, mode } as const
@@ -166,13 +196,15 @@ describe('parseKeyName', () => {
 
 describe('transposeKey', () => {
   it('moves the tonic, keeps the mode, wraps the octave', () => {
-    expect(transposeKey({ tonicPc: 0, mode: 'major' }, 3)).toEqual({
-      tonicPc: 3,
+    expect(transposeKey({ tonicPc: pitchClass(0), mode: 'major' }, 3)).toEqual({
+      tonicPc: pitchClass(3),
       mode: 'major'
     })
-    expect(transposeKey({ tonicPc: 2, mode: 'minor' }, -4)).toEqual({
-      tonicPc: 10,
-      mode: 'minor'
-    })
+    expect(transposeKey({ tonicPc: pitchClass(2), mode: 'minor' }, -4)).toEqual(
+      {
+        tonicPc: pitchClass(10),
+        mode: 'minor'
+      }
+    )
   })
 })

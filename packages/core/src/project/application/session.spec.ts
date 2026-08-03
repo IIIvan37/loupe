@@ -5,6 +5,7 @@ import type { SeparatedStem } from '../../separation/application/ports.ts'
 import type { MixerState } from '../../separation/domain/mixer.ts'
 import type { StemSet } from '../../separation/domain/stem-set.ts'
 import type { DecodedAudio } from '../../shared/decoded-audio.ts'
+import { decibels } from '../../shared/units.ts'
 import type { Project, ProjectTempo } from '../domain/project.ts'
 import type { OpenProjectResult } from './projects.ts'
 import {
@@ -57,7 +58,12 @@ describe('sessionSaveInput', () => {
     const tempo: ProjectTempo = {
       bpm: 96,
       grid: [{ timeSeconds: 0, downbeat: true }],
-      metronome: { id: 'metronome', gainDb: -3, muted: false, soloed: false }
+      metronome: {
+        id: 'metronome',
+        gainDb: decibels(-3),
+        muted: false,
+        soloed: false
+      }
     }
     const input = sessionSaveInput({
       bytes: new ArrayBuffer(4),
@@ -74,7 +80,7 @@ describe('sessionSaveInput', () => {
   it('persists only the stems the mixer holds a channel for, as WAV bytes', () => {
     // The mixer mixes one of the two sources — only that pair may be saved.
     const mixer: MixerState = [
-      { id: 'voix', gainDb: -6, muted: false, soloed: false }
+      { id: 'voix', gainDb: decibels(-6), muted: false, soloed: false }
     ]
     const input = sessionSaveInput({
       bytes: new ArrayBuffer(4),
@@ -106,7 +112,7 @@ describe('restoreSession', () => {
     markers: [{ id: 'm1', timeSeconds: 3, label: 'Repère 1' }]
   }
   const savedMixer: MixerState = [
-    { id: 'voix', gainDb: -6, muted: false, soloed: false }
+    { id: 'voix', gainDb: decibels(-6), muted: false, soloed: false }
   ]
   const project: Project = {
     ...baseProject,
@@ -364,7 +370,12 @@ describe('restoreSession', () => {
       { timeSeconds: 0, downbeat: true },
       { timeSeconds: 0.5, downbeat: false }
     ],
-    metronome: { id: 'metronome', gainDb: -6, muted: false, soloed: false }
+    metronome: {
+      id: 'metronome',
+      gainDb: decibels(-6),
+      muted: false,
+      soloed: false
+    }
   }
 
   it('restores the persisted tempo and seats an un-separated metronome', async () => {

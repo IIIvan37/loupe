@@ -6,8 +6,10 @@
  * fine-tune never joins the chart's transposition arithmetic (N.3's modulo-12
  * divergence flag stays in whole semitones).
  */
-export const MIN_FINE_TUNE_CENTS = -50
-export const MAX_FINE_TUNE_CENTS = 50
+import { type Cents, cents } from './units.ts'
+
+export const MIN_FINE_TUNE_CENTS = cents(-50)
+export const MAX_FINE_TUNE_CENTS = cents(50)
 
 /**
  * Confine a fine-tune to a whole number of cents within ±50; `NaN` — or a
@@ -25,20 +27,20 @@ export const MAX_FINE_TUNE_CENTS = 50
  */
 export function fineTuneOrDefault(
   tuning: { readonly fineTuneCents?: number } | undefined
-): number {
+): Cents {
   return clampFineTuneCents(tuning?.fineTuneCents ?? 0)
 }
 
-export function clampFineTuneCents(cents: number): number {
-  if (typeof cents !== 'number' || Number.isNaN(cents)) {
-    return 0
+export function clampFineTuneCents(value: number): Cents {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return cents(0)
   }
-  const whole = Math.round(cents)
+  const whole = Math.round(value)
   if (whole < MIN_FINE_TUNE_CENTS) {
     return MIN_FINE_TUNE_CENTS
   }
   if (whole > MAX_FINE_TUNE_CENTS) {
     return MAX_FINE_TUNE_CENTS
   }
-  return whole
+  return cents(whole)
 }

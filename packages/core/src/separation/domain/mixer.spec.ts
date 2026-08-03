@@ -1,5 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import { decibels } from '../../shared/units.ts'
 import {
   clampGainDb,
   dbToAmplitude,
@@ -17,7 +18,9 @@ import {
 /** A channel arbitrary spanning the full fader range and both flags. */
 const channelArb = fc.record({
   id: fc.string({ minLength: 1 }),
-  gainDb: fc.double({ min: MIN_GAIN_DB, max: MAX_GAIN_DB, noNaN: true }),
+  gainDb: fc
+    .double({ min: MIN_GAIN_DB, max: MAX_GAIN_DB, noNaN: true })
+    .map(decibels),
   muted: fc.boolean(),
   soloed: fc.boolean()
 })
@@ -95,12 +98,12 @@ describe('dbToAmplitude', () => {
   })
 
   it('maps a +6 dB boost to roughly double', () => {
-    expect(dbToAmplitude(6)).toBeCloseTo(1.995, 2)
+    expect(dbToAmplitude(decibels(6))).toBeCloseTo(1.995, 2)
   })
 
   it('treats the bottom of the fader as true silence', () => {
     expect(dbToAmplitude(MIN_GAIN_DB)).toBe(0)
-    expect(dbToAmplitude(MIN_GAIN_DB - 10)).toBe(0)
+    expect(dbToAmplitude(decibels(MIN_GAIN_DB - 10))).toBe(0)
   })
 
   it('is non-negative and non-decreasing in the level', () => {
@@ -109,8 +112,8 @@ describe('dbToAmplitude', () => {
         fc.double({ min: MIN_GAIN_DB, max: MAX_GAIN_DB, noNaN: true }),
         fc.double({ min: MIN_GAIN_DB, max: MAX_GAIN_DB, noNaN: true }),
         (a, b) => {
-          const lo = Math.min(a, b)
-          const hi = Math.max(a, b)
+          const lo = decibels(Math.min(a, b))
+          const hi = decibels(Math.max(a, b))
           expect(dbToAmplitude(lo)).toBeGreaterThanOrEqual(0)
           expect(dbToAmplitude(hi)).toBeGreaterThanOrEqual(dbToAmplitude(lo))
         }
@@ -133,7 +136,11 @@ describe('mixerReducer', () => {
 
   it('sets and clamps one channel gain, leaving the others alone', () => {
     const start = mixerReducer(emptyMixer, { type: 'init', ids: ['a', 'b'] })
-    const next = mixerReducer(start, { type: 'setGain', id: 'a', gainDb: -120 })
+    const next = mixerReducer(start, {
+      type: 'setGain',
+      id: 'a',
+      gainDb: decibels(-120)
+    })
     expect(next[0]).toMatchObject({ id: 'a', gainDb: MIN_GAIN_DB })
     expect(next[1]).toEqual(start[1])
   })
@@ -156,8 +163,8 @@ describe('mixerReducer', () => {
   it('restores a persisted state as-is, replacing the current channels', () => {
     const start = mixerReducer(emptyMixer, { type: 'init', ids: ['x'] })
     const saved: MixerState = [
-      { id: 'voix', gainDb: -12, muted: true, soloed: false },
-      { id: 'basse', gainDb: 3, muted: false, soloed: true }
+      { id: 'voix', gainDb: decibels(-12), muted: true, soloed: false },
+      { id: 'basse', gainDb: decibels(3), muted: false, soloed: true }
     ]
     expect(mixerReducer(start, { type: 'restore', channels: saved })).toEqual(
       saved
@@ -166,9 +173,9 @@ describe('mixerReducer', () => {
 
   it('clamps each restored channel gain to the fader range', () => {
     const saved: MixerState = [
-      { id: 'a', gainDb: 99, muted: false, soloed: false },
-      { id: 'b', gainDb: -200, muted: false, soloed: false },
-      { id: 'c', gainDb: Number.NaN, muted: false, soloed: false }
+      { id: 'a', gainDb: decibels(99), muted: false, soloed: false },
+      { id: 'b', gainDb: decibels(-200), muted: false, soloed: false },
+      { id: 'c', gainDb: decibels(Number.NaN), muted: false, soloed: false }
     ]
     const state = mixerReducer(emptyMixer, { type: 'restore', channels: saved })
     expect(state.map((channel) => channel.gainDb)).toEqual([
@@ -181,7 +188,7 @@ describe('mixerReducer', () => {
   it('ignores actions targeting an unknown channel', () => {
     const start = mixerReducer(emptyMixer, { type: 'init', ids: ['a'] })
     expect(
-      mixerReducer(start, { type: 'setGain', id: 'x', gainDb: 3 })
+      mixerReducer(start, { type: 'setGain', id: 'x', gainDb: decibels(3) })
     ).toEqual(start)
   })
 
@@ -206,7 +213,12 @@ describe('mixerReducer', () => {
   it('clamps an out-of-range gain on the joining channel', () => {
     const joined = mixerReducer(emptyMixer, {
       type: 'addChannel',
-      channel: { id: 'metro', gainDb: 99, muted: false, soloed: false }
+      channel: {
+        id: 'metro',
+        gainDb: decibels(99),
+        muted: false,
+        soloed: false
+      }
     })
     expect(joined).toEqual([
       { id: 'metro', gainDb: MAX_GAIN_DB, muted: false, soloed: false }
@@ -235,11 +247,11 @@ describe('mixerReducer', () => {
 
   it('preserves the other channels when one is removed', () => {
     const start: MixerState = [
-      { id: 'a', gainDb: -12, muted: true, soloed: false },
-      { id: 'metro', gainDb: 0, muted: false, soloed: false }
+      { id: 'a', gainDb: decibels(-12), muted: true, soloed: false },
+      { id: 'metro', gainDb: decibels(0), muted: false, soloed: false }
     ]
     expect(mixerReducer(start, { type: 'removeChannel', id: 'metro' })).toEqual(
-      [{ id: 'a', gainDb: -12, muted: true, soloed: false }]
+      [{ id: 'a', gainDb: decibels(-12), muted: true, soloed: false }]
     )
   })
 })
@@ -247,25 +259,25 @@ describe('mixerReducer', () => {
 describe('effectiveGains', () => {
   it('returns the dB-derived gain when nothing is muted or soloed', () => {
     const state: MixerState = [
-      { id: 'a', gainDb: 0, muted: false, soloed: false },
-      { id: 'b', gainDb: 6, muted: false, soloed: false }
+      { id: 'a', gainDb: decibels(0), muted: false, soloed: false },
+      { id: 'b', gainDb: decibels(6), muted: false, soloed: false }
     ]
     const gains = effectiveGains(state)
     expect(gains[0]?.gain).toBeCloseTo(1)
-    expect(gains[1]?.gain).toBeCloseTo(dbToAmplitude(6))
+    expect(gains[1]?.gain).toBeCloseTo(dbToAmplitude(decibels(6)))
   })
 
   it('silences a muted channel', () => {
     const state: MixerState = [
-      { id: 'a', gainDb: 0, muted: true, soloed: false }
+      { id: 'a', gainDb: decibels(0), muted: true, soloed: false }
     ]
     expect(effectiveGains(state)[0]?.gain).toBe(0)
   })
 
   it('silences every non-soloed channel when one is soloed', () => {
     const state: MixerState = [
-      { id: 'a', gainDb: 0, muted: false, soloed: true },
-      { id: 'b', gainDb: 0, muted: false, soloed: false }
+      { id: 'a', gainDb: decibels(0), muted: false, soloed: true },
+      { id: 'b', gainDb: decibels(0), muted: false, soloed: false }
     ]
     const gains = effectiveGains(state)
     expect(gains[0]?.gain).toBeCloseTo(1)
@@ -274,7 +286,7 @@ describe('effectiveGains', () => {
 
   it('mutes a channel even if it is soloed (mute wins)', () => {
     const state: MixerState = [
-      { id: 'a', gainDb: 0, muted: true, soloed: true }
+      { id: 'a', gainDb: decibels(0), muted: true, soloed: true }
     ]
     expect(effectiveGains(state)[0]?.gain).toBe(0)
   })

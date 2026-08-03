@@ -1,3 +1,4 @@
+import { percent } from '@app/core'
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
 import type { LoopRegion } from '@app/core'
@@ -182,10 +183,10 @@ describe('LoopControls', () => {
     )
 
     expect(trainer.start).toHaveBeenCalledWith({
-      startPercent: 70,
-      incrementPercent: 5,
+      startPercent: percent(70),
+      incrementPercent: percent(5),
       passesPerStep: 1,
-      targetPercent: Number.NaN
+      targetPercent: percent(Number.NaN)
     })
   })
 
@@ -208,10 +209,10 @@ describe('LoopControls', () => {
     )
 
     expect(trainer.start).toHaveBeenCalledWith({
-      startPercent: 60,
-      incrementPercent: 5,
+      startPercent: percent(60),
+      incrementPercent: percent(5),
       passesPerStep: 3,
-      targetPercent: 100
+      targetPercent: percent(100)
     })
   })
 
@@ -219,20 +220,20 @@ describe('LoopControls', () => {
     const user = userEvent.setup()
     const trainer = fakeTrainer({
       policy: {
-        startPercent: 70,
-        incrementPercent: 5,
+        startPercent: percent(70),
+        incrementPercent: percent(5),
         passesPerStep: 1,
-        targetPercent: 100
+        targetPercent: percent(100)
       },
       passesInStep: 0,
-      currentPercent: 75
+      currentPercent: percent(75)
     })
     renderControls({ trainer })
 
     // The read-out is doubled: visible text + the hidden announcement channel.
     const status = i18n._('loops.trainer-status', {
-      currentPercent: 75,
-      targetPercent: 100
+      currentPercent: percent(75),
+      targetPercent: percent(100)
     })
     expect(
       screen.getByText(status, { ignore: 'script, style, output, [role="status"]' })

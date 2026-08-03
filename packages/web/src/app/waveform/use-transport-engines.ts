@@ -3,6 +3,7 @@ import {
   type LoopRegion,
   type PlaybackEngine,
   resolvePlaybackTick,
+  seconds,
   type TransportAction,
   type TransportState,
   transportReducer
@@ -129,9 +130,11 @@ export function useTransportEngines({
     // only the components whose derived slice of the playhead moved. What a
     // frame MEANS (wrap the armed loop, stop at the end) is the core's
     // per-frame policy; this listener only executes its outcome.
-    const onPosition = (seconds: number) => {
+    const onPosition = (streamedSeconds: number) => {
+      // Parse the engine's raw stream once at the boundary: this is timeline
+      // time (Seconds), not a 0…1 progress ratio.
       const outcome = resolvePlaybackTick({
-        atSeconds: seconds,
+        atSeconds: seconds(streamedSeconds),
         loop: loopRef.current,
         loopEnabled: loopEnabledRef.current,
         isPlaying: isPlayingRef.current,
@@ -147,7 +150,7 @@ export function useTransportEngines({
         }
         return
       }
-      position.set(seconds)
+      position.set(streamedSeconds)
       if (outcome.endReached) {
         dispatch({ type: 'pause' })
       }

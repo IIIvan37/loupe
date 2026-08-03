@@ -3,6 +3,7 @@ import {
   loopLength,
   wrapToLoop
 } from '../loops/domain/loop-region.ts'
+import type { Seconds } from '../shared/units.ts'
 import { completesLoopPass } from './speed-trainer.ts'
 
 /**
@@ -13,8 +14,10 @@ import { completesLoopPass } from './speed-trainer.ts'
  * or advance and stop at the end of a real timeline.
  */
 export interface PlaybackTickInput {
-  /** The streamed position, straight from the engine. */
-  readonly atSeconds: number
+  /** The streamed position, straight from the engine — parsed to `Seconds`
+   * at the adapter boundary, the proof it is timeline time and not one of the
+   * app's 0…1 progress ratios. */
+  readonly atSeconds: Seconds
   /** The armed A/B loop — the loupe — when one is set. */
   readonly loop: LoopRegion | undefined
   /** Whether the loupe actually wraps playback (vs playing through). */

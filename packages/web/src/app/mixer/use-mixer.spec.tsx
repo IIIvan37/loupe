@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
 import {
-  type StemFilter,
   type MixerState,
   type SeparatedStem,
+  type StemFilter,
   type StemSet,
   type StemSource
 } from '@app/core'
+import { decibels } from '@app/core/testing'
 import { act, renderHook } from '@testing-library/react'
 import { Provider, createStore } from 'jotai'
 import type { ReactNode } from 'react'
@@ -107,7 +108,7 @@ describe('useMixer', () => {
     ])
     // Every channel starts at unity, unmuted, unsoloed, fully opaque.
     expect(result.current.channels[0]).toMatchObject({
-      gainDb: 0,
+      gainDb: decibels(0),
       muted: false,
       soloed: false,
       level: 1
@@ -146,7 +147,7 @@ describe('useMixer', () => {
     act(() => {
       result.current.addStem(stem('metronome', 'Métronome'), metro, {
         id: 'metronome',
-        gainDb: 0,
+        gainDb: decibels(0),
         muted: true,
         soloed: false
       })
@@ -168,7 +169,7 @@ describe('useMixer', () => {
       result.current.addStem(
         stem('metronome', 'Métronome'),
         { id: 'metronome', label: 'Métronome', audio },
-        { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+        { id: 'metronome', gainDb: decibels(0), muted: true, soloed: false }
       )
     })
 
@@ -353,8 +354,8 @@ describe('useMixer', () => {
     const engine = fakeEngine()
     const hook = mountMixer(engine)
     const saved: MixerState = [
-      { id: 'voix', gainDb: -6, muted: false, soloed: false },
-      { id: 'basse', gainDb: 0, muted: true, soloed: false }
+      { id: 'voix', gainDb: decibels(-6), muted: false, soloed: false },
+      { id: 'basse', gainDb: decibels(0), muted: true, soloed: false }
     ]
 
     act(() => {

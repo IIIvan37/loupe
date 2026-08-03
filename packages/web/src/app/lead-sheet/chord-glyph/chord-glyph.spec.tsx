@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest'
+import { pitchClass } from '@app/core/testing'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { ChordGlyph } from './chord-glyph.tsx'
@@ -73,17 +74,17 @@ describe('ChordGlyph', () => {
 
   it('romanKey reads the root as a degree, the minor m at baseline', () => {
     // AN.5 decision: uppercase numerals, the quality carries the minor — IIm7.
-    render(<ChordGlyph text="Dm7" romanKey={{ tonicPc: 0, mode: 'major' }} />)
+    render(<ChordGlyph text="Dm7" romanKey={{ tonicPc: pitchClass(0), mode: 'major' }} />)
     expect(screen.getByText('IIm')).toBeInTheDocument()
   })
 
   it('romanKey reads an out-of-scale root flat-side, engraved', () => {
-    render(<ChordGlyph text="Bb7" romanKey={{ tonicPc: 0, mode: 'major' }} />)
+    render(<ChordGlyph text="Bb7" romanKey={{ tonicPc: pitchClass(0), mode: 'major' }} />)
     expect(screen.getByText('♭VII')).toBeInTheDocument()
   })
 
   it('romanKey leaves a token the grammar cannot re-print verbatim', () => {
-    render(<ChordGlyph text="N.C." romanKey={{ tonicPc: 0, mode: 'major' }} />)
+    render(<ChordGlyph text="N.C." romanKey={{ tonicPc: pitchClass(0), mode: 'major' }} />)
     expect(screen.getByText('N.C.')).toBeInTheDocument()
   })
 })

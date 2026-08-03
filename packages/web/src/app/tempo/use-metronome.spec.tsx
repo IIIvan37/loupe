@@ -1,3 +1,4 @@
+import { decibels } from '@app/core/testing'
 // @vitest-environment jsdom
 import type {
   BeatGrid,
@@ -50,7 +51,7 @@ describe('useMetronome', () => {
     expect(stems.map((s) => s.id)).toEqual(['piste', METRONOME_ID])
     // The click channel is muted; the track plays untouched.
     expect(channels).toEqual([
-      { id: 'piste', gainDb: 0, muted: false, soloed: false },
+      { id: 'piste', gainDb: decibels(0), muted: false, soloed: false },
       DEFAULT_METRONOME_CHANNEL
     ])
   })
@@ -67,9 +68,9 @@ describe('useMetronome', () => {
     }
     const source: SeparatedStem = { id: 'voix', label: 'Voix', audio }
     const baseMixer: MixerState = [
-      { id: 'voix', gainDb: -6, muted: false, soloed: false }
+      { id: 'voix', gainDb: decibels(-6), muted: false, soloed: false }
     ]
-    const saved = { id: METRONOME_ID, gainDb: -3, muted: false, soloed: false }
+    const saved = { id: METRONOME_ID, gainDb: decibels(-3), muted: false, soloed: false }
 
     act(() => {
       result.current.attach(grid, [stem], [source], audio, baseMixer, saved)
@@ -104,7 +105,7 @@ describe('useMetronome', () => {
 
   it('join swaps the click already mixed, keeping its channel settings', () => {
     const mixer = fakeMixer([
-      { id: METRONOME_ID, gainDb: -3, muted: false, soloed: false }
+      { id: METRONOME_ID, gainDb: decibels(-3), muted: false, soloed: false }
     ])
     const { result } = renderHook(() => useMetronome({ mixer }), {
       wrapper: Provider

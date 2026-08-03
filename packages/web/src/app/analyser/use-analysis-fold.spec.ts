@@ -1,3 +1,4 @@
+import { decibels } from '@app/core/testing'
 // @vitest-environment jsdom
 
 import type { Project } from '@app/core'
@@ -25,7 +26,12 @@ const analysed = () =>
       bpm: 120,
       grid: [],
       beatsPerBar: 4,
-      metronome: { id: 'click', gainDb: 0, muted: false, soloed: false }
+      metronome: {
+        id: 'click',
+        gainDb: decibels(0),
+        muted: false,
+        soloed: false
+      }
     },
     chordChart: { source: '| C |' }
   })

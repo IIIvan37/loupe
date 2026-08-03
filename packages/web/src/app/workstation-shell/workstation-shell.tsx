@@ -1,4 +1,11 @@
-import { formatTimecode, type ProjectTuning } from '@app/core'
+import {
+  formatTimecode,
+  percent,
+  percentToRatio,
+  type ProjectTuning,
+  ratio,
+  ratioToPercent
+} from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
@@ -95,9 +102,9 @@ function ShellFooter({
       onPlayPause={onPlayPause}
       onSeekToStart={() => seekToSeconds(0)}
       onSeekToEnd={() => seekToSeconds(durationSeconds)}
-      tempoPercent={Math.round(timeRatio * 100)}
+      tempoPercent={Math.round(ratioToPercent(ratio(timeRatio)))}
       pitchSemitones={pitchSemitones}
-      onTempoChange={(percent) => setTimeRatio(percent / 100)}
+      onTempoChange={(value) => setTimeRatio(percentToRatio(percent(value)))}
       onPitchChange={setPitchSemitones}
       fineTuneCents={fineTuneCents}
       onFineTuneChange={setFineTuneCents}
@@ -116,8 +123,8 @@ function playbackSteppers(player: ReturnType<typeof usePlayer>): {
 } {
   return {
     speed: {
-      percent: Math.round(player.timeRatio * 100),
-      setPercent: (percent) => player.setTimeRatio(percent / 100)
+      percent: Math.round(ratioToPercent(ratio(player.timeRatio))),
+      setPercent: (value) => player.setTimeRatio(percentToRatio(percent(value)))
     },
     pitch: {
       semitones: player.pitchSemitones,

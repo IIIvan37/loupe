@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { MixerState } from '../../separation/domain/mixer.ts'
+import { decibels } from '../../shared/units.ts'
 import type { AudioRef } from '../domain/project.ts'
 // Relative on purpose: inside the core the subpath alias would be a
 // self-import; adapters go through '@app/core/testing'.
@@ -56,7 +57,7 @@ const loop = {
   region: { startSeconds: 1, endSeconds: 3 }
 }
 const mixer: MixerState = [
-  { id: 'vocals', gainDb: 0, muted: false, soloed: false }
+  { id: 'vocals', gainDb: decibels(0), muted: false, soloed: false }
 ]
 
 const saveInput = {
@@ -133,7 +134,7 @@ describe('saveProject', () => {
       ],
       metronome: {
         id: 'metronome',
-        gainDb: -3,
+        gainDb: decibels(-3),
         muted: false,
         soloed: false
       }
@@ -251,8 +252,8 @@ describe('saveProject', () => {
         separation: {
           stems: [{ id: 'vocals', label: 'Voix', bytes: bytesOf('v') }],
           mixer: [
-            { id: 'vocals', gainDb: 0, muted: false, soloed: false },
-            { id: 'drums', gainDb: 0, muted: false, soloed: false }
+            { id: 'vocals', gainDb: decibels(0), muted: false, soloed: false },
+            { id: 'drums', gainDb: decibels(0), muted: false, soloed: false }
           ]
         }
       },

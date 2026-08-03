@@ -1,3 +1,4 @@
+import { pitchClass } from '../../shared/units.ts'
 import { keyAccidental, parseKeyName } from './chord-key.ts'
 import {
   type Accidental,
@@ -263,7 +264,7 @@ export function transposeChart(
   return {
     // A whole-octave move keeps the text verbatim (transposeNote's own
     // guard) — never re-spell what did not move.
-    source: semitones % 12 === 0 ? moved : respellUnderKey(moved),
+    source: pitchClass(semitones) === 0 ? moved : respellUnderKey(moved),
     transposedBy: chart.transposedBy + semitones
   }
 }
@@ -300,7 +301,7 @@ export function chartMatchesPitch(
   transposedBy: number,
   pitchSemitones: number
 ): boolean {
-  return (pitchSemitones - transposedBy) % 12 === 0
+  return pitchClass(pitchSemitones - transposedBy) === 0
 }
 
 /** How a blank measure prints: the lead-sheet's own "no chord" token. It parses
