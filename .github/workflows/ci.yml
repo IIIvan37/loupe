@@ -118,10 +118,13 @@ jobs:
         with:
           # Pinned to the version the suite was verified against locally.
           version: 2.109.1
-      # Everything except db + auth is excluded (auth is not excludable, and
-      # the tests need it: GoTrue's own migrations create auth.users, where
-      # the suite seeds its throwaway users).
-      - run: supabase start -x analytics,edge-runtime,functions,imgproxy,inbucket,kong,meta,realtime,rest,storage,studio,vector
+      # Full stack, exactly the configuration verified locally: `-x` excludes
+      # proved unreliable (the first run still started PostgREST and probed
+      # its readiness through the EXCLUDED kong — connection refused). The
+      # suite needs db + auth (GoTrue's migrations create auth.users, where
+      # the tests seed throwaway users); analytics is already disabled in
+      # supabase/config.toml.
+      - run: supabase start
       - name: Run the SQL test suite
         # Port and credentials are the CLI's local-stack defaults
         # (supabase/config.toml sets db.port = 54322).
