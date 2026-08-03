@@ -1,5 +1,10 @@
 // @vitest-environment jsdom
-import type { LoopRegion, NamedLoop, TempoAnalysis } from '@app/core'
+import type {
+  LoopRegion,
+  NamedLoop,
+  SpeedTrainerSeam,
+  TempoAnalysis
+} from '@app/core'
 import { act, renderHook } from '@testing-library/react'
 import { Provider, createStore } from 'jotai'
 import type { ReactNode } from 'react'
@@ -24,7 +29,7 @@ function recordingPlayer() {
   const calls = {
     regions: [] as (LoopRegion | undefined)[],
     seeks: [] as number[],
-    trainerStops: 0
+    trainerSeams: [] as SpeedTrainerSeam[]
   }
   const player: PlayerHandle = {
     position: { get: () => 0, subscribe: () => () => {} },
@@ -35,9 +40,8 @@ function recordingPlayer() {
     setLoopRegion: (region) => calls.regions.push(region),
     speedTrainer: {
       start: () => {},
-      stop: () => {
-        calls.trainerStops += 1
-      }
+      stop: () => {},
+      cross: (seam) => calls.trainerSeams.push(seam)
     }
   }
   return { player, calls }
@@ -119,8 +123,9 @@ describe('useLoopEditing across two consumers (one store)', () => {
 
     expect(calls.regions.at(-1)).toEqual(saved)
     expect(calls.seeks.at(-1)).toBe(4)
-    // The ramp belongs to the passage it was armed on — replacing stops it.
-    expect(calls.trainerStops).toBeGreaterThan(0)
+    // Recalling a loop replaces the passage: the feature names that seam and
+    // the core's single rule (speedTrainerSurvives) decides the ramp's fate.
+    expect(calls.trainerSeams).toContain('loupe-selected')
     expect(a.result.current.editing.activeLoopId).toBe(loop.id)
   })
 

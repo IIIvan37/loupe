@@ -6,6 +6,8 @@ import {
   previewSpeedTrainer,
   recordLoopPass,
   type SpeedTrainerPolicy,
+  type SpeedTrainerSeam,
+  speedTrainerSurvives,
   startSpeedTrainer
 } from './speed-trainer.ts'
 
@@ -170,6 +172,42 @@ it('always sits at the earned ramp position, capped at the target', () => {
       }
     )
   )
+})
+
+describe('speedTrainerSurvives', () => {
+  // The single disarm rule: the ramp belongs to the passage it was armed on,
+  // borrows the tempo, and needs wraps to earn steps. Any seam that breaks one
+  // of those three ends the practice.
+  it('survives only an edge adjustment of the same passage', () => {
+    expect(speedTrainerSurvives('loupe-adjusted')).toBe(true)
+    expect(speedTrainerSurvives('loupe-selected')).toBe(false)
+    expect(speedTrainerSurvives('loupe-cleared')).toBe(false)
+    expect(speedTrainerSurvives('loupe-restored')).toBe(false)
+  })
+
+  it('ends when the user takes the tempo back', () => {
+    expect(speedTrainerSurvives('tempo-taken')).toBe(false)
+  })
+
+  it('ends in play-through mode (no wrap can earn a pass) but survives re-arming', () => {
+    expect(speedTrainerSurvives('looping-disabled')).toBe(false)
+    expect(speedTrainerSurvives('looping-enabled')).toBe(true)
+  })
+
+  it('is a total function over every seam (no seam left undecided)', () => {
+    const seams: readonly SpeedTrainerSeam[] = [
+      'tempo-taken',
+      'loupe-selected',
+      'loupe-adjusted',
+      'loupe-cleared',
+      'loupe-restored',
+      'looping-disabled',
+      'looping-enabled'
+    ]
+    for (const seam of seams) {
+      expect(typeof speedTrainerSurvives(seam)).toBe('boolean')
+    }
+  })
 })
 
 describe('previewSpeedTrainer', () => {

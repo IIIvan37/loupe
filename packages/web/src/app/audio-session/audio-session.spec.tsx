@@ -61,7 +61,7 @@ describe('usePlayerHandle', () => {
     seekToRatio: () => {},
     toggleLoop: () => {},
     setLoopRegion: () => {},
-    speedTrainer: { start: () => {}, stop: () => {} }
+    speedTrainer: { start: () => {}, stop: () => {}, cross: () => {} }
   }
 
   it('hands a region the player the shell seated', () => {
@@ -232,7 +232,7 @@ describe('AudioSessionWithPlayer', () => {
     seekToRatio: () => {},
     toggleLoop: () => {},
     setLoopRegion: () => {},
-    speedTrainer: { start: () => {}, stop: () => {} }
+    speedTrainer: { start: () => {}, stop: () => {}, cross: () => {} }
   }
   const stemEngine: StemPlaybackEngine = {
     load: async () => {},

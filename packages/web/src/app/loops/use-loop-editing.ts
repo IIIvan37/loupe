@@ -57,9 +57,9 @@ export interface LoopEditing {
  * loop in place rather than spawning a duplicate. The bridge is session state
  * riding the feature's atoms (ADR 0010), and it drives the loupe through the
  * session's player (ADR 0011) — the beat grid drags snap to is the tempo
- * feature's own atom. Speed-trainer semantics: REPLACING the passage (a fresh
- * drag, a recalled loop) stops the ramp — it belongs to the passage it was
- * armed on; adjusting an edge keeps it running.
+ * feature's own atom. Speed-trainer semantics: replacing the passage crosses
+ * the 'loupe-selected' seam (adjusting an edge crosses 'loupe-adjusted', via
+ * the player) — the core's single rule decides what the ramp survives.
  */
 export function useLoopEditing(): LoopEditing {
   const loops = useLoops()
@@ -84,7 +84,7 @@ export function useLoopEditing(): LoopEditing {
     snap = false
   ): void {
     setActiveLoopId(null)
-    player.speedTrainer.stop()
+    player.speedTrainer.cross('loupe-selected')
     player.setLoopRegion(regionFrom(startSeconds, endSeconds, snap))
   }
 
@@ -112,7 +112,7 @@ export function useLoopEditing(): LoopEditing {
 
   /** Replace the loupe with a new passage and start it from its beginning. */
   function armSpan(region: LoopRegion): void {
-    player.speedTrainer.stop()
+    player.speedTrainer.cross('loupe-selected')
     player.setLoopRegion(region)
     player.seekToSeconds(region.startSeconds)
   }

@@ -78,12 +78,14 @@ export { seekStepSeconds } from './domain/seek-step.ts'
 export type {
   SpeedTrainerPolicy,
   SpeedTrainerPreview,
+  SpeedTrainerSeam,
   SpeedTrainerState
 } from './domain/speed-trainer.ts'
 export {
   completesLoopPass,
   previewSpeedTrainer,
   recordLoopPass,
+  speedTrainerSurvives,
   startSpeedTrainer
 } from './domain/speed-trainer.ts'
 export { formatTimecode } from './domain/timecode.ts'

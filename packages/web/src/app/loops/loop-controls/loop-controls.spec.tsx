@@ -14,7 +14,13 @@ const noop = () => {}
 
 /** An idle (or running, via `state`) spy double of the speed-trainer hook. */
 function fakeTrainer(state?: SpeedTrainer['state']): SpeedTrainer {
-  return { state, start: vi.fn(), stop: vi.fn(), recordPass: vi.fn() }
+  return {
+    state,
+    start: vi.fn(),
+    stop: vi.fn(),
+    cross: vi.fn(),
+    recordPass: vi.fn()
+  }
 }
 
 function renderControls(
