@@ -454,6 +454,48 @@ Règle de discrimination retenue : abonnement long-vécu qui lit du frais →
 légitime restant) ; ref de domaine branché → politique à remonter au core.
 À intégrer à l'éventuel ADR taxonomie des hooks.
 
+## Discussion — React Compiler : une pression sélective déléguée
+
+Pour loupe, l'apport principal ne serait pas la perf mais deux choses qui
+rejoignent le fil du rapport :
+
+1. **Suppression d'une classe de bugs maintenue à la main** : le web porte
+   **78 sites de mémoïsation manuelle** (47 `useMemo`, 27 `useCallback`,
+   4 `memo(…)`), chacun avec sa liste de dépendances écrite à la main —
+   dep oubliée = valeur périmée silencieuse, dep de trop = mémoïsation
+   morte. Le compiler infère les dépendances du code réel ; même mouvement
+   que les brands : une machine remplace une discipline.
+2. **Une fitness function des Rules of React, entretenue par Meta** : le
+   compiler ne compile qu'un rendu pur et refuse ce qui triche — le
+   pendant React de `purity.spec.ts`. Le `useLatest` render-pure du projet
+   passe ; la variante sauvage (écriture pendant le rendu) serait rejetée
+   — la discipline en place paie.
+
+Perf : réelle mais localisée — les chemins chauds sont déjà hors de React
+(`ExternalValue`, moteurs, canvas), le candidat sérieux est le chemin
+d'édition de grille (`chartDiagnostics` : trois marches du texte par
+frappe, panneau de 655 lignes) où la mémoïsation systématique des valeurs
+intermédiaires est faite pour ces cascades de dérivations.
+
+Ce qu'il n'apporte pas : rien sur l'altitude (orthogonal) ; ne remplace pas
+`ExternalValue` (granularité d'abonnement, pas mémoïsation) ; **ne rend pas
+l'ADR-0011 obsolète** — un callback compilé garde son identité *tant que
+ses deps ne changent pas*, le handle la garantit *à travers tous les
+rendus* : deux garanties différentes.
+
+Coût anormalement bas ici : le pipeline babel existe déjà dans la config
+Vite (macro Lingui) — une ligne à ajouter. Nuance outillage : les
+diagnostics vivent dans `eslint-plugin-react-hooks` v6 et le projet est
+sous Biome — la surface de diagnostic serait le build + le healthcheck
+(vérifier si react-doctor couvre).
+
+Chemin d'essai (~1 h) : `npx react-compiler-healthcheck` (pourcentage de
+composants compilables, sans rien changer) → la ligne dans la config Vite
+sur une branche → `pnpm gate` (le spec de stabilité du handle est
+précisément le test qui verrait une identité cassée). Adoption en deux
+temps : activer, puis nettoyer les 78 sites manuels en follow-up (le
+compiler les tolère, ils deviennent du bruit).
+
 ## Decisions
 
 - Rien d'appliqué : revue en lecture seule, ce rapport est le livrable.
@@ -461,6 +503,9 @@ légitime restant) ; ref de domaine branché → politique à remonter au core.
   ADR (ou une simple convention) reste à prendre — y intégrer la partition
   `useEffectEvent`/`useLatest` (stable depuis React 19.2, projet sur
   19.2.8).
+- React Compiler : à l'essai via le chemin healthcheck → branche → gate ;
+  candidat gardes-fous correctifs, catégorie « pression sélective
+  déléguée ».
 - Les gardes-fous préventifs visent `hexagonal-tdd-starter` mais restent
   documentés ici pour le moment — portage explicitement différé.
 - Priorités proposées (ordre de valeur) :
