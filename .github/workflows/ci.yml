@@ -104,6 +104,34 @@ jobs:
       - run: deno lint supabase/functions/mint-analyze-token/
       - run: deno fmt --check supabase/functions/mint-analyze-token/
 
+  supabase-sql:
+    # The SQL tests are the only rules a hostile client cannot bypass, and
+    # until this leg (design review 2026-08-03) they only ran by hand against
+    # a local stack — the runbook step nobody replays. Migrations are applied
+    # by `supabase start`, so a broken migration fails here too.
+    name: Supabase (migrations + tests SQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
+        with:
+          # Pinned to the version the suite was verified against locally.
+          version: 2.109.1
+      # Everything except db + auth is excluded (auth is not excludable, and
+      # the tests need it: GoTrue's own migrations create auth.users, where
+      # the suite seeds its throwaway users).
+      - run: supabase start -x analytics,edge-runtime,functions,imgproxy,inbucket,kong,meta,realtime,rest,storage,studio,vector
+      - name: Run the SQL test suite
+        # Port and credentials are the CLI's local-stack defaults
+        # (supabase/config.toml sets db.port = 54322).
+        run: |
+          for test in supabase/tests/*.sql; do
+            echo "== ${test}"
+            psql postgresql://postgres:postgres@127.0.0.1:54322/postgres \
+              -v ON_ERROR_STOP=1 -f "${test}"
+          done
+
   commitlint:
     name: Commit messages
     runs-on: ubuntu-latest
@@ -173,7 +201,7 @@ jobs:
   # on main now opens (or comments) an issue, so the red has an inbox.
   notify-red-main:
     name: Signal a red main
-    needs: [gate, gate-windows, server, edge-functions, mutation, audit]
+    needs: [gate, gate-windows, server, edge-functions, supabase-sql, mutation, audit]
     if: failure() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 5

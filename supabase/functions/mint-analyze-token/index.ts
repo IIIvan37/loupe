@@ -7,7 +7,9 @@
 //
 // Flow, per request (POST, no body):
 //   1. Verify the caller's Supabase access token (Authorization: Bearer <jwt>).
-//   2. consume_analysis() — atomic beta-gate + monthly quota increment (SQL).
+//   2. consume_analysis() — atomic beta-gate + monthly quota debit (SQL).
+//        One mint = one ANALYSIS SESSION, the product's quota unit: the app
+//        reuses the token across the four analysis flows while it lives.
 //        not a beta member -> 403 ;  at/over quota -> 429.
 //   3. Mint an HS256 JWT signed with ANALYZE_JWT_SECRET (shared with Modal):
 //        { sub, aud: 'loupe-analyze', iss: 'loupe-supabase', exp: now+TTL }.
@@ -19,7 +21,9 @@
 
 import { create, getNumericDate } from 'https://deno.land/x/djwt@v3.0.2/mod.ts'
 
-const TOKEN_TTL_SECONDS = 300 // 5 min — long enough to cover a cold Modal start.
+// 5 min — long enough to cover a cold Modal start. Also the length of an
+// analysis session, the quota unit: one mint = one debit (see the J2 SQL).
+const TOKEN_TTL_SECONDS = 300
 // Floor on the shared HS256 secret (U.3) — mirrored in server/app/analyze_gate.py.
 const MIN_SECRET_LENGTH = 32
 const AUDIENCE = 'loupe-analyze'

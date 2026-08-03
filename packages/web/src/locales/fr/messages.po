@@ -61,7 +61,7 @@ msgstr "Analyse indisponible — réessayer."
 #. js-lingui-explicit-id
 #: src/app/account/account-menu-slot/account-menu-slot.tsx
 msgid "account.gate-quota"
-msgstr "Quota d’analyses atteint — réinitialisation le 1ᵉʳ du mois. Lecture, boucles et grille restent utilisables."
+msgstr "Quota de sessions d’analyse atteint — réinitialisation le 1ᵉʳ du mois. Lecture, boucles et grille restent utilisables."
 
 #. js-lingui-explicit-id
 #: src/app/account/account-menu-slot/account-menu-slot.tsx
@@ -101,7 +101,7 @@ msgstr "Se connecter"
 #. js-lingui-explicit-id
 #: src/app/account/account-menu/account-menu.tsx
 msgid "account.quota-this-month"
-msgstr "Analyses ce mois : {used}/{quota}"
+msgstr "Sessions d’analyse ce mois : {used}/{quota}"
 
 #. js-lingui-explicit-id
 #: src/app/account/account-menu/account-menu.tsx
