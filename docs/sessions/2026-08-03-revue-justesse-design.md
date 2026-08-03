@@ -361,9 +361,63 @@ ses fitness functions, c'est choisir la forme vers laquelle le système
 évolue — une définition assez exacte du travail d'architecte dans une
 méthode émergente.
 
+## Discussion — hooks web : le smart/dumb a pivoté, la taxonomie manque
+
+Constat : la partie web multiplie les hooks, tantôt adapters, tantôt
+remplaçants d'un smart component, sans découpage smart/dumb affiché.
+
+Relecture : **le découpage existe mais a pivoté de 90°** — hooks
+intelligents / composants bêtes / un unique composition root
+(`workstation-shell`, 407 lignes de pur câblage). C'est le successeur
+canonique de container/presentational (idiome déprécié par son propre
+auteur après les hooks), pas son absence. La revue le confirme : les
+composants *sont* dumb (`chord-chart-panel` : 655 lignes, zéro fetch,
+toutes les règles déléguées au core), à deux fuites près déjà au rapport
+(`chord-glyph`, positionnement D.C./Fine dans `lead-sheet`).
+
+Le vrai manque : les hooks jouent **trois métiers sans convention qui les
+distingue** —
+
+1. **hook-moteur** (adapter hexagonal : brancher un port/moteur sur le
+   cycle de vie React — `use-transport-engines`, l'injection de
+   `use-player`) ;
+2. **hook-use-case** (protocole d'appel d'un use-case : jeton de course,
+   abort, garde de commit) — et la revue a mesuré sans le nommer que la
+   taxonomie émerge déjà : **les 12 use-cases sont importés exactement une
+   fois chacun, un hook par use-case** ;
+3. **hook-politique** — le métier qui ne devrait pas exister (le problème
+   d'altitude).
+
+Conséquence mesurée de l'absence de convention : chaque hook invente son
+pattern — trois régimes de vérité d'état coexistent (atom, `ExternalValue`
+hors React, `stateRef` + miroir « fragile by construction »), et le
+protocole runId+AbortController est réécrit à la main dans ~5 hooks — un
+indice-de-pattern au sens de la discussion précédente (la même force
+résolue cinq fois ⇒ un `useSupersedableRun` unique manque).
+
+Proposition (décision **ADR ou pas : à prendre**, non tranchée ici) :
+
+- Ne pas restaurer smart/dumb au niveau composant (avec jotai, le
+  container classique n'a plus de raison d'être ; le shell le remplace).
+- Nommer la taxonomie au niveau hook : trois genres (moteur / use-case /
+  vue), un hook appartient à un genre, un hook qui en mélange deux se
+  scinde. Écrire la règle déjà émergée « un hook par use-case ».
+- Extraire `useSupersedableRun` (5 copies → 1).
+- Un régime de vérité d'état par défaut, les exceptions argumentées.
+- Fitness function possible à terme : un hook = un genre.
+
+Lecture par la physique de l'émergence : « un hook par use-case » est la
+loi n° 2 en version heureuse (une asymétrie de chemin devenue bonne
+convention sans décision) ; les trois régimes de vérité d'état sont la
+même loi en version malheureuse (trois chemins en cours de
+fossilisation). Nommer la taxonomie maintenant, c'est choisir laquelle
+des deux sédimentations continue.
+
 ## Decisions
 
 - Rien d'appliqué : revue en lecture seule, ce rapport est le livrable.
+- Taxonomie des hooks web : documentée ci-dessus, le choix d'en faire un
+  ADR (ou une simple convention) reste à prendre.
 - Les gardes-fous préventifs visent `hexagonal-tdd-starter` mais restent
   documentés ici pour le moment — portage explicitement différé.
 - Priorités proposées (ordre de valeur) :
