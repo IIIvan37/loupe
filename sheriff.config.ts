@@ -76,7 +76,7 @@ export const config: SheriffConfig = {
     // Identity, then the adapters that consume its credentials.
     'packages/web/src/auth': ['web:auth'],
     'packages/web/src/audio': ['web:audio'],
-    // Project stores (session signatures read feature defaults).
+    // Project stores.
     'packages/web/src/projects': ['web:projects'],
     // DORMANT placeholder: every app/<feature> folder, including the shell,
     // the session seam and the ui kit — their rules are keyed on their names.
@@ -119,10 +119,13 @@ export const config: SheriffConfig = {
     // Project is the DAG's sink: a manifest persists what the other features
     // model — the loop library and armed A/B region (loops), the beat grid and
     // manual tempo (rhythm), the markers (markers), the stems and mixer
-    // (separation). None of them ever looks up at project.
+    // (separation), and the stems' WAV round-trip (audio: a save encodes PCM
+    // to WAV bytes, an open decodes them back — the session use-cases).
+    // None of them ever looks up at project.
     'feature:project': [
       sameTag,
       'shared',
+      'feature:audio',
       'feature:loops',
       'feature:markers',
       'feature:rhythm',
@@ -263,14 +266,10 @@ export const config: SheriffConfig = {
       'web:audio',
       'web:auth'
     ],
-    // Project stores: dialogs from the kit, session signatures read the
-    // metronome's product default (declared oddity — ADR 0012).
-    'web:projects': [
-      'web:projects',
-      ...WEB_KIT,
-      'web:feature:tempo',
-      'web:lib'
-    ],
+    // Project stores: dialogs from the kit. (The former oddity — session
+    // signatures reading the metronome's product default from the tempo
+    // feature — dissolved when the signature moved into the core.)
+    'web:projects': ['web:projects', ...WEB_KIT, 'web:lib'],
 
     // The entry point composes the session seam, the shell and i18n — plus
     // the kit for page-lifetime wiring (the presence heartbeat lives at the

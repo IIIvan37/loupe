@@ -142,6 +142,40 @@ export function recordLoopPass(state: SpeedTrainerState): SpeedTrainerState {
 }
 
 /**
+ * The session transitions a running ramp can cross. Every place the adapter
+ * mutates the loupe, the looping mode or the tempo names its seam here, so the
+ * disarm decision below stays the ONE definition of when a practice ends.
+ */
+export type SpeedTrainerSeam =
+  /** A direct tempo change (slider, restore, import reset) takes authority
+   * back from the ramp. */
+  | 'tempo-taken'
+  /** A different passage becomes the loupe (fresh drag, recalled loop,
+   * structure span). */
+  | 'loupe-selected'
+  /** An edge edit of the same passage (handle drag, keyboard nudge). */
+  | 'loupe-adjusted'
+  /** The loupe is discarded — nothing left to count passes on. */
+  | 'loupe-cleared'
+  /** A project open seats a persisted loupe — a ramp never outlives its
+   * session. */
+  | 'loupe-restored'
+  /** Play-through mode: no wrap can ever fire, a « running » ramp would sit
+   * dead while claiming progress. */
+  | 'looping-disabled'
+  /** Looping re-armed on the same passage. */
+  | 'looping-enabled'
+
+/**
+ * Whether a running practice survives a session seam. The rule in one place:
+ * the ramp belongs to the passage it was armed on, borrows the tempo, and
+ * needs wraps to earn steps — a seam that breaks any of those three ends it.
+ */
+export function speedTrainerSurvives(seam: SpeedTrainerSeam): boolean {
+  return seam === 'loupe-adjusted' || seam === 'looping-enabled'
+}
+
+/**
  * How far past the loop end a streamed position may land and still count as a
  * played-through pass. Engines tick once per animation frame, so a real pass
  * overshoots by a frame's worth of audio (tens of milliseconds, stall-tolerant

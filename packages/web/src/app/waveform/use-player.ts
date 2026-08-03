@@ -302,9 +302,8 @@ export function usePlayer(
 
   function setTimeRatio(ratio: number): void {
     // A direct tempo change (slider, restore, import reset) takes authority
-    // back from the ramp — a « running » read-out would lie about the tempo,
-    // and the next earned step would snap the user's choice away.
-    speedTrainer.stop()
+    // back from the ramp — the core's seam rule decides the ramp's fate.
+    speedTrainer.cross('tempo-taken')
     applyTimeRatio(ratio)
   }
 
@@ -343,28 +342,24 @@ export function usePlayer(
   }
 
   function setLoopRegion(region: LoopRegion | undefined): void {
-    // Clearing the loupe (discard, new import) ends the practice ramp — there
-    // is no loop left to count passes on. Adjusting a region keeps it running;
-    // REPLACING the passage stops it too, via useLoopEditing's seam.
-    if (region === undefined) {
-      speedTrainer.stop()
-    }
+    // This path only clears or adjusts; REPLACING the passage is
+    // useLoopEditing's seam ('loupe-selected'). The core rule decides which
+    // seams the ramp survives.
+    speedTrainer.cross(
+      region === undefined ? 'loupe-cleared' : 'loupe-adjusted'
+    )
     loop.setLoopRegion(region)
   }
 
   function toggleLoop(): void {
-    // Turning looping off is play-through mode: no wrap can ever fire, so a
-    // « running » ramp would sit dead while claiming progress.
-    if (loop.loopEnabled) {
-      speedTrainer.stop()
-    }
+    speedTrainer.cross(
+      loop.loopEnabled ? 'looping-disabled' : 'looping-enabled'
+    )
     loop.toggleLoop()
   }
 
   function restoreLoop(region: LoopRegion, enabled: boolean): void {
-    // A restored loupe (project open) never inherits the previous session's
-    // ramp, whatever path seated it.
-    speedTrainer.stop()
+    speedTrainer.cross('loupe-restored')
     loop.restoreLoop(region, enabled)
   }
 
@@ -380,7 +375,11 @@ export function usePlayer(
   const toggleLoopRef = useLatest(toggleLoop)
   const setLoopRegionRef = useLatest(setLoopRegion)
   const readSpectrumRef = useLatest(readSpectrum)
-  const { start: startTrainer, stop: stopTrainer } = speedTrainer
+  const {
+    start: startTrainer,
+    stop: stopTrainer,
+    cross: crossTrainer
+  } = speedTrainer
   const handle = useMemo<PlayerHandle>(
     () => ({
       position,
@@ -389,9 +388,13 @@ export function usePlayer(
       seekToRatio: (ratio) => seekToRatioRef.current(ratio),
       toggleLoop: () => toggleLoopRef.current(),
       setLoopRegion: (region) => setLoopRegionRef.current(region),
-      speedTrainer: { start: startTrainer, stop: stopTrainer }
+      speedTrainer: {
+        start: startTrainer,
+        stop: stopTrainer,
+        cross: crossTrainer
+      }
     }),
-    [position, startTrainer, stopTrainer]
+    [position, startTrainer, stopTrainer, crossTrainer]
   )
 
   return {

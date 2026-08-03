@@ -82,37 +82,6 @@ describe('transportReducer', () => {
     ).toBe(true)
   })
 
-  it('tick advances the position, clamped to the timeline', () => {
-    const playing = { ...loaded, isPlaying: true }
-    expect(transportReducer(playing, { type: 'tick', atSeconds: 6 })).toEqual({
-      positionSeconds: 6,
-      durationSeconds: 10,
-      isPlaying: true
-    })
-  })
-
-  it('tick to the end stops playback', () => {
-    const playing = { ...loaded, isPlaying: true }
-    expect(transportReducer(playing, { type: 'tick', atSeconds: 10 })).toEqual({
-      positionSeconds: 10,
-      durationSeconds: 10,
-      isPlaying: false
-    })
-  })
-
-  it('tick never force-stops an empty (zero-duration) timeline', () => {
-    // A zero-length timeline must not read as "reached the end": a hypothetically
-    // playing transport keeps playing rather than being stopped at position 0.
-    const playingEmpty: TransportState = {
-      positionSeconds: 0,
-      durationSeconds: 0,
-      isPlaying: true
-    }
-    expect(
-      transportReducer(playingEmpty, { type: 'tick', atSeconds: 0 }).isPlaying
-    ).toBe(true)
-  })
-
   // Property: position is always within [0, duration], whatever the action.
   it('keeps the position inside the timeline', () => {
     const action = fc.oneof(
@@ -122,10 +91,6 @@ describe('transportReducer', () => {
       fc.record({
         type: fc.constant('seek' as const),
         toSeconds: fc.double({ noNaN: true })
-      }),
-      fc.record({
-        type: fc.constant('tick' as const),
-        atSeconds: fc.double({ noNaN: true })
       })
     )
     fc.assert(

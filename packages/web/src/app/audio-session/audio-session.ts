@@ -8,6 +8,7 @@ import type {
   ProjectDeps,
   SpectrumFrame,
   SpeedTrainerPolicy,
+  SpeedTrainerSeam,
   StemFilter,
   StemPlaybackEngine,
   StemSeparator,
@@ -54,10 +55,13 @@ export interface PlayerHandle {
    * clearing also ends the practice ramp). The armed region itself is view
    * state, read from the player's atoms. */
   readonly setLoopRegion: (region: LoopRegion | undefined) => void
-  /** Arm/stop the speed-trainer ramp (its state rides the trainer's atom). */
+  /** Arm/stop the speed-trainer ramp (its state rides the trainer's atom).
+   * `cross` names a session seam — the core's single rule decides whether the
+   * ramp survives it (a caller never decides to stop on its own). */
   readonly speedTrainer: {
     readonly start: (policy: SpeedTrainerPolicy) => void
     readonly stop: () => void
+    readonly cross: (seam: SpeedTrainerSeam) => void
   }
 }
 

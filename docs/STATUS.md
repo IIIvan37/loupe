@@ -16,21 +16,21 @@ Nursery : `detect-chords`, `bass-line` ; `timecode` attend un 2e
 consommateur. Jamais de hook à effet de montage, seul le seam
 `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
-**Backlog de la revue justesse design (PR #357) en déroulé — priorité 1
-(quota) soldée** : décision produit, l'unité est la **session d'analyse**
-(un mint, TTL 300 s, quatre flux) ; SQL/copy/guide renommés, allowlist de
-grants exécutable (`supabase/tests/grants_allowlist.sql`), leg CI
-`supabase-sql` (rapport du 2026-08-03). Prochain : **priorité 2 —
-politiques au core** (machine transport, `restoreSession` en use-case,
-désarmement unique du speed-trainer) ; puis scalaires brandés,
-`renderChart` ; **retour au labo** en TOUT DERNIER. Restes : affordance
-UX du throttle redeem (slice UI, checkpoint d'approche) ; découvrabilité
-du click ; filtre Base UI (#319) ; templates OTP = opérateur ; session
-outillage (TS 6→7 #180, plugin-react v6 #353).
+**Backlog de la revue justesse design (PR #357) en déroulé — priorités 1
+(quota, PR #359) et 2 (politiques au core, PR #361) soldées** (rapports du
+2026-08-03). Prochain : **priorité 3 — scalaires brandés** (`Seconds`,
+`Ratio`, `Percent`, `Decibels`, `Cents`, `PitchClass`, spec nom↔type +
+ratchet) ; puis `renderChart` ; **retour au labo** en TOUT DERNIER.
+Candidat structurel noté : module `playback/` (cluster transport /
+playback-tick / speed-trainer de la nursery). Restes : affordance UX du
+throttle redeem (slice UI, checkpoint d'approche) ; garde-fous revue (spec
+actions câblées, mutation:diff sur hooks web) ; découvrabilité du click ;
+filtre Base UI (#319) ; templates OTP = opérateur ; session outillage
+(TS 6→7 #180, plugin-react v6 #353).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
-- 2026-08-03 · **Repère→grille (PR #358)** : éditer un repère de structure réécrit les headers `[Section]`, accords/transposition conservés — signal beta « structure figée après sauvegarde » soldé.
+- 2026-08-03 · **Repère→grille (PR #358) + revue justesse pr. 1–2 (PRs #359, #361)** : éditer un repère réécrit les headers `[Section]` (signal beta soldé) ; l'unité de quota devient la session d'analyse (allowlist grants exécutable, leg CI supabase-sql) ; désarmement speed-trainer, tick transport et restore/save/signature de session rapatriés en fonctions core mutées.
 - 2026-08-02 · **Releases v0.2.0 + v0.2.1** (#342–#344 tag `9964aa5`, #354–#356 tag `e98dadc`) : CI réparée (shellcheck windows, timeout mutation 120 min, score 93,10), fix « métronome muet » (gains gelés du mixer), version visible + notification de mise à jour ; releases vérifiées (bit exécutable, checksums, attestation, tap).
 - 2026-08-01 · **Roadmap excellence 8 + arrêt auto** (AR→AX #332→#340, #341) : premier contact, erreurs en français, blindage binaire, marque loupe/loop (wordmark, favicon), heartbeat 20 s + watchdog (grâce 180 s, `--no-auto-exit`).
 - 2026-07-27 → 07-31 · **État de vue + forme des dossiers** (ADR 0010–0013, #287→#326) : atomes par feature, DAG web, DIP session, cliquet `ReturnType` 13 → 0, dossiers-composant partout, cliquets `folder-shape`/`foreign-css`. Boucle outillée (#297) + sortie de suite = signal (#319). Garde-fous beta soldés ([beta-checklist.md](beta-checklist.md)).

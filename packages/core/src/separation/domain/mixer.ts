@@ -23,6 +23,20 @@ export interface MixerChannel {
 /** The mixer: one channel per stem, in display order. */
 export type MixerState = readonly MixerChannel[]
 
+/**
+ * A fresh metronome click joins the mix muted at unity — unlike every other
+ * voice, the click is opt-in; unmute its lane to hear it. The channel's id
+ * stays the adapter's business (the mixer adapter owns its synthetic lane
+ * identities — ADR 0012); these are the SETTINGS both the restore path seats
+ * and the session fingerprint signs when a manifest carries no metronome yet —
+ * one definition, every reader.
+ */
+export const DEFAULT_METRONOME_SETTINGS: Omit<MixerChannel, 'id'> = {
+  gainDb: UNITY_GAIN_DB,
+  muted: true,
+  soloed: false
+}
+
 export type MixerAction =
   | { readonly type: 'init'; readonly ids: readonly string[] }
   | { readonly type: 'setGain'; readonly id: string; readonly gainDb: number }

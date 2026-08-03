@@ -1,20 +1,24 @@
+import type { LoopLibrary } from '../../loops/domain/loop-library.ts'
+import type { MarkerList } from '../../markers/domain/marker-list.ts'
 import {
   type BeatGrid,
-  chartTransposedBy,
-  DEFAULT_BEATS_PER_BAR,
-  fineTuneOrDefault,
-  type LoopLibrary,
-  type ManualTempo,
-  type MarkerList,
+  DEFAULT_BEATS_PER_BAR
+} from '../../rhythm/domain/beat-grid.ts'
+import type { ManualTempo } from '../../rhythm/domain/manual-tempo.ts'
+import { sanitizeBeatGrid } from '../../rhythm/domain/tempo-map.ts'
+import {
+  DEFAULT_METRONOME_SETTINGS,
   type MixerChannel,
-  type MixerState,
+  type MixerState
+} from '../../separation/domain/mixer.ts'
+import { fineTuneOrDefault } from '../../shared/fine-tune.ts'
+import {
+  chartTransposedBy,
   type ProjectActiveLoop,
   type ProjectChordChart,
   type ProjectTuning,
-  sanitizeBeatGrid,
   tuningOrDefault
-} from '@app/core'
-import { DEFAULT_METRONOME_CHANNEL } from '../app/tempo/metronome-stem.ts'
+} from './project.ts'
 
 /** The light, persisted parts of a session — both a live session and a saved
  * `Project` narrow to this shape, so the two sides sign identically. */
@@ -61,7 +65,8 @@ export function sessionSignature(session: SignedSession): string {
   const tuning = tuningOrDefault(session.tuning)
   // No metronome yet ⇔ a fresh detection would seat the default-muted one, so
   // the two must sign the same or a reopened old project would read dirty.
-  const metronome = session.tempo?.metronome ?? DEFAULT_METRONOME_CHANNEL
+  // Only the settings are signed — the channel id is the mixer adapter's.
+  const metronome = session.tempo?.metronome ?? DEFAULT_METRONOME_SETTINGS
   // Absent octave shift (a manifest that predates the toggle, or an untouched
   // detection) reads as neutral 0, so a reopened old project still signs equal.
   const octaveShift = session.tempo?.octaveShift ?? 0
