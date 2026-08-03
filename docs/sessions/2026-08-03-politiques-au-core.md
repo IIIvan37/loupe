@@ -104,9 +104,8 @@
   post-merge de CI reste le juge.
 - biome / sheriff / knip / jscpd : ✅ (gate) — sheriff avec la nouvelle arête
   `project → audio` et `web:projects` réduit
-- sonar : lu après ouverture de la PR (voir PR #361) — quality gate attendu
-  OK, aucune nouvelle issue introduite sinon triage dans
-  `sonar-project.properties`
+- sonar : ✅ lu sur l'analyse CI de la PR #361 — **quality gate OK, 0 issue
+  ouverte, 0 hotspot** (rien à triager dans `sonar-project.properties`)
 
 ## State to resume from
 
