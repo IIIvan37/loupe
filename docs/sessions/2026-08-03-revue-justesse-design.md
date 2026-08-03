@@ -590,6 +590,38 @@ code** :
 - Levier UX le moins cher : chargement progressif (mix jouable tout de
   suite, stems qui s'activent un à un — même UX que la séparation).
 
+**Stems compressés — le lot « FLAC de bout en bout, encodé une fois »** :
+
+- Format : **FLAC par défaut** (sans perte, ~50-65 % du WAV, souvent
+  mieux sur des stems isolés ; décodage natif `decodeAudioData` partout).
+  Opus (~10×, avec perte) réservé en option pour le quota OPFS mobile —
+  loupe est un outil d'écoute critique : stems solo ralentis 2× =
+  conditions qui exhument les artefacts perceptuels.
+- **Placement hexagonal net** : `encodeWav`/`decodeWav` sont dans le core
+  parce que WAV est trivial ; personne n'écrira un codec FLAC en TS pur.
+  Le codec devient une affaire d'**adapters**, le core continue de ne
+  parler que `DecodedAudio`, et `ProjectAudioStore.put(bytes)` est déjà
+  byte-opaque — **aucun port à toucher** (le test ADR-0007 passe).
+- **Le pipeline** : (1) Modal encode en FLAC à la sortie de Demucs
+  (`soundfile`, une ligne, au seul endroit où c'est gratuit) ; (2) le
+  client télécharge du FLAC (~−50 % du poste n° 1) et décode nativement,
+  hors main thread ; (3) il **garde les octets FLAC** à côté du PCM
+  (~35 Mo vs 440 Mo de PCM) ; (4) **sauvegarder = stocker ces octets tels
+  quels** — plus de ré-encodage WAV client, jamais besoin d'un encodeur
+  côté web ; (5) recharger = re-décoder du FLAC, natif et parallèle. Un
+  seul encodage dans la vie d'un stem ; téléchargement, stockage et
+  rechargement traités par le même lot. Côté binaire Rust (projets
+  importés) : Symphonia décode, `flacenc` encode — compatible « un
+  binaire statique ».
+- **Trois caveats avant de coder** : `decodeAudioData` rééchantillonne au
+  rate du contexte (parade : `OfflineAudioContext` au rate lu dans
+  l'en-tête — à trancher, ligne d'ADR) ; décodage FLAC à **vérifier sur
+  Safari** (10 min sur le Mac) avant d'engager ; déterminisme
+  inter-navigateurs des peaks recalculés — sans objet si les waveforms
+  sont persistées dans le manifeste (les deux lots se renforcent).
+- Bonus : c'est ce lot qui rend l'**OPFS viable sur mobile** (~250 Mo de
+  FLAC passent dans un quota navigateur, 440 Mo de WAV le crèvent).
+
 ## Discussion — un étage hébergé : gains UX et funnel de distribution
 
 Contexte vérifié en séance : **le mode hébergé n'existe pas** — le front
