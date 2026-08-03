@@ -8,25 +8,25 @@
 
 ## Where we are
 
-**Cap distribution SOLDÉ (2026-07-26 → 07-31)** : loupe se distribue en
-**serveur local + navigateur** — release v0.1.0, tap `iiivan37/loupe`, le
-binaire `loupe` seul livrable (Tauri retiré #327, serveur unique #328),
-`server/` = bibliothèque Modal + harnais dev/CI, parité des origins
-verrouillée ([archive/distribution-plan.md](archive/distribution-plan.md),
+**Distribution** : serveur local + navigateur, binaire `loupe` seul
+livrable, `server/` = bibliothèque Modal + harnais dev/CI
+([archive/distribution-plan.md](archive/distribution-plan.md),
 [archive/serveur-unique-plan.md](archive/serveur-unique-plan.md)).
-**Roadmap v7 soldée** ; **Lot TS clos**. Nursery : `detect-chords`,
-`bass-line` ; `timecode` attend un 2e consommateur. Jamais de hook à effet
-de montage, seul le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
+Nursery : `detect-chords`, `bass-line` ; `timecode` attend un 2e
+consommateur. Jamais de hook à effet de montage, seul le seam
+`mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
 **Signal beta « structure figée après sauvegarde » soldé par PR #358** :
-le sens repère→grille est câblé — éditer un repère de structure (add/
-rename/move/remove) réécrit les headers `[Section]` de la grille, accords
-et offset de transposition conservés ; autorité du sync = « dernière
-édition gagne » (rapport du 2026-08-03). Reste : slice découvrabilité du
-click (naît muet, rien ne le dit). Rappels : filtre Base UI (#319) ;
-templates OTP = opérateur ; session outillage (TS 6→7 #180, plugin-react
-v6 #353). Prochain : **lot « retour au labo »** starter (plan du
-2026-08-02, détail au rapport release v0.2).
+le sens repère→grille est câblé — éditer un repère de structure réécrit
+les headers `[Section]`, accords et transposition conservés (rapport du
+2026-08-03).
+**Revue justesse design livrée par PR #357** (rapport du 2026-08-03),
+backlog actif — priorités 1→4 : quota (bug vs décision produit), politiques
+au core, scalaires brandés, `renderChart`. Prochain : **les dérouler** ;
+le **retour au labo** passe en TOUT DERNIER — les leçons consolidées
+remontent ensuite au starter. Rappels : découvrabilité du click ; filtre
+Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
+#180, plugin-react v6 #353).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 

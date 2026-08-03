@@ -75,8 +75,11 @@
 
 ## State to resume from
 
-- **Single next action** : merger la PR #358 après CI verte, puis reprendre le
-  lot « retour au labo » starter (plan du 2026-08-02, rapport release v0.2).
+- **Single next action** : merger la PR #358 après CI verte, puis dérouler les
+  priorités de la revue justesse design (PR #357) — en premier : trancher
+  l'écart de quota (bug ou décision produit). Le lot « retour au labo » passe
+  en tout dernier : les corrections/adoptions de la revue remontent ensuite au
+  starter.
 - Gotchas / half-done edits : aucun — branche propre, gate vert. Si le signal
   beta « structure » revient : les restes ci-dessus (repli Analyse, bords
   `cutBySections`) sont le point de départ.
