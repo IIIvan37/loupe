@@ -544,6 +544,36 @@ parallèle mais l'UI attend le dernier — l'activation progressive des
 canaux (~12 s avant le premier stem jouable) réutilise l'UX que la
 séparation a déjà.
 
+**Volet coût — la facture Modal recoupe le log et confirme le
+diagnostic** (cycle juil. 2026 : $5.18 dont **$4.98 de L4**, soit ~6 h
+facturées à ~0,80 $/h) :
+
+- La session loggée du 2026-08-02 : conteneur debout ~11 min (boot →
+  dernier `/chords` + `scaledown_window=300`) ≈ **$0.15** — la ligne
+  « Last 24h : $0.16 » de la facture est cette session au cent près.
+- Dans ces 11 min facturées, l'inférence réelle fait **~40 s** :
+  utilisation GPU ~6 % — le même chiffre que le camembert latence, vu
+  depuis la facture. À ~35 sessions/mois, le seul scaledown (5 min
+  facturées après chaque session) ≈ la moitié de la facture.
+- **Cause architecturale** : `gpu="L4"` est posé sur l'app ASGI *entière*
+  (`server/modal_app.py`) — un seul conteneur GPU sert tout : préflights
+  (d'où l'OPTIONS qui a fait la queue 47 s derrière le boot), GET de
+  stems (execution 44-50 s chacun : le L4 est tenu pendant qu'il streame
+  440 Mo), et inférence.
+- **Levier structurel révélé par la facture** : séparer « servir » de
+  « calculer » — l'inférence écrit les stems sur un Volume, une app CPU
+  (ou des URLs présignées) les streame, le L4 est libéré ~30 s après le
+  POST au lieu de 11 min (≈ facture ÷5) ; et le `scaledown` du GPU
+  devient réductible sans coût de latence.
+- À $5/mois le coût n'est pas un problème — c'est un **diagnostic
+  d'utilisation** : la facture est linéaire en temps-mur, pas en calcul,
+  donc elle scale sur le mauvais axe à une vraie beta.
+- **Troisième occurrence du pattern « constante produit sans source
+  unique »** : la décision M1.2 (ADR-0007) justifiait le quota unique par
+  un « coût mesuré sub-cent » par analyse ; la réalité mesurée est
+  **~$0.15 par session de séparation** — même motif que l'écart de quota
+  (un nombre écrit dans un doc, un comportement livré qui a divergé).
+
 **Rechargement de projet avec stems — tout est local, visible dans le
 code** :
 
