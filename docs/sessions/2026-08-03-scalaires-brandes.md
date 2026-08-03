@@ -91,8 +91,9 @@ défaut n° 2 « aucune quantité n'est typée »).
   équivalents de bornes. Le run CI post-merge reste la référence.
 - biome / sheriff / knip / jscpd : ✅ (react-doctor : `useRef(percent(100))`
   hissé en constante module ; sinon rien)
-- sonar : PR #362 ouverte depuis `refactor/scalaires-brandes` — verdict à
-  consigner après l'analyse CI (~5 min post-push).
+- sonar : ✅ PR #362 — quality gate OK, 0 issue ouverte, 0 hotspot ; CI de
+  la PR entièrement verte (gate, supabase-sql, edge functions, serveur,
+  audit, commit messages).
 
 ## State to resume from
 
