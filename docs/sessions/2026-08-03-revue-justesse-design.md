@@ -140,9 +140,98 @@ Le constat le plus concret de la revue (`supabase/`, Edge Function, gate) :
   règles qu'un client hostile ne peut pas contourner — **ne tournent pas en
   CI** (`ci.yml` ne lance que deno check/lint/fmt).
 
+## Gardes-fous — correctifs proposés pour loupe
+
+L'outil transversal est le **ratchet** (le pattern `STATUS_MAX_LINES` de
+`docs/docs.spec.ts` appliqué à un compte de violations) : borne épinglée au
+niveau actuel, qui ne peut que décroître — stoppe l'hémorragie sans exiger le
+refactor big-bang. Bloquant pour le neuf, ratchet pour l'existant.
+
+**Altitude** (partiellement mécanisable — le jugement « ceci devrait être un
+use-case » reste humain) :
+
+- Spec « actions câblées » : chaque variante d'action d'un reducer exporté du
+  core exige au moins un site de dispatch dans `packages/web` — l'esprit de
+  `public-surface.spec.ts` descendu au niveau des variantes d'union ; le
+  `tick` mort échouerait aujourd'hui.
+- Constantes numériques SCREAMING_CASE interdites au niveau module dans
+  `packages/web/src/app` : elles viennent de `@app/core` (whitelist
+  d'exceptions vue triée dans le spec, comme `sonar-project.properties`).
+- **Étendre `mutation:diff` aux hooks `use-*.ts` de web** — le seul détecteur
+  *général* d'altitude : un mutant qui survit dans un hook est exactement le
+  signal « politique non testée en valeurs ». Aujourd'hui Stryker ne mute que
+  le core, précisément la moitié déjà bien testée.
+- Process : étape dans `.claude/skills/new-feature-hexa/` — « nomme les
+  politiques de la slice ; chaque politique est une fonction core avant
+  d'être un `if` dans un hook ».
+
+**Unités** (entièrement mécanisable) :
+
+- Scalaires brandés unité par unité ; le garde-fou devient le typechecker.
+  Adoption forcée par un spec nom↔type (API TypeScript) : tout paramètre
+  `*Seconds` porte le brand `Seconds` — activable par ratchet.
+- Grep-ban immédiat, style `purity.spec.ts` : le littéral `% 12` interdit
+  hors d'un unique module pitch-class.
+
+**Texte-comme-modèle** (ratchet en attendant le refactor `renderChart`) :
+
+- Compte épinglé des fonctions harmony/structure prenant `source: string`.
+- Liste fermée des fichiers autorisés à contenir la grammaire de ligne
+  (trois aujourd'hui, jamais quatre).
+- À terme, le contrat définitif est la propriété fast-check
+  `render ∘ parse = id` — l'idiome déjà pratiqué pour la transposition.
+
+**Quota/SQL** (le plus rentable) :
+
+- Leg CI : stack Supabase local + exécution de `supabase/tests/`.
+- Test de grants exécutable (requête `pg_catalog` vs allowlist versionnée) —
+  « the Edge Function is the only writer » devient un test.
+- Test « un flux d'analyse = un débit » — ne peut s'écrire qu'après la
+  décision produit.
+
+Sélection si on n'en construit que trois : le leg CI Supabase (valeur max,
+effort min), la mutation sur les hooks (la classe du bug v0.2.1), le grep-ban
+`% 12` + premier brand `Seconds` (le pied dans la porte).
+
+## Gardes-fous — préventifs (futur starter, documentés ici pour le moment)
+
+Destinés à `hexagonal-tdd-starter` ; **portage différé**, consignés ici en
+attendant. En greenfield, tout ratchet devient règle bloquante dès le premier
+commit (zéro dette), et les specs par scan de source sont **inertes tant que
+le pattern n'existe pas** — on peut livrer la batterie complète sans
+étrangler l'exploration initiale.
+
+- **Principe racine — la logique vit là où les tests la tirent.** La méthode
+  TDD a protégé le core de loupe à la perfection, mais les slices « UI » ont
+  eu leur test d'acceptation en jsdom, et les politiques ont suivi le test
+  dans les hooks. Règle de méthode : *le premier test rouge d'une slice
+  n'importe que `@app/core`* ; les tests jsdom n'affirment que du câblage.
+- **Règles « paires obligatoires »**, inertes jusqu'à la première occurrence :
+  tout `parseX` exige `renderX` + property test `render ∘ parse = id` dans le
+  même module (le texte-comme-modèle ne peut pas naître) ; tout reducer
+  exporté exige ses variantes dispatchées.
+- **Brands dès le premier type** : un module d'unités livré par le template
+  (le pattern en trois lignes) + la règle nom↔type active d'emblée — quasi
+  gratuit à prévenir, ruineux à guérir.
+- **Contract-first serveur** : le squelette du leg CI Supabase livré *avant*
+  la première migration ; les constantes produit (quotas, TTL, seuils) à
+  source unique consommée ou vérifiée par les deux côtés — un commentaire SQL
+  qui énonce un nombre est un mensonge en attente.
+- **Méta-garde-fou** : livrer le harnais (un spec de design où une règle
+  s'ajoute en dix lignes) pour que le garde-fou se pose à la *première*
+  occurrence d'un smell, pas à la vingtième — loupe montre que les fitness
+  functions arrivent après la douleur. Et un principe de culture : **un ADR
+  sans enforcement est un vœu** — chaque décision durable désigne le spec qui
+  la vérifie, ou la raison pour laquelle c'est impossible.
+- **Limite honnête** : la fidélité au domaine (segno manquant, anacrouse
+  impossible) n'est pas outillable — glossaire par module de domaine tenu
+  comme un livrable, et l'expert sollicité sur les *types* avant l'UI.
+
 ## Decisions
 
 - Rien d'appliqué : revue en lecture seule, ce rapport est le livrable.
+- Les gardes-fous préventifs visent `hexagonal-tdd-starter` mais restent
+  documentés ici pour le moment — portage explicitement différé.
 - Priorités proposées (ordre de valeur) :
   1. **Quota** : débiter par flux d'analyse ou renommer l'unité — écart
      produit réel ; + faire tourner `supabase/tests/` en CI.
