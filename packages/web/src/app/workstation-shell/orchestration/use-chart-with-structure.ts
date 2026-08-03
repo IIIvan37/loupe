@@ -1,16 +1,28 @@
 import type {
   ChordDetector,
   DecodedAudio,
+  MarkerList,
   SeparatedStem,
   StructureDetector,
   TempoAnalysis
 } from '@app/core'
-import { useMemo } from 'react'
+import { useAtomValue } from 'jotai'
+import { useEffect, useMemo } from 'react'
+import { useLatest } from '../../../lib/use-latest.ts'
 import { useAudioSession } from '../../audio-session/audio-session.ts'
-import type { ChordChartState } from '../../lead-sheet/use-chord-chart.ts'
+import {
+  DEFAULT_BARS_PER_ROW,
+  readStoredBarsPerRow
+} from '../../lead-sheet/bars-per-row-preference.ts'
+import {
+  type ChordChartState,
+  useChordChart
+} from '../../lead-sheet/use-chord-chart.ts'
 import { useChordChartSession } from '../../lead-sheet/use-chord-chart-session.ts'
 import type { ChordDetection } from '../../lead-sheet/use-chord-detection.ts'
 import { syncStructureMarkersFromChart } from '../../markers/chart-marker-sync.ts'
+import { structureEditSyncAtom } from '../../markers/marker-atoms.ts'
+import { relabelChartFromSections } from '../../markers/relabel-chart.ts'
 import { markerSections } from '../../markers/section-markers.ts'
 import type { Markers } from '../../markers/use-markers.ts'
 import type { StructureDetection } from '../../markers/use-structure-detection.ts'
@@ -88,5 +100,48 @@ export function useChartWithStructure({
     chart: chordChart,
     detector: structureDetector ?? session.structureDetector
   })
+  useStructureEditRelabel(grid, beatsPerBar)
   return { chordChart, chordDetection, structureDetection }
+}
+
+/**
+ * The marker→chart half of the structure sync (the mirror of
+ * `syncStructureMarkersFromChart`): seat the markers feature's edit box with a
+ * relabel of the chart from the edited timeline, so moving, renaming, adding
+ * or removing a structure marker rewrites the `[Section]` headers — the
+ * adjustments a saved project needs without re-running a detection. The chart
+ * is written through its SILENT surface (`useChordChart`, not the session
+ * wrapper): the markers are the edit's origin, so bouncing the new text back
+ * through `setSections` would re-mint their identities mid-gesture. Chords
+ * are kept verbatim by the relabel, so the transposition offset stays valid.
+ * Without a downbeat there is no bar to place a header on, and an empty chart
+ * has nothing to relabel — the timeline keeps its markers either way.
+ */
+function useStructureEditRelabel(
+  grid: TempoAnalysis['grid'],
+  beatsPerBar: number | undefined
+): void {
+  const chart = useChordChart()
+  const sync = useAtomValue(structureEditSyncAtom)
+  const relabel = useLatest((edited: MarkerList) => {
+    if (chart.source.trim() === '' || !grid.some((beat) => beat.downbeat)) {
+      return
+    }
+    const next = relabelChartFromSections(
+      chart.source,
+      markerSections(edited),
+      grid,
+      readStoredBarsPerRow() ?? DEFAULT_BARS_PER_ROW,
+      beatsPerBar
+    )
+    if (next !== chart.source) {
+      chart.setSource(next)
+    }
+  })
+  useEffect(() => {
+    sync.onStructureEdited = (edited) => relabel.current(edited)
+    return () => {
+      sync.onStructureEdited = undefined
+    }
+  }, [sync])
 }

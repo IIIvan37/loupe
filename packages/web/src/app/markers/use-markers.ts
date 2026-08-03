@@ -8,9 +8,9 @@ import {
   replaceStructureMarkers
 } from '@app/core'
 import { msg } from '@lingui/core/macro'
-import { useAtom } from 'jotai'
+import { useAtom, useAtomValue } from 'jotai'
 import { i18n } from '../../i18n/i18n.ts'
-import { markersAtom } from './marker-atoms.ts'
+import { markersAtom, structureEditSyncAtom } from './marker-atoms.ts'
 import type { SectionMarker } from './section-markers.ts'
 
 // The auto label minted for a fresh marker: « Repère 1 », « Repère 2 », …
@@ -61,6 +61,30 @@ export interface Markers {
  */
 export function useMarkers(): Markers {
   const [markers, setMarkers] = useAtom(markersAtom)
+  const sync = useAtomValue(structureEditSyncAtom)
+
+  /**
+   * Run a transition and, when it touched a structure marker, hand the next
+   * list to the seated marker→chart sync (the chart follows the timeline —
+   * the mirror of `setSections`). Jotai applies the updater synchronously
+   * exactly once, so capturing its result before notifying is sound.
+   */
+  function commit(
+    transition: (current: MarkerList) => {
+      readonly next: MarkerList
+      readonly structural: boolean
+    }
+  ): void {
+    let edited: MarkerList | undefined
+    setMarkers((current) => {
+      const { next, structural } = transition(current)
+      edited = structural ? next : undefined
+      return next
+    })
+    if (edited !== undefined) {
+      sync.onStructureEdited?.(edited)
+    }
+  }
 
   function addAt(timeSeconds: number): void {
     setMarkers((current) => {
@@ -79,7 +103,7 @@ export function useMarkers(): Markers {
   }
 
   function addSectionAt(timeSeconds: number): void {
-    setMarkers((current) => {
+    commit((current) => {
       const number =
         current.filter((marker) => marker.kind === 'structure').length + 1
       const marker: Marker = {
@@ -92,24 +116,35 @@ export function useMarkers(): Markers {
         ),
         kind: 'structure'
       }
-      return addMarker(current, marker)
+      return { next: addMarker(current, marker), structural: true }
     })
   }
 
   function rename(id: string, label: string): void {
-    setMarkers((current) => {
+    commit((current) => {
       const target = current.find((m) => m.id === id)
       // addMarker replaces by id, so renaming keeps order and identity.
-      return target ? addMarker(current, { ...target, label }) : current
+      return target
+        ? {
+            next: addMarker(current, { ...target, label }),
+            structural: target.kind === 'structure'
+          }
+        : { next: current, structural: false }
     })
   }
 
   function move(id: string, timeSeconds: number): void {
-    setMarkers((current) => moveMarker(current, id, timeSeconds))
+    commit((current) => ({
+      next: moveMarker(current, id, timeSeconds),
+      structural: current.find((m) => m.id === id)?.kind === 'structure'
+    }))
   }
 
   function remove(id: string): void {
-    setMarkers((current) => removeMarker(current, id))
+    commit((current) => ({
+      next: removeMarker(current, id),
+      structural: current.find((m) => m.id === id)?.kind === 'structure'
+    }))
   }
 
   function setSections(sections: readonly SectionMarker[]): void {

@@ -255,13 +255,18 @@ export function segmentRows(
  * measure as its full chord cell (`'C G'` for a two-chord bar — the printer
  * round-trips multi-token cells). A blank grid, or a detection with no
  * section, has nothing to relabel and passes through untouched.
+ *
+ * `headLoneRun` rides through to `renderStructuredSource`: a caller cutting by
+ * KNOWN sections (the timeline's structure markers) passes true so a lone
+ * section keeps its header — a deduction-style caller leaves the suppression.
  */
 export function relabelChartBySections(
   source: string,
   sections: readonly DetectedSection[],
   grid: BeatGrid,
   barsPerRow: number,
-  beatsPerBar?: number
+  beatsPerBar?: number,
+  headLoneRun = false
 ): string {
   const labels = playedLabels(source)
   if (labels.length === 0 || sections.length === 0) {
@@ -274,7 +279,8 @@ export function relabelChartBySections(
   const body = renderStructuredSource(
     cutBySections(labels, meters, sections, grid),
     barsPerRow,
-    dominant
+    dominant,
+    headLoneRun
   )
   // The head zone survives the relabel (AF.1): {key} carries the tonal
   // spelling and the transposition offset, and any user directive ({title},
