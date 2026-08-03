@@ -46,12 +46,6 @@ export { decodeWav } from './audio/domain/wav-decoder.ts'
 export { encodeWav } from './audio/domain/wav-encoder.ts'
 export type { Waveform, WaveformPeak } from './audio/domain/waveform.ts'
 export { bassNotePerMeasure } from './domain/bass-line.ts'
-export {
-  clampFineTuneCents,
-  fineTuneOrDefault,
-  MAX_FINE_TUNE_CENTS,
-  MIN_FINE_TUNE_CENTS
-} from './domain/fine-tune.ts'
 export type {
   Command,
   KeyBinding,
@@ -185,6 +179,15 @@ export {
   renameProject,
   saveProject
 } from './project/application/projects.ts'
+export type {
+  LiveSessionSnapshot,
+  RestoredSeparation,
+  SessionRestoreDeps
+} from './project/application/session.ts'
+export {
+  restoreSession,
+  sessionSaveInput
+} from './project/application/session.ts'
 export { parseProject } from './project/domain/parse-project.ts'
 export type {
   AudioRef,
@@ -201,9 +204,10 @@ export type {
 } from './project/domain/project.ts'
 export {
   chartTransposedBy,
-  projectChordChart,
-  tuningOrDefault
+  projectChordChart
 } from './project/domain/project.ts'
+export type { SignedSession } from './project/domain/session-signature.ts'
+export { sessionSignature } from './project/domain/session-signature.ts'
 export type {
   DetectTempoDeps,
   DetectTempoInput,
@@ -249,11 +253,7 @@ export {
 } from './rhythm/domain/metronome.ts'
 export { nudgeSeconds } from './rhythm/domain/nudge-time.ts'
 export type { TempoMap, TempoSegment } from './rhythm/domain/tempo-map.ts'
-export {
-  buildTempoMap,
-  sanitizeBeatGrid,
-  tempoAt
-} from './rhythm/domain/tempo-map.ts'
+export { buildTempoMap, tempoAt } from './rhythm/domain/tempo-map.ts'
 export type {
   ExportStemsDeps,
   ExportStemsInput,
@@ -288,6 +288,7 @@ export type {
   MixerState
 } from './separation/domain/mixer.ts'
 export {
+  DEFAULT_METRONOME_SETTINGS,
   effectiveGains,
   emptyMixer,
   MAX_GAIN_DB,
@@ -314,6 +315,12 @@ export { buildStemTrack } from './separation/domain/stem-set.ts'
 export type { WaveformLayer } from './separation/domain/waveform-mix.ts'
 export { combineWaveforms } from './separation/domain/waveform-mix.ts'
 export type { DecodedAudio } from './shared/decoded-audio.ts'
+export {
+  clampFineTuneCents,
+  fineTuneOrDefault,
+  MAX_FINE_TUNE_CENTS,
+  MIN_FINE_TUNE_CENTS
+} from './shared/fine-tune.ts'
 export type {
   DetectStructureDeps,
   DetectStructureInput,

@@ -8,21 +8,18 @@ import {
   type ProjectTempo,
   type ProjectTuning,
   projectChordChart,
+  sessionSaveInput,
+  sessionSignature,
   type TrackSourceMetadata
 } from '@app/core'
 import { type ChangeEvent, useRef, useState } from 'react'
 import { nextPaint } from '../../../lib/next-paint.ts'
-import { sessionSignature } from '../../../projects/session-signature.ts'
 import { type Projects, useProjects } from '../../../projects/use-projects.ts'
 import { useAudioSession } from '../../audio-session/audio-session.ts'
 import { useChordChart } from '../../lead-sheet/use-chord-chart.ts'
 import { isSyntheticStem, METRONOME_ID } from '../../mixer/synthetic-stem.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../../tempo/metronome-stem.ts'
-import {
-  restoreSession,
-  type SessionRestoreDeps,
-  sessionSaveInput
-} from './project-session.ts'
+import { restoreSession, type SessionRestoreDeps } from './project-session.ts'
 
 /** A file name without its extension, the fallback header title. */
 function trackTitle(fileName: string): string {
