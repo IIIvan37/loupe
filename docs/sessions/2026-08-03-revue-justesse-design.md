@@ -413,11 +413,54 @@ même loi en version malheureuse (trois chemins en cours de
 fossilisation). Nommer la taxonomie maintenant, c'est choisir laquelle
 des deux sédimentations continue.
 
+## Discussion — `useLatest` : justifié, documenté, et remplaçable pour partie
+
+État des lieux : 26 sites d'appel dans 12 fichiers.
+`packages/web/src/lib/use-latest.ts` implémente la variante **render-pure**
+du pattern (écriture du ref dans un effet, jamais pendant le rendu — sûre
+sous Strict Mode et rendu concurrent), avec un commentaire qui montre que le
+compromis est compris. Au-dessus de la moyenne des implémentations en
+circulation, dont beaucoup écrivent pendant le rendu.
+
+Pedigree : le « latest ref pattern » est documenté (Abramov, *Making
+setInterval Declarative*, 2019 ; K. C. Dodds, *The Latest Ref Pattern in
+React*), livré dans `react-use` et `ahooks`, et reconnu par le core team —
+la RFC `useEvent` (2022) devenue **`useEffectEvent`, stable depuis React
+19.2** (loupe est sur react 19.2.8 : l'API est disponible dans le projet
+aujourd'hui).
+
+Tri des usages par la taxonomie ci-dessus :
+
+1. **Abonnement monté une fois** (hook-moteur : callback de position du
+   moteur, drag de fader, raccourcis) — le cas d'école, légitime. Désormais
+   **remplaçable par `useEffectEvent`**, et mieux : un Effect Event lit
+   directement les props/state du dernier rendu, donc les refs de *données*
+   disparaissent aussi — le cluster de sept `useLatest` de
+   `use-transport-engines.ts` se réduirait à un
+   `onTick = useEffectEvent(…)` abonné une fois. Nuance : ça nettoie le
+   **symptôme**, pas la cause — la machine à états resterait dans
+   l'adapter ; le correctif de fond reste le `playbackReducer` core.
+2. **Handle stable** (ADR-0011, `use-player.ts` : cinq fonctions emballées
+   dans une façade retournée) — **non remplaçable** : un Effect Event ne
+   peut être ni passé à un enfant, ni retourné, ni appelé hors des Effects
+   du composant qui le définit. `useLatest` reste le bon outil là.
+3. **Ref de donnée du domaine avec un `if` dessus** — le drapeau rouge
+   d'altitude, quel que soit l'emballage : une décision se prend dans un
+   callback au lieu d'un reducer. Critère mécanisable (`useLatest` d'une
+   valeur non-fonction + branchement dans le même effet).
+
+Règle de discrimination retenue : abonnement long-vécu qui lit du frais →
+`useEffectEvent` ; identité stable exportée → `useLatest` (seul cas
+légitime restant) ; ref de domaine branché → politique à remonter au core.
+À intégrer à l'éventuel ADR taxonomie des hooks.
+
 ## Decisions
 
 - Rien d'appliqué : revue en lecture seule, ce rapport est le livrable.
 - Taxonomie des hooks web : documentée ci-dessus, le choix d'en faire un
-  ADR (ou une simple convention) reste à prendre.
+  ADR (ou une simple convention) reste à prendre — y intégrer la partition
+  `useEffectEvent`/`useLatest` (stable depuis React 19.2, projet sur
+  19.2.8).
 - Les gardes-fous préventifs visent `hexagonal-tdd-starter` mais restent
   documentés ici pour le moment — portage explicitement différé.
 - Priorités proposées (ordre de valeur) :
