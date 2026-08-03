@@ -590,6 +590,78 @@ code** :
 - Levier UX le moins cher : chargement progressif (mix jouable tout de
   suite, stems qui s'activent un à un — même UX que la séparation).
 
+## Discussion — un étage hébergé : gains UX et funnel de distribution
+
+Contexte vérifié en séance : **le mode hébergé n'existe pas** — le front
+est distribué exclusivement embarqué dans le binaire (`rust-embed`,
+`crates/loupe-server`), aucun workflow de déploiement front ; Supabase et
+Modal sont des *services* hébergés consommés par l'app locale, et leurs
+allowlists (CORS, redirect OTP) sont verrouillées sur `localhost`.
+L'architecture « serveur local + navigateur + services distants » n'est
+pas une erreur : chaque étage a été essayé ou chiffré (WASM retiré
+2026-06-30, serveur GPU local contraire au cap « machines peu
+puissantes » → ADR-0007 ; Tauri chiffré et mis en sommeil — signature
+99 $/an + SmartScreen + trois webviews à valider pour du Web Audio ;
+yt-dlp exige une IP résidentielle). Et l'erreur est restée bon marché :
+capability gating existant (Import URL / Enregistrer / Projets masqués
+sans serveur), core intouché — la variante hébergée est un déploiement
+statique + trois allowlists, pas une ré-architecture.
+
+**Ce qu'un déploiement statique (Netlify ou équivalent) apporte en UX** :
+
+1. **Onboarding : d'« installer un logiciel » à « cliquer un lien »** —
+   le funnel actuel (télécharger, SmartScreen, pare-feu — douleurs
+   documentées au plan D6) devient une URL partageable.
+2. **L'auth cesse d'être un bricolage** : la danse OTP code-first existe
+   parce que la redirection magic-link vers `127.0.0.1:6173` est fragile
+   (beta-checklist) ; sur un domaine stable, le magic link redevient un
+   clic.
+3. **Mobile/tablette s'ouvrent** — le chantier zéro : tout le travail
+   tactile déjà payé (pointer events, `pointer: coarse`, layout
+   intrinsèque Every Layout) est aujourd'hui inaccessible faute d'URL.
+4. **La mise à jour devient un refresh** — la feature « version visible +
+   notification » (v0.2.1) compensait des binaires qui vieillissent ;
+   hébergé, elle devient sans objet.
+5. **La porte PWA s'ouvre** (écran d'accueil, offline) — impossible
+   depuis `127.0.0.1`.
+
+**Ce que ça perd, et le choix que ça force** : l'import YouTube
+(structurel — IP résidentielle) disparaît de l'étage hébergé, proprement,
+par le gating existant. La persistance demande un choix : **OPFS**
+(projets dans le navigateur — cohérent avec « les projets restent
+locaux » d'ADR-0007, mais mono-appareil et soumis au quota — le lot FLAC
+du plan perf devient prérequis) ou **Supabase Storage** (cross-device,
+mais révise un engagement de confidentialité acté — pas un détail).
+
+**Le funnel binaire-depuis-la-page** (pattern Ollama/Syncthing/VS Code —
+le site est l'app d'essai *et* le canal de distribution) :
+
+- Mécanique triviale : les releases existent (`release.yml`, tap brew) —
+  lien `releases/latest` + détection d'OS ; la page distribue toujours la
+  dernière version.
+- **Le gating devient un tunnel de conversion** : montrer les capacités
+  locales *désactivées avec le pourquoi* (« l'import YouTube demande le
+  compagnon local — télécharger ») au lieu de les masquer — l'utilisateur
+  découvre la valeur avant qu'on lui demande d'installer, et bute sur la
+  limite au moment où il est motivé.
+- **Raccord après installation**, trois options par ambition croissante :
+  (1) redirection simple vers `127.0.0.1:6173` + export/import de projet
+  (feature saine de toute façon) ; (2) détection du serveur local et
+  proposition de bascule ; (3) hybride complet — la page hébergée utilise
+  le binaire comme compagnon (yt-dlp + stockage) : le plus élégant, mais
+  Private Network Access + élargissement sélectif de la garde
+  anti-DNS-rebinding = décision de sécurité à instruire. Les options 1-2
+  livrent 90 % de la valeur sans toucher à la surface de sécurité.
+- Limite honnête : SmartScreen et la quarantaine macOS hors brew restent
+  entiers — la page peut seulement les adoucir (instructions par OS, brew
+  en avant sur Mac) ; la vraie réponse reste la signature, chiffrée et
+  écartée — arbitrage inchangé.
+
+Vu d'ensemble : l'étage hébergé ne remplace pas le binaire, il lui
+fournit ce qui lui manquait — une porte d'entrée et un canal de
+distribution. Essayer en 10 s → buter sur une limite assumée → installer
+en un clic → poste complet.
+
 ## Decisions
 
 - Rien d'appliqué : revue en lecture seule, ce rapport est le livrable.
