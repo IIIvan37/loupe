@@ -74,6 +74,11 @@ export {
   MIN_TEMPO_PERCENT,
   stepTempoPercent
 } from './domain/playback-rate.ts'
+export type {
+  PlaybackTickInput,
+  PlaybackTickOutcome
+} from './domain/playback-tick.ts'
+export { resolvePlaybackTick } from './domain/playback-tick.ts'
 export { seekStepSeconds } from './domain/seek-step.ts'
 export type {
   SpeedTrainerPolicy,
@@ -82,7 +87,6 @@ export type {
   SpeedTrainerState
 } from './domain/speed-trainer.ts'
 export {
-  completesLoopPass,
   previewSpeedTrainer,
   recordLoopPass,
   speedTrainerSurvives,
@@ -145,11 +149,7 @@ export {
   removeLoop
 } from './loops/domain/loop-library.ts'
 export type { LoopRegion } from './loops/domain/loop-region.ts'
-export {
-  loopLength,
-  makeLoopRegion,
-  wrapToLoop
-} from './loops/domain/loop-region.ts'
+export { loopLength, makeLoopRegion } from './loops/domain/loop-region.ts'
 export type { SnapUnit } from './loops/domain/snap-loop-region.ts'
 export { snapLoopRegionToGrid } from './loops/domain/snap-loop-region.ts'
 export type { Marker } from './markers/domain/marker.ts'

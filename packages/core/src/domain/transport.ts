@@ -2,6 +2,10 @@
  * Pure transport state machine: position, duration and a play/pause flag over a
  * bounded timeline. The reducer is the single source of truth the UI renders and
  * the playback engine is steered by — no Web Audio, no timers, just values.
+ * The playhead itself streams at frame rate OUTSIDE the reducer (Lot L.1); what
+ * each streamed frame means — loop wrap, end-of-track stop — is
+ * `resolvePlaybackTick` (playback-tick.ts), and only its outcomes come back
+ * here as 'seek'/'pause' dispatches.
  */
 export interface TransportState {
   readonly positionSeconds: number
@@ -15,7 +19,6 @@ export type TransportAction =
   | { readonly type: 'pause' }
   | { readonly type: 'toggle' }
   | { readonly type: 'seek'; readonly toSeconds: number }
-  | { readonly type: 'tick'; readonly atSeconds: number }
 
 export const initialTransport: TransportState = {
   positionSeconds: 0,
@@ -56,19 +59,5 @@ export function transportReducer(
         ...state,
         positionSeconds: clampPosition(action.toSeconds, state.durationSeconds)
       }
-    case 'tick': {
-      const positionSeconds = clampPosition(
-        action.atSeconds,
-        state.durationSeconds
-      )
-      // Reaching the end of a real timeline stops playback.
-      const ended =
-        state.durationSeconds > 0 && positionSeconds >= state.durationSeconds
-      return {
-        ...state,
-        positionSeconds,
-        isPlaying: ended ? false : state.isPlaying
-      }
-    }
   }
 }

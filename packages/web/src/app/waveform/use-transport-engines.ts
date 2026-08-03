@@ -1,12 +1,11 @@
 import {
-  completesLoopPass,
   type DecodedAudio,
   type LoopRegion,
   type PlaybackEngine,
+  resolvePlaybackTick,
   type TransportAction,
   type TransportState,
-  transportReducer,
-  wrapToLoop
+  transportReducer
 } from '@app/core'
 import { useAtom } from 'jotai'
 import { type Dispatch, useCallback, useEffect, useMemo, useRef } from 'react'
@@ -115,8 +114,7 @@ export function useTransportEngines({
   // Which engine the transport drives, kept in a ref so the (mount-once) position
   // listener and the loop wrap-around always steer the live one.
   const stemsActiveRef = useLatest(stemsActive)
-  // Timeline bounds + play state for the (mount-once) listener: reaching the
-  // end must stop playback, which used to be the reducer's 'tick' job.
+  // Timeline bounds + play state for the (mount-once) listener's tick policy.
   const durationRef = useLatest(transport.durationSeconds)
   const isPlayingRef = useLatest(transport.isPlaying)
   const trackAudioRef = useLatest(trackAudio)
@@ -128,36 +126,29 @@ export function useTransportEngines({
   useEffect(() => {
     // Both engines stream elapsed position; only the playing one ticks. Ticks
     // land in the position store — NOT the reducer — so a frame re-renders
-    // only the components whose derived slice of the playhead moved.
+    // only the components whose derived slice of the playhead moved. What a
+    // frame MEANS (wrap the armed loop, stop at the end) is the core's
+    // per-frame policy; this listener only executes its outcome.
     const onPosition = (seconds: number) => {
-      const loop = loopRef.current
-      // Guard a degenerate (zero-length) loop, which would otherwise wrap-seek
-      // every frame. Looping must also be enabled — otherwise play straight on.
-      if (
-        loop &&
-        loopEnabledRef.current &&
-        loop.endSeconds > loop.startSeconds &&
-        wrapToLoop(loop, seconds) !== seconds
-      ) {
+      const outcome = resolvePlaybackTick({
+        atSeconds: seconds,
+        loop: loopRef.current,
+        loopEnabled: loopEnabledRef.current,
+        isPlaying: isPlayingRef.current,
+        durationSeconds: durationRef.current
+      })
+      if (outcome.kind === 'wrap') {
         // Reached the loop end → jump back to its start, on the live engine.
         const engine = stemsActiveRef.current ? stemPlayback : playback
-        engine.seekTo(loop.startSeconds)
-        dispatch({ type: 'seek', toSeconds: loop.startSeconds })
-        // The speed trainer counts completed passes only — a seek landing far
-        // past the end wraps the playhead but earned nothing.
-        if (completesLoopPass(loop, seconds)) {
+        engine.seekTo(outcome.toSeconds)
+        dispatch({ type: 'seek', toSeconds: outcome.toSeconds })
+        if (outcome.completesPass) {
           onLoopWrapRef.current?.()
         }
         return
       }
       position.set(seconds)
-      // Reaching the end of a real timeline stops playback — the reducer's old
-      // 'tick' job, now the listener's (the only frame that changes UI state).
-      if (
-        isPlayingRef.current &&
-        durationRef.current > 0 &&
-        seconds >= durationRef.current
-      ) {
+      if (outcome.endReached) {
         dispatch({ type: 'pause' })
       }
     }
