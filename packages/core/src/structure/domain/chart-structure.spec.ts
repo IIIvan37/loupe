@@ -379,6 +379,19 @@ describe('relabelChartBySections', () => {
     )
   })
 
+  it('keeps the lone header when the sections are known (headLoneRun)', () => {
+    // The marker-driven relabel cuts by the timeline's KNOWN sections: a lone
+    // section's header must survive, or the chart→marker sync would erase the
+    // last structure marker on the next text edit.
+    const source = '| C | F | G | C |'
+    const sections: DetectedSection[] = [
+      { startSeconds: 0, endSeconds: 8, label: 'Refrain' }
+    ]
+    expect(
+      relabelChartBySections(source, sections, grid(4, 2), 4, undefined, true)
+    ).toBe('[Refrain]\n| C | F | G | C |')
+  })
+
   it('unrolls a repeated grid so sections stay time-aligned', () => {
     const source = '|: C | Am | F | G :|'
     const sections: DetectedSection[] = [

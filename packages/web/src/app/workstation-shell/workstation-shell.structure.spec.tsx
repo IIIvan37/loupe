@@ -11,9 +11,12 @@ import {
   beatsAt,
   chartEditor,
   failingSeparator,
+  fakeProjectStores,
   importTrack,
   installShellHooks,
-  renderShell
+  openProjectsDialog,
+  renderShell,
+  saveProjectAs
 } from './shell-test-kit.tsx'
 
 installShellHooks()
@@ -346,5 +349,71 @@ describe('WorkstationShell chart → marker sync', () => {
         name: i18n._('markers.go-to', { name: cueName })
       })
     ).toBeInTheDocument()
+  })
+})
+
+describe('WorkstationShell marker → chart sync', () => {
+  /** Beats every 0.25 s (240 BPM) → a downbeat per second over 8 s. */
+  const denseTempo = {
+    detect: async () => ({
+      bpm: 240,
+      beats: beatsAt(Array.from({ length: 32 }, (_, i) => i * 0.25))
+    })
+  }
+
+  it('a reopened project adjusts its structure from the markers', async () => {
+    // The bug report: once a project with structure and chords is saved, the
+    // grid's structure could no longer be adjusted — « Détecter la structure »
+    // is a full redo, and the markers never wrote back to the chart. Renaming
+    // a structure marker from the inspector must now rename its `[Section]`
+    // header, after a save → reopen round-trip.
+    const { user } = renderShell({
+      tempoDetector: denseTempo,
+      projectStores: fakeProjectStores()
+    })
+    await importTrack(user)
+    const editor = await chartEditor(user)
+    await user.type(
+      editor,
+      '[[Couplet]{enter}| C | Am | F | G |{enter}{enter}' +
+        '[[Refrain]{enter}| C | Am | F | G |'
+    )
+    // The typed headers landed on the rail — the session is structure-complete.
+    await screen.findByRole('button', {
+      name: i18n._('markers.go-to', { name: 'Refrain' })
+    })
+    await saveProjectAs(user, 'Mon projet')
+
+    await importTrack(user, 'autre.wav')
+    await openProjectsDialog(user)
+    await user.click(
+      await screen.findByRole('button', { name: i18n._('projects.open') })
+    )
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('projects.confirm-open', { name: 'Mon projet' })
+      })
+    )
+    await screen.findByRole('button', {
+      name: i18n._('markers.go-to', { name: 'Refrain' })
+    })
+
+    await user.click(
+      screen.getByRole('button', {
+        name: i18n._('markers.rename-named', { name: 'Refrain' })
+      })
+    )
+    await user.clear(screen.getByLabelText(i18n._('common.name')))
+    await user.type(screen.getByLabelText(i18n._('common.name')), 'Pont')
+    await user.click(
+      screen.getByRole('button', { name: i18n._('common.rename') })
+    )
+
+    // The chart followed the marker: same chords, renamed header.
+    await waitFor(async () => {
+      expect(await chartEditor(user)).toHaveValue(
+        '[Couplet]\n| C | Am | F | G |\n\n[Pont]\n| C | Am | F | G |'
+      )
+    })
   })
 })
