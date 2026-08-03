@@ -32,6 +32,12 @@ describe('sessionSaveInput', () => {
     })
     expect(input.separation).toBeUndefined()
     expect(input.source.title).toBe('Song')
+    // The optional halves are OMITTED, not set to undefined — the manifest a
+    // save serialises must not grow explicit-undefined keys.
+    expect('tempo' in input).toBe(false)
+    expect('chordChart' in input).toBe(false)
+    expect('activeLoop' in input).toBe(false)
+    expect('separation' in input).toBe(false)
   })
 
   it('carries the playback tuning into the save input', () => {
@@ -287,6 +293,28 @@ describe('restoreSession', () => {
     expect(deps.restoreActiveLoop).toHaveBeenCalledWith(activeLoop, null)
   })
 
+  it('does not relink a loupe sharing only one edge with a library loop', async () => {
+    // Identity is BOTH edges equal — a region merely sharing a start (or an
+    // end) with a saved loop is a different passage, not that loop.
+    for (const region of [
+      { startSeconds: 1, endSeconds: 7 },
+      { startSeconds: 0, endSeconds: 2 }
+    ]) {
+      const deps = fakeDeps(undefined)
+      const activeLoop = { region, enabled: true }
+      const opened: Extract<OpenProjectResult, { ok: true }> = {
+        ok: true,
+        project: { ...baseProject, activeLoop },
+        sourceBytes: new ArrayBuffer(4),
+        stems: []
+      }
+
+      await restoreSession(opened, deps)
+
+      expect(deps.restoreActiveLoop).toHaveBeenCalledWith(activeLoop, null)
+    }
+  })
+
   it('seats the persisted tuning', async () => {
     const deps = fakeDeps(undefined)
     const tuning = { timeRatio: 0.85, pitchSemitones: -2, zoom: 3 }
@@ -493,7 +521,8 @@ describe('restoreSession', () => {
 
     await restoreSession(opened, deps)
 
-    // The click joins the stems in one pass; the plain mixer.restore is not used.
+    // The click joins the stems in one pass; the plain mixer.restore is not
+    // used, and neither is the un-separated `enable` shape.
     expect(deps.metronome.attach).toHaveBeenCalledWith(
       savedTempo.grid,
       restored.stems,
@@ -502,7 +531,31 @@ describe('restoreSession', () => {
       savedMixer,
       savedTempo.metronome
     )
+    expect(deps.metronome.enable).not.toHaveBeenCalled()
     expect(deps.mixer.restore).not.toHaveBeenCalled()
+  })
+
+  it('treats a separation whose stored stems are gone as un-separated', async () => {
+    // A manifest carrying a separation whose stem bytes did not resolve
+    // (opened.stems is empty) restores as a plain track: no separation replay,
+    // and the tempo still seats with the whole-track click.
+    const deps = fakeDeps(undefined)
+    const opened: Extract<OpenProjectResult, { ok: true }> = {
+      ok: true,
+      project: { ...project, tempo: savedTempo },
+      sourceBytes: new ArrayBuffer(4),
+      stems: []
+    }
+
+    await restoreSession(opened, deps)
+
+    expect(deps.separation.restore).not.toHaveBeenCalled()
+    expect(deps.tempo.set).toHaveBeenCalled()
+    expect(deps.metronome.enable).toHaveBeenCalledWith(
+      savedTempo.grid,
+      audio,
+      savedTempo.metronome
+    )
   })
 
   it('detects the tempo for an old manifest and hands the adapter no channel', async () => {

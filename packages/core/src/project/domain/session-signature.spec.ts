@@ -44,6 +44,20 @@ describe('sessionSignature', () => {
     expect(sessionSignature(edited)).not.toBe(sessionSignature(base))
   })
 
+  it('changes when a marker is renamed or moved (same marker count)', () => {
+    // The CONTENT of each marker is signed, not just how many there are.
+    const renamed: SignedSession = {
+      ...base,
+      markers: [{ id: 'm1', timeSeconds: 3, label: 'Pont' }]
+    }
+    const moved: SignedSession = {
+      ...base,
+      markers: [{ id: 'm1', timeSeconds: 5, label: 'Solo' }]
+    }
+    expect(sessionSignature(renamed)).not.toBe(sessionSignature(base))
+    expect(sessionSignature(moved)).not.toBe(sessionSignature(base))
+  })
+
   it('changes when the loupe moves or toggles', () => {
     const moved: SignedSession = {
       ...base,
@@ -185,6 +199,47 @@ describe('sessionSignature', () => {
       }
     }
     expect(sessionSignature(irregular)).not.toBe(sessionSignature(regular))
+  })
+
+  it('changes when the same number of downbeats lands on other beats', () => {
+    // The signed pattern is WHICH beats are downbeats, not how many: a bar
+    // phase shift keeps the count and must still read as an unsaved edit.
+    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const beats = (downbeatAt: readonly number[]) =>
+      Array.from({ length: 8 }, (_, index) => ({
+        timeSeconds: index * 0.5,
+        downbeat: downbeatAt.includes(index)
+      }))
+    const onBeats: SignedSession = {
+      ...base,
+      tempo: { metronome, beatsPerBar: 4, grid: beats([0, 4]) }
+    }
+    const shifted: SignedSession = {
+      ...base,
+      tempo: { metronome, beatsPerBar: 4, grid: beats([1, 5]) }
+    }
+    expect(sessionSignature(shifted)).not.toBe(sessionSignature(onBeats))
+  })
+
+  it('signs ONLY the downbeat pattern of the grid, not its other beats', () => {
+    // The grid itself is derived (detection + fold + override) and stays out
+    // of the signature: two grids with the same downbeat indices sign equal
+    // even when their plain-beat tails differ.
+    const metronome = { id: 'metronome', gainDb: 0, muted: true, soloed: false }
+    const beats = (length: number) =>
+      Array.from({ length }, (_, index) => ({
+        timeSeconds: index * 0.5,
+        downbeat: index === 0 || index === 4
+      }))
+    const short: SignedSession = {
+      ...base,
+      tempo: { metronome, beatsPerBar: 4, grid: beats(7) }
+    }
+    const long: SignedSession = {
+      ...base,
+      tempo: { metronome, beatsPerBar: 4, grid: beats(8) }
+    }
+    expect(sessionSignature(long)).toBe(sessionSignature(short))
   })
 
   it('changes when a manual tempo override is set', () => {
