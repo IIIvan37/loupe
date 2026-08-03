@@ -18,18 +18,19 @@ verrouillée ([archive/distribution-plan.md](archive/distribution-plan.md),
 `bass-line` ; `timecode` attend un 2e consommateur. Jamais de hook à effet
 de montage, seul le seam `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
-**Release v0.2.1 LIVRÉE le 2026-08-02** (PR #356 + tag sur `e98dadc`,
-main vert, mutation sur cache chaud) — fix « métronome muet » (PR #355 :
-gains gelés du mixer sur toggles same-tick) + version visible &
-notification de mise à jour (PR #354). Release vérifiée (bit exécutable,
-checksums, attestation, tap 0.2.1, corps via alias). Reste : slice
-découvrabilité du click (naît muet, rien ne le dit). Rappels : filtre
-Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
-#180, plugin-react v6 #353). Prochain : **lot « retour au labo »**
-starter (plan du 2026-08-02, détail au rapport release v0.2).
+**Signal beta « structure figée après sauvegarde » soldé par PR #358** :
+le sens repère→grille est câblé — éditer un repère de structure (add/
+rename/move/remove) réécrit les headers `[Section]` de la grille, accords
+et offset de transposition conservés ; autorité du sync = « dernière
+édition gagne » (rapport du 2026-08-03). Reste : slice découvrabilité du
+click (naît muet, rien ne le dit). Rappels : filtre Base UI (#319) ;
+templates OTP = opérateur ; session outillage (TS 6→7 #180, plugin-react
+v6 #353). Prochain : **lot « retour au labo »** starter (plan du
+2026-08-02, détail au rapport release v0.2).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
+- 2026-08-02 · **Release v0.2.1** (#354–#356, tag sur `e98dadc`) : fix « métronome muet » (gains gelés du mixer, toggles same-tick), version visible + notification de mise à jour ; release vérifiée (bit exécutable, checksums, attestation, tap 0.2.1).
 - 2026-08-02 · **Release v0.2.0** (#342–#344, tag `9964aa5` — premier tag sur un main intégralement vert) : CI réparée (shellcheck windows, timeout mutation 120 min, premier score complet 93,10), release vérifiée (bit exécutable, attestation, tap, alias beta).
 - 2026-08-01 · **Roadmap excellence 8 + arrêt auto** (AR→AX #332→#340, #341) : premier contact, erreurs en français, blindage binaire, marque loupe/loop (wordmark, favicon), heartbeat 20 s + watchdog (grâce 180 s, `--no-auto-exit`).
 - 2026-07-27 → 07-31 · **État de vue + forme des dossiers** (ADR 0010–0013, #287→#326) : atomes par feature, DAG web, DIP session, cliquet `ReturnType` 13 → 0, dossiers-composant partout, cliquets `folder-shape`/`foreign-css`. Boucle outillée (#297) + sortie de suite = signal (#319). Garde-fous beta soldés ([beta-checklist.md](beta-checklist.md)).
