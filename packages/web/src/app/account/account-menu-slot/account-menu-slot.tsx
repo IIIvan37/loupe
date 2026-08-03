@@ -21,9 +21,11 @@ const GATE_NOTICES: Readonly<Record<MintFailureReason, MessageDescriptor>> = {
   'quota-exceeded': msg({
     id: 'account.gate-quota',
     // Actionable, not just descriptive: name the reset (the `usage` window
-    // is monthly by contract) and what stays usable meanwhile.
+    // is monthly by contract) and what stays usable meanwhile. The unit is
+    // the analysis SESSION (one token, ~5 min, all analyses included) —
+    // product decision 2026-08-03.
     message:
-      'Quota d’analyses atteint — réinitialisation le 1ᵉʳ du mois. Lecture, boucles et grille restent utilisables.'
+      'Quota de sessions d’analyse atteint — réinitialisation le 1ᵉʳ du mois. Lecture, boucles et grille restent utilisables.'
   }),
   error: msg({
     id: 'account.gate-error',

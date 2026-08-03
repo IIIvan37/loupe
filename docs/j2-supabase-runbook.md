@@ -176,7 +176,13 @@ curl -XPOST "$VITE_STRUCTURE_URL/structure" \
   socket).
 - Migrations verified: `docker exec -i supabase_db_loupe psql -U postgres -d
   postgres -v ON_ERROR_STOP=1 < supabase/tests/j2_auth_quota.sql` (idem
-  `u3_redeem_throttle.sql`).
+  `u3_redeem_throttle.sql` et `grants_allowlist.sql`). Depuis la revue du
+  2026-08-03 la suite `supabase/tests/` tourne aussi en CI (job
+  `supabase-sql`) sur une stack minimale db + auth.
+- **Unité de quota** : la **session d'analyse** — un mint de jeton (TTL
+  300 s) débité une fois, partagé par les quatre flux (décision produit
+  2026-08-03) ; le SQL et la copy UI parlent tous deux de « sessions
+  d'analyse ».
 - Edge Function verified by running its handler under Deno against the live
   stack — seed the two harness users first with
   `./scripts/seed-supabase-deno-harness.sh`, then:

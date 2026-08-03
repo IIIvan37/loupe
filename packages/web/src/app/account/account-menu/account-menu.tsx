@@ -59,7 +59,7 @@ function QuotaLine({
   return (
     <p className={styles.hint}>
       <Trans id="account.quota-this-month">
-        Analyses ce mois : {used}/{quota}
+        Sessions d’analyse ce mois : {used}/{quota}
       </Trans>
     </p>
   )

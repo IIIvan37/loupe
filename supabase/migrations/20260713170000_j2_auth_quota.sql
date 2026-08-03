@@ -3,19 +3,28 @@
 -- Three concerns, one migration:
 --   * beta gating   — a user may only analyse once they redeem an invite code
 --                     (product decision: table `beta_codes`, not invite-only).
---   * quota         — a beta member gets ~20 analyses per calendar month.
+--   * quota         — a beta member gets ~20 ANALYSIS SESSIONS per calendar
+--                     month. One unit = one minted analyse token (TTL 300 s,
+--                     mint-analyze-token); the four analysis flows share the
+--                     token while it lives, so a burst of analyses inside the
+--                     TTL costs one unit. Product decision 2026-08-03: the
+--                     session IS the unit (not the individual analysis).
 --   * least access  — the Data API (anon / authenticated roles) can READ a
 --                     user's own usage, and redeem a code through a guarded
---                     function; it can NEVER write usage or touch beta_codes.
---                     The Edge Function (service_role, bypasses RLS) is the only
---                     writer of usage, and mints the short-lived analyse token.
+--                     function; it can NEVER write usage or touch beta_codes
+--                     directly. `usage` is written only through
+--                     consume_analysis() (SECURITY DEFINER) — callable by any
+--                     signed-in user, so a client can burn its own quota by
+--                     direct RPC (self-grief only, accepted; frozen by
+--                     supabase/tests/grants_allowlist.sql).
 --
 -- Everything below lives in `public` so PostgREST exposes exactly what we grant.
 
 set check_function_bodies = off;
 
--- Analyses allowed per beta member per calendar month (UTC). Kept as an
--- IMMUTABLE function so both the quota check and any dashboard read one source.
+-- Analysis sessions allowed per beta member per calendar month (UTC). Kept as
+-- an IMMUTABLE function so both the quota check and any dashboard read one
+-- source.
 create or replace function public.monthly_quota()
 returns integer
 language sql
@@ -72,7 +81,8 @@ create policy usage_select_own
   on public.usage for select
   to authenticated
   using ( (select auth.uid()) = user_id );
--- No write policy: the Edge Function (service_role) is the only writer.
+-- No write policy: writes only happen through consume_analysis() (SECURITY
+-- DEFINER — see its grant note below).
 
 -- ---------------------------------------------------------------------------
 -- redeem_beta_code(code) — the ONLY way authenticated users touch beta_codes.
@@ -120,9 +130,15 @@ $$;
 -- ---------------------------------------------------------------------------
 -- consume_analysis() — atomic beta-gate + quota check-and-increment.
 -- ---------------------------------------------------------------------------
+-- One unit = one ANALYSIS SESSION: the Edge Function debits on each token
+-- mint, and the app reuses the token across the four analysis flows for its
+-- 300 s TTL — so the debit counts sessions, not individual analyses (product
+-- decision 2026-08-03).
 -- Called by the mint-analyze-token Edge Function using the USER's JWT, so
 -- auth.uid() resolves to the caller; SECURITY DEFINER lets it write `usage`
--- (which has no write policy). One row per (user, month); the FOR UPDATE lock
+-- (which has no write policy). Because the grant is to `authenticated`, a
+-- signed-in client can also call it directly and burn its own quota —
+-- self-grief only, accepted. One row per (user, month); the FOR UPDATE lock
 -- serialises concurrent mints so two requests can't both slip past the cap.
 -- Returns (allowed, used, quota): allowed=false when the caller is not a beta
 -- member OR is at/over quota — the Edge Function maps those to 403 / 429.

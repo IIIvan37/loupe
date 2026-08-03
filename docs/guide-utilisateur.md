@@ -124,8 +124,11 @@ onglet.
 Les quatre **analyses** (tempo, accords, structure, séparation) tournent sur
 un service distant GPU ; le reste de l'atelier fonctionne entièrement en
 local. Elles demandent une connexion par e-mail (code à 6 chiffres) et, en
-beta, un **code d'accès** ; le compteur « Analyses ce mois » est visible au
-menu compte. L'audio n'est envoyé au service **que** pour ces analyses.
+beta, un **code d'accès** ; le compteur « Sessions d'analyse ce mois » est
+visible au menu compte. Une **session d'analyse** dure environ 5 minutes et
+couvre toutes les analyses lancées pendant ce temps : enchaîner tempo,
+accords, structure et séparation sur un morceau ne coûte qu'une session.
+L'audio n'est envoyé au service **que** pour ces analyses.
 
 ## Raccourcis clavier
 
