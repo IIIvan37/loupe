@@ -181,6 +181,17 @@ use-case » reste humain) :
 - À terme, le contrat définitif est la propriété fast-check
   `render ∘ parse = id` — l'idiome déjà pratiqué pour la transposition.
 
+**Ports** (issus de la lecture SOLID, cf. discussion en fin de rapport) :
+
+- Une suite de contrat exécutable **par port**, rejouée par chaque adapter —
+  généraliser le pattern `projectStoreContract` (aujourd'hui 1 port sur 12).
+  C'est LSP rendu testable : `http-tempo-detector` qui fabrique
+  `barPosition: (index % 4) + 1` n'aurait pas passé un contrat sémantique.
+- Spec « pas de méthode optionnelle dans une interface de port » (dix lignes,
+  style `purity.spec.ts`) + ratchet sur le nombre de méthodes par port — une
+  méthode optionnelle est une interface qui avoue être plusieurs (ISP) ;
+  `spectrum?()` / `setStemFilter?()` n'auraient pas pu naître.
+
 **Quota/SQL** (le plus rentable) :
 
 - Leg CI : stack Supabase local + exécution de `supabase/tests/`.
@@ -226,6 +237,72 @@ le pattern n'existe pas** — on peut livrer la batterie complète sans
 - **Limite honnête** : la fidélité au domaine (segno manquant, anacrouse
   impossible) n'est pas outillable — glossaire par module de domaine tenu
   comme un livrable, et l'expert sollicité sur les *types* avant l'UI.
+
+## Discussion — value objects contre l'obsession du primitif
+
+Le VO est le remède classique au défaut n° 2, mais sous sa **forme
+fonctionnelle**, pas la classe DDD (qui se bat contre le typage structurel,
+l'aller-retour JSON des manifestes, jotai et fast-check) :
+
+- **Le triplet** : brand (distinction nominale, coût runtime zéro) + smart
+  constructor (l'invariant de construction) + module d'opérations (le
+  domicile). Le brand seul n'est que le tiers du VO — c'est le constructeur
+  qui le transforme de cérémonie en preuve.
+- **Le principe sous-jacent — parse, don't validate** : le type transporte la
+  preuve que la validation a eu lieu ; on parse une fois à la frontière, le
+  doute ne se propage plus. Contre-exemple limpide dans loupe :
+  `parseChordSymbol` total (ne peut pas échouer) ⇒ la preuve n'existe pas ⇒
+  « est-ce vraiment un accord » re-gardé à 4 endroits dont un en TSX. Un
+  `parseChordSymbol: string → ChordSymbol | Unparsed` supprime les gardes en
+  les rendant inutiles.
+- Loupe fait déjà des VOs **composites** (`makeLoopRegion` normalise,
+  opérations à côté, égalité par valeur) — ce sont les *scalaires* qui sont
+  nus.
+- **Limites** : l'algèbre des unités (`Seconds × Ratio = Seconds`) vit dans
+  les fonctions de conversion explicites — le gain est de forcer à *penser*
+  la conversion (le bug percent/ratio du speed-trainer était une conversion
+  supposée identité), pas seulement le typecheck. Et le sur-VO se filtre par
+  un test simple : *un échange d'unités typecheckerait-il aujourd'hui en
+  produisant du non-sens ?* Cas subtil : `CountIn`/`BeatGrid` — même unité,
+  mais origine et référentiel différents ⇒ type distinct ou paramètre
+  fantôme, pas un brand d'unité.
+- Bonus TDD : un arbitrary fast-check par VO ⇒ les générateurs ne produisent
+  plus d'états illégaux. Et les décisions orphelines trouvent un domicile
+  (« deux régions sont-elles la même boucle ? » — aujourd'hui une égalité de
+  floats inline dans `project-session.ts` — appartient à un
+  `LoopRegion.equals` décidé une fois).
+
+## Discussion — confrontation SOLID
+
+La revue avait trouvé des violations SOLID sans les nommer. Relecture des
+cinq principes, traduits pour un core fonctionnel :
+
+- **S** (une raison de changer) : `detectChords` orchestre *et* sérialise le
+  ChordPro ; les hooks mêlent glue et politique. Le moins mécanisable — seul
+  proxy : la co-évolution dans `git log`, signal faible.
+- **O** : **s'inverse partiellement en fonctionnel** — les unions fermées du
+  domaine violent OCP délibérément et c'est correct (l'exhaustivité est la
+  feature) ; OCP ne s'applique qu'aux frontières. Réussite : le 4e détecteur
+  ajouté sans modifier les trois autres. Échecs : `spectrum?()` (étendre en
+  modifiant le port) ; `ChartForm` en trois scalaires (ajouter le D.S. exige
+  de modifier le type — le `NavigationMark[]` proposé est le redesign
+  conforme).
+- **L** : le plus mécanisable et le plus troué — contrat sémantique vérifié
+  pour 1 port sur 12 ; `http-tempo-detector` invente `barPosition`,
+  `use-player` viole le contrat « entier » du port pitch. La machine existe
+  déjà (`projectStoreContract`) : la généraliser.
+- **I** : violation au manuel — `StemPlaybackEngine`, 13 méthodes, quatre
+  seams, deux méthodes optionnelles (l'interface qui avoue être plusieurs,
+  feature-detect chez les consommateurs). Facilement mécanisable (cf.
+  gardes-fous Ports ci-dessus).
+- **D** : le seul déjà machiné à trois niveaux (Sheriff, Biome, purity +
+  public-surface) — et ça se voit. Nuance attrapée quand même : `AuthPort`
+  possédé par `packages/web` alors que la politique qu'il exprime est de
+  niveau application — DIP structurel ✓, DIP de *propriété* ✗, la partie
+  qu'aucun graphe de dépendances ne voit.
+- Méfiance envers les « scores SOLID » automatiques : les métriques OO
+  (LCOM, couplage) lisent mal un core fonctionnel, et un chiffre gamable
+  devient un objectif au lieu d'un signal.
 
 ## Decisions
 
