@@ -341,19 +341,18 @@ const NO_CHORD = 'N.C.'
  * or a label that would not round-trip as the same cell (empty, irregular
  * spacing, a bar line, a structural token), prints as `N.C.` — anything else
  * would change the measure count under `parseChart` and shift every following
- * bar off its downbeat.
+ * bar off its downbeat. A projection of `renderChart` over `measureOfLabel`:
+ * chords print through the model, so a printable-but-unparseable spelling
+ * normalizes to what `parseChart` reads anyway (`C/E/G` prints `C/E`).
  */
 export function renderChartSource(
   labels: readonly (string | undefined)[],
   barsPerRow: number
 ): string {
-  const width = Math.max(1, Math.floor(barsPerRow) || 1)
-  const rows: string[] = []
-  for (let start = 0; start < labels.length; start += width) {
-    const cells = labels.slice(start, start + width)
-    rows.push(`| ${cells.map((label) => cellToken(label)).join(' | ')} |`)
-  }
-  return rows.join('\n')
+  return renderChart(
+    { sections: [{ measures: labels.map(measureOfLabel) }], directives: {} },
+    barsPerRow
+  )
 }
 
 /**
