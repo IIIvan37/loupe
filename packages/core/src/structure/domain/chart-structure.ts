@@ -1,4 +1,5 @@
 import {
+  type ChordChart,
   isPrintableToken,
   type Measure,
   type MeterChange,
@@ -34,15 +35,10 @@ type Meters = readonly (number | undefined)[]
 
 /** A signature value from a beat count: the grid's beats are the ♩ pulse, so
     the denominator is always a quarter. The ONE place the notation is
-    spelled — the draft head (detectChords), the in-grid marks and the model's
+    spelled — the draft's `{time:}` directive (detectChords) and the model's
     `MeterChange`s all print through it, so they can never drift. */
 export function timeSignature(meter: number): string {
   return `${meter}/4`
-}
-
-/** A full signature-change line — the standard `{time: N/M}` notation. */
-export function timeLine(meter: number): string {
-  return `{time: ${timeSignature(meter)}}`
 }
 
 /**
@@ -156,21 +152,20 @@ export function deduceInstances(
 }
 
 /**
- * Print deduced sections as grid source text `parseChart` reads back:
- * consecutive plays of the same section fold — a pair into `|: … :|` repeat
- * bars, a longer run into written copies — and each run gets its `[A]` header,
- * except when the whole song is one run (a header naming the only block says
- * nothing). `headLoneRun` overrides that suppression: a KNOWN section (the
- * timeline's structure, not a deduction) must keep its header even alone —
- * headers are what the chart→marker sync reads back, so a suppressed one
- * would erase the last structure marker.
+ * Deduced sections as one chart MODEL `renderChart` prints: consecutive plays
+ * of the same section fold — a pair into `|: … :|` repeat flags, a longer run
+ * into written copies — and each run gets its `[A]` header, except when the
+ * whole song is one run (a header naming the only block says nothing).
+ * `headLoneRun` overrides that suppression: a KNOWN section (the timeline's
+ * structure, not a deduction) must keep its header even alone — headers are
+ * what the chart→marker sync reads back, so a suppressed one would erase the
+ * last structure marker.
  */
-export function renderStructuredSource(
+export function structuredChart(
   sections: readonly DeducedSection[],
-  barsPerRow: number,
   initialMeter?: number,
   headLoneRun = false
-): string {
+): ChordChart {
   const runs = groupRuns(sections)
   const headed = runs.length > 1 || headLoneRun
   const chartSections: { label?: string; measures: readonly Measure[] }[] = []
@@ -187,14 +182,11 @@ export function renderStructuredSource(
     running = block.running
     written = block.written
   }
-  return renderChart(
-    {
-      sections: chartSections,
-      directives: {},
-      ...(meterChanges.length > 0 && { meterChanges })
-    },
-    barsPerRow
-  )
+  return {
+    sections: chartSections,
+    directives: {},
+    ...(meterChanges.length > 0 && { meterChanges })
+  }
 }
 
 /** One run's measures and `{time:}` changes (chart-global positions),
@@ -325,7 +317,7 @@ export function segmentMeasures(
  * round-trips multi-token cells). A blank grid, or a detection with no
  * section, has nothing to relabel and passes through untouched.
  *
- * `headLoneRun` rides through to `renderStructuredSource`: a caller cutting by
+ * `headLoneRun` rides through to `structuredChart`: a caller cutting by
  * KNOWN sections (the timeline's structure markers) passes true so a lone
  * section keeps its header — a deduction-style caller leaves the suppression.
  */
@@ -345,11 +337,13 @@ export function relabelChartBySections(
   // the relabelled chart, exactly as the detection draft does (the session's
   // beatsPerBar keeps a folded grid's density from reading as the meter).
   const { meters, dominant } = chartMeters(grid, beatsPerBar)
-  const body = renderStructuredSource(
-    cutBySections(labels, meters, sections, grid),
-    barsPerRow,
-    dominant,
-    headLoneRun
+  const body = renderChart(
+    structuredChart(
+      cutBySections(labels, meters, sections, grid),
+      dominant,
+      headLoneRun
+    ),
+    barsPerRow
   )
   // The head zone survives the relabel (AF.1): {key} carries the tonal
   // spelling and the transposition offset, and any user directive ({title},

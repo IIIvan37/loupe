@@ -233,6 +233,33 @@ export function respellChartSource(
 }
 
 /**
+ * Re-spell a chart MODEL under the key's accidental convention — the model
+ * twin of `respellChartSource`, for machine-built charts (the detection
+ * draft) where there is no user layout to preserve: every measure's roots
+ * and slash basses are re-spelled, qualities and structure (flags, form,
+ * meter changes, directives) stay verbatim. Directive values are the
+ * AUTHOR's to spell — a `{key: …}` head built from `keyName` already
+ * carries its own accidental.
+ */
+export function respellChart(
+  chart: ChordChart,
+  accidental: Accidental
+): ChordChart {
+  return {
+    ...chart,
+    sections: chart.sections.map((section) => ({
+      ...section,
+      measures: section.measures.map((measure) => ({
+        ...measure,
+        chords: measure.chords.map((chord) =>
+          respellChordSymbol(chord, accidental)
+        )
+      }))
+    }))
+  }
+}
+
+/**
  * Rewrite every chord token in the source through `rewrite`, preserving the
  * user's layout to the character. Directive lines hold prose, not chords
  * (`{title: C major}` must stay put) — except `{key: …}`, whose pitch names the

@@ -1,8 +1,8 @@
 import {
+  type ChordChart,
   type Measure,
   type MeterChange,
   measureOfLabel,
-  renderChart,
   type Section
 } from '../../harmony/domain/chord-chart.ts'
 import { detectCycle } from '../../harmony/domain/harmonic-cycle.ts'
@@ -15,10 +15,10 @@ import {
 import {
   deduceInstances,
   deduceStructure,
-  renderStructuredSource,
   type SectionInstance,
   sameChanges,
   segmentMeasures,
+  structuredChart,
   timeSignature
 } from './chart-structure.ts'
 
@@ -45,44 +45,36 @@ const NAVIGATION_COST = {
     pair, `|: … :|` is the idiom every musician expects. */
 const MIN_ROLLOUT = 3
 
-export interface EncodedChart {
-  /** The grid source text, `parseChart`-readable. */
-  readonly source: string
-  /** The whole-form pass count, when the song is N passes of one cycle. The
-      caller prints it as a `{form: Nx}` head directive. */
-  readonly rollout?: number
-}
-
 /**
- * Encode a detected song as the most READABLE grid: separate the form from
- * the rollout (one cycle + `{form: Nx}` when the song is N identical passes),
- * then pick repeats, pass counts, voltas or a D.C. by dynamic programming
- * over the section passes. Falls back to the flat structured render — byte
- * for byte — when the song shows no structure worth encoding.
+ * Encode a detected song as the most READABLE chart MODEL — `renderChart`
+ * prints it: separate the form from the rollout (one cycle + a `{form: Nx}`
+ * directive when the song is N identical passes), then pick repeats, pass
+ * counts, voltas or a D.C. by dynamic programming over the section passes.
+ * Falls back to the flat structured chart when the song shows no structure
+ * worth encoding.
  */
-export function encodeChartSource(
+export function encodeChart(
   labels: MeasureLabels,
   meters: Meters | undefined,
-  barsPerRow: number,
   initialMeter?: number
-): EncodedChart {
-  const rolled = cycleRollout(labels, meters, barsPerRow, initialMeter)
+): ChordChart {
+  const rolled = cycleRollout(labels, meters, initialMeter)
   if (rolled !== undefined) return rolled
-  return { source: encodeBody(labels, meters, barsPerRow, initialMeter) }
+  return encodeBody(labels, meters, initialMeter)
 }
 
 /**
  * The rollout move: when the song is ≥3 full passes of one cycle (no intro,
- * no tail, no variant endings between passes), write the cycle ONCE and
- * report the pass count. Variant endings refuse the rollout — a volta inside
- * the encoded body says it better than averaging the last chorus away.
+ * no tail, no variant endings between passes), write the cycle ONCE under a
+ * `{form: Nx}` directive — the model's own rollout notation (`unrollChart`
+ * multiplies playback by it). Variant endings refuse the rollout — a volta
+ * inside the encoded body says it better than averaging the last chorus away.
  */
 function cycleRollout(
   labels: MeasureLabels,
   meters: Meters | undefined,
-  barsPerRow: number,
   initialMeter?: number
-): EncodedChart | undefined {
+): ChordChart | undefined {
   const cycle = detectCycle(labels)
   if (cycle?.intro !== 0 || cycle.tail !== 0 || cycle.count < MIN_ROLLOUT) {
     return undefined
@@ -102,8 +94,8 @@ function cycleRollout(
   }
   const canonical = votedBlock(copies)
   return {
-    source: encodeBody(canonical, canonicalMeters, barsPerRow, initialMeter),
-    rollout: cycle.count
+    ...encodeBody(canonical, canonicalMeters, initialMeter),
+    directives: { form: `${cycle.count}x` }
   }
 }
 
@@ -111,18 +103,13 @@ function cycleRollout(
 function encodeBody(
   labels: MeasureLabels,
   meters: Meters | undefined,
-  barsPerRow: number,
   initialMeter?: number
-): string {
+): ChordChart {
   const { instances, structured } = deduceInstances(labels, meters)
   if (!structured) {
-    return renderStructuredSource(
-      deduceStructure(labels, meters),
-      barsPerRow,
-      initialMeter
-    )
+    return structuredChart(deduceStructure(labels, meters), initialMeter)
   }
-  return encodeInstances(instances, barsPerRow, initialMeter)
+  return encodeInstances(instances, initialMeter)
 }
 
 /** One rendered move of the plan: a fragment of chart MODEL — measures with
@@ -156,9 +143,8 @@ interface Plan {
  */
 function encodeInstances(
   instances: readonly SectionInstance[],
-  barsPerRow: number,
   initialMeter?: number
-): string {
+): ChordChart {
   const dp = planner(instances)
   let best = dp(0, instances.length, initialMeter)
   let daCapo: { readonly fine: number | undefined } | undefined
@@ -169,7 +155,7 @@ function encodeInstances(
       daCapo = { fine: candidate.fine }
     }
   }
-  return renderPlan(best.blocks, daCapo?.fine, daCapo !== undefined, barsPerRow)
+  return planChart(best.blocks, daCapo?.fine, daCapo !== undefined)
 }
 
 /** The D.C. plan ending the form at `dcAt`: legal when the trailing passes
@@ -466,13 +452,12 @@ function voltaBlock(
 /** Assemble the plan's fragments into ONE chart model — leads and block
     changes offset into chart-global `MeterChange`s, `[label]` headers when
     there is more than one block, the fine and the closing D.C. as its
-    `ChartForm` — and let `renderChart` print it. */
-function renderPlan(
+    `ChartForm`. Only `renderChart` prints. */
+function planChart(
   blocks: readonly RenderedBlock[],
   fineAfter: number | undefined,
-  daCapo: boolean,
-  barsPerRow: number
-): string {
+  daCapo: boolean
+): ChordChart {
   const headed = blocks.length > 1
   const sections: Section[] = []
   const meterChanges: MeterChange[] = []
@@ -498,17 +483,14 @@ function renderPlan(
     written += block.measures.length
     if (fineAfter !== undefined && index === fineAfter - 1) fine = written
   })
-  return renderChart(
-    {
-      sections,
-      directives: {},
-      ...(meterChanges.length > 0 && { meterChanges }),
-      ...(daCapo && {
-        form: { dc: written, ...(fine !== undefined && { fine }) }
-      })
-    },
-    barsPerRow
-  )
+  return {
+    sections,
+    directives: {},
+    ...(meterChanges.length > 0 && { meterChanges }),
+    ...(daCapo && {
+      form: { dc: written, ...(fine !== undefined && { fine }) }
+    })
+  }
 }
 
 /** Whether every block is byte-identical to the first — the only condition

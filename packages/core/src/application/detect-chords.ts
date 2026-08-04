@@ -1,5 +1,5 @@
 import { applyBassSlash } from '../domain/bass-line.ts'
-import { respellChartSource } from '../harmony/domain/chord-chart.ts'
+import { renderChart, respellChart } from '../harmony/domain/chord-chart.ts'
 import { chordLabelPerMeasure } from '../harmony/domain/chord-detection.ts'
 import {
   detectKey,
@@ -12,10 +12,10 @@ import { errorMessage } from '../shared/error-message.ts'
 import {
   chartMeters,
   cutBySections,
-  renderStructuredSource,
-  timeLine
+  structuredChart,
+  timeSignature
 } from '../structure/domain/chart-structure.ts'
-import { encodeChartSource } from '../structure/domain/form-encoder.ts'
+import { encodeChart } from '../structure/domain/form-encoder.ts'
 import type { DetectedSection } from '../structure/domain/song-structure.ts'
 import type { ChordDetector } from './ports.ts'
 
@@ -100,11 +100,13 @@ export type DetectChordsResult =
  * Orchestration use-case, pure: hand the loaded PCM to the chord detector port,
  * fold its timestamped spans into one chord CELL per measure on the beat grid
  * (`chordLabelPerMeasure` — two chords when each half-bar is dominated by its
- * own), then encode the song's form separately from its rollout
- * (`encodeChartSource` — one cycle + `{form: Nx}` for N identical passes,
- * repeats / pass counts / voltas / D.C. inside) and render it as grid SOURCE
- * text — the draft the chord-chart editor pre-fills and the user corrects;
- * imperfect estimation is absorbed by editing, never exposed raw. A grid without downbeats cannot
+ * own), then encode the song's form separately from its rollout (`encodeChart`
+ * — one cycle + a `{form: Nx}` directive for N identical passes, repeats /
+ * pass counts / voltas / D.C. inside) as one chart MODEL, headed with the
+ * detected `{key}` and `{time}` directives and printed by a single
+ * `renderChart` — the draft the chord-chart editor pre-fills and the user
+ * corrects; imperfect estimation is absorbed by editing, never exposed raw. A
+ * grid without downbeats cannot
  * anchor measures, so it is rejected BEFORE the engine runs (application
  * policy, like `importFromUrl`'s URL guard); a detection yielding no measures
  * is an error too — an empty draft would silently wipe the user's chart.
@@ -154,24 +156,31 @@ export async function detectChords(
     // header: the chart→marker sync reads headers back — suppressed, the
     // draft would erase the timeline's last structure marker). Without them,
     // the form encoder separates the FORM from the ROLLOUT: one cycle plus a
-    // {form: Nx} head when the song is N passes of it, repeats / pass counts
-    // / voltas / a D.C. inside.
-    const encoded = known
-      ? {
-          source: renderStructuredSource(
-            cutBySections(labels, meters, known, input.grid),
-            input.barsPerRow,
-            dominant,
-            true
-          )
-        }
-      : encodeChartSource(labels, meters, input.barsPerRow, dominant)
-    const body = respellChartSource(encoded.source, keyAccidental(key))
-    const form =
-      encoded.rollout === undefined ? '' : `{form: ${encoded.rollout}x}\n`
+    // {form: Nx} directive when the song is N passes of it, repeats / pass
+    // counts / voltas / a D.C. inside.
+    const chart = known
+      ? structuredChart(
+          cutBySections(labels, meters, known, input.grid),
+          dominant,
+          true
+        )
+      : encodeChart(labels, meters, dominant)
+    const respelled = respellChart(chart, keyAccidental(key))
     return {
       ok: true,
-      source: `{key: ${keyName(key)}}\n${timeLine(dominant)}\n${form}${body}`
+      source: renderChart(
+        {
+          ...respelled,
+          // Head order is the draft's contract: {key}, {time}, then the
+          // encoder's own directives ({form: Nx}).
+          directives: {
+            key: keyName(key),
+            time: timeSignature(dominant),
+            ...respelled.directives
+          }
+        },
+        input.barsPerRow
+      )
     }
   } catch (e) {
     const code = e instanceof ChordDetectionError ? e.code : 'unknown'
