@@ -248,8 +248,10 @@ function runBlock(
   return { measures, changes, running, written }
 }
 
-/** Whether two passes imply the same printed `{time:}` lines. */
-function sameChanges(
+/** Whether two passes imply the same printed `{time:}` lines — the fold
+    legality shared with the form encoder: repeat bars cannot restate a
+    meter, so only change-identical passes may fold. */
+export function sameChanges(
   first: readonly MeterChange[],
   second: readonly MeterChange[]
 ): boolean {
@@ -277,9 +279,11 @@ function repeatFold(measures: Measure[]): void {
  * meters imply, entering at a running meter. An unknown meter inherits the
  * running one; with no known running meter the first one seen is adopted
  * silently (the head names it, not a change). Change positions are LOCAL to
- * the pass — the caller offsets them into the whole chart.
+ * the pass — the caller offsets them into the whole chart. The one
+ * labels→model walk under every structured emitter, here and in the form
+ * encoder.
  */
-function segmentMeasures(
+export function segmentMeasures(
   labels: MeasureLabels,
   meters: Meters | undefined,
   runningMeter: number | undefined
@@ -302,29 +306,6 @@ function segmentMeasures(
     measures.push(measureOfLabel(label))
   })
   return { measures, changes, running }
-}
-
-/**
- * Render a section's measures as rows, splitting at meter changes: each
- * maximal same-meter stretch prints as its own rows behind a `{time: N/4}`
- * line — `segmentMeasures` printed through `renderChart`.
- */
-export function segmentRows(
-  measures: MeasureLabels,
-  meters: Meters | undefined,
-  runningMeter: number | undefined,
-  barsPerRow: number
-): { readonly text: string; readonly running: number | undefined } {
-  const segment = segmentMeasures(measures, meters, runningMeter)
-  const text = renderChart(
-    {
-      sections: [{ measures: [...segment.measures] }],
-      directives: {},
-      ...(segment.changes.length > 0 && { meterChanges: segment.changes })
-    },
-    barsPerRow
-  )
-  return { text, running: segment.running }
 }
 
 /**
@@ -535,13 +516,6 @@ function groupRuns(
     }
   }
   return runs
-}
-
-/** Wrap rendered rows in `|: … :|` — the pair plays back as two passes. Every
-    rendered block starts and ends with a bar line, so the repeat dots splice
-    onto the string's own first and last characters, across all its rows. */
-export function withRepeatBars(rows: string): string {
-  return `|:${rows.slice(1, -1)}:|`
 }
 
 /** Cut the song into `length`-bar blocks (plus a tail) and group equal blocks

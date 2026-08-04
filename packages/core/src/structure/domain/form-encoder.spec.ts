@@ -21,7 +21,7 @@ describe('encodeChartSource — calibration', () => {
   it('a run of three earns a pass count, not three copies', () => {
     const song = [...PHRASE, ...PHRASE, ...PHRASE]
     expect(encodeChartSource(song, undefined, 4).source).toBe(
-      '|: C | Am | F | G :| x3'
+      '|: C | Am | F | G :| x3 |'
     )
   })
 
@@ -29,7 +29,7 @@ describe('encodeChartSource — calibration', () => {
     const out = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'C', 'C']
     const song = [...CHORUS, ...out]
     expect(encodeChartSource(song, undefined, 4).source).toBe(
-      '|: C | Am | F | G |\n| Em | Am |\n|1. Dm | G7 :|\n|2. C | C |'
+      '|: C | Am | F | G |\n| Em | Am |1. Dm | G7 :|\n|2. C | C |'
     )
   })
 
@@ -127,7 +127,7 @@ describe('encodeChartSource — voltas and meters', () => {
     const out = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'C', 'C']
     const song = [...CHORUS, ...out]
     expect(encodeChartSource(song, Array(16).fill(4), 4, 4).source).toBe(
-      '|: C | Am | F | G |\n| Em | Am |\n|1. Dm | G7 :|\n|2. C | C |'
+      '|: C | Am | F | G |\n| Em | Am |1. Dm | G7 :|\n|2. C | C |'
     )
   })
 
@@ -150,7 +150,7 @@ describe('encodeChartSource — voltas and meters', () => {
     meters[3] = undefined
     meters[11] = undefined
     expect(encodeChartSource(song, meters, 4, 4).source).toBe(
-      '|: C | Am | F | G |\n| Em | Am |\n|1. Dm | G7 :|\n|2. C | C |'
+      '|: C | Am | F | G |\n| Em | Am |1. Dm | G7 :|\n|2. C | C |'
     )
   })
 
@@ -161,7 +161,7 @@ describe('encodeChartSource — voltas and meters', () => {
     const song = [...CHORUS, ...CHORUS, ...VARIANT, ...VARIANT, ...VARIANT]
     const meters = Array.from({ length: 5 }, () => CHANGING).flat()
     expect(encodeChartSource(song, meters, 4, 4).source).toBe(
-      `[A]\n${foldedChorus('G7', ':|')}\n\n[A]\n${foldedChorus('E7', ':| x3')}`
+      `[A]\n${foldedChorus('G7', ':|')}\n\n[A]\n${foldedChorus('E7', ':| x3 |')}`
     )
   })
 })
@@ -298,11 +298,12 @@ describe('encodeChartSource — da capo', () => {
   const b = bars('F')
 
   it('a head-out form replays through a D.C. — exact print order', () => {
-    // Pins the whole render: the fine closes the REPLAYED prefix (block 1),
+    // Pins the whole render: the fine closes the REPLAYED prefix (block 1) —
+    // printed above the header the boundary opens, like any boundary mark —
     // headers appear on every block, and the D.C. is the closing line.
     const song = [...a, ...b, ...a]
     expect(encodeChartSource(song, undefined, 4).source).toBe(
-      `[A]\n${barsRows('C')}\n{fine}\n\n[B]\n${barsRows('F')}\n{d.c.}`
+      `[A]\n${barsRows('C')}\n\n{fine}\n[B]\n${barsRows('F')}\n{d.c.}`
     )
   })
 
