@@ -34,8 +34,8 @@ recopiés à la main que le compilateur ne pouvait pas tenir d'accord.
 
 - Lots LSP (replay du contrat `ProjectStore` sur l'adaptateur HTTP + fakes de
   `shell-test-kit`) et ISP (seams consommateurs du `Mixer`) — les deux autres
-  lots du backlog.
-- Verdict Sonar de cette PR : à lire après le passage du CI (`pnpm sonar`).
+  lots du backlog — puis le lot 4 outillage (gardes-fous génériques, §
+  « Backlog outillage » du rapport revue-solid).
 
 ## Decisions
 
@@ -53,7 +53,7 @@ recopiés à la main que le compilateur ne pouvait pas tenir d'accord.
   (seuil 90) — 17 min, périmètre = modules core touchés par la branche
 - biome / sheriff / knip / jscpd / tokens / i18n / sonar-triage : ✅
   (`gate ok`, arbre stampé `9eba6d36`)
-- SonarCloud : en attente du CI de la PR (analyse ~5 min post-push)
+- SonarCloud (PR #367) : ✅ quality gate OK, 0 issue, 0 hotspot
 
 ## State to resume from
 

@@ -95,6 +95,53 @@ promesse de contrat non tenue (LSP), un sac non découpé (ISP).
    structurellement, les hooks de forwarding ne déclarent que la slice
    transmise.
 
+## Backlog outillage — gardes-fous génériques (lot 4, après le solde)
+
+Ce que la revue rend mécanisable, dans l'idiome maison (fitness function en
+spec + cliquet, jamais de big-bang). Priorité aux n° 1 et n° 4 : chacun
+aurait attrapé un constat **medium** de cette revue, et les deux sont des
+specs d'une trentaine de lignes.
+
+1. **[OCP] Spec « vocabulaire fermé »** : liste versionnée
+   `{ jeu de littéraux → module propriétaire }`, grep des ré-épellations
+   ailleurs — la généralisation du grep-ban `% 12` et de la liste fermée de
+   la grammaire de ligne. Aurait attrapé le constat n° 1 (union transport).
+2. **[OCP] Biome `useExhaustiveSwitchCases`** (nursery) : vérifier la
+   disponibilité sur notre version et l'activer — le `satisfies never`
+   devient mécanique au lieu de conventionnel (constat n° 3).
+3. **[OCP] Cliquet disjonctions** : compte épinglé des
+   `x === 'lit' || x === 'lit' || …` (≥ 3 littéraux d'une union) dans
+   `packages/web` — le motif exact du `running` silencieux (constat n° 2).
+4. **[LSP] Cliquet « contrat ×2 »** : pour chaque `*Contract` exporté d'un
+   `*/testing/`, exiger ≥ 2 sites d'appel (fake de référence + au moins un
+   adaptateur réel) — l'esprit de `public-surface.spec.ts` appliqué aux
+   contrats ; la promesse de l'ADR 0002 devient exécutable. Aurait attrapé
+   le constat n° 4 (replay perdu au pivot Tauri → HTTP, sans bruit).
+5. **[LSP] Grep-spec « fakes convergés »** : interdire l'implémentation
+   littérale d'un port qui possède un fake de référence hors de
+   `*/testing/` (exemptions triées, style `sonar-project.properties`).
+   Aurait attrapé le constat n° 5 (`fakeProjectStores`).
+6. **[ISP] Spec « pas de méthode optionnelle dans un port » + cliquet sur
+   le nombre de membres par interface de deps** — déjà proposé par la revue
+   justesse, toujours pas posé.
+7. **[ISP/altitude] `mutation:diff` étendu aux hooks `use-*.ts` de web** —
+   le détecteur général du pass-through : un paramètre jamais déréférencé
+   est une zone où tous les mutants survivent (constat n° 6) ; déjà au
+   backlog revue justesse, re-confirmé ici.
+8. **[SRP/DIP] Convention « pointeur ADR au point de friction », vérifiée**
+   : chaque arbitrage structurel porte un commentaire `ADR NNNN`, et le
+   link-checker des living docs vérifie que la cible existe. Ne PAS
+   mécaniser le jugement lui-même — les 14 réfutations montrent que la
+   décision consignée est la défense ; son absence, le prédicteur d'écart.
+9. **[altitude, hérité revue justesse] Spec « actions câblées »** : chaque
+   variante d'action d'un reducer exporté du core exige un site de dispatch
+   dans `packages/web` (le `tick` mort échouerait) — repris ici pour que le
+   lot 4 solde TOUT l'outillage en attente.
+10. **[méta] Geler la revue en workflow nommé** (`.claude/workflows/` ou
+   skill `/revue-solid`) : 5 enquêteurs calibrés FP + sceptiques
+   adversariaux, rendement mesuré 70 % de réfutation — rejouable à chaque
+   fin de chantier, pièce la plus portable vers le template starter.
+
 ## Leçon labo
 
 La passe adversariale a un rendement de 70 % de réfutation — et chaque
