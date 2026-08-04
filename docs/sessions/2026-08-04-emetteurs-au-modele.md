@@ -77,8 +77,10 @@ Premier lot de la suite consignée par
   seeds jamais imprimés, `copy === 0` pur). Le run CI post-merge reste la
   référence.
 - biome / sheriff / knip / jscpd : ✅
-- sonar : PR #364 — verdict à consigner après la passe CI (commit dédié
-  sur la branche).
+- sonar : ✅ PR #364 — quality gate OK, 0 issue, 0 hotspot. Une passe
+  intermédiaire avait mordu (S3776, complexité 19/15 sur la réécriture de
+  `renderStructuredSource`) — corrigée par l'extraction de `runBlock`
+  (lead + fold + copies), l'assembleur ne fait plus que concaténer.
 
 ## State to resume from
 
