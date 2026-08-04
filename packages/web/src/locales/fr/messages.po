@@ -210,8 +210,18 @@ msgstr "Démarrage du service d'analyse (jusqu'à ~1 min)…"
 
 #. js-lingui-explicit-id
 #: src/app/analyser/detection-copy.ts
+msgid "analysis.error.engine-unavailable"
+msgstr "Service d'analyse indisponible pour le moment — réessayer plus tard."
+
+#. js-lingui-explicit-id
+#: src/app/analyser/detection-copy.ts
 msgid "analysis.error.network-offload"
 msgstr "Service d'analyse injoignable — réessayer."
+
+#. js-lingui-explicit-id
+#: src/app/analyser/detection-copy.ts
+msgid "analysis.error.unknown"
+msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
 #: src/app/account/analysis-gate-notice/analysis-gate-notice.tsx
@@ -322,11 +332,6 @@ msgstr "Aucune grille — saisir les accords ou lancer la détection."
 
 #. js-lingui-explicit-id
 #: src/app/analyser/detection-copy.ts
-msgid "chords.error.engine-unavailable"
-msgstr "Service d'analyse indisponible pour le moment — réessayer plus tard."
-
-#. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts
 msgid "chords.error.no-chords"
 msgstr "Aucun accord détecté sur ce morceau."
 
@@ -339,11 +344,6 @@ msgstr "L'analyse des accords a expiré — réessayer."
 #: src/app/analyser/detection-copy.ts
 msgid "chords.error.too-large"
 msgstr "Morceau trop volumineux pour l'analyse."
-
-#. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts
-msgid "chords.error.unknown"
-msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
 #: src/app/lead-sheet/chord-chart-panel/chord-chart-panel.tsx
@@ -1241,11 +1241,6 @@ msgstr "Pistes séparées"
 
 #. js-lingui-explicit-id
 #: src/app/analyser/detection-copy.ts
-msgid "separation.error.engine-unavailable"
-msgstr "Service d'analyse indisponible pour le moment — réessayer plus tard."
-
-#. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts
 msgid "separation.error.timeout"
 msgstr "La séparation a expiré — réessayer."
 
@@ -1253,11 +1248,6 @@ msgstr "La séparation a expiré — réessayer."
 #: src/app/analyser/detection-copy.ts
 msgid "separation.error.too-large"
 msgstr "Morceau trop volumineux pour la séparation."
-
-#. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts
-msgid "separation.error.unknown"
-msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
 #: src/app/separation/use-separation.ts
@@ -1492,11 +1482,6 @@ msgstr "Détection…"
 
 #. js-lingui-explicit-id
 #: src/app/analyser/detection-copy.ts
-msgid "structure.error.engine-unavailable"
-msgstr "Service d'analyse indisponible pour le moment — réessayer plus tard."
-
-#. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts
 msgid "structure.error.no-structure"
 msgstr "Aucune structure détectée sur ce morceau."
 
@@ -1509,11 +1494,6 @@ msgstr "L'analyse de la structure a expiré — réessayer."
 #: src/app/analyser/detection-copy.ts
 msgid "structure.error.too-large"
 msgstr "Morceau trop volumineux pour l'analyse."
-
-#. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts
-msgid "structure.error.unknown"
-msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
 #: src/app/markers/section-label.ts
@@ -1589,11 +1569,6 @@ msgstr "Doubler le tempo"
 
 #. js-lingui-explicit-id
 #: src/app/analyser/detection-copy.ts
-msgid "tempo.error.engine-unavailable"
-msgstr "Service d'analyse indisponible pour le moment — réessayer plus tard."
-
-#. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts
 msgid "tempo.error.timeout"
 msgstr "L'analyse du tempo a expiré — réessayer."
 
@@ -1601,11 +1576,6 @@ msgstr "L'analyse du tempo a expiré — réessayer."
 #: src/app/analyser/detection-copy.ts
 msgid "tempo.error.too-large"
 msgstr "Morceau trop volumineux pour l'analyse."
-
-#. js-lingui-explicit-id
-#: src/app/analyser/detection-copy.ts
-msgid "tempo.error.unknown"
-msgstr "Erreur inattendue — réessayer."
 
 #. js-lingui-explicit-id
 #: src/app/tempo/tempo-panel/tempo-panel.tsx

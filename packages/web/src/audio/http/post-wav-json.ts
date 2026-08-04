@@ -1,4 +1,4 @@
-import type { DecodedAudio } from '@app/core'
+import type { AnalysisTransportErrorCode, DecodedAudio } from '@app/core'
 import { encodeAnalysisWavMemo } from '../encode/encode-analysis-wav-memo.ts'
 
 /**
@@ -23,20 +23,10 @@ class NetworkError extends Error {
   }
 }
 
-/**
- * The transport failures every analysis endpoint shares, named after what the
- * user can act on. Each adapter translates them into its own port error in
- * one line — the interpretation (which status means what on this server)
- * lives here, once.
- */
-export type TransportFailure =
-  | 'engine-unavailable'
-  | 'network'
-  | 'timeout'
-  | 'too-large'
-
-/** The statuses this server answers deliberately, mapped to their meaning. */
-const STATUS_FAILURES: Record<number, TransportFailure> = {
+/** The statuses this server answers deliberately, mapped to their meaning —
+ * the interpretation (which status means what on this server) lives here,
+ * once; the failure vocabulary itself is the core's, shared by every flow. */
+const STATUS_FAILURES: Record<number, AnalysisTransportErrorCode> = {
   503: 'engine-unavailable',
   504: 'timeout',
   413: 'too-large'
@@ -49,7 +39,7 @@ const STATUS_FAILURES: Record<number, TransportFailure> = {
  */
 export function transportFailureOfStatus(
   status: number
-): TransportFailure | undefined {
+): AnalysisTransportErrorCode | undefined {
   return STATUS_FAILURES[status]
 }
 
@@ -60,7 +50,7 @@ export function transportFailureOfStatus(
  */
 export function classifyTransportError(
   e: unknown
-): TransportFailure | undefined {
+): AnalysisTransportErrorCode | undefined {
   if (e instanceof HttpStatusError) {
     return STATUS_FAILURES[e.status]
   }
@@ -76,7 +66,7 @@ export function classifyTransportError(
  */
 export function rethrowTransportError(
   e: unknown,
-  wrap: (failure: TransportFailure, detail: string) => Error
+  wrap: (failure: AnalysisTransportErrorCode, detail: string) => Error
 ): never {
   const failure = classifyTransportError(e)
   if (failure !== undefined && e instanceof Error) {

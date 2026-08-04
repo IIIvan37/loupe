@@ -1,3 +1,4 @@
+import type { AnalysisTransportErrorCode } from '../../shared/analysis-transport.ts'
 import type { DecodedAudio } from '../../shared/decoded-audio.ts'
 import { errorMessage } from '../../shared/error-message.ts'
 import {
@@ -34,12 +35,7 @@ export interface TempoAnalysis {
  * user's language (Lot G standard) instead of echoing raw engine text — the
  * same contract `detectChords` established (N.1).
  */
-export type TempoDetectionErrorCode =
-  | 'engine-unavailable'
-  | 'network'
-  | 'timeout'
-  | 'too-large'
-  | 'unknown'
+export type TempoDetectionErrorCode = AnalysisTransportErrorCode | 'unknown'
 
 /**
  * The typed failure a `TempoDetector` adapter throws when it can tell WHY the
@@ -48,12 +44,9 @@ export type TempoDetectionErrorCode =
  * the code; anything else it catches folds into `unknown`.
  */
 export class TempoDetectionError extends Error {
-  readonly code: Exclude<TempoDetectionErrorCode, 'unknown'>
+  readonly code: AnalysisTransportErrorCode
 
-  constructor(
-    code: Exclude<TempoDetectionErrorCode, 'unknown'>,
-    detail: string
-  ) {
+  constructor(code: AnalysisTransportErrorCode, detail: string) {
     super(detail)
     this.code = code
     this.name = 'TempoDetectionError'

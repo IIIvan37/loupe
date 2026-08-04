@@ -1,4 +1,4 @@
-import { parseChart, type SeparationState } from '@app/core'
+import { isSeparationPhase, parseChart, type SeparationState } from '@app/core'
 import { msg } from '@lingui/core/macro'
 import { i18n } from '../../i18n/i18n.ts'
 import { SEPARATION_PROGRESS_LABELS } from './detection-copy.ts'
@@ -24,7 +24,7 @@ export function separationOperationSummary(
   state: SeparationState
 ): string | undefined {
   const status = state.status
-  if (status === 'idle' || status === 'ready' || status === 'error') {
+  if (!isSeparationPhase(status)) {
     return undefined
   }
   const label = i18n._(SEPARATION_PROGRESS_LABELS[status])

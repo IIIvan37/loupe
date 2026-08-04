@@ -1,8 +1,9 @@
-import type {
-  ChordDetectionErrorCode,
-  SeparationState,
-  StructureDetectionErrorCode,
-  TempoDetectionErrorCode
+import {
+  type ChordDetectionErrorCode,
+  isSeparationPhase,
+  type SeparationState,
+  type StructureDetectionErrorCode,
+  type TempoDetectionErrorCode
 } from '@app/core'
 import type { MessageDescriptor } from '@lingui/core'
 import { msg } from '@lingui/core/macro'
@@ -171,10 +172,7 @@ function SeparationItem({
 }) {
   const { t } = useLingui()
   const sep = separation.state
-  const running =
-    sep.status === 'analysing' ||
-    sep.status === 'separating' ||
-    sep.status === 'retrieving'
+  const running = isSeparationPhase(sep.status)
   // The analysis runs on the remote service: only being offline blocks it.
   const block: MessageDescriptor | undefined = offlineBlocks(
     separation.offloaded,
