@@ -18,6 +18,7 @@ import { type Projects, useProjects } from '../../../projects/use-projects.ts'
 import { useAudioSession } from '../../audio-session/audio-session.ts'
 import { useChordChart } from '../../lead-sheet/use-chord-chart.ts'
 import { isSyntheticStem, METRONOME_ID } from '../../mixer/synthetic-stem.ts'
+import type { Mixer } from '../../mixer/use-mixer.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../../tempo/metronome-stem.ts'
 import { restoreSession, type SessionRestoreDeps } from './project-session.ts'
 
@@ -29,6 +30,9 @@ function trackTitle(fileName: string): string {
 
 export interface ProjectSessionDeps
   extends Omit<SessionRestoreDeps, 'restoreChordChart' | 'onRestoreStep'> {
+  /** Restore for the open path, plus the snapshot/reset a save and a fresh
+   * import need — still never the 12-member facade. */
+  readonly mixer: Pick<Mixer, 'restore' | 'reset' | 'state'>
   readonly stores?: ProjectDeps | undefined
   /** The imported file's original bytes — what a save persists as the source. */
   readonly loadedBytes: ArrayBuffer | undefined

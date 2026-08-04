@@ -11,28 +11,22 @@ import { act, renderHook } from '@testing-library/react'
 import { Provider, createStore } from 'jotai'
 import type { ReactNode } from 'react'
 import { vi } from 'vitest'
-import type { Mixer } from '../mixer/use-mixer.ts'
 import { METRONOME_ID } from '../mixer/synthetic-stem.ts'
 import { DEFAULT_METRONOME_CHANNEL } from './metronome-stem.ts'
-import { useMetronome } from './use-metronome.ts'
+import { type MetronomeMixer, useMetronome } from './use-metronome.ts'
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 const grid: BeatGrid = [{ timeSeconds: 0, downbeat: true }]
 
-function fakeMixer(state: MixerState = []): Mixer {
+// The metronome's seam only — the members it cannot name (load, faders, solo)
+// need no stubs anymore: the type keeps them out of reach.
+function fakeMixer(state: MixerState = []): MetronomeMixer {
   return {
-    channels: [],
     state,
-    load: vi.fn(),
     restore: vi.fn(),
     addStem: vi.fn(),
-    removeStem: vi.fn(),
     replaceStem: vi.fn(),
-    reset: vi.fn(),
-    setGain: vi.fn(),
-    toggleMute: vi.fn(),
-    toggleSolo: vi.fn(),
-    setFilter: vi.fn()
+    toggleMute: vi.fn()
   }
 }
 
@@ -97,9 +91,9 @@ describe('useMetronome', () => {
       .calls[0] as [StemTrack, SeparatedStem, MixerState[number]]
     expect(stem.id).toBe(METRONOME_ID)
     expect(channel).toEqual(DEFAULT_METRONOME_CHANNEL)
-    // The playing stems stay untouched — a restore would cut the playback.
+    // The playing stems stay untouched — a restore would cut the playback
+    // (and `load` is out of the seam's reach entirely).
     expect(mixer.restore).not.toHaveBeenCalled()
-    expect(mixer.load).not.toHaveBeenCalled()
     expect(result.current.enabled).toBe(true)
   })
 

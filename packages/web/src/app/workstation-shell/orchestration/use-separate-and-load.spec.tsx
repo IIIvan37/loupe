@@ -19,6 +19,7 @@ import { I18nTestingProvider } from '../../../i18n/i18n-testing-provider.tsx'
 import { AudioSessionProvider } from '../../audio-session/audio-session-provider.tsx'
 import { METRONOME_ID } from '../../mixer/synthetic-stem.ts'
 import type { Mixer } from '../../mixer/use-mixer.ts'
+import type { MetronomeMixer } from '../../tempo/use-metronome.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../../tempo/metronome-stem.ts'
 import { metronomeEnabledAtom, tempoAnalysisAtom } from '../../tempo/tempo-atoms.ts'
 import { useSeparateAndLoad } from './use-separate-and-load.ts'
@@ -42,20 +43,14 @@ const SEPARATED: SeparatedStem[] = [
   { id: 'basse', label: 'Basse', audio: SILENT }
 ]
 
-function fakeMixer(state: MixerState = []): Mixer {
+function fakeMixer(state: MixerState = []): Pick<Mixer, 'load'> & MetronomeMixer {
   return {
-    channels: [],
     state,
     load: vi.fn(),
     restore: vi.fn(),
     addStem: vi.fn(),
-    removeStem: vi.fn(),
     replaceStem: vi.fn(),
-    reset: vi.fn(),
-    setGain: vi.fn(),
-    toggleMute: vi.fn(),
-    toggleSolo: vi.fn(),
-    setFilter: vi.fn()
+    toggleMute: vi.fn()
   }
 }
 
@@ -70,7 +65,7 @@ function mountSeparateAndLoad({
   separator = { separate: async () => SEPARATED }
 }: {
   analysis?: TempoAnalysis
-  mixer?: Mixer
+  mixer?: Pick<Mixer, 'load'> & MetronomeMixer
   separator?: StemSeparator
 } = {}) {
   const store = createStore()

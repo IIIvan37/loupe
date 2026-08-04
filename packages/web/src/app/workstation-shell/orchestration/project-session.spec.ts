@@ -105,19 +105,8 @@ function fakeDeps(
       gateReason: undefined
     } satisfies Separation,
     mixer: {
-      channels: [],
-      state: [],
-      load: vi.fn(),
-      restore: vi.fn(),
-      addStem: vi.fn(),
-      removeStem: vi.fn(),
-      replaceStem: vi.fn(),
-      reset: vi.fn(),
-      setGain: vi.fn(),
-      toggleMute: vi.fn(),
-      toggleSolo: vi.fn(),
-      setFilter: vi.fn()
-    } satisfies Mixer
+      restore: vi.fn()
+    } satisfies Pick<Mixer, 'restore'>
   }
 }
 

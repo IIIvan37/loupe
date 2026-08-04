@@ -15,8 +15,20 @@ import type { Mixer } from '../mixer/use-mixer.ts'
 import { buildMetronomeStem } from './metronome-stem.ts'
 import { metronomeEnabledAtom } from './tempo-atoms.ts'
 
+/**
+ * The slice of the mixer the metronome drives — a consumer-shaped seam in the
+ * audio-session idiom (`StemMixGraph`): the seam declares what seating a click
+ * needs, the shell's one concrete `Mixer` satisfies it structurally. The
+ * forwarding hooks (tempo detection, gated-analysis resume) declare THIS, so
+ * features that only seat a click stop depending on faders, solo and tone.
+ */
+export type MetronomeMixer = Pick<
+  Mixer,
+  'state' | 'restore' | 'addStem' | 'replaceStem' | 'toggleMute'
+>
+
 export interface MetronomeDeps {
-  readonly mixer: Mixer
+  readonly mixer: MetronomeMixer
 }
 
 export interface Metronome {
