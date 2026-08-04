@@ -16,12 +16,11 @@ Nursery : `detect-chords`, `bass-line` ; `timecode` attend un 2e
 consommateur. Jamais de hook à effet de montage, seul le seam
 `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
-**Backlog revue justesse (PR #357) SOLDÉ (PRs #359–#363)** ; chantier
-**Texte-comme-modèle SOLDÉ (PRs #364–#366)** — plus aucun émetteur
-n'assemble de texte, un seul `renderChart` imprime (draft detect-chords
-compris, mort de `timeLine`). Prochain : **retour au labo starter**
-(l'action « en tout dernier » du backlog revue, maintenant atteinte).
-Candidat de récolte : module `playback/` (nursery). Restes : affordance UX du throttle redeem
+Chantiers revue justesse (PRs #359–#363) et texte-comme-modèle
+(PRs #364–#366) soldés (cf. Historique). **Revue SOLID (2026-08-04)** :
+6 confirmés / 14 réfutés (backlog = le rapport daté revue-solid),
+solde en 3 PRs (OCP unions, LSP contrat + fakes, ISP seams Mixer).
+Ensuite : retour au labo starter, récolte module `playback/`. Restes : affordance UX du throttle redeem
 (slice UI, checkpoint d'approche) ; garde-fous revue (spec actions
 câblées, mutation:diff sur hooks web) ; découvrabilité du click ; filtre
 Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
