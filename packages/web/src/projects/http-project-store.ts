@@ -81,11 +81,15 @@ export function createHttpProjectStore(baseUrl: string): ProjectStore {
       )
     },
     async delete(id: string): Promise<void> {
-      ensureOk(
-        await fetched(() =>
-          fetch(`${baseUrl}/projects/${id}`, { method: 'DELETE' })
-        )
+      const response = await fetched(() =>
+        fetch(`${baseUrl}/projects/${id}`, { method: 'DELETE' })
       )
+      // The port promises « deleting an unknown id is a no-op »: the local
+      // Rust server answers an idempotent 2xx, but a variant answering 404
+      // means the same thing — nothing left to delete.
+      if (response.status !== 404) {
+        ensureOk(response)
+      }
     }
   }
 }

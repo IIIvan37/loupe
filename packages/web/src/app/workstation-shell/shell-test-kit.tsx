@@ -3,7 +3,6 @@ import type {
   AudioFileDecoder,
   DecodedAudio,
   PlaybackEngine,
-  Project,
   ProjectDeps,
   StemPlaybackEngine,
   StemSeparator,
@@ -12,12 +11,14 @@ import type {
   TrackSourceMetadata
 } from '@app/core'
 import { SeparationError } from '@app/core'
+import { createInMemoryProjectStore } from '@app/core/testing'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent, { type UserEvent } from '@testing-library/user-event'
 import { Provider } from 'jotai'
 import { afterEach, beforeAll, beforeEach, vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
+import { sha256Hex } from '../../projects/content-hash.ts'
 import { AudioSessionProvider } from '../audio-session/audio-session-provider.tsx'
 import type { AudioSession } from '../audio-session/audio-session.ts'
 import { WorkstationShell } from './workstation-shell.tsx'
@@ -137,25 +138,18 @@ export const failingSeparator: StemSeparator = {
   }
 }
 
-/** In-memory project stores for tests — never touch real persistence. */
+/** In-memory project stores for tests — never touch real persistence. The
+ * manifest store is the contract-validated reference fake, and the audio fake
+ * mints content-addressed refs (same bytes → same ref, the real stores'
+ * documented value domain) — a hand-rolled divergence here is exactly the
+ * fake-outside-the-contract bug class ADR 0002 fences (PR #209). */
 export function fakeProjectStores(): ProjectDeps {
-  const manifests = new Map<string, Project>()
   const blobs = new Map<string, ArrayBuffer>()
-  let nextRef = 0
   return {
-    store: {
-      list: async () => [...manifests.values()],
-      load: async (id) => manifests.get(id),
-      save: async (project) => {
-        manifests.set(project.id, project)
-      },
-      delete: async (id) => {
-        manifests.delete(id)
-      }
-    },
+    store: createInMemoryProjectStore(),
     audio: {
       put: async (bytes) => {
-        const ref = `ref-${nextRef++}`
+        const ref = await sha256Hex(bytes)
         blobs.set(ref, bytes)
         return ref
       },
