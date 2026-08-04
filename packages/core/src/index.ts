@@ -307,6 +307,7 @@ export type {
 } from './separation/domain/separation.ts'
 export {
   initialSeparation,
+  isSeparationPhase,
   separationReducer
 } from './separation/domain/separation.ts'
 export { stemExportFilename } from './separation/domain/stem-export.ts'
@@ -314,6 +315,7 @@ export type { StemSet, StemTrack } from './separation/domain/stem-set.ts'
 export { buildStemTrack } from './separation/domain/stem-set.ts'
 export type { WaveformLayer } from './separation/domain/waveform-mix.ts'
 export { combineWaveforms } from './separation/domain/waveform-mix.ts'
+export type { AnalysisTransportErrorCode } from './shared/analysis-transport.ts'
 export type { DecodedAudio } from './shared/decoded-audio.ts'
 export {
   clampFineTuneCents,

@@ -7,6 +7,7 @@ import {
   keyName
 } from '../harmony/domain/chord-key.ts'
 import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
+import type { AnalysisTransportErrorCode } from '../shared/analysis-transport.ts'
 import type { DecodedAudio } from '../shared/decoded-audio.ts'
 import { errorMessage } from '../shared/error-message.ts'
 import {
@@ -62,10 +63,7 @@ export interface DetectChordsDeps {
 export type ChordDetectionErrorCode =
   | 'no-downbeat'
   | 'no-chords'
-  | 'engine-unavailable'
-  | 'network'
-  | 'timeout'
-  | 'too-large'
+  | AnalysisTransportErrorCode
   | 'unknown'
 
 /**
@@ -75,12 +73,9 @@ export type ChordDetectionErrorCode =
  * the code; anything else it catches folds into `unknown`.
  */
 export class ChordDetectionError extends Error {
-  readonly code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large'
+  readonly code: AnalysisTransportErrorCode
 
-  constructor(
-    code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large',
-    detail: string
-  ) {
+  constructor(code: AnalysisTransportErrorCode, detail: string) {
     super(detail)
     this.code = code
     this.name = 'ChordDetectionError'

@@ -105,6 +105,11 @@ function dispatch(command: Command, actions: ShortcutActions): void {
     case 'saveProject':
       actions.saveProject()
       return
+    default:
+      // Compile-time exhaustiveness: dispatch returns void, so unlike its
+      // string-returning twin `describeCommand` a forgotten case would fall
+      // through silently — a shortcut listed in the help dialog doing nothing.
+      command satisfies never
   }
 }
 

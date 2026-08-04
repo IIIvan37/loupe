@@ -1,3 +1,4 @@
+import type { AnalysisTransportErrorCode } from '../../shared/analysis-transport.ts'
 import type { StemSet } from './stem-set.ts'
 
 /**
@@ -6,21 +7,26 @@ import type { StemSet } from './stem-set.ts'
  * a real wait of its own when they come back over the network (AS.2). The
  * pure state machine and the `StemSeparator` port both speak in these terms.
  */
-export type SeparationPhase = 'analysing' | 'separating' | 'retrieving'
+const SEPARATION_PHASES = ['analysing', 'separating', 'retrieving'] as const
+
+export type SeparationPhase = (typeof SEPARATION_PHASES)[number]
 
 export type SeparationStatus = 'idle' | SeparationPhase | 'ready' | 'error'
+
+/** Whether a status is one of the running phases — the ONE membership test,
+ * so a future phase cannot leave a consumer's hand-written disjunction stale. */
+export function isSeparationPhase(
+  status: SeparationStatus
+): status is SeparationPhase {
+  return (SEPARATION_PHASES as readonly string[]).includes(status)
+}
 
 /**
  * Why a separation failed, discriminated so the UI can speak each case in the
  * user's language (Lot G standard) instead of echoing raw engine text — the
  * same contract the detections carry (N.1, extended to separation in M1.4).
  */
-export type SeparationErrorCode =
-  | 'engine-unavailable'
-  | 'network'
-  | 'timeout'
-  | 'too-large'
-  | 'unknown'
+export type SeparationErrorCode = AnalysisTransportErrorCode | 'unknown'
 
 /** A failed run: the code drives the copy, the detail goes to the console. */
 export interface SeparationFailure {

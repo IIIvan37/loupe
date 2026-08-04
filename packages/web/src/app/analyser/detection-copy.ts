@@ -1,6 +1,7 @@
 import type {
   ChordDetectionErrorCode,
   SeparationErrorCode,
+  SeparationPhase,
   StructureDetectionErrorCode,
   TempoDetectionErrorCode
 } from '@app/core'
@@ -23,10 +24,26 @@ export const ANALYSIS_OFFLOAD_UNREACHABLE = msg({
   message: "Service d'analyse injoignable — réessayer."
 })
 
+/** The transport faces every analysis flow words identically, spread into each
+ * per-flow table below — a new shared code (an auth refusal) lands here once;
+ * `timeout`/`too-large` stay per flow because their copy names the analysis. */
+const SHARED_TRANSPORT_COPY = {
+  'engine-unavailable': msg({
+    id: 'analysis.error.engine-unavailable',
+    message:
+      "Service d'analyse indisponible pour le moment — réessayer plus tard."
+  }),
+  network: ANALYSIS_OFFLOAD_UNREACHABLE,
+  unknown: msg({
+    id: 'analysis.error.unknown',
+    message: 'Erreur inattendue — réessayer.'
+  })
+} satisfies Partial<Record<SeparationErrorCode, MessageDescriptor>>
+
 /** The separation's running-phase labels — worn by the analyser row's busy
  * face AND the folded zone's live segment (AS.5): one catalog entry per phase. */
 export const SEPARATION_PROGRESS_LABELS: Readonly<
-  Record<'analysing' | 'separating' | 'retrieving', MessageDescriptor>
+  Record<SeparationPhase, MessageDescriptor>
 > = {
   analysing: msg({ id: 'separation.analysing', message: 'Analyse du mix…' }),
   separating: msg({
@@ -39,21 +56,14 @@ export const SEPARATION_PROGRESS_LABELS: Readonly<
   })
 }
 
-/** `network` reuses the unreachable copy; `engine-unavailable` = the service
- * cannot answer right now (503, weights not loaded). */
 export const STRUCTURE_ERROR_COPY: Readonly<
   Record<StructureDetectionErrorCode, MessageDescriptor>
 > = {
+  ...SHARED_TRANSPORT_COPY,
   'no-structure': msg({
     id: 'structure.error.no-structure',
     message: 'Aucune structure détectée sur ce morceau.'
   }),
-  'engine-unavailable': msg({
-    id: 'structure.error.engine-unavailable',
-    message:
-      "Service d'analyse indisponible pour le moment — réessayer plus tard."
-  }),
-  network: ANALYSIS_OFFLOAD_UNREACHABLE,
   timeout: msg({
     id: 'structure.error.timeout',
     message: "L'analyse de la structure a expiré — réessayer."
@@ -61,10 +71,6 @@ export const STRUCTURE_ERROR_COPY: Readonly<
   'too-large': msg({
     id: 'structure.error.too-large',
     message: "Morceau trop volumineux pour l'analyse."
-  }),
-  unknown: msg({
-    id: 'structure.error.unknown',
-    message: 'Erreur inattendue — réessayer.'
   })
 }
 
@@ -73,21 +79,16 @@ export const CHORDS_NEEDS_GRID = msg({
   message: "Détecter d'abord le tempo — la grille de mesures ancre les accords."
 })
 
-/** `network` reuses the unreachable copy; `no-downbeat` reuses the grid hint. */
+/** `no-downbeat` reuses the grid hint. */
 export const CHORDS_ERROR_COPY: Readonly<
   Record<ChordDetectionErrorCode, MessageDescriptor>
 > = {
+  ...SHARED_TRANSPORT_COPY,
   'no-downbeat': CHORDS_NEEDS_GRID,
   'no-chords': msg({
     id: 'chords.error.no-chords',
     message: 'Aucun accord détecté sur ce morceau.'
   }),
-  'engine-unavailable': msg({
-    id: 'chords.error.engine-unavailable',
-    message:
-      "Service d'analyse indisponible pour le moment — réessayer plus tard."
-  }),
-  network: ANALYSIS_OFFLOAD_UNREACHABLE,
   timeout: msg({
     id: 'chords.error.timeout',
     message: "L'analyse des accords a expiré — réessayer."
@@ -95,22 +96,13 @@ export const CHORDS_ERROR_COPY: Readonly<
   'too-large': msg({
     id: 'chords.error.too-large',
     message: "Morceau trop volumineux pour l'analyse."
-  }),
-  unknown: msg({
-    id: 'chords.error.unknown',
-    message: 'Erreur inattendue — réessayer.'
   })
 }
 
 export const TEMPO_ERROR_COPY: Readonly<
   Record<TempoDetectionErrorCode, MessageDescriptor>
 > = {
-  'engine-unavailable': msg({
-    id: 'tempo.error.engine-unavailable',
-    message:
-      "Service d'analyse indisponible pour le moment — réessayer plus tard."
-  }),
-  network: ANALYSIS_OFFLOAD_UNREACHABLE,
+  ...SHARED_TRANSPORT_COPY,
   timeout: msg({
     id: 'tempo.error.timeout',
     message: "L'analyse du tempo a expiré — réessayer."
@@ -118,10 +110,6 @@ export const TEMPO_ERROR_COPY: Readonly<
   'too-large': msg({
     id: 'tempo.error.too-large',
     message: "Morceau trop volumineux pour l'analyse."
-  }),
-  unknown: msg({
-    id: 'tempo.error.unknown',
-    message: 'Erreur inattendue — réessayer.'
   })
 }
 
@@ -133,17 +121,11 @@ export const ANALYSIS_OFFLINE = msg({
   message: 'Hors ligne — les analyses nécessitent le réseau.'
 })
 
-/** `network` reuses the unreachable copy (M1.4, the N.1 contract extended to
- * separation). */
+/** (M1.4, the N.1 contract extended to separation.) */
 export const SEPARATION_ERROR_COPY: Readonly<
   Record<SeparationErrorCode, MessageDescriptor>
 > = {
-  'engine-unavailable': msg({
-    id: 'separation.error.engine-unavailable',
-    message:
-      "Service d'analyse indisponible pour le moment — réessayer plus tard."
-  }),
-  network: ANALYSIS_OFFLOAD_UNREACHABLE,
+  ...SHARED_TRANSPORT_COPY,
   timeout: msg({
     id: 'separation.error.timeout',
     message: 'La séparation a expiré — réessayer.'
@@ -151,9 +133,5 @@ export const SEPARATION_ERROR_COPY: Readonly<
   'too-large': msg({
     id: 'separation.error.too-large',
     message: 'Morceau trop volumineux pour la séparation.'
-  }),
-  unknown: msg({
-    id: 'separation.error.unknown',
-    message: 'Erreur inattendue — réessayer.'
   })
 }

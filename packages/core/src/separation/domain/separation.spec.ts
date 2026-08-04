@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   initialSeparation,
+  isSeparationPhase,
   type SeparationState,
   separationReducer
 } from './separation.ts'
@@ -119,5 +120,16 @@ describe('separationReducer', () => {
         { type: 'reset' }
       )
     ).toBe(initialSeparation)
+  })
+})
+
+describe('isSeparationPhase', () => {
+  it('recognises every running phase and nothing else', () => {
+    expect(isSeparationPhase('analysing')).toBe(true)
+    expect(isSeparationPhase('separating')).toBe(true)
+    expect(isSeparationPhase('retrieving')).toBe(true)
+    expect(isSeparationPhase('idle')).toBe(false)
+    expect(isSeparationPhase('ready')).toBe(false)
+    expect(isSeparationPhase('error')).toBe(false)
   })
 })

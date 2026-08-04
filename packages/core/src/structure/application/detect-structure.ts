@@ -1,4 +1,5 @@
 import type { BeatGrid } from '../../rhythm/domain/beat-grid.ts'
+import type { AnalysisTransportErrorCode } from '../../shared/analysis-transport.ts'
 import type { DecodedAudio } from '../../shared/decoded-audio.ts'
 import { errorMessage } from '../../shared/error-message.ts'
 import {
@@ -28,10 +29,7 @@ export interface DetectStructureDeps {
  */
 export type StructureDetectionErrorCode =
   | 'no-structure'
-  | 'engine-unavailable'
-  | 'network'
-  | 'timeout'
-  | 'too-large'
+  | AnalysisTransportErrorCode
   | 'unknown'
 
 /**
@@ -41,12 +39,9 @@ export type StructureDetectionErrorCode =
  * code; anything else it catches folds into `unknown`.
  */
 export class StructureDetectionError extends Error {
-  readonly code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large'
+  readonly code: AnalysisTransportErrorCode
 
-  constructor(
-    code: 'engine-unavailable' | 'network' | 'timeout' | 'too-large',
-    detail: string
-  ) {
+  constructor(code: AnalysisTransportErrorCode, detail: string) {
     super(detail)
     this.code = code
     this.name = 'StructureDetectionError'

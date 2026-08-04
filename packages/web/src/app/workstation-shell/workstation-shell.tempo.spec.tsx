@@ -536,7 +536,7 @@ describe('WorkstationShell tempo & metronome', () => {
     await importTrack(user)
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
-      i18n._('tempo.error.unknown')
+      i18n._('analysis.error.unknown')
     )
     muted.mockRestore()
   })

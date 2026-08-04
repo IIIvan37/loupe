@@ -421,7 +421,7 @@ describe('AnalyserRow tempo', () => {
   it('explains the failure in the user language', () => {
     renderRow({ tempo: { error: 'engine-unavailable' } })
     expect(
-      screen.getByText(i18n._('tempo.error.engine-unavailable'), visibleOnly)
+      screen.getByText(i18n._('analysis.error.engine-unavailable'), visibleOnly)
     ).toBeInTheDocument()
   })
 
@@ -625,7 +625,7 @@ describe('AnalyserRow chords', () => {
     renderRow({ chords: { error: 'engine-unavailable' } })
     expect(
       screen.getAllByText(
-        new RegExp(i18n._('chords.error.engine-unavailable'))
+        new RegExp(i18n._('analysis.error.engine-unavailable'))
       ).length
     ).toBeGreaterThan(0)
   })
