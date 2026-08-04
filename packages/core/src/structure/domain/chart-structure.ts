@@ -173,46 +173,19 @@ export function renderStructuredSource(
 ): string {
   const runs = groupRuns(sections)
   const headed = runs.length > 1 || headLoneRun
-  const chartSections: { label?: string; measures: Measure[] }[] = []
+  const chartSections: { label?: string; measures: readonly Measure[] }[] = []
   const meterChanges: MeterChange[] = []
   let running = initialMeter
   let written = 0
   for (const run of runs) {
-    const { measures: labels, meters } = run.section
-    // A change on the section's FIRST measure prints before the block (and
-    // its header) — like a signature change at a section boundary — so a
-    // repeat-folded block still starts on a bar line for the `|:` splice.
-    const opening = meters?.[0]
-    if (opening !== undefined && running !== undefined && opening !== running) {
-      meterChanges.push({ measure: written, signature: timeSignature(opening) })
-      running = opening
-    }
-    const section: { label?: string; measures: Measure[] } = {
+    const block = runBlock(run, running, written)
+    chartSections.push({
       ...(headed && { label: run.section.label }),
-      measures: []
-    }
-    // A pair folds into |: … :| ONLY when both passes read identically:
-    // repeat bars cannot re-state a meter, so a non-returning change (the
-    // second pass would print a {time} the fold erases) forbids the fold.
-    const first = segmentMeasures(labels, meters, running)
-    const second = segmentMeasures(labels, meters, first.running)
-    const folds =
-      run.count === 2 &&
-      first.measures.length > 0 &&
-      sameChanges(first.changes, second.changes)
-    const passes = folds ? 1 : run.count
-    for (let copy = 0; copy < passes; copy += 1) {
-      const segment =
-        copy === 0 ? first : segmentMeasures(labels, meters, running)
-      section.measures.push(...segment.measures)
-      for (const change of segment.changes) {
-        meterChanges.push({ ...change, measure: written + change.measure })
-      }
-      written += segment.measures.length
-      running = segment.running
-    }
-    if (folds) repeatFold(section.measures)
-    chartSections.push(section)
+      measures: block.measures
+    })
+    meterChanges.push(...block.changes)
+    running = block.running
+    written = block.written
   }
   return renderChart(
     {
@@ -222,6 +195,57 @@ export function renderStructuredSource(
     },
     barsPerRow
   )
+}
+
+/** One run's measures and `{time:}` changes (chart-global positions),
+    entering at `running` with `written` measures already printed. */
+function runBlock(
+  run: { readonly section: DeducedSection; readonly count: number },
+  runningMeter: number | undefined,
+  writtenBefore: number
+): {
+  readonly measures: readonly Measure[]
+  readonly changes: readonly MeterChange[]
+  readonly running: number | undefined
+  readonly written: number
+} {
+  const { measures: labels, meters } = run.section
+  const changes: MeterChange[] = []
+  let running = runningMeter
+  let written = writtenBefore
+  // A change on the section's FIRST measure prints before the block (and
+  // its header) — like a signature change at a section boundary — so a
+  // repeat-folded block still starts on a bar line for the `|:` splice.
+  const opening = meters?.[0]
+  if (opening !== undefined && running !== undefined && opening !== running) {
+    changes.push({ measure: written, signature: timeSignature(opening) })
+    running = opening
+  }
+  // A pair folds into |: … :| ONLY when both passes read identically:
+  // repeat bars cannot re-state a meter, so a non-returning change (the
+  // second pass would print a {time} the fold erases) forbids the fold.
+  const first = segmentMeasures(labels, meters, running)
+  const second = segmentMeasures(labels, meters, first.running)
+  const folds =
+    run.count === 2 &&
+    first.measures.length > 0 &&
+    sameChanges(first.changes, second.changes)
+  const measures: Measure[] = []
+  for (let copy = 0; copy < (folds ? 1 : run.count); copy += 1) {
+    const segment =
+      copy === 0 ? first : segmentMeasures(labels, meters, running)
+    measures.push(...segment.measures)
+    changes.push(
+      ...segment.changes.map((change) => ({
+        ...change,
+        measure: written + change.measure
+      }))
+    )
+    written += segment.measures.length
+    running = segment.running
+  }
+  if (folds) repeatFold(measures)
+  return { measures, changes, running, written }
 }
 
 /** Whether two passes imply the same printed `{time:}` lines. */
