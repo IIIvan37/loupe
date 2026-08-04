@@ -48,7 +48,6 @@ triées et commentées — le patron d'`unit-discipline.spec.ts`).
 - Cliquet « largeur des interfaces de deps » (2e moitié du n° 6) : non posé —
   le compte de membres par interface demande un vrai parseur, le rapport
   coût/signal est mauvais tant que les seams `Pick` (PR #369) tiennent.
-- Verdict Sonar de cette PR : à lire après le CI.
 
 ## Decisions
 
@@ -69,7 +68,7 @@ triées et commentées — le patron d'`unit-discipline.spec.ts`).
   hook web isolé à 100 %
 - biome / sheriff / knip / jscpd / tokens / i18n / sonar-triage : ✅
   (`gate ok`, arbre stampé `056aefba`)
-- SonarCloud : en attente du CI de la PR
+- SonarCloud (PR #370) : ✅ quality gate OK, 0 issue, 0 hotspot
 
 ## State to resume from
 
