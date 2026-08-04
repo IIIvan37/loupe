@@ -73,8 +73,7 @@ draft entier.
   raccourci (une instance passe par le DP vers le même chart octet pour
   octet). Le run CI post-merge reste la référence.
 - biome / sheriff / knip / jscpd : ✅
-- sonar : PR #366 — analyse lue après ouverture (voir le verdict consigné
-  en fin de rapport si ajouté, sinon `pnpm sonar 366`).
+- sonar : ✅ PR #366 — quality gate OK, 0 issue, 0 hotspot.
 
 ## State to resume from
 
