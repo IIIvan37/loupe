@@ -72,8 +72,7 @@ produit un fragment de modèle et un seul `renderChart` imprime.
   type (`matchesTolerantly` refuse les longueurs inégales). Le run CI
   post-merge reste la référence.
 - biome / sheriff / knip / jscpd : ✅
-- sonar : PR à ouvrir — verdict à consigner après analyse (~5 min
-  post-push).
+- sonar : ✅ PR #365 — quality gate OK, 0 issue, 0 hotspot.
 
 ## State to resume from
 
