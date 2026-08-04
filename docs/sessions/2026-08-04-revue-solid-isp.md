@@ -32,7 +32,6 @@ traversait 6 hooks qui en consomment 0 à 5.
 
 - **Lot 4 outillage** (§ « Backlog outillage » du rapport revue-solid,
   10 actions) — le solde des 6 constats de la revue est terminé avec ce lot.
-- Verdict Sonar de cette PR : à lire après le passage du CI.
 
 ## Decisions
 
@@ -50,7 +49,7 @@ traversait 6 hooks qui en consomment 0 à 5.
   uniquement) ; le run complet post-merge de CI reste la référence
 - biome / sheriff / knip / jscpd / tokens / i18n / sonar-triage : ✅
   (`gate ok`, arbre stampé `b1ec31d6`)
-- SonarCloud : en attente du CI de la PR
+- SonarCloud (PR #369) : ✅ quality gate OK, 0 issue, 0 hotspot
 
 ## State to resume from
 
