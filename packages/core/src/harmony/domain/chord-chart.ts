@@ -361,6 +361,140 @@ function cellToken(label: string | undefined): string {
     : NO_CHORD
 }
 
+/**
+ * Print a chart MODEL as grid source text — the inverse of `parseChart`.
+ * The contract is the round-trip: `parseChart(renderChart(chart))` yields
+ * `chart` back, for any chart the grammar can express.
+ */
+export function renderChart(chart: ChordChart, barsPerRow = 4): string {
+  const width = Math.max(1, Math.floor(barsPerRow) || 1)
+  const lines: string[] = []
+  for (const [key, value] of Object.entries(chart.directives)) {
+    lines.push(`{${key}: ${value}}`)
+  }
+  const marks = formMarkLines(chart.form)
+  for (const change of chart.meterChanges ?? []) {
+    const due = marks.get(change.measure) ?? []
+    due.push(`{time: ${change.signature}}`)
+    marks.set(change.measure, due)
+  }
+  let written = 0
+  for (const section of chart.sections) {
+    flushMarks(lines, marks, written)
+    if (section.label !== undefined) lines.push(`[${section.label}]`)
+    let index = 0
+    while (index < section.measures.length) {
+      flushMarks(lines, marks, written)
+      // A mark line sits BETWEEN rows: the row must break where one is due.
+      const limit = nextMarkAfter(marks, written)
+      const end = Math.min(
+        index + width,
+        section.measures.length,
+        limit === undefined ? Number.POSITIVE_INFINITY : index + limit - written
+      )
+      const row = section.measures.slice(
+        index,
+        index + voltaBreak(section.measures.slice(index, end))
+      )
+      lines.push(renderRow(row))
+      written += row.length
+      index += row.length
+    }
+  }
+  flushMarks(lines, marks, written)
+  return lines.join('\n')
+}
+
+/** How many of the row's measures can share one printed line: an unclosed
+    volta group must end at the line break — printed on one line, `parseRow`'s
+    carry would re-read the next bar into the ending. */
+function voltaBreak(measures: readonly Measure[]): number {
+  for (let index = 1; index < measures.length; index++) {
+    const previous = measures[index - 1] as Measure
+    if (
+      previous.volta !== undefined &&
+      previous.repeatEnd !== true &&
+      measures[index]?.volta === undefined
+    ) {
+      return index
+    }
+  }
+  return measures.length
+}
+
+/** The full-line mark(s) each written position must print, derived from the
+    SAME `FORM_KEYS` table the recognizer reads — inverse of `formKeyOf`. */
+function formMarkLines(form: ChartForm | undefined): Map<number, string[]> {
+  const marks = new Map<number, string[]>()
+  for (const [text, key] of Object.entries(FORM_KEYS)) {
+    const position = form?.[key]
+    if (position === undefined) continue
+    const due = marks.get(position) ?? []
+    due.push(`{${text}}`)
+    marks.set(position, due)
+  }
+  return marks
+}
+
+/** Emit (once) the mark lines due at the current written position. */
+function flushMarks(
+  lines: string[],
+  marks: Map<number, string[]>,
+  written: number
+): void {
+  const due = marks.get(written)
+  if (due === undefined) return
+  lines.push(...due)
+  marks.delete(written)
+}
+
+/** The next written position a pending mark must break a row at. */
+function nextMarkAfter(
+  marks: ReadonlyMap<number, unknown>,
+  written: number
+): number | undefined {
+  let next: number | undefined
+  for (const position of marks.keys()) {
+    if (position > written && (next === undefined || position < next)) {
+      next = position
+    }
+  }
+  return next
+}
+
+/** Print one row of measures — `|`-assembled so a repeat bar fuses with its
+    bar line (`|: C | G :|`), exactly the shape `parseRow` reads back. A volta
+    number prints where its group starts; `parseRow`'s carry re-reads the
+    following bars into the group, mirroring the ending bracket in print. */
+function renderRow(measures: readonly Measure[]): string {
+  let row = '|'
+  let carriedVolta: number | undefined
+  for (const measure of measures) {
+    const volta =
+      measure.volta !== undefined && measure.volta !== carriedVolta
+        ? `${measure.volta}. `
+        : ''
+    carriedVolta = measure.repeatEnd === true ? undefined : measure.volta
+    const chords = measure.chords
+      .map((chord, index) => {
+        const symbol = formatChordSymbol(chord)
+        const held =
+          measure.fermata === true && index === measure.chords.length - 1
+        return held ? `${symbol}@` : symbol
+      })
+      .join(' ')
+    // A volta number fuses with its bar line (`|1. G`), like the repeat colon.
+    if (measure.repeatStart === true) row += ': '
+    else if (volta === '') row += ' '
+    row += `${volta}${chords}`
+    row += measure.repeatEnd === true ? ' :|' : ' |'
+    if (measure.repeatCount !== undefined) {
+      row += ` x${measure.repeatCount} |`
+    }
+  }
+  return row
+}
+
 /** The `ChartForm` key each full-line form mark sets — the single source the
     recognizer regex derives from, so a new mark can never miss the pattern. */
 const FORM_KEYS: Readonly<Record<string, keyof ChartForm>> = {

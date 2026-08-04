@@ -6,13 +6,14 @@ import {
   measureSourceSpans,
   parseChart,
   parseFormRollout,
+  renderChart,
   renderChartSource,
   respellChartSource,
   transposeChart,
   transposeChartSource,
   unrollChart
 } from './chord-chart.ts'
-import { formatChordSymbol } from './chord-symbol.ts'
+import { formatChordSymbol, parseChordSymbol } from './chord-symbol.ts'
 
 describe('parseChart', () => {
   it('reads a single measure into one unlabelled section', () => {
@@ -1165,5 +1166,171 @@ describe('transposeChart — key-aware respelling (AN.3)', () => {
       1
     )
     expect(chart.source).toBe('{key: dorian vibes}\n| C# |')
+  })
+})
+
+describe('renderChart', () => {
+  it('prints a plain measure back to its row cell', () => {
+    expect(renderChart(parseChart('| C |'))).toBe('| C |')
+  })
+
+  it('prints one cell per measure, all chords in the cell', () => {
+    expect(renderChart(parseChart('| C G | Am |'))).toBe('| C G | Am |')
+  })
+
+  it('prints each labelled section under its bracketed header', () => {
+    expect(renderChart(parseChart('[Verse]\n| C |\n[Chorus]\n| G |'))).toBe(
+      '[Verse]\n| C |\n[Chorus]\n| G |'
+    )
+  })
+
+  it('wraps a section into rows of barsPerRow measures', () => {
+    expect(renderChart(parseChart('| C | Am | F |'), 2)).toBe(
+      '| C | Am |\n| F |'
+    )
+  })
+
+  it('prints head directives before the grid, one per line', () => {
+    expect(renderChart(parseChart('{key: C}\n{tempo: 120}\n| C |'))).toBe(
+      '{key: C}\n{tempo: 120}\n| C |'
+    )
+  })
+
+  it('prints repeat bars back around the repeated span', () => {
+    expect(renderChart(parseChart('|: C | G :|'))).toBe('|: C | G :|')
+  })
+
+  it('prints a counted repeat as an xN cell on the closing row', () => {
+    expect(renderChart(parseChart('|: C | G :| x3 |'))).toBe('|: C | G :| x3 |')
+  })
+
+  it('prints volta brackets with their ending numbers', () => {
+    expect(renderChart(parseChart('|: C |1. G :|2. Am |'))).toBe(
+      '|: C |1. G :|2. Am |'
+    )
+  })
+
+  it('prints a fermata as an @ suffix on the measure’s last chord', () => {
+    expect(renderChart(parseChart('| C G@ |'))).toBe('| C G@ |')
+  })
+
+  it('prints form marks at their written measure position', () => {
+    const source = '| C | G |\n{fine}\n| Am | F |\n{d.c.}'
+    expect(renderChart(parseChart(source))).toBe(source)
+  })
+
+  it('prints a {time} change between rows at its written measure', () => {
+    const source = '| C | Am |\n{time: 2/4}\n| F |'
+    expect(renderChart(parseChart(source))).toBe(source)
+  })
+
+  it('breaks the row where a volta group ends unclosed', () => {
+    // On one line, parseRow would carry ending 1 onto the Am — a volta only
+    // closes at a :| bar or a line break, so the printer must break the line.
+    const source = '|1. G |\n| Am |'
+    expect(renderChart(parseChart(source))).toBe(source)
+  })
+
+  it('property — parse ∘ render is the identity on the chart model', () => {
+    // The arbitrary spans the grammar the parser can REACH: measures hold at
+    // least one chord (a chordless cell is dropped by parseRow), a repeat
+    // count rides a bare :| only (parseRow refuses it after a volta's), and
+    // only the first section may go unlabelled (only a header opens a new
+    // section). Everything else — repeats, voltas, fermatas, marks, meter
+    // changes, directives — round-trips at every row width.
+    const chord = fc
+      .constantFrom('C', 'Am', 'F#m7b5', 'Bb/D', 'Cmaj7/E', 'N.C.', 'G7')
+      .map((symbol) => parseChordSymbol(symbol))
+    const measure = fc
+      .record({
+        chords: fc.array(chord, { minLength: 1, maxLength: 3 }),
+        repeatStart: fc.boolean(),
+        repeatEnd: fc.boolean(),
+        volta: fc.option(fc.integer({ min: 1, max: 3 }), { nil: undefined }),
+        counted: fc.boolean(),
+        count: fc.integer({ min: 2, max: 4 }),
+        fermata: fc.boolean()
+      })
+      .map((draft) => ({
+        chords: draft.chords,
+        ...(draft.repeatStart && { repeatStart: true as const }),
+        ...(draft.repeatEnd && { repeatEnd: true as const }),
+        ...(draft.volta !== undefined && { volta: draft.volta }),
+        ...(draft.repeatEnd &&
+          draft.volta === undefined &&
+          draft.counted && { repeatCount: draft.count }),
+        ...(draft.fermata && { fermata: true as const })
+      }))
+    const sections = fc
+      .tuple(
+        fc.record({
+          label: fc.option(fc.constantFrom('A', 'Verse', 'Chorus 2'), {
+            nil: undefined
+          }),
+          measures: fc.array(measure, { minLength: 1, maxLength: 10 })
+        }),
+        fc.array(
+          fc.record({
+            label: fc.constantFrom('B', 'Bridge', 'Coda 2'),
+            measures: fc.array(measure, { maxLength: 6 })
+          }),
+          { maxLength: 2 }
+        )
+      )
+      .map(([first, rest]) => [
+        {
+          ...(first.label !== undefined && { label: first.label }),
+          measures: first.measures
+        },
+        ...rest
+      ])
+    const chart = sections.chain((parts) => {
+      const total = parts.reduce((sum, part) => sum + part.measures.length, 0)
+      const position = fc.option(fc.integer({ min: 0, max: total }), {
+        nil: undefined
+      })
+      return fc
+        .record({
+          sections: fc.constant(parts),
+          directives: fc.dictionary(
+            fc.constantFrom('key', 'tempo', 'title'),
+            fc.constantFrom('C', '120', 'Blue Bossa'),
+            { maxKeys: 3 }
+          ),
+          dc: position,
+          coda: position,
+          fine: position,
+          meterChanges: fc.array(
+            fc.record({
+              measure: fc.integer({ min: 1, max: Math.max(1, total) }),
+              signature: fc.constantFrom('2/4', '3/4', '4/4', '6/8')
+            }),
+            { maxLength: 2 }
+          )
+        })
+        .map(
+          ({ sections: built, directives, dc, coda, fine, meterChanges }) => {
+            const form = {
+              ...(dc !== undefined && { dc }),
+              ...(coda !== undefined && { coda }),
+              ...(fine !== undefined && { fine })
+            }
+            const changes = [...meterChanges].sort(
+              (a, b) => a.measure - b.measure
+            )
+            return {
+              sections: built,
+              directives,
+              ...(Object.keys(form).length > 0 && { form }),
+              ...(changes.length > 0 && { meterChanges: changes })
+            }
+          }
+        )
+    })
+    fc.assert(
+      fc.property(chart, fc.integer({ min: 1, max: 6 }), (model, width) => {
+        expect(parseChart(renderChart(model, width))).toEqual(model)
+      })
+    )
   })
 })
