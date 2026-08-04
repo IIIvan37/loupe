@@ -1,4 +1,5 @@
 import { type Project, ProjectError } from '@app/core'
+import { projectStoreContract } from '@app/core/testing'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   createHttpProjectAudioStore,
@@ -66,6 +67,17 @@ describe('createHttpProjectStore', () => {
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe(`${BASE}/projects/p1`)
     expect(fetchMock.mock.calls[0]?.[1]?.method).toBe('DELETE')
+  })
+
+  it('treats a 404 on delete as the promised no-op', async () => {
+    // The port promises « deleting an unknown id is a no-op ». The local Rust
+    // server happens to answer an idempotent 2xx, but the adapter must honour
+    // the obligation itself — a server variant answering 404 is still a no-op.
+    stubFetch(new Response(null, { status: 404 }))
+
+    await expect(
+      createHttpProjectStore(BASE).delete('never-saved')
+    ).resolves.toBeUndefined()
   })
 
   it('throws the typed « server » error on a failing response', async () => {
@@ -138,6 +150,48 @@ describe('createHttpProjectStore', () => {
     expect((failure as ProjectError).code).toBe('unreadable')
     expect((failure as ProjectError).message).toMatch(/unreadable/i)
   })
+})
+
+/**
+ * A minimal in-memory server honouring the manifest wire protocol
+ * (`GET/PUT/DELETE /projects…`, delete idempotent like the Rust store), so the
+ * port contract replays against the REAL adapter — the substitutability proof
+ * ADR 0002 promises for every implementation, silently lost when the fs
+ * adapter died in the Tauri pivot.
+ */
+function stubProjectServer(): void {
+  const manifests = new Map<string, string>()
+  const serve: typeof fetch = async (input, init) => {
+    const path = String(input).slice(BASE.length)
+    const method = init?.method ?? 'GET'
+    if (path === '/projects') {
+      return Response.json(
+        [...manifests.values()].map((body): unknown => JSON.parse(body))
+      )
+    }
+    const id = decodeURIComponent(path.replace('/projects/', ''))
+    if (method === 'PUT') {
+      manifests.set(id, String(init?.body))
+      return new Response(null, { status: 204 })
+    }
+    if (method === 'DELETE') {
+      manifests.delete(id)
+      return new Response(null, { status: 204 })
+    }
+    const body = manifests.get(id)
+    return body === undefined
+      ? new Response(null, { status: 404 })
+      : new Response(body, {
+          status: 200,
+          headers: { 'content-type': 'application/json' }
+        })
+  }
+  vi.stubGlobal('fetch', vi.fn(serve))
+}
+
+projectStoreContract('createHttpProjectStore over the wire protocol', () => {
+  stubProjectServer()
+  return { store: createHttpProjectStore(BASE) }
 })
 
 describe('createHttpProjectAudioStore', () => {
