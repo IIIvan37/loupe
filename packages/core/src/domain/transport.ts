@@ -17,7 +17,6 @@ export type TransportAction =
   | { readonly type: 'load'; readonly durationSeconds: number }
   | { readonly type: 'play' }
   | { readonly type: 'pause' }
-  | { readonly type: 'toggle' }
   | { readonly type: 'seek'; readonly toSeconds: number }
 
 export const initialTransport: TransportState = {
@@ -52,8 +51,6 @@ export function transportReducer(
       return { ...state, isPlaying: true }
     case 'pause':
       return { ...state, isPlaying: false }
-    case 'toggle':
-      return { ...state, isPlaying: !state.isPlaying }
     case 'seek':
       return {
         ...state,

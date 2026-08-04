@@ -13,7 +13,11 @@
 //   - shared/ scopes shared/ (mutants there are killed by any covering test,
 //     wherever it lives — perTest coverage analysis finds them);
 //   - index.ts and testing/ are never mutated (stryker.config.json);
-//   - no core change at all → nothing to mutate, exit 0.
+//   - a changed web hook (web/src/**/use-*.ts[x]) is mutated FILE BY FILE —
+//     the general altitude detector (revue SOLID, lot 4): a surviving mutant
+//     in a hook is exactly the signal « policy untested in values », and the
+//     full CI run does not cover web at all;
+//   - nothing touched → nothing to mutate, exit 0.
 
 import { spawnSync } from 'node:child_process'
 
@@ -47,8 +51,20 @@ const changed = [
   ...gitLines(['ls-files', '--others', '--exclude-standard'])
 ]
 
+const WEB_PREFIX = 'packages/web/src/'
+const WEB_HOOK = /\/use-[\w-]+\.tsx?$/
+
 const scopes = new Set<string>()
+const webHooks = new Set<string>()
 for (const file of changed) {
+  if (
+    file.startsWith(WEB_PREFIX) &&
+    WEB_HOOK.test(file) &&
+    !file.includes('.spec.')
+  ) {
+    webHooks.add(file)
+    continue
+  }
   if (!file.startsWith(CORE_PREFIX) || !file.endsWith('.ts')) continue
   const segment = file.slice(CORE_PREFIX.length).split('/')[0] as string
   if (segment.endsWith('.ts')) continue // root files (index.ts, fitness specs)
@@ -60,21 +76,23 @@ for (const file of changed) {
   }
 }
 
-if (scopes.size === 0) {
+if (scopes.size === 0 && webHooks.size === 0) {
   console.log(
-    'mutation:diff — no core source touched, nothing to mutate ' +
-      '(the full CI post-merge run stays authoritative).'
+    'mutation:diff — no core source nor web hook touched, nothing to ' +
+      'mutate (the full CI post-merge run stays authoritative).'
   )
   process.exit(0)
 }
 
 const globs = [
   ...sorted(scopes).map((scope) => `${CORE_PREFIX}${scope}/**/*.ts`),
+  ...sorted(webHooks),
   `!${CORE_PREFIX}**/*.spec.ts`,
   `!${CORE_PREFIX}**/testing/**`
 ]
 
-console.log(`mutation:diff — scopes: ${sorted(scopes).join(', ')}`)
+const scopeLabel = [...sorted(scopes), ...sorted(webHooks)].join(', ')
+console.log(`mutation:diff — scopes: ${scopeLabel}`)
 // --force: the incremental cache goes stale on survived mutants (see memory /
 // stryker-incremental-stale); a scoped fresh run is both faster and truthful.
 const run = spawnSync(

@@ -5,31 +5,24 @@ import {
   ProjectError,
   type SaveProjectInput
 } from '@app/core'
+import { createInMemoryProjectStore } from '@app/core/testing'
 import { act, renderHook } from '@testing-library/react'
 import { vi } from 'vitest'
 import { i18n } from '../i18n/i18n.ts'
 import { I18nTestingProvider } from '../i18n/i18n-testing-provider.tsx'
+import { sha256Hex } from './content-hash.ts'
 import { useProjects } from './use-projects.ts'
 
-/** In-memory fakes for both project ports, optionally pre-seeded. */
+/** In-memory fakes for both project ports, optionally pre-seeded: the
+ * contract-validated reference store, and content-addressed audio refs (the
+ * real stores' value domain) — never a hand-rolled double (revue SOLID n° 5). */
 function fakeStores(initial: readonly Project[] = []): ProjectDeps {
-  const manifests = new Map(initial.map((project) => [project.id, project]))
   const blobs = new Map<string, ArrayBuffer>()
-  let nextRef = 0
   return {
-    store: {
-      list: async () => [...manifests.values()],
-      load: async (id) => manifests.get(id),
-      save: async (project) => {
-        manifests.set(project.id, project)
-      },
-      delete: async (id) => {
-        manifests.delete(id)
-      }
-    },
+    store: createInMemoryProjectStore(initial),
     audio: {
       put: async (bytes) => {
-        const ref = `ref-${nextRef++}`
+        const ref = await sha256Hex(bytes)
         blobs.set(ref, bytes)
         return ref
       },
