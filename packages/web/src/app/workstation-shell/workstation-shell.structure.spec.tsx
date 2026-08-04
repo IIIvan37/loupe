@@ -297,12 +297,13 @@ describe('WorkstationShell chart → marker sync', () => {
       await screen.findByRole('button', { name: i18n._('chords.detect') })
     )
 
-    // The draft is headed by the DETECTED sections, key and meter head kept…
+    // The draft is headed by the DETECTED sections, key and meter head kept
+    // (the blank line after the head is renderChart's canonical air)…
     const verse = i18n._('structure.section.verse')
     const chorus = i18n._('structure.section.chorus')
     await waitFor(async () => {
       expect(await chartEditor(user)).toHaveValue(
-        '{key: Am}\n{time: 4/4}\n' +
+        '{key: Am}\n{time: 4/4}\n\n' +
           `[${verse}]\n| C | Am | F | G |\n\n[${chorus}]\n| C | Am | F | G |`
       )
     })

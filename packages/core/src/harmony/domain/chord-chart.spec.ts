@@ -9,6 +9,7 @@ import {
   parseFormRollout,
   renderChart,
   renderChartSource,
+  respellChart,
   respellChartSource,
   transposeChart,
   transposeChartSource,
@@ -389,6 +390,67 @@ describe('respellChartSource', () => {
 
   it('passes an unknown token through unchanged', () => {
     expect(respellChartSource('| N.C. | A# |', 'flat')).toBe('| N.C. | Bb |')
+  })
+})
+
+describe('respellChart', () => {
+  it('re-spells every root and slash bass, keeping the quality', () => {
+    expect(
+      respellChart(
+        {
+          sections: [
+            {
+              measures: [
+                { chords: [parseChordSymbol('A#m7')] },
+                { chords: [parseChordSymbol('Cmaj7/G#')] }
+              ]
+            }
+          ],
+          directives: {}
+        },
+        'flat'
+      )
+    ).toEqual({
+      sections: [
+        {
+          measures: [
+            { chords: [parseChordSymbol('Bbm7')] },
+            { chords: [parseChordSymbol('Cmaj7/Ab')] }
+          ]
+        }
+      ],
+      directives: {}
+    })
+  })
+
+  it('keeps structure flags, form, meter changes and directives verbatim', () => {
+    // The respell moves SPELLINGS only: repeat/volta flags, the {form: Nx}
+    // directive and the {time:} changes are structure, not pitches.
+    const chart = {
+      sections: [
+        {
+          label: 'A',
+          measures: [
+            { chords: [parseChordSymbol('Db')], repeatStart: true as const },
+            { chords: [parseChordSymbol('N.C.')], repeatEnd: true as const }
+          ]
+        }
+      ],
+      directives: { form: '3x' },
+      meterChanges: [{ measure: 1, signature: '2/4' }]
+    }
+    expect(respellChart(chart, 'sharp')).toEqual({
+      ...chart,
+      sections: [
+        {
+          label: 'A',
+          measures: [
+            { chords: [parseChordSymbol('C#')], repeatStart: true },
+            { chords: [parseChordSymbol('N.C.')], repeatEnd: true }
+          ]
+        }
+      ]
+    })
   })
 })
 

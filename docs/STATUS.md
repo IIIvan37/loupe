@@ -17,12 +17,11 @@ consommateur. Jamais de hook à effet de montage, seul le seam
 `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
 **Backlog revue justesse (PR #357) SOLDÉ (PRs #359–#363)** ; chantier
-**Texte-comme-modèle** : PR-1 (chart-structure au modèle) livrée par la
-**PR #364**, PR-2 (form-encoder au modèle, mort de
-`withRepeatBars`/`segmentRows`) par la **PR #365**. Prochain : **PR-3
-tête de `detect-chords` au modèle** (dernier lot, mort probable de
-`timeLine`), puis **retour au labo starter** (« en tout dernier » du
-backlog revue). Candidat : module `playback/` (nursery). Restes : affordance UX du throttle redeem
+**Texte-comme-modèle SOLDÉ (PRs #364–#366)** — plus aucun émetteur
+n'assemble de texte, un seul `renderChart` imprime (draft detect-chords
+compris, mort de `timeLine`). Prochain : **retour au labo starter**
+(l'action « en tout dernier » du backlog revue, maintenant atteinte).
+Candidat de récolte : module `playback/` (nursery). Restes : affordance UX du throttle redeem
 (slice UI, checkpoint d'approche) ; garde-fous revue (spec actions
 câblées, mutation:diff sur hooks web) ; découvrabilité du click ; filtre
 Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
@@ -30,6 +29,7 @@ Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
+- 2026-08-04 · **Texte-comme-modèle (PRs #364–#366)** : les émetteurs structurés, le form-encoder puis la tête du draft detect-chords construisent un `ChordChart` (fold/volta/D.C. en flags, `{form: Nx}` et `{key}`/`{time}` en directives, respell au niveau modèle) — `renderChart` est le seul imprimeur ; morts : `withRepeatBars`, `segmentRows`, `timeLine`.
 - 2026-08-03 → 08-04 · **Repère→grille (PR #358) + revue justesse pr. 1–4 (PRs #359, #361, #362, #363)** : éditer un repère réécrit les headers `[Section]` ; l'unité de quota devient la session d'analyse (allowlist grants exécutable, leg CI supabase-sql) ; politiques trainer/transport/session rapatriées au core ; scalaires brandés (six unités, modulo-12 unique, cliquet nom↔type) ; `renderChart` inverse de `parseChart` (property `parse ∘ render = id`) + walk positionnel unique `scanChart`.
 - 2026-08-02 · **Releases v0.2.0 + v0.2.1** (#342–#344 tag `9964aa5`, #354–#356 tag `e98dadc`) : CI réparée (shellcheck windows, timeout mutation 120 min, score 93,10), fix « métronome muet » (gains gelés du mixer), version visible + notification de mise à jour ; releases vérifiées (bit exécutable, checksums, attestation, tap).
 - 2026-08-01 · **Roadmap excellence 8 + arrêt auto** (AR→AX #332→#340, #341) : premier contact, erreurs en français, blindage binaire, marque loupe/loop (wordmark, favicon), heartbeat 20 s + watchdog (grâce 180 s, `--no-auto-exit`).

@@ -238,8 +238,10 @@ describe('detectChords', () => {
       { detector: fakeDetector(spans) }
     )
     if (!result.ok) throw new Error('expected ok')
+    // The blank line opening the grid is renderChart's canonical air: a
+    // [Section] header is set off from the head directives above it.
     expect(grid(result.source)).toBe(
-      '[Couplet]\n| C | Am | F | G |\n\n[Refrain]\n| C | Am | F | G |'
+      '\n[Couplet]\n| C | Am | F | G |\n\n[Refrain]\n| C | Am | F | G |'
     )
     expect(result.source.startsWith('{key: ')).toBe(true)
   })
@@ -263,7 +265,7 @@ describe('detectChords', () => {
       { detector: fakeDetector(spans) }
     )
     if (!result.ok) throw new Error('expected ok')
-    expect(grid(result.source)).toBe('[Couplet]\n| C | G |')
+    expect(grid(result.source)).toBe('\n[Couplet]\n| C | G |')
   })
 
   it('deduces the structure when the known sections are empty', async () => {

@@ -1,26 +1,37 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
+import { renderChart } from '../../harmony/domain/chord-chart.ts'
 import {
   deduceStructure,
   playedLabels,
-  renderStructuredSource
+  structuredChart
 } from './chart-structure.ts'
-import { encodeChartSource } from './form-encoder.ts'
+import { encodeChart } from './form-encoder.ts'
+
+/** The encoded chart as printed text — every assertion pins the draft the
+    user sees, so the model goes through the one printer. A rollout prints as
+    its own `{form: Nx}` head line. */
+const encodeChartSource = (
+  labels: readonly (string | undefined)[],
+  meters: readonly (number | undefined)[] | undefined,
+  barsPerRow: number,
+  initialMeter?: number
+) => renderChart(encodeChart(labels, meters, initialMeter), barsPerRow)
 
 /** A 4-bar phrase and an 8-bar chorus shared by the calibration cases. */
 const PHRASE = ['C', 'Am', 'F', 'G']
 const CHORUS = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'G7']
 
-describe('encodeChartSource — calibration', () => {
+describe('encodeChart — calibration', () => {
   it('folds a pair into repeat bars, exactly as before', () => {
-    expect(encodeChartSource([...PHRASE, ...PHRASE], undefined, 4).source).toBe(
+    expect(encodeChartSource([...PHRASE, ...PHRASE], undefined, 4)).toBe(
       '|: C | Am | F | G :|'
     )
   })
 
   it('a run of three earns a pass count, not three copies', () => {
     const song = [...PHRASE, ...PHRASE, ...PHRASE]
-    expect(encodeChartSource(song, undefined, 4).source).toBe(
+    expect(encodeChartSource(song, undefined, 4)).toBe(
       '|: C | Am | F | G :| x3 |'
     )
   })
@@ -28,22 +39,21 @@ describe('encodeChartSource — calibration', () => {
   it('two passes differing at the end print as voltas', () => {
     const out = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'C', 'C']
     const song = [...CHORUS, ...out]
-    expect(encodeChartSource(song, undefined, 4).source).toBe(
+    expect(encodeChartSource(song, undefined, 4)).toBe(
       '|: C | Am | F | G |\n| Em | Am |1. Dm | G7 :|\n|2. C | C |'
     )
   })
 
-  it('three identical choruses become one cycle with a rollout', () => {
+  it('three identical choruses become one cycle under a {form: 3x} head', () => {
     const song = [...CHORUS, ...CHORUS, ...CHORUS]
-    expect(encodeChartSource(song, undefined, 4)).toEqual({
-      source: '| C | Am | F | G |\n| Em | Am | Dm | G7 |',
-      rollout: 3
-    })
+    expect(encodeChartSource(song, undefined, 4)).toBe(
+      '{form: 3x}\n| C | Am | F | G |\n| Em | Am | Dm | G7 |'
+    )
   })
 
   it('two choruses stay repeat bars — a rollout of two says less', () => {
     const song = [...CHORUS, ...CHORUS]
-    expect(encodeChartSource(song, undefined, 4).source).toBe(
+    expect(encodeChartSource(song, undefined, 4)).toBe(
       '|: C | Am | F | G |\n| Em | Am | Dm | G7 :|'
     )
   })
@@ -51,19 +61,17 @@ describe('encodeChartSource — calibration', () => {
   it('a chorus run plus an outro keeps the count inside the grid', () => {
     const outro = ['F', 'C', 'F', 'C']
     const song = [...CHORUS, ...CHORUS, ...CHORUS, ...outro]
-    expect(encodeChartSource(song, undefined, 4).source).toContain(':| x3')
+    expect(encodeChartSource(song, undefined, 4)).toContain(':| x3')
   })
 
   it('a non-returning meter change forbids any fold', () => {
     const meters = [4, 4, 4, 3, 4, 4, 4, 3]
     const song = [...PHRASE, ...PHRASE]
-    expect(encodeChartSource(song, meters, 4, 4).source.includes('|:')).toBe(
-      false
-    )
+    expect(encodeChartSource(song, meters, 4, 4).includes('|:')).toBe(false)
   })
 })
 
-describe('encodeChartSource — rollout and meters', () => {
+describe('encodeChart — rollout and meters', () => {
   const cycleWithShortBar = [
     '| C | Am | F | G |',
     '{time: 2/4}',
@@ -79,7 +87,7 @@ describe('encodeChartSource — rollout and meters', () => {
     const song = [...CHORUS, ...CHORUS, ...CHORUS]
     expect(
       encodeChartSource(song, [...meters, ...meters, ...meters], 4, 4)
-    ).toEqual({ source: cycleWithShortBar, rollout: 3 })
+    ).toBe(`{form: 3x}\n${cycleWithShortBar}`)
   })
 
   it('an unknown opening meter enters the cycle at the running one', () => {
@@ -89,7 +97,7 @@ describe('encodeChartSource — rollout and meters', () => {
     const song = [...CHORUS, ...CHORUS, ...CHORUS]
     expect(
       encodeChartSource(song, [...meters, ...meters, ...meters], 4, 4)
-    ).toEqual({ source: cycleWithShortBar, rollout: 3 })
+    ).toBe(`{form: 3x}\n${cycleWithShortBar}`)
   })
 
   it('a cycle whose meter does not return refuses the rollout', () => {
@@ -97,18 +105,18 @@ describe('encodeChartSource — rollout and meters', () => {
     // would re-time pass 2..N — the song must print flat instead.
     const meters = [4, 4, 4, 4, 4, 4, 3, 3]
     const song = [...CHORUS, ...CHORUS, ...CHORUS]
-    const encoded = encodeChartSource(
+    const source = encodeChartSource(
       song,
       [...meters, ...meters, ...meters],
       4,
       4
     )
-    expect(encoded.rollout).toBeUndefined()
-    expect(encoded.source.includes('|:')).toBe(false)
+    expect(source).not.toContain('{form:')
+    expect(source.includes('|:')).toBe(false)
   })
 })
 
-describe('encodeChartSource — voltas and meters', () => {
+describe('encodeChart — voltas and meters', () => {
   const VARIANT = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'E7']
   /** One 8-bar pass with a returning 3/4 bar — steady is false, so the
       volta bracket is off the table and folds must carry the form. */
@@ -126,7 +134,7 @@ describe('encodeChartSource — voltas and meters', () => {
   it('steady meters keep the volta bracket', () => {
     const out = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'C', 'C']
     const song = [...CHORUS, ...out]
-    expect(encodeChartSource(song, Array(16).fill(4), 4, 4).source).toBe(
+    expect(encodeChartSource(song, Array(16).fill(4), 4, 4)).toBe(
       '|: C | Am | F | G |\n| Em | Am |1. Dm | G7 :|\n|2. C | C |'
     )
   })
@@ -136,7 +144,7 @@ describe('encodeChartSource — voltas and meters', () => {
     // variant pass prints faithfully — its own bars, not the type vote.
     const song = [...CHORUS, ...CHORUS, ...VARIANT]
     const meters = [...CHANGING, ...CHANGING, ...CHANGING]
-    expect(encodeChartSource(song, meters, 4, 4).source).toBe(
+    expect(encodeChartSource(song, meters, 4, 4)).toBe(
       `[A]\n${foldedChorus('G7', ':|')}\n\n[A]\n${foldedChorus('E7', '|').replace('|:', '|')}`
     )
   })
@@ -149,7 +157,7 @@ describe('encodeChartSource — voltas and meters', () => {
     const meters = Array(16).fill(4)
     meters[3] = undefined
     meters[11] = undefined
-    expect(encodeChartSource(song, meters, 4, 4).source).toBe(
+    expect(encodeChartSource(song, meters, 4, 4)).toBe(
       '|: C | Am | F | G |\n| Em | Am |1. Dm | G7 :|\n|2. C | C |'
     )
   })
@@ -160,20 +168,20 @@ describe('encodeChartSource — voltas and meters', () => {
     // across the whole type would rewrite history.
     const song = [...CHORUS, ...CHORUS, ...VARIANT, ...VARIANT, ...VARIANT]
     const meters = Array.from({ length: 5 }, () => CHANGING).flat()
-    expect(encodeChartSource(song, meters, 4, 4).source).toBe(
+    expect(encodeChartSource(song, meters, 4, 4)).toBe(
       `[A]\n${foldedChorus('G7', ':|')}\n\n[A]\n${foldedChorus('E7', ':| x3 |')}`
     )
   })
 })
 
-describe('encodeChartSource — plan rendering', () => {
+describe('encodeChart — plan rendering', () => {
   it('a cost tie keeps plain writing over the volta bracket', () => {
     // Two 4-bar passes differing at the last bar: volta (3 body + 2 endings,
     // nav 3) and plain writing (8 bars, nav 0) cost the same — the
     // navigation tie-break keeps the plain rows, and the faithful print
     // keeps each pass's own ending.
     const song = ['C', 'Am', 'F', 'G', 'C', 'Am', 'F', 'E7']
-    expect(encodeChartSource(song, undefined, 4).source).toBe(
+    expect(encodeChartSource(song, undefined, 4)).toBe(
       '| C | Am | F | G |\n| C | Am | F | E7 |'
     )
   })
@@ -185,7 +193,7 @@ describe('encodeChartSource — plan rendering', () => {
     const b = bars('F').slice(0, 8)
     const song = [...a, ...a, ...b]
     const meters = [...Array(16).fill(4), ...Array(8).fill(3)]
-    expect(encodeChartSource(song, meters, 4, 4).source).toBe(
+    expect(encodeChartSource(song, meters, 4, 4)).toBe(
       [
         '[A]',
         '|: C0m0 | C1m1 | C2m2 | C3m3 |',
@@ -207,7 +215,7 @@ describe('encodeChartSource — plan rendering', () => {
     const b = bars('F').slice(0, 8)
     const song = [...a, ...a, ...b]
     const meters = [...Array(16).fill(4), ...Array(8).fill(3)]
-    const { source } = encodeChartSource(song, meters, 4)
+    const source = encodeChartSource(song, meters, 4)
     expect(source.startsWith('[A]\n|: C0m0')).toBe(true)
     expect(source).toContain('{time: 3/4}\n[B]')
   })
@@ -244,10 +252,9 @@ describe('encodeChartSource — plan rendering', () => {
       'G',
       'Em'
     ]
-    const { source, rollout } = encodeChartSource(labels, undefined, 2)
-    const full =
-      rollout === undefined ? source : `{form: ${rollout}x}\n${source}`
-    expect(playedLabels(full)).toEqual(labels)
+    expect(playedLabels(encodeChartSource(labels, undefined, 2))).toEqual(
+      labels
+    )
   })
 
   it('a non-returning section restates its meter across written copies', () => {
@@ -265,7 +272,7 @@ describe('encodeChartSource — plan rendering', () => {
       '{time: 3/4}',
       '| Dm | G7 |'
     ]
-    expect(encodeChartSource(song, meters, 4, 4).source).toBe(
+    expect(encodeChartSource(song, meters, 4, 4)).toBe(
       [
         '[A]',
         '| X0m0 | X1m1 | X2m2 | X3m3 |',
@@ -293,7 +300,7 @@ const barsRows = (seed: string) =>
     `| ${seed}4m12 | ${seed}5m13 | ${seed}6m14 | ${seed}7m15 |`
   ].join('\n')
 
-describe('encodeChartSource — da capo', () => {
+describe('encodeChart — da capo', () => {
   const a = bars('C')
   const b = bars('F')
 
@@ -302,7 +309,7 @@ describe('encodeChartSource — da capo', () => {
     // printed above the header the boundary opens, like any boundary mark —
     // headers appear on every block, and the D.C. is the closing line.
     const song = [...a, ...b, ...a]
-    expect(encodeChartSource(song, undefined, 4).source).toBe(
+    expect(encodeChartSource(song, undefined, 4)).toBe(
       `[A]\n${barsRows('C')}\n\n{fine}\n[B]\n${barsRows('F')}\n{d.c.}`
     )
   })
@@ -311,7 +318,7 @@ describe('encodeChartSource — da capo', () => {
     // replayed === dcAt: the whole written form replays, so no fine is
     // printed (a fine after the last block would be the plain end).
     const song = [...a, ...b, ...a, ...b]
-    const { source } = encodeChartSource(song, undefined, 4)
+    const source = encodeChartSource(song, undefined, 4)
     expect(source).toBe(
       `[A]\n${barsRows('C')}\n\n[B]\n${barsRows('F')}\n{d.c.}`
     )
@@ -322,7 +329,7 @@ describe('encodeChartSource — da capo', () => {
     // ABCABC: the replay check must compare position i with i (a reversed
     // walk would match [1] against [1] and accept the wrong alignment).
     const song = [...a, ...b, ...bars('G'), ...a, ...b, ...bars('G')]
-    const { source } = encodeChartSource(song, undefined, 4)
+    const source = encodeChartSource(song, undefined, 4)
     expect(source).toContain('{d.c.}')
     expect(playedLabels(source)).toEqual(song)
   })
@@ -331,7 +338,7 @@ describe('encodeChartSource — da capo', () => {
     // a b a a a a: folding the four As (|: :| x4) beats replaying via D.C. —
     // and the run scan must stop at the range edge either way.
     const song = [...a, ...b, ...a, ...a, ...a, ...a]
-    const { source } = encodeChartSource(song, undefined, 4)
+    const source = encodeChartSource(song, undefined, 4)
     expect(source).toContain(':| x4')
     expect(playedLabels(source)).toEqual(song)
   })
@@ -345,15 +352,14 @@ describe('encodeChartSource — da capo', () => {
     const noisy = [...a]
     noisy[5] = 'Zz'
     const song = [...a, ...b, ...noisy, ...b, ...a]
-    const { source } = encodeChartSource(song, undefined, 4)
-    expect(playedLabels(source)).toEqual(song)
+    expect(playedLabels(encodeChartSource(song, undefined, 4))).toEqual(song)
   })
 
   it('a one-bar pair stays plain (AI.2)', () => {
     // Too short for any tiling: the song is unstructured and must take the
     // flat fallback verbatim. (The DP cost/tie-break pins live in the
     // 'plan rendering' describe — this song never reaches the planner.)
-    expect(encodeChartSource(['C', 'C'], undefined, 4).source).toBe('| C | C |')
+    expect(encodeChartSource(['C', 'C'], undefined, 4)).toBe('| C | C |')
   })
 
   it('plans each range on its own — distinct sections never share a memo entry (AI.2)', () => {
@@ -368,21 +374,18 @@ describe('encodeChartSource — da capo', () => {
       ...bars('F'),
       ...bars('G')
     ]
-    const { source } = encodeChartSource(song, undefined, 4)
-    expect(playedLabels(source)).toEqual(song)
+    expect(playedLabels(encodeChartSource(song, undefined, 4))).toEqual(song)
   })
 
   it('a D.C. that would only save a few bars never wins', () => {
     const shortA = ['C', 'Am', 'F', 'G', 'Em', 'Am', 'Dm', 'G7']
     const shortB = ['F', 'G', 'Em', 'Am', 'Dm', 'G7', 'C', 'C']
     const song = [...shortA, ...shortB, ...shortA]
-    expect(
-      encodeChartSource(song, undefined, 4).source.includes('{d.c.}')
-    ).toBe(false)
+    expect(encodeChartSource(song, undefined, 4).includes('{d.c.}')).toBe(false)
   })
 })
 
-describe('encodeChartSource — unroll oracle', () => {
+describe('encodeChart — unroll oracle', () => {
   const chord = fc.constantFrom('C', 'Dm', 'Em', 'F', 'G', 'Am', 'Bb', 'E7')
   // Intro, outro and the variant ending draw from alphabets DISJOINT from
   // the section's: the oracle pins exact playback of genuine structure.
@@ -416,10 +419,8 @@ describe('encodeChartSource — unroll oracle', () => {
   it('property — the rendered grid plays back exactly what was detected', () => {
     fc.assert(
       fc.property(song, fc.integer({ min: 2, max: 8 }), (labels, width) => {
-        const { source, rollout } = encodeChartSource(labels, undefined, width)
-        const full =
-          rollout === undefined ? source : `{form: ${rollout}x}\n${source}`
-        return JSON.stringify(playedLabels(full)) === JSON.stringify(labels)
+        const source = encodeChartSource(labels, undefined, width)
+        return JSON.stringify(playedLabels(source)) === JSON.stringify(labels)
       }),
       { numRuns: 300 }
     )
@@ -428,27 +429,16 @@ describe('encodeChartSource — unroll oracle', () => {
   it('property — re-encoding its own playback is stable', () => {
     fc.assert(
       fc.property(song, (labels) => {
-        const first = encodeChartSource(labels, undefined, 4)
-        const firstFull =
-          first.rollout === undefined
-            ? first.source
-            : `{form: ${first.rollout}x}\n${first.source}`
-        const replayed = playedLabels(firstFull)
-        const second = encodeChartSource(replayed, undefined, 4)
-        const secondFull =
-          second.rollout === undefined
-            ? second.source
-            : `{form: ${second.rollout}x}\n${second.source}`
-        return (
-          JSON.stringify(playedLabels(secondFull)) === JSON.stringify(replayed)
-        )
+        const replayed = playedLabels(encodeChartSource(labels, undefined, 4))
+        const second = playedLabels(encodeChartSource(replayed, undefined, 4))
+        return JSON.stringify(second) === JSON.stringify(replayed)
       }),
       { numRuns: 150 }
     )
   })
 })
 
-describe('encodeChartSource — noise', () => {
+describe('encodeChart — noise', () => {
   const chord = fc.constantFrom('C', 'Dm', 'Em', 'F', 'G', 'Am')
 
   it('property — a mis-detected bar never changes the played measure count', () => {
@@ -464,29 +454,27 @@ describe('encodeChartSource — noise', () => {
       fc.property(cleanSong, fc.nat(), chord, (labels, position, wrong) => {
         const noisy = [...labels]
         noisy[position % noisy.length] = wrong
-        const { source, rollout } = encodeChartSource(noisy, undefined, 4)
-        const full =
-          rollout === undefined ? source : `{form: ${rollout}x}\n${source}`
-        return playedLabels(full).length === noisy.length
+        const source = encodeChartSource(noisy, undefined, 4)
+        return playedLabels(source).length === noisy.length
       }),
       { numRuns: 200 }
     )
   })
 })
 
-describe('encodeChartSource — fallback', () => {
+describe('encodeChart — fallback', () => {
   it('an unstructured song renders byte-identical to the flat render', () => {
     const labels = Array.from({ length: 14 }, (_, index) => `X${index}`)
-    expect(encodeChartSource(labels, undefined, 4).source).toBe(
-      renderStructuredSource(deduceStructure(labels), 4)
+    expect(encodeChartSource(labels, undefined, 4)).toBe(
+      renderChart(structuredChart(deduceStructure(labels)), 4)
     )
   })
 
   it('the fallback keeps its meter marks byte-identical too', () => {
     const labels = Array.from({ length: 10 }, (_, index) => `X${index}`)
     const meters = [4, 4, 4, 2, 4, 4, 4, 4, 4, 4]
-    expect(encodeChartSource(labels, meters, 4, 4).source).toBe(
-      renderStructuredSource(deduceStructure(labels, meters), 4, 4)
+    expect(encodeChartSource(labels, meters, 4, 4)).toBe(
+      renderChart(structuredChart(deduceStructure(labels, meters), 4), 4)
     )
   })
 })

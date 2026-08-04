@@ -2,6 +2,7 @@ import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import {
   parseChart,
+  renderChart,
   renderChartSource,
   unrollChart
 } from '../../harmony/domain/chord-chart.ts'
@@ -12,13 +13,24 @@ import { meteredGrid } from '../../rhythm/testing/metered-grid-fixture.ts'
 import {
   chartMeters,
   chartSectionAnchors,
+  type DeducedSection,
   deduceInstances,
   deduceStructure,
   measureSeekTime,
   relabelChartBySections,
-  renderStructuredSource
+  structuredChart
 } from './chart-structure.ts'
 import type { DetectedSection } from './song-structure.ts'
+
+/** The structured chart as printed text — every assertion here pins the
+    rendered draft, so the model goes through the one printer. */
+const renderStructuredSource = (
+  sections: readonly DeducedSection[],
+  barsPerRow: number,
+  initialMeter?: number,
+  headLoneRun = false
+) =>
+  renderChart(structuredChart(sections, initialMeter, headLoneRun), barsPerRow)
 
 /** A 4/4 grid: `bars` downbeats `barSeconds` apart, three off-beats each. */
 function grid(bars: number, barSeconds: number): BeatGrid {
