@@ -416,13 +416,13 @@ export function renderChart(chart: ChordChart, barsPerRow = 4): string {
   }
   let written = 0
   for (const section of chart.sections) {
+    // Canonical air: a blank line sets a header off from what precedes it
+    // (parseChart skips blank lines — the round-trip is untouched). It goes
+    // BEFORE the marks due here: a change at the boundary belongs to the
+    // section it opens, like a printed lead.
+    if (section.label !== undefined && lines.length > 0) lines.push('')
     flushMarks(lines, marks, written)
-    if (section.label !== undefined) {
-      // Canonical air: a blank line sets a header off from what precedes it
-      // (parseChart skips blank lines — the round-trip is untouched).
-      if (lines.length > 0) lines.push('')
-      lines.push(`[${section.label}]`)
-    }
+    if (section.label !== undefined) lines.push(`[${section.label}]`)
     let index = 0
     while (index < section.measures.length) {
       flushMarks(lines, marks, written)

@@ -1270,6 +1270,13 @@ describe('renderChart', () => {
     expect(renderChart(parseChart(source))).toBe(source)
   })
 
+  it('a mark at a section boundary attaches to the section header', () => {
+    // The blank line goes BEFORE the {time} line: a signature change at a
+    // boundary belongs to the section it opens, like a printed lead.
+    const source = '| C |\n\n{time: 3/4}\n[B]\n| G |'
+    expect(renderChart(parseChart(source))).toBe(source)
+  })
+
   it('breaks at the nearest pending mark, not the last declared', () => {
     // dc sits before coda in the mark table: the row must still break at the
     // d.c. (measure 1) first, never run through to the coda (measure 3).
