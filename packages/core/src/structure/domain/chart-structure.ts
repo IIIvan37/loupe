@@ -1,8 +1,10 @@
 import {
   isPrintableToken,
+  type Measure,
+  type MeterChange,
+  measureOfLabel,
   parseChart,
   renderChart,
-  renderChartSource,
   unrollChart
 } from '../../harmony/domain/chord-chart.ts'
 import { formatChordSymbol } from '../../harmony/domain/chord-symbol.ts'
@@ -30,12 +32,17 @@ export interface DeducedSection {
 type MeasureLabels = readonly (string | undefined)[]
 type Meters = readonly (number | undefined)[]
 
-/** A signature-change line: the standard `{time: N/M}` notation. The grid's
-    beats are the ♩ pulse, so the denominator is always a quarter. The ONE
-    place the notation is spelled — the draft head (detectChords) and the
-    in-grid marks print through it, so the two can never drift. */
+/** A signature value from a beat count: the grid's beats are the ♩ pulse, so
+    the denominator is always a quarter. The ONE place the notation is
+    spelled — the draft head (detectChords), the in-grid marks and the model's
+    `MeterChange`s all print through it, so they can never drift. */
+export function timeSignature(meter: number): string {
+  return `${meter}/4`
+}
+
+/** A full signature-change line — the standard `{time: N/M}` notation. */
 export function timeLine(meter: number): string {
-  return `{time: ${meter}/4}`
+  return `{time: ${timeSignature(meter)}}`
 }
 
 /**
@@ -165,53 +172,142 @@ export function renderStructuredSource(
   headLoneRun = false
 ): string {
   const runs = groupRuns(sections)
+  const headed = runs.length > 1 || headLoneRun
+  const chartSections: { label?: string; measures: readonly Measure[] }[] = []
+  const meterChanges: MeterChange[] = []
   let running = initialMeter
-  return runs
-    .map((run) => {
-      const { measures, meters } = run.section
-      // A change on the section's FIRST measure prints before the block (and
-      // its header) — like a signature change at a section boundary — so a
-      // repeat-folded block still starts on a bar line for the `|:` splice.
-      const opening = meters?.[0]
-      const lead =
-        opening !== undefined && running !== undefined && opening !== running
-          ? opening
-          : undefined
-      if (lead !== undefined) running = lead
-      // Every copy walks segmentRows so a section ending off its opening
-      // meter re-states it on the next written copy (memoized per entry
-      // meter — identical copies render once). A pair folds into |: … :|
-      // ONLY when both passes read identically: repeat bars cannot re-state
-      // a meter, so a non-returning change forbids the fold.
-      const memo = new Map<number | undefined, ReturnType<typeof segmentRows>>()
-      const copies: string[] = []
-      for (let copy = 0; copy < run.count; copy += 1) {
-        let rendered = memo.get(running)
-        if (rendered === undefined) {
-          rendered = segmentRows(measures, meters, running, barsPerRow)
-          memo.set(running, rendered)
-        }
-        copies.push(rendered.text)
-        running = rendered.running
-      }
-      const body =
-        run.count === 2 && copies[0] === copies[1]
-          ? withRepeatBars(copies[0] as string)
-          : copies.join('\n')
-      const headed =
-        runs.length === 1 && !headLoneRun
-          ? body
-          : `[${run.section.label}]\n${body}`
-      return lead === undefined ? headed : `${timeLine(lead)}\n${headed}`
+  let written = 0
+  for (const run of runs) {
+    const block = runBlock(run, running, written)
+    chartSections.push({
+      ...(headed && { label: run.section.label }),
+      measures: block.measures
     })
-    .join('\n\n')
+    meterChanges.push(...block.changes)
+    running = block.running
+    written = block.written
+  }
+  return renderChart(
+    {
+      sections: chartSections,
+      directives: {},
+      ...(meterChanges.length > 0 && { meterChanges })
+    },
+    barsPerRow
+  )
+}
+
+/** One run's measures and `{time:}` changes (chart-global positions),
+    entering at `running` with `written` measures already printed. */
+function runBlock(
+  run: { readonly section: DeducedSection; readonly count: number },
+  runningMeter: number | undefined,
+  writtenBefore: number
+): {
+  readonly measures: readonly Measure[]
+  readonly changes: readonly MeterChange[]
+  readonly running: number | undefined
+  readonly written: number
+} {
+  const { measures: labels, meters } = run.section
+  const changes: MeterChange[] = []
+  let running = runningMeter
+  let written = writtenBefore
+  // A change on the section's FIRST measure prints before the block (and
+  // its header) — like a signature change at a section boundary — so a
+  // repeat-folded block still starts on a bar line for the `|:` splice.
+  const opening = meters?.[0]
+  if (opening !== undefined && running !== undefined && opening !== running) {
+    changes.push({ measure: written, signature: timeSignature(opening) })
+    running = opening
+  }
+  // A pair folds into |: … :| ONLY when both passes read identically:
+  // repeat bars cannot re-state a meter, so a non-returning change (the
+  // second pass would print a {time} the fold erases) forbids the fold.
+  const first = segmentMeasures(labels, meters, running)
+  const second = segmentMeasures(labels, meters, first.running)
+  const folds =
+    run.count === 2 &&
+    first.measures.length > 0 &&
+    sameChanges(first.changes, second.changes)
+  const measures: Measure[] = []
+  for (let copy = 0; copy < (folds ? 1 : run.count); copy += 1) {
+    const segment =
+      copy === 0 ? first : segmentMeasures(labels, meters, running)
+    measures.push(...segment.measures)
+    changes.push(
+      ...segment.changes.map((change) => ({
+        ...change,
+        measure: written + change.measure
+      }))
+    )
+    written += segment.measures.length
+    running = segment.running
+  }
+  if (folds) repeatFold(measures)
+  return { measures, changes, running, written }
+}
+
+/** Whether two passes imply the same printed `{time:}` lines. */
+function sameChanges(
+  first: readonly MeterChange[],
+  second: readonly MeterChange[]
+): boolean {
+  return (
+    first.length === second.length &&
+    first.every(
+      (change, index) =>
+        change.measure === second[index]?.measure &&
+        change.signature === second[index]?.signature
+    )
+  )
+}
+
+/** Mark a folded pass's measures as one `|: … :|` repeat, in place. */
+function repeatFold(measures: Measure[]): void {
+  measures[0] = { ...(measures[0] as Measure), repeatStart: true }
+  measures[measures.length - 1] = {
+    ...(measures.at(-1) as Measure),
+    repeatEnd: true
+  }
+}
+
+/**
+ * The model of one section pass: its measures and the `{time:}` changes their
+ * meters imply, entering at a running meter. An unknown meter inherits the
+ * running one; with no known running meter the first one seen is adopted
+ * silently (the head names it, not a change). Change positions are LOCAL to
+ * the pass — the caller offsets them into the whole chart.
+ */
+function segmentMeasures(
+  labels: MeasureLabels,
+  meters: Meters | undefined,
+  runningMeter: number | undefined
+): {
+  readonly measures: readonly Measure[]
+  readonly changes: readonly MeterChange[]
+  readonly running: number | undefined
+} {
+  const measures: Measure[] = []
+  const changes: MeterChange[] = []
+  let running = runningMeter
+  labels.forEach((label, index) => {
+    const meter = meters?.[index]
+    if (meter !== undefined && meter !== running) {
+      if (running !== undefined) {
+        changes.push({ measure: index, signature: timeSignature(meter) })
+      }
+      running = meter
+    }
+    measures.push(measureOfLabel(label))
+  })
+  return { measures, changes, running }
 }
 
 /**
  * Render a section's measures as rows, splitting at meter changes: each
  * maximal same-meter stretch prints as its own rows behind a `{time: N/4}`
- * line. An unknown meter inherits the running one; with no known running meter
- * the first one seen is adopted silently (the head names it, not a change).
+ * line — `segmentMeasures` printed through `renderChart`.
  */
 export function segmentRows(
   measures: MeasureLabels,
@@ -219,25 +315,16 @@ export function segmentRows(
   runningMeter: number | undefined,
   barsPerRow: number
 ): { readonly text: string; readonly running: number | undefined } {
-  const parts: string[] = []
-  let group: (string | undefined)[] = []
-  let running = runningMeter
-  measures.forEach((label, index) => {
-    const meter = meters?.[index]
-    if (meter !== undefined && meter !== running) {
-      if (group.length > 0) {
-        parts.push(renderChartSource(group, barsPerRow))
-        group = []
-      }
-      if (running !== undefined) parts.push(timeLine(meter))
-      running = meter
-    }
-    group.push(label)
-  })
-  if (group.length > 0) {
-    parts.push(renderChartSource(group, barsPerRow))
-  }
-  return { text: parts.join('\n'), running }
+  const segment = segmentMeasures(measures, meters, runningMeter)
+  const text = renderChart(
+    {
+      sections: [{ measures: [...segment.measures] }],
+      directives: {},
+      ...(segment.changes.length > 0 && { meterChanges: segment.changes })
+    },
+    barsPerRow
+  )
+  return { text, running: segment.running }
 }
 
 /**

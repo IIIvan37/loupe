@@ -257,6 +257,23 @@ describe('renderStructuredSource', () => {
     )
   })
 
+  it('a non-returning meter change forbids the pair fold', () => {
+    // The section enters in 4 and ends in 3: the second pass must re-state
+    // {time: 4/4}, which repeat bars have no room for — write both passes.
+    const phrase = { label: 'A', measures: ['C', 'G'], meters: [4, 3] }
+    expect(renderStructuredSource([phrase, phrase], 4, 4)).toBe(
+      '| C |\n{time: 3/4}\n| G |\n{time: 4/4}\n| C |\n{time: 3/4}\n| G |'
+    )
+  })
+
+  it('a section without meters never prints a lead {time} line', () => {
+    const a = { label: 'A', measures: ['C'] }
+    const b = { label: 'B', measures: ['G'] }
+    expect(renderStructuredSource([a, b], 4, 4)).toBe(
+      '[A]\n| C |\n\n[B]\n| G |'
+    )
+  })
+
   it('writes a run of three plays as plain copies', () => {
     const vamp = { label: 'A', measures: ['C', 'G'] }
     expect(renderStructuredSource([vamp, vamp, vamp], 2)).toBe(

@@ -341,19 +341,18 @@ const NO_CHORD = 'N.C.'
  * or a label that would not round-trip as the same cell (empty, irregular
  * spacing, a bar line, a structural token), prints as `N.C.` — anything else
  * would change the measure count under `parseChart` and shift every following
- * bar off its downbeat.
+ * bar off its downbeat. A projection of `renderChart` over `measureOfLabel`:
+ * chords print through the model, so a printable-but-unparseable spelling
+ * normalizes to what `parseChart` reads anyway (`C/E/G` prints `C/E`).
  */
 export function renderChartSource(
   labels: readonly (string | undefined)[],
   barsPerRow: number
 ): string {
-  const width = Math.max(1, Math.floor(barsPerRow) || 1)
-  const rows: string[] = []
-  for (let start = 0; start < labels.length; start += width) {
-    const cells = labels.slice(start, start + width)
-    rows.push(`| ${cells.map((label) => cellToken(label)).join(' | ')} |`)
-  }
-  return rows.join('\n')
+  return renderChart(
+    { sections: [{ measures: labels.map(measureOfLabel) }], directives: {} },
+    barsPerRow
+  )
 }
 
 /**
@@ -386,6 +385,19 @@ function cellToken(label: string | undefined): string {
 }
 
 /**
+ * One measure MODEL from a detected label — the cell grammar's model twin
+ * (same guard as `cellToken`): a printable label reads as its chords, any
+ * other label becomes the lead-sheet's own "no chord" so the measure count
+ * under `parseChart` never shifts.
+ */
+export function measureOfLabel(label: string | undefined): Measure {
+  const cell = cellToken(label)
+  return {
+    chords: (cell.match(TOKEN) ?? []).map((token) => parseChordSymbol(token))
+  }
+}
+
+/**
  * Print a chart MODEL as grid source text — the inverse of `parseChart`.
  * The contract is the round-trip: `parseChart(renderChart(chart))` yields
  * `chart` back, for any chart the grammar can express.
@@ -404,6 +416,11 @@ export function renderChart(chart: ChordChart, barsPerRow = 4): string {
   }
   let written = 0
   for (const section of chart.sections) {
+    // Canonical air: a blank line sets a header off from what precedes it
+    // (parseChart skips blank lines — the round-trip is untouched). It goes
+    // BEFORE the marks due here: a change at the boundary belongs to the
+    // section it opens, like a printed lead.
+    if (section.label !== undefined && lines.length > 0) lines.push('')
     flushMarks(lines, marks, written)
     if (section.label !== undefined) lines.push(`[${section.label}]`)
     let index = 0
