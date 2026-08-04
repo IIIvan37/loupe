@@ -386,6 +386,19 @@ function cellToken(label: string | undefined): string {
 }
 
 /**
+ * One measure MODEL from a detected label — the cell grammar's model twin
+ * (same guard as `cellToken`): a printable label reads as its chords, any
+ * other label becomes the lead-sheet's own "no chord" so the measure count
+ * under `parseChart` never shifts.
+ */
+export function measureOfLabel(label: string | undefined): Measure {
+  const cell = cellToken(label)
+  return {
+    chords: (cell.match(TOKEN) ?? []).map((token) => parseChordSymbol(token))
+  }
+}
+
+/**
  * Print a chart MODEL as grid source text — the inverse of `parseChart`.
  * The contract is the round-trip: `parseChart(renderChart(chart))` yields
  * `chart` back, for any chart the grammar can express.
@@ -405,7 +418,12 @@ export function renderChart(chart: ChordChart, barsPerRow = 4): string {
   let written = 0
   for (const section of chart.sections) {
     flushMarks(lines, marks, written)
-    if (section.label !== undefined) lines.push(`[${section.label}]`)
+    if (section.label !== undefined) {
+      // Canonical air: a blank line sets a header off from what precedes it
+      // (parseChart skips blank lines — the round-trip is untouched).
+      if (lines.length > 0) lines.push('')
+      lines.push(`[${section.label}]`)
+    }
     let index = 0
     while (index < section.measures.length) {
       flushMarks(lines, marks, written)

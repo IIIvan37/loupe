@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   chartDiagnostics,
   chartMatchesPitch,
+  measureOfLabel,
   measureSourceSpans,
   parseChart,
   parseFormRollout,
@@ -1169,6 +1170,30 @@ describe('transposeChart — key-aware respelling (AN.3)', () => {
   })
 })
 
+describe('measureOfLabel', () => {
+  it('reads a printable label as the measure’s chords', () => {
+    expect(measureOfLabel('C G')).toEqual({
+      chords: [
+        { root: 'C', quality: '' },
+        { root: 'G', quality: '' }
+      ]
+    })
+  })
+
+  it('falls back to one N.C. chord when the label cannot sit in a cell', () => {
+    // A bar line would change the measure count under parseChart.
+    expect(measureOfLabel('C|G')).toEqual({
+      chords: [parseChordSymbol('N.C.')]
+    })
+  })
+
+  it('a missing label is an N.C. measure', () => {
+    expect(measureOfLabel(undefined)).toEqual({
+      chords: [parseChordSymbol('N.C.')]
+    })
+  })
+})
+
 describe('renderChart', () => {
   it('prints a plain measure back to its row cell', () => {
     expect(renderChart(parseChart('| C |'))).toBe('| C |')
@@ -1178,9 +1203,11 @@ describe('renderChart', () => {
     expect(renderChart(parseChart('| C G | Am |'))).toBe('| C G | Am |')
   })
 
-  it('prints each labelled section under its bracketed header', () => {
+  it('prints each labelled section under its header, a blank line between sections', () => {
+    // The air is canonical print only — parseChart skips blank lines, so the
+    // round-trip contract is untouched; a header opening the render gets none.
     expect(renderChart(parseChart('[Verse]\n| C |\n[Chorus]\n| G |'))).toBe(
-      '[Verse]\n| C |\n[Chorus]\n| G |'
+      '[Verse]\n| C |\n\n[Chorus]\n| G |'
     )
   })
 
