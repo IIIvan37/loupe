@@ -1231,6 +1231,25 @@ describe('renderChart', () => {
     expect(renderChart(parseChart(source))).toBe(source)
   })
 
+  it('keeps the row together after a volta closes at its :|', () => {
+    // The :| already ended the bracket — the next bar is safely plain on the
+    // same line, so no break is due.
+    const source = '|1. A :| C |'
+    expect(renderChart(parseChart(source))).toBe(source)
+  })
+
+  it('a carried volta prints its number once — the bracket spans the row', () => {
+    const source = '|1. A | B :|'
+    expect(renderChart(parseChart(source))).toBe(source)
+  })
+
+  it('breaks at the nearest pending mark, not the last declared', () => {
+    // dc sits before coda in the mark table: the row must still break at the
+    // d.c. (measure 1) first, never run through to the coda (measure 3).
+    const source = '| C |\n{d.c.}\n| G | Am |\n{coda}\n| F |'
+    expect(renderChart(parseChart(source))).toBe(source)
+  })
+
   it('property — parse ∘ render is the identity on the chart model', () => {
     // The arbitrary spans the grammar the parser can REACH: measures hold at
     // least one chord (a chordless cell is dropped by parseRow), a repeat
