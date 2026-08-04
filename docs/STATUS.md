@@ -19,9 +19,9 @@ consommateur. Jamais de hook à effet de montage, seul le seam
 Chantiers revue justesse (PRs #359–#363) et texte-comme-modèle
 (PRs #364–#366) soldés (cf. Historique). **Revue SOLID (2026-08-04)** :
 6 confirmés / 14 réfutés (backlog = le rapport daté revue-solid) ;
-lots OCP (union transport, phases, exhaustivité) et LSP (contrat rejoué
-sur l'adaptateur HTTP, fakes convergés) livrés par PRs #367–#368 ; restent
-ISP (seams Mixer) et lot 4 outillage (§ du rapport revue-solid).
+les 6 constats sont soldés par PRs #367–#369 (union transport, phases,
+exhaustivité ; contrat rejoué sur HTTP, fakes convergés ; seams `Pick` du
+Mixer) ; reste le lot 4 outillage (§ du rapport revue-solid).
 Ensuite : retour au labo starter, récolte module `playback/`. Restes : affordance UX du throttle redeem
 (slice UI, checkpoint d'approche) ; découvrabilité du click ; filtre
 Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7

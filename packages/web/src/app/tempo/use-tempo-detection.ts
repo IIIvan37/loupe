@@ -5,8 +5,8 @@ import {
   isAnalysisOffloaded
 } from '../../auth/analysis-token.ts'
 import { useLatest } from '../../lib/use-latest.ts'
-import type { Mixer } from '../mixer/use-mixer.ts'
 import { DEFAULT_METRONOME_CHANNEL } from './metronome-stem.ts'
+import type { MetronomeMixer } from './use-metronome.ts'
 import { useMetronome } from './use-metronome.ts'
 import { useRunTempoDetection } from './use-run-tempo-detection.ts'
 import { useTapTempo } from './use-tap-tempo.ts'
@@ -61,7 +61,7 @@ export function useTempoDetection({
   /** The mix the click seats into — the shell stack's instance (the engine
    * seam, same idiom as `MetronomeDeps`); tempo and metronome are the
    * feature's own, derived here, not passed. */
-  readonly mixer: Mixer
+  readonly mixer: MetronomeMixer
   readonly loadedAudio: DecodedAudio | undefined
   /** A separation holds the mixer — `enable` would clobber its stems. */
   readonly separationOwnsMix: boolean

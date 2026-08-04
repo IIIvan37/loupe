@@ -11,13 +11,14 @@ import type { Mixer } from '../../mixer/use-mixer.ts'
 import { useSeparation } from '../../separation/use-separation.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../../tempo/metronome-stem.ts'
 import { tempoAnalysisAtom } from '../../tempo/tempo-atoms.ts'
-import { useMetronome } from '../../tempo/use-metronome.ts'
+import { type MetronomeMixer, useMetronome } from '../../tempo/use-metronome.ts'
 
 interface SeparateAndLoadDeps {
   /** The mix the stems (and click) land in — the shell stack's instance (the
    * engine seam, same idiom as `MetronomeDeps`); separation and metronome are
-   * the features' own, derived here, not passed. */
-  readonly mixer: Mixer
+   * the features' own, derived here, not passed. Only the adopting slice plus
+   * the metronome's seat come in — never the 12-member facade. */
+  readonly mixer: Pick<Mixer, 'load'> & MetronomeMixer
 }
 
 /**

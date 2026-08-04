@@ -3,9 +3,9 @@ import { useAtomValue } from 'jotai'
 import { useCallback } from 'react'
 import type { ChordDetection } from '../../lead-sheet/use-chord-detection.ts'
 import type { StructureDetection } from '../../markers/use-structure-detection.ts'
-import type { Mixer } from '../../mixer/use-mixer.ts'
 import { separationGateReasonAtom } from '../../separation/separation-atoms.ts'
 import { tempoGateReasonAtom } from '../../tempo/tempo-atoms.ts'
+import type { MetronomeMixer } from '../../tempo/use-metronome.ts'
 import { useRunTempoDetection } from '../../tempo/use-run-tempo-detection.ts'
 
 interface ResumeFlows {
@@ -17,7 +17,7 @@ interface ResumeFlows {
   readonly loadedAudio: DecodedAudio | undefined
   /** The mix a replayed detection seats its click into — the shell stack's
    * instance (the engine seam, same idiom as `MetronomeDeps`). */
-  readonly mixer: Mixer
+  readonly mixer: MetronomeMixer
   /** A separation holds the mixer — the replayed click must not clobber it. */
   readonly separationOwnsMix: boolean
 }

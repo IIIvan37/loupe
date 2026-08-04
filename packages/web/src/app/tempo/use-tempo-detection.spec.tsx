@@ -5,7 +5,7 @@ import { Provider, createStore } from 'jotai'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AudioSessionProvider } from '../audio-session/audio-session-provider.tsx'
-import type { Mixer } from '../mixer/use-mixer.ts'
+import type { MetronomeMixer } from './use-metronome.ts'
 import { DEFAULT_METRONOME_CHANNEL } from './metronome-stem.ts'
 import { tempoCancelledAtom } from './tempo-atoms.ts'
 import { useTempoDetection } from './use-tempo-detection.ts'
@@ -17,20 +17,13 @@ afterEach(() => vi.unstubAllEnvs())
 
 const AUDIO: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
-function fakeMixer(): Mixer {
+function fakeMixer(): MetronomeMixer {
   return {
-    channels: [],
     state: [],
-    load: vi.fn(),
     restore: vi.fn(),
     addStem: vi.fn(),
-    removeStem: vi.fn(),
     replaceStem: vi.fn(),
-    reset: vi.fn(),
-    setGain: vi.fn(),
-    toggleMute: vi.fn(),
-    toggleSolo: vi.fn(),
-    setFilter: vi.fn()
+    toggleMute: vi.fn()
   }
 }
 

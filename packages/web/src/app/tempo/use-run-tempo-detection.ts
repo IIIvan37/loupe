@@ -1,7 +1,7 @@
 import type { DecodedAudio } from '@app/core'
 import { useLatest } from '../../lib/use-latest.ts'
-import type { Mixer } from '../mixer/use-mixer.ts'
 import { DEFAULT_METRONOME_CHANNEL } from './metronome-stem.ts'
+import type { MetronomeMixer } from './use-metronome.ts'
 import { useMetronome } from './use-metronome.ts'
 import { useTempo } from './use-tempo.ts'
 
@@ -19,7 +19,7 @@ export function useRunTempoDetection({
 }: {
   /** The mix the click seats into — the shell stack's instance (the engine
    * seam, same idiom as `MetronomeDeps`). */
-  readonly mixer: Mixer
+  readonly mixer: MetronomeMixer
   /** A separation holds the mixer — `enable` would clobber its stems. */
   readonly separationOwnsMix: boolean
 }): (audio: DecodedAudio) => void {

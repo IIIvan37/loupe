@@ -32,7 +32,8 @@ export interface SessionRestoreDeps {
   readonly restoreTuning: CoreRestoreDeps['restoreTuning']
   readonly restoreChordChart: CoreRestoreDeps['restoreChordChart']
   readonly separation: Separation
-  readonly mixer: Mixer
+  /** The restore is the only mixer member this use-case drives. */
+  readonly mixer: Pick<Mixer, 'restore'>
   readonly tempo: Pick<
     Tempo,
     'analysis' | 'octaveShift' | 'manual' | 'detect' | 'set' | 'reset'
