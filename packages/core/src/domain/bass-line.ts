@@ -4,6 +4,7 @@ import {
   parseChordSymbol
 } from '../harmony/domain/chord-symbol.ts'
 import type { BeatGrid } from '../rhythm/domain/beat-grid.ts'
+import { pitchClass, pitchClassOfHz } from '../shared/units.ts'
 
 /** The bass register: below E1 the FFT bins blur, above ~middle C a "bass"
  * peak is more likely a harmonic than the played bass note. */
@@ -110,8 +111,7 @@ function dominantBassClass(
   if (bestMag <= 0 || bestMag < DOMINANCE * rivalMag) {
     return undefined
   }
-  const midi = Math.round(12 * Math.log2(bestHz / 440) + 69)
-  return ((midi % 12) + 12) % 12
+  return pitchClassOfHz(bestHz)
 }
 
 /** One window's read: its in-band peak (magnitude + interpolated Hz) and the
@@ -156,7 +156,7 @@ function classOfName(name: string): number {
   const base = SHARP_NAMES.indexOf(
     (name[0] ?? '') as (typeof SHARP_NAMES)[number]
   )
-  return name[1] === '#' ? (base + 1) % 12 : base
+  return name[1] === '#' ? pitchClass(base + 1) : base
 }
 
 /**

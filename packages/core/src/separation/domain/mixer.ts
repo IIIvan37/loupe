@@ -6,16 +6,18 @@
  * Audio, no DOM, just values in and values out.
  */
 
+import { type Decibels, decibels } from '../../shared/units.ts'
+
 /** Fader range in decibels: silence at the bottom, a little headroom on top. */
-export const MIN_GAIN_DB = -60
-export const MAX_GAIN_DB = 6
+export const MIN_GAIN_DB = decibels(-60)
+export const MAX_GAIN_DB = decibels(6)
 /** 0 dB — the stem plays at its separated level. */
-export const UNITY_GAIN_DB = 0
+export const UNITY_GAIN_DB = decibels(0)
 
 export interface MixerChannel {
   readonly id: string
-  /** Fader position in dB, clamped to [MIN_GAIN_DB, MAX_GAIN_DB]. */
-  readonly gainDb: number
+  /** Fader position, clamped to [MIN_GAIN_DB, MAX_GAIN_DB]. */
+  readonly gainDb: Decibels
   readonly muted: boolean
   readonly soloed: boolean
 }
@@ -60,7 +62,7 @@ export const emptyMixer: MixerState = []
 export const GAIN_DB_FINE_STEP = 0.5
 
 /** Confine a fader level to the supported dB range; `NaN` falls back to unity. */
-export function clampGainDb(db: number): number {
+export function clampGainDb(db: number): Decibels {
   if (Number.isNaN(db)) {
     return UNITY_GAIN_DB
   }
@@ -70,7 +72,7 @@ export function clampGainDb(db: number): number {
   if (db > MAX_GAIN_DB) {
     return MAX_GAIN_DB
   }
-  return db
+  return decibels(db)
 }
 
 /**
@@ -80,7 +82,7 @@ export function clampGainDb(db: number): number {
  * clean half-decibels. Mirrors `stepTempoPercent` — same grain for wheel and
  * Shift-arrow.
  */
-export function stepGainDb(gainDb: number, direction: -1 | 1): number {
+export function stepGainDb(gainDb: number, direction: -1 | 1): Decibels {
   const snapped = Math.round(gainDb / GAIN_DB_FINE_STEP) * GAIN_DB_FINE_STEP
   return clampGainDb(snapped + direction * GAIN_DB_FINE_STEP)
 }
@@ -90,7 +92,7 @@ export function stepGainDb(gainDb: number, direction: -1 | 1): number {
  * bottom of the fader is treated as true silence (exactly 0) rather than the
  * −60 dB residue, so a fader pulled all the way down is genuinely off.
  */
-export function dbToAmplitude(db: number): number {
+export function dbToAmplitude(db: Decibels): number {
   if (db <= MIN_GAIN_DB) {
     return 0
   }

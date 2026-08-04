@@ -1,3 +1,4 @@
+import { decibels } from '@app/core/testing'
 // @vitest-environment jsdom
 import type { CountIn, MixerState, TempoAnalysis } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
@@ -19,8 +20,8 @@ const analysis: TempoAnalysis = {
 
 /** The click lane audible (unmuted, no solo elsewhere). */
 const audibleMixer: MixerState = [
-  { id: 'piste', gainDb: 0, muted: false, soloed: false },
-  { id: METRONOME_ID, gainDb: 0, muted: false, soloed: false }
+  { id: 'piste', gainDb: decibels(0), muted: false, soloed: false },
+  { id: METRONOME_ID, gainDb: decibels(0), muted: false, soloed: false }
 ]
 
 interface FakePlayer extends CountInPlayer {

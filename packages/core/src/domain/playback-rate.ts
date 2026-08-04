@@ -1,3 +1,11 @@
+import {
+  type Percent,
+  percent,
+  type Ratio,
+  ratio,
+  ratioToPercent
+} from '../shared/units.ts'
+
 /**
  * Playback tempo as a ratio of the original speed (1 = normal). Independent of
  * pitch — the time-stretch engine changes duration without transposing. The
@@ -5,8 +13,8 @@
  * was too high for fine transcription work, and 25 % was judged too degraded
  * by ear (SoundTouch artefacts) — 40 % is the validated compromise.
  */
-export const MIN_PLAYBACK_RATE = 0.4
-export const MAX_PLAYBACK_RATE = 1.5
+export const MIN_PLAYBACK_RATE = ratio(0.4)
+export const MAX_PLAYBACK_RATE = ratio(1.5)
 
 /**
  * The same bounds in the tempo controls' grain — integer percent of the
@@ -14,13 +22,13 @@ export const MAX_PLAYBACK_RATE = 1.5
  * slider, the speed-trainer form and the ramp's own clamp, so the playable
  * range can never drift between them.
  */
-export const MIN_TEMPO_PERCENT = MIN_PLAYBACK_RATE * 100
-export const MAX_TEMPO_PERCENT = MAX_PLAYBACK_RATE * 100
+export const MIN_TEMPO_PERCENT = ratioToPercent(MIN_PLAYBACK_RATE)
+export const MAX_TEMPO_PERCENT = ratioToPercent(MAX_PLAYBACK_RATE)
 
 /** Confine a tempo ratio to the supported range; `NaN` falls back to normal. */
-export function clampPlaybackRate(rate: number): number {
+export function clampPlaybackRate(rate: number): Ratio {
   if (Number.isNaN(rate)) {
-    return 1
+    return ratio(1)
   }
   if (rate < MIN_PLAYBACK_RATE) {
     return MIN_PLAYBACK_RATE
@@ -28,7 +36,7 @@ export function clampPlaybackRate(rate: number): number {
   if (rate > MAX_PLAYBACK_RATE) {
     return MAX_PLAYBACK_RATE
   }
-  return rate
+  return ratio(rate)
 }
 
 /**
@@ -43,13 +51,13 @@ export const TEMPO_PERCENT_STEP = 5
  * lands on a whole percent. Shared by the pill's ± buttons and the `[`/`]`
  * shortcuts, so both move by exactly the same grain.
  */
-export function stepTempoPercent(percent: number, direction: -1 | 1): number {
-  const next = Math.round(percent) + direction * TEMPO_PERCENT_STEP
+export function stepTempoPercent(value: number, direction: -1 | 1): Percent {
+  const next = Math.round(value) + direction * TEMPO_PERCENT_STEP
   if (next < MIN_TEMPO_PERCENT) {
     return MIN_TEMPO_PERCENT
   }
   if (next > MAX_TEMPO_PERCENT) {
     return MAX_TEMPO_PERCENT
   }
-  return next
+  return percent(next)
 }

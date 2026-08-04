@@ -1,4 +1,5 @@
 import type { LoopRegion } from '../loops/domain/loop-region.ts'
+import { type Percent, percent, type Seconds } from '../shared/units.ts'
 import { MAX_TEMPO_PERCENT, MIN_TEMPO_PERCENT } from './playback-rate.ts'
 
 /**
@@ -11,26 +12,26 @@ import { MAX_TEMPO_PERCENT, MIN_TEMPO_PERCENT } from './playback-rate.ts'
  */
 
 export interface SpeedTrainerPolicy {
-  /** Tempo the practice starts at, in percent (100 = full speed). */
-  readonly startPercent: number
+  /** Tempo the practice starts at (100 = full speed). */
+  readonly startPercent: Percent
   /** How much the tempo climbs at each earned step, in percent points. */
-  readonly incrementPercent: number
+  readonly incrementPercent: Percent
   /** Completed loop passes required to earn one step. */
   readonly passesPerStep: number
-  /** The tempo the ramp climbs to, then holds, in percent. */
-  readonly targetPercent: number
+  /** The tempo the ramp climbs to, then holds. */
+  readonly targetPercent: Percent
 }
 
 export interface SpeedTrainerState {
   readonly policy: SpeedTrainerPolicy
   /** Passes recorded since the last earned step (or since the start). */
   readonly passesInStep: number
-  /** The tempo to practise at right now, in percent. */
-  readonly currentPercent: number
+  /** The tempo to practise at right now. */
+  readonly currentPercent: Percent
 }
 
 /** The smallest meaningful climb per step, in percent points. */
-const MIN_INCREMENT_PERCENT = 1
+const MIN_INCREMENT_PERCENT = percent(1)
 
 /**
  * Confine a tempo percent to the playable range; `NaN` → full speed. Clamped
@@ -38,11 +39,13 @@ const MIN_INCREMENT_PERCENT = 1
  * grain is not an identity in IEEE754 (55 → 55.00000000000001) and would leak
  * float junk into the read-out and the spoken announcement.
  */
-function clampTempoPercent(percent: number): number {
-  if (Number.isNaN(percent)) {
-    return 100
+function clampTempoPercent(value: number): Percent {
+  if (Number.isNaN(value)) {
+    return percent(100)
   }
-  return Math.min(Math.max(percent, MIN_TEMPO_PERCENT), MAX_TEMPO_PERCENT)
+  return percent(
+    Math.min(Math.max(value, MIN_TEMPO_PERCENT), MAX_TEMPO_PERCENT)
+  )
 }
 
 /**
@@ -56,17 +59,18 @@ function normalisePolicy(policy: SpeedTrainerPolicy): SpeedTrainerPolicy {
   const startPercent = clampTempoPercent(policy.startPercent)
   return {
     startPercent,
-    incrementPercent: Math.max(
-      Number.isNaN(policy.incrementPercent) ? 0 : policy.incrementPercent,
-      MIN_INCREMENT_PERCENT
+    incrementPercent: percent(
+      Math.max(
+        Number.isNaN(policy.incrementPercent) ? 0 : policy.incrementPercent,
+        MIN_INCREMENT_PERCENT
+      )
     ),
     passesPerStep: Math.max(
       Number.isNaN(policy.passesPerStep) ? 1 : Math.floor(policy.passesPerStep),
       1
     ),
-    targetPercent: Math.max(
-      clampTempoPercent(policy.targetPercent),
-      startPercent
+    targetPercent: percent(
+      Math.max(clampTempoPercent(policy.targetPercent), startPercent)
     )
   }
 }
@@ -86,9 +90,9 @@ export function startSpeedTrainer(
  * preview line — every field normalised exactly as `startSpeedTrainer` does,
  * so the preview can never promise a ramp different from the one that runs. */
 export interface SpeedTrainerPreview {
-  readonly startPercent: number
-  readonly targetPercent: number
-  readonly incrementPercent: number
+  readonly startPercent: Percent
+  readonly targetPercent: Percent
+  readonly incrementPercent: Percent
   readonly passesPerStep: number
   /** Distinct tempo levels the ramp visits, start..target inclusive (≥ 1). */
   readonly stepCount: number
@@ -134,9 +138,11 @@ export function recordLoopPass(state: SpeedTrainerState): SpeedTrainerState {
   return {
     ...state,
     passesInStep: 0,
-    currentPercent: Math.min(
-      state.currentPercent + policy.incrementPercent,
-      policy.targetPercent
+    currentPercent: percent(
+      Math.min(
+        state.currentPercent + policy.incrementPercent,
+        policy.targetPercent
+      )
     )
   }
 }
@@ -192,7 +198,7 @@ const PASS_OVERSHOOT_SECONDS = 0.5
  */
 export function completesLoopPass(
   region: LoopRegion,
-  positionSeconds: number
+  positionSeconds: Seconds
 ): boolean {
   const overshoot = positionSeconds - region.endSeconds
   return overshoot >= 0 && overshoot <= PASS_OVERSHOOT_SECONDS

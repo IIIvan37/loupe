@@ -321,6 +321,14 @@ export {
   MAX_FINE_TUNE_CENTS,
   MIN_FINE_TUNE_CENTS
 } from './shared/fine-tune.ts'
+export type { Percent, PitchClass, Ratio, Seconds } from './shared/units.ts'
+export {
+  percent,
+  percentToRatio,
+  ratio,
+  ratioToPercent,
+  seconds
+} from './shared/units.ts'
 export type {
   DetectStructureDeps,
   DetectStructureInput,

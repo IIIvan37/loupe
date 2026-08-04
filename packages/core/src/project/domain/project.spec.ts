@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { LoopLibrary } from '../../loops/domain/loop-library.ts'
 import type { MarkerList } from '../../markers/domain/marker-list.ts'
 import type { MixerState } from '../../separation/domain/mixer.ts'
+import { decibels } from '../../shared/units.ts'
 import {
   chartTransposedBy,
   mixerMatchesStems,
@@ -34,8 +35,8 @@ const separation: ProjectSeparation = {
     { id: 'drums', label: 'Drums', audioRef: 'audio/drums' }
   ],
   mixer: [
-    { id: 'voice', gainDb: 0, muted: false, soloed: false },
-    { id: 'drums', gainDb: -3, muted: true, soloed: false }
+    { id: 'voice', gainDb: decibels(0), muted: false, soloed: false },
+    { id: 'drums', gainDb: decibels(-3), muted: true, soloed: false }
   ] satisfies MixerState
 }
 
@@ -105,7 +106,12 @@ describe('projectFromSession', () => {
         { timeSeconds: 0, downbeat: true },
         { timeSeconds: 0.5, downbeat: false }
       ],
-      metronome: { id: 'metronome', gainDb: -6, muted: false, soloed: false }
+      metronome: {
+        id: 'metronome',
+        gainDb: decibels(-6),
+        muted: false,
+        soloed: false
+      }
     }
     const project = projectFromSession(snapshot({ tempo }), stamp)
     expect(project.tempo).toEqual(tempo)
@@ -238,8 +244,8 @@ describe('projectChordChart', () => {
 
 describe('mixerMatchesStems', () => {
   const mixer: MixerState = [
-    { id: 'voice', gainDb: 0, muted: false, soloed: false },
-    { id: 'drums', gainDb: -3, muted: true, soloed: false }
+    { id: 'voice', gainDb: decibels(0), muted: false, soloed: false },
+    { id: 'drums', gainDb: decibels(-3), muted: true, soloed: false }
   ]
 
   it('accepts a mixer whose channel ids equal the stem ids, in any order', () => {

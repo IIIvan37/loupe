@@ -8,3 +8,9 @@
 export { createInMemoryProjectStore } from '../project/testing/in-memory-project-store.ts'
 export type { ProjectStoreSubject } from '../project/testing/project-store-contract.ts'
 export { projectStoreContract } from '../project/testing/project-store-contract.ts'
+
+// Unit constructors adapter SPECS need to build branded fixtures (gainDb,
+// tonicPc). Deliberately NOT on src/index.ts: production adapters receive
+// branded values from the domain clamps/parsers and never construct these
+// two units themselves — a spec-only need goes through the testing surface.
+export { decibels, pitchClass } from '../shared/units.ts'

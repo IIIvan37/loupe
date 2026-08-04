@@ -1,3 +1,4 @@
+import { pitchClass } from '../../shared/units.ts'
 import type { Key } from './chord-key.ts'
 import {
   type ChordSymbol,
@@ -48,5 +49,5 @@ function degreeOf(note: string, key: Key): string {
   if (pc === undefined) {
     return note
   }
-  return DEGREES[(((pc - key.tonicPc) % 12) + 12) % 12] as string
+  return DEGREES[pitchClass(pc - key.tonicPc)] as string
 }

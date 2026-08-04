@@ -1,3 +1,4 @@
+import { type PitchClass, pitchClass } from '../../shared/units.ts'
 import type { DetectedChordSpan } from './chord-detection.ts'
 import {
   type Accidental,
@@ -7,12 +8,12 @@ import {
 } from './chord-symbol.ts'
 
 /**
- * A musical key: a tonic pitch class (0–11) and a mode. Enough to decide the
+ * A musical key: a tonic pitch class and a mode. Enough to decide the
  * accidental spelling and to name the key — the grid needs no more (it stores
  * chords verbatim, not scale degrees).
  */
 export interface Key {
-  readonly tonicPc: number
+  readonly tonicPc: PitchClass
   readonly mode: 'major' | 'minor'
 }
 
@@ -29,7 +30,7 @@ const FLAT_MINOR_TONICS = new Set([2, 7, 0, 5, 10, 3])
 /** Whether a key spells its accidentals as sharps or flats. */
 export function keyAccidental(key: Key): Accidental {
   const flats = key.mode === 'major' ? FLAT_MAJOR_TONICS : FLAT_MINOR_TONICS
-  return flats.has(((key.tonicPc % 12) + 12) % 12) ? 'flat' : 'sharp'
+  return flats.has(key.tonicPc) ? 'flat' : 'sharp'
 }
 
 /** Name a key: its tonic spelled in its own accidental, `m` for a minor key. */
@@ -57,7 +58,7 @@ export function parseKeyName(text: string): Key | undefined {
 /** Move a key by `semitones`: the tonic wraps the octave, the mode stays. */
 export function transposeKey(key: Key, semitones: number): Key {
   return {
-    tonicPc: (((key.tonicPc + semitones) % 12) + 12) % 12,
+    tonicPc: pitchClass(key.tonicPc + semitones),
     mode: key.mode
   }
 }
@@ -86,20 +87,20 @@ const MINOR_PROFILE = [
 export function detectKey(spans: readonly DetectedChordSpan[]): Key {
   const weights = pitchClassWeights(spans)
   if (weights.every((weight) => weight === 0)) {
-    return { tonicPc: 0, mode: 'major' }
+    return { tonicPc: pitchClass(0), mode: 'major' }
   }
-  let best: Key = { tonicPc: 0, mode: 'major' }
+  let best: Key = { tonicPc: pitchClass(0), mode: 'major' }
   let bestScore = Number.NEGATIVE_INFINITY
   for (let tonic = 0; tonic < 12; tonic++) {
     for (const mode of ['major', 'minor'] as const) {
       const profile = mode === 'major' ? MAJOR_PROFILE : MINOR_PROFILE
       const rotated = weights.map(
-        (_, pc) => profile[(((pc - tonic) % 12) + 12) % 12] as number
+        (_, pc) => profile[pitchClass(pc - tonic)] as number
       )
       const score = correlation(weights, rotated)
       if (score > bestScore) {
         bestScore = score
-        best = { tonicPc: tonic, mode }
+        best = { tonicPc: pitchClass(tonic), mode }
       }
     }
   }
@@ -120,7 +121,7 @@ function pitchClassWeights(spans: readonly DetectedChordSpan[]): number[] {
     weights[rootPc] = (weights[rootPc] as number) + duration
     const third = thirdInterval(quality)
     if (third !== undefined) {
-      const thirdPc = (rootPc + third) % 12
+      const thirdPc = pitchClass(rootPc + third)
       weights[thirdPc] = (weights[thirdPc] as number) + duration * 0.5
     }
   }

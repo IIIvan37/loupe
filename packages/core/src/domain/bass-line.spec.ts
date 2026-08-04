@@ -140,6 +140,12 @@ describe('applyBassSlash', () => {
     expect(applyBassSlash(['B'], [6])).toEqual(['B/F#'])
   })
 
+  it('reads a SHARP root as its own class — no phantom slash on F#m over F#', () => {
+    // classOfName's accidental branch: F# folds to 6, not F's 5.
+    expect(applyBassSlash(['F#m'], [6])).toEqual(['F#m'])
+    expect(applyBassSlash(['C#m'], [8])).toEqual(['C#m/G#'])
+  })
+
   it('keeps silence and structural tokens untouched', () => {
     expect(applyBassSlash(['N.C.'], [4])).toEqual(['N.C.'])
   })

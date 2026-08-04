@@ -9,6 +9,10 @@ import {
   loadTrack,
   type PlaybackEngine,
   type ProjectTuning,
+  percent,
+  percentToRatio,
+  ratio,
+  ratioToPercent,
   type SpectrumFrame,
   type TrackMetadata,
   type TrackMetadataReader,
@@ -169,8 +173,8 @@ export function usePlayer(
   // stops the ramp instead of fighting it. Arming memorises the current
   // tempo; stopping gives it back.
   const speedTrainer = useSpeedTrainer(
-    (percent) => applyTimeRatio(percent / 100),
-    () => Math.round(timeRatio * 100)
+    (tempoPercent) => applyTimeRatio(percentToRatio(tempoPercent)),
+    () => percent(Math.round(ratioToPercent(ratio(timeRatio))))
   )
   const { transport, dispatch, position, active } = useTransportEngines({
     playback,

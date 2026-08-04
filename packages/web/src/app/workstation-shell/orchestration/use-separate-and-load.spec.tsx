@@ -7,7 +7,10 @@ import type {
   StemTrack,
   TempoAnalysis
 } from '@app/core'
-import { UNITY_GAIN_DB } from '@app/core'
+import {
+  UNITY_GAIN_DB
+} from '@app/core'
+import { decibels } from '@app/core/testing'
 import { act, renderHook } from '@testing-library/react'
 import { Provider, createStore } from 'jotai'
 import type { ReactNode } from 'react'
@@ -139,7 +142,7 @@ describe('useSeparateAndLoad — the deps are derived, not passed (ADR 0010)', (
   })
 
   it("carries the mixer's current click settings, not the default", async () => {
-    const seated = { id: METRONOME_ID, gainDb: -6, muted: false, soloed: false }
+    const seated = { id: METRONOME_ID, gainDb: decibels(-6), muted: false, soloed: false }
     const mixer = fakeMixer([seated])
     const { hook } = mountSeparateAndLoad({ analysis: ANALYSIS, mixer })
 

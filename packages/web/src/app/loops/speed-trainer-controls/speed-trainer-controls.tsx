@@ -1,6 +1,7 @@
 import {
   MAX_TEMPO_PERCENT,
   MIN_TEMPO_PERCENT,
+  percent,
   previewSpeedTrainer
 } from '@app/core'
 import { Trans, useLingui } from '@lingui/react/macro'
@@ -62,10 +63,10 @@ export const SpeedTrainerControls = memo(function SpeedTrainerControls({
 
   function start(): void {
     trainer.start({
-      startPercent: fieldNumber(form.startPercent),
-      incrementPercent: fieldNumber(form.incrementPercent),
+      startPercent: percent(fieldNumber(form.startPercent)),
+      incrementPercent: percent(fieldNumber(form.incrementPercent)),
       passesPerStep: fieldNumber(form.passesPerStep),
-      targetPercent: fieldNumber(form.targetPercent)
+      targetPercent: percent(fieldNumber(form.targetPercent))
     })
     setOpen(false)
   }
@@ -144,10 +145,10 @@ export const SpeedTrainerControls = memo(function SpeedTrainerControls({
   // practice (an emptied target reads as full speed, a target below the start
   // collapses to one level, etc.).
   const preview = previewSpeedTrainer({
-    startPercent: fieldNumber(form.startPercent),
-    incrementPercent: fieldNumber(form.incrementPercent),
+    startPercent: percent(fieldNumber(form.startPercent)),
+    incrementPercent: percent(fieldNumber(form.incrementPercent)),
     passesPerStep: fieldNumber(form.passesPerStep),
-    targetPercent: fieldNumber(form.targetPercent)
+    targetPercent: percent(fieldNumber(form.targetPercent))
   })
   const stepsLabel =
     preview.stepCount === 1
