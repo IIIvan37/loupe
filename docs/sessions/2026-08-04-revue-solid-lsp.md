@@ -30,7 +30,6 @@ promise par contrat mais plus prouvée, et un fake hors du domaine de valeurs.
 - Lot ISP (seams consommateurs du `Mixer`) puis lot 4 outillage
   (§ « Backlog outillage » du rapport revue-solid) — notamment le cliquet
   « contrat ×2 » qui empêchera ce replay de se reperdre en silence.
-- Verdict Sonar de cette PR : à lire après le passage du CI (`pnpm sonar`).
 
 ## Decisions
 
@@ -49,7 +48,7 @@ promise par contrat mais plus prouvée, et un fake hors du domaine de valeurs.
   core (web uniquement) ; le run complet post-merge de CI reste la référence
 - biome / sheriff / knip / jscpd / tokens / i18n / sonar-triage : ✅
   (`gate ok`, arbre stampé `f6986b78`)
-- SonarCloud : en attente du CI de la PR
+- SonarCloud (PR #368) : ✅ quality gate OK, 0 issue, 0 hotspot
 
 ## State to resume from
 
