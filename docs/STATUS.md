@@ -15,7 +15,8 @@ livrable, `server/` = bibliothèque Modal + harnais dev/CI
 Nursery : `detect-chords`, `bass-line` ; `timecode` attend un 2e
 consommateur. Jamais de hook à effet de montage, seul le seam
 `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
-**Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
+**Beta distribuée le 2026-08-01** ([guide](guide-utilisateur.md) + code
+beta) ; version courante **v0.2.2** (tag `627a1b3`, release vérifiée).
 Revues justesse, texte-comme-modèle et SOLID soldées (cf. Historique ;
 la SOLID : constats PRs #367–#369, outillage PR #370). Prochain : **retour
 au labo starter**, récolte `playback/` — les 4 specs de discipline et le
@@ -26,6 +27,7 @@ Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
+- 2026-08-04 (nuit) · **Release v0.2.2** (PR #371 + tag `627a1b3`) : fix structure figée (#358), quota-session, fond de cale des trois revues ; assets vérifiés (checksums, attestation, tap, `--version`).
 - 2026-08-04 (soir) · **Revue SOLID (PRs #367–#370)** : 5 enquêteurs par principe + sceptique adversarial par constat (20 bruts → 14 réfutés, chacun par une décision consignée ; 6 confirmés) ; solde = union transport partagée + `isSeparationPhase` + `satisfies never` (OCP), contrat `ProjectStore` rejoué sur HTTP + fakes convergés (LSP), seams `Pick` du Mixer (ISP) ; outillage = specs variantes/contrats/ports/pointeurs-ADR, exhaustivité Biome, mutation:diff hooks web, workflow `/revue-solid` gelé — mort au passage du `toggle` jamais dispatché.
 - 2026-08-04 · **Texte-comme-modèle (PRs #364–#366)** : les émetteurs structurés, le form-encoder puis la tête du draft detect-chords construisent un `ChordChart` (fold/volta/D.C. en flags, `{form: Nx}` et `{key}`/`{time}` en directives, respell au niveau modèle) — `renderChart` est le seul imprimeur ; morts : `withRepeatBars`, `segmentRows`, `timeLine`.
 - 2026-08-03 → 08-04 · **Repère→grille (PR #358) + revue justesse pr. 1–4 (PRs #359, #361, #362, #363)** : éditer un repère réécrit les headers `[Section]` ; l'unité de quota devient la session d'analyse (allowlist grants exécutable, leg CI supabase-sql) ; politiques trainer/transport/session rapatriées au core ; scalaires brandés (six unités, modulo-12 unique, cliquet nom↔type) ; `renderChart` inverse de `parseChart` (property `parse ∘ render = id`) + walk positionnel unique `scanChart`.
