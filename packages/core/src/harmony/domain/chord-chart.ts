@@ -83,17 +83,29 @@ const DIRECTIVE = /^\{([^:{}]+):([^{}]*)\}$/
     Shared by the parser and the transposer so the two can never drift. */
 const TOKEN = /[^|\s]+/g
 
-/** The bars of one `| … | … |` row — each non-empty cell is a measure. A
-    volta number spans its row (a two-bar ending is one bracket in print) up
-    to and including the bar its `:|` closes. */
-function parseRow(line: string): Measure[] {
+/**
+ * The bars of one `| … | … |` row, each measure WITH its source site — the
+ * single cell walk under the parser and every measure↔text feature (same
+ * `TOKEN` grammar, same repeat-count merge, same volta carry: an `xN` after
+ * a volta's :| is a measure). A volta number spans its row (a two-bar ending
+ * is one bracket in print) up to and including the bar its `:|` closes.
+ * Offsets are measured on the RAW line — indentation the parser trims away
+ * still counts.
+ */
+function scanRow(
+  rawLine: string,
+  line: number,
+  lineStart: number
+): { readonly measures: Measure[]; readonly sites: MeasureSite[] } {
   let carriedVolta: number | undefined
   const measures: Measure[] = []
-  const cells = line
-    .split('|')
-    .map((cell) => cell.match(TOKEN) ?? [])
-    .filter((tokens) => tokens.length > 0)
-  for (const tokens of cells) {
+  const sites: MeasureSite[] = []
+  for (const cell of rowCellSpans(rawLine)) {
+    // rowCellSpans never emits an empty cell — proven here, not assumed.
+    const first = cell.tokens[0]
+    const last = cell.tokens.at(-1)
+    if (first === undefined || last === undefined) continue
+    const tokens = cell.tokens.map((token) => token.text)
     const count = repeatCountCell(tokens, measures.at(-1))
     if (count !== undefined) {
       measures[measures.length - 1] = {
@@ -106,8 +118,20 @@ function parseRow(line: string): Measure[] {
     const volta = measure.volta ?? carriedVolta
     carriedVolta = measure.repeatEnd === true ? undefined : volta
     measures.push(volta === undefined ? measure : { ...measure, volta })
+    sites.push({
+      span: {
+        line,
+        start: lineStart + first.start,
+        end: lineStart + last.end
+      },
+      chordTokens: chordTokensOf(cell.tokens).map((token) => ({
+        text: token.text,
+        start: lineStart + token.start,
+        end: lineStart + token.end
+      }))
+    })
   }
-  return measures
+  return { measures, sites }
 }
 
 /** A repeat's pass count: the `x3` (or `×3`) after a closing `:|` bar. */
@@ -361,6 +385,140 @@ function cellToken(label: string | undefined): string {
     : NO_CHORD
 }
 
+/**
+ * Print a chart MODEL as grid source text — the inverse of `parseChart`.
+ * The contract is the round-trip: `parseChart(renderChart(chart))` yields
+ * `chart` back, for any chart the grammar can express.
+ */
+export function renderChart(chart: ChordChart, barsPerRow = 4): string {
+  const width = Math.max(1, Math.floor(barsPerRow) || 1)
+  const lines: string[] = []
+  for (const [key, value] of Object.entries(chart.directives)) {
+    lines.push(`{${key}: ${value}}`)
+  }
+  const marks = formMarkLines(chart.form)
+  for (const change of chart.meterChanges ?? []) {
+    const due = marks.get(change.measure) ?? []
+    due.push(`{time: ${change.signature}}`)
+    marks.set(change.measure, due)
+  }
+  let written = 0
+  for (const section of chart.sections) {
+    flushMarks(lines, marks, written)
+    if (section.label !== undefined) lines.push(`[${section.label}]`)
+    let index = 0
+    while (index < section.measures.length) {
+      flushMarks(lines, marks, written)
+      // A mark line sits BETWEEN rows: the row must break where one is due.
+      const limit = nextMarkAfter(marks, written)
+      const end = Math.min(
+        index + width,
+        section.measures.length,
+        limit === undefined ? Number.POSITIVE_INFINITY : index + limit - written
+      )
+      const row = section.measures.slice(
+        index,
+        index + voltaBreak(section.measures.slice(index, end))
+      )
+      lines.push(renderRow(row))
+      written += row.length
+      index += row.length
+    }
+  }
+  flushMarks(lines, marks, written)
+  return lines.join('\n')
+}
+
+/** How many of the row's measures can share one printed line: an unclosed
+    volta group must end at the line break — printed on one line, `parseRow`'s
+    carry would re-read the next bar into the ending. */
+function voltaBreak(measures: readonly Measure[]): number {
+  for (let index = 1; index < measures.length; index++) {
+    const previous = measures[index - 1] as Measure
+    if (
+      previous.volta !== undefined &&
+      previous.repeatEnd !== true &&
+      measures[index]?.volta === undefined
+    ) {
+      return index
+    }
+  }
+  return measures.length
+}
+
+/** The full-line mark(s) each written position must print, derived from the
+    SAME `FORM_KEYS` table the recognizer reads — inverse of `formKeyOf`. */
+function formMarkLines(form: ChartForm | undefined): Map<number, string[]> {
+  const marks = new Map<number, string[]>()
+  for (const [text, key] of Object.entries(FORM_KEYS)) {
+    const position = form?.[key]
+    if (position === undefined) continue
+    const due = marks.get(position) ?? []
+    due.push(`{${text}}`)
+    marks.set(position, due)
+  }
+  return marks
+}
+
+/** Emit (once) the mark lines due at the current written position. */
+function flushMarks(
+  lines: string[],
+  marks: Map<number, string[]>,
+  written: number
+): void {
+  const due = marks.get(written)
+  if (due === undefined) return
+  lines.push(...due)
+  marks.delete(written)
+}
+
+/** The next written position a pending mark must break a row at. */
+function nextMarkAfter(
+  marks: ReadonlyMap<number, unknown>,
+  written: number
+): number | undefined {
+  let next: number | undefined
+  for (const position of marks.keys()) {
+    if (position > written && (next === undefined || position < next)) {
+      next = position
+    }
+  }
+  return next
+}
+
+/** Print one row of measures — `|`-assembled so a repeat bar fuses with its
+    bar line (`|: C | G :|`), exactly the shape `parseRow` reads back. A volta
+    number prints where its group starts; `parseRow`'s carry re-reads the
+    following bars into the group, mirroring the ending bracket in print. */
+function renderRow(measures: readonly Measure[]): string {
+  let row = '|'
+  let carriedVolta: number | undefined
+  for (const measure of measures) {
+    const volta =
+      measure.volta !== undefined && measure.volta !== carriedVolta
+        ? `${measure.volta}. `
+        : ''
+    carriedVolta = measure.repeatEnd === true ? undefined : measure.volta
+    const chords = measure.chords
+      .map((chord, index) => {
+        const symbol = formatChordSymbol(chord)
+        const held =
+          measure.fermata === true && index === measure.chords.length - 1
+        return held ? `${symbol}@` : symbol
+      })
+      .join(' ')
+    // A volta number fuses with its bar line (`|1. G`), like the repeat colon.
+    if (measure.repeatStart === true) row += ': '
+    else if (volta === '') row += ' '
+    row += `${volta}${chords}`
+    row += measure.repeatEnd === true ? ' :|' : ' |'
+    if (measure.repeatCount !== undefined) {
+      row += ` x${measure.repeatCount} |`
+    }
+  }
+  return row
+}
+
 /** The `ChartForm` key each full-line form mark sets — the single source the
     recognizer regex derives from, so a new mark can never miss the pattern. */
 const FORM_KEYS: Readonly<Record<string, keyof ChartForm>> = {
@@ -546,14 +704,31 @@ function formKeyOf(line: string): keyof ChartForm | undefined {
 }
 
 export function parseChart(text: string): ChordChart {
+  return scanChart(text).chart
+}
+
+/**
+ * The ONE line-dispatch walk under the parser and every measure↔text feature:
+ * the chart model and the source positions come out of the same pass, so the
+ * two can never drift. Offsets are measured on the RAW line — indentation the
+ * parser trims away still counts.
+ */
+function scanChart(text: string): {
+  readonly chart: ChordChart
+  readonly sites: readonly MeasureSite[]
+} {
   const sections: DraftSection[] = []
   const directives: Record<string, string> = {}
   const form: { -readonly [K in keyof ChartForm]: ChartForm[K] } = {}
   const meterChanges: MeterChange[] = []
+  const sites: MeasureSite[] = []
   let written = 0
   let current: DraftSection | undefined
+  let offset = 0
 
-  for (const rawLine of text.split('\n')) {
+  for (const [lineIndex, rawLine] of text.split('\n').entries()) {
+    const lineStart = offset
+    offset += rawLine.length + 1
     const line = rawLine.trim()
     if (line.length === 0) continue
 
@@ -588,16 +763,20 @@ export function parseChart(text: string): ChordChart {
       continue
     }
 
-    const row = parseRow(line)
-    written += row.length
-    current = appendRow(sections, current, row)
+    const row = scanRow(rawLine, lineIndex, lineStart)
+    written += row.measures.length
+    current = appendRow(sections, current, row.measures)
+    sites.push(...row.sites)
   }
 
   return {
-    sections,
-    directives,
-    ...(Object.keys(form).length > 0 && { form }),
-    ...(meterChanges.length > 0 && { meterChanges })
+    chart: {
+      sections,
+      directives,
+      ...(Object.keys(form).length > 0 && { form }),
+      ...(meterChanges.length > 0 && { meterChanges })
+    },
+    sites
   }
 }
 
@@ -647,74 +826,6 @@ interface MeasureSite {
   readonly chordTokens: readonly TokenSpan[]
 }
 
-/**
- * The one positional walk under every measure↔text feature, in written order.
- * Mirrors `parseChart`'s line dispatch and `parseRow`'s cell walk statement
- * for statement (same `TOKEN` grammar, same repeat-count merge, same volta
- * carry — an `xN` after a volta's :| is a measure there, so it must be one
- * here), so the mapping and the parser can never drift; offsets are measured
- * on the RAW line — indentation the parser trims away still counts.
- */
-function measureSites(source: string): MeasureSite[] {
-  const sites: MeasureSite[] = []
-  let offset = 0
-  let gridStarted = false
-  const lines = source.split('\n')
-  for (const [lineIndex, rawLine] of lines.entries()) {
-    const lineStart = offset
-    offset += rawLine.length + 1
-    const line = rawLine.trim()
-    if (line.length === 0) continue
-    if (formKeyOf(line) !== undefined) continue
-    if (!gridStarted && directiveOf(line) !== undefined) continue
-    if (meterChangeOf(line) !== undefined) continue
-    if (HEADER.test(line)) {
-      gridStarted = true
-      continue
-    }
-    gridStarted = true
-    sites.push(...rowMeasureSites(rawLine, lineIndex, lineStart))
-  }
-  return sites
-}
-
-/** parseRow's walk with positions: a repeat-count cell merges into the
-    previous bar and owns no site. */
-function rowMeasureSites(
-  rawLine: string,
-  line: number,
-  lineStart: number
-): MeasureSite[] {
-  const sites: MeasureSite[] = []
-  let previous: Measure | undefined
-  let carriedVolta: number | undefined
-  for (const cell of rowCellSpans(rawLine)) {
-    // rowCellSpans never emits an empty cell — proven here, not assumed.
-    const first = cell.tokens[0]
-    const last = cell.tokens.at(-1)
-    if (first === undefined || last === undefined) continue
-    const texts = cell.tokens.map((token) => token.text)
-    if (repeatCountCell(texts, previous) !== undefined) continue
-    const measure = parseCell(texts)
-    const volta = measure.volta ?? carriedVolta
-    carriedVolta = measure.repeatEnd === true ? undefined : volta
-    previous = volta === undefined ? measure : { ...measure, volta }
-    sites.push({
-      span: {
-        line,
-        start: lineStart + first.start,
-        end: lineStart + last.end
-      },
-      chordTokens: chordTokensOf(cell.tokens).map((token) => ({
-        text: token.text,
-        start: lineStart + token.start,
-        end: lineStart + token.end
-      }))
-    })
-  }
-  return sites
-}
-
 /** The cell's chord tokens — `parseCell`'s structural stripping (edge repeat
     dots, the volta bar's number) with positions kept. */
 function chordTokensOf(tokens: readonly TokenSpan[]): readonly TokenSpan[] {
@@ -731,7 +842,7 @@ function chordTokensOf(tokens: readonly TokenSpan[]): readonly TokenSpan[] {
 export function measureSourceSpans(
   source: string
 ): readonly MeasureSourceSpan[] {
-  return measureSites(source).map((site) => site.span)
+  return scanChart(source).sites.map((site) => site.span)
 }
 
 /** One token the parser read as a chord but that cannot honestly be one. */
@@ -787,7 +898,7 @@ function believableChord(token: string): boolean {
  * `measureSourceSpans`, same unroll as playback.
  */
 export function chartDiagnostics(source: string): ChartDiagnostics {
-  const sites = measureSites(source)
+  const { chart, sites } = scanChart(source)
   const measuresPerLine = new Map<number, number>()
   const suspectTokens: SuspectToken[] = []
   for (const [measure, site] of sites.entries()) {
@@ -807,7 +918,7 @@ export function chartDiagnostics(source: string): ChartDiagnostics {
       }
     }
   }
-  const played = new Set(unrollChart(parseChart(source)))
+  const played = new Set(unrollChart(chart))
   const unreachableMeasures = sites.flatMap((_, index) =>
     played.has(index) ? [] : [index]
   )

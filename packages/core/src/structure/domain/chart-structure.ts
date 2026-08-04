@@ -1,6 +1,7 @@
 import {
   isPrintableToken,
   parseChart,
+  renderChart,
   renderChartSource,
   unrollChart
 } from '../../harmony/domain/chord-chart.ts'
@@ -287,10 +288,13 @@ export function relabelChartBySections(
   // {style}…) is theirs to keep. {time} stays re-derived from the grid
   // above; {form} is legitimately dropped — its rollout is written out in
   // full here (re-folding = the instance deduction, a v2).
-  const head = Object.entries(parseChart(source).directives)
-    .filter(([key]) => key !== 'time' && key !== 'form')
-    .map(([key, value]) => `{${key}: ${value}}`)
-  return head.length === 0 ? body : `${head.join('\n')}\n${body}`
+  const directives = Object.fromEntries(
+    Object.entries(parseChart(source).directives).filter(
+      ([key]) => key !== 'time' && key !== 'form'
+    )
+  )
+  const head = renderChart({ sections: [], directives })
+  return head === '' ? body : `${head}\n${body}`
 }
 
 /** A section's start on the timeline: the instant of the downbeat where its

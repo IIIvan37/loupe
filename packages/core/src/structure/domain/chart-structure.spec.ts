@@ -359,7 +359,7 @@ describe('relabelChartBySections', () => {
     // stays re-derived from the grid, {form} is legitimately dropped (the
     // rollout it multiplied is written out in full).
     const source =
-      '{key: Ab}\n{style: pop}\n{form: 2x}\n| C | Am | F | G |\n| C | Am | F | G |'
+      '{key: Ab}\n{style: pop}\n{time: 3/4}\n{form: 2x}\n| C | Am | F | G |\n| C | Am | F | G |'
     const sections: DetectedSection[] = [
       { startSeconds: 0, endSeconds: 8, label: 'Couplet' },
       { startSeconds: 8, endSeconds: 16, label: 'Refrain' }
@@ -367,6 +367,7 @@ describe('relabelChartBySections', () => {
     const out = relabelChartBySections(source, sections, grid(8, 2), 4)
     expect(out.startsWith('{key: Ab}\n{style: pop}\n')).toBe(true)
     expect(out).not.toContain('{form:')
+    expect(out).not.toContain('{time:')
   })
 
   it('omits the header when the detection is one whole-song section', () => {
