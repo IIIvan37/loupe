@@ -89,9 +89,12 @@ grammaire de ligne est implémentée trois fois à la main »).
   pas ; comparer au span exact du rapport JSON avant de conclure au stale.
   Le run CI post-merge reste la référence.
 - biome / sheriff / knip / jscpd : ✅
-- sonar : PR #363 — analyse CI en attente au moment du rapport ; verdict à
-  consigner après la passe CI (commit dédié sur la branche, comme pour la
-  PR #362).
+- sonar : ✅ PR #363 — quality gate OK, 0 issue ouverte, 0 hotspot.
+- CI : verte après un correctif hors-lot — l'advisory GHSA-7p8r-x3mc-p8w7
+  (`fast-uri` 3.1.4, dev-only via ajv : stryker/commitlint/react-doctor)
+  rougissait « Dependency audit » sur toute branche ; bump lockfile 3.1.5
+  (`pnpm up -r fast-uri`, le `pnpm update` simple ne touche pas une
+  transitive) dans la PR.
 
 ## State to resume from
 
