@@ -16,17 +16,17 @@ Nursery : `detect-chords`, `bass-line` ; `timecode` attend un 2e
 consommateur. Jamais de hook à effet de montage, seul le seam
 `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
-**Backlog de la revue justesse design (PR #357) SOLDÉ — priorités 1–4
-(PRs #359, #361, #362, #363)**, rapports des 2026-08-03/04. `parseChart` a
-son inverse (`renderChart`, property `parse ∘ render = id`) et un seul walk
-positionnel (`scanChart`). Prochain : **retour au labo starter**. Candidats
-structurels : **émetteurs `structure/` au modèle** (chirurgie texte du
-form-encoder → modèle + `renderChart`, rapport du 2026-08-04) ; module
-`playback/` (nursery). Restes : affordance UX du throttle redeem (slice UI,
-checkpoint d'approche) ; garde-fous revue (spec actions câblées,
-mutation:diff sur hooks web) ; découvrabilité du click ; filtre Base UI
-(#319) ; templates OTP = opérateur ; session outillage (TS 6→7 #180,
-plugin-react v6 #353).
+**Backlog revue justesse (PR #357) SOLDÉ (PRs #359–#363)** ; chantier
+**Texte-comme-modèle en déroulé** : PR-1 (chart-structure au modèle —
+`measureOfLabel`, `renderChartSource` et `renderStructuredSource` projetés
+sur `renderChart`) livrée par la **PR #364**. Prochain : **PR-2
+form-encoder au modèle** (mort de `withRepeatBars`) puis PR-3 tête de
+`detect-chords`, OU **retour au labo starter** — au choix. Candidat :
+module `playback/` (nursery). Restes : affordance UX du throttle redeem
+(slice UI, checkpoint d'approche) ; garde-fous revue (spec actions
+câblées, mutation:diff sur hooks web) ; découvrabilité du click ; filtre
+Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
+#180, plugin-react v6 #353).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
