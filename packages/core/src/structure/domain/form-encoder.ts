@@ -1,6 +1,13 @@
-import { renderChartSource } from '../../harmony/domain/chord-chart.ts'
+import {
+  type Measure,
+  type MeterChange,
+  measureOfLabel,
+  renderChart,
+  type Section
+} from '../../harmony/domain/chord-chart.ts'
 import { detectCycle } from '../../harmony/domain/harmonic-cycle.ts'
 import {
+  type EndingVariants,
   endingVariants,
   matchesTolerantly,
   votedBlock
@@ -10,9 +17,9 @@ import {
   deduceStructure,
   renderStructuredSource,
   type SectionInstance,
-  segmentRows,
-  timeLine,
-  withRepeatBars
+  sameChanges,
+  segmentMeasures,
+  timeSignature
 } from './chart-structure.ts'
 
 type MeasureLabels = readonly (string | undefined)[]
@@ -90,7 +97,7 @@ function cycleRollout(
   // return by the end would silently re-time every later pass.
   if (canonicalMeters !== undefined) {
     const entry = canonicalMeters[0] ?? initialMeter
-    const walk = segmentRows(first, canonicalMeters, entry, barsPerRow)
+    const walk = segmentMeasures(first, canonicalMeters, entry)
     if (walk.running !== entry) return undefined
   }
   const canonical = votedBlock(copies)
@@ -118,14 +125,18 @@ function encodeBody(
   return encodeInstances(instances, barsPerRow, initialMeter)
 }
 
-/** One rendered move of the plan: a block of source rows and its accounting. */
+/** One rendered move of the plan: a fragment of chart MODEL — measures with
+    their repeat/volta flags, block-local `{time:}` changes — and its meter
+    accounting. `renderPlan` assembles the fragments into one `ChordChart`;
+    only `renderChart` prints. */
 interface RenderedBlock {
   readonly label: string
   /** A meter to restate before the block (its opening leaves the running). */
   readonly lead: number | undefined
-  readonly text: string
-  /** Measures the block WRITES (folds count their body once). */
-  readonly written: number
+  /** The block's measures — folds count their body once. */
+  readonly measures: readonly Measure[]
+  /** The `{time:}` changes inside the block, positions LOCAL to the block. */
+  readonly changes: readonly MeterChange[]
   readonly exit: number | undefined
 }
 
@@ -148,7 +159,7 @@ function encodeInstances(
   barsPerRow: number,
   initialMeter?: number
 ): string {
-  const dp = planner(instances, barsPerRow)
+  const dp = planner(instances)
   let best = dp(0, instances.length, initialMeter)
   let daCapo: { readonly fine: number | undefined } | undefined
   for (let dcAt = 1; dcAt < instances.length; dcAt += 1) {
@@ -158,7 +169,7 @@ function encodeInstances(
       daCapo = { fine: candidate.fine }
     }
   }
-  return renderPlan(best.blocks, daCapo?.fine, daCapo !== undefined)
+  return renderPlan(best.blocks, daCapo?.fine, daCapo !== undefined, barsPerRow)
 }
 
 /** The D.C. plan ending the form at `dcAt`: legal when the trailing passes
@@ -211,8 +222,7 @@ function sameRun(
 /** The range planner: memoized best plan for instances `[from..to)` entering
     at a running meter. */
 function planner(
-  instances: readonly SectionInstance[],
-  barsPerRow: number
+  instances: readonly SectionInstance[]
 ): (from: number, to: number, running: number | undefined) => Plan {
   const memo = new Map<string, Plan>()
   // A type whose passes genuinely diverge at the end must print FAITHFULLY
@@ -254,13 +264,12 @@ function planner(
       from,
       runLength,
       faithfulTypes.has(head.type),
-      running,
-      barsPerRow
+      running
     )
     for (const move of moves) {
       if (move.block === undefined) continue
       const tail = dp(from + move.consumed, to, move.block.exit)
-      const cost = move.block.written + move.navigation + tail.cost
+      const cost = move.block.measures.length + move.navigation + tail.cost
       const nav = move.navigation + tail.navigation
       if (
         best === undefined ||
@@ -302,8 +311,7 @@ function movesAt(
   from: number,
   runLength: number,
   faithful: boolean,
-  running: number | undefined,
-  barsPerRow: number
+  running: number | undefined
 ): readonly Move[] {
   const head = instances[from] as SectionInstance
   const raws = instances
@@ -323,14 +331,14 @@ function movesAt(
     const measures = spanRaws[0] as MeasureLabels
     moves.push({
       consumed: span,
-      block: foldBlock(head, measures, span, running, barsPerRow),
+      block: foldBlock(head, measures, span, running),
       navigation: span === 2 ? NAVIGATION_COST.repeat : NAVIGATION_COST.count
     })
   }
   if (variants !== undefined) {
     moves.push({
       consumed: runLength,
-      block: voltaBlock(head, variants, running, barsPerRow),
+      block: voltaBlock(head, variants, running),
       navigation: NAVIGATION_COST.volta
     })
   }
@@ -340,21 +348,20 @@ function movesAt(
       block: writeBlock(
         instances.slice(from, from + runLength),
         faithful,
-        running,
-        barsPerRow
+        running
       ),
       navigation: NAVIGATION_COST.write
     })
   }
   moves.push({
     consumed: 1,
-    block: writeBlock([head], faithful, running, barsPerRow),
+    block: writeBlock([head], faithful, running),
     navigation: NAVIGATION_COST.write
   })
   return moves
 }
 
-/** The meter a block must enter at, and the lead line that gets it there. */
+/** The meter a block must enter at, and the lead change that gets it there. */
 function blockEntry(
   meters: Meters | undefined,
   running: number | undefined
@@ -367,117 +374,141 @@ function blockEntry(
   return { entry: lead ?? running, lead }
 }
 
-/** Write a run as plain copies — today's layout, one block. A faithful type
-    prints each pass's own bars; otherwise every copy prints the type's voted
-    measures. */
+/** Write a run as plain copies — the copies' measures chained into one
+    block. A faithful type prints each pass's own bars; otherwise every copy
+    prints the type's voted measures. */
 function writeBlock(
   run: readonly SectionInstance[],
   faithful: boolean,
-  running: number | undefined,
-  barsPerRow: number
+  running: number | undefined
 ): RenderedBlock {
   const head = run[0] as SectionInstance
   const { entry, lead } = blockEntry(head.meters, running)
-  const copies: string[] = []
-  let written = 0
+  const measures: Measure[] = []
+  const changes: MeterChange[] = []
   let meter = entry
   for (const instance of run) {
-    const measures = faithful ? instance.raw : instance.measures
-    const rendered = segmentRows(measures, head.meters, meter, barsPerRow)
-    copies.push(rendered.text)
-    written += measures.length
-    meter = rendered.running
+    const labels = faithful ? instance.raw : instance.measures
+    const segment = segmentMeasures(labels, head.meters, meter)
+    changes.push(
+      ...segment.changes.map((change) => ({
+        ...change,
+        measure: measures.length + change.measure
+      }))
+    )
+    measures.push(...segment.measures)
+    meter = segment.running
   }
-  return {
-    label: head.label,
-    lead,
-    text: copies.join('\n'),
-    written,
-    exit: meter
-  }
+  return { label: head.label, lead, measures, changes, exit: meter }
 }
 
-/** Fold `span` identical passes into `|: :|` (+ ` xN` beyond a pair). Only a
-    pass-invariant render may fold: repeat bars cannot restate a meter. */
+/** Fold `span` identical passes into `|: :|` flags (+ a pass count beyond a
+    pair). Only a pass-invariant walk may fold: repeat bars cannot restate a
+    meter, so a second pass implying different `{time:}` changes refuses. */
 function foldBlock(
   instance: SectionInstance,
-  measures: MeasureLabels,
+  labels: MeasureLabels,
   span: number,
-  running: number | undefined,
-  barsPerRow: number
+  running: number | undefined
 ): RenderedBlock | undefined {
   const { entry, lead } = blockEntry(instance.meters, running)
-  const first = segmentRows(measures, instance.meters, entry, barsPerRow)
-  if (!first.text.startsWith('|')) return undefined
-  const second = segmentRows(
-    measures,
-    instance.meters,
-    first.running,
-    barsPerRow
-  )
-  if (second.text !== first.text) return undefined
-  const suffix = span > 2 ? ` x${span}` : ''
+  const first = segmentMeasures(labels, instance.meters, entry)
+  if (first.measures.length === 0) return undefined
+  const second = segmentMeasures(labels, instance.meters, first.running)
+  if (!sameChanges(first.changes, second.changes)) return undefined
+  const measures = [...first.measures]
+  measures[0] = { ...(measures[0] as Measure), repeatStart: true }
+  measures[measures.length - 1] = {
+    ...(measures.at(-1) as Measure),
+    repeatEnd: true,
+    ...(span > 2 && { repeatCount: span })
+  }
   return {
     label: instance.label,
     lead,
-    text: `${withRepeatBars(first.text)}${suffix}`,
-    written: measures.length,
+    measures,
+    changes: first.changes,
     exit: first.running
   }
 }
 
-/** Bracket a run's variant endings: `|: body |1. … :|` then one row per
-    later ending. Voltas never thread a meter change — the bracket rows have
-    no room for a `{time:}` line — so any in-block change refuses the move. */
+/** Bracket a run's variant endings: the body opens `|:`, each ending wears
+    its volta number and every non-final one closes `:|`. Voltas never thread
+    a meter change — the bracket rows have no room for a `{time:}` line — so
+    any in-block change refuses the move. */
 function voltaBlock(
   instance: SectionInstance,
-  variants: { body: MeasureLabels; endings: readonly MeasureLabels[] },
-  running: number | undefined,
-  barsPerRow: number
+  variants: EndingVariants,
+  running: number | undefined
 ): RenderedBlock | undefined {
   const { entry, lead } = blockEntry(instance.meters, running)
   const steady =
     instance.meters === undefined ||
     instance.meters.every((meter) => meter === undefined || meter === entry)
   if (!steady || variants.body.length === 0) return undefined
-  const body = withRepeatBars(renderChartSource(variants.body, barsPerRow))
-  // withRepeatBars closes the body with :| — the repeat belongs to the FIRST
-  // ending's row, so strip it back off the body.
-  const openBody = `${body.slice(0, -2)}|`
-  const rows = variants.endings.map((ending, index) => {
-    const row = renderChartSource(ending, Math.max(ending.length, 1))
-    const numbered = row.replace('| ', `|${index + 1}. `)
-    const last = index === variants.endings.length - 1
-    return last ? numbered : `${numbered.slice(0, -1)}:|`
+  const measures = variants.body.map(measureOfLabel)
+  measures[0] = { ...(measures[0] as Measure), repeatStart: true }
+  variants.endings.forEach((ending, index) => {
+    measures.push(
+      ...ending.map((label) => ({ ...measureOfLabel(label), volta: index + 1 }))
+    )
+    // Every ending but the last jumps back: its final bar closes with :|.
+    if (index < variants.endings.length - 1) {
+      measures[measures.length - 1] = {
+        ...(measures.at(-1) as Measure),
+        repeatEnd: true
+      }
+    }
   })
-  const written =
-    variants.body.length +
-    variants.endings.reduce((total, ending) => total + ending.length, 0)
-  return {
-    label: instance.label,
-    lead,
-    text: [openBody, ...rows].join('\n'),
-    written,
-    exit: entry
-  }
+  return { label: instance.label, lead, measures, changes: [], exit: entry }
 }
 
-/** Print the plan: `{time:}` leads, `[label]` headers when there is more
-    than one block, a `{fine}` line after the replayed prefix, and the
-    closing `{d.c.}`. */
+/** Assemble the plan's fragments into ONE chart model — leads and block
+    changes offset into chart-global `MeterChange`s, `[label]` headers when
+    there is more than one block, the fine and the closing D.C. as its
+    `ChartForm` — and let `renderChart` print it. */
 function renderPlan(
   blocks: readonly RenderedBlock[],
   fineAfter: number | undefined,
-  daCapo: boolean
+  daCapo: boolean,
+  barsPerRow: number
 ): string {
   const headed = blocks.length > 1
-  const parts = blocks.map((block, index) => {
-    const header = headed ? `[${block.label}]\n` : ''
-    const lead = block.lead === undefined ? '' : `${timeLine(block.lead)}\n`
-    const fine = fineAfter !== undefined && index === fineAfter - 1
-    return `${lead}${header}${block.text}${fine ? '\n{fine}' : ''}`
+  const sections: Section[] = []
+  const meterChanges: MeterChange[] = []
+  let written = 0
+  let fine: number | undefined
+  blocks.forEach((block, index) => {
+    if (block.lead !== undefined) {
+      meterChanges.push({
+        measure: written,
+        signature: timeSignature(block.lead)
+      })
+    }
+    meterChanges.push(
+      ...block.changes.map((change) => ({
+        ...change,
+        measure: written + change.measure
+      }))
+    )
+    sections.push({
+      ...(headed && { label: block.label }),
+      measures: block.measures
+    })
+    written += block.measures.length
+    if (fineAfter !== undefined && index === fineAfter - 1) fine = written
   })
-  return `${parts.join('\n\n')}${daCapo ? '\n{d.c.}' : ''}`
+  return renderChart(
+    {
+      sections,
+      directives: {},
+      ...(meterChanges.length > 0 && { meterChanges }),
+      ...(daCapo && {
+        form: { dc: written, ...(fine !== undefined && { fine }) }
+      })
+    },
+    barsPerRow
+  )
 }
 
 /** Whether every block is byte-identical to the first — the only condition

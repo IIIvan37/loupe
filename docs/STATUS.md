@@ -17,12 +17,12 @@ consommateur. Jamais de hook à effet de montage, seul le seam
 `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** (v0.1.0 + [guide](guide-utilisateur.md) + code beta).
 **Backlog revue justesse (PR #357) SOLDÉ (PRs #359–#363)** ; chantier
-**Texte-comme-modèle en déroulé** : PR-1 (chart-structure au modèle —
-`measureOfLabel`, `renderChartSource` et `renderStructuredSource` projetés
-sur `renderChart`) livrée par la **PR #364**. Prochain : **PR-2
-form-encoder au modèle** (mort de `withRepeatBars`) puis PR-3 tête de
-`detect-chords`, OU **retour au labo starter** — au choix. Candidat :
-module `playback/` (nursery). Restes : affordance UX du throttle redeem
+**Texte-comme-modèle** : PR-1 (chart-structure au modèle) livrée par la
+**PR #364**, PR-2 (form-encoder au modèle, mort de
+`withRepeatBars`/`segmentRows`) par la **PR #365**. Prochain : **PR-3
+tête de `detect-chords` au modèle** (dernier lot, mort probable de
+`timeLine`), puis **retour au labo starter** (« en tout dernier » du
+backlog revue). Candidat : module `playback/` (nursery). Restes : affordance UX du throttle redeem
 (slice UI, checkpoint d'approche) ; garde-fous revue (spec actions
 câblées, mutation:diff sur hooks web) ; découvrabilité du click ; filtre
 Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
