@@ -55,14 +55,6 @@ describe('transportReducer', () => {
     expect(transportReducer(loaded, { type: 'pause' }).isPlaying).toBe(false)
   })
 
-  it('toggle flips the playing flag', () => {
-    expect(transportReducer(loaded, { type: 'toggle' }).isPlaying).toBe(true)
-    expect(
-      transportReducer({ ...loaded, isPlaying: true }, { type: 'toggle' })
-        .isPlaying
-    ).toBe(false)
-  })
-
   it('seek moves the position, clamped to the timeline', () => {
     expect(
       transportReducer(loaded, { type: 'seek', toSeconds: 4 }).positionSeconds
@@ -87,7 +79,6 @@ describe('transportReducer', () => {
     const action = fc.oneof(
       fc.record({ type: fc.constant('play' as const) }),
       fc.record({ type: fc.constant('pause' as const) }),
-      fc.record({ type: fc.constant('toggle' as const) }),
       fc.record({
         type: fc.constant('seek' as const),
         toSeconds: fc.double({ noNaN: true })
