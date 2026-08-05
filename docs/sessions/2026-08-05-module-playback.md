@@ -24,11 +24,13 @@ suivants — la règle de trois était atteinte depuis longtemps.
 
 ## Not done / remaining
 
-- **Remontée au template `hexagonal-tdd-starter`** (2e pièce du lot labo) :
-  les 4 specs de discipline (variant/contract/port/adr-pointers), le
-  workflow `/revue-solid`, l'extension mutation:diff hooks web — à porter
-  via PRs sur le repo template (pas de clone local à ce jour).
-- Verdict Sonar de cette PR : à lire après le CI.
+- **Remontée au template `hexagonal-tdd-starter` : PR #35 ouverte**
+  (specs de discipline généralisées — scan dynamique des `packages/*/src`,
+  registres vides + exemples du terrain, pins à 0 —, règle Biome
+  d'exhaustivité, workflow `/solid-review` en anglais avec `args.context`) ;
+  gate du template vert, couverture 100 %. Merge côté template à suivre.
+  L'extension mutation:diff hooks web n'est PAS portée : le template n'a
+  pas de package web (résultat négatif documenté).
 
 ## Decisions
 
@@ -46,7 +48,7 @@ suivants — la règle de trois était atteinte depuis longtemps.
 - biome / sheriff / knip / jscpd / tokens / i18n / sonar-triage : ✅
   (`gate ok`, arbre stampé `49c8be12` ; Sheriff vert avec l'arête
   `playback → loops` déclarée)
-- SonarCloud : en attente du CI de la PR
+- SonarCloud (PR #372) : ✅ quality gate OK, 0 issue, 0 hotspot
 
 ## State to resume from
 
