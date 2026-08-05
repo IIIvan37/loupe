@@ -36,7 +36,10 @@ pnpm monorepo with a **pure hexagonal core** + a React (`web`) adapter,
   exemption names a file that moved: it would stop applying in silence.
 - `pnpm typecheck` / `pnpm check` / `pnpm check:fix` / `pnpm check:arch`
   / `pnpm check:dead` / `pnpm check:dup`.
-- Run the app: `pnpm --filter @app/web dev`.
+- Run the app: `pnpm dev` (browser shell only — no projects/URL import) or
+  `pnpm dev:full` (the full server shell with HMR: Vite with
+  `VITE_SHELL=server` proxying `/projects`, `/audio`, `/download`… to a
+  `cargo run -p loupe-server` on 6173 — what testers actually use).
 
 ## Architecture (hexagonal)
 
