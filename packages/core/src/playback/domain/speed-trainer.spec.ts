@@ -1,6 +1,6 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { percent, seconds } from '../shared/units.ts'
+import { percent, seconds } from '../../shared/units.ts'
 import { MAX_PLAYBACK_RATE, MIN_PLAYBACK_RATE } from './playback-rate.ts'
 import {
   completesLoopPass,

@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { loopContains } from '../loops/domain/loop-region.ts'
-import { seconds } from '../shared/units.ts'
+import { loopContains } from '../../loops/domain/loop-region.ts'
+import { seconds } from '../../shared/units.ts'
 import { type PlaybackTickInput, resolvePlaybackTick } from './playback-tick.ts'
 
 const tick = (overrides: Partial<PlaybackTickInput>): PlaybackTickInput => ({

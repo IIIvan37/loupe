@@ -112,6 +112,10 @@ export const config: SheriffConfig = {
     // Loops read the beat grid (snap-loop-region snaps A/B bounds onto it) —
     // rhythm never looks up.
     'feature:loops': [sameTag, 'shared', 'feature:rhythm'],
+    // Playback reads the loops model (the tick wraps the playhead inside the
+    // armed A/B region, the speed trainer counts its passes) — loops never
+    // look up at the transport.
+    'feature:playback': [sameTag, 'shared', 'feature:loops'],
     // Separation reads the audio primitives (stem-set summarises stems into
     // tracks, waveform-mix combines their waveforms, export-stems encodes
     // WAVs) — audio never looks up.

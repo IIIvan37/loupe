@@ -4,7 +4,7 @@ import {
   type Ratio,
   ratio,
   ratioToPercent
-} from '../shared/units.ts'
+} from '../../shared/units.ts'
 
 /**
  * Playback tempo as a ratio of the original speed (1 = normal). Independent of

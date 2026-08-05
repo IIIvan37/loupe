@@ -57,7 +57,7 @@ const VOCABULARIES: readonly Vocabulary[] = [
 /** Reducers the core exports: every variant of their action union must be
  * dispatched somewhere in web (file paths relative to this directory). */
 const WIRED_REDUCERS = [
-  { name: 'transportReducer', file: 'domain/transport.ts' },
+  { name: 'transportReducer', file: 'playback/domain/transport.ts' },
   { name: 'mixerReducer', file: 'separation/domain/mixer.ts' },
   { name: 'separationReducer', file: 'separation/domain/separation.ts' }
 ] as const

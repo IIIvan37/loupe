@@ -1,5 +1,5 @@
-import type { LoopRegion } from '../loops/domain/loop-region.ts'
-import { type Percent, percent, type Seconds } from '../shared/units.ts'
+import type { LoopRegion } from '../../loops/domain/loop-region.ts'
+import { type Percent, percent, type Seconds } from '../../shared/units.ts'
 import { MAX_TEMPO_PERCENT, MIN_TEMPO_PERCENT } from './playback-rate.ts'
 
 /**
