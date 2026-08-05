@@ -62,36 +62,8 @@ export {
   MIN_PITCH_SEMITONES,
   stepPitchSemitones
 } from './domain/pitch-shift.ts'
-export {
-  clampPlaybackRate,
-  MAX_TEMPO_PERCENT,
-  MIN_TEMPO_PERCENT,
-  stepTempoPercent
-} from './domain/playback-rate.ts'
-export type {
-  PlaybackTickInput,
-  PlaybackTickOutcome
-} from './domain/playback-tick.ts'
-export { resolvePlaybackTick } from './domain/playback-tick.ts'
 export { seekStepSeconds } from './domain/seek-step.ts'
-export type {
-  SpeedTrainerPolicy,
-  SpeedTrainerPreview,
-  SpeedTrainerSeam,
-  SpeedTrainerState
-} from './domain/speed-trainer.ts'
-export {
-  previewSpeedTrainer,
-  recordLoopPass,
-  speedTrainerSurvives,
-  startSpeedTrainer
-} from './domain/speed-trainer.ts'
 export { formatTimecode } from './domain/timecode.ts'
-export type {
-  TransportAction,
-  TransportState
-} from './domain/transport.ts'
-export { initialTransport, transportReducer } from './domain/transport.ts'
 export {
   clampZoom,
   MAX_ZOOM,
@@ -155,6 +127,37 @@ export {
   removeMarker,
   replaceStructureMarkers
 } from './markers/domain/marker-list.ts'
+export {
+  clampPlaybackRate,
+  MAX_TEMPO_PERCENT,
+  MIN_TEMPO_PERCENT,
+  stepTempoPercent
+} from './playback/domain/playback-rate.ts'
+export type {
+  PlaybackTickInput,
+  PlaybackTickOutcome
+} from './playback/domain/playback-tick.ts'
+export { resolvePlaybackTick } from './playback/domain/playback-tick.ts'
+export type {
+  SpeedTrainerPolicy,
+  SpeedTrainerPreview,
+  SpeedTrainerSeam,
+  SpeedTrainerState
+} from './playback/domain/speed-trainer.ts'
+export {
+  previewSpeedTrainer,
+  recordLoopPass,
+  speedTrainerSurvives,
+  startSpeedTrainer
+} from './playback/domain/speed-trainer.ts'
+export type {
+  TransportAction,
+  TransportState
+} from './playback/domain/transport.ts'
+export {
+  initialTransport,
+  transportReducer
+} from './playback/domain/transport.ts'
 export type {
   ProjectAudioStore,
   ProjectErrorCode,

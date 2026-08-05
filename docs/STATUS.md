@@ -17,10 +17,10 @@ consommateur. Jamais de hook à effet de montage, seul le seam
 `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** ([guide](guide-utilisateur.md) + code
 beta) ; version courante **v0.2.2** (tag `627a1b3`, release vérifiée).
-Revues justesse, texte-comme-modèle et SOLID soldées (cf. Historique ;
-la SOLID : constats PRs #367–#369, outillage PR #370). Prochain : **retour
-au labo starter**, récolte `playback/` — les 4 specs de discipline et le
-workflow revue gelé en tête des pièces à porter au template. Restes : affordance UX du throttle redeem
+Revues justesse, texte-comme-modèle et SOLID soldées (cf. Historique).
+**Labo starter en cours** : module `playback/` extrait (ADR-0005, arête
+`playback → loops` déclarée, livré par PR #372) ; reste la remontée au
+template (specs de discipline, workflow revue, mutation-diff web). Restes : affordance UX du throttle redeem
 (slice UI, checkpoint d'approche) ; découvrabilité du click ; filtre
 Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
 #180, plugin-react v6 #353).

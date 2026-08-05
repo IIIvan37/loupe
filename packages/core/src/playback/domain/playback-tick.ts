@@ -2,8 +2,8 @@ import {
   type LoopRegion,
   loopLength,
   wrapToLoop
-} from '../loops/domain/loop-region.ts'
-import type { Seconds } from '../shared/units.ts'
+} from '../../loops/domain/loop-region.ts'
+import type { Seconds } from '../../shared/units.ts'
 import { completesLoopPass } from './speed-trainer.ts'
 
 /**
