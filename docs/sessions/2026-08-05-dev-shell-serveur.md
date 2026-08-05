@@ -32,7 +32,6 @@ itération, zéro HMR).
 - `dev:analysis` reste le harnais Python legacy (venv fragile) — les
   analyses en dev passent par `VITE_ANALYSIS_URL` (Modal) ou ce harnais ;
   hors périmètre ici.
-- Verdict Sonar de cette PR : à lire après le CI.
 
 ## Decisions
 
@@ -48,7 +47,7 @@ itération, zéro HMR).
   (config vite, scripts, docs)
 - biome / sheriff / knip / jscpd / tokens / i18n / sonar-triage : ✅
   (`gate ok`, arbre stampé `d663375e`)
-- SonarCloud : en attente du CI de la PR
+- SonarCloud (PR #373) : ✅ quality gate OK, 0 issue, 0 hotspot
 
 ## State to resume from
 
