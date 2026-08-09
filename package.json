@@ -42,7 +42,7 @@
   },
   "devDependencies": {
     "@babel/core": "^8.0.1",
-    "@biomejs/biome": "^2.5.6",
+    "@biomejs/biome": "^2.5.7",
     "@commitlint/cli": "^21.1.0",
     "@commitlint/config-conventional": "^21.1.0",
     "@lingui/babel-plugin-lingui-macro": "^6.6.0",
@@ -58,8 +58,8 @@
     "husky": "^9.1.7",
     "impeccable": "^3.5.0",
     "jscpd": "^5.0.14",
-    "knip": "^6.29.0",
-    "react-doctor": "^0.9.2",
+    "knip": "^6.32.0",
+    "react-doctor": "^0.9.5",
     "typescript": "^6.0.3",
     "vitest": "^4.0.4"
   },
