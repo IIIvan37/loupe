@@ -1,7 +1,7 @@
 # Runtime deps, pinned for reproducibility — the server never self-upgrades.
 # Bump deliberately: edit a pin, reinstall, re-run the gate.
 fastapi==0.141.1
-uvicorn[standard]==0.52.0
+uvicorn[standard]==0.52.1
 demucs==4.1.0
 torch==2.13.0
 torchaudio==2.11.0
@@ -24,9 +24,9 @@ librosa==0.11.0
 # to the set the spike validated; transformers is version-sensitive (MuQ/MusicFM
 # use its older module layout) and pins huggingface-hub<1.0.
 transformers==4.51.1
-huggingface-hub==1.26.0
-x-transformers==2.24.1
-ema-pytorch==0.8.2
+huggingface-hub==1.26.1
+x-transformers==2.25.4
+ema-pytorch==0.8.3
 omegaconf==2.3.1
 safetensors==0.8.0
 nnAudio==0.3.4
