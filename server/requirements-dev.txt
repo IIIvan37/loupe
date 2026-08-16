@@ -4,8 +4,8 @@
 # absent-capability fallback. To actually run separation/tempo locally, also
 # `pip install -r requirements.txt`.
 fastapi==0.141.1
-uvicorn[standard]==0.52.0
-numpy==2.5.1
+uvicorn[standard]==0.52.2
+numpy==2.5.2
 pytest>=8.0
 pytest-cov>=7.1.0
 httpx>=0.28.1
