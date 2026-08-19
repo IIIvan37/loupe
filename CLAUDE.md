@@ -90,3 +90,25 @@ can't see.
   directly to `main` (enforced by `.claude/hooks/block-commit-on-main.sh`).
   - **Doc-only exception**: a commit whose every change is documentation (`*.md` or
     `docs/**`) may land directly on `main`.
+
+## Agent skills
+
+Per-repo configuration for the `mattpocock-skills` plugin. The project's own
+loop (`/new-feature-hexa` → `/tdd-cycle` → `pnpm gate` → `/session-report`)
+stays the reference; these files only tell the plugin's skills where things live.
+
+### Issue tracker
+
+GitHub issues on `IIIvan37/loupe`, via the `gh` CLI. See
+[docs/agents/issue-tracker.md](docs/agents/issue-tracker.md).
+
+### Triage labels
+
+The five canonical roles, each label string equal to its name. See
+[docs/agents/triage-labels.md](docs/agents/triage-labels.md).
+
+### Domain docs
+
+Single-context: one glossary at the root plus `docs/adr/` — the hexagon in
+`packages/core` is the single context, `packages/web` its adapter. See
+[docs/agents/domain.md](docs/agents/domain.md).
