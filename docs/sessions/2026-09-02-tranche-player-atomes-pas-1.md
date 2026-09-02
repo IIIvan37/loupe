@@ -35,6 +35,15 @@ chaque pas.
   semé à l'import, vidé dès qu'un nouvel import démarre).
 - `pnpm gate` vert, stampé `1413bc8a` (91,42 % lines). Core non touché :
   pas de `test:mutation:diff`.
+- **`SONAR_TOKEN` réparé** (secret GitHub remplacé le 2026-09-02 13:23Z) :
+  le secret du 2026-07-17 portait un token disparu côté SonarCloud, alors que
+  le token de l'opérateur (sans expiration) était accepté (`validate` →
+  `valid:true`, endpoint JRE → 200). Relance du check de #388 : JRE
+  provisionné, **`QUALITY GATE STATUS: PASSED`**, check vert — premier
+  exercice réel de `sonar.qualitygate.wait` sur une PR.
+  Diagnostic qui a tranché : `gh secret list` date le secret (07-17, jamais
+  modifié) ; l'endpoint `api.sonarcloud.io/analysis/jres` répond 200 sans
+  token, donc un 403 = token refusé ; `pnpm sonar 388` : 0 issue, 0 hotspot.
 
 ## Not done / remaining
 
@@ -47,12 +56,6 @@ chaque pas.
 - Les prochains atomes de piste (`metadata`, `loadedBytes`) ont vocation à
   rejoindre `track/track-atoms.ts` (même raison de DAG si un consommateur
   hors waveform les lit ; `use-project-session` est dans le shell, donc libre).
-- **`SONAR_TOKEN` réparé** (secret GitHub remplacé le 2026-09-02 13:23Z) :
-  le secret du 2026-07-17 portait un token disparu côté SonarCloud, alors que
-  le token de l'opérateur (sans expiration) était accepté (`validate` →
-  `valid:true`, endpoint JRE → 200). Relance du check de #388 : JRE
-  provisionné, **`QUALITY GATE STATUS: PASSED`**, check vert — premier
-  exercice réel de `sonar.qualitygate.wait` sur une PR.
 
 ## Decisions
 
@@ -68,8 +71,9 @@ chaque pas.
   — `metadata` et `loadedBytes` en atomes (dans `track/track-atoms.ts`),
   `usePlayer` les écrit, `use-project-session` et `ShellHeader`/`deriveChartHeader`
   les lisent ; un commit, gate vert, puis `/session-report`.
-- Tree state : stampé vert par `pnpm gate` (`1413bc8a`) · propre après ce
-  commit de rapport · PR #388 draft, 1 commit de code (`8a5dafc`).
+- Tree state : gate vert stampé `1413bc8a` sur le commit de code `8a5dafc` ;
+  les commits suivants sont doc-only (le stamp ne les couvre pas, aucun code
+  n'a changé depuis) · propre · PR #388 draft, Sonar vert.
 - Gotchas :
   - **Deux rapports le même jour** : `ls docs/sessions/*.md | sort | tail -1`
     renvoie le dernier par *slug*, pas le plus récent. Cette session a
@@ -82,3 +86,5 @@ chaque pas.
     prennent `audio` sans défaut (`loadedStore(AUDIO)`) ou un booléen
     `noAudio`.
   - Sur ce PC : `NODE_USE_ENV_PROXY=1 pnpm gate`.
+  - commitlint refuse un sujet qui commence par un identifiant en majuscules
+    (`SONAR_TOKEN réparé…` → `subject-case`) : commencer en minuscules.
