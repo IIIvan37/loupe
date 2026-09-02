@@ -35,8 +35,21 @@ après chaque merge (« verdict sonar de la PR #N consigné », ×8 depuis le 08
 
 ## Not done / remaining
 
-- Merge des PR #387 (loupe) et starter #47 : action opérateur. Le premier
-  vrai test de `sonar.qualitygate.wait` est le check de la PR #387 elle-même.
+- Merge des PR #387 (loupe) et starter #47 : action opérateur.
+- **`SONAR_TOKEN` refusé (HTTP 403) — bloque le merge de #387.** Le check
+  « SonarCloud analysis » (requis sur `main`) échoue dès le provisionnement
+  JRE, avant toute analyse : « Failed to query JRE metadata … check
+  SONAR_TOKEN ». Même scanner (8.1.0.6389) et même étape que le dernier run
+  vert du 2026-08-05 ; rien n'a tourné entre les deux (PR Dependabot sautées).
+  Le token a expiré ou a été révoqué — sans lien avec
+  `sonar.qualitygate.wait`. Opérateur : régénérer un token sur sonarcloud.io
+  (My Account → Security), remplacer le secret `SONAR_TOKEN` du dépôt,
+  relancer le check. Ce run relancé sera le premier vrai test du quality gate
+  bloquant.
+- **« Dependency audit » rouge** (non requis pour le merge) : `js-yaml`
+  (via `@commitlint/cli` → `cosmiconfig`, corrigé ≥ 4.3.1) et `nanoid` (via
+  `vite` → `postcss`, corrigé ≥ 3.3.18) — avis publiés depuis le dernier
+  push, pas ce changement. Bump Dependabot ou `pnpm update` à traiter.
 - **Branche interrompue `chore/source-tree-vocabulary`** (arbre principal) :
   11 fichiers indexés, jamais commités, aucun rapport — `scripts/source-tree.ts`
   + `docs/source-tree.spec.ts` (récolte du module « où sont les sources » du
