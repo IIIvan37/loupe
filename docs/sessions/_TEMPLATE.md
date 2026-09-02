@@ -7,14 +7,9 @@
 -
 
 ## Decisions
-- <durable decision; link to an invariant or a resolved open question if relevant>
-
-## Gate status
-- typecheck:
-- tests (with coverage):
-- mutation (Stryker, local, if core touched):
-- biome / sheriff / knip / jscpd:
+- <durable decision; link to an ADR if the reasoning is worth keeping>
 
 ## State to resume from
 - **Single next action**:
+- Tree state: <stamped green by `pnpm gate` / not stamped> · <what is uncommitted, or "clean">
 - Gotchas / half-done edits:

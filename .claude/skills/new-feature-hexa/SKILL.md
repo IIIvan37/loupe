@@ -76,10 +76,9 @@ build/spike that consumer first**. Don't invent the shape.
 ## 4bis. Extraction — when a module becomes apparent
 
 The signal is the rule of three: a third file sharing a prefix/concept, a
-use-case + port serving a single cluster. Naming the boundary stays YOUR call.
-(The mechanism — dormant Sheriff placeholder rules for
-`core/src/<feature>/{domain,application}` and the `modules:hint` script —
-arrives with lot TS.5 of the template-sync plan.) Then:
+use-case + port serving a single cluster. Naming the boundary stays YOUR call;
+`pnpm modules:hint` points at candidates — run it at each close-step (this
+step, not the session report, owns the module watch). Then:
 
 1. **Name** the module.
 2. **`git mv` the whole slice's center** — domain files, its use-cases, its

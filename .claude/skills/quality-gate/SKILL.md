@@ -80,8 +80,34 @@ between, including biome's own rewrite, misses the stamp and the full set runs.
   duplication past the budget — factor it out rather than bumping
   `.jscpd.json`; never `ignore` without the reason line.
 
+## Before the PR — the close-step checks
+
+The gate is per commit. Two checks are too slow or too remote for that cadence
+and run once per step, before the PR opens. They are this skill's job, not the
+session report's: the report records, it verifies nothing.
+
+- **Mutation testing scoped to the diff.** If the step touched `@app/core`
+  (the mutated scope), run `pnpm test:mutation:diff` — it mutates only the core
+  modules the branch touches. Surviving mutants are caught **now**, while the
+  code is fresh. The FULL run (`pnpm test:mutation`) is CI's post-merge job and
+  stays authoritative — never claim its score locally. Skip only when the step
+  touched no mutated package. One heavy run at a time: never Stryker
+  concurrently with `gate` or a full suite (CPU starvation fails tests —
+  enforced by `.claude/hooks/block-overlapping-heavy-runs.sh`).
+- **SonarCloud.** The PR check "SonarCloud analysis" fails when Sonar's quality
+  gate fails (`sonar.qualitygate.wait`), so the verdict is on the PR, not
+  something to write down. `pnpm sonar` reads that analysis in the terminal
+  (no token, no scanner; ~5 min after the push) — read it when the check goes
+  red, or at each close-step to catch rules the local detectors don't see
+  (cognitive complexity, a11y, Python). A false positive is triaged in
+  `sonar-project.properties` (config-as-code, travels with the PR), never
+  resolved in the web UI; `check:sonar` fails when an exemption names a file
+  that moved.
+
 ## Before declaring done
 
-- The gate is **green** (exit 0).
+- The gate is **green** (exit 0) — and stamped: `pnpm gate` leaves the stamp
+  the session report reads as "tree state".
 - Core coverage holds the thresholds (`vitest.config.ts`).
+- The close-step checks above ran (or the step touched no mutated package).
 - If the step is finished (not just verified), close it with `/session-report`.

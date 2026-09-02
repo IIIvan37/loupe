@@ -54,7 +54,7 @@ Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
 - **Séparation** : Demucs serveur (`server/`), moteurs WASM in-browser retirés ; **Phase 2 (2026-07-18)** : calcul offloadé sur **Modal**, le serveur local devient dev/CI.
 - **Web stack** : React + Jotai · Base UI · Every Layout · CSS Modules + tokens · smart/dumb.
 - **Extra gates** (blocking) : impeccable + react-doctor (`packages/web`) ; `check:tokens`, `check:i18n` (dérive du catalogue Lingui).
-- **Per-slice loop** : `/new-feature-hexa` → `/tdd-cycle` → `pnpm gate` → `pnpm test:mutation:diff` → `pnpm sonar` → `/code-review` → `/session-report` → PR.
+- **Per-slice loop** : `/new-feature-hexa` → `/tdd-cycle` → `/quality-gate` (gate + mutation:diff + Sonar, seul juge) → `/code-review` → `/session-report` (continuité seule) → PR.
 
 ## Plans
 
