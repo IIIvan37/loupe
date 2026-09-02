@@ -50,11 +50,13 @@ après chaque merge (« verdict sonar de la PR #N consigné », ×8 depuis le 08
   (via `@commitlint/cli` → `cosmiconfig`, corrigé ≥ 4.3.1) et `nanoid` (via
   `vite` → `postcss`, corrigé ≥ 3.3.18) — avis publiés depuis le dernier
   push, pas ce changement. Bump Dependabot ou `pnpm update` à traiter.
-- **Branche interrompue `chore/source-tree-vocabulary`** (arbre principal) :
-  11 fichiers indexés, jamais commités, aucun rapport — `scripts/source-tree.ts`
-  + `docs/source-tree.spec.ts` (récolte du module « où sont les sources » du
-  template) et les specs core/web réécrites dessus. Terminer ou abandonner :
-  au pilote.
+- **Branche interrompue `chore/source-tree-vocabulary` abandonnée** par le
+  pilote (plus de souvenir de son objet). Son contenu est dans un `git stash`
+  de l'arbre principal (« source-tree vocabulary harvest — abandoned
+  2026-09-02 ») : récolte du `scripts/source-tree.ts` du template (revue de
+  profondeur du 08-20, constat 3) — un seul marcheur pour les 9 détecteurs du
+  gate, dont 4 ignoraient `.stryker-tmp` et 5 non. À reprendre un jour via
+  `git stash apply`, ou `git stash drop` pour solder.
 - Deux propositions non retenues pour l'instant : un hook `SessionStart`
   (`startup`/`clear`) qui injecte branche, `git status`, STATUS et la fin du
   dernier rapport — « continuer » sans aucune lecture, et l'interruption
@@ -74,11 +76,9 @@ après chaque merge (« verdict sonar de la PR #N consigné », ×8 depuis le 08
 
 ## State to resume from
 
-- **Single next action** : après le merge de #387, régler le sort de la
-  branche interrompue `chore/source-tree-vocabulary` (terminer = commit +
-  gate + rapport ; abandonner = `git stash drop` assumé), puis l'affordance
-  UX du throttle redeem (checkpoint d'approche contre la maquette avant le
-  test d'acceptation).
+- **Single next action** : après le merge de #387, l'affordance UX du
+  throttle redeem — checkpoint d'approche contre la maquette avant le test
+  d'acceptation.
 - Tree state : stampé vert par `pnpm gate` (`84e7880d`, 91,41 % lines) ·
   propre après ce commit de rapport.
 - Gotchas :

@@ -21,9 +21,8 @@ Restes : affordance UX du throttle redeem (slice UI, checkpoint d'approche) ; d�
 
 ## Next action
 
-Régler le sort de la branche interrompue `chore/source-tree-vocabulary`
-(11 fichiers indexés sans commit ni rapport : terminer ou abandonner), puis
-l'affordance UX du throttle redeem — checkpoint d'approche avant le test.
+Affordance UX du throttle redeem : slice UI, checkpoint d'approche contre
+la maquette (2–3 lignes) avant d'écrire le test d'acceptation.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
