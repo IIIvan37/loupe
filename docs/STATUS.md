@@ -17,14 +17,16 @@ consommateur. Jamais de hook à effet de montage, seul le seam
 beta) ; version courante **v0.2.2** (tag `627a1b3`, release vérifiée).
 Revues justesse/texte-comme-modèle/SOLID et labo starter soldés (`playback/` par PR #372, template PR starter #35) ; shell serveur complet en dev par PR #373 (`pnpm dev:full`).
 **Skills recentrés par PR #387** (template PR starter #47) : `/session-report` = continuité seule, `/quality-gate` = seul juge (gate + mutation:diff + Sonar bloquant sur la PR).
-**Revue d'architecture (deepening) du 2026-09-02** : 7 candidats consignés dans son rapport de session ; le n° 1 (finir la migration du player vers les atomes — clé de voûte du cliquet des 25 hooks) est retenu, grilling tour 1 posé.
+**Revue d'architecture (deepening) du 2026-09-02** : 7 candidats consignés dans son rapport de session ; le n° 1 (finir la migration du player vers les atomes — clé de voûte du cliquet des 25 hooks) est retenu, grilling soldé.
+**Tranche « player → atomes » en cours (PR #388, un commit par valeur)** : pas 1 livré — `loadedAudioAtom` dans la feature feuille `app/track/` (le DAG 0012 interdit waveform : cycle via loops → tempo), lu par les analyses, l'export, le warmup et `useSeparateAndLoad` (plus d'argument). Restent `metadata` + `loadedBytes`, `timeRatio` + `fineTuneCents` + `tuning`, verbes sur le handle, shell nettoyé + cliquets.
 Restes : affordance UX du throttle redeem (slice UI, checkpoint d'approche) ; découvrabilité du click ; filtre Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7 #180, plugin-react v6 #353).
 
 ## Next action
 
-Répondre au tour 1 du grilling « player → atomes » (8 questions dans le
-rapport du 2026-09-02), puis ouvrir la tranche dans l'ordre Mikado recommandé
-(`loadedAudio` d'abord). L'affordance du throttle redeem passe après.
+Pas 2 de la tranche « player → atomes » (PR #388) : `metadata` et
+`loadedBytes` en atomes dans `track/track-atoms.ts`, écrits par `usePlayer`,
+lus par `use-project-session` et le header. L'affordance du throttle redeem
+passe après la tranche.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
