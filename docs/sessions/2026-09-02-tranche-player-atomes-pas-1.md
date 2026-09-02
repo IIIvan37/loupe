@@ -47,8 +47,12 @@ chaque pas.
 - Les prochains atomes de piste (`metadata`, `loadedBytes`) ont vocation à
   rejoindre `track/track-atoms.ts` (même raison de DAG si un consommateur
   hors waveform les lit ; `use-project-session` est dans le shell, donc libre).
-- `SONAR_TOKEN` toujours à régénérer (opérateur) : le check « SonarCloud
-  analysis » de #388 sera rouge pour la même raison que #387.
+- **`SONAR_TOKEN` réparé** (secret GitHub remplacé le 2026-09-02 13:23Z) :
+  le secret du 2026-07-17 portait un token disparu côté SonarCloud, alors que
+  le token de l'opérateur (sans expiration) était accepté (`validate` →
+  `valid:true`, endpoint JRE → 200). Relance du check de #388 : JRE
+  provisionné, **`QUALITY GATE STATUS: PASSED`**, check vert — premier
+  exercice réel de `sonar.qualitygate.wait` sur une PR.
 
 ## Decisions
 
