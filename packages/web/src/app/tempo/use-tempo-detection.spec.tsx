@@ -5,6 +5,7 @@ import { Provider, createStore } from 'jotai'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AudioSessionProvider } from '../audio-session/audio-session-provider.tsx'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import type { MetronomeMixer } from './use-metronome.ts'
 import { DEFAULT_METRONOME_CHANNEL } from './metronome-stem.ts'
 import { tempoCancelledAtom } from './tempo-atoms.ts'
@@ -40,6 +41,7 @@ function mountDetection({
   separationOwnsMix?: boolean
 }) {
   const store = createStore()
+  store.set(loadedAudioAtom, AUDIO)
   const detector = {
     detect: vi.fn(async () => ({
       bpm: 120,
@@ -58,7 +60,6 @@ function mountDetection({
     () =>
       useTempoDetection({
         mixer,
-        loadedAudio: AUDIO,
         separationOwnsMix,
         autoDetectSpendsNothing: () => spendsNothing
       }),

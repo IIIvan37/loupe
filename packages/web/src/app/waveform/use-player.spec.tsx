@@ -1,13 +1,16 @@
 // @vitest-environment jsdom
 import type {
   AudioFileDecoder,
+  DecodedAudio,
   PlaybackEngine,
   TrackMetadataReader
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
-import { Provider } from 'jotai'
+import { Provider, createStore } from 'jotai'
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlaybackTransport } from '../audio-session/audio-session.ts'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import { usePlayer } from './use-player.ts'
 
 /** An inert engine — the handle contract needs identities, not sound. */
@@ -41,19 +44,48 @@ function fakeStemTransport(): PlaybackTransport {
   }
 }
 
+const DECODED: DecodedAudio = { sampleRate: 1, channels: [[0, 1]] }
 const decoder: AudioFileDecoder = {
-  decode: async () => ({ sampleRate: 1, channels: [[0, 1]] })
+  decode: async () => DECODED
 }
 const reader: TrackMetadataReader = {
   read: async () => ({ title: undefined, artist: undefined })
 }
 
-function mountPlayer() {
+function mountPlayer(store = createStore()) {
+  const wrapper = ({ children }: { readonly children: ReactNode }) => (
+    <Provider store={store}>{children}</Provider>
+  )
   return renderHook(
     () => usePlayer(decoder, fakeEngine(), reader, fakeStemTransport()),
-    { wrapper: Provider }
+    { wrapper }
   )
 }
+
+describe('usePlayer — the loaded PCM is the feature\'s atom (ADR 0010)', () => {
+  it('seats the decoded audio in loadedAudioAtom on a successful import', async () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+    expect(store.get(loadedAudioAtom)).toBeUndefined()
+
+    await act(() => result.current.importFile(new File(['x'], 'take.wav')))
+
+    expect(store.get(loadedAudioAtom)).toBe(DECODED)
+  })
+
+  it('clears the atom the moment a new import starts', async () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+    await act(() => result.current.importFile(new File(['x'], 'take.wav')))
+
+    // A slow decode must not leave the previous track's PCM on offer — the
+    // consumers (analyses, export, separation) key on the atom's identity.
+    act(() => {
+      void result.current.importFile(new File(['y'], 'next.wav'))
+    })
+    expect(store.get(loadedAudioAtom)).toBeUndefined()
+  })
+})
 
 describe('usePlayer — the handle is a stable reference (ADR 0011)', () => {
   it('keeps ONE identity across re-renders and state changes', () => {

@@ -10,6 +10,7 @@ import {
   monoMixWithout,
   type SeparatedStem
 } from '@app/core'
+import { useAtomValue } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createChordDetector } from '../../audio/create-chord-detector.ts'
 import {
@@ -21,6 +22,7 @@ import type { MintFailureReason } from '../../auth/auth-port.ts'
 import { nextPaint } from '../../lib/next-paint.ts'
 import { useLatest } from '../../lib/use-latest.ts'
 import { BASS_STEM_ID, DRUMS_STEM_ID } from '../stems/stem-ids.ts'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import {
   DEFAULT_BARS_PER_ROW,
   readStoredBarsPerRow
@@ -70,7 +72,6 @@ export interface ChordDetection {
  * inherit the old one's chart.
  */
 export function useChordDetection({
-  loadedAudio,
   grid,
   beatsPerBar,
   sections,
@@ -81,7 +82,6 @@ export function useChordDetection({
   detector,
   gate = ensureAnalysisToken
 }: {
-  readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
   /** The session's felt bar length — the meter the draft's {time:} head
    * prints (a folded grid's raw beat density is not the meter). */
@@ -107,6 +107,9 @@ export function useChordDetection({
    * to the app gate; a no-op pass locally. Injected in tests. */
   readonly gate?: () => Promise<EnsureTokenResult>
 }): ChordDetection {
+  // The track is the player feature's atom (ADR 0010): the detection reads
+  // it here — its identity is the run's commit guard below.
+  const loadedAudio = useAtomValue(loadedAudioAtom)
   const engine = useMemo(() => detector ?? createChordDetector(), [detector])
   const [detecting, setDetecting] = useState(false)
   const [error, setError] = useState<ChordDetectionErrorCode>()

@@ -194,11 +194,12 @@ export const config: SheriffConfig = {
       'web:feature:audio-session',
       'web:audio'
     ],
-    // The lead sheet detects chords (gated analysis).
+    // The lead sheet detects chords (gated analysis) of the loaded track.
     'web:feature:lead-sheet': [
       sameTag,
       ...WEB_KIT,
       'web:feature:stems',
+      'web:feature:track',
       'web:audio',
       'web:auth'
     ],
@@ -211,11 +212,13 @@ export const config: SheriffConfig = {
       'web:feature:audio-session',
       'web:feature:tempo'
     ],
-    // Structure markers ride the lead-sheet's chart and gate their detection.
+    // Structure markers ride the lead-sheet's chart and gate their detection
+    // of the loaded track.
     'web:feature:markers': [
       sameTag,
       ...WEB_KIT,
       'web:feature:lead-sheet',
+      'web:feature:track',
       'web:audio',
       'web:auth'
     ],
@@ -241,23 +244,31 @@ export const config: SheriffConfig = {
       'web:auth'
     ],
     // The metronome and count-in are mixer CLIENTS: they seat stems in the mix
-    // (ADR 0012, cycle 1) — the mix never looks up at them.
+    // (ADR 0012, cycle 1) — the mix never looks up at them. The auto-detect
+    // fires on the loaded track's PCM (the ADR 0010 atom read).
     'web:feature:tempo': [
       sameTag,
       ...WEB_KIT,
       'web:feature:audio-session',
       'web:feature:mixer',
+      'web:feature:track',
       'web:audio',
       'web:auth'
     ],
+    // The loaded track is a LEAF: the player writes its PCM there and the
+    // analyses read it (ADR 0010) — a home in waveform would close the cycle
+    // waveform → loops → tempo → waveform. It depends on nothing.
+    'web:feature:track': [sameTag, ...WEB_KIT],
     // The transport reads the stem engine's state to pick its engine (the
-    // ADR 0010 atom read — cycle 2's kept direction) and drives the trainer.
+    // ADR 0010 atom read — cycle 2's kept direction), drives the trainer and
+    // seats the loaded track's PCM.
     'web:feature:waveform': [
       sameTag,
       ...WEB_KIT,
       'web:feature:audio-session',
       'web:feature:loops',
       'web:feature:mixer',
+      'web:feature:track',
       'web:audio'
     ],
     // The composition root: seeing every feature is its privilege, the pendant

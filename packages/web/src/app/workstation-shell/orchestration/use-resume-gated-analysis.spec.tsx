@@ -13,6 +13,7 @@ import {
   metronomeEnabledAtom,
   tempoGateReasonAtom
 } from '../../tempo/tempo-atoms.ts'
+import { loadedAudioAtom } from '../../track/track-atoms.ts'
 import { useResumeGatedAnalysis } from './use-resume-gated-analysis.ts'
 
 // The analysis gate only engages on the offload path (VITE_ANALYSIS_URL set) —
@@ -78,6 +79,9 @@ function mountResume({
   noAudio?: boolean
 } = {}) {
   const store = createStore()
+  if (!noAudio) {
+    store.set(loadedAudioAtom, AUDIO)
+  }
   if (tempoGated) {
     store.set(tempoGateReasonAtom, 'sign-in-required')
   }
@@ -107,7 +111,6 @@ function mountResume({
         structureDetection,
         chordDetection,
         separateAndLoad,
-        loadedAudio: noAudio ? undefined : AUDIO,
         mixer,
         separationOwnsMix
       }),
@@ -160,7 +163,7 @@ describe('useResumeGatedAnalysis — the tempo flow is derived, not passed (ADR 
 
     replay()
 
-    expect(separateAndLoad).toHaveBeenCalledExactlyOnceWith(AUDIO)
+    expect(separateAndLoad).toHaveBeenCalledOnce()
   })
 
   it('gated structure and chords replay their own detect', () => {

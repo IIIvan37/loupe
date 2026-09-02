@@ -7,7 +7,10 @@ import {
   type SeparatedStem
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { Provider, createStore } from 'jotai'
+import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import { useChordDetection } from './use-chord-detection.ts'
 
 // The analysis gate only engages on the offload path (VITE_ANALYSIS_URL set).
@@ -18,6 +21,19 @@ beforeEach(() => vi.stubEnv('VITE_ANALYSIS_URL', ''))
 afterEach(() => vi.unstubAllEnvs())
 
 const AUDIO: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
+
+/** A store with the track loaded — the hook reads the PCM off the player's
+ * atom (ADR 0010); `undefined` mounts it before any import (no default: an
+ * explicit `undefined` would fall back to it). Replacing the
+ * atom's value is how a test replaces the track. */
+function loadedStore(audio: DecodedAudio | undefined) {
+  const store = createStore()
+  store.set(loadedAudioAtom, audio)
+  const wrapper = ({ children }: { readonly children: ReactNode }) => (
+    <Provider store={store}>{children}</Provider>
+  )
+  return { store, wrapper }
+}
 
 /** A one-bar grid: a downbeat at 0, the detection spans [0, 2). */
 const GRID: BeatGrid = [
@@ -57,11 +73,11 @@ describe('useChordDetection', () => {
     const gated = gatedDetector()
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         onDraft,
         detector: gated
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     let run: Promise<void> = Promise.resolve()
     act(() => {
@@ -84,11 +100,11 @@ describe('useChordDetection', () => {
     const onDraft = vi.fn()
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         onDraft,
         detector: detectorOf(['C'])
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(4))
     expect(onDraft).toHaveBeenCalledWith(expect.stringContaining('| C |'))
@@ -103,11 +119,11 @@ describe('useChordDetection', () => {
     }))
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid,
         onDraft,
         detector: detectorOf(['C', 'G', 'Am'])
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(2))
     expect(onDraft).toHaveBeenCalledWith(
@@ -119,11 +135,11 @@ describe('useChordDetection', () => {
     const detector = gatedDetector()
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         onDraft: vi.fn(),
         detector
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     let run: Promise<void> = Promise.resolve()
     act(() => {
@@ -148,12 +164,11 @@ describe('useChordDetection', () => {
     const { result, rerender } = renderHook(
       ({ detector }: { detector: ChordDetector }) =>
         useChordDetection({
-          loadedAudio: AUDIO,
           grid: GRID,
           onDraft,
           detector
         }),
-      { initialProps: { detector: boom } }
+      { wrapper: loadedStore(AUDIO).wrapper, initialProps: { detector: boom } }
     )
     await act(() => result.current.detect(4))
     expect(result.current.error).toBe('unknown')
@@ -175,11 +190,11 @@ describe('useChordDetection', () => {
     }
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         onDraft: vi.fn(),
         detector: engineDown
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(4))
     expect(result.current.error).toBe('engine-unavailable')
@@ -197,11 +212,11 @@ describe('useChordDetection', () => {
     }
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         onDraft: vi.fn(),
         detector: engineDown
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(4))
     expect(logged).toHaveBeenCalledWith(
@@ -215,21 +230,21 @@ describe('useChordDetection', () => {
   it('drops a late result when the track was replaced mid-flight', async () => {
     const detector = gatedDetector()
     const onDraft = vi.fn()
-    const { result, rerender } = renderHook(
-      ({ audio }: { audio: DecodedAudio }) =>
+    const { store, wrapper } = loadedStore(AUDIO)
+    const { result } = renderHook(
+      () =>
         useChordDetection({
-          loadedAudio: audio,
           grid: GRID,
           onDraft,
           detector
         }),
-      { initialProps: { audio: AUDIO } }
+      { wrapper }
     )
     let run: Promise<void> = Promise.resolve()
     act(() => {
       run = result.current.detect(4)
     })
-    rerender({ audio: { sampleRate: 4, channels: [[0.5]] } })
+    act(() => store.set(loadedAudioAtom, { sampleRate: 4, channels: [[0.5]] }))
     detector.release()
     await act(() => run)
     // The new track must not inherit the old track's chart.
@@ -247,22 +262,22 @@ describe('useChordDetection', () => {
         return new Promise(() => {})
       }
     }
-    const { result, rerender } = renderHook(
-      ({ audio }: { audio: DecodedAudio }) =>
+    const { store, wrapper } = loadedStore(AUDIO)
+    const { result } = renderHook(
+      () =>
         useChordDetection({
-          loadedAudio: audio,
           grid: GRID,
           onDraft: vi.fn(),
           detector: pending
         }),
-      { initialProps: { audio: AUDIO } }
+      { wrapper }
     )
     // Imperative hook API with no user event — act wraps the sync state flip.
     act(() => {
       void result.current.detect(4)
     })
     expect(seenSignal?.aborted).toBe(false)
-    rerender({ audio: { sampleRate: 4, channels: [[0.5]] } })
+    act(() => store.set(loadedAudioAtom, { sampleRate: 4, channels: [[0.5]] }))
     expect(seenSignal?.aborted).toBe(true)
   })
 
@@ -278,11 +293,11 @@ describe('useChordDetection', () => {
     }
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         onDraft: vi.fn(),
         detector: pending
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     act(() => {
       void result.current.detect(4)
@@ -298,11 +313,11 @@ describe('useChordDetection', () => {
     const detect = vi.fn()
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: undefined,
         grid: GRID,
         onDraft: vi.fn(),
         detector: { detect }
-      })
+      }),
+      { wrapper: loadedStore(undefined).wrapper }
     )
     await act(() => result.current.detect(4))
     expect(detect).not.toHaveBeenCalled()
@@ -314,12 +329,12 @@ describe('useChordDetection', () => {
     const detect = vi.fn()
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         onDraft: vi.fn(),
         detector: { detect },
         gate: async () => ({ ok: false, reason: 'quota-exceeded' })
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(4))
     // The detector never ran — the gate stopped it — and the reason is out.
@@ -340,12 +355,12 @@ describe('useChordDetection', () => {
       .mockResolvedValue({ ok: true })
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         onDraft,
         detector: detectorOf(['C']),
         gate
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(4))
     expect(result.current.gateReason).toBe('sign-in-required')
@@ -365,12 +380,12 @@ describe('useChordDetection', () => {
     )
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         onDraft: vi.fn(),
         detector: { detect: vi.fn() },
         gate: () => gatePromise
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     let run: Promise<void> = Promise.resolve()
     act(() => {
@@ -392,12 +407,12 @@ describe('useChordDetection', () => {
     const detect = vi.fn()
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         onDraft: vi.fn(),
         detector: { detect },
         gate: () => gatePromise
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     let run: Promise<void> = Promise.resolve()
     act(() => {
@@ -417,12 +432,12 @@ describe('useChordDetection', () => {
     const onDraft = vi.fn()
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         onDraft,
         detector: detectorOf(['C']),
         gate
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(4))
     expect(gate).not.toHaveBeenCalled()
@@ -439,7 +454,6 @@ describe('useChordDetection', () => {
     }
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         // Real session stems carry the server manifest's FRENCH ids
         // (stem_manifest.py: bass→basse, drums→batterie) — the fakes must
@@ -459,7 +473,8 @@ describe('useChordDetection', () => {
         ],
         onDraft: () => {},
         detector: spy
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(4))
     expect(Array.from(heard[0]?.channels[0] ?? [])).toEqual(
@@ -489,12 +504,12 @@ describe('useChordDetection', () => {
     ])
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         ensureStems,
         onDraft: () => {},
         detector: spy
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(4))
     expect(ensureStems).toHaveBeenCalledTimes(1)
@@ -518,7 +533,6 @@ describe('useChordDetection', () => {
     const onDraft = vi.fn()
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid,
         stems: [
           {
@@ -529,7 +543,8 @@ describe('useChordDetection', () => {
         ],
         onDraft,
         detector: detectorOf(['C'])
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(4))
     expect(onDraft).toHaveBeenCalledOnce()
@@ -545,12 +560,12 @@ describe('useChordDetection', () => {
       })
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         ensureStems,
         onDraft: () => {},
         detector: detectorOf(['C'])
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     let run: Promise<void> = Promise.resolve()
     act(() => {
@@ -568,13 +583,13 @@ describe('useChordDetection', () => {
       new Promise<ReadonlyArray<SeparatedStem> | undefined>(() => {})
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         ensureStems,
         cancelSeparation,
         onDraft: () => {},
         detector: detectorOf(['C'])
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     act(() => {
       void result.current.detect(4)
@@ -602,12 +617,12 @@ describe('useChordDetection', () => {
     ]
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         stems,
         onDraft: () => {},
         detector: spy
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(4))
     await act(() => result.current.detect(4))
@@ -626,12 +641,12 @@ describe('useChordDetection', () => {
     }
     const { result } = renderHook(() =>
       useChordDetection({
-        loadedAudio: AUDIO,
         grid: GRID,
         ensureStems: async () => undefined,
         onDraft: () => {},
         detector: spy
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect(4))
     expect(heard[0]).toBe(AUDIO)

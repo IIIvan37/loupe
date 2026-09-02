@@ -1,9 +1,4 @@
-import {
-  type DecodedAudio,
-  type MixerState,
-  type SeparatedStem,
-  UNITY_GAIN_DB
-} from '@app/core'
+import { type MixerState, type SeparatedStem, UNITY_GAIN_DB } from '@app/core'
 import { useAtomValue } from 'jotai'
 import { useLatest } from '../../../lib/use-latest.ts'
 import { METRONOME_ID } from '../../mixer/synthetic-stem.ts'
@@ -12,6 +7,7 @@ import { useSeparation } from '../../separation/use-separation.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../../tempo/metronome-stem.ts'
 import { tempoAnalysisAtom } from '../../tempo/tempo-atoms.ts'
 import { type MetronomeMixer, useMetronome } from '../../tempo/use-metronome.ts'
+import { loadedAudioAtom } from '../../track/track-atoms.ts'
 
 interface SeparateAndLoadDeps {
   /** The mix the stems (and click) land in — the shell stack's instance (the
@@ -22,16 +18,15 @@ interface SeparateAndLoadDeps {
 }
 
 /**
- * Runs a separation and wires the resulting stems into the mixer in one pass —
- * carrying the always-on metronome alongside them when a tempo is known, so
- * neither load overwrites the other. Kept out of the shell so the event handler
- * reads as one call; the audio-engine sync belongs to this moment, not an effect.
+ * Runs a separation of the loaded track and wires the resulting stems into the
+ * mixer in one pass — carrying the always-on metronome alongside them when a
+ * tempo is known, so neither load overwrites the other. Kept out of the shell
+ * so the event handler reads as one call; the audio-engine sync belongs to this
+ * moment, not an effect. A no-op (resolves undefined) before any track loads.
  */
 export function useSeparateAndLoad({
   mixer
-}: SeparateAndLoadDeps): (
-  audio: DecodedAudio | undefined
-) => Promise<readonly SeparatedStem[] | undefined> {
+}: SeparateAndLoadDeps): () => Promise<readonly SeparatedStem[] | undefined> {
   // The separation bag is feature-owned now (ADR 0010): the hook reads the
   // same session separation as the shell stack's instance, atoms included.
   const separation = useSeparation()
@@ -45,10 +40,14 @@ export function useSeparateAndLoad({
   // would lose it (and read a stale metronome channel off the old mixer).
   const analysisRef = useLatest(useAtomValue(tempoAnalysisAtom))
   const mixerRef = useLatest(mixer)
+  // The track is the player feature's atom (ADR 0010), read at CALL time so
+  // no caller has to hold the PCM just to hand it back.
+  const audioRef = useLatest(useAtomValue(loadedAudioAtom))
   // Resolves with the isolated sources once the mixer is wired — the chord
   // flow's implicit separation (4a) awaits them; undefined on failure/cancel
   // (the caller falls back, separation's own UI already told the story).
-  return async (audio) => {
+  return async () => {
+    const audio = audioRef.current
     if (!audio) {
       return undefined
     }

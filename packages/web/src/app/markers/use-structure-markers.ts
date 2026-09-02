@@ -1,4 +1,4 @@
-import type { BeatGrid, DecodedAudio, StructureDetector } from '@app/core'
+import type { BeatGrid, StructureDetector } from '@app/core'
 import {
   DEFAULT_BARS_PER_ROW,
   readStoredBarsPerRow
@@ -21,14 +21,12 @@ import {
  * relabel (and the snap), so the button still works before the tempo is known.
  */
 export function useStructureMarkers({
-  loadedAudio,
   grid,
   beatsPerBar,
   markers,
   chart,
   detector
 }: {
-  readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
   /** The session's felt bar length, for the relabel's {time:} marks. */
   readonly beatsPerBar?: number | undefined
@@ -42,7 +40,6 @@ export function useStructureMarkers({
   readonly detector?: StructureDetector | undefined
 }): StructureDetection {
   return useStructureDetection({
-    loadedAudio,
     grid,
     onSections: (sections) => {
       markers.setSections(sectionMarkers(sections))

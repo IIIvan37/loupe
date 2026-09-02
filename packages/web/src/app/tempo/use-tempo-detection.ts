@@ -1,10 +1,12 @@
 import type { BeatGrid, DecodedAudio, OctaveFactor } from '@app/core'
+import { useAtomValue } from 'jotai'
 import { useEffect, useRef } from 'react'
 import {
   cachedAnalysisToken,
   isAnalysisOffloaded
 } from '../../auth/analysis-token.ts'
 import { useLatest } from '../../lib/use-latest.ts'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import { DEFAULT_METRONOME_CHANNEL } from './metronome-stem.ts'
 import type { MetronomeMixer } from './use-metronome.ts'
 import { useMetronome } from './use-metronome.ts'
@@ -54,7 +56,6 @@ function defaultAutoDetectSpendsNothing(): boolean {
 
 export function useTempoDetection({
   mixer,
-  loadedAudio,
   separationOwnsMix,
   autoDetectSpendsNothing = defaultAutoDetectSpendsNothing
 }: {
@@ -62,7 +63,6 @@ export function useTempoDetection({
    * seam, same idiom as `MetronomeDeps`); tempo and metronome are the
    * feature's own, derived here, not passed. */
   readonly mixer: MetronomeMixer
-  readonly loadedAudio: DecodedAudio | undefined
   /** A separation holds the mixer — `enable` would clobber its stems. */
   readonly separationOwnsMix: boolean
   /** Injected in specs; see `defaultAutoDetectSpendsNothing`. */
@@ -72,6 +72,9 @@ export function useTempoDetection({
   // this instance sees the exact tempo the shell and the regions see.
   const tempo = useTempo()
   const metronome = useMetronome({ mixer })
+  // The track is the player feature's atom too (ADR 0010): a fresh PCM
+  // landing there is what fires the auto-run.
+  const loadedAudio = useAtomValue(loadedAudioAtom)
   const suppressAutoDetectRef = useRef(false)
   // Read at RESOLVE time (a separation can finish while a detection is in
   // flight — its stems must win over the late result's track+click seating).

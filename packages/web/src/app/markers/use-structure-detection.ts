@@ -1,11 +1,11 @@
 import {
   type BeatGrid,
-  type DecodedAudio,
   type DetectedSection,
   detectStructure,
   type StructureDetectionErrorCode,
   type StructureDetector
 } from '@app/core'
+import { useAtomValue } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createStructureDetector } from '../../audio/create-structure-detector.ts'
 import {
@@ -15,6 +15,7 @@ import {
 } from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
 import { useLatest } from '../../lib/use-latest.ts'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 
 export interface StructureDetection {
   /** Whether a detection is in flight (drives the busy button). */
@@ -51,13 +52,11 @@ export interface StructureDetection {
  * before the tempo is known (the use-case then skips snapping).
  */
 export function useStructureDetection({
-  loadedAudio,
   grid,
   onSections,
   detector,
   gate = ensureAnalysisToken
 }: {
-  readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
   readonly onSections: (sections: readonly DetectedSection[]) => void
   readonly detector?: StructureDetector | undefined
@@ -65,6 +64,9 @@ export function useStructureDetection({
    * app gate; a no-op pass locally. Injected in tests. */
   readonly gate?: () => Promise<EnsureTokenResult>
 }): StructureDetection {
+  // The track is the player feature's atom (ADR 0010): the detection reads
+  // it here — its identity is the run's commit guard below.
+  const loadedAudio = useAtomValue(loadedAudioAtom)
   const engine = useMemo(
     () => detector ?? createStructureDetector(),
     [detector]

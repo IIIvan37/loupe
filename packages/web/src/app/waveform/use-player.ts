@@ -37,6 +37,7 @@ import {
   useSpeedTrainer
 } from '../loops/use-speed-trainer.ts'
 import { stemsActiveAtom } from '../mixer/mixer-atoms.ts'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import {
   type ImportState,
   importStateAtom,
@@ -54,8 +55,6 @@ export type { ImportState } from './player-atoms.ts'
 
 export interface Player {
   readonly importState: ImportState
-  /** The decoded PCM of the loaded track, for reuse (stem separation). */
-  readonly loadedAudio: DecodedAudio | undefined
   /** The imported file's original encoded bytes, for reuse (saving a project). */
   readonly loadedBytes: ArrayBuffer | undefined
   /** Tags read from the imported file (empty fields when the file has none). */
@@ -154,12 +153,11 @@ export function usePlayer(
     [injectedReader]
   )
   const [metadata, setMetadata] = useState<TrackMetadata>(NO_METADATA)
-  // The import lifecycle and the pitch ride the feature's atoms (ADR 0010):
-  // the regions render them on their own instead of receiving them as props.
+  // The import lifecycle, the loaded PCM and the pitch ride the feature's
+  // atoms (ADR 0010): the regions and the analyses read them on their own
+  // instead of receiving them as props.
   const [importState, setImportState] = useAtom(importStateAtom)
-  const [loadedAudio, setLoadedAudio] = useState<DecodedAudio | undefined>(
-    undefined
-  )
+  const [loadedAudio, setLoadedAudio] = useAtom(loadedAudioAtom)
   const [loadedBytes, setLoadedBytes] = useState<ArrayBuffer | undefined>(
     undefined
   )
@@ -403,7 +401,6 @@ export function usePlayer(
 
   return {
     importState,
-    loadedAudio,
     loadedBytes,
     metadata,
     transport,

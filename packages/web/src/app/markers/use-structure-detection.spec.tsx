@@ -7,7 +7,10 @@ import {
   type StructureDetector
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { Provider, createStore } from 'jotai'
+import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import { useStructureDetection } from './use-structure-detection.ts'
 
 // The analysis gate only engages on the offload path (VITE_ANALYSIS_URL set).
@@ -18,6 +21,19 @@ beforeEach(() => vi.stubEnv('VITE_ANALYSIS_URL', ''))
 afterEach(() => vi.unstubAllEnvs())
 
 const AUDIO: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
+
+/** A store with the track loaded — the hook reads the PCM off the player's
+ * atom (ADR 0010); `undefined` mounts it before any import (no default: an
+ * explicit `undefined` would fall back to it). Replacing the
+ * atom's value is how a test replaces the track. */
+function loadedStore(audio: DecodedAudio | undefined) {
+  const store = createStore()
+  store.set(loadedAudioAtom, audio)
+  const wrapper = ({ children }: { readonly children: ReactNode }) => (
+    <Provider store={store}>{children}</Provider>
+  )
+  return { store, wrapper }
+}
 
 /** No grid needed — structure detection works before the tempo is known. */
 const NO_GRID: BeatGrid = []
@@ -50,11 +66,11 @@ describe('useStructureDetection', () => {
     const onSections = vi.fn()
     const { result } = renderHook(() =>
       useStructureDetection({
-        loadedAudio: AUDIO,
         grid: NO_GRID,
         onSections,
         detector: detectorOf(sections)
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect())
     expect(onSections).toHaveBeenCalledWith(sections)
@@ -65,11 +81,11 @@ describe('useStructureDetection', () => {
     const detector = gatedDetector()
     const { result } = renderHook(() =>
       useStructureDetection({
-        loadedAudio: AUDIO,
         grid: NO_GRID,
         onSections: vi.fn(),
         detector
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     let run: Promise<void> = Promise.resolve()
     act(() => {
@@ -87,11 +103,11 @@ describe('useStructureDetection', () => {
     const muted = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const { result } = renderHook(() =>
       useStructureDetection({
-        loadedAudio: AUDIO,
         grid: NO_GRID,
         onSections: vi.fn(),
         detector: detectorOf([])
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect())
     expect(result.current.error).toBe('no-structure')
@@ -109,12 +125,11 @@ describe('useStructureDetection', () => {
     const { result, rerender } = renderHook(
       ({ detector }: { detector: StructureDetector }) =>
         useStructureDetection({
-          loadedAudio: AUDIO,
           grid: NO_GRID,
           onSections,
           detector
         }),
-      { initialProps: { detector: boom } }
+      { wrapper: loadedStore(AUDIO).wrapper, initialProps: { detector: boom } }
     )
     await act(() => result.current.detect())
     expect(result.current.error).toBe('unknown')
@@ -140,11 +155,11 @@ describe('useStructureDetection', () => {
     }
     const { result } = renderHook(() =>
       useStructureDetection({
-        loadedAudio: AUDIO,
         grid: NO_GRID,
         onSections: vi.fn(),
         detector: engineDown
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect())
     expect(result.current.error).toBe('engine-unavailable')
@@ -162,11 +177,11 @@ describe('useStructureDetection', () => {
     }
     const { result } = renderHook(() =>
       useStructureDetection({
-        loadedAudio: AUDIO,
         grid: NO_GRID,
         onSections: vi.fn(),
         detector: engineDown
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect())
     expect(logged).toHaveBeenCalledWith(
@@ -180,21 +195,21 @@ describe('useStructureDetection', () => {
   it('drops a late result when the track was replaced mid-flight', async () => {
     const detector = gatedDetector()
     const onSections = vi.fn()
-    const { result, rerender } = renderHook(
-      ({ audio }: { audio: DecodedAudio }) =>
+    const { store, wrapper } = loadedStore(AUDIO)
+    const { result } = renderHook(
+      () =>
         useStructureDetection({
-          loadedAudio: audio,
           grid: NO_GRID,
           onSections,
           detector
         }),
-      { initialProps: { audio: AUDIO } }
+      { wrapper }
     )
     let run: Promise<void> = Promise.resolve()
     act(() => {
       run = result.current.detect()
     })
-    rerender({ audio: { sampleRate: 4, channels: [[0.5]] } })
+    act(() => store.set(loadedAudioAtom, { sampleRate: 4, channels: [[0.5]] }))
     detector.release()
     await act(() => run)
     expect(onSections).not.toHaveBeenCalled()
@@ -209,22 +224,22 @@ describe('useStructureDetection', () => {
         return new Promise(() => {})
       }
     }
-    const { rerender, result } = renderHook(
-      ({ audio }: { audio: DecodedAudio }) =>
+    const { store, wrapper } = loadedStore(AUDIO)
+    const { result } = renderHook(
+      () =>
         useStructureDetection({
-          loadedAudio: audio,
           grid: NO_GRID,
           onSections: vi.fn(),
           detector: pending
         }),
-      { initialProps: { audio: AUDIO } }
+      { wrapper }
     )
     // Imperative hook API with no user event — act wraps the sync state flip.
     act(() => {
       void result.current.detect()
     })
     expect(seenSignal?.aborted).toBe(false)
-    rerender({ audio: { sampleRate: 4, channels: [[0.5]] } })
+    act(() => store.set(loadedAudioAtom, { sampleRate: 4, channels: [[0.5]] }))
     expect(seenSignal?.aborted).toBe(true)
   })
 
@@ -240,11 +255,11 @@ describe('useStructureDetection', () => {
     }
     const { result } = renderHook(() =>
       useStructureDetection({
-        loadedAudio: AUDIO,
         grid: NO_GRID,
         onSections: vi.fn(),
         detector: pending
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     act(() => {
       void result.current.detect()
@@ -260,11 +275,11 @@ describe('useStructureDetection', () => {
     const detect = vi.fn()
     const { result } = renderHook(() =>
       useStructureDetection({
-        loadedAudio: undefined,
         grid: NO_GRID,
         onSections: vi.fn(),
         detector: { detect }
-      })
+      }),
+      { wrapper: loadedStore(undefined).wrapper }
     )
     await act(() => result.current.detect())
     expect(detect).not.toHaveBeenCalled()
@@ -281,12 +296,12 @@ describe('useStructureDetection', () => {
     )
     const { result } = renderHook(() =>
       useStructureDetection({
-        loadedAudio: AUDIO,
         grid: NO_GRID,
         onSections: vi.fn(),
         detector: { detect: vi.fn(async () => []) },
         gate: () => gatePromise
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     let run: Promise<void> = Promise.resolve()
     act(() => {
@@ -308,12 +323,12 @@ describe('useStructureDetection', () => {
     const detect = vi.fn(async () => [])
     const { result } = renderHook(() =>
       useStructureDetection({
-        loadedAudio: AUDIO,
         grid: NO_GRID,
         onSections: vi.fn(),
         detector: { detect },
         gate: () => gatePromise
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     let run: Promise<void> = Promise.resolve()
     act(() => {
@@ -334,12 +349,12 @@ describe('useStructureDetection', () => {
     const detect = vi.fn(async () => [])
     const { result } = renderHook(() =>
       useStructureDetection({
-        loadedAudio: AUDIO,
         grid: NO_GRID,
         onSections: vi.fn(),
         detector: { detect },
         gate: async () => ({ ok: false, reason: 'quota-exceeded' })
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect())
     // The core detector never ran — the gate stopped it — and the reason is out.
@@ -360,14 +375,14 @@ describe('useStructureDetection', () => {
       .mockResolvedValue({ ok: true })
     const { result } = renderHook(() =>
       useStructureDetection({
-        loadedAudio: AUDIO,
         grid: NO_GRID,
         onSections,
         detector: detectorOf([
           { startSeconds: 0, endSeconds: 12, label: 'intro' }
         ]),
         gate
-      })
+      }),
+      { wrapper: loadedStore(AUDIO).wrapper }
     )
     await act(() => result.current.detect())
     expect(result.current.gateReason).toBe('sign-in-required')

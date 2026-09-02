@@ -1,4 +1,4 @@
-import type { DecodedAudio, SeparatedStem } from '@app/core'
+import type { SeparatedStem } from '@app/core'
 import { useAtomValue } from 'jotai'
 import { useCallback } from 'react'
 import type { ChordDetection } from '../../lead-sheet/use-chord-detection.ts'
@@ -7,14 +7,12 @@ import { separationGateReasonAtom } from '../../separation/separation-atoms.ts'
 import { tempoGateReasonAtom } from '../../tempo/tempo-atoms.ts'
 import type { MetronomeMixer } from '../../tempo/use-metronome.ts'
 import { useRunTempoDetection } from '../../tempo/use-run-tempo-detection.ts'
+import { loadedAudioAtom } from '../../track/track-atoms.ts'
 
 interface ResumeFlows {
   readonly structureDetection: StructureDetection
   readonly chordDetection: ChordDetection
-  readonly separateAndLoad: (
-    audio: DecodedAudio | undefined
-  ) => Promise<readonly SeparatedStem[] | undefined>
-  readonly loadedAudio: DecodedAudio | undefined
+  readonly separateAndLoad: () => Promise<readonly SeparatedStem[] | undefined>
   /** The mix a replayed detection seats its click into — the shell stack's
    * instance (the engine seam, same idiom as `MetronomeDeps`). */
   readonly mixer: MetronomeMixer
@@ -32,12 +30,12 @@ export function useResumeGatedAnalysis(flows: ResumeFlows): () => void {
     structureDetection,
     chordDetection,
     separateAndLoad,
-    loadedAudio,
     mixer,
     separationOwnsMix
   } = flows
-  // The tempo's and separation's gate reasons are feature-owned now (ADR
-  // 0010): read them off their atoms instead of receiving whole hook bags.
+  // The tempo's and separation's gate reasons, and the track itself, are
+  // feature-owned (ADR 0010): read off their atoms, not received as props.
+  const loadedAudio = useAtomValue(loadedAudioAtom)
   const tempoGateReason = useAtomValue(tempoGateReasonAtom)
   const separationGateReason = useAtomValue(separationGateReasonAtom)
   // The replayed detection is the feature's own flow (ADR 0010), derived
@@ -54,7 +52,7 @@ export function useResumeGatedAnalysis(flows: ResumeFlows): () => void {
       runTempoDetection(loadedAudio)
     }
     if (separationGateReason !== undefined) {
-      void separateAndLoad(loadedAudio)
+      void separateAndLoad()
     }
   }, [
     structureDetection,

@@ -159,7 +159,6 @@ export function WorkstationShell({
   const player = usePlayer(undefined, undefined, undefined, stemPlayback)
   const {
     importState,
-    loadedAudio,
     loadedBytes,
     metadata,
     transport,
@@ -182,12 +181,11 @@ export function WorkstationShell({
   // Separate the loaded track and wire the stems (+ metronome) into the mixer.
   // Separation and metronome are the features' own (ADR 0010) — seam only.
   const separateAndLoad = useSeparateAndLoad({ mixer })
-  useModalWarmup(loadedAudio) // warm the Modal container on import (no-op locally)
+  useModalWarmup() // warm the Modal container on import (no-op locally)
   // Chart session + « Détecter les accords » / « Détecter la structure » —
   // the chart↔structure pairing (S.3b) lives in its own hook.
   const { chordChart, chordDetection, structureDetection } =
     useChartWithStructure({
-      loadedAudio,
       analysis: tempo.analysis,
       markers,
       separation,
@@ -208,7 +206,6 @@ export function WorkstationShell({
   // values go in.
   const tempoDetection = useTempoDetection({
     mixer,
-    loadedAudio,
     separationOwnsMix: stemsReady
   })
   // The whole project ↔ session lifecycle (save/open/detach-on-import).
@@ -295,7 +292,6 @@ export function WorkstationShell({
     tempo,
     metadata,
     trackName: session.trackName,
-    loadedAudio,
     durationSeconds: transport.durationSeconds,
     notifySuccess
   })
@@ -305,7 +301,6 @@ export function WorkstationShell({
     structureDetection,
     chordDetection,
     separateAndLoad,
-    loadedAudio,
     mixer,
     separationOwnsMix: stemsReady
   })
@@ -381,8 +376,8 @@ export function WorkstationShell({
           onDownloadStem={stemExport.downloadStem}
           tempoDetection={tempoDetection}
           onReimport={openFilePicker}
-          canSeparate={isLoaded && loadedAudio !== undefined}
-          onSeparate={() => separateAndLoad(loadedAudio)}
+          canSeparate={isLoaded}
+          onSeparate={separateAndLoad}
           chordChart={chordChart}
           chartHeader={deriveChartHeader(metadata, session.trackName, tempo.analysis)}
           chordDetection={chordDetection}

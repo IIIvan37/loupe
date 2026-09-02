@@ -1,5 +1,6 @@
-import { type DecodedAudio, encodeWav, synthesizeClickTrack } from '@app/core'
+import { encodeWav, synthesizeClickTrack } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
+import { useAtomValue } from 'jotai'
 import { useState } from 'react'
 import { downloadBlob } from '../../../audio/download-blob.ts'
 import { encodeWavMemo } from '../../../audio/encode/encode-wav-memo.ts'
@@ -9,13 +10,13 @@ import { METRONOME_ID } from '../../mixer/synthetic-stem.ts'
 import { TRACK_STEM_ID } from '../../mixer/track-stem.ts'
 import type { Separation } from '../../separation/use-separation.ts'
 import type { Tempo } from '../../tempo/use-tempo.ts'
+import { loadedAudioAtom } from '../../track/track-atoms.ts'
 
 interface StemExportDeps {
   readonly separation: Separation
   readonly tempo: Tempo
   readonly metadata: { readonly title: string | undefined }
   readonly trackName: string | null
-  readonly loadedAudio: DecodedAudio | undefined
   readonly durationSeconds: number
   /** Raise the "it worked" confirmation once a file has actually downloaded. */
   readonly notifySuccess: (message: string) => void
@@ -46,11 +47,13 @@ export function useStemExport({
   tempo,
   metadata,
   trackName,
-  loadedAudio,
   durationSeconds,
   notifySuccess
 }: StemExportDeps): StemExport {
   const { t } = useLingui()
+  // The track is the player feature's atom (ADR 0010): the synthetic lanes
+  // (click, whole track) render from it.
+  const loadedAudio = useAtomValue(loadedAudioAtom)
   const [exporting, setExporting] = useState(false)
   const stemsExportedMessage = t({
     id: 'toast.stems-exported',
