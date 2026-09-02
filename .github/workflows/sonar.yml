@@ -60,6 +60,12 @@ jobs:
       - run: .venv/bin/python -m pytest --cov-report=xml
         working-directory: server
 
+      # Wait for Sonar's quality gate and fail the check when it fails: the PR
+      # check IS the verdict, so nothing is copied by hand into a session
+      # report after the merge (that used to cost one doc-only commit on main
+      # per PR). `pnpm sonar` still reads the details in the terminal.
       - uses: sonarsource/sonarqube-scan-action@v8
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: -Dsonar.qualitygate.wait=true
