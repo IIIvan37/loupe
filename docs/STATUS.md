@@ -1,10 +1,8 @@
 # STATUS
 
-> Resumable source of truth, updated at the end of each step via
-> `/session-report`. Bounded by `docs/docs.spec.ts` : snapshot du PRÉSENT,
-> pas un journal — le détail de chaque étape vit dans son rapport daté sous
-> [docs/sessions/](sessions/) (5 actifs, le reste dans
-> [sessions/archive/](sessions/archive/)).
+> Source de vérité pour reprendre, réécrite à chaque étape par `/session-report`.
+> Bornée par `docs/docs.spec.ts` : snapshot du PRÉSENT, pas un journal — le détail
+> vit dans [docs/sessions/](sessions/) (5 actifs, le reste dans [sessions/archive/](sessions/archive/)).
 
 ## Where we are
 
@@ -17,16 +15,19 @@ consommateur. Jamais de hook à effet de montage, seul le seam
 `mixer: Mixer` en prop ([ADR 0010](adr/0010-etat-de-vue-atomes-par-feature.md)–[0013](adr/0013-un-dossier-se-lit-d-un-coup-d-oeil.md) en garde via cliquets).
 **Beta distribuée le 2026-08-01** ([guide](guide-utilisateur.md) + code
 beta) ; version courante **v0.2.2** (tag `627a1b3`, release vérifiée).
-Revues justesse/texte-comme-modèle/SOLID et **labo starter soldés**
-(`playback/` extrait par PR #372 ; discipline + workflow + fix audit
-remontés au template, PR starter #35) ; dev du shell serveur complet par
-PR #373 (`pnpm dev:full`, proxy vite → 6173, HMR). Restes : affordance UX du throttle redeem
-(slice UI, checkpoint d'approche) ; découvrabilité du click ; filtre
-Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
-#180, plugin-react v6 #353).
+Revues justesse/texte-comme-modèle/SOLID et labo starter soldés (`playback/` par PR #372, template PR starter #35) ; shell serveur complet en dev par PR #373 (`pnpm dev:full`).
+**Skills recentrés par PR #387** (template PR starter #47) : `/session-report` = continuité seule, `/quality-gate` = seul juge (gate + mutation:diff + Sonar bloquant sur la PR).
+Restes : affordance UX du throttle redeem (slice UI, checkpoint d'approche) ; découvrabilité du click ; filtre Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7 #180, plugin-react v6 #353).
+
+## Next action
+
+Régler le sort de la branche interrompue `chore/source-tree-vocabulary`
+(11 fichiers indexés sans commit ni rapport : terminer ou abandonner), puis
+l'affordance UX du throttle redeem — checkpoint d'approche avant le test.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
+- 2026-09-02 · **Skills recentrés** (PR #387, template #47) : `/session-report` = continuité seule (stamp du gate lu, rien exécuté, reprise par nom), `/quality-gate` = gate + mutation:diff + Sonar (`sonar.qualitygate.wait`, check de PR bloquant) ; fin des commits doc-only « verdict sonar » sur main.
 - 2026-08-04 (nuit) · **Release v0.2.2** (PR #371 + tag `627a1b3`) : fix structure figée (#358), quota-session, fond de cale des trois revues ; assets vérifiés (checksums, attestation, tap, `--version`).
 - 2026-08-04 (soir) · **Revue SOLID (PRs #367–#370)** : 5 enquêteurs par principe + sceptique adversarial par constat (20 bruts → 14 réfutés, chacun par une décision consignée ; 6 confirmés) ; solde = union transport partagée + `isSeparationPhase` + `satisfies never` (OCP), contrat `ProjectStore` rejoué sur HTTP + fakes convergés (LSP), seams `Pick` du Mixer (ISP) ; outillage = specs variantes/contrats/ports/pointeurs-ADR, exhaustivité Biome, mutation:diff hooks web, workflow `/revue-solid` gelé — mort au passage du `toggle` jamais dispatché.
 - 2026-08-04 · **Texte-comme-modèle (PRs #364–#366)** : les émetteurs structurés, le form-encoder puis la tête du draft detect-chords construisent un `ChordChart` (fold/volta/D.C. en flags, `{form: Nx}` et `{key}`/`{time}` en directives, respell au niveau modèle) — `renderChart` est le seul imprimeur ; morts : `withRepeatBars`, `segmentRows`, `timeLine`.
@@ -64,8 +65,6 @@ Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7
 ## Veille / différé
 
 - Boucle échantillon-exacte / crossfade au wrap · locale EN · boucle A/B au clavier · thème clair · undo/redo (écarté produit) · off-thread zip/encode · export MIDI par stem (Jalon 4).
-- Dependabot #180 (TS 6→7) + #53 (`@vitejs/plugin-react` v6) — session outillage dédiée ;
-  file débloquée (#310 config, #316 triage react-doctor 0.9.2 ; #315 supersédée par
-  #317), merges = action opérateur.
+- Dependabot #180 (TS 6→7) + #53 (`@vitejs/plugin-react` v6) — session outillage dédiée ; file débloquée (#310 config, #316 triage react-doctor 0.9.2 ; #315 supersédée par #317), merges = action opérateur.
 - Races connues « si ça mord » : re-`attach` sur detect fire-and-forget (vieux manifests) · `addStem`/`play` sur bus stretch froid · worker DSP accords (774 ms).
 - 8 issues Sonar assumées (inventaire 2026-08-01, quality gate OK) : S3776 complexité 16/15 `use-chord-detection.ts:172` (le vrai morceau) · S6825 aria-hidden focusable `waveform-canvas.tsx:52` · S8997 monkeypatch ×2 `test_limits.py` · mineures S5906 ×2 `spectrum.spec.ts`, S6582 `use-chord-detection.ts:301`, S7786 `http-project-store.ts:32`. Reprise à la prochaine passe qualité sur ces fichiers.
