@@ -10,7 +10,11 @@ import { Provider, createStore } from 'jotai'
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlaybackTransport } from '../audio-session/audio-session.ts'
-import { loadedAudioAtom } from '../track/track-atoms.ts'
+import {
+  loadedAudioAtom,
+  loadedBytesAtom,
+  trackMetadataAtom
+} from '../track/track-atoms.ts'
 import { usePlayer } from './use-player.ts'
 
 /** An inert engine — the handle contract needs identities, not sound. */
@@ -52,12 +56,13 @@ const reader: TrackMetadataReader = {
   read: async () => ({ title: undefined, artist: undefined })
 }
 
-function mountPlayer(store = createStore()) {
+function mountPlayer(store = createStore(), metadataReader = reader) {
   const wrapper = ({ children }: { readonly children: ReactNode }) => (
     <Provider store={store}>{children}</Provider>
   )
   return renderHook(
-    () => usePlayer(decoder, fakeEngine(), reader, fakeStemTransport()),
+    () =>
+      usePlayer(decoder, fakeEngine(), metadataReader, fakeStemTransport()),
     { wrapper }
   )
 }
@@ -110,5 +115,43 @@ describe('usePlayer — the handle is a stable reference (ADR 0011)', () => {
     expect(result.current.loopEnabled).toBe(false)
     act(() => result.current.handle.toggleLoop())
     expect(result.current.loopEnabled).toBe(true)
+  })
+})
+
+describe('usePlayer — the track\'s tags and bytes are the feature\'s atoms (ADR 0010)', () => {
+  it('seats the fallback tags at once, then lets the file\'s own tags win', async () => {
+    const store = createStore()
+    const tagged: TrackMetadataReader = {
+      read: async () => ({ title: 'Tagged', artist: undefined })
+    }
+    const { result } = mountPlayer(store, tagged)
+
+    await act(() =>
+      result.current.importFile(new File(['x'], 'take.wav'), {
+        title: 'Fallback',
+        artist: 'Artiste'
+      })
+    )
+
+    // Embedded tags override only the fields they carry; the fallback fills
+    // the rest (a URL download's own artist survives an untagged file).
+    expect(store.get(trackMetadataAtom)).toEqual({
+      title: 'Tagged',
+      artist: 'Artiste'
+    })
+  })
+
+  it('seats the original bytes on success and drops them when a new import starts', async () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+    expect(store.get(loadedBytesAtom)).toBeUndefined()
+
+    await act(() => result.current.importFile(new File(['xy'], 'take.wav')))
+    expect(store.get(loadedBytesAtom)?.byteLength).toBe(2)
+
+    act(() => {
+      void result.current.importFile(new File(['z'], 'next.wav'))
+    })
+    expect(store.get(loadedBytesAtom)).toBeUndefined()
   })
 })

@@ -18,7 +18,7 @@ import {
   type TrackMetadataReader,
   type TransportState
 } from '@app/core'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { useMemo, useRef, useState } from 'react'
 import { createMusicMetadataReader } from '../../audio/music-metadata-reader.ts'
 import { createWebAudioDecoder } from '../../audio/playback/web-audio-decoder.ts'
@@ -37,7 +37,12 @@ import {
   useSpeedTrainer
 } from '../loops/use-speed-trainer.ts'
 import { stemsActiveAtom } from '../mixer/mixer-atoms.ts'
-import { loadedAudioAtom } from '../track/track-atoms.ts'
+import {
+  loadedAudioAtom,
+  loadedBytesAtom,
+  NO_TRACK_METADATA,
+  trackMetadataAtom
+} from '../track/track-atoms.ts'
 import {
   type ImportState,
   importStateAtom,
@@ -46,8 +51,6 @@ import {
 import { useLoop } from './use-loop.ts'
 import { useTransportEngines } from './use-transport-engines.ts'
 
-const NO_METADATA: TrackMetadata = { title: undefined, artist: undefined }
-
 /** Peak resolution: more buckets than screen pixels, so it stays crisp at 1×. */
 const BUCKET_COUNT = 1200
 
@@ -55,10 +58,6 @@ export type { ImportState } from './player-atoms.ts'
 
 export interface Player {
   readonly importState: ImportState
-  /** The imported file's original encoded bytes, for reuse (saving a project). */
-  readonly loadedBytes: ArrayBuffer | undefined
-  /** Tags read from the imported file (empty fields when the file has none). */
-  readonly metadata: TrackMetadata
   readonly transport: TransportState
   /** The playhead, streamed outside React state — see TransportEngines. */
   readonly position: ExternalValue<number>
@@ -152,15 +151,14 @@ export function usePlayer(
     () => injectedReader ?? createMusicMetadataReader(),
     [injectedReader]
   )
-  const [metadata, setMetadata] = useState<TrackMetadata>(NO_METADATA)
-  // The import lifecycle, the loaded PCM and the pitch ride the feature's
-  // atoms (ADR 0010): the regions and the analyses read them on their own
-  // instead of receiving them as props.
+  // The import lifecycle, the loaded track (PCM, bytes, tags) and the pitch
+  // ride the features' atoms (ADR 0010): the regions, the analyses and the
+  // project session read them on their own instead of receiving them as
+  // props. This hook only WRITES the track's tags and bytes.
   const [importState, setImportState] = useAtom(importStateAtom)
   const [loadedAudio, setLoadedAudio] = useAtom(loadedAudioAtom)
-  const [loadedBytes, setLoadedBytes] = useState<ArrayBuffer | undefined>(
-    undefined
-  )
+  const setLoadedBytes = useSetAtom(loadedBytesAtom)
+  const setMetadata = useSetAtom(trackMetadataAtom)
   const [timeRatio, setTimeRatioState] = useState(1)
   const [pitchSemitones, setPitchSemitonesState] = useAtom(pitchSemitonesAtom)
   const [fineTuneCents, setFineTuneCentsState] = useState(0)
@@ -196,7 +194,7 @@ export function usePlayer(
     setImportState({ status: 'loading' })
     // Show the fallback (a URL download's own title/artist) straight away; the
     // tag read below overrides only the fields it actually finds.
-    const fallback = fallbackMetadata ?? NO_METADATA
+    const fallback = fallbackMetadata ?? NO_TRACK_METADATA
     setMetadata(fallback)
     setLoadedAudio(undefined)
     setLoadedBytes(undefined)
@@ -401,8 +399,6 @@ export function usePlayer(
 
   return {
     importState,
-    loadedBytes,
-    metadata,
     transport,
     position,
     timeRatio,

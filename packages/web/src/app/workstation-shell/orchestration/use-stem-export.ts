@@ -10,12 +10,11 @@ import { METRONOME_ID } from '../../mixer/synthetic-stem.ts'
 import { TRACK_STEM_ID } from '../../mixer/track-stem.ts'
 import type { Separation } from '../../separation/use-separation.ts'
 import type { Tempo } from '../../tempo/use-tempo.ts'
-import { loadedAudioAtom } from '../../track/track-atoms.ts'
+import { loadedAudioAtom, trackMetadataAtom } from '../../track/track-atoms.ts'
 
 interface StemExportDeps {
   readonly separation: Separation
   readonly tempo: Tempo
-  readonly metadata: { readonly title: string | undefined }
   readonly trackName: string | null
   readonly durationSeconds: number
   /** Raise the "it worked" confirmation once a file has actually downloaded. */
@@ -45,15 +44,15 @@ export interface StemExport {
 export function useStemExport({
   separation,
   tempo,
-  metadata,
   trackName,
   durationSeconds,
   notifySuccess
 }: StemExportDeps): StemExport {
   const { t } = useLingui()
-  // The track is the player feature's atom (ADR 0010): the synthetic lanes
-  // (click, whole track) render from it.
+  // The track is the track feature's atoms (ADR 0010): the synthetic lanes
+  // (click, whole track) render from its PCM, the file names from its tags.
   const loadedAudio = useAtomValue(loadedAudioAtom)
+  const metadata = useAtomValue(trackMetadataAtom)
   const [exporting, setExporting] = useState(false)
   const stemsExportedMessage = t({
     id: 'toast.stems-exported',

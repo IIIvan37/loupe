@@ -15,7 +15,6 @@ import { gateReasonsOf } from '../account/gate-reasons.ts'
 import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { AudioSessionWithPlayer } from '../audio-session/audio-session-provider.tsx'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
-import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
 import { activeLoopIdAtom } from '../loops/loop-atoms.ts'
 import { UnloadGuard } from './lifecycle/use-unload-guard.ts'
 import { useLoops } from '../loops/use-loops.ts'
@@ -159,8 +158,6 @@ export function WorkstationShell({
   const player = usePlayer(undefined, undefined, undefined, stemPlayback)
   const {
     importState,
-    loadedBytes,
-    metadata,
     transport,
     position,
     timeRatio,
@@ -211,8 +208,6 @@ export function WorkstationShell({
   // The whole project ↔ session lifecycle (save/open/detach-on-import).
   const session = useProjectSession({
     importFile,
-    loadedBytes,
-    metadata,
     stemsReady,
     loopRegion,
     loopEnabled,
@@ -290,7 +285,6 @@ export function WorkstationShell({
   const stemExport = useStemExport({
     separation,
     tempo,
-    metadata,
     trackName: session.trackName,
     durationSeconds: transport.durationSeconds,
     notifySuccess
@@ -322,7 +316,6 @@ export function WorkstationShell({
           native beforeunload prompt (reload, tab close). */}
       <UnloadGuard unsavedWork={session.unsavedWork} />
       <ShellHeader
-        metadata={metadata}
         session={session}
         localBackend={localBackend}
         urlImport={urlImport}
@@ -379,7 +372,7 @@ export function WorkstationShell({
           canSeparate={isLoaded}
           onSeparate={separateAndLoad}
           chordChart={chordChart}
-          chartHeader={deriveChartHeader(metadata, session.trackName, tempo.analysis)}
+          trackName={session.trackName}
           chordDetection={chordDetection}
           structureDetection={structureDetection}
         />
