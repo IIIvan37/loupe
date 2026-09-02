@@ -17,12 +17,14 @@ consommateur. Jamais de hook à effet de montage, seul le seam
 beta) ; version courante **v0.2.2** (tag `627a1b3`, release vérifiée).
 Revues justesse/texte-comme-modèle/SOLID et labo starter soldés (`playback/` par PR #372, template PR starter #35) ; shell serveur complet en dev par PR #373 (`pnpm dev:full`).
 **Skills recentrés par PR #387** (template PR starter #47) : `/session-report` = continuité seule, `/quality-gate` = seul juge (gate + mutation:diff + Sonar bloquant sur la PR).
+**Revue d'architecture (deepening) du 2026-09-02** : 7 candidats consignés dans son rapport de session ; le n° 1 (finir la migration du player vers les atomes — clé de voûte du cliquet des 25 hooks) est retenu, grilling tour 1 posé.
 Restes : affordance UX du throttle redeem (slice UI, checkpoint d'approche) ; découvrabilité du click ; filtre Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7 #180, plugin-react v6 #353).
 
 ## Next action
 
-Affordance UX du throttle redeem : slice UI, checkpoint d'approche contre
-la maquette (2–3 lignes) avant d'écrire le test d'acceptation.
+Répondre au tour 1 du grilling « player → atomes » (8 questions dans le
+rapport du 2026-09-02), puis ouvrir la tranche dans l'ordre Mikado recommandé
+(`loadedAudio` d'abord). L'affordance du throttle redeem passe après.
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
