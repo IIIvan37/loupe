@@ -7,6 +7,7 @@ import {
   type DetectedSection,
   detectChords,
   downmixToMono,
+  isRunCurrent,
   monoMixWithout,
   type SeparatedStem
 } from '@app/core'
@@ -263,9 +264,14 @@ export function useChordDetection({
     // track it analysed is still the loaded one (no swap since the await),
     // and the run was not aborted (an abort error is not an outcome).
     if (
-      runIdRef.current !== runId ||
-      inputRef.current.loadedAudio !== audio ||
-      controller.signal.aborted
+      !isRunCurrent({
+        started: { runId, track: audio },
+        current: {
+          runId: runIdRef.current,
+          track: inputRef.current.loadedAudio
+        },
+        aborted: controller.signal.aborted
+      })
     ) {
       return
     }
