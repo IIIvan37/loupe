@@ -12,7 +12,7 @@ import {
   type SeparatedStem
 } from '@app/core'
 import { useAtomValue } from 'jotai'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createChordDetector } from '../../audio/create-chord-detector.ts'
 import {
   type EnsureTokenResult,
@@ -111,7 +111,9 @@ export function useChordDetection({
   // The track is the player feature's atom (ADR 0010): the detection reads
   // it here — its identity is the run's commit guard below.
   const loadedAudio = useAtomValue(loadedAudioAtom)
-  const engine = useMemo(() => detector ?? createChordDetector(), [detector])
+  // Built at CALL time, never at mount — see `use-separation.ts`: an eager
+  // build takes the workstation down at load when the endpoint is unset.
+  const engine = () => detector ?? createChordDetector()
   const [detecting, setDetecting] = useState(false)
   const [error, setError] = useState<ChordDetectionErrorCode>()
   const [gateReason, setGateReason] = useState<MintFailureReason>()
@@ -266,7 +268,7 @@ export function useChordDetection({
         sections: known,
         signal: controller.signal
       },
-      { detector: engine }
+      { detector: engine() }
     )
     // Commit only if this is still the latest run (no newer detect), the
     // track it analysed is still the loaded one (no swap since the await),

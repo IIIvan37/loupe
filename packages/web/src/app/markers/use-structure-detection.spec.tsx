@@ -58,6 +58,18 @@ function gatedDetector(): StructureDetector & { release: () => void } {
 }
 
 describe('useStructureDetection', () => {
+  it('mounts without the analysis endpoint configured', () => {
+    // The endpoint is mandatory for a RUN, not for a mount — see
+    // `use-separation.spec`.
+    vi.stubEnv('VITE_ANALYSIS_URL', '')
+    expect(() =>
+      renderHook(
+        () => useStructureDetection({ grid: NO_GRID, onSections: vi.fn() }),
+        { wrapper: loadedStore(AUDIO).wrapper }
+      )
+    ).not.toThrow()
+  })
+
   it('hands the detected sections to onSections', async () => {
     const sections: DetectedSection[] = [
       { startSeconds: 0, endSeconds: 12, label: 'intro' },

@@ -68,6 +68,18 @@ function gatedDetector(): ChordDetector & { release: () => void } {
 }
 
 describe('useChordDetection', () => {
+  it('mounts without the analysis endpoint configured', () => {
+    // The endpoint is mandatory for a RUN, not for a mount — see
+    // `use-separation.spec`.
+    vi.stubEnv('VITE_ANALYSIS_URL', '')
+    expect(() =>
+      renderHook(
+        () => useChordDetection({ grid: GRID, onDraft: vi.fn() }),
+        { wrapper: loadedStore(AUDIO).wrapper }
+      )
+    ).not.toThrow()
+  })
+
   it('cancels the in-flight run: busy drops, no outcome commits', async () => {
     const onDraft = vi.fn()
     const gated = gatedDetector()

@@ -57,6 +57,19 @@ function pcmOf(loaded: readonly SeparatedStem[]) {
 }
 
 describe('useSeparation', () => {
+  it('mounts without the analysis endpoint configured', async () => {
+    // The endpoint is mandatory for a RUN, not for a mount: building the
+    // adapter eagerly took the whole workstation down at load on any checkout
+    // without a .env.local. The loud failure belongs to the action.
+    vi.stubEnv('VITE_ANALYSIS_URL', '')
+
+    expect(() =>
+      renderHook(() => useSeparation(), { wrapper: TestProviders })
+    ).not.toThrow()
+
+    vi.unstubAllEnvs()
+  })
+
   it('runs a separation to completion and exposes the stems', async () => {
     const { separator, finish } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
