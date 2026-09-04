@@ -343,6 +343,54 @@ describe('useStructureDetection', () => {
     expect(result.current.detecting).toBe(false)
   })
 
+  it('lets the newer of two overlapping detections win', async () => {
+    // Both gestures capture their token before the mint, so whichever gate
+    // resolves first must not lock the other out: the newest gesture carries
+    // the track the user last asked about, and « newest wins » is the
+    // invariant every comment in these hooks asserts. Told apart by the audio
+    // each gesture captured — the older one also spends a metered analysis on
+    // a track that is no longer loaded.
+    vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
+    const later: DecodedAudio = { sampleRate: 4, channels: [[0.5]] }
+    const opens: ((result: { ok: true }) => void)[] = []
+    const seen: DecodedAudio[] = []
+    const detector = {
+      detect: async (audio: DecodedAudio) => {
+        seen.push(audio)
+        return []
+      }
+    }
+    const { store, wrapper } = loadedStore(AUDIO)
+    const { result } = renderHook(
+      () =>
+        useStructureDetection({
+          grid: NO_GRID,
+          onSections: vi.fn(),
+          detector,
+          gate: () =>
+            new Promise<{ ok: true }>((resolve) => {
+              opens.push(resolve)
+            })
+        }),
+      { wrapper }
+    )
+    let first: Promise<void> = Promise.resolve()
+    let second: Promise<void> = Promise.resolve()
+    act(() => {
+      first = result.current.detect()
+    })
+    act(() => store.set(loadedAudioAtom, later))
+    act(() => {
+      second = result.current.detect()
+    })
+    act(() => opens[0]?.({ ok: true }))
+    await act(() => first)
+    act(() => opens[1]?.({ ok: true }))
+    await act(() => second)
+
+    expect(seen).toEqual([later])
+  })
+
   it('blocks the analysis and surfaces the reason when the gate fails', async () => {
     // The gate only runs on the offload path; stub it on for these two tests.
     vi.stubEnv('VITE_ANALYSIS_URL', 'https://modal.example')
