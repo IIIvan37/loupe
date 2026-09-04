@@ -70,6 +70,11 @@ la PR #389 mergée. PR pas encore ouverte.
     avant tout run lourd ou toute bascule de branche.
   - `packages/web/.env.local` existe sur ce PC mais pas dans le dépôt : ne pas
     conclure d'un `pnpm dev:web` qui marche ici que le premier contact est bon.
+  - **Piège de la fitness function des living docs** : `repoPaths()` liste ce
+    qui est sur le DISQUE, fichiers gitignorés compris. Nommer un tel chemin
+    dans `docs/STATUS.md` passe en local et échoue en CI — arrivé ici avec
+    `packages/web/.env.local`. Les rapports datés en sont exemptés par
+    construction, STATUS ne l'est pas.
   - commitlint : sujet ≤ 100 caractères.
   - Sur ce PC : `NODE_USE_ENV_PROXY=1` devant `pnpm gate`, `pnpm test`,
     `pnpm sonar`, `git push`.
