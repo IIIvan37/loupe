@@ -2,8 +2,12 @@
 
 Tranche outillage née d'un rapport `/insights` sur ce dépôt : la panne
 récurrente n'est pas le test rouge, c'est le test vert qui n'affirme rien.
-Deux commits sur `refactor/player-to-atoms`, **PR #388 (draft)**, après le
-pas 5 de la tranche « player → atomes ».
+Trois commits sur `refactor/player-to-atoms`, **PR #388**, après le pas 5 de la
+tranche « player → atomes ».
+
+Le troisième commit est le plus instructif : une revue `/simplify` a retourné
+le garde contre lui-même, **et il a cédé**. Sa règle `blind-corpus` était
+vacuous de la façon exacte qu'elle traque.
 
 ## Done
 
@@ -47,15 +51,62 @@ pas 5 de la tranche « player → atomes ».
   pleinement verts à 2607 tests · sans couverture 81 s → 79 s · 12 workers 96 s
   **et un test rouge**. Le commentaire du fichier disait le contraire de la
   mesure ; il est récrit.
-- **Vérifications** : `pnpm gate` vert sur chaque commit, stampé `ba6d3d83`
-  (91,48 % lines) · `pnpm test:mutation:diff` sorti proprement, aucun source du
-  core ni hook web touché par ces deux commits · Sonar non relu à ce pas.
+- **Le garde retourné contre lui-même — commit `a87caf0`.** Revue `/simplify`
+  en quatre angles (reuse, simplification, efficacité, altitude) sur les deux
+  premiers commits. Deux vrais défauts, tous deux dans ce que la tranche
+  annonçait :
+  - **`check:tests` ne tournait pas au commit.** Ajouté au script `gate` de
+    `package.json`, mais pas à `.husky/pre-commit`, qui porte sa PROPRE copie de
+    la regex. Le hook finit par `gate-stamp.sh write` : il tamponnait donc
+    l'arbre « gate vert » sans que l'étape y ait tourné, et un `pnpm gate`
+    ultérieur sautait sur ce tampon. **Le tampon mentait.** Le commentaire du
+    hook prétendait que la forme regex empêche la dérive — elle l'empêche DANS
+    une liste, pas entre les DEUX listes ; `check:tokens` avait déjà disparu une
+    fois. `docs/gate-parity.spec.ts` extrait les deux regex et refuse la dérive
+    au gate, sur le modèle d'`origins-parity` ; prouvé rouge en retirant
+    `check:tests` du hook.
+  - **La règle `blind-corpus` était vacuous de la façon qu'elle traque.** Son
+    drapeau « un plancher existe » était PAR FICHIER : n'importe quel
+    `toBeGreaterThan` faisait taire la règle pour tous les marcheurs du fichier.
+    `adr-pointers.spec.ts` passait au vert grâce au plancher sur les ids d'ADR,
+    alors que son corpus de sources — celui sur lequel porte l'assertion — n'en
+    avait aucun. Règle refaite PAR MARCHEUR, avec résolution des fonctions
+    locales qui atteignent un marcheur et suivi transitif des liaisons
+    (`callers = specs.filter(…)`).
+  - **Quatre corpus aveugles trouvés, deux réels après vérification un par un** :
+    `adr-pointers.spec.ts` (sources non bornées) et `docs.spec.ts` (`repoPaths`,
+    qui échouait fermé mais par accident de ce qu'il assertait). Les deux
+    reçoivent leur plancher. Les deux autres — `livingDocs`, `contractExports` —
+    alimentent une table `it.each`, exemptées.
+  - **Gaspillages mesurés** : `setParentNodes: true` payé pour rien (82 → 61 ms
+    de parsing), la marche partait de la racine et traversait `target/` (1087
+    dossiers sur 1253 pour zéro spec), `folder-shape.spec.ts` relançait ses deux
+    marcheurs à chaque test.
+- **Vérifications** : `pnpm gate` vert sur chaque commit, stampé `b7b1d141`
+  (91,48 % lines, 2610 tests) · `pnpm test:mutation:diff` sorti proprement,
+  aucun source du core ni hook web touché par les trois commits · mutation de
+  la branche entière **90,44 %** (seuil 90) et Sonar **quality gate OK, 0 issue**,
+  passés par la session parallèle.
 
 ## Not done / remaining
 
-- **Reste du pas 5, inchangé** : `pnpm test:mutation:diff` sur le périmètre de
-  la branche (~44 min) et `pnpm sonar 388`, puis récrire le titre de la PR #388
-  pour la tranche entière et la sortir du draft.
+- **Correction des dépendances — tranche décidée, à part.** `Dependency audit`
+  est rouge sur #388 **et sur `main` depuis le run du 2026-09-02** : 8 avis, 6
+  hauts, tous transitifs sous `@commitlint/cli` (`fast-uri` <3.1.6, `js-yaml`
+  >=4.0.0 <4.3.1, `nanoid` <3.3.18). Arbitrage rendu : trois lignes de
+  `pnpm.overrides` + `pnpm install` sur une branche `chore/` **après** le merge
+  de #388, pour que la réparation de `main` ne voyage pas dans une PR de
+  refactor. Le rouge sur #388 est donc assumé, pas ignoré.
+- **Le marcheur partagé qui lève** — la vraie profondeur, relevée par la revue
+  d'altitude et non faite : douze marcheurs recopiés dans le dépôt
+  (`readdirSync(dir, { withFileTypes: true }).flatMap(…)`) remplacés par un
+  `walkFiles(root, keep, { min })` qui **lève** sous le seuil. Le plancher
+  devient structurel au lieu d'être asserté, et `blind-corpus` se simplifie en
+  « cette spec utilise-t-elle un `readdirSync` brut plutôt que le marcheur
+  contrôlé ». **Piège de séquencement à respecter** : extraire ce marcheur
+  ferait taire `blind-corpus`, qui ne verrait plus aucun `readdirSync` dans les
+  specs — le détecteur tomberait dans sa propre panne d'en-tête. Re-clé la règle
+  sur les **imports** d'abord, extraire ensuite.
 - **Fixtures sur disque pour les 4 scripts détecteurs** (`check-css-tokens.sh`,
   `check-i18n.sh`, `check-sonar-triage.sh`, `check-shell.ts`) : prévues au plan,
   non faites. Elles demandent un argument de chemin par script, un couple
@@ -72,6 +123,19 @@ pas 5 de la tranche « player → atomes ».
 
 - **Pas d'ADR neuf.** Le pas ajoute un détecteur et un plancher ; aucune
   frontière ni invariant ne change.
+- **`it.each(table)` est un plancher structurel — testé, pas déduit.** Vitest
+  échoue avec « No test found in suite » sur une table vide ; vérifié sur une
+  spec jetable avant d'écrire l'exemption. C'est ce qui distingue `livingDocs`
+  et `contractExports` (couverts par construction) des deux corpus réellement
+  aveugles. Sans cette vérification, la règle exigeait deux planchers
+  redondants — ou, si je l'avais supposée sans tester, elle en aurait laissé
+  passer deux.
+- **Une garde se prouve sur elle-même, pas seulement sur les autres.** Les deux
+  défauts de `a87caf0` avaient la même forme que ce que la tranche combat, et
+  aucun des deux n'a été trouvé par raisonnement : le premier par une revue
+  d'altitude comparant deux copies d'une même liste, le second en lançant la
+  règle corrigée sur le dépôt et en vérifiant ses quatre signalements un par un.
+  Le rapport de cette session avait été écrit AVANT, et affirmait la règle saine.
 - **Auto-test interne plutôt que fixtures sur disque, pour `check:tests`.** Des
   fixtures auraient demandé de toucher `vitest.config.ts` (zone d'une session
   parallèle au moment du choix) et d'exclure des pièges de knip, jscpd et
@@ -107,15 +171,20 @@ pas 5 de la tranche « player → atomes ».
 
 ## State to resume from
 
-- **Single next action** : `/quality-gate` sur `refactor/player-to-atoms`
-  (`pnpm test:mutation:diff` + `pnpm sonar 388`), puis récrire le titre de la
-  PR #388 pour la tranche entière et la sortir du draft.
-- Tree state : stampé vert `ba6d3d83` sur `9be7a91` · propre · branche en avance
-  de trois commits sur `origin` (`df9eb96`, `9be7a91`, ce rapport) · PR #388
-  draft.
+- **Single next action** : merger la PR #388 (sortie du draft, corps récrit
+  pour les deux tranches ; `Quality gate` et `SonarCloud analysis` verts,
+  `Dependency audit` rouge et assumé — voir « Not done »), puis ouvrir la
+  branche `chore/` des dépendances.
+- Tree state : stampé vert `b7b1d141` sur `a87caf0` · propre · **branche
+  synchrone avec `origin`** · PR #388 ouverte, hors draft.
 - Gotchas :
-  - **Le gate a une étape de plus** : `check:tests`. Un `.skip` posé pour
-    déboguer fait maintenant échouer le gate — le retirer avant de committer.
+  - **Le gate a une étape de plus** : `check:tests`, et elle tourne désormais
+    aussi dans `.husky/pre-commit`. Un `.skip` posé pour déboguer fait échouer
+    le gate ET le commit — le retirer avant de committer.
+  - **Ajouter une étape au gate demande TROIS éditions** : le script dans
+    `package.json`, la regex de `gate`, la regex de `.husky/pre-commit`.
+    `docs/gate-parity.spec.ts` échoue si la troisième manque — c'est la garde,
+    pas la mémoire, qui tient cet invariant.
   - **Les planchers de corpus se relèvent, jamais ne descendent.** Si une
     suppression de fichiers en fait rougir un, la question est de savoir si le
     marcheur voit encore l'arbre — pas de baisser le plancher.
