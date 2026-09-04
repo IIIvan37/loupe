@@ -4,18 +4,20 @@
  * same protocol — take a token, await the detector, commit — and each had
  * written its own guard; two of them weighed the token alone, so a track
  * imported during a run could inherit the previous track's result.
+ *
+ * `started` is the token and the track as they stood when the run began,
+ * `current` as they stand now. The comparison is symmetric, so the order of
+ * the two carries no meaning beyond reading order.
  */
-export function isRunCurrent<Track>(run: {
-  /** The token and the track as they stood when the run started. */
-  readonly started: { readonly runId: number; readonly track: Track }
-  /** The token and the track as they stand now, after the await. */
-  readonly current: { readonly runId: number; readonly track: Track }
+export function isRunCurrent<Track>(
+  started: { readonly runId: number; readonly track: Track },
+  current: { readonly runId: number; readonly track: Track },
   /** Whether the run's own transfer was aborted (an abort is not an outcome). */
-  readonly aborted: boolean
-}): boolean {
+  aborted: boolean
+): boolean {
   return (
-    run.started.runId === run.current.runId &&
-    run.started.track === run.current.track &&
-    !run.aborted
+    started.runId === current.runId &&
+    started.track === current.track &&
+    !aborted
   )
 }

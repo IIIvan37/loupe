@@ -14,7 +14,7 @@ import {
   type TempoDetectionErrorCode,
   type TempoDetector
 } from '@app/core'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtom, useAtomValue, useStore } from 'jotai'
 import { useEffect, useMemo, useRef } from 'react'
 import { createTempoDetector } from '../../audio/create-tempo-detector.ts'
 import {
@@ -23,7 +23,6 @@ import {
   isAnalysisOffloaded
 } from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
-import { useLatest } from '../../lib/use-latest.ts'
 import { useAudioSession } from '../audio-session/audio-session.ts'
 import { loadedAudioAtom } from '../track/track-atoms.ts'
 import {
@@ -166,9 +165,10 @@ export function useTempo(
   const run = useAtomValue(tempoRunAtom)
   // The track a run must still be analysing when it comes back (ADR 0010):
   // a fresh import seats a new one without superseding the run, and the old
-  // track's tempo must not land on it.
-  const loadedAudio = useAtomValue(loadedAudioAtom)
-  const loadedRef = useLatest(loadedAudio)
+  // track's tempo must not land on it. Read straight off the store at the two
+  // instants the guard needs it — a `useLatest` ref would hold the LAST
+  // COMMITTED value, one commit behind an import that fires an auto-detect.
+  const store = useStore()
   // The controllers THIS instance created, for the unmount cleanup only — a
   // read-only consumer unmounting must not abort a run it never started.
   const myControllerRef = useRef<AbortController | undefined>(undefined)
@@ -193,10 +193,10 @@ export function useTempo(
     audio: DecodedAudio
   ): Promise<TempoAnalysis | undefined> {
     const runId = supersede()
-    // The track this run belongs to, read at the start and re-read at the
-    // commit: what matters is whether the loaded track CHANGED during the run,
-    // not whether the caller passed the atom's value.
-    const startedTrack = loadedRef.current
+    // Read at the start and re-read at the commit: what matters is whether the
+    // loaded track CHANGED during the run, not whether the caller passed the
+    // atom's value.
+    const startedTrack = store.get(loadedAudioAtom)
     setDetecting(true)
     setCancelled(false)
     setError(undefined)
@@ -229,11 +229,11 @@ export function useTempo(
     // it analysed is still the loaded one (no swap since the await), and the
     // run was not aborted (an abort error is not an outcome).
     if (
-      isRunCurrent({
-        started: { runId, track: startedTrack },
-        current: { runId: run.runId, track: loadedRef.current },
-        aborted: controller.signal.aborted
-      })
+      isRunCurrent(
+        { runId, track: startedTrack },
+        { runId: run.runId, track: store.get(loadedAudioAtom) },
+        controller.signal.aborted
+      )
     ) {
       setDetecting(false)
       if (result.ok) {

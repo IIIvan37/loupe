@@ -708,6 +708,4 @@ describe('useTempo — meter correction', () => {
     release?.({ bpm: 120, beats: [] })
     await act(() => run)
     expect(result.current.analysis).toBeUndefined()
-  })
-
-})
+  })})

@@ -16,12 +16,19 @@ import { loadedAudioAtom } from '../track/track-atoms.ts'
 import { useSeparation } from './use-separation.ts'
 
 /** Fresh atom store per mount (the gate reason is a feature atom now, ADR
- * 0010) — without the Provider, one test's gate reason leaks into the next. */
-const TestProviders = ({ children }: { readonly children: ReactNode }) => (
-  <I18nTestingProvider>
-    <Provider>{children}</Provider>
-  </I18nTestingProvider>
-)
+ * 0010) — without the Provider, one test's gate reason leaks into the next.
+ * Pass a store when the test drives an atom (replacing the loaded track). */
+const providersWith =
+  (store?: ReturnType<typeof createStore>) =>
+  ({ children }: { readonly children: ReactNode }) => (
+    <I18nTestingProvider>
+      {/* Spread, not `store={store}`: exactOptionalPropertyTypes rejects an
+          explicit undefined, and no store means « fresh one per mount ». */}
+      <Provider {...(store ? { store } : {})}>{children}</Provider>
+    </I18nTestingProvider>
+  )
+
+const TestProviders = providersWith()
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
@@ -75,11 +82,7 @@ describe('useSeparation', () => {
     // track's stems must not land on it.
     const store = createStore()
     store.set(loadedAudioAtom, audio)
-    const wrapper = ({ children }: { readonly children: ReactNode }) => (
-      <I18nTestingProvider>
-        <Provider store={store}>{children}</Provider>
-      </I18nTestingProvider>
-    )
+    const wrapper = providersWith(store)
     const { separator, finish } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
       wrapper
@@ -93,7 +96,9 @@ describe('useSeparation', () => {
       finish(stems)
     })
 
-    expect(result.current.state.status).not.toBe('ready')
+    // Still analysing, not merely « not ready »: a `failed` status would pass
+    // a negative assertion for the wrong reason.
+    expect(result.current.state.status).toBe('analysing')
   })
 
   it('cancels an in-flight run: aborts the port and returns to idle', async () => {

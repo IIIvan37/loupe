@@ -14,7 +14,7 @@ import {
   stemExportFilename
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtom, useAtomValue, useStore } from 'jotai'
 import { useEffect, useMemo, useRef } from 'react'
 import { createSeparator } from '../../audio/create-separator.ts'
 import { downloadBlob } from '../../audio/download-blob.ts'
@@ -25,7 +25,6 @@ import {
   isAnalysisOffloaded
 } from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
-import { useLatest } from '../../lib/use-latest.ts'
 import {
   useAudioSession,
   useStemAudio
@@ -139,8 +138,10 @@ export function useSeparation(
   const run = useAtomValue(separationRunAtom)
   // The track a run must still be separating when it comes back (ADR 0010):
   // a fresh import seats a new one without superseding the run, and the old
-  // track's stems must not land on it.
-  const loadedRef = useLatest(useAtomValue(loadedAudioAtom))
+  // track's stems must not land on it. Read straight off the store at the two
+  // instants the guard needs it — a `useLatest` ref would hold the LAST
+  // COMMITTED value, one commit behind a fresh import.
+  const store = useStore()
   // The controllers THIS instance created, for the unmount cleanup only — a
   // read-only consumer unmounting must not abort a run it never started.
   const myControllerRef = useRef<AbortController | undefined>(undefined)
@@ -187,8 +188,10 @@ export function useSeparation(
   ): Promise<SeparationResult | undefined> {
     const runId = supersede()
     // Read at the start and re-read at the commit: what matters is whether the
-    // loaded track CHANGED during the run.
-    const startedTrack = loadedRef.current
+    // loaded track CHANGED during the run. `restore` replays a STORED mix that
+    // need not be the atom's instance, so the run's own argument would be the
+    // wrong thing to weigh here.
+    const startedTrack = store.get(loadedAudioAtom)
     const controller = new AbortController()
     run.controller = controller
     myControllerRef.current = controller
@@ -215,11 +218,11 @@ export function useSeparation(
     // and the run was not aborted (an abort error is not an outcome).
     let committed: SeparationResult | undefined
     if (
-      isRunCurrent({
-        started: { runId, track: startedTrack },
-        current: { runId: run.runId, track: loadedRef.current },
-        aborted: controller.signal.aborted
-      })
+      isRunCurrent(
+        { runId, track: startedTrack },
+        { runId: run.runId, track: store.get(loadedAudioAtom) },
+        controller.signal.aborted
+      )
     ) {
       if (result.ok) {
         // Remember identities only; the result's PCM is returned to the caller

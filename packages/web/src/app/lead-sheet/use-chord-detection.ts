@@ -221,8 +221,12 @@ export function useChordDetection({
       setPhase('separating')
       stemsNow = await separate()
       if (
-        runIdRef.current !== runId ||
-        inputRef.current.loadedAudio !== audio
+        !isRunCurrent(
+          { runId, track: audio },
+          { runId: runIdRef.current, track: inputRef.current.loadedAudio },
+          // No controller yet at this checkpoint — nothing to abort.
+          false
+        )
       ) {
         return
       }
@@ -239,8 +243,12 @@ export function useChordDetection({
         stemsNow
       ))
       if (
-        runIdRef.current !== runId ||
-        inputRef.current.loadedAudio !== audio
+        !isRunCurrent(
+          { runId, track: audio },
+          { runId: runIdRef.current, track: inputRef.current.loadedAudio },
+          // No controller yet at this checkpoint — nothing to abort.
+          false
+        )
       ) {
         return
       }
@@ -264,14 +272,11 @@ export function useChordDetection({
     // track it analysed is still the loaded one (no swap since the await),
     // and the run was not aborted (an abort error is not an outcome).
     if (
-      !isRunCurrent({
-        started: { runId, track: audio },
-        current: {
-          runId: runIdRef.current,
-          track: inputRef.current.loadedAudio
-        },
-        aborted: controller.signal.aborted
-      })
+      !isRunCurrent(
+        { runId, track: audio },
+        { runId: runIdRef.current, track: inputRef.current.loadedAudio },
+        controller.signal.aborted
+      )
     ) {
       return
     }

@@ -24,13 +24,14 @@ Extracted feature modules (ADR-0005) keep their rows here; their files live in
 | `importFromUrl` | `(input, deps) => Promise<ImportFromUrlResult>` | Slice J4.1 — fetch a track from a media URL (YouTube / SoundCloud) through the `TrackSource` port and return its encoded bytes + metadata (title/artist/duration) for `loadTrack` to decode. An unsupported URL is rejected as a `Result` BEFORE the port is called (`isSupportedSourceUrl`, application policy — Spotify/Deezer excluded, their streams being DRM'd). Progress (`downloading` → `transcoding`) streams to an optional sink. |
 | `exportStems` | `(input, deps) => Promise<ExportStemsResult>` | Slice J2.6 — export tier A: encode the given stems (the caller picks which, e.g. only the present ones; numbering follows the input order) as numbered 16-bit WAVs (`01_Voix.wav`…) padded to one shared duration (t=0 aligned), and bundle them through the `ArchiveWriter` port into the archive the caller downloads. |
 
-> Pure application policy (no port, no use-case): `isRunCurrent`
-> (`analysis-run.ts`) — whether an analysis run that has come back from its
-> port is still the one to commit, weighing the run token, the track it
-> analysed and its abort flag. The four detection/separation hooks share this
-> ONE guard; each keeps its own bookkeeping (tempo and separation count per
-> session in an atom, chords and structure per instance in a ref), because the
-> scope of a token is the feature's business and the rule is not.
+> Application policy, like `isSupportedSourceUrl` above (pure, no port):
+> `isRunCurrent` (`analysis-run.ts`) — whether an analysis run that has come
+> back from its port is still the one to commit, weighing the run token, the
+> track it analysed and its abort flag. The four detection/separation hooks
+> share this ONE guard at every checkpoint; each keeps its own bookkeeping
+> (tempo and separation count per session in an atom, chords and structure per
+> instance in a ref), because the scope of a token is the feature's business
+> and the rule is not.
 >
 > Pure playback domain (no use-case, driven by the UI — extracted to
 > `core/src/playback/domain`, ADR-0005): `transportReducer` / `initialTransport`
