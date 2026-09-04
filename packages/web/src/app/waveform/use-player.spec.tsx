@@ -15,7 +15,12 @@ import {
   loadedBytesAtom,
   trackMetadataAtom
 } from '../track/track-atoms.ts'
-import { fineTuneCentsAtom, timeRatioAtom } from './player-atoms.ts'
+import {
+  fineTuneCentsAtom,
+  pitchSemitonesAtom,
+  timeRatioAtom
+} from './player-atoms.ts'
+import { viewportZoomAtom } from './viewport-atoms.ts'
 import { usePlayer } from './use-player.ts'
 
 /** An inert engine — the handle contract needs identities, not sound. */
@@ -74,7 +79,7 @@ describe('usePlayer — the loaded PCM is the feature\'s atom (ADR 0010)', () =>
     const { result } = mountPlayer(store)
     expect(store.get(loadedAudioAtom)).toBeUndefined()
 
-    await act(() => result.current.importFile(new File(['x'], 'take.wav')))
+    await act(() => result.current.handle.importFile(new File(['x'], 'take.wav')))
 
     expect(store.get(loadedAudioAtom)).toBe(DECODED)
   })
@@ -82,12 +87,12 @@ describe('usePlayer — the loaded PCM is the feature\'s atom (ADR 0010)', () =>
   it('clears the atom the moment a new import starts', async () => {
     const store = createStore()
     const { result } = mountPlayer(store)
-    await act(() => result.current.importFile(new File(['x'], 'take.wav')))
+    await act(() => result.current.handle.importFile(new File(['x'], 'take.wav')))
 
     // A slow decode must not leave the previous track's PCM on offer — the
     // consumers (analyses, export, separation) key on the atom's identity.
     act(() => {
-      void result.current.importFile(new File(['y'], 'next.wav'))
+      void result.current.handle.importFile(new File(['y'], 'next.wav'))
     })
     expect(store.get(loadedAudioAtom)).toBeUndefined()
   })
@@ -128,7 +133,7 @@ describe('usePlayer — the track\'s tags and bytes are the feature\'s atoms (AD
     const { result } = mountPlayer(store, tagged)
 
     await act(() =>
-      result.current.importFile(new File(['x'], 'take.wav'), {
+      result.current.handle.importFile(new File(['x'], 'take.wav'), {
         title: 'Fallback',
         artist: 'Artiste'
       })
@@ -147,11 +152,11 @@ describe('usePlayer — the track\'s tags and bytes are the feature\'s atoms (AD
     const { result } = mountPlayer(store)
     expect(store.get(loadedBytesAtom)).toBeUndefined()
 
-    await act(() => result.current.importFile(new File(['xy'], 'take.wav')))
+    await act(() => result.current.handle.importFile(new File(['xy'], 'take.wav')))
     expect(store.get(loadedBytesAtom)?.byteLength).toBe(2)
 
     act(() => {
-      void result.current.importFile(new File(['z'], 'next.wav'))
+      void result.current.handle.importFile(new File(['z'], 'next.wav'))
     })
     expect(store.get(loadedBytesAtom)).toBeUndefined()
   })
@@ -163,8 +168,8 @@ describe('usePlayer — tempo and fine-tune are the feature\'s atoms (ADR 0010)'
     const { result } = mountPlayer(store)
 
     act(() => {
-      result.current.setTimeRatio(0.85)
-      result.current.setFineTuneCents(500)
+      result.current.handle.setTimeRatio(0.85)
+      result.current.handle.setFineTuneCents(500)
     })
 
     expect(store.get(timeRatioAtom)).toBe(0.85)
@@ -176,13 +181,51 @@ describe('usePlayer — tempo and fine-tune are the feature\'s atoms (ADR 0010)'
     const store = createStore()
     const { result } = mountPlayer(store)
     act(() => {
-      result.current.setTimeRatio(0.85)
-      result.current.setFineTuneCents(30)
+      result.current.handle.setTimeRatio(0.85)
+      result.current.handle.setFineTuneCents(30)
     })
 
-    await act(() => result.current.importFile(new File(['x'], 'take.wav')))
+    await act(() => result.current.handle.importFile(new File(['x'], 'take.wav')))
 
     expect(store.get(timeRatioAtom)).toBe(1)
     expect(store.get(fineTuneCentsAtom)).toBe(0)
+  })
+})
+
+describe('usePlayer — restoring a tuning is the inverse of tuningAtom', () => {
+  it('seats the four knobs a manifest carries, zoom included', () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+
+    act(() =>
+      result.current.handle.restoreTuning({
+        timeRatio: 0.8,
+        pitchSemitones: 2,
+        zoom: 3,
+        fineTuneCents: 12
+      })
+    )
+
+    expect(store.get(timeRatioAtom)).toBe(0.8)
+    expect(store.get(pitchSemitonesAtom)).toBe(2)
+    expect(store.get(fineTuneCentsAtom)).toBe(12)
+    expect(store.get(viewportZoomAtom)).toBe(3)
+  })
+
+  it('clamps a hand-edited manifest back into range', () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+
+    act(() =>
+      result.current.handle.restoreTuning({
+        timeRatio: 9,
+        pitchSemitones: 99,
+        zoom: 99,
+        fineTuneCents: 900
+      })
+    )
+
+    expect(store.get(fineTuneCentsAtom)).toBe(50)
+    expect(store.get(viewportZoomAtom)).toBe(6)
   })
 })

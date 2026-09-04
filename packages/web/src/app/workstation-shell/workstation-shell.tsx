@@ -94,27 +94,6 @@ function ShellFooter({
   )
 }
 
-/**
- * The speed/pitch slices the `[`/`]` and `{`/`}` shortcuts read and drive:
- * the whole-percent tempo and the semitone pitch, each with its setter. Kept
- * off the component so the shell body stays under the react-doctor budget.
- */
-function playbackSteppers(player: ReturnType<typeof usePlayer>): {
-  readonly speed: { readonly percent: number; readonly setPercent: (percent: number) => void }
-  readonly pitch: { readonly semitones: number; readonly setSemitones: (semitones: number) => void }
-} {
-  return {
-    speed: {
-      percent: Math.round(ratioToPercent(ratio(player.timeRatio))),
-      setPercent: (value) => player.setTimeRatio(percentToRatio(percent(value)))
-    },
-    pitch: {
-      semitones: player.pitchSemitones,
-      setSemitones: player.setPitchSemitones
-    }
-  }
-}
-
 interface WorkstationShellProps {
   /** Whether the local loupe server hosts the app (D1) — gates Save /
    * Projects / URL import. Injected in tests to exercise the plain-browser
@@ -138,7 +117,8 @@ export function WorkstationShell({
   const { stemPlayback, separation, mixer, stemsReady } = useStemStack()
   // The stem engine is a SINGLETON shared with the mixer/separation stack —
   // hand the stack's instance over, never let the player make its own.
-  const player = usePlayer(undefined, undefined, undefined, stemPlayback)
+  // The player's state comes back as values; its verbs ride ONE stable handle
+  // (ADR 0011), seated in the session below so the regions reach them too.
   const {
     importState,
     transport,
@@ -147,14 +127,9 @@ export function WorkstationShell({
     pitchSemitones,
     fineTuneCents,
     loopRegion,
-    importFile,
-    togglePlayback,
-    seekToSeconds,
-    restoreTuning,
     loopEnabled,
-    toggleLoop,
-    restoreLoop
-  } = player
+    handle
+  } = usePlayer(undefined, undefined, undefined, stemPlayback)
   const markers = useMarkers()
   const tempo = useTempo()
   const metronome = useMetronome({ mixer })
@@ -190,20 +165,19 @@ export function WorkstationShell({
   })
   // The whole project ↔ session lifecycle (save/open/detach-on-import).
   const session = useProjectSession({
-    importFile,
+    importFile: handle.importFile,
     stemsReady,
     loopRegion,
     loopEnabled,
     markers,
     loops,
     restoreActiveLoop: (active, savedLoopId) => {
-      restoreLoop(active.region, active.enabled)
+      handle.restoreLoop(active.region, active.enabled)
       restoreActiveLoopId(savedLoopId)
     },
-    restoreTuning: (tuning) => {
-      restoreTuning(tuning)
-      viewport.setZoom(tuning.zoom)
-    },
+    // The player seats the whole tuning, zoom included — the inverse of the
+    // atom a save reads (ADR 0010).
+    restoreTuning: handle.restoreTuning,
     separation,
     mixer,
     viewport,
@@ -233,8 +207,8 @@ export function WorkstationShell({
     analysis: tempo.analysis,
     metronomeEnabled: metronome.enabled,
     mixerState: mixer.state,
-    togglePlayback,
-    seekToSeconds
+    togglePlayback: handle.togglePlayback,
+    seekToSeconds: handle.seekToSeconds
   })
 
   const isLoaded = importState.status === 'loaded'
@@ -251,13 +225,10 @@ export function WorkstationShell({
   useShellShortcuts({
     enabled: isLoaded,
     countIn,
-    position,
-    seekToSeconds,
+    player: handle,
     grid: tempo.analysis?.grid ?? [],
     viewport,
-    ...playbackSteppers(player),
     markers,
-    toggleLoop,
     metronome,
     tempoDetection,
     session
@@ -282,7 +253,7 @@ export function WorkstationShell({
   })
 
   return (
-    <AudioSessionWithPlayer player={player.handle} stemEngine={stemPlayback}>
+    <AudioSessionWithPlayer player={handle} stemEngine={stemPlayback}>
     <div className={styles.shell} {...drop.dropHandlers}>
       <ShellDropLayer
         fileInputRef={fileInputRef}
@@ -368,13 +339,13 @@ export function WorkstationShell({
         isPlaying={transport.isPlaying || countIn.countingIn}
         canPlay={isLoaded}
         onPlayPause={countIn.togglePlayback}
-        seekToSeconds={seekToSeconds}
+        seekToSeconds={handle.seekToSeconds}
         timeRatio={timeRatio}
-        setTimeRatio={player.setTimeRatio}
+        setTimeRatio={handle.setTimeRatio}
         pitchSemitones={pitchSemitones}
-        setPitchSemitones={player.setPitchSemitones}
+        setPitchSemitones={handle.setPitchSemitones}
         fineTuneCents={fineTuneCents}
-        setFineTuneCents={player.setFineTuneCents}
+        setFineTuneCents={handle.setFineTuneCents}
       />
 
       <ToastRegion toaster={toaster} />

@@ -31,11 +31,19 @@ function recordingPlayer() {
     seeks: [] as number[],
     trainerSeams: [] as SpeedTrainerSeam[]
   }
+  // Only the three members this feature drives record; the rest are inert.
   const player: PlayerHandle = {
     position: { get: () => 0, subscribe: () => () => {} },
     readSpectrum: () => undefined,
     seekToSeconds: (seconds) => calls.seeks.push(seconds),
     seekToRatio: () => {},
+    importFile: async () => undefined,
+    togglePlayback: () => {},
+    setTimeRatio: () => {},
+    setPitchSemitones: () => {},
+    setFineTuneCents: () => {},
+    restoreTuning: () => {},
+    restoreLoop: () => {},
     toggleLoop: () => {},
     setLoopRegion: (region) => calls.regions.push(region),
     speedTrainer: {
