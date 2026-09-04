@@ -65,12 +65,20 @@ export default defineConfig({
     // (v8 instrumentation on top) starves the box — measured at load ~50 on 14
     // cores, with shell specs timing out on CONTENTION, not on a real hang. It
     // reproduced on a clean tree, so it is the harness, not any one change.
-    // A third of the cores keeps the suite deterministic locally. CI runners
-    // are small and already green at full width, so they keep the default.
+    //
+    // HALF the cores, not a third (2026-09-04, 14 logical cores, 2607 tests):
+    // a third (4 workers) ran the covered suite in 115 s, half (7) in 92 s and
+    // 94 s on two consecutive fully-green runs. The instrumentation is what is
+    // CPU-bound — the bare suite barely moves (81 s → 79 s), because its ~80 s
+    // floor is per-file setup: ~127 s CPU of jsdom `environment` and ~88 s of
+    // `import`. Going wider stops paying and starts costing: 12 workers gave
+    // 96 s AND a red test. So half is the measured optimum, not a step towards
+    // full width. CI runners are small and already green at full width, so
+    // they keep the default.
     // (Spread, not `maxWorkers: undefined` — exactOptionalPropertyTypes.)
     ...(process.env.CI
       ? {}
-      : { maxWorkers: Math.max(2, Math.floor(availableParallelism() / 3)) }),
+      : { maxWorkers: Math.max(2, Math.floor(availableParallelism() / 2)) }),
     // Node by default (the pure core). Web specs opt into jsdom per-file via a
     // `// @vitest-environment jsdom` docblock.
     environment: 'node',
