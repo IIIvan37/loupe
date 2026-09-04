@@ -7,11 +7,12 @@ import type {
   StemSeparator
 } from '@app/core'
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { Provider } from 'jotai'
+import { createStore, Provider } from 'jotai'
 import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import { useSeparation } from './use-separation.ts'
 
 /** Fresh atom store per mount (the gate reason is a feature atom now, ADR
@@ -67,6 +68,33 @@ describe('useSeparation', () => {
     expect(result.current.state.stems.map((s) => s.id)).toEqual(['voix'])
   })
 
+
+  it('drops a late separation when the track was replaced mid-flight', async () => {
+    // The commit guard must weigh the TRACK, not only the run token: a fresh
+    // import seats a new track without superseding this run, and the old
+    // track's stems must not land on it.
+    const store = createStore()
+    store.set(loadedAudioAtom, audio)
+    const wrapper = ({ children }: { readonly children: ReactNode }) => (
+      <I18nTestingProvider>
+        <Provider store={store}>{children}</Provider>
+      </I18nTestingProvider>
+    )
+    const { separator, finish } = deferredSeparator()
+    const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
+      wrapper
+    })
+
+    act(() => {
+      void result.current.separate(audio)
+    })
+    act(() => store.set(loadedAudioAtom, { sampleRate: 4, channels: [[0.5]] }))
+    await act(async () => {
+      finish(stems)
+    })
+
+    expect(result.current.state.status).not.toBe('ready')
+  })
 
   it('cancels an in-flight run: aborts the port and returns to idle', async () => {
     let seen: AbortSignal | undefined

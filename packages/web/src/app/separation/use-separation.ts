@@ -3,6 +3,7 @@ import {
   type DecodedAudio,
   encodeWav,
   exportStems,
+  isRunCurrent,
   type SeparatedStem,
   type SeparationAction,
   type SeparationState,
@@ -24,10 +25,12 @@ import {
   isAnalysisOffloaded
 } from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
+import { useLatest } from '../../lib/use-latest.ts'
 import {
   useAudioSession,
   useStemAudio
 } from '../audio-session/audio-session.ts'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import {
   separationDescriptorsAtom,
   separationExportErrorAtom,
@@ -134,6 +137,10 @@ export function useSeparation(
   // The session's single run (token + in-flight abort controller), shared by
   // every instance. The box is mutated in place — bookkeeping, never rendered.
   const run = useAtomValue(separationRunAtom)
+  // The track a run must still be separating when it comes back (ADR 0010):
+  // a fresh import seats a new one without superseding the run, and the old
+  // track's stems must not land on it.
+  const loadedRef = useLatest(useAtomValue(loadedAudioAtom))
   // The controllers THIS instance created, for the unmount cleanup only — a
   // read-only consumer unmounting must not abort a run it never started.
   const myControllerRef = useRef<AbortController | undefined>(undefined)
@@ -179,6 +186,9 @@ export function useSeparation(
     separateWith: StemSeparator
   ): Promise<SeparationResult | undefined> {
     const runId = supersede()
+    // Read at the start and re-read at the commit: what matters is whether the
+    // loaded track CHANGED during the run.
+    const startedTrack = loadedRef.current
     const controller = new AbortController()
     run.controller = controller
     myControllerRef.current = controller
@@ -200,10 +210,17 @@ export function useSeparation(
         }
       }
     )
-    // Commit only if this is still the latest run (a newer separate/reset since
-    // the await would have bumped the token, making this result stale).
+    // Commit only if this is still the latest run (no newer separate or reset),
+    // the track it separated is still the loaded one (no swap since the await),
+    // and the run was not aborted (an abort error is not an outcome).
     let committed: SeparationResult | undefined
-    if (run.runId === runId) {
+    if (
+      isRunCurrent({
+        started: { runId, track: startedTrack },
+        current: { runId: run.runId, track: loadedRef.current },
+        aborted: controller.signal.aborted
+      })
+    ) {
       if (result.ok) {
         // Remember identities only; the result's PCM is returned to the caller
         // (who loads it into the engine) and then released — never retained.

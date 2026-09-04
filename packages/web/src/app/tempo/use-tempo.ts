@@ -4,6 +4,7 @@ import {
   type DecodedAudio,
   detectTempo,
   foldTempoOctave,
+  isRunCurrent,
   MAX_BEATS_PER_BAR,
   type ManualTempo,
   normalizeManualBpm,
@@ -22,7 +23,9 @@ import {
   isAnalysisOffloaded
 } from '../../auth/analysis-token.ts'
 import type { MintFailureReason } from '../../auth/auth-port.ts'
+import { useLatest } from '../../lib/use-latest.ts'
 import { useAudioSession } from '../audio-session/audio-session.ts'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import {
   manualTempoAtom,
   tempoAnalysisAtom,
@@ -161,6 +164,11 @@ export function useTempo(
   // and the superseder may be another instance (the row's cancel, an open's
   // seat). The box is mutated in place — it is bookkeeping, never rendered.
   const run = useAtomValue(tempoRunAtom)
+  // The track a run must still be analysing when it comes back (ADR 0010):
+  // a fresh import seats a new one without superseding the run, and the old
+  // track's tempo must not land on it.
+  const loadedAudio = useAtomValue(loadedAudioAtom)
+  const loadedRef = useLatest(loadedAudio)
   // The controllers THIS instance created, for the unmount cleanup only — a
   // read-only consumer unmounting must not abort a run it never started.
   const myControllerRef = useRef<AbortController | undefined>(undefined)
@@ -185,6 +193,10 @@ export function useTempo(
     audio: DecodedAudio
   ): Promise<TempoAnalysis | undefined> {
     const runId = supersede()
+    // The track this run belongs to, read at the start and re-read at the
+    // commit: what matters is whether the loaded track CHANGED during the run,
+    // not whether the caller passed the atom's value.
+    const startedTrack = loadedRef.current
     setDetecting(true)
     setCancelled(false)
     setError(undefined)
@@ -213,9 +225,16 @@ export function useTempo(
       { audio, signal: controller.signal },
       { detector: engine }
     )
-    // Commit only if this is still the latest run: a newer detect or a reset
-    // since the await bumped the token, making this result stale.
-    if (run.runId === runId) {
+    // Commit only if this is still the latest run (no newer detect), the track
+    // it analysed is still the loaded one (no swap since the await), and the
+    // run was not aborted (an abort error is not an outcome).
+    if (
+      isRunCurrent({
+        started: { runId, track: startedTrack },
+        current: { runId: run.runId, track: loadedRef.current },
+        aborted: controller.signal.aborted
+      })
+    ) {
       setDetecting(false)
       if (result.ok) {
         // A fresh detection starts from its own octave and supersedes any

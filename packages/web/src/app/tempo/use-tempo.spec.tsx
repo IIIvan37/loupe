@@ -2,8 +2,10 @@
 import type { DecodedAudio, TempoDetector } from '@app/core'
 import { TempoDetectionError } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
-import { Provider } from 'jotai'
+import { createStore, Provider } from 'jotai'
+import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import { useTempo } from './use-tempo.ts'
 
 // The analysis gate only engages on the offload path (VITE_ANALYSIS_URL set).
@@ -18,6 +20,18 @@ afterEach(() => vi.unstubAllEnvs())
 // one) so no mix from a prior test leaks in — same idiom as use-mixer.spec.
 const renderTempo = (...args: Parameters<typeof useTempo>) =>
   renderHook(() => useTempo(...args), { wrapper: Provider })
+
+/** A store with the track loaded — the commit guard weighs the track the run
+ * analysed against the one loaded now (ADR 0010). Replacing the atom's value
+ * is how a test replaces the track mid-flight. */
+function loadedStore(loaded: DecodedAudio) {
+  const store = createStore()
+  store.set(loadedAudioAtom, loaded)
+  const wrapper = ({ children }: { readonly children: ReactNode }) => (
+    <Provider store={store}>{children}</Provider>
+  )
+  return { store, wrapper }
+}
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
@@ -672,4 +686,28 @@ describe('useTempo — meter correction', () => {
     expect(gate).not.toHaveBeenCalled()
     expect(result.current.analysis?.bpm).toBe(120)
   })
+
+  it('drops a late result when the track was replaced mid-flight', async () => {
+    // The commit guard must weigh the TRACK, not only the run token: a fresh
+    // import seats a new track without superseding this run, and the old
+    // track's tempo must not land on it.
+    let release: ((analysis: { bpm: number; beats: [] }) => void) | undefined
+    const gated: TempoDetector = {
+      detect: () =>
+        new Promise((resolve) => {
+          release = resolve
+        })
+    }
+    const { store, wrapper } = loadedStore(audio)
+    const { result } = renderHook(() => useTempo(gated), { wrapper })
+    let run: Promise<unknown> = Promise.resolve()
+    act(() => {
+      run = result.current.detect(audio)
+    })
+    act(() => store.set(loadedAudioAtom, { sampleRate: 4, channels: [[0.5]] }))
+    release?.({ bpm: 120, beats: [] })
+    await act(() => run)
+    expect(result.current.analysis).toBeUndefined()
+  })
+
 })
