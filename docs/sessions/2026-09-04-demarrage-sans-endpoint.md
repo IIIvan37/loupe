@@ -28,12 +28,20 @@ la PR #389 mergée. PR pas encore ouverte.
 - **Quatre tests de montage, un par hook, prouvés rouges** en remisant le
   correctif (`git stash push` sur les quatre sources) avant de les déclarer
   verts.
-- **Vérifications** : `pnpm gate` vert, stampé `bfbf46f1` (91,48 % lines) ·
+- **Quatre tests « l'échec est bruyant sur l'action »**, ajoutés après que
+  Sonar a refusé la PR sur la couverture du code neuf (69,2 % pour un seuil de
+  80) : la branche « pas d'adaptateur injecté, on appelle la vraie fabrique »
+  n'était exercée par rien — précisément celle que le correctif déplace.
+- **Vérifications** : `pnpm gate` vert, stampé `0703f189` (91,54 % lines) ·
   core non touché, donc pas de `test:mutation:diff`.
 
 ## Not done / remaining
 
 - **PR pas encore ouverte** ; `pnpm sonar <PR#>` à lire une fois la CI passée.
+- **L'échec sur l'action est un rejet de promesse**, donc bruyant pour un
+  développeur et muet pour un utilisateur : aucun message dans l'interface, pas
+  de code d'erreur traduit. Le rendre visible est une tranche à part (code
+  d'erreur + copie Lingui + face d'erreur dans la rangée d'analyse).
 - **Rien ne garde ce comportement en CI.** Les quatre tests couvrent le montage
   des hooks, pas celui du shell : `shell-test-kit` injecte des fakes, donc un
   retour à une construction au montage passerait ses tests. Un test d'acceptation
@@ -70,6 +78,10 @@ la PR #389 mergée. PR pas encore ouverte.
     avant tout run lourd ou toute bascule de branche.
   - `packages/web/.env.local` existe sur ce PC mais pas dans le dépôt : ne pas
     conclure d'un `pnpm dev:web` qui marche ici que le premier contact est bon.
+  - **Le gate flake sous la charge** : deux serveurs Vite en fond (dev de loupe
+    + un autre projet) ont fait échouer 13 specs du shell sur des dépassements
+    de délai, toutes vertes relancées seules. Charge à 8–12 sur 14 cœurs. Boîte
+    au repos = gate vert du premier coup.
   - **Piège de la fitness function des living docs** : `repoPaths()` liste ce
     qui est sur le DISQUE, fichiers gitignorés compris. Nommer un tel chemin
     dans `docs/STATUS.md` passe en local et échoue en CI — arrivé ici avec
