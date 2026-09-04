@@ -18,7 +18,7 @@
     "@lingui/core": "^6.6.0",
     "@lingui/react": "^6.6.0",
     "@soundtouchjs/audio-worklet": "^2.1.0",
-    "@supabase/supabase-js": "^2.111.0",
+    "@supabase/supabase-js": "^2.112.3",
     "fflate": "^0.8.3",
     "jotai": "^2.20.2",
     "music-metadata": "^11.14.0",
