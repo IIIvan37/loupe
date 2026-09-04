@@ -1,0 +1,76 @@
+# Session — 2026-09-04 — l'atelier démarre sans endpoint d'analyse
+
+Bug remonté par l'utilisateur en lançant `pnpm dev:web`, corrigé dans la foulée.
+Branche `fix/lazy-analysis-adapters`, un commit, rebasée sur le `main` qui porte
+la PR #389 mergée. PR pas encore ouverte.
+
+## Done
+
+- **Diagnostic** : sur un checkout sans `packages/web/.env.local`, l'application
+  ne montait pas du tout. `VITE_ANALYSIS_URL is not configured` remontait de
+  `createSeparator()` appelé dans un `useMemo` au montage de `useSeparation`, et
+  `WorkstationShell` tombait avec — écran blanc avant toute action.
+  Vérifié non-régression : la ligne fautive était identique sur `main`.
+- **Cause immédiate** : Vite ne charge que le fichier d'environnement du mode
+  courant. `packages/web/.env.production` porte les trois valeurs publiques mais
+  n'est lu qu'au build ; le dev les attend dans `.env.local`, gitignoré, absent
+  d'un clone frais. Fichier écrit sur ce PC (valeurs recopiées de
+  `.env.production`, publiques et déjà commitées).
+- **Cause de fond, corrigée** : les quatre hooks d'analyse construisaient leur
+  adaptateur au montage alors qu'ils ne s'en servent qu'à un seul endroit, dans
+  leur fonction asynchrone. Ils le construisent maintenant au moment de l'appel.
+  L'échec reste bruyant — `analysisUrl()` jette toujours — mais il arrive sur
+  l'action qui a besoin du service.
+- **Le mode « endpoint absent » n'était pas le mode dégradé que le code
+  décrit** : `analysis-token.ts:12` le documente comme « dev/tests seulement »
+  et `isAnalysisOffloaded()` rend `false` dans ce cas, mais l'application
+  refusait de démarrer. C'est la contradiction que le correctif lève.
+- **Quatre tests de montage, un par hook, prouvés rouges** en remisant le
+  correctif (`git stash push` sur les quatre sources) avant de les déclarer
+  verts.
+- **Vérifications** : `pnpm gate` vert, stampé `bfbf46f1` (91,48 % lines) ·
+  core non touché, donc pas de `test:mutation:diff`.
+
+## Not done / remaining
+
+- **PR pas encore ouverte** ; `pnpm sonar <PR#>` à lire une fois la CI passée.
+- **Rien ne garde ce comportement en CI.** Les quatre tests couvrent le montage
+  des hooks, pas celui du shell : `shell-test-kit` injecte des fakes, donc un
+  retour à une construction au montage passerait ses tests. Un test d'acceptation
+  « le shell monte sans endpoint » manque.
+- **`.env.local` n'est documenté nulle part.** Un nouveau contributeur ne sait
+  pas qu'il doit le créer ; `.env.production` porte les valeurs mais son
+  commentaire ne dit pas de les recopier. Un `.env.example` ou une ligne dans le
+  README réglerait le premier contact — la tranche « premier contact » de la
+  roadmap 8 a traité l'utilisateur, pas le contributeur.
+- Les restes du candidat 4 tiennent toujours (gardes de fenêtre de gate au jeton
+  seul, pas d'abandon sur changement de piste chez tempo et séparation) — voir
+  [2026-09-04-seam-lancer-une-analyse.md](2026-09-04-seam-lancer-une-analyse.md).
+
+## Decisions
+
+- **Le shell doit démarrer sans endpoint** (arbitrage de l'utilisateur entre les
+  deux lectures possibles). L'autre option — assumer l'échec au montage — aurait
+  demandé de corriger le commentaire d'`analysis-token.ts` et
+  `isAnalysisOffloaded()`, qui prétendent gérer le cas.
+- **Construction au moment de l'appel plutôt qu'adaptateur paresseux partagé.**
+  Les quatre hooks utilisent leur adaptateur à un seul endroit : un `() =>`
+  suffit, là où un helper `lazyAdapter` partagé aurait dû composer avec quatre
+  interfaces différentes. Le coût est un objet par run — des closures sans état.
+
+## State to resume from
+
+- **Single next action** : pousser `fix/lazy-analysis-adapters`, ouvrir la PR,
+  lire `pnpm sonar <PR#>`.
+- Tree state : stampé vert `bfbf46f1` sur `acad59a` · propre · branche jamais
+  poussée · rebasée sur `origin/main` (conflit d'imports résolu : `useStore` de
+  la #389 gardé, `useMemo` devenu inutile retiré).
+- Gotchas :
+  - **Une autre session Claude partage ce checkout** (`loupe-6c`). Prévenir
+    avant tout run lourd ou toute bascule de branche.
+  - `packages/web/.env.local` existe sur ce PC mais pas dans le dépôt : ne pas
+    conclure d'un `pnpm dev:web` qui marche ici que le premier contact est bon.
+  - commitlint : sujet ≤ 100 caractères.
+  - Sur ce PC : `NODE_USE_ENV_PROXY=1` devant `pnpm gate`, `pnpm test`,
+    `pnpm sonar`, `git push`.
+  - Reprise : `ls docs/sessions/*.md | sort | tail -1` — jamais `ls -t`.
