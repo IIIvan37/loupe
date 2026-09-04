@@ -6,12 +6,12 @@ import {
   type ProjectChordChart,
   type ProjectDeps,
   type ProjectTempo,
-  type ProjectTuning,
   projectChordChart,
   sessionSaveInput,
   sessionSignature,
   type TrackSourceMetadata
 } from '@app/core'
+import { useAtomValue } from 'jotai'
 import { type ChangeEvent, useRef, useState } from 'react'
 import { nextPaint } from '../../../lib/next-paint.ts'
 import { type Projects, useProjects } from '../../../projects/use-projects.ts'
@@ -20,6 +20,9 @@ import { useChordChart } from '../../lead-sheet/use-chord-chart.ts'
 import { isSyntheticStem, METRONOME_ID } from '../../mixer/synthetic-stem.ts'
 import type { Mixer } from '../../mixer/use-mixer.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../../tempo/metronome-stem.ts'
+import { loadedBytesAtom, trackMetadataAtom } from '../../track/track-atoms.ts'
+import { tuningAtom } from '../../waveform/player-atoms.ts'
+import { useViewport } from '../../waveform/use-viewport.ts'
 import { restoreSession, type SessionRestoreDeps } from './project-session.ts'
 
 /** A file name without its extension, the fallback header title. */
@@ -34,19 +37,10 @@ export interface ProjectSessionDeps
    * import need — still never the 12-member facade. */
   readonly mixer: Pick<Mixer, 'restore' | 'reset' | 'state'>
   readonly stores?: ProjectDeps | undefined
-  /** The imported file's original bytes — what a save persists as the source. */
-  readonly loadedBytes: ArrayBuffer | undefined
-  readonly metadata: {
-    readonly title: string | undefined
-    readonly artist: string | undefined
-  }
   readonly stemsReady: boolean
   /** The armed A/B region and its wrap choice — the loupe a save keeps. */
   readonly loopRegion: LoopRegion | undefined
   readonly loopEnabled: boolean
-  /** The live playback tuning (tempo/pitch/zoom) — saved and fingerprinted. */
-  readonly tuning: ProjectTuning
-  readonly viewport: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
   /** Called with the restored project once an open has rebuilt the session. */
@@ -110,6 +104,16 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
   // The chart is the feature's own session atom (ADR 0010) — derived here for
   // the save/fingerprint/reset lifecycle instead of threaded through the shell.
   const chordChart = useChordChart()
+  // The loaded track's bytes and tags are the track feature's atoms (ADR
+  // 0010): a save persists them, and the tags title the project.
+  const loadedBytes = useAtomValue(loadedBytesAtom)
+  const metadata = useAtomValue(trackMetadataAtom)
+  // The live tuning (tempo/pitch/zoom/fine-tune) is the player's derived atom
+  // (ADR 0010): a save persists it and the fingerprint signs it.
+  const tuning = useAtomValue(tuningAtom)
+  // A fresh track starts fully zoomed out: the zoom is the viewport feature's
+  // atom (ADR 0010), so this hook wears it rather than receiving a reset.
+  const viewport = useViewport()
   const [trackName, setTrackName] = useState<string | null>(null)
   const [openingId, setOpeningId] = useState<string | undefined>(undefined)
   // The restore's stem-decode narration (« Piste n/total »), for the chip.
@@ -135,7 +139,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
   function startFreshTrack(name: string): void {
     deps.loops.clear()
     deps.markers.clear()
-    deps.viewport.reset()
+    viewport.reset()
     deps.separation.reset()
     deps.mixer.reset()
     deps.tempo.reset()
@@ -202,7 +206,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
         deps.loopRegion === undefined
           ? undefined
           : { region: deps.loopRegion, enabled: deps.loopEnabled },
-      tuning: deps.tuning,
+      tuning,
       tempo: tempo
         ? {
             metronome: tempo.metronome,
@@ -219,7 +223,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
 
   /** Persist the whole session under a name — bytes, loops, markers, stems. */
   async function handleSave(name: string): Promise<void> {
-    if (!deps.loadedBytes) {
+    if (!loadedBytes) {
       return
     }
     // The stems' WAV re-encode below is synchronous: paint the busy line
@@ -229,12 +233,12 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     const tempo = liveTempo()
     const chordChart = liveChordChart()
     const input = sessionSaveInput({
-      bytes: deps.loadedBytes,
-      title: deps.metadata.title ?? trackName ?? undefined,
-      artist: deps.metadata.artist,
+      bytes: loadedBytes,
+      title: metadata.title ?? trackName ?? undefined,
+      artist: metadata.artist,
       loops: deps.loops.library,
       markers: deps.markers.markers,
-      tuning: deps.tuning,
+      tuning,
       ...(tempo === undefined ? {} : { tempo }),
       ...(chordChart === undefined ? {} : { chordChart }),
       ...(deps.loopRegion === undefined
@@ -368,7 +372,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
     // the loaded track itself lives only in this session.
     unsavedWork:
       openingId === undefined &&
-      (currentProject !== undefined ? dirty : deps.loadedBytes !== undefined),
+      (currentProject !== undefined ? dirty : loadedBytes !== undefined),
     handleSave,
     preparingSave,
     handleOpen,

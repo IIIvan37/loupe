@@ -1,13 +1,26 @@
 // @vitest-environment jsdom
 import type {
   AudioFileDecoder,
+  DecodedAudio,
   PlaybackEngine,
   TrackMetadataReader
 } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
-import { Provider } from 'jotai'
+import { Provider, createStore } from 'jotai'
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { PlaybackTransport } from '../audio-session/audio-session.ts'
+import {
+  loadedAudioAtom,
+  loadedBytesAtom,
+  trackMetadataAtom
+} from '../track/track-atoms.ts'
+import {
+  fineTuneCentsAtom,
+  pitchSemitonesAtom,
+  timeRatioAtom
+} from './player-atoms.ts'
+import { viewportZoomAtom } from './viewport-atoms.ts'
 import { usePlayer } from './use-player.ts'
 
 /** An inert engine — the handle contract needs identities, not sound. */
@@ -41,19 +54,49 @@ function fakeStemTransport(): PlaybackTransport {
   }
 }
 
+const DECODED: DecodedAudio = { sampleRate: 1, channels: [[0, 1]] }
 const decoder: AudioFileDecoder = {
-  decode: async () => ({ sampleRate: 1, channels: [[0, 1]] })
+  decode: async () => DECODED
 }
 const reader: TrackMetadataReader = {
   read: async () => ({ title: undefined, artist: undefined })
 }
 
-function mountPlayer() {
+function mountPlayer(store = createStore(), metadataReader = reader) {
+  const wrapper = ({ children }: { readonly children: ReactNode }) => (
+    <Provider store={store}>{children}</Provider>
+  )
   return renderHook(
-    () => usePlayer(decoder, fakeEngine(), reader, fakeStemTransport()),
-    { wrapper: Provider }
+    () =>
+      usePlayer(decoder, fakeEngine(), metadataReader, fakeStemTransport()),
+    { wrapper }
   )
 }
+
+describe('usePlayer — the loaded PCM is the feature\'s atom (ADR 0010)', () => {
+  it('seats the decoded audio in loadedAudioAtom on a successful import', async () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+    expect(store.get(loadedAudioAtom)).toBeUndefined()
+
+    await act(() => result.current.handle.importFile(new File(['x'], 'take.wav')))
+
+    expect(store.get(loadedAudioAtom)).toBe(DECODED)
+  })
+
+  it('clears the atom the moment a new import starts', async () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+    await act(() => result.current.handle.importFile(new File(['x'], 'take.wav')))
+
+    // A slow decode must not leave the previous track's PCM on offer — the
+    // consumers (analyses, export, separation) key on the atom's identity.
+    act(() => {
+      void result.current.handle.importFile(new File(['y'], 'next.wav'))
+    })
+    expect(store.get(loadedAudioAtom)).toBeUndefined()
+  })
+})
 
 describe('usePlayer — the handle is a stable reference (ADR 0011)', () => {
   it('keeps ONE identity across re-renders and state changes', () => {
@@ -78,5 +121,111 @@ describe('usePlayer — the handle is a stable reference (ADR 0011)', () => {
     expect(result.current.loopEnabled).toBe(false)
     act(() => result.current.handle.toggleLoop())
     expect(result.current.loopEnabled).toBe(true)
+  })
+})
+
+describe('usePlayer — the track\'s tags and bytes are the feature\'s atoms (ADR 0010)', () => {
+  it('seats the fallback tags at once, then lets the file\'s own tags win', async () => {
+    const store = createStore()
+    const tagged: TrackMetadataReader = {
+      read: async () => ({ title: 'Tagged', artist: undefined })
+    }
+    const { result } = mountPlayer(store, tagged)
+
+    await act(() =>
+      result.current.handle.importFile(new File(['x'], 'take.wav'), {
+        title: 'Fallback',
+        artist: 'Artiste'
+      })
+    )
+
+    // Embedded tags override only the fields they carry; the fallback fills
+    // the rest (a URL download's own artist survives an untagged file).
+    expect(store.get(trackMetadataAtom)).toEqual({
+      title: 'Tagged',
+      artist: 'Artiste'
+    })
+  })
+
+  it('seats the original bytes on success and drops them when a new import starts', async () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+    expect(store.get(loadedBytesAtom)).toBeUndefined()
+
+    await act(() => result.current.handle.importFile(new File(['xy'], 'take.wav')))
+    expect(store.get(loadedBytesAtom)?.byteLength).toBe(2)
+
+    act(() => {
+      void result.current.handle.importFile(new File(['z'], 'next.wav'))
+    })
+    expect(store.get(loadedBytesAtom)).toBeUndefined()
+  })
+})
+
+describe('usePlayer — tempo and fine-tune are the feature\'s atoms (ADR 0010)', () => {
+  it('writes the clamped tempo ratio and fine-tune to their atoms', () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+
+    act(() => {
+      result.current.handle.setTimeRatio(0.85)
+      result.current.handle.setFineTuneCents(500)
+    })
+
+    expect(store.get(timeRatioAtom)).toBe(0.85)
+    // The domain clamps: ±50 cents is the fine-tune's whole range.
+    expect(store.get(fineTuneCentsAtom)).toBe(50)
+  })
+
+  it('resets both atoms when a fresh track lands', async () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+    act(() => {
+      result.current.handle.setTimeRatio(0.85)
+      result.current.handle.setFineTuneCents(30)
+    })
+
+    await act(() => result.current.handle.importFile(new File(['x'], 'take.wav')))
+
+    expect(store.get(timeRatioAtom)).toBe(1)
+    expect(store.get(fineTuneCentsAtom)).toBe(0)
+  })
+})
+
+describe('usePlayer — restoring a tuning is the inverse of tuningAtom', () => {
+  it('seats the four knobs a manifest carries, zoom included', () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+
+    act(() =>
+      result.current.handle.restoreTuning({
+        timeRatio: 0.8,
+        pitchSemitones: 2,
+        zoom: 3,
+        fineTuneCents: 12
+      })
+    )
+
+    expect(store.get(timeRatioAtom)).toBe(0.8)
+    expect(store.get(pitchSemitonesAtom)).toBe(2)
+    expect(store.get(fineTuneCentsAtom)).toBe(12)
+    expect(store.get(viewportZoomAtom)).toBe(3)
+  })
+
+  it('clamps a hand-edited manifest back into range', () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+
+    act(() =>
+      result.current.handle.restoreTuning({
+        timeRatio: 9,
+        pitchSemitones: 99,
+        zoom: 99,
+        fineTuneCents: 900
+      })
+    )
+
+    expect(store.get(fineTuneCentsAtom)).toBe(50)
+    expect(store.get(viewportZoomAtom)).toBe(6)
   })
 })

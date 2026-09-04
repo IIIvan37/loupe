@@ -6,6 +6,7 @@ import type {
   LoopRegion,
   PlaybackEngine,
   ProjectDeps,
+  ProjectTuning,
   SpectrumFrame,
   SpeedTrainerPolicy,
   SpeedTrainerSeam,
@@ -15,6 +16,7 @@ import type {
   StemSource,
   StructureDetector,
   TempoDetector,
+  TrackMetadata,
   TrackMetadataReader,
   TrackSource
 } from '@app/core'
@@ -49,6 +51,30 @@ export interface PlayerHandle {
   readonly seekToSeconds: (seconds: number) => void
   /** Seek to a fraction (0–1) of the timeline — what a waveform click yields. */
   readonly seekToRatio: (ratio: number) => void
+  /**
+   * Import a file; resolves with its decoded PCM (undefined on failure).
+   * `fallbackMetadata` seeds title/artist when the file carries no embedded
+   * tags (e.g. a URL download supplying the source's own metadata).
+   */
+  readonly importFile: (
+    file: File,
+    fallbackMetadata?: TrackMetadata
+  ) => Promise<DecodedAudio | undefined>
+  /** Start or stop playback (a no-op until a track is loaded). */
+  readonly togglePlayback: () => void
+  /** Set the tempo as a ratio of normal speed — clamped, and it takes the
+   * tempo back from a running practice ramp. */
+  readonly setTimeRatio: (ratio: number) => void
+  /** Transpose by whole semitones (the chart's arithmetic reads these). */
+  readonly setPitchSemitones: (semitones: number) => void
+  /** Fine pitch adjustment in cents (±50), separate from the semitones. */
+  readonly setFineTuneCents: (cents: number) => void
+  /** Seat a persisted tuning (project open) — the inverse of the player's
+   * `tuningAtom`, zoom included. Every knob re-clamps, so a hand-edited
+   * manifest stays in range. */
+  readonly restoreTuning: (tuning: ProjectTuning) => void
+  /** Seat a persisted loupe: region and wrap choice together (project open). */
+  readonly restoreLoop: (region: LoopRegion, enabled: boolean) => void
   /** Whether the loupe wraps playback (vs playing through) — flips the atom. */
   readonly toggleLoop: () => void
   /** Seat/adjust/clear the loupe (the player's seat-and-re-arm semantics —

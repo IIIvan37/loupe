@@ -34,6 +34,15 @@ const ACTIVE_SESSIONS_MAX = 5
  * to archive/. */
 const ACTIVE_ROOT_DOCS_MAX = 8
 
+/** Floors under the two counts above — 7 root documents and 5 active reports
+ * today. Both bounds are maxima, so a `markdownIn` that stops matching (a
+ * renamed directory, an extension change) satisfies them over the empty list
+ * and retires this whole fitness function in silence. Kept well under the
+ * maxima: they bound a rolling window, and the floor only has to prove the
+ * walker still sees it. */
+const ACTIVE_ROOT_DOCS_MIN = 3
+const ACTIVE_SESSIONS_MIN = 1
+
 const linesOf = (path: string) =>
   readFileSync(path, 'utf8')
     .split('\n')
@@ -69,6 +78,14 @@ describe('docs/STATUS.md stays a snapshot, not a log', () => {
 })
 
 describe('docs root stays scannable', () => {
+  it(`still sees at least ${ACTIVE_ROOT_DOCS_MIN} documents to bound`, () => {
+    expect(
+      markdownIn(DOCS).length,
+      '\nmarkdownIn found (almost) nothing in docs/ — the maximum below is' +
+        '\nvacuous, and this fitness function stopped guarding anything.'
+    ).toBeGreaterThanOrEqual(ACTIVE_ROOT_DOCS_MIN)
+  })
+
   it(`keeps at most ${ACTIVE_ROOT_DOCS_MAX} active documents`, () => {
     const active = markdownIn(DOCS)
     expect(
@@ -82,6 +99,14 @@ describe('docs root stays scannable', () => {
 
 describe('docs/sessions stays a rolling window', () => {
   const sessions = `${DOCS}sessions`
+
+  it(`still sees at least ${ACTIVE_SESSIONS_MIN} report to bound`, () => {
+    expect(
+      markdownIn(sessions).filter((n) => n !== '_TEMPLATE.md').length,
+      '\nmarkdownIn found nothing in docs/sessions/ — the maximum below is' +
+        '\nvacuous, and the rolling window stopped being enforced.'
+    ).toBeGreaterThanOrEqual(ACTIVE_SESSIONS_MIN)
+  })
 
   it(`keeps at most ${ACTIVE_SESSIONS_MAX} active reports`, () => {
     const active = markdownIn(sessions).filter((n) => n !== '_TEMPLATE.md')
@@ -279,6 +304,10 @@ describe('the path detector itself', () => {
 
   it('resolves doc-relative, root-relative and suffix mentions', () => {
     const paths = repoPaths()
+    // An empty walk would make every `resolvesInRepo` below false, so this
+    // test does fail closed — but only by accident of what it asserts. The
+    // floor states the guarantee instead of leaving it to be re-derived.
+    expect(paths.length).toBeGreaterThanOrEqual(500)
     expect(resolvesInRepo('packages/core/src/index.ts', ROOT, paths)).toBe(true)
     expect(resolvesInRepo('core/src/index.ts', ROOT, paths)).toBe(true)
     expect(

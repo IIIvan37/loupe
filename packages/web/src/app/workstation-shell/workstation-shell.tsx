@@ -1,21 +1,11 @@
-import {
-  formatTimecode,
-  percent,
-  percentToRatio,
-  type ProjectTuning,
-  ratio,
-  ratioToPercent
-} from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
-import type { ExternalValue } from '../../lib/external-value.ts'
 import { isServerShell } from '../../lib/server-shell.ts'
 import { gateReasonsOf } from '../account/gate-reasons.ts'
 import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
 import { AudioSessionWithPlayer } from '../audio-session/audio-session-provider.tsx'
 import { useImportFromUrl } from '../header/use-import-from-url.ts'
-import { deriveChartHeader } from '../lead-sheet/derive-chart-header.ts'
 import { activeLoopIdAtom } from '../loops/loop-atoms.ts'
 import { UnloadGuard } from './lifecycle/use-unload-guard.ts'
 import { useLoops } from '../loops/use-loops.ts'
@@ -24,9 +14,7 @@ import { useCountIn } from '../tempo/use-count-in.ts'
 import { useMetronome } from '../tempo/use-metronome.ts'
 import { useTempo } from '../tempo/use-tempo.ts'
 import { useTempoDetection } from '../tempo/use-tempo-detection.ts'
-import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
-import { useViewport } from '../waveform/use-viewport.ts'
 import { AlertBanner } from '../ui/alert-banner/alert-banner.tsx'
 import { ToastRegion } from '../ui/toast-region/toast-region.tsx'
 import { useToaster } from '../ui/use-toaster.ts'
@@ -34,6 +22,7 @@ import { EmptyState } from './regions/empty-state/empty-state.tsx'
 import { ShellDialogs } from './regions/shell-dialogs.tsx'
 import { takeChargeBusy } from './regions/shell-busy.ts'
 import { ShellDropLayer } from './regions/shell-drop-layer/shell-drop-layer.tsx'
+import { ShellFooter } from './regions/shell-footer/shell-footer.tsx'
 import { ShellHeader } from './regions/shell-header.tsx'
 import { ShellMain } from './regions/shell-main/shell-main.tsx'
 import { useFilePicker } from './lifecycle/use-file-picker.ts'
@@ -47,91 +36,6 @@ import { useShellShortcuts } from './orchestration/use-shell-shortcuts.ts'
 import { useStemExport } from './orchestration/use-stem-export.ts'
 import { useChartWithStructure } from './orchestration/use-chart-with-structure.ts'
 import styles from './workstation-shell.module.css'
-
-/** The live tuning as a manifest persists it — an untouched fine-tune stays
- * absent (⇔ 0) so old manifests remain byte-identical. */
-function tuningSnapshot(
-  timeRatio: number,
-  pitchSemitones: number,
-  zoom: number,
-  fineTuneCents: number
-): ProjectTuning {
-  return {
-    timeRatio,
-    pitchSemitones,
-    zoom,
-    ...(fineTuneCents === 0 ? {} : { fineTuneCents })
-  }
-}
-
-/** The transport footer, wired from the values it reads — never a hook bag
- * (ADR 0010): formatting and unit conversion live here, state upstairs. */
-function ShellFooter({
-  position,
-  durationSeconds,
-  isPlaying,
-  canPlay,
-  onPlayPause,
-  seekToSeconds,
-  timeRatio,
-  setTimeRatio,
-  pitchSemitones,
-  setPitchSemitones,
-  fineTuneCents,
-  setFineTuneCents
-}: {
-  readonly position: ExternalValue<number>
-  readonly durationSeconds: number
-  readonly isPlaying: boolean
-  readonly canPlay: boolean
-  readonly onPlayPause: () => void
-  readonly seekToSeconds: (seconds: number) => void
-  readonly timeRatio: number
-  readonly setTimeRatio: (ratio: number) => void
-  readonly pitchSemitones: number
-  readonly setPitchSemitones: (semitones: number) => void
-  readonly fineTuneCents: number
-  readonly setFineTuneCents: (cents: number) => void
-}) {
-  return (
-    <TransportBar
-      position={position}
-      duration={formatTimecode(durationSeconds)}
-      isPlaying={isPlaying}
-      canPlay={canPlay}
-      onPlayPause={onPlayPause}
-      onSeekToStart={() => seekToSeconds(0)}
-      onSeekToEnd={() => seekToSeconds(durationSeconds)}
-      tempoPercent={Math.round(ratioToPercent(ratio(timeRatio)))}
-      pitchSemitones={pitchSemitones}
-      onTempoChange={(value) => setTimeRatio(percentToRatio(percent(value)))}
-      onPitchChange={setPitchSemitones}
-      fineTuneCents={fineTuneCents}
-      onFineTuneChange={setFineTuneCents}
-    />
-  )
-}
-
-/**
- * The speed/pitch slices the `[`/`]` and `{`/`}` shortcuts read and drive:
- * the whole-percent tempo and the semitone pitch, each with its setter. Kept
- * off the component so the shell body stays under the react-doctor budget.
- */
-function playbackSteppers(player: ReturnType<typeof usePlayer>): {
-  readonly speed: { readonly percent: number; readonly setPercent: (percent: number) => void }
-  readonly pitch: { readonly semitones: number; readonly setSemitones: (semitones: number) => void }
-} {
-  return {
-    speed: {
-      percent: Math.round(ratioToPercent(ratio(player.timeRatio))),
-      setPercent: (value) => player.setTimeRatio(percentToRatio(percent(value)))
-    },
-    pitch: {
-      semitones: player.pitchSemitones,
-      setSemitones: player.setPitchSemitones
-    }
-  }
-}
 
 interface WorkstationShellProps {
   /** Whether the local loupe server hosts the app (D1) — gates Save /
@@ -156,38 +60,28 @@ export function WorkstationShell({
   const { stemPlayback, separation, mixer, stemsReady } = useStemStack()
   // The stem engine is a SINGLETON shared with the mixer/separation stack —
   // hand the stack's instance over, never let the player make its own.
-  const player = usePlayer(undefined, undefined, undefined, stemPlayback)
+  // The player's state comes back as values; its verbs ride ONE stable handle
+  // (ADR 0011), seated in the session below so the regions reach them too.
   const {
     importState,
-    loadedAudio,
-    loadedBytes,
-    metadata,
     transport,
     position,
     timeRatio,
-    pitchSemitones,
-    fineTuneCents,
     loopRegion,
-    importFile,
-    togglePlayback,
-    seekToSeconds,
-    restoreTuning,
     loopEnabled,
-    toggleLoop,
-    restoreLoop
-  } = player
+    handle
+  } = usePlayer(undefined, undefined, undefined, stemPlayback)
   const markers = useMarkers()
   const tempo = useTempo()
   const metronome = useMetronome({ mixer })
   // Separate the loaded track and wire the stems (+ metronome) into the mixer.
   // Separation and metronome are the features' own (ADR 0010) — seam only.
   const separateAndLoad = useSeparateAndLoad({ mixer })
-  useModalWarmup(loadedAudio) // warm the Modal container on import (no-op locally)
+  useModalWarmup() // warm the Modal container on import (no-op locally)
   // Chart session + « Détecter les accords » / « Détecter la structure » —
   // the chart↔structure pairing (S.3b) lives in its own hook.
   const { chordChart, chordDetection, structureDetection } =
     useChartWithStructure({
-      loadedAudio,
       analysis: tempo.analysis,
       markers,
       separation,
@@ -198,7 +92,6 @@ export function WorkstationShell({
   // loops feature's atom — the editing bridge itself lives in the regions
   // (ADR 0010), the shell only wires the project open.
   const restoreActiveLoopId = useSetAtom(activeLoopIdAtom)
-  const viewport = useViewport()
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [projectsOpen, setProjectsOpen] = useState(false)
   // Whether the Analyse zone is unfolded (Q.3) — practice mode folds it.
@@ -208,31 +101,25 @@ export function WorkstationShell({
   // values go in.
   const tempoDetection = useTempoDetection({
     mixer,
-    loadedAudio,
     separationOwnsMix: stemsReady
   })
   // The whole project ↔ session lifecycle (save/open/detach-on-import).
   const session = useProjectSession({
-    importFile,
-    loadedBytes,
-    metadata,
+    importFile: handle.importFile,
     stemsReady,
     loopRegion,
     loopEnabled,
-    tuning: tuningSnapshot(timeRatio, pitchSemitones, viewport.zoom, fineTuneCents),
     markers,
     loops,
     restoreActiveLoop: (active, savedLoopId) => {
-      restoreLoop(active.region, active.enabled)
+      handle.restoreLoop(active.region, active.enabled)
       restoreActiveLoopId(savedLoopId)
     },
-    restoreTuning: (tuning) => {
-      restoreTuning(tuning)
-      viewport.setZoom(tuning.zoom)
-    },
+    // The player seats the whole tuning, zoom included — the inverse of the
+    // atom a save reads (ADR 0010).
+    restoreTuning: handle.restoreTuning,
     separation,
     mixer,
-    viewport,
     tempo,
     metronome,
     setSuppressAutoDetect: tempoDetection.suppressNextAutoDetect,
@@ -259,8 +146,8 @@ export function WorkstationShell({
     analysis: tempo.analysis,
     metronomeEnabled: metronome.enabled,
     mixerState: mixer.state,
-    togglePlayback,
-    seekToSeconds
+    togglePlayback: handle.togglePlayback,
+    seekToSeconds: handle.seekToSeconds
   })
 
   const isLoaded = importState.status === 'loaded'
@@ -277,13 +164,9 @@ export function WorkstationShell({
   useShellShortcuts({
     enabled: isLoaded,
     countIn,
-    position,
-    seekToSeconds,
+    player: handle,
     grid: tempo.analysis?.grid ?? [],
-    viewport,
-    ...playbackSteppers(player),
     markers,
-    toggleLoop,
     metronome,
     tempoDetection,
     session
@@ -293,9 +176,7 @@ export function WorkstationShell({
   const stemExport = useStemExport({
     separation,
     tempo,
-    metadata,
     trackName: session.trackName,
-    loadedAudio,
     durationSeconds: transport.durationSeconds,
     notifySuccess
   })
@@ -305,13 +186,12 @@ export function WorkstationShell({
     structureDetection,
     chordDetection,
     separateAndLoad,
-    loadedAudio,
     mixer,
     separationOwnsMix: stemsReady
   })
 
   return (
-    <AudioSessionWithPlayer player={player.handle} stemEngine={stemPlayback}>
+    <AudioSessionWithPlayer player={handle} stemEngine={stemPlayback}>
     <div className={styles.shell} {...drop.dropHandlers}>
       <ShellDropLayer
         fileInputRef={fileInputRef}
@@ -327,7 +207,6 @@ export function WorkstationShell({
           native beforeunload prompt (reload, tab close). */}
       <UnloadGuard unsavedWork={session.unsavedWork} />
       <ShellHeader
-        metadata={metadata}
         session={session}
         localBackend={localBackend}
         urlImport={urlImport}
@@ -381,31 +260,16 @@ export function WorkstationShell({
           onDownloadStem={stemExport.downloadStem}
           tempoDetection={tempoDetection}
           onReimport={openFilePicker}
-          canSeparate={isLoaded && loadedAudio !== undefined}
-          onSeparate={() => separateAndLoad(loadedAudio)}
+          canSeparate={isLoaded}
+          onSeparate={separateAndLoad}
           chordChart={chordChart}
-          chartHeader={deriveChartHeader(metadata, session.trackName, tempo.analysis)}
+          trackName={session.trackName}
           chordDetection={chordDetection}
           structureDetection={structureDetection}
         />
       )}
 
-      <ShellFooter
-        position={position}
-        durationSeconds={transport.durationSeconds}
-        // During the count-in the button reads « pause » — pressing it
-        // abandons the count, exactly what a pause means at that instant.
-        isPlaying={transport.isPlaying || countIn.countingIn}
-        canPlay={isLoaded}
-        onPlayPause={countIn.togglePlayback}
-        seekToSeconds={seekToSeconds}
-        timeRatio={timeRatio}
-        setTimeRatio={player.setTimeRatio}
-        pitchSemitones={pitchSemitones}
-        setPitchSemitones={player.setPitchSemitones}
-        fineTuneCents={fineTuneCents}
-        setFineTuneCents={player.setFineTuneCents}
-      />
+      <ShellFooter onPlayPause={countIn.togglePlayback} />
 
       <ToastRegion toaster={toaster} />
     </div>

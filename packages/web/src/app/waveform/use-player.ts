@@ -3,6 +3,7 @@ import {
   clampFineTuneCents,
   clampPitchSemitones,
   clampPlaybackRate,
+  clampZoom,
   type DecodedAudio,
   fineTuneOrDefault,
   type LoopRegion,
@@ -18,8 +19,8 @@ import {
   type TrackMetadataReader,
   type TransportState
 } from '@app/core'
-import { useAtom, useAtomValue } from 'jotai'
-import { useMemo, useRef, useState } from 'react'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { useMemo, useRef } from 'react'
 import { createMusicMetadataReader } from '../../audio/music-metadata-reader.ts'
 import { createWebAudioDecoder } from '../../audio/playback/web-audio-decoder.ts'
 import { createWebAudioPlayback } from '../../audio/playback/web-audio-playback.ts'
@@ -32,20 +33,24 @@ import {
   useAudioSession,
   useStemTransport
 } from '../audio-session/audio-session.ts'
-import {
-  type SpeedTrainer,
-  useSpeedTrainer
-} from '../loops/use-speed-trainer.ts'
+import { useSpeedTrainer } from '../loops/use-speed-trainer.ts'
 import { stemsActiveAtom } from '../mixer/mixer-atoms.ts'
 import {
+  loadedAudioAtom,
+  loadedBytesAtom,
+  NO_TRACK_METADATA,
+  trackMetadataAtom
+} from '../track/track-atoms.ts'
+import {
+  fineTuneCentsAtom,
   type ImportState,
   importStateAtom,
-  pitchSemitonesAtom
+  pitchSemitonesAtom,
+  timeRatioAtom
 } from './player-atoms.ts'
 import { useLoop } from './use-loop.ts'
 import { useTransportEngines } from './use-transport-engines.ts'
-
-const NO_METADATA: TrackMetadata = { title: undefined, artist: undefined }
+import { viewportZoomAtom } from './viewport-atoms.ts'
 
 /** Peak resolution: more buckets than screen pixels, so it stays crisp at 1×. */
 const BUCKET_COUNT = 1200
@@ -54,55 +59,18 @@ export type { ImportState } from './player-atoms.ts'
 
 export interface Player {
   readonly importState: ImportState
-  /** The decoded PCM of the loaded track, for reuse (stem separation). */
-  readonly loadedAudio: DecodedAudio | undefined
-  /** The imported file's original encoded bytes, for reuse (saving a project). */
-  readonly loadedBytes: ArrayBuffer | undefined
-  /** Tags read from the imported file (empty fields when the file has none). */
-  readonly metadata: TrackMetadata
   readonly transport: TransportState
   /** The playhead, streamed outside React state — see TransportEngines. */
   readonly position: ExternalValue<number>
   /** Tempo as a ratio of normal speed (1 = 100 %). */
   readonly timeRatio: number
-  /** Pitch shift in whole semitones (0 = original key). */
-  readonly pitchSemitones: number
-  /**
-   * Import a file; resolves with its decoded PCM (undefined on failure).
-   * `fallbackMetadata` seeds title/artist when the file carries no embedded
-   * tags (e.g. a URL download supplying the source's own metadata).
-   */
-  readonly importFile: (
-    file: File,
-    fallbackMetadata?: TrackMetadata
-  ) => Promise<DecodedAudio | undefined>
-  readonly togglePlayback: () => void
-  /** Seek to a fraction (0–1) of the timeline — what a waveform click yields. */
-  readonly seekToRatio: (ratio: number) => void
-  /** Seek to an absolute time in seconds (e.g. a marker). */
-  readonly seekToSeconds: (seconds: number) => void
-  readonly setTimeRatio: (ratio: number) => void
-  readonly setPitchSemitones: (semitones: number) => void
-  /** Fine pitch adjustment in cents (±50), separate from the semitones. */
-  readonly fineTuneCents: number
-  readonly setFineTuneCents: (cents: number) => void
-  /** Seat a persisted tuning (project open) — every setter re-clamps, so a
-   * hand-edited manifest stays in range. Zoom stays the viewport's. */
-  readonly restoreTuning: (tuning: ProjectTuning) => void
-  /** One read of the ACTIVE engine's output spectrum (undefined = no tap). */
-  readonly readSpectrum: () => SpectrumFrame | undefined
   /** The active A/B loop (the « loupe »), or undefined when off. */
   readonly loopRegion: LoopRegion | undefined
-  readonly setLoopRegion: (region: LoopRegion | undefined) => void
   /** Whether the active region actually loops playback (vs playing through). */
   readonly loopEnabled: boolean
-  readonly toggleLoop: () => void
-  /** Seat a persisted loupe: region and wrap choice together (project open). */
-  readonly restoreLoop: (region: LoopRegion, enabled: boolean) => void
-  /** The speed-trainer ramp riding the loupe (arms, steps on wraps, stops). */
-  readonly speedTrainer: SpeedTrainer
-  /** The player as a stable reference, seated in the session by the shell so
-   * the regions reach it themselves (ADR 0011). */
+  /** Every verb the player answers to, as a stable reference seated in the
+   * session by the shell so the regions reach it themselves (ADR 0011). The
+   * hook returns the state above and NO setter: one home per verb. */
   readonly handle: PlayerHandle
 }
 
@@ -153,19 +121,23 @@ export function usePlayer(
     () => injectedReader ?? createMusicMetadataReader(),
     [injectedReader]
   )
-  const [metadata, setMetadata] = useState<TrackMetadata>(NO_METADATA)
-  // The import lifecycle and the pitch ride the feature's atoms (ADR 0010):
-  // the regions render them on their own instead of receiving them as props.
+  // The import lifecycle, the loaded track (PCM, bytes, tags) and the tuning
+  // knobs (tempo, pitch, fine-tune) ride the features' atoms (ADR 0010): the
+  // regions, the analyses and the project session read them on their own
+  // instead of receiving them as props. This hook only WRITES the track's
+  // tags and bytes.
   const [importState, setImportState] = useAtom(importStateAtom)
-  const [loadedAudio, setLoadedAudio] = useState<DecodedAudio | undefined>(
-    undefined
-  )
-  const [loadedBytes, setLoadedBytes] = useState<ArrayBuffer | undefined>(
-    undefined
-  )
-  const [timeRatio, setTimeRatioState] = useState(1)
-  const [pitchSemitones, setPitchSemitonesState] = useAtom(pitchSemitonesAtom)
-  const [fineTuneCents, setFineTuneCentsState] = useState(0)
+  const [loadedAudio, setLoadedAudio] = useAtom(loadedAudioAtom)
+  const setLoadedBytes = useSetAtom(loadedBytesAtom)
+  const setMetadata = useSetAtom(trackMetadataAtom)
+  const [timeRatio, setTimeRatioState] = useAtom(timeRatioAtom)
+  // Write-only here: the footer reads the two knobs from their atoms, so the
+  // shell no longer re-renders on every slider notch.
+  const setPitchSemitonesState = useSetAtom(pitchSemitonesAtom)
+  const setFineTuneCentsState = useSetAtom(fineTuneCentsAtom)
+  // The zoom is the viewport's atom, same feature: restoring a tuning seats
+  // it alongside the three knobs, exactly as `tuningAtom` reads all four.
+  const setZoom = useSetAtom(viewportZoomAtom)
   const loop = useLoop()
   // The ramp applies its earned tempo through the same clamped path the
   // slider uses (engines + read-out follow) — but through the INTERNAL
@@ -198,7 +170,7 @@ export function usePlayer(
     setImportState({ status: 'loading' })
     // Show the fallback (a URL download's own title/artist) straight away; the
     // tag read below overrides only the fields it actually finds.
-    const fallback = fallbackMetadata ?? NO_METADATA
+    const fallback = fallbackMetadata ?? NO_TRACK_METADATA
     setMetadata(fallback)
     setLoadedAudio(undefined)
     setLoadedBytes(undefined)
@@ -339,10 +311,13 @@ export function usePlayer(
     applyPitch()
   }
 
+  /** The exact inverse of `tuningAtom`: it seats the four knobs a manifest
+   * carries, zoom included (the viewport's atom is this feature's too). */
   function restoreTuning(tuning: ProjectTuning): void {
     setTimeRatio(tuning.timeRatio)
     setPitchSemitones(tuning.pitchSemitones)
     setFineTuneCents(fineTuneOrDefault(tuning))
+    setZoom(clampZoom(tuning.zoom))
   }
 
   function setLoopRegion(region: LoopRegion | undefined): void {
@@ -379,6 +354,13 @@ export function usePlayer(
   const toggleLoopRef = useLatest(toggleLoop)
   const setLoopRegionRef = useLatest(setLoopRegion)
   const readSpectrumRef = useLatest(readSpectrum)
+  const importFileRef = useLatest(importFile)
+  const togglePlaybackRef = useLatest(togglePlayback)
+  const setTimeRatioRef = useLatest(setTimeRatio)
+  const setPitchSemitonesRef = useLatest(setPitchSemitones)
+  const setFineTuneCentsRef = useLatest(setFineTuneCents)
+  const restoreTuningRef = useLatest(restoreTuning)
+  const restoreLoopRef = useLatest(restoreLoop)
   const {
     start: startTrainer,
     stop: stopTrainer,
@@ -390,6 +372,14 @@ export function usePlayer(
       readSpectrum: () => readSpectrumRef.current(),
       seekToSeconds: (seconds) => seekToSecondsRef.current(seconds),
       seekToRatio: (ratio) => seekToRatioRef.current(ratio),
+      importFile: (file, fallbackMetadata) =>
+        importFileRef.current(file, fallbackMetadata),
+      togglePlayback: () => togglePlaybackRef.current(),
+      setTimeRatio: (ratio) => setTimeRatioRef.current(ratio),
+      setPitchSemitones: (semitones) => setPitchSemitonesRef.current(semitones),
+      setFineTuneCents: (cents) => setFineTuneCentsRef.current(cents),
+      restoreTuning: (tuning) => restoreTuningRef.current(tuning),
+      restoreLoop: (region, enabled) => restoreLoopRef.current(region, enabled),
       toggleLoop: () => toggleLoopRef.current(),
       setLoopRegion: (region) => setLoopRegionRef.current(region),
       speedTrainer: {
@@ -403,29 +393,11 @@ export function usePlayer(
 
   return {
     importState,
-    loadedAudio,
-    loadedBytes,
-    metadata,
     transport,
     position,
     timeRatio,
-    pitchSemitones,
-    fineTuneCents,
     loopRegion: loop.loopRegion,
-    importFile,
-    togglePlayback,
-    seekToRatio,
-    seekToSeconds,
-    setTimeRatio,
-    setPitchSemitones,
-    setFineTuneCents,
-    restoreTuning,
-    readSpectrum,
-    setLoopRegion,
     loopEnabled: loop.loopEnabled,
-    toggleLoop,
-    restoreLoop,
-    speedTrainer,
     handle
   }
 }

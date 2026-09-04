@@ -14,6 +14,9 @@ pnpm monorepo with a **pure hexagonal core** + a React (`web`) adapter,
 - `pnpm gate` — **the blocking quality gate**: typecheck → biome → `check:arch`
   (Sheriff) → `check:design`/`check:react` → `check:tokens`/`check:i18n`/`check:sonar`
   → `check:shell` (system shellcheck + actionlint on scripts/hooks/workflows)
+  → `check:tests` (vacuous tests: skips, specs with no assertion, tautologies,
+  fitness functions walking a directory with no floor under their corpus —
+  the detector self-tests on its own fixtures before it reports)
   → tests with coverage → knip → jscpd. Run before declaring anything done. A green run
   stamps the tree it validated, so the pre-commit hook doesn't replay it on the
   same bytes (`scripts/gate-stamp.sh`).
@@ -80,6 +83,29 @@ can't see.
   intended approach in 2–3 lines and check it against the mockup **before** writing
   the acceptance test. This is where reworks come from — e.g. a pan-slider zoom
   model shipped instead of the mockup's zoom-scale + native-scroll design.
+- **Contract the scope before writing code.** Before the first edit of any slice,
+  state in the reply — not in a file — four lines: the step in one sentence
+  (restated from `docs/STATUS.md`); the files this will change; what is
+  explicitly OUT, including anything another session or another branch owns;
+  anything destructive that needs approval (deleting state, dropping a public
+  contract field, rewriting history — prefer ignoring a field over removing it).
+  One exchange, against a revert-and-rewrite cycle.
+- **A green check proves nothing until it has been red.** A test written after
+  the code, or a detector added over a clean tree, has never been observed to
+  fail — it may be asserting over an empty set. Show the red: a new test fails
+  before the implementation exists (`/tdd-cycle`); a refactor with no new
+  behaviour is covered by a **planted defect** (break the new code, run the
+  targeted spec, show the failure, restore from a byte-for-byte copy); a new
+  fitness function fails on a planted violation AND bounds its corpus from below
+  — `readdirSync` returns `[]` without complaining, and the
+  `offenders.length <= MAX` shape is green over the empty set (`check:tests`
+  enforces the floor).
+- **One checkout, one session.** Never plant a defect in a checkout another
+  session is using: their pre-commit hook replays the gate over your break and
+  stamps a tree that never validated. Before committing an unexpected dirty
+  tree, check `ListAgents` for another session on this repo and ask it — a
+  peer's `git commit` killed mid-hook leaves exactly the shape of an
+  interrupted step.
 
 ## Conventions
 

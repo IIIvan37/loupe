@@ -185,6 +185,21 @@ const NEUTRAL_TUNING: ProjectTuning = {
 }
 
 /**
+ * The tuning as a manifest persists it: the live knobs, with an untouched
+ * fine-tune left absent (⇔ 0) so manifests that predate the field stay
+ * byte-identical. The pendant of `projectChordChart` for the tuning half.
+ */
+export function projectTuning(live: {
+  readonly timeRatio: number
+  readonly pitchSemitones: number
+  readonly zoom: number
+  readonly fineTuneCents: number
+}): ProjectTuning {
+  const { fineTuneCents, ...knobs } = live
+  return { ...knobs, ...(fineTuneCents === 0 ? {} : { fineTuneCents }) }
+}
+
+/**
  * Normalise an optional persisted tuning: a manifest that predates the field
  * means the user had the neutral settings, so absent reads as neutral. Keeps
  * the « old manifest » rule in one place — the fingerprint and the restore

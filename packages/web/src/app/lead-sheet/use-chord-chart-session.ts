@@ -1,7 +1,6 @@
 import type {
   BeatGrid,
   ChordDetector,
-  DecodedAudio,
   DetectedSection,
   SeparatedStem
 } from '@app/core'
@@ -19,7 +18,6 @@ import {
  * detection persists exactly like a manual edit.
  */
 export function useChordChartSession({
-  loadedAudio,
   grid,
   beatsPerBar,
   sections,
@@ -37,7 +35,6 @@ export function useChordChartSession({
     | undefined
   /** Cancel the implicit separation with the chord run that started it. */
   readonly cancelSeparation?: (() => void) | undefined
-  readonly loadedAudio: DecodedAudio | undefined
   readonly grid: BeatGrid
   readonly beatsPerBar?: number | undefined
   /** The song's already-known sections (the timeline's structure markers) —
@@ -68,7 +65,6 @@ export function useChordChartSession({
     }
   }
   const detection = useChordDetection({
-    loadedAudio,
     grid,
     beatsPerBar,
     sections,

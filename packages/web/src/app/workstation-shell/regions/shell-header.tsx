@@ -1,4 +1,5 @@
 import { useLingui } from '@lingui/react/macro'
+import { useAtomValue } from 'jotai'
 import { appAuth } from '../../../auth/app-auth.ts'
 import { useWindowTitle } from '../lifecycle/use-window-title.ts'
 import type { AuthPort, MintFailureReason } from '../../../auth/auth-port.ts'
@@ -6,6 +7,7 @@ import { AccountMenuSlot } from '../../account/account-menu-slot/account-menu-sl
 import { Header } from '../../header/header.tsx'
 import { IMPORT_URL_ERROR_COPY } from '../../header/import-url-copy.ts'
 import type { UrlImport } from '../../header/use-import-from-url.ts'
+import { trackMetadataAtom } from '../../track/track-atoms.ts'
 import { AlertBanner } from '../../ui/alert-banner/alert-banner.tsx'
 import type { ProjectSession } from '../orchestration/use-project-session.ts'
 import { type BusyLine, openingBusy, urlImportBusy } from './shell-busy.ts'
@@ -14,10 +16,6 @@ import { type BusyLine, openingBusy, urlImportBusy } from './shell-busy.ts'
 const NO_GATE_REASONS: readonly (MintFailureReason | undefined)[] = []
 
 interface ShellHeaderProps {
-  readonly metadata: {
-    readonly title: string | undefined
-    readonly artist: string | undefined
-  }
   readonly session: ProjectSession
   /** Whether the local loupe server hosts the app (D1): saved projects and
    * URL import need it — the plain browser hides them. */
@@ -51,7 +49,6 @@ interface ShellHeaderProps {
  * under it. The « Importer » button drives the shell's shared file picker.
  */
 export function ShellHeader({
-  metadata,
   session,
   localBackend,
   urlImport,
@@ -70,6 +67,8 @@ export function ShellHeader({
 }: ShellHeaderProps) {
   const { t } = useLingui()
   const { projects, trackName, currentProject } = session
+  // The identity line reads the loaded track's tags itself (ADR 0010).
+  const metadata = useAtomValue(trackMetadataAtom)
   // The account port: injected in tests, else the app singleton (null when
   // Supabase isn't configured → no control, the analysis gate is a no-op).
   const resolvedAuth = auth !== undefined ? auth : appAuth()

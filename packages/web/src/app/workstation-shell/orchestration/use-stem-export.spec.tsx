@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
 import type { DecodedAudio } from '@app/core'
 import { act, renderHook } from '@testing-library/react'
+import { Provider, createStore } from 'jotai'
+import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { I18nTestingProvider } from '../../../i18n/i18n-testing-provider.tsx'
 import type { Separation } from '../../separation/use-separation.ts'
 import type { Tempo } from '../../tempo/use-tempo.ts'
+import { loadedAudioAtom, trackMetadataAtom } from '../../track/track-atoms.ts'
 import { useStemExport } from './use-stem-export.ts'
 
 const downloadBlob = vi.fn()
@@ -16,6 +19,15 @@ const loadedAudio: DecodedAudio = { sampleRate: 4, channels: [[0, 0, 0, 0]] }
 
 function renderExport() {
   const notifySuccess = vi.fn()
+  // The track is the player's atom (ADR 0010) — seat it, not pass it.
+  const store = createStore()
+  store.set(loadedAudioAtom, loadedAudio)
+  store.set(trackMetadataAtom, { title: 'Titre', artist: undefined })
+  const wrapper = ({ children }: { readonly children: ReactNode }) => (
+    <I18nTestingProvider>
+      <Provider store={store}>{children}</Provider>
+    </I18nTestingProvider>
+  )
   const hook = renderHook(
     () =>
       useStemExport({
@@ -23,13 +35,11 @@ function renderExport() {
           downloadStem: async () => false
         } as unknown as Separation,
         tempo: { analysis: undefined } as unknown as Tempo,
-        metadata: { title: 'Titre' },
         trackName: 'piste',
-        loadedAudio,
         durationSeconds: 1,
         notifySuccess
       }),
-    { wrapper: I18nTestingProvider }
+    { wrapper }
   )
   return { hook, notifySuccess }
 }

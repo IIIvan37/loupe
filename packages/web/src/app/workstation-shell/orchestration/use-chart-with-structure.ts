@@ -1,6 +1,5 @@
 import type {
   ChordDetector,
-  DecodedAudio,
   MarkerList,
   SeparatedStem,
   StructureDetector,
@@ -36,7 +35,6 @@ import { useStructureMarkers } from '../../markers/use-structure-markers.ts'
  * same felt bar length, so the pairing owns that plumbing too.
  */
 export function useChartWithStructure({
-  loadedAudio,
   analysis,
   markers,
   separation,
@@ -44,7 +42,6 @@ export function useChartWithStructure({
   chordDetector,
   structureDetector
 }: {
-  readonly loadedAudio: DecodedAudio | undefined
   readonly analysis: TempoAnalysis | undefined
   readonly markers: Markers
   /** The session's separation surface (4a) — its live stems feed the chord
@@ -56,9 +53,7 @@ export function useChartWithStructure({
   }
   /** The shell's separate-and-wire flow — the chord run's implicit
    * separation when no stems exist yet (resolves the isolated sources). */
-  readonly separateAndLoad: (
-    audio: DecodedAudio | undefined
-  ) => Promise<readonly SeparatedStem[] | undefined>
+  readonly separateAndLoad: () => Promise<readonly SeparatedStem[] | undefined>
   readonly chordDetector?: ChordDetector | undefined
   readonly structureDetector?: StructureDetector | undefined
 }): {
@@ -80,12 +75,11 @@ export function useChartWithStructure({
   const session = useAudioSession()
   const { chart: chordChart, detection: chordDetection } = useChordChartSession(
     {
-      loadedAudio,
       grid,
       beatsPerBar,
       sections,
       stems: separation.sources.length > 0 ? separation.sources : undefined,
-      ensureStems: () => separateAndLoad(loadedAudio),
+      ensureStems: separateAndLoad,
       cancelSeparation: separation.cancel,
       detector: chordDetector ?? session.chordDetector,
       onSourceEdited: (source) =>
@@ -93,7 +87,6 @@ export function useChartWithStructure({
     }
   )
   const structureDetection = useStructureMarkers({
-    loadedAudio,
     grid,
     beatsPerBar,
     markers,

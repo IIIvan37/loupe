@@ -14,6 +14,7 @@ import {
   type ProjectTuning,
   projectChordChart,
   projectFromSession,
+  projectTuning,
   type SessionSnapshot,
   tuningOrDefault
 } from './project.ts'
@@ -239,6 +240,30 @@ describe('projectChordChart', () => {
       source: '| Bm |',
       transposedBy: 2
     })
+  })
+})
+
+describe('projectTuning', () => {
+  it('omits the fine-tune when it is untouched (absent ⇔ 0)', () => {
+    const tuning = projectTuning({
+      timeRatio: 0.85,
+      pitchSemitones: -2,
+      zoom: 3,
+      fineTuneCents: 0
+    })
+    expect(tuning).toEqual({ timeRatio: 0.85, pitchSemitones: -2, zoom: 3 })
+    expect('fineTuneCents' in tuning).toBe(false)
+  })
+
+  it('keeps a real fine-tune alongside the other knobs', () => {
+    expect(
+      projectTuning({
+        timeRatio: 1,
+        pitchSemitones: 0,
+        zoom: 1,
+        fineTuneCents: 30
+      })
+    ).toEqual({ timeRatio: 1, pitchSemitones: 0, zoom: 1, fineTuneCents: 30 })
   })
 })
 

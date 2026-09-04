@@ -23,7 +23,6 @@ function mountPairing(analysis: TempoAnalysis | undefined) {
     () => {
       const markers = useMarkers()
       const { chordChart } = useChartWithStructure({
-        loadedAudio: undefined,
         analysis,
         markers,
         separation: { sources: [], cancel: () => {} },

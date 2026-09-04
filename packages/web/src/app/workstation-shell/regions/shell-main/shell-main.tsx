@@ -18,7 +18,7 @@ import {
 import type { AnalysisFold } from '../../../analyser/use-analysis-fold.ts'
 import { AnalysisPanel } from '../../../analysis-panel/analysis-panel.tsx'
 import { usePlayerHandle } from '../../../audio-session/audio-session.ts'
-import type { ChartHeaderData } from '../../../lead-sheet/chart-header/chart-header.tsx'
+import { deriveChartHeader } from '../../../lead-sheet/derive-chart-header.ts'
 import { ChordChartPanel } from '../../../lead-sheet/chord-chart-panel/chord-chart-panel.tsx'
 import type { ChordChartState } from '../../../lead-sheet/use-chord-chart.ts'
 import type { ChordDetection } from '../../../lead-sheet/use-chord-detection.ts'
@@ -34,6 +34,7 @@ import { useSeparation } from '../../../separation/use-separation.ts'
 import { countingInAtom } from '../../../tempo/tempo-atoms.ts'
 import { TempoPanel } from '../../../tempo/tempo-panel/tempo-panel.tsx'
 import { useTempo } from '../../../tempo/use-tempo.ts'
+import { trackMetadataAtom } from '../../../track/track-atoms.ts'
 import {
   importStateAtom,
   loopEnabledAtom,
@@ -64,8 +65,8 @@ interface ShellMainProps {
     ChordChartState,
     'source' | 'transposedBy' | 'setSource' | 'transpose'
   >
-  /** What the session derives for the chart head (tags, BPM, bar length). */
-  readonly chartHeader: ChartHeaderData
+  /** The project session's track name — the chart head's fallback title. */
+  readonly trackName: string | null
   /** « Détecter les accords » — the chord-detection flow the panel drives. */
   readonly chordDetection: ChordDetection
   /** « Détecter la structure » — the flow that places section markers. */
@@ -86,7 +87,7 @@ export function ShellMain({
   canSeparate,
   onSeparate,
   chordChart,
-  chartHeader,
+  trackName,
   chordDetection,
   structureDetection
 }: ShellMainProps) {
@@ -107,6 +108,13 @@ export function ShellMain({
   const pitchSemitones = useAtomValue(pitchSemitonesAtom)
   const countingIn = useAtomValue(countingInAtom)
   const trainerState = useAtomValue(speedTrainerStateAtom)
+  // The chart head derives from the track's tags (ADR 0010) + the session's
+  // track name + the tempo — the same fallbacks as the app header.
+  const chartHeader = deriveChartHeader(
+    useAtomValue(trackMetadataAtom),
+    trackName,
+    tempo.analysis
+  )
   const isLoaded = importState.status === 'loaded'
   // During the count-in the region already renders « playing » — the Spectre
   // tab polls and the transport is committed to start.

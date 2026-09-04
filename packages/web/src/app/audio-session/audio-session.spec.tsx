@@ -23,6 +23,30 @@ import {
   useStemTransport
 } from './audio-session.ts'
 
+/**
+ * An inert player: every verb a no-op, the playhead frozen at 0 — the two
+ * describes below assert WHO gets the handle, never what it does. Declared
+ * once here so a verb added to {@link PlayerHandle} costs one edit.
+ */
+function fakePlayerHandle(position: ExternalValue<number>): PlayerHandle {
+  return {
+    position,
+    readSpectrum: () => undefined,
+    seekToSeconds: () => {},
+    seekToRatio: () => {},
+    importFile: async () => undefined,
+    togglePlayback: () => {},
+    setTimeRatio: () => {},
+    setPitchSemitones: () => {},
+    setFineTuneCents: () => {},
+    restoreTuning: () => {},
+    restoreLoop: () => {},
+    toggleLoop: () => {},
+    setLoopRegion: () => {},
+    speedTrainer: { start: () => {}, stop: () => {}, cross: () => {} }
+  }
+}
+
 const decoder: AudioFileDecoder = {
   decode: async () => ({ sampleRate: 4, channels: [[0, 1, -1, 0.5]] })
 }
@@ -54,15 +78,7 @@ describe('usePlayerHandle', () => {
     get: () => 0,
     subscribe: () => () => {}
   }
-  const player: PlayerHandle = {
-    position,
-    readSpectrum: () => undefined,
-    seekToSeconds: () => {},
-    seekToRatio: () => {},
-    toggleLoop: () => {},
-    setLoopRegion: () => {},
-    speedTrainer: { start: () => {}, stop: () => {}, cross: () => {} }
-  }
+  const player = fakePlayerHandle(position)
 
   it('hands a region the player the shell seated', () => {
     const wrapper = ({ children }: { readonly children: ReactNode }) => (
@@ -225,15 +241,7 @@ describe('AudioSessionWithPlayer', () => {
     get: () => 0,
     subscribe: () => () => {}
   }
-  const player: PlayerHandle = {
-    position,
-    readSpectrum: () => undefined,
-    seekToSeconds: () => {},
-    seekToRatio: () => {},
-    toggleLoop: () => {},
-    setLoopRegion: () => {},
-    speedTrainer: { start: () => {}, stop: () => {}, cross: () => {} }
-  }
+  const player = fakePlayerHandle(position)
   const stemEngine: StemPlaybackEngine = {
     load: async () => {},
     addStem: async () => {},

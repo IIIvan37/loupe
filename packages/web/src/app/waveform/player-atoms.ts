@@ -1,10 +1,13 @@
 import {
   initialTransport,
   type LoopRegion,
+  type ProjectTuning,
+  projectTuning,
   type Track,
   type TransportState
 } from '@app/core'
 import { atom } from 'jotai'
+import { viewportZoomAtom } from './viewport-atoms.ts'
 
 /**
  * The player's view state, owned by this feature (ADR 0010/0011) — the values
@@ -36,3 +39,21 @@ export const loopEnabledAtom = atom(true)
 
 /** Pitch shift in whole semitones (0 = original key) — the chart reads it. */
 export const pitchSemitonesAtom = atom(0)
+
+/** Tempo as a ratio of normal speed (1 = 100 %) — the count-in reads it. */
+export const timeRatioAtom = atom(1)
+
+/** Fine pitch adjustment in whole cents (±50), separate from the semitones. */
+export const fineTuneCentsAtom = atom(0)
+
+/** The live tuning as a manifest persists it — what a save stores and the
+ * fingerprint signs. Composed from the knobs the features own (the zoom is
+ * the viewport's); the core builder owns the manifest shape (absent ⇔ 0). */
+export const tuningAtom = atom<ProjectTuning>((get) =>
+  projectTuning({
+    timeRatio: get(timeRatioAtom),
+    pitchSemitones: get(pitchSemitonesAtom),
+    zoom: get(viewportZoomAtom),
+    fineTuneCents: get(fineTuneCentsAtom)
+  })
+)
