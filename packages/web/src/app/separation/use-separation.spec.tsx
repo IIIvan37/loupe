@@ -7,20 +7,28 @@ import type {
   StemSeparator
 } from '@app/core'
 import { act, renderHook, waitFor } from '@testing-library/react'
-import { Provider } from 'jotai'
+import { createStore, Provider } from 'jotai'
 import type { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { i18n } from '../../i18n/i18n.ts'
 import { I18nTestingProvider } from '../../i18n/i18n-testing-provider.tsx'
+import { loadedAudioAtom } from '../track/track-atoms.ts'
 import { useSeparation } from './use-separation.ts'
 
 /** Fresh atom store per mount (the gate reason is a feature atom now, ADR
- * 0010) — without the Provider, one test's gate reason leaks into the next. */
-const TestProviders = ({ children }: { readonly children: ReactNode }) => (
-  <I18nTestingProvider>
-    <Provider>{children}</Provider>
-  </I18nTestingProvider>
-)
+ * 0010) — without the Provider, one test's gate reason leaks into the next.
+ * Pass a store when the test drives an atom (replacing the loaded track). */
+const providersWith =
+  (store?: ReturnType<typeof createStore>) =>
+  ({ children }: { readonly children: ReactNode }) => (
+    <I18nTestingProvider>
+      {/* Spread, not `store={store}`: exactOptionalPropertyTypes rejects an
+          explicit undefined, and no store means « fresh one per mount ». */}
+      <Provider {...(store ? { store } : {})}>{children}</Provider>
+    </I18nTestingProvider>
+  )
+
+const TestProviders = providersWith()
 
 const audio: DecodedAudio = { sampleRate: 4, channels: [[0, 1, -1, 0.5]] }
 
@@ -67,6 +75,31 @@ describe('useSeparation', () => {
     expect(result.current.state.stems.map((s) => s.id)).toEqual(['voix'])
   })
 
+
+  it('drops a late separation when the track was replaced mid-flight', async () => {
+    // The commit guard must weigh the TRACK, not only the run token: a fresh
+    // import seats a new track without superseding this run, and the old
+    // track's stems must not land on it.
+    const store = createStore()
+    store.set(loadedAudioAtom, audio)
+    const wrapper = providersWith(store)
+    const { separator, finish } = deferredSeparator()
+    const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
+      wrapper
+    })
+
+    act(() => {
+      void result.current.separate(audio)
+    })
+    act(() => store.set(loadedAudioAtom, { sampleRate: 4, channels: [[0.5]] }))
+    await act(async () => {
+      finish(stems)
+    })
+
+    // Still analysing, not merely « not ready »: a `failed` status would pass
+    // a negative assertion for the wrong reason.
+    expect(result.current.state.status).toBe('analysing')
+  })
 
   it('cancels an in-flight run: aborts the port and returns to idle', async () => {
     let seen: AbortSignal | undefined

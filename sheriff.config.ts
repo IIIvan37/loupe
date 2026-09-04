@@ -235,11 +235,14 @@ export const config: SheriffConfig = {
     ],
     // The separation reaches the session for its separator port and the ONE
     // stem engine's PCM read-back (ADR 0011) — a region's bare `useSeparation()`
-    // must see the shell's run, never start a private one.
+    // must see the shell's run, never start a private one. It also reads the
+    // loaded track (ADR 0010 atom, a LEAF): the commit guard must know whether
+    // the track changed while the separator was running.
     'web:feature:separation': [
       sameTag,
       ...WEB_KIT,
       'web:feature:audio-session',
+      'web:feature:track',
       'web:audio',
       'web:auth'
     ],

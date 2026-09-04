@@ -2,6 +2,7 @@ import {
   type BeatGrid,
   type DetectedSection,
   detectStructure,
+  isRunCurrent,
   type StructureDetectionErrorCode,
   type StructureDetector
 } from '@app/core'
@@ -121,12 +122,15 @@ export function useStructureDetection({
     setDetecting(true)
     setError(undefined)
     setSucceeded(false)
+    // Take the token BEFORE the mint, like every other analysis hook: a token
+    // read but not bumped would let the FIRST gate to resolve lock the others
+    // out, so two overlapping gestures would hand the older one the win.
+    const runId = ++runIdRef.current
     if (isAnalysisOffloaded()) {
       // A cancel (or a newer run) during the mint bumps the token — this
       // superseded run must not start the detector when the gate resolves.
-      const ticket = runIdRef.current
       const gated = await gate()
-      if (runIdRef.current !== ticket) {
+      if (runIdRef.current !== runId) {
         return
       }
       if (!gated.ok) {
@@ -138,7 +142,6 @@ export function useStructureDetection({
     controllerRef.current?.abort()
     const controller = new AbortController()
     controllerRef.current = controller
-    const runId = ++runIdRef.current
     const result = await detectStructure(
       { audio, grid: beatGrid, signal: controller.signal },
       { detector: engine }
@@ -147,9 +150,11 @@ export function useStructureDetection({
     // it analysed is still the loaded one (no swap since the await), and the
     // run was not aborted (an abort error is not an outcome).
     if (
-      runIdRef.current !== runId ||
-      inputRef.current.loadedAudio !== audio ||
-      controller.signal.aborted
+      !isRunCurrent(
+        { runId, track: audio },
+        { runId: runIdRef.current, track: inputRef.current.loadedAudio },
+        controller.signal.aborted
+      )
     ) {
       return
     }

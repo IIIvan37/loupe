@@ -1,5 +1,6 @@
 // Public contract of the core (the only surface adapters consume).
 
+export { isRunCurrent } from './application/analysis-run.ts'
 export type {
   ChordDetectionErrorCode,
   DetectChordsDeps,
