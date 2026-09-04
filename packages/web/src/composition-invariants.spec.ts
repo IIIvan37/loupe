@@ -13,18 +13,19 @@ import { describe, expect, it } from 'vitest'
  * line-count ratchet. A migration that lowers a count lowers its bound in the
  * same PR; nothing may raise one.
  *
- * The end state the ADR names is zero `ReturnType<typeof useX>` props — the
- * shell composing values, not passing whole hook bags.
+ * The end state the ADR names is zero `ReturnType<typeof useX>` props or
+ * parameters — the shell composing values, not passing whole hook bags.
  */
 
 // ── Ratchets — LOWER as leaves land, NEVER raise. ───────────────────────────
-/** Props typed `ReturnType<typeof useX>` — passing a hook's whole return bag
- * instead of the values needed. Target: 0. */
+/** Declarations typed `ReturnType<typeof useX>` — passing a hook's whole
+ * return bag instead of the values needed. Props AND function parameters: a
+ * hook taking another hook's bag hides the same coupling a prop does. Target: 0. */
 const MAX_RETURN_TYPE_PROPS = 0
 /** Fields on the widest `*Props` type (today `HeaderProps`). */
 const MAX_PROPS_FIELDS = 20
 /** Hooks called in the busiest component (today the workstation shell). */
-const MAX_HOOKS_PER_COMPONENT = 25
+const MAX_HOOKS_PER_COMPONENT = 24
 
 const WEB_SRC = fileURLToPath(new URL('.', import.meta.url))
 
@@ -52,6 +53,14 @@ function parse(path: string): ts.SourceFile {
 
 const FILES = sourceFiles(WEB_SRC)
 
+/** A props member or a function parameter — the two places a whole hook
+ * return bag travels — or undefined for any other node. */
+function declaration(
+  node: ts.Node
+): ts.PropertySignature | ts.ParameterDeclaration | undefined {
+  return ts.isPropertySignature(node) || ts.isParameter(node) ? node : undefined
+}
+
 /** A hook call is a call whose callee is a bare identifier `use…`. */
 function isHookCall(node: ts.Node): boolean {
   return (
@@ -68,17 +77,17 @@ function isPascal(name: string | undefined): boolean {
 }
 
 describe('ADR 0010 — composition ratchets', () => {
-  it(`has at most ${MAX_RETURN_TYPE_PROPS} props typed ReturnType<typeof useX> (target 0)`, () => {
+  it(`has at most ${MAX_RETURN_TYPE_PROPS} props or parameters typed ReturnType<typeof useX> (target 0)`, () => {
     const offenders: string[] = []
     for (const path of FILES) {
       const sf = parse(path)
       const visit = (node: ts.Node): void => {
+        const declared = declaration(node)
         if (
-          ts.isPropertySignature(node) &&
-          node.type &&
-          /^ReturnType<typeof use/.test(node.type.getText(sf))
+          declared?.type &&
+          /^ReturnType<typeof use/.test(declared.type.getText(sf))
         ) {
-          offenders.push(`${path}: ${node.name.getText(sf)}`)
+          offenders.push(`${path}: ${declared.name.getText(sf)}`)
         }
         ts.forEachChild(node, visit)
       }
@@ -86,7 +95,7 @@ describe('ADR 0010 — composition ratchets', () => {
     }
     expect(
       offenders.length,
-      `props passing a whole hook return:\n${offenders.join('\n')}`
+      `declarations passing a whole hook return:\n${offenders.join('\n')}`
     ).toBeLessThanOrEqual(MAX_RETURN_TYPE_PROPS)
   })
 

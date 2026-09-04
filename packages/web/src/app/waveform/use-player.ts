@@ -64,10 +64,6 @@ export interface Player {
   readonly position: ExternalValue<number>
   /** Tempo as a ratio of normal speed (1 = 100 %). */
   readonly timeRatio: number
-  /** Pitch shift in whole semitones (0 = original key). */
-  readonly pitchSemitones: number
-  /** Fine pitch adjustment in cents (±50), separate from the semitones. */
-  readonly fineTuneCents: number
   /** The active A/B loop (the « loupe »), or undefined when off. */
   readonly loopRegion: LoopRegion | undefined
   /** Whether the active region actually loops playback (vs playing through). */
@@ -135,8 +131,10 @@ export function usePlayer(
   const setLoadedBytes = useSetAtom(loadedBytesAtom)
   const setMetadata = useSetAtom(trackMetadataAtom)
   const [timeRatio, setTimeRatioState] = useAtom(timeRatioAtom)
-  const [pitchSemitones, setPitchSemitonesState] = useAtom(pitchSemitonesAtom)
-  const [fineTuneCents, setFineTuneCentsState] = useAtom(fineTuneCentsAtom)
+  // Write-only here: the footer reads the two knobs from their atoms, so the
+  // shell no longer re-renders on every slider notch.
+  const setPitchSemitonesState = useSetAtom(pitchSemitonesAtom)
+  const setFineTuneCentsState = useSetAtom(fineTuneCentsAtom)
   // The zoom is the viewport's atom, same feature: restoring a tuning seats
   // it alongside the three knobs, exactly as `tuningAtom` reads all four.
   const setZoom = useSetAtom(viewportZoomAtom)
@@ -398,8 +396,6 @@ export function usePlayer(
     transport,
     position,
     timeRatio,
-    pitchSemitones,
-    fineTuneCents,
     loopRegion: loop.loopRegion,
     loopEnabled: loop.loopEnabled,
     handle

@@ -22,6 +22,7 @@ import type { Mixer } from '../../mixer/use-mixer.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../../tempo/metronome-stem.ts'
 import { loadedBytesAtom, trackMetadataAtom } from '../../track/track-atoms.ts'
 import { tuningAtom } from '../../waveform/player-atoms.ts'
+import { useViewport } from '../../waveform/use-viewport.ts'
 import { restoreSession, type SessionRestoreDeps } from './project-session.ts'
 
 /** A file name without its extension, the fallback header title. */
@@ -40,7 +41,6 @@ export interface ProjectSessionDeps
   /** The armed A/B region and its wrap choice — the loupe a save keeps. */
   readonly loopRegion: LoopRegion | undefined
   readonly loopEnabled: boolean
-  readonly viewport: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
   /** Called with the restored project once an open has rebuilt the session. */
@@ -111,6 +111,9 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
   // The live tuning (tempo/pitch/zoom/fine-tune) is the player's derived atom
   // (ADR 0010): a save persists it and the fingerprint signs it.
   const tuning = useAtomValue(tuningAtom)
+  // A fresh track starts fully zoomed out: the zoom is the viewport feature's
+  // atom (ADR 0010), so this hook wears it rather than receiving a reset.
+  const viewport = useViewport()
   const [trackName, setTrackName] = useState<string | null>(null)
   const [openingId, setOpeningId] = useState<string | undefined>(undefined)
   // The restore's stem-decode narration (« Piste n/total »), for the chip.
@@ -136,7 +139,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
   function startFreshTrack(name: string): void {
     deps.loops.clear()
     deps.markers.clear()
-    deps.viewport.reset()
+    viewport.reset()
     deps.separation.reset()
     deps.mixer.reset()
     deps.tempo.reset()

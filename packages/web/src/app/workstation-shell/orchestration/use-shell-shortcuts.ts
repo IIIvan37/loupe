@@ -19,7 +19,7 @@ import {
   pitchSemitonesAtom,
   timeRatioAtom
 } from '../../waveform/player-atoms.ts'
-import type { ViewportControl } from '../../waveform/use-viewport.ts'
+import { useViewport } from '../../waveform/use-viewport.ts'
 import type { ProjectSession } from './use-project-session.ts'
 
 /** The session slice the Cmd/Ctrl+S save reads and drives. */
@@ -51,7 +51,6 @@ interface ShellShortcutsDeps {
   >
   /** The session's beat grid — empty without one (fixed-hop seek). */
   readonly grid: BeatGrid
-  readonly viewport: Pick<ViewportControl, 'zoomIn' | 'zoomOut'>
   readonly markers: Pick<Markers, 'addAt' | 'addSectionAt'>
   readonly metronome: Pick<Metronome, 'toggle'>
   readonly tempoDetection: Pick<TempoDetection, 'tap'>
@@ -68,12 +67,14 @@ export function useShellShortcuts({
   countIn,
   player,
   grid,
-  viewport,
   markers,
   metronome,
   tempoDetection,
   session
 }: ShellShortcutsDeps): void {
+  // The zoom the layout steps is the viewport feature's own atom (ADR 0010) —
+  // this hook wears it instead of the shell handing an instance down.
+  const viewport = useViewport()
   // The tempo and pitch a step starts from are the player's own atoms — the
   // shell no longer hands them down (ADR 0010).
   const timeRatio = useAtomValue(timeRatioAtom)

@@ -25,11 +25,11 @@ import { describe, expect, it } from 'vitest'
 
 // ── Ratchet — LOWER as brands are adopted, NEVER raise. ─────────────────────
 const NAME_TYPE_PIN: Readonly<Record<string, number>> = {
-  Seconds: 74,
-  Ratio: 16,
+  Seconds: 73,
+  Ratio: 15,
   Db: 7,
   Decibels: 0,
-  Cents: 6,
+  Cents: 4,
   Percent: 1,
   Pc: 0,
   PitchClass: 0

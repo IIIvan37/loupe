@@ -1,14 +1,6 @@
-import {
-  formatTimecode,
-  percent,
-  percentToRatio,
-  ratio,
-  ratioToPercent
-} from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
-import type { ExternalValue } from '../../lib/external-value.ts'
 import { isServerShell } from '../../lib/server-shell.ts'
 import { gateReasonsOf } from '../account/gate-reasons.ts'
 import { useAnalysisFold } from '../analyser/use-analysis-fold.ts'
@@ -22,9 +14,7 @@ import { useCountIn } from '../tempo/use-count-in.ts'
 import { useMetronome } from '../tempo/use-metronome.ts'
 import { useTempo } from '../tempo/use-tempo.ts'
 import { useTempoDetection } from '../tempo/use-tempo-detection.ts'
-import { TransportBar } from '../transport-bar/transport-bar.tsx'
 import { usePlayer } from '../waveform/use-player.ts'
-import { useViewport } from '../waveform/use-viewport.ts'
 import { AlertBanner } from '../ui/alert-banner/alert-banner.tsx'
 import { ToastRegion } from '../ui/toast-region/toast-region.tsx'
 import { useToaster } from '../ui/use-toaster.ts'
@@ -32,6 +22,7 @@ import { EmptyState } from './regions/empty-state/empty-state.tsx'
 import { ShellDialogs } from './regions/shell-dialogs.tsx'
 import { takeChargeBusy } from './regions/shell-busy.ts'
 import { ShellDropLayer } from './regions/shell-drop-layer/shell-drop-layer.tsx'
+import { ShellFooter } from './regions/shell-footer/shell-footer.tsx'
 import { ShellHeader } from './regions/shell-header.tsx'
 import { ShellMain } from './regions/shell-main/shell-main.tsx'
 import { useFilePicker } from './lifecycle/use-file-picker.ts'
@@ -45,54 +36,6 @@ import { useShellShortcuts } from './orchestration/use-shell-shortcuts.ts'
 import { useStemExport } from './orchestration/use-stem-export.ts'
 import { useChartWithStructure } from './orchestration/use-chart-with-structure.ts'
 import styles from './workstation-shell.module.css'
-
-/** The transport footer, wired from the values it reads — never a hook bag
- * (ADR 0010): formatting and unit conversion live here, state upstairs. */
-function ShellFooter({
-  position,
-  durationSeconds,
-  isPlaying,
-  canPlay,
-  onPlayPause,
-  seekToSeconds,
-  timeRatio,
-  setTimeRatio,
-  pitchSemitones,
-  setPitchSemitones,
-  fineTuneCents,
-  setFineTuneCents
-}: {
-  readonly position: ExternalValue<number>
-  readonly durationSeconds: number
-  readonly isPlaying: boolean
-  readonly canPlay: boolean
-  readonly onPlayPause: () => void
-  readonly seekToSeconds: (seconds: number) => void
-  readonly timeRatio: number
-  readonly setTimeRatio: (ratio: number) => void
-  readonly pitchSemitones: number
-  readonly setPitchSemitones: (semitones: number) => void
-  readonly fineTuneCents: number
-  readonly setFineTuneCents: (cents: number) => void
-}) {
-  return (
-    <TransportBar
-      position={position}
-      duration={formatTimecode(durationSeconds)}
-      isPlaying={isPlaying}
-      canPlay={canPlay}
-      onPlayPause={onPlayPause}
-      onSeekToStart={() => seekToSeconds(0)}
-      onSeekToEnd={() => seekToSeconds(durationSeconds)}
-      tempoPercent={Math.round(ratioToPercent(ratio(timeRatio)))}
-      pitchSemitones={pitchSemitones}
-      onTempoChange={(value) => setTimeRatio(percentToRatio(percent(value)))}
-      onPitchChange={setPitchSemitones}
-      fineTuneCents={fineTuneCents}
-      onFineTuneChange={setFineTuneCents}
-    />
-  )
-}
 
 interface WorkstationShellProps {
   /** Whether the local loupe server hosts the app (D1) — gates Save /
@@ -124,8 +67,6 @@ export function WorkstationShell({
     transport,
     position,
     timeRatio,
-    pitchSemitones,
-    fineTuneCents,
     loopRegion,
     loopEnabled,
     handle
@@ -151,7 +92,6 @@ export function WorkstationShell({
   // loops feature's atom — the editing bridge itself lives in the regions
   // (ADR 0010), the shell only wires the project open.
   const restoreActiveLoopId = useSetAtom(activeLoopIdAtom)
-  const viewport = useViewport()
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [projectsOpen, setProjectsOpen] = useState(false)
   // Whether the Analyse zone is unfolded (Q.3) — practice mode folds it.
@@ -180,7 +120,6 @@ export function WorkstationShell({
     restoreTuning: handle.restoreTuning,
     separation,
     mixer,
-    viewport,
     tempo,
     metronome,
     setSuppressAutoDetect: tempoDetection.suppressNextAutoDetect,
@@ -227,7 +166,6 @@ export function WorkstationShell({
     countIn,
     player: handle,
     grid: tempo.analysis?.grid ?? [],
-    viewport,
     markers,
     metronome,
     tempoDetection,
@@ -331,22 +269,7 @@ export function WorkstationShell({
         />
       )}
 
-      <ShellFooter
-        position={position}
-        durationSeconds={transport.durationSeconds}
-        // During the count-in the button reads « pause » — pressing it
-        // abandons the count, exactly what a pause means at that instant.
-        isPlaying={transport.isPlaying || countIn.countingIn}
-        canPlay={isLoaded}
-        onPlayPause={countIn.togglePlayback}
-        seekToSeconds={handle.seekToSeconds}
-        timeRatio={timeRatio}
-        setTimeRatio={handle.setTimeRatio}
-        pitchSemitones={pitchSemitones}
-        setPitchSemitones={handle.setPitchSemitones}
-        fineTuneCents={fineTuneCents}
-        setFineTuneCents={handle.setFineTuneCents}
-      />
+      <ShellFooter onPlayPause={countIn.togglePlayback} />
 
       <ToastRegion toaster={toaster} />
     </div>
