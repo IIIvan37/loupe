@@ -18,15 +18,14 @@ beta) ; version courante **v0.2.2** (tag `627a1b3`, release vérifiée).
 Revues justesse/texte-comme-modèle/SOLID et labo starter soldés (`playback/` par PR #372, template PR starter #35) ; shell serveur complet en dev par PR #373 (`pnpm dev:full`).
 **Skills recentrés par PR #387** (template PR starter #47) : `/session-report` = continuité seule, `/quality-gate` = seul juge (gate + mutation:diff + Sonar bloquant sur la PR, exercé vert sur #388 après réparation du secret).
 **Revue d'architecture (deepening) du 2026-09-02** : 7 candidats consignés dans son rapport de session ; le n° 1 (finir la migration du player vers les atomes — clé de voûte du cliquet des 25 hooks) est retenu, grilling soldé.
-**Tranche « player → atomes » (PR #388, un commit par valeur)** : pas 1 à 4 livrés — le PCM, les tags et les octets dans la feature feuille `app/track/` (le DAG 0012 interdit waveform : cycle via loops → tempo), le tempo, le fine-tune et l'atome dérivé `tuningAtom` dans `waveform/` ; lus par les analyses, l'export, le warmup, la séparation, la session projet, le header et `ShellMain`. `projectTuning` porte la forme du manifeste au domaine, pendant de `projectChordChart`. Les verbes du player vivent tous sur `PlayerHandle` (ADR 0011) : `usePlayer` ne rend plus qu'un état + le handle, `restoreTuning` est l'inverse exact de `tuningAtom` (zoom compris) et `useShellShortcuts` prend un `Pick` du handle en lisant les atomes lui-même — mort de `playbackSteppers`, dernier paramètre `ReturnType<typeof useX>` du dépôt. Reste le shell nettoyé + cliquets.
-Restes : affordance UX du throttle redeem (slice UI, checkpoint d'approche) ; découvrabilité du click ; filtre Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7 #180, plugin-react v6 #353).
+**Tranche « player → atomes » (5 pas, livrée par la PR #388)** : le PCM, les tags et les octets dans la feature feuille `app/track/` (le DAG 0012 interdit waveform : cycle via loops → tempo), le tempo, le fine-tune et l'atome dérivé `tuningAtom` dans `waveform/` ; lus par les analyses, l'export, le warmup, la séparation, la session projet, le header, `ShellMain` et le pied de transport. `projectTuning` porte la forme du manifeste au domaine, pendant de `projectChordChart`. Les verbes vivent tous sur `PlayerHandle` (ADR 0011) : `usePlayer` ne rend qu'un état + le handle, `restoreTuning` est l'inverse exact de `tuningAtom` (zoom compris). `ShellFooter` est une région lisant six atomes + le handle (12 props → 1), `useViewport` est porté par ses consommateurs, et le shell tombe à 24 hooks. Cliquets : `MAX_HOOKS_PER_COMPONENT` 24, détecteur `ReturnType<typeof useX>` étendu aux paramètres (cible 0 tenue), pins d'unités resserrés.
+Restes : découvrabilité du click ; filtre Base UI (#319) ; templates OTP = opérateur ; session outillage (TS 6→7 #180, plugin-react v6 #353).
 
 ## Next action
 
-Pas 5 de la tranche « player → atomes » (PR #388) : `ShellFooter` sorti du
-shell en région dédiée, lisant les atomes et le handle, puis les cliquets
-(`MAX_HOOKS_PER_COMPONENT` mesuré, détecteur `ReturnType` étendu aux
-paramètres). L'affordance du throttle redeem passe après la tranche.
+L'affordance UX du throttle redeem : slice UI, avec le checkpoint d'approche
+obligatoire (mockup + contrainte d'interaction énoncés avant le test
+d'acceptation).
 
 ## Historique (une ligne par ère ; détail = rapports datés dans sessions/)
 
