@@ -19,7 +19,7 @@ import {
   type TransportState
 } from '@app/core'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { createMusicMetadataReader } from '../../audio/music-metadata-reader.ts'
 import { createWebAudioDecoder } from '../../audio/playback/web-audio-decoder.ts'
 import { createWebAudioPlayback } from '../../audio/playback/web-audio-playback.ts'
@@ -44,9 +44,11 @@ import {
   trackMetadataAtom
 } from '../track/track-atoms.ts'
 import {
+  fineTuneCentsAtom,
   type ImportState,
   importStateAtom,
-  pitchSemitonesAtom
+  pitchSemitonesAtom,
+  timeRatioAtom
 } from './player-atoms.ts'
 import { useLoop } from './use-loop.ts'
 import { useTransportEngines } from './use-transport-engines.ts'
@@ -151,17 +153,18 @@ export function usePlayer(
     () => injectedReader ?? createMusicMetadataReader(),
     [injectedReader]
   )
-  // The import lifecycle, the loaded track (PCM, bytes, tags) and the pitch
-  // ride the features' atoms (ADR 0010): the regions, the analyses and the
-  // project session read them on their own instead of receiving them as
-  // props. This hook only WRITES the track's tags and bytes.
+  // The import lifecycle, the loaded track (PCM, bytes, tags) and the tuning
+  // knobs (tempo, pitch, fine-tune) ride the features' atoms (ADR 0010): the
+  // regions, the analyses and the project session read them on their own
+  // instead of receiving them as props. This hook only WRITES the track's
+  // tags and bytes.
   const [importState, setImportState] = useAtom(importStateAtom)
   const [loadedAudio, setLoadedAudio] = useAtom(loadedAudioAtom)
   const setLoadedBytes = useSetAtom(loadedBytesAtom)
   const setMetadata = useSetAtom(trackMetadataAtom)
-  const [timeRatio, setTimeRatioState] = useState(1)
+  const [timeRatio, setTimeRatioState] = useAtom(timeRatioAtom)
   const [pitchSemitones, setPitchSemitonesState] = useAtom(pitchSemitonesAtom)
-  const [fineTuneCents, setFineTuneCentsState] = useState(0)
+  const [fineTuneCents, setFineTuneCentsState] = useAtom(fineTuneCentsAtom)
   const loop = useLoop()
   // The ramp applies its earned tempo through the same clamped path the
   // slider uses (engines + read-out follow) — but through the INTERNAL

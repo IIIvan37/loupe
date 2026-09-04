@@ -15,6 +15,7 @@ import {
   loadedBytesAtom,
   trackMetadataAtom
 } from '../track/track-atoms.ts'
+import { fineTuneCentsAtom, timeRatioAtom } from './player-atoms.ts'
 import { usePlayer } from './use-player.ts'
 
 /** An inert engine — the handle contract needs identities, not sound. */
@@ -153,5 +154,35 @@ describe('usePlayer — the track\'s tags and bytes are the feature\'s atoms (AD
       void result.current.importFile(new File(['z'], 'next.wav'))
     })
     expect(store.get(loadedBytesAtom)).toBeUndefined()
+  })
+})
+
+describe('usePlayer — tempo and fine-tune are the feature\'s atoms (ADR 0010)', () => {
+  it('writes the clamped tempo ratio and fine-tune to their atoms', () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+
+    act(() => {
+      result.current.setTimeRatio(0.85)
+      result.current.setFineTuneCents(500)
+    })
+
+    expect(store.get(timeRatioAtom)).toBe(0.85)
+    // The domain clamps: ±50 cents is the fine-tune's whole range.
+    expect(store.get(fineTuneCentsAtom)).toBe(50)
+  })
+
+  it('resets both atoms when a fresh track lands', async () => {
+    const store = createStore()
+    const { result } = mountPlayer(store)
+    act(() => {
+      result.current.setTimeRatio(0.85)
+      result.current.setFineTuneCents(30)
+    })
+
+    await act(() => result.current.importFile(new File(['x'], 'take.wav')))
+
+    expect(store.get(timeRatioAtom)).toBe(1)
+    expect(store.get(fineTuneCentsAtom)).toBe(0)
   })
 })

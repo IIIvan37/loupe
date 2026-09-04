@@ -207,7 +207,8 @@ export type {
 } from './project/domain/project.ts'
 export {
   chartTransposedBy,
-  projectChordChart
+  projectChordChart,
+  projectTuning
 } from './project/domain/project.ts'
 export type { SignedSession } from './project/domain/session-signature.ts'
 export { sessionSignature } from './project/domain/session-signature.ts'

@@ -2,7 +2,6 @@ import {
   formatTimecode,
   percent,
   percentToRatio,
-  type ProjectTuning,
   ratio,
   ratioToPercent
 } from '@app/core'
@@ -46,22 +45,6 @@ import { useShellShortcuts } from './orchestration/use-shell-shortcuts.ts'
 import { useStemExport } from './orchestration/use-stem-export.ts'
 import { useChartWithStructure } from './orchestration/use-chart-with-structure.ts'
 import styles from './workstation-shell.module.css'
-
-/** The live tuning as a manifest persists it — an untouched fine-tune stays
- * absent (⇔ 0) so old manifests remain byte-identical. */
-function tuningSnapshot(
-  timeRatio: number,
-  pitchSemitones: number,
-  zoom: number,
-  fineTuneCents: number
-): ProjectTuning {
-  return {
-    timeRatio,
-    pitchSemitones,
-    zoom,
-    ...(fineTuneCents === 0 ? {} : { fineTuneCents })
-  }
-}
 
 /** The transport footer, wired from the values it reads — never a hook bag
  * (ADR 0010): formatting and unit conversion live here, state upstairs. */
@@ -211,7 +194,6 @@ export function WorkstationShell({
     stemsReady,
     loopRegion,
     loopEnabled,
-    tuning: tuningSnapshot(timeRatio, pitchSemitones, viewport.zoom, fineTuneCents),
     markers,
     loops,
     restoreActiveLoop: (active, savedLoopId) => {

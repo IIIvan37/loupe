@@ -6,7 +6,6 @@ import {
   type ProjectChordChart,
   type ProjectDeps,
   type ProjectTempo,
-  type ProjectTuning,
   projectChordChart,
   sessionSaveInput,
   sessionSignature,
@@ -22,6 +21,7 @@ import { isSyntheticStem, METRONOME_ID } from '../../mixer/synthetic-stem.ts'
 import type { Mixer } from '../../mixer/use-mixer.ts'
 import { DEFAULT_METRONOME_CHANNEL } from '../../tempo/metronome-stem.ts'
 import { loadedBytesAtom, trackMetadataAtom } from '../../track/track-atoms.ts'
+import { tuningAtom } from '../../waveform/player-atoms.ts'
 import { restoreSession, type SessionRestoreDeps } from './project-session.ts'
 
 /** A file name without its extension, the fallback header title. */
@@ -40,8 +40,6 @@ export interface ProjectSessionDeps
   /** The armed A/B region and its wrap choice — the loupe a save keeps. */
   readonly loopRegion: LoopRegion | undefined
   readonly loopEnabled: boolean
-  /** The live playback tuning (tempo/pitch/zoom) — saved and fingerprinted. */
-  readonly tuning: ProjectTuning
   readonly viewport: { readonly reset: () => void }
   /** Called when an open actually starts restoring — closes the dialog. */
   readonly onRestoreStarted: () => void
@@ -110,6 +108,9 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
   // 0010): a save persists them, and the tags title the project.
   const loadedBytes = useAtomValue(loadedBytesAtom)
   const metadata = useAtomValue(trackMetadataAtom)
+  // The live tuning (tempo/pitch/zoom/fine-tune) is the player's derived atom
+  // (ADR 0010): a save persists it and the fingerprint signs it.
+  const tuning = useAtomValue(tuningAtom)
   const [trackName, setTrackName] = useState<string | null>(null)
   const [openingId, setOpeningId] = useState<string | undefined>(undefined)
   // The restore's stem-decode narration (« Piste n/total »), for the chip.
@@ -202,7 +203,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
         deps.loopRegion === undefined
           ? undefined
           : { region: deps.loopRegion, enabled: deps.loopEnabled },
-      tuning: deps.tuning,
+      tuning,
       tempo: tempo
         ? {
             metronome: tempo.metronome,
@@ -234,7 +235,7 @@ export function useProjectSession(deps: ProjectSessionDeps): ProjectSession {
       artist: metadata.artist,
       loops: deps.loops.library,
       markers: deps.markers.markers,
-      tuning: deps.tuning,
+      tuning,
       ...(tempo === undefined ? {} : { tempo }),
       ...(chordChart === undefined ? {} : { chordChart }),
       ...(deps.loopRegion === undefined
