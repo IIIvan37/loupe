@@ -83,15 +83,18 @@ fi
 # files; CI covers the rest. A commit that passes here cannot fail CI on a
 # skipped check.
 #
-# The regex form is used for ONE reason: it cannot drift out of sync with
-# `gate` the way a hand-maintained list does — `check:tokens` had already gone
-# missing from that list. The parallelism it also brings is close to free but
+# The regex form keeps the list from drifting INSIDE itself, the way a
+# hand-maintained one does — `check:tokens` had already gone missing. It does
+# nothing about the two lists: this one and `gate`'s in package.json are
+# separate copies, and `check:tests` went missing from this one the day it was
+# added. `docs/gate-parity.spec.ts` now refuses that drift at gate time.
+# The parallelism the regex also brings is close to free but
 # nearly worthless: measured on one tree, `test:coverage` alone is ~99 s, the
 # whole parallel set ~106 s, the same set one after another ~108 s. Everything
 # hides behind coverage either way. What actually removes the cost is the
 # stamp above.
-echo "🔍 gate (typecheck + arch + design + react + tokens + i18n + shell + coverage + knip + jscpd)"
-pnpm run "/^(typecheck|check:arch|check:design|check:react|check:tokens|check:i18n|check:sonar|check:shell|test:coverage|check:dead|check:dup)$/"
+echo "🔍 gate (typecheck + arch + design + react + tokens + i18n + shell + tests + coverage + knip + jscpd)"
+pnpm run "/^(typecheck|check:arch|check:design|check:react|check:tokens|check:i18n|check:sonar|check:shell|check:tests|test:coverage|check:dead|check:dup)$/"
 
 # Everything the gate covers just passed on this tree — stamp it so an amend or
 # a quick follow-up commit on the same bytes doesn't pay for it again.

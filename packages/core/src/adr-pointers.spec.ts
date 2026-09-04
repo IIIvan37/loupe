@@ -40,12 +40,18 @@ describe('ADR pointers over core, web and sheriff config', () => {
       .filter((id): id is string => id !== undefined)
   )
 
-  it('finds recorded ADRs (a silent empty scan proves nothing)', () => {
+  const files = [...sources(coreRoot), ...sources(webRoot), sheriff]
+
+  // Two corpora, two floors. The ADR ids were already floored; the SOURCES
+  // were not, and that is the corpus the assertion below ranges over — a
+  // broken `\.tsx?$` filter would leave `files` at `[sheriff]`, `dangling`
+  // empty, and the guard green over nothing.
+  it('finds recorded ADRs and sources to scan (a silent empty scan proves nothing)', () => {
     expect(known.size).toBeGreaterThanOrEqual(13)
+    expect(files.length).toBeGreaterThanOrEqual(350)
   })
 
   it('resolves every ADR reference to a recorded decision', () => {
-    const files = [...sources(coreRoot), ...sources(webRoot), sheriff]
     const dangling = files.flatMap((path) =>
       [...readFileSync(path, 'utf8').matchAll(ADR_REF)]
         .map((match) => match[1] as string)

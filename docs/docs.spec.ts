@@ -304,6 +304,10 @@ describe('the path detector itself', () => {
 
   it('resolves doc-relative, root-relative and suffix mentions', () => {
     const paths = repoPaths()
+    // An empty walk would make every `resolvesInRepo` below false, so this
+    // test does fail closed — but only by accident of what it asserts. The
+    // floor states the guarantee instead of leaving it to be re-derived.
+    expect(paths.length).toBeGreaterThanOrEqual(500)
     expect(resolvesInRepo('packages/core/src/index.ts', ROOT, paths)).toBe(true)
     expect(resolvesInRepo('core/src/index.ts', ROOT, paths)).toBe(true)
     expect(
