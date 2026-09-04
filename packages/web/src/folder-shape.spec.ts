@@ -20,6 +20,16 @@ const MAX_FLAT_SOURCES = 11
  * owns its stylesheet; shared skins travel through `composes`, never through
  * a neighbour's import. Target: 0. */
 const MAX_FOREIGN_CSS_IMPORTS = 0
+/** Floors under what the two ratchets actually range over — 192 counted
+ * sources spread over 83 folders, and 132 `.tsx` files, today. Unlike the
+ * bounds above these RISE with the tree and never drop.
+ *
+ * The floor sits on the COUNTED SOURCES, not on the folder count: `walk`
+ * returns one entry per directory whatever `isCountedSource` accepts, so a
+ * broken filter leaves 83 folders holding 0 sources each — every count under
+ * the maximum, the ratchet green, and nothing guarded. */
+const MIN_COUNTED_SOURCES = 150
+const MIN_TSX_FILES = 90
 
 const WEB_SRC = fileURLToPath(new URL('.', import.meta.url))
 
@@ -51,6 +61,22 @@ function* sourceFiles(dir: string): Generator<string> {
 }
 
 describe('ADR 0013 — folder shape ratchets', () => {
+  // Both walkers must actually see the tree, or the two bounds below are
+  // green over nothing. `walk` and `sourceFiles` filter on different
+  // extensions, so each needs its own floor.
+  it(`counts at least ${MIN_COUNTED_SOURCES} sources and ${MIN_TSX_FILES} .tsx files`, () => {
+    const counted = walk(WEB_SRC).reduce((total, f) => total + f.count, 0)
+    expect(
+      counted,
+      'the source filter matched (almost) nothing — every folder counts 0 and' +
+        ' the ratchet below is vacuous'
+    ).toBeGreaterThanOrEqual(MIN_COUNTED_SOURCES)
+    expect(
+      [...sourceFiles(WEB_SRC)].length,
+      'the .tsx walker found (almost) nothing — the ratchet below is vacuous'
+    ).toBeGreaterThanOrEqual(MIN_TSX_FILES)
+  })
+
   it(`keeps every folder at most ${MAX_FLAT_SOURCES} direct sources`, () => {
     const offenders = walk(WEB_SRC)
       .filter((folder) => folder.count > MAX_FLAT_SOURCES)

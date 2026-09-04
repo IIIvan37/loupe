@@ -47,7 +47,7 @@
       "**/*.ts",
       "**/*.json",
       "!**/node_modules",
-      "!**/.claude",
+      "!.claude",
       "!**/dist",
       "!**/coverage",
       "!**/reports",

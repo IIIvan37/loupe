@@ -26,6 +26,11 @@ const MAX_RETURN_TYPE_PROPS = 0
 const MAX_PROPS_FIELDS = 20
 /** Hooks called in the busiest component (today the workstation shell). */
 const MAX_HOOKS_PER_COMPONENT = 24
+/** Floor on the corpus the ratchets range over — 192 source files today.
+ * Unlike the bounds above this one RISES with the tree and never drops: it
+ * exists so a walker that stops seeing the code fails loudly instead of
+ * passing over the empty set. */
+const MIN_CORPUS_FILES = 150
 
 const WEB_SRC = fileURLToPath(new URL('.', import.meta.url))
 
@@ -77,6 +82,18 @@ function isPascal(name: string | undefined): boolean {
 }
 
 describe('ADR 0010 — composition ratchets', () => {
+  // Every bound below is an upper bound over `FILES`, so an empty corpus
+  // satisfies all three: `readdirSync` returns [] without complaining, and
+  // `0 <= MAX` is green. A renamed folder or a changed extension would retire
+  // the whole ratchet in silence. This floor is what makes the others mean
+  // something — raise it as the tree grows, never lower it to fit a walker.
+  it(`walks a real corpus of at least ${MIN_CORPUS_FILES} source files`, () => {
+    expect(
+      FILES.length,
+      'the walker found (almost) nothing — the ratchets below are vacuous'
+    ).toBeGreaterThanOrEqual(MIN_CORPUS_FILES)
+  })
+
   it(`has at most ${MAX_RETURN_TYPE_PROPS} props or parameters typed ReturnType<typeof useX> (target 0)`, () => {
     const offenders: string[] = []
     for (const path of FILES) {

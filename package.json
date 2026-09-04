@@ -35,9 +35,10 @@
     "check:i18n": "bash scripts/check-i18n.sh",
     "check:sonar": "bash scripts/check-sonar-triage.sh",
     "check:shell": "node scripts/check-shell.ts",
+    "check:tests": "node scripts/check-test-quality.ts",
     "modules:hint": "node scripts/modules-hint.ts",
     "sonar": "node scripts/sonar-issues.ts",
-    "gate": "pnpm run \"/^(typecheck|check|check:arch|check:design|check:react|check:tokens|check:i18n|check:sonar|check:shell|test:coverage|check:dead|check:dup)$/\" && bash scripts/gate-stamp.sh write",
+    "gate": "pnpm run \"/^(typecheck|check|check:arch|check:design|check:react|check:tokens|check:i18n|check:sonar|check:shell|check:tests|test:coverage|check:dead|check:dup)$/\" && bash scripts/gate-stamp.sh write",
     "prepare": "husky"
   },
   "devDependencies": {
