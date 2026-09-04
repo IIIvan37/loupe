@@ -68,6 +68,17 @@ function gatedDetector(): ChordDetector & { release: () => void } {
 }
 
 describe('useChordDetection', () => {
+  it('fails loudly on the action when the endpoint is missing', async () => {
+    // The other half of the mount test: the run is where the endpoint is
+    // mandatory, so that is where the failure must land.
+    vi.stubEnv('VITE_ANALYSIS_URL', '')
+    const { result } = renderHook(
+      () => useChordDetection({ grid: GRID, onDraft: vi.fn() }),
+      { wrapper: loadedStore(AUDIO).wrapper }
+    )
+    await expect(result.current.detect(4)).rejects.toThrow('VITE_ANALYSIS_URL')
+  })
+
   it('mounts without the analysis endpoint configured', () => {
     // The endpoint is mandatory for a RUN, not for a mount — see
     // `use-separation.spec`.

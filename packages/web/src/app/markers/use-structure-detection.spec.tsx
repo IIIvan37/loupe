@@ -58,6 +58,17 @@ function gatedDetector(): StructureDetector & { release: () => void } {
 }
 
 describe('useStructureDetection', () => {
+  it('fails loudly on the action when the endpoint is missing', async () => {
+    // The other half of the mount test: the run is where the endpoint is
+    // mandatory, so that is where the failure must land.
+    vi.stubEnv('VITE_ANALYSIS_URL', '')
+    const { result } = renderHook(
+      () => useStructureDetection({ grid: NO_GRID, onSections: vi.fn() }),
+      { wrapper: loadedStore(AUDIO).wrapper }
+    )
+    await expect(result.current.detect()).rejects.toThrow('VITE_ANALYSIS_URL')
+  })
+
   it('mounts without the analysis endpoint configured', () => {
     // The endpoint is mandatory for a RUN, not for a mount — see
     // `use-separation.spec`.

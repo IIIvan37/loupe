@@ -70,6 +70,21 @@ describe('useSeparation', () => {
     vi.unstubAllEnvs()
   })
 
+  it('fails loudly on the action when the endpoint is missing', async () => {
+    // The other half of the mount test: the run is where the endpoint is
+    // mandatory, so that is where the failure must land.
+    vi.stubEnv('VITE_ANALYSIS_URL', '')
+    const { result } = renderHook(() => useSeparation(), {
+      wrapper: TestProviders
+    })
+
+    await expect(result.current.separate(audio)).rejects.toThrow(
+      'VITE_ANALYSIS_URL'
+    )
+
+    vi.unstubAllEnvs()
+  })
+
   it('runs a separation to completion and exposes the stems', async () => {
     const { separator, finish } = deferredSeparator()
     const { result } = renderHook(() => useSeparation(pcmOf(stems), separator), {
