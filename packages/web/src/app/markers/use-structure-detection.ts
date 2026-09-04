@@ -7,7 +7,7 @@ import {
   type StructureDetector
 } from '@app/core'
 import { useAtomValue } from 'jotai'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createStructureDetector } from '../../audio/create-structure-detector.ts'
 import {
   type EnsureTokenResult,
@@ -68,10 +68,9 @@ export function useStructureDetection({
   // The track is the player feature's atom (ADR 0010): the detection reads
   // it here — its identity is the run's commit guard below.
   const loadedAudio = useAtomValue(loadedAudioAtom)
-  const engine = useMemo(
-    () => detector ?? createStructureDetector(),
-    [detector]
-  )
+  // Built at CALL time, never at mount — see `use-separation.ts`: an eager
+  // build takes the workstation down at load when the endpoint is unset.
+  const engine = () => detector ?? createStructureDetector()
   const [detecting, setDetecting] = useState(false)
   const [error, setError] = useState<StructureDetectionErrorCode>()
   const [gateReason, setGateReason] = useState<MintFailureReason>()
@@ -144,7 +143,7 @@ export function useStructureDetection({
     controllerRef.current = controller
     const result = await detectStructure(
       { audio, grid: beatGrid, signal: controller.signal },
-      { detector: engine }
+      { detector: engine() }
     )
     // Commit only if this is still the latest run (no newer detect), the track
     // it analysed is still the loaded one (no swap since the await), and the

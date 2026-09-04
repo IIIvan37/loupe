@@ -48,6 +48,24 @@ function detectorOf(bpm: number, beatTimes: number[]): TempoDetector {
 }
 
 describe('useTempo', () => {
+  it('mounts without the analysis endpoint configured', () => {
+    // The endpoint is mandatory for a RUN, not for a mount — see
+    // `use-separation.spec`. An eager adapter build took the whole
+    // workstation down at load on a checkout without a .env.local.
+    vi.stubEnv('VITE_ANALYSIS_URL', '')
+    expect(() => renderTempo()).not.toThrow()
+  })
+
+  it('fails loudly on the action when the endpoint is missing', async () => {
+    // The other half of the mount test: the run is where the endpoint is
+    // mandatory, so that is where the failure must land.
+    vi.stubEnv('VITE_ANALYSIS_URL', '')
+    const { result } = renderTempo()
+    await expect(result.current.detect(audio)).rejects.toThrow(
+      'VITE_ANALYSIS_URL'
+    )
+  })
+
   it('starts idle with no analysis', () => {
     const { result } = renderTempo(detectorOf(120, []))
     expect(result.current.analysis).toBeUndefined()
