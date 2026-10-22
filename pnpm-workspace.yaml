@@ -6,11 +6,41 @@ onlyBuiltDependencies:
 
 # Transitive advisories the `pnpm audit --audit-level high` CI job blocks on.
 # Each override pins WITHIN the major the parent expects; drop it once
-# `pnpm why <pkg>` shows a patched version natively.
-# - fast-uri (via ajv < commitlint/stryker): host confusion,
-#   GHSA-4c8g-83qw-93j6 + GHSA-v2hh-gcrm-f6hx — patched in 3.1.4.
-# - brace-expansion (via minimatch < stryker): GHSA-3jxr-9vmj-r5cp — patched
-#   in 5.0.7.
+# `pnpm why <pkg>` shows a patched version natively. Keep every override
+# here: a `pnpm.overrides` field in package.json makes pnpm ignore this list.
+# - adm-zip (via github-actionlint): GHSA-7q85-xj36-vmfc + GHSA-rcw4-f5rp-g42v +
+#   GHSA-j5f4-cc29-5x44 + GHSA-8238-w5pm-2374 — patched in 0.6.1.
+# - brace-expansion (via minimatch < stryker): GHSA-3jxr-9vmj-r5cp, then
+#   GHSA-qhr7-859c-m2p7 + GHSA-6j4f-fj2g-mc7p — patched in 5.0.11 (5.x line).
+# - fast-uri (via ajv < commitlint/stryker): GHSA-4c8g-83qw-93j6 +
+#   GHSA-v2hh-gcrm-f6hx, then GHSA-5jgf-p345-68v8 + GHSA-f65p-4m7j-42xc +
+#   GHSA-fph4-wmhf-6fwf + GHSA-jqff-g426-hqxp + GHSA-qw65-cvwx-89v3 — patched
+#   in 3.1.7 (3.x line).
+# - js-yaml (via cosmiconfig < commitlint): GHSA-5p4m-2wfm-xmqj +
+#   GHSA-2883-xcg3-v3hh — patched in 4.3.2.
+# - nanoid (via postcss < vite): GHSA-2v37-7h3g-55p8 — patched in 3.3.18
+#   (3.x line).
+# - qs: moved from package.json, which did not record the advisory.
+# - source-map-js (via magicast < @vitest/coverage-v8): GHSA-68fv-2mgg-jv7q —
+#   patched in 1.2.2.
+# - tinypool (via @lingui/cli): GHSA-5gmw-xhrv-c9v3 + GHSA-85c8-ppgw-ccpr —
+#   patched in 2.1.2.
+# - undici (via jsdom): GHSA-rfgv-xxqx-mfg5 + GHSA-w293-vg96-wgc3 — patched in
+#   8.10.2 (8.x line).
 overrides:
-  'fast-uri@>=3.0.0 <4.0.0': '^3.1.4'
-  'brace-expansion@>=3.0.0 <5.0.7': '^5.0.7'
+  'adm-zip@<0.6.1': '^0.6.1'
+  'brace-expansion@>=3.0.0 <5.0.11': '^5.0.11'
+  'fast-uri@>=3.0.0 <3.1.7': '^3.1.7'
+  'js-yaml@>=4.0.0 <4.3.2': '^4.3.2'
+  'nanoid@<3.3.18': '>=3.3.18 <4'
+  'qs@>=6.11.1 <6.15.2': '>=6.15.2'
+  'source-map-js@>=1.0.0 <1.2.2': '^1.2.2'
+  'tinypool@<2.1.2': '^2.1.2'
+  'undici@>=8.0.0 <8.10.2': '^8.10.2'
+
+# Advisories with no patched release, accepted until one ships.
+# - braces (via micromatch < fast-glob < deslop-js < react-doctor, dev only):
+#   GHSA-vfj7-8cjw-p6xm, every version affected.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm
