@@ -15,7 +15,7 @@ import {
 } from '@app/core'
 import { useLingui } from '@lingui/react/macro'
 import { useAtom, useAtomValue, useStore } from 'jotai'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { createSeparator } from '../../audio/create-separator.ts'
 import { downloadBlob } from '../../audio/download-blob.ts'
 import { createZipArchiveWriter } from '../../audio/encode/zip-archive-writer.ts'
@@ -126,7 +126,11 @@ export function useSeparation(
   // other members (DIP).
   const stems = useStemAudio()
   const injected = separator ?? session.separator
-  const engine = useMemo(() => injected ?? createSeparator(), [injected])
+  // Built at CALL time, never at mount: the analysis endpoint is mandatory
+  // (`analysisUrl()` throws when unset), and building the adapter eagerly took
+  // the whole workstation down at load on a checkout without a .env.local. The
+  // loud failure belongs to the action that needs the service.
+  const engine = () => injected ?? createSeparator()
   // The state machine's transitions stay in the core reducer; the atom only
   // carries its current state (ADR 0010's anti-erosion guard).
   const [state, setState] = useAtom(separationStateAtom)
@@ -262,7 +266,7 @@ export function useSeparation(
         return undefined
       }
     }
-    return runSeparation(audio, engine)
+    return runSeparation(audio, engine())
   }
 
   function restore(

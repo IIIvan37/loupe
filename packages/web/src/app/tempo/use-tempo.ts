@@ -15,7 +15,7 @@ import {
   type TempoDetector
 } from '@app/core'
 import { useAtom, useAtomValue, useStore } from 'jotai'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { createTempoDetector } from '../../audio/create-tempo-detector.ts'
 import {
   type EnsureTokenResult,
@@ -148,7 +148,9 @@ export function useTempo(
 ): Tempo {
   const session = useAudioSession()
   const injected = detector ?? session.tempoDetector
-  const engine = useMemo(() => injected ?? createTempoDetector(), [injected])
+  // Built at CALL time, never at mount — see `use-separation.ts`: an eager
+  // build takes the workstation down at load when the endpoint is unset.
+  const engine = () => injected ?? createTempoDetector()
   // The whole bag is owned by the feature (ADR 0010): every field lives in an
   // atom so any consumer instance sees the same session tempo.
   const [analysis, setAnalysis] = useAtom(tempoAnalysisAtom)
@@ -223,7 +225,7 @@ export function useTempo(
     myControllerRef.current = controller
     const result = await detectTempo(
       { audio, signal: controller.signal },
-      { detector: engine }
+      { detector: engine() }
     )
     // Commit only if this is still the latest run (no newer detect), the track
     // it analysed is still the loaded one (no swap since the await), and the
